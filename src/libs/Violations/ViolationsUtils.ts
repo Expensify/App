@@ -9,7 +9,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -37,7 +37,9 @@ function getTagViolationsForSingleLevelTags(
 
     // Add 'tagOutOfPolicy' violation if tag is not in policy
     if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
-        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION});
+        const tagName = policyTagList[policyTagListName]?.name;
+        const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
+        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}});
     }
 
     // Remove 'tagOutOfPolicy' violation if tag is in policy
@@ -52,7 +54,9 @@ function getTagViolationsForSingleLevelTags(
 
     // Add 'missingTag violation' if tag is required and not set
     if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
-        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION});
+        const tagName = policyTagList[policyTagListName]?.name;
+        const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
+        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}});
     }
     return newTransactionViolations;
 }
@@ -64,13 +68,13 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transac
     const tagViolations = [...transactionViolations];
 
     if (!tagName) {
-        Object.values(policyTagList).forEach((tagList) =>
+        for (const tagList of Object.values(policyTagList)) {
             tagViolations.push({
                 name: CONST.VIOLATIONS.MISSING_TAG,
                 type: CONST.VIOLATION_TYPES.VIOLATION,
                 data: {tagName: tagList.name},
-            }),
-        );
+            });
+        }
     } else {
         const tags = TransactionUtils.getTagArrayFromName(tagName);
         if (Object.keys(policyTagList).length !== tags.length || tags.includes('')) {
@@ -185,31 +189,31 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
 
     // Combine transaction and action errors
     let allErrors: Record<string, string | Errors | ReceiptError | null | undefined> = {...errors};
-    errorActions.forEach((action) => {
+    for (const action of errorActions) {
         if (!action.errors) {
-            return;
+            continue;
         }
         allErrors = {...allErrors, ...action.errors};
-    });
+    }
 
     // Extract error messages
-    Object.values(allErrors).forEach((errorValue) => {
+    for (const errorValue of Object.values(allErrors)) {
         if (!errorValue) {
-            return;
+            continue;
         }
         if (typeof errorValue === 'string') {
             uniqueMessages.add(errorValue);
         } else if (isReceiptError(errorValue)) {
             uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
         } else {
-            Object.values(errorValue).forEach((nestedErrorValue) => {
+            for (const nestedErrorValue of Object.values(errorValue)) {
                 if (!nestedErrorValue) {
-                    return;
+                    continue;
                 }
                 uniqueMessages.add(nestedErrorValue);
-            });
+            }
         }
-    });
+    }
 
     return Array.from(uniqueMessages);
 }

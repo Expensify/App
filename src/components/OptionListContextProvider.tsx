@@ -80,7 +80,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
      * Since options might use report attributes, it's necessary to call this after report attributes are loaded with the new locale to make sure the options are generated in a proper language
      */
     useEffect(() => {
-        if (reportAttributes?.locale === prevReportAttributesLocale) {
+        if (!areOptionsInitialized.current || reportAttributes?.locale === prevReportAttributesLocale) {
             return;
         }
 
@@ -210,7 +210,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                     if (!report) {
                         return;
                     }
-                    const newReportOption = createOptionFromReport(report, personalDetails, reportAttributes?.reports);
+                    const newReportOption = createOptionFromReport(report, personalDetails, reportAttributes?.reports, {showPersonalDetails: true});
                     const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
                     newReportOptions.push({
                         newReportOption,

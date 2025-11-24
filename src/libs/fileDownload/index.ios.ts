@@ -7,6 +7,22 @@ import CONST from '@src/CONST';
 import {appendTimeToFileName, getFileName, getFileType, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
 import type {FileDownload} from './types';
 
+const isUserCancelled = (err: unknown) => {
+    let msg = '';
+    if (typeof err === 'string') {
+        msg = err.toLowerCase();
+    } else if (err && typeof err === 'object') {
+        const errorMessage = (err as {message?: unknown}).message;
+        const errorError = (err as {error?: unknown}).error;
+        if (typeof errorMessage === 'string') {
+            msg = errorMessage.toLowerCase();
+        } else if (typeof errorError === 'string') {
+            msg = errorError.toLowerCase();
+        }
+    }
+    return /cancel|did not share/.test(msg);
+};
+
 /**
  * Downloads the file to Documents section in iOS
  */
@@ -55,7 +71,11 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
                     .then(() => RNFS.unlink(localPath));
             });
         })
-        .catch(() => {
+        .catch((error) => {
+            // If the user cancels the iOS share/save dialog, we exit silently without showing an error
+            if (isUserCancelled(error)) {
+                return;
+            }
             if (!onDownloadFailed) {
                 showGeneralErrorAlert();
             }
