@@ -157,7 +157,7 @@ function isSubmitAction(
 
     const isExpenseReport = isExpenseReportUtils(report);
 
-    if (!isExpenseReport || report?.total === 0) {
+    if (!isExpenseReport || (report?.total === 0 && reportTransactions.length === 0)) {
         return false;
     }
 
@@ -437,6 +437,10 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
     const isSubmitter = isCurrentUserSubmitter(report);
     const isReportManager = isReportManagerUtils(report);
 
+    if (isIOUReport) {
+        return (isSubmitter || isReportManager) && !isSettled(report);
+    }
+
     if (isOpenReport && (isSubmitter || isReportManager)) {
         return true;
     }
@@ -452,6 +456,13 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
         return false;
     }
 
+    const isSubmitter = isCurrentUserSubmitter(report);
+    const isManager = isReportManagerUtils(report);
+
+    if (isIOUReportUtils(report) && !isSubmitter && !isManager) {
+        return false;
+    }
+
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy));
     let hasAvailablePolicies = availablePolicies.length > 1;
@@ -462,8 +473,8 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions);
 }
 
-function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions, policy);
+function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[]): boolean {
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions);
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
@@ -691,7 +702,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, reportActions ?? [], policy)) {
+    if (isDeleteAction(report, reportTransactions, reportActions ?? [])) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
     return options;
