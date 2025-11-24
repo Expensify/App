@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -43,22 +43,26 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Globe'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isAdmin, isValidated} = item;
+    const {isAdmin, isValidated, action} = item;
 
-    const threeDotsMenuItems: PopoverMenuItem[] | undefined = isAdmin
-        ? [
-              {
-                  icon: icons.Globe,
-                  text: translate('domain.goToDomain'),
-                  onSelected: item.action,
-              },
-              !isValidated && {
-                  icon: icons.Globe,
-                  text: translate('domain.verifyDomain.title'),
-                  onSelected: () => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(item.accountID)),
-              },
-          ].filter((menuItem) => !!menuItem)
-        : undefined;
+    const threeDotsMenuItems: PopoverMenuItem[] | undefined = useMemo(
+        () =>
+            isAdmin
+                ? [
+                      {
+                          icon: icons.Globe,
+                          text: translate('domain.goToDomain'),
+                          onSelected: action,
+                      },
+                      !isValidated && {
+                          icon: icons.Globe,
+                          text: translate('domain.verifyDomain.title'),
+                          onSelected: () => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(item.accountID)),
+                      },
+                  ].filter((menuItem) => !!menuItem)
+                : undefined,
+        [isAdmin, icons, translate, action, isValidated, item.accountID],
+    );
 
     return (
         <OfflineWithFeedback
@@ -70,7 +74,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel="row"
                 style={styles.mh5}
-                onPress={item.action}
+                onPress={action}
                 disabled={!isAdmin}
             >
                 {({hovered}) => (
