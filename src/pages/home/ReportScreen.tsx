@@ -2,7 +2,7 @@ import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
@@ -20,6 +20,7 @@ import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestRe
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -167,6 +168,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
+
+    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useContext(WideRHPContext);
+    const isDisplayedInWidePaneModal = wideRHPRouteKeys.includes(route.key) || superWideRHPRouteKeys.includes(route.key);
     const currentReportIDValue = useCurrentReportID();
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
@@ -376,7 +380,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 Navigation.goBack();
                 return;
             }
-            if (prioritizeBackTo && backTo) {
+            if ((prioritizeBackTo && backTo) || isDisplayedInWidePaneModal) {
                 Navigation.goBack(backTo as Route);
                 return;
             }
@@ -394,7 +398,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
             Navigation.goBack();
         },
-        [isInNarrowPaneModal, backTo],
+        [isInNarrowPaneModal, isDisplayedInWidePaneModal, backTo],
     );
 
     let headerView = (
@@ -413,7 +417,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 report={report}
                 policy={policy}
                 parentReportAction={parentReportAction}
-                onBackButtonPress={onBackButtonPress}
+                onBackButtonPress={() => {
+                    onBackButtonPress(true);
+                }}
             />
         );
     }

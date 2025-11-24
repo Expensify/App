@@ -1,9 +1,9 @@
 import type {NavigationState} from '@react-navigation/native';
-import {WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider';
+import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-const isReportOpenInRHP = (state: NavigationState | undefined): boolean => {
+const isReportOpenInSuperWideRHP = (state: NavigationState | undefined): boolean => {
     const lastRoute = state?.routes?.at(-1);
     if (!lastRoute) {
         return false;
@@ -12,7 +12,7 @@ const isReportOpenInRHP = (state: NavigationState | undefined): boolean => {
     if (params && 'screen' in params && typeof params.screen === 'string' && params.screen === SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
         return true;
     }
-    return !!(lastRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute.state?.routes?.some((route) => WIDE_RIGHT_MODALS.has(route.name)));
+    return !!(lastRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute.state?.routes?.some((route) => SUPER_WIDE_RIGHT_MODALS.has(route.name)));
 };
 
-export default isReportOpenInRHP;
+export default isReportOpenInSuperWideRHP;

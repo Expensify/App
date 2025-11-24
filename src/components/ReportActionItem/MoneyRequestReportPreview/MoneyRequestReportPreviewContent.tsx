@@ -487,7 +487,7 @@ function MoneyRequestReportPreviewContent({
             name: 'MoneyRequestReportPreviewContent',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
     }, [iouReportID]);
 
     const reportPreviewAction = useMemo(() => {

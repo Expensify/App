@@ -167,7 +167,9 @@ function MoneyRequestReportTransactionList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location'] as const);
     const {translate, localeCompare} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout: shouldUseNarrowLayoutByDefault, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
+    const {superWideRHPRouteKeys} = useContext(WideRHPContext);
+    const shouldUseNarrowLayout = shouldUseNarrowLayoutByDefault && (superWideRHPRouteKeys.length === 0 || isSmallScreenWidth);
     const {markReportIDAsExpense} = useContext(WideRHPContext);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');

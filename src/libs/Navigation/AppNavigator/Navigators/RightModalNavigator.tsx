@@ -310,6 +310,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             }}
                         />
                         <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT}
+                            component={ModalStackNavigators.SearchMoneyRequestReportModalStackNavigator}
+                        />
+                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}
                             component={ModalStackNavigators.RestrictedActionModalStackNavigator}
                         />
@@ -332,6 +336,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.SCHEDULE_CALL}
                             component={ModalStackNavigators.ScheduleCallModalStackNavigator}
+                        />
+                        <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.EXPENSE_REPORT}
+                            component={ModalStackNavigators.ExpenseReportModalStackNavigator}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.DOMAIN}

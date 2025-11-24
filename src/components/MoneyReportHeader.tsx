@@ -44,7 +44,7 @@ import Log from '@libs/Log';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, SearchMoneyRequestReportParamList, SearchReportParamList} from '@libs/Navigation/types';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
@@ -192,7 +192,7 @@ function MoneyReportHeader({
     const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-        | PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>
+        | PlatformStackRouteProp<SearchMoneyRequestReportParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>
         | PlatformStackRouteProp<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>
     >();
     const {login: currentUserLogin, accountID, email} = useCurrentUserPersonalDetails();
@@ -387,9 +387,9 @@ function MoneyReportHeader({
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.similarSearchHash, true);
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON?.hash}`, {canBeMissing: true});
 
-    const {wideRHPRouteKeys} = useContext(WideRHPContext);
+    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useContext(WideRHPContext);
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
-    const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
+    const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || ((wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0) && !isSmallScreenWidth);
 
     const showExportProgressModal = useCallback(() => {
         return showConfirmModal({
@@ -1499,7 +1499,7 @@ function MoneyReportHeader({
 
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
-    const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
+    const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || (isReportInSearch && !shouldDisplayNarrowMoreButton);
 
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
@@ -1539,6 +1539,12 @@ function MoneyReportHeader({
                                     shouldAlwaysShowDropdownMenu
                                 />
                             </View>
+                        )}
+                        {isReportInSearch && (
+                            <MoneyRequestReportNavigation
+                                reportID={moneyRequestReport?.reportID}
+                                shouldDisplayNarrowVersion={!shouldDisplayNarrowMoreButton}
+                            />
                         )}
                     </View>
                 )}
@@ -1584,7 +1590,7 @@ function MoneyReportHeader({
                             />
                         )}
                     </View>
-                    {isReportInSearch && (
+                    {isReportInSearch && !shouldDisplayNarrowMoreButton && (
                         <MoneyRequestReportNavigation
                             reportID={moneyRequestReport?.reportID}
                             shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
