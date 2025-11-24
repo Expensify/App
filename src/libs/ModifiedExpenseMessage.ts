@@ -539,7 +539,7 @@ function getForReportActionTemp({
     const hasModifiedCategory = isReportActionOriginalMessageAnObject && 'oldCategory' in reportActionOriginalMessage && 'category' in reportActionOriginalMessage;
     if (hasModifiedCategory) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        let categoryLabel = translateLocal('common.category');
+        let categoryLabel = translateLocal('common.category').toLowerCase();
 
         // Add attribution suffix based on source
         if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.AI) {
@@ -568,7 +568,7 @@ function getForReportActionTemp({
             removalFragments,
             changeFragments,
             // Don't convert to lowercase when we have source attribution (to preserve any HTML links)
-            !reportActionOriginalMessage?.source,
+            false,
         );
     }
 
