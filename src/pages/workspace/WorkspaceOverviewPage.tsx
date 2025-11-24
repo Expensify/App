@@ -9,7 +9,6 @@ import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -74,7 +73,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const illustrations = useThemeIllustrations();
     const illustrationIcons = useMemoizedLazyIllustrations(['Building'] as const);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'UserPlus'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'UserPlus'] as const);
 
     const backTo = route.params.backTo;
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
@@ -404,7 +403,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 secondaryActions.push({
                     value: 'leave',
                     text: translate('common.leave'),
-                    icon: Expensicons.Exit,
+                    icon: expensifyIcons.Exit,
                     onSelected: () => close(handleLeave),
                 });
                 return renderDropdownMenu(secondaryActions);
@@ -458,7 +457,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             secondaryActions.push({
                 value: 'leave',
                 text: translate('common.leave'),
-                icon: Expensicons.Exit,
+                icon: expensifyIcons.Exit,
                 onSelected: () => close(handleLeave),
             });
         }
