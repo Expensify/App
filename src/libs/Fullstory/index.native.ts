@@ -1,7 +1,6 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
 import getEnvironment from '@src/libs/Environment/getEnvironment';
-// import {getChatFSClass, shouldInitializeFullstory} from './common';
-import {getChatFSClass} from './common';
+import {getChatFSClass, shouldInitializeFullstory} from './common';
 import type {Fullstory} from './types';
 
 const FS: Fullstory = {
@@ -13,8 +12,7 @@ const FS: Fullstory = {
 
     onReady: () => Promise.resolve(),
 
-    // shouldInitialize: shouldInitializeFullstory,
-    shouldInitialize: () => true,
+    shouldInitialize: shouldInitializeFullstory,
 
     consent: (shouldConsent) => FullStory.consent(shouldConsent),
 
