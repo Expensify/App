@@ -6,7 +6,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, Policy, Report, ReportNextStepDeprecated, TransactionViolations} from '@src/types/onyx';
+import type {Beta, Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -23,8 +23,11 @@ import {
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isInvoiceReport,
+    isOpenExpenseReport,
     isPayer,
+    isReportOwner,
 } from './ReportUtils';
+import {isPendingCardOrIncompleteTransaction} from './TransactionUtils';
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
@@ -351,6 +354,30 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
     return optimisticNextStep;
 }
 
+function buildOptimisticFixIssueNextStep() {
+    const optimisticNextStep: ReportNextStepDeprecated = {
+        type: 'neutral',
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        message: [
+            {
+                text: 'Waiting for ',
+            },
+            {
+                text: `you`,
+                type: 'strong',
+            },
+            {
+                text: ' to ',
+            },
+            {
+                text: 'fix the issue(s)',
+            },
+        ],
+    };
+
+    return optimisticNextStep;
+}
+
 function buildOptimisticNextStepForStrictPolicyRuleViolations() {
     const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'alert',
@@ -363,6 +390,30 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
     };
 
     return optimisticNextStep;
+}
+
+function getReportNextStep(
+    currentNextStep: ReportNextStepDeprecated | undefined,
+    moneyRequestReport: OnyxEntry<Report>,
+    transactions: Array<OnyxEntry<Transaction>>,
+    policy: OnyxEntry<Policy>,
+) {
+    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
+
+    if (isOpenExpenseReport(moneyRequestReport) && transactions.length > 0 && transactions.every((transaction) => isPendingCardOrIncompleteTransaction(transaction))) {
+        return buildOptimisticFixIssueNextStep();
+    }
+
+    const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
+
+    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
+    // We should always show this optimistic message for policies with preventSelfApproval
+    // to avoid any flicker during transitions between online/offline states
+    if (isSubmitterSameAsNextApprover && policy?.preventSelfApproval) {
+        return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
+    }
+
+    return currentNextStep;
 }
 
 /**
@@ -1126,6 +1177,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
 }
 
 export {
+    getReportNextStep,
     buildNextStepMessage,
     buildOptimisticNextStep,
     parseMessage,

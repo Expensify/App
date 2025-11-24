@@ -43,6 +43,7 @@ import {
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
+    isPendingCardOrIncompleteTransaction,
     isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
@@ -85,7 +86,7 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     const isOpenReport = isOpenReportUtils(report);
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPendingCardOrIncompleteTransaction(transaction))) {
         return false;
     }
 
