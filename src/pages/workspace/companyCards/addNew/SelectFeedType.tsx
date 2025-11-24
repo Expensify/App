@@ -128,7 +128,7 @@ function SelectFeedType() {
                     setHasError(false);
                 }}
                 shouldSingleExecuteRowSelect
-                confirmButtonConfig={confirmButtonOptions}
+                confirmButtonOptions={confirmButtonOptions}
                 alternateNumberOfSupportedLines={3}
                 initiallyFocusedItemKey={typeSelected}
                 shouldUpdateFocusedIndex
