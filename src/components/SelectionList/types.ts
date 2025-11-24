@@ -1,9 +1,10 @@
 import type {ReactElement, RefObject} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ListItem, ValidListItem} from './ListItem/types';
 
-type SelectionListProps<TItem extends ListItem> = {
+type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Array of items to display in the list */
     data: TItem[];
 
@@ -38,7 +39,7 @@ type SelectionListProps<TItem extends ListItem> = {
     onEndReachedThreshold?: number;
 
     /** Configuration for the confirm button */
-    confirmButtonConfig?: ConfirmButtonOptions<TItem>;
+    confirmButtonOptions?: ConfirmButtonOptions<TItem>;
 
     /** Custom header content to render instead of the default select all header */
     customListHeader?: React.ReactNode;
@@ -146,6 +147,10 @@ type SelectionListProps<TItem extends ListItem> = {
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Whether hover style should be disabled */
+    shouldDisableHoverStyle?: boolean;
+    setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 type TextInputOptions = {
