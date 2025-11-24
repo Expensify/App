@@ -12,7 +12,6 @@ function TrialStartedBillingBanner() {
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const illustrations = useMemoizedLazyIllustrations(['TreasureChest'] as const);
     const subtitle = !doesUserHavePaymentCardAdded(userBillingFundID) ? translate('subscription.billingBanner.trialStarted.subtitle') : '';
-
     return (
         <BillingBanner
             title={translate('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays(lastDayFreeTrial)})}
