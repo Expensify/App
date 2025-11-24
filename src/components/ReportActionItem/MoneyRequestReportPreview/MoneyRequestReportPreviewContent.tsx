@@ -87,6 +87,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import NoSharedMoneyRequestReportPreview from './AccessMoneyRequestReportPreviewPlaceHolder';
 import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
 
@@ -132,6 +133,7 @@ function MoneyRequestReportPreviewContent({
     const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);
     const lastTransaction = transactions?.at(0);
     const shouldShowSkeleton = shouldShowLoading && transactions.length === 0;
+    const shouldShowAccessPlaceHolder = !iouReport && !shouldShowLoading;
     const shouldShowEmptyPlaceholder = transactions.length === 0 && !shouldShowLoading;
     const showStatusAndSkeleton = !shouldShowEmptyPlaceholder;
     const theme = useTheme();
@@ -387,7 +389,7 @@ function MoneyRequestReportPreviewContent({
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBS_UP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBS_UP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
-    const carouselTransactions = transactions.slice(0, 11);
+    const carouselTransactions = shouldShowAccessPlaceHolder ? [] : transactions.slice(0, 11);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {
@@ -804,7 +806,8 @@ function MoneyRequestReportPreviewContent({
                                                 ListFooterComponent={<View style={styles.pl2} />}
                                                 ListHeaderComponent={<View style={styles.pr2} />}
                                             />
-                                            {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview />}
+                                            {shouldShowAccessPlaceHolder && !shouldShowEmptyPlaceholder && <NoSharedMoneyRequestReportPreview />}
+                                            {shouldShowEmptyPlaceholder && !shouldShowAccessPlaceHolder && <EmptyMoneyRequestReportPreview />}
                                         </View>
                                     )}
                                     <View style={[styles.expenseAndReportPreviewTextContainer]}>
