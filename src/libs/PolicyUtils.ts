@@ -95,6 +95,13 @@ function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollect
     return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => policy?.arePerDiemRatesEnabled);
 }
 
+function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => {
+        const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+        return policy?.arePerDiemRatesEnabled && !isEmptyObject(perDiemCustomUnit?.rates);
+    });
+}
+
 /**
  * Checks if the current user is an admin of the policy.
  */
@@ -1735,6 +1742,7 @@ export {
     getPolicyEmployeeAccountIDs,
     isMemberPolicyAdmin,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     isDefaultTagName,
 };
 
