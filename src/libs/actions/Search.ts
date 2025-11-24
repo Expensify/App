@@ -729,14 +729,17 @@ function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: strin
 function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: SelectedTransactions, comment: string, allPolicies: OnyxCollection<Policy>, allReports: OnyxCollection<Report>) {
     const transactionIDs = Object.keys(selectedTransactions);
 
-    const transactionsByReport: Record<string, string[]> = {};
-    transactionIDs.forEach((transactionID) => {
+    const transactionsByReport = transactionIDs.reduce<Record<string, string[]>>((acc, transactionID) => {
         const reportID = selectedTransactions[transactionID].reportID;
-        if (!transactionsByReport[reportID]) {
-            transactionsByReport[reportID] = [];
+
+        if (!acc[reportID]) {
+            acc[reportID] = [];
         }
-        transactionsByReport[reportID].push(transactionID);
-    });
+
+        acc[reportID].push(transactionID);
+
+        return acc;
+    }, {});
 
     Object.entries(transactionsByReport).forEach(([reportID, selectedTransactionIDs]) => {
         const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
