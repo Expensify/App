@@ -4672,19 +4672,12 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasModifiedTaxCode)
     ) {
         const originalTransactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        const currentTransactionViolations = ViolationsUtils.removeAutoReportedRejectedExpenseViolation(
-            originalTransactionViolations,
-            transactionID,
-            iouReport,
-            isFromExpenseReport,
-            optimisticData,
-        );
 
         // If the amount, currency or date have been modified, we remove the duplicate violations since they would be out of date as the transaction has changed
         const optimisticViolations =
             hasModifiedAmount || hasModifiedDate || hasModifiedCurrency
-                ? currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-                : currentTransactionViolations;
+                ? originalTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+                : originalTransactionViolations;
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             updatedTransaction,
             optimisticViolations,
@@ -4694,6 +4687,8 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasDependentTags(policy, policyTagList ?? {}),
             isInvoice,
             isSelfDM(iouReport),
+            iouReport,
+            isFromExpenseReport,
         );
         optimisticData.push(violationsOnyxData);
         failureData.push({

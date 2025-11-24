@@ -229,6 +229,8 @@ const ViolationsUtils = {
         hasDependentTags: boolean,
         isInvoiceTransaction: boolean,
         isSelfDM?: boolean,
+        iouReport?: OnyxEntry<Report> | null,
+        isFromExpenseReport?: boolean,
     ): OnyxUpdate {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -242,6 +244,14 @@ const ViolationsUtils = {
         }
 
         let newTransactionViolations = [...transactionViolations];
+
+        // Remove AUTO_REPORTED_REJECTED_EXPENSE violation when the submitter edits the expense
+        if (iouReport && isFromExpenseReport && isCurrentUserSubmitter(iouReport)) {
+            const hasRejectedExpenseViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+            if (hasRejectedExpenseViolation) {
+                newTransactionViolations = newTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+            }
+        }
 
         const shouldShowSmartScanFailedError = isScanRequest && updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
         const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
@@ -644,36 +654,6 @@ const ViolationsUtils = {
                 return shouldShowViolation(report, policy, violation.name, currentUserEmail);
             });
         });
-    },
-
-    /**
-     * Removes AUTO_REPORTED_REJECTED_EXPENSE violation. Useful when submitter edits the expense.
-     * Returns the filtered violations and optionally adds optimistic data to remove the violation.
-     */
-    removeAutoReportedRejectedExpenseViolation(
-        transactionViolations: TransactionViolation[],
-        transactionID: string,
-        iouReport: OnyxEntry<Report> | null,
-        isFromExpenseReport: boolean,
-        optimisticData: OnyxUpdate[],
-    ): TransactionViolation[] {
-        let currentTransactionViolations = transactionViolations;
-
-        // Remove AUTO_REPORTED_REJECTED_EXPENSE violation when the submitter edits the expense
-        if (iouReport && isFromExpenseReport && isCurrentUserSubmitter(iouReport)) {
-            const hasRejectedExpenseViolation = currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
-            if (hasRejectedExpenseViolation) {
-                currentTransactionViolations = currentTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
-                // Optimistically remove the violation immediately
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                    value: currentTransactionViolations,
-                });
-            }
-        }
-
-        return currentTransactionViolations;
     },
 };
 
