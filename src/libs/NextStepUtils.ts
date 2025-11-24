@@ -1073,7 +1073,15 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                 ) ||
                 reimbursableSpend === 0
             ) {
-                optimisticNextStep = noActionRequired;
+                optimisticNextStep = {
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    type,
+                    message: [
+                        {
+                            text: 'Waiting for this report to be paid.',
+                        },
+                    ],
+                };
 
                 break;
             }
