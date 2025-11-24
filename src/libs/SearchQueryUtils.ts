@@ -42,6 +42,7 @@ import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetai
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
+import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
 
@@ -679,13 +680,13 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
             filtersForm[key as typeof filterKey] = filterValues.join(',');
         }
-        if (
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION
-        ) {
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
             filtersForm[key as typeof filterKey] = filterValues.at(0);
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) {
+            const actionValue = filterValues.at(0);
+            filtersForm[key as typeof filterKey] =
+                actionValue && Object.values(CONST.SEARCH.ACTION_FILTERS).includes(actionValue as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>) ? actionValue : undefined;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
             const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
@@ -1206,13 +1207,13 @@ function shouldHighlight(referenceText: string, searchText: string) {
         return false;
     }
 
-    const escapedText = searchText
+    const escapedText = StringUtils.normalizeAccents(searchText)
         .toLowerCase()
         .trim()
-        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        .replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`(^|\\s)${escapedText}(?=\\s|$)`, 'i');
 
-    return pattern.test(referenceText.toLowerCase());
+    return pattern.test(StringUtils.normalizeAccents(referenceText).toLowerCase());
 }
 
 export {

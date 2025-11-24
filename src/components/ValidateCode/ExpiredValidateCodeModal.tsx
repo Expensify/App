@@ -1,24 +1,26 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
+import {beginSignIn} from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function ExpiredValidateCodeModal() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -26,7 +28,7 @@ function ExpiredValidateCodeModal() {
                     <Icon
                         width={variables.modalTopIconWidth}
                         height={variables.modalTopIconHeight}
-                        src={Illustrations.ToddBehindCloud}
+                        src={illustrations.ToddBehindCloud}
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.expiredCodeTitle')}</Text>
@@ -37,7 +39,7 @@ function ExpiredValidateCodeModal() {
                             {translate('validateCodeModal.or')}{' '}
                             <TextLink
                                 onPress={() => {
-                                    Session.beginSignIn(credentials?.login ?? '');
+                                    beginSignIn(credentials?.login ?? '');
                                     Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                                 }}
                             >

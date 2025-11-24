@@ -161,6 +161,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
             const updatedValues = getMergeFieldUpdatedValues({transaction, field, fieldValue, mergeTransaction});
+
             setMergeTransactionKey(transactionID, {
                 ...updatedValues,
                 selectedTransactionByField: {
@@ -179,13 +180,13 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         }
 
         const newHasErrors: Partial<Record<MergeFieldKey, boolean>> = {};
-        conflictFields.forEach((field) => {
+        for (const field of conflictFields) {
             if (!isEmptyMergeValue(mergeTransaction[field])) {
-                return;
+                continue;
             }
 
             newHasErrors[field] = true;
-        });
+        }
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {

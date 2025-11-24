@@ -103,7 +103,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         },
     ];
 
-    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}).forEach(([fieldName, field]) => {
+    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {})) {
         summaryItems.push({
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
@@ -112,9 +112,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
                 onMove(STEP_INDEXES.BANK_ACCOUNT_DETAILS);
             },
         });
-    });
+    }
 
-    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE] ?? {}).forEach(([fieldName, field]) => {
+    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE] ?? {})) {
         summaryItems.push({
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
@@ -123,34 +123,34 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
                 onMove(STEP_INDEXES.ACCOUNT_TYPE);
             },
         });
-    });
+    }
 
-    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION] ?? {})
-        .sort(([field1], [field2]) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field2))
-        .forEach(([fieldName, field]) => {
-            summaryItems.push({
-                description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
-                title: getTitle(field, fieldName),
-                shouldShowRightIcon: true,
-                onPress: () => {
-                    onMove(STEP_INDEXES.BANK_INFORMATION);
-                },
-            });
+    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION] ?? {}).sort(
+        ([field1], [field2]) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field2),
+    )) {
+        summaryItems.push({
+            description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
+            title: getTitle(field, fieldName),
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(STEP_INDEXES.BANK_INFORMATION);
+            },
         });
+    }
 
-    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION] ?? {})
-        .sort(([field1], [field2]) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field2))
-        .forEach(([fieldName, field]) => {
-            summaryItems.push({
-                description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
-                title: fieldName === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? translate(`allCountries.${formValues.bankCountry}` as TranslationPaths) : getTitle(field, fieldName),
-                shouldShowRightIcon: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
-                onPress: () => {
-                    onMove(STEP_INDEXES.ACCOUNT_HOLDER_INFORMATION);
-                },
-                interactive: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
-            });
+    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION] ?? {}).sort(
+        ([field1], [field2]) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field2),
+    )) {
+        summaryItems.push({
+            description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
+            title: fieldName === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? translate(`allCountries.${formValues.bankCountry}` as TranslationPaths) : getTitle(field, fieldName),
+            shouldShowRightIcon: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
+            onPress: () => {
+                onMove(STEP_INDEXES.ACCOUNT_HOLDER_INFORMATION);
+            },
+            interactive: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
         });
+    }
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
