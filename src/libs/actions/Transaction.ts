@@ -1320,6 +1320,7 @@ function changeTransactionsReport(
         const hasViolations = hasViolationsReportUtils(updatedReport.reportID, allTransactionViolation);
         const shouldFixViolationsForReport = affectedReportID === destinationReportID ? shouldFixViolations : false;
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepForCollection = buildNextStepNew({
             report: updatedReport,
             policy,
