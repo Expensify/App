@@ -858,29 +858,17 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         hasCreatedLegacyThreadRef.current = false;
     }, [reportID]);
 
+    // When opening IOU report for single transaction, we will create IOU action and transaction thread
+    // for legacy transaction that doesn't have IOU action
     useEffect(() => {
-        // Guard against multiple calls - this prevents creating duplicate IOU actions
-        if (hasCreatedLegacyThreadRef.current) {
+        // Skip if already created, coming from Search page, or thread already exists
+        if (hasCreatedLegacyThreadRef.current || route.name === SCREENS.SEARCH.REPORT_RHP || transactionThreadReport || (transactionThreadReportID && transactionThreadReportID !== '0')) {
             return;
         }
 
-        // Wait for report and transaction to be fully loaded
-        if (!reportID || !visibleTransactions?.length) {
-            return;
-        }
-
-        // Only handle single transaction expense reports
-        if (visibleTransactions.length !== 1 || report?.type !== CONST.REPORT.TYPE.EXPENSE) {
-            return;
-        }
-
-        // If transaction thread already exists, no need to create
-        if (transactionThreadReport || transactionThreadReportID) {
-            return;
-        }
-
-        const transaction = visibleTransactions.at(0);
-        if (!transaction?.transactionID) {
+        // Only handle single transaction expense reports that are fully loaded
+        const transaction = visibleTransactions?.at(0);
+        if (!reportID || visibleTransactions?.length !== 1 || report?.type !== CONST.REPORT.TYPE.EXPENSE || !transaction?.transactionID) {
             return;
         }
 
@@ -896,7 +884,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // For legacy transactions, pass undefined as IOU action and the transaction object
         // It will be created optimistically and in the backend when call openReport
         createTransactionThreadReport(report, undefined, transaction);
-    }, [report, visibleTransactions, transactionThreadReport, transactionThreadReportID, reportID]);
+    }, [report, visibleTransactions, transactionThreadReport, transactionThreadReportID, reportID, route.name]);
 
     const lastRoute = usePrevious(route);
 
