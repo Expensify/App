@@ -102,10 +102,8 @@ function BaseVideoPlayer({
     }, [isSafariLoading, status]);
 
     const hasError = useMemo(() => {
-        // No need to set hasError while offline, since the offline indicator is already shown.
-        // Once the user reconnects, if the video is unsupported, the error will be triggered again.
-        return status === 'error' && !isOffline;
-    }, [isOffline, status]);
+        return status === 'error';
+    }, [status]);
 
     const videoViewRef = useRef<VideoView | null>(null);
     const videoPlayerElementParentRef = useRef<View | HTMLDivElement | null>(null);
@@ -115,8 +113,13 @@ function BaseVideoPlayer({
     const canUseTouchScreen = canUseTouchScreenLib();
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
+    const shouldShowErrorIndicator = useMemo(() => {
+        // No need to set hasError while offline, since the offline indicator is already shown.
+        // Once the user reconnects, if the video is unsupported, the error will be triggered again.
+        return hasError && !isOffline;
+    }, [hasError, isOffline]);
     const shouldShowLoadingIndicator = useMemo(() => {
-        return !isPlaying && !isOffline && !hasError && (isLoading || (status === 'idle' && isFirstLoad));
+        return (!isPlaying || isFirstLoad) && !isOffline && !hasError && (isLoading || (status === 'idle' && isFirstLoad));
     }, [hasError, isFirstLoad, isLoading, isOffline, isPlaying, status]);
     const shouldShowOfflineIndicator = useMemo(() => {
         return isOffline && currentTime + bufferedPosition <= 0;
@@ -127,6 +130,15 @@ function BaseVideoPlayer({
         isOffline,
         isLocalFile: isUploading,
     });
+
+    useEffect(() => {
+        if (!(shouldShowErrorIndicator && currentTime <= 0)) {
+            return;
+        }
+        setIsFirstLoad(true);
+        videoPlayerRef.current.replaceAsync(sourceURL);
+    }, [currentTime, pauseVideo, shouldShowErrorIndicator, sourceURL]);
+
     const {updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: updatePopoverMenuSource} = useVideoPopoverMenuContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
@@ -469,7 +481,7 @@ function BaseVideoPlayer({
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
-                            {hasError && !isOffline && <VideoErrorIndicator isPreview={isPreview} />}
+                            {shouldShowErrorIndicator && <VideoErrorIndicator isPreview={isPreview} />}
                             {shouldShowLoadingIndicator && (
                                 <FullScreenLoadingIndicator
                                     style={[styles.opacity1, styles.bgTransparent]}
@@ -480,7 +492,7 @@ function BaseVideoPlayer({
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE &&
                                 !shouldShowLoadingIndicator &&
                                 !shouldShowOfflineIndicator &&
-                                !hasError &&
+                                !shouldShowErrorIndicator &&
                                 (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
                                     <VideoPlayerControls
                                         duration={duration || 0}
