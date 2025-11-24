@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -691,6 +692,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
+        reportName: '报告名称',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -1320,7 +1322,7 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 已发送${comment ? `对于${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `将费用从个人空间移动到${workspaceName ?? `与${reportName}聊天`}`,
         movedToPersonalSpace: '将费用移至个人空间',
-        tagSelection: '选择一个标签以更好地组织您的支出。',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `选择${policyTagListName ?? '一个标签'}以更好地管理您的支出。`,
         categorySelection: '选择一个类别以更好地组织您的支出。',
         error: {
             invalidCategoryLength: '类别名称超过255个字符。请缩短或选择不同的类别。',
@@ -3244,6 +3246,9 @@ ${
         whatsYourAddress: '你的地址是什么？',
         whatAreTheLast: '业主社会安全号码的最后四位数字是什么？',
         whatsYourLast: '您的社会安全号码的最后四位数字是什么？',
+        whatsYourNationality: '您的公民身份所属国家是？',
+        whatsTheOwnersNationality: '业主的公民身份所属国家是？',
+        countryOfCitizenship: '公民身份国家',
         dontWorry: '别担心，我们不会进行任何个人信用检查！',
         last4: 'SSN的后四位',
         whyDoWeAsk: '我们为什么要求这个？',
@@ -5769,7 +5774,7 @@ ${
                 billableDescription: '费用通常会重新计费给客户。',
                 nonBillable: '非计费',
                 nonBillableDescription: '费用有时会重新计入客户账单。',
-                eReceipts: 'eReceipts',
+                eReceipts: '电子收据',
                 eReceiptsHint: `电子收据是自动创建的[用于大多数美元贷记交易](${CONST.DEEP_DIVE_ERECEIPTS})。`,
                 attendeeTracking: '参与者跟踪',
                 attendeeTrackingHint: '跟踪每笔费用的每人成本。',
@@ -6090,6 +6095,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 与会者跟踪`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
