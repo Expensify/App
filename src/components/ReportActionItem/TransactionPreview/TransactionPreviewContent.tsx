@@ -61,7 +61,7 @@ function TransactionPreviewContent({
     navigateToReviewFields,
     isReviewDuplicateTransactionPage = false,
     // TODO: Remove this before the actual release
-    displayTestMFAButton = false,
+    displayTestMultifactorAuthenticationButton = false,
 }: TransactionPreviewContentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -209,7 +209,7 @@ function TransactionPreviewContent({
         actorAccountID,
     ]);
 
-    const navigateToMFA = useCallback(() => {
+    const navigateToMultifactorAuthentication = useCallback(() => {
         const {transactionID} = transaction ?? {};
 
         if (!transactionID) {
@@ -400,12 +400,12 @@ function TransactionPreviewContent({
                             onPress={navigateToReviewFields}
                         />
                     )}
-                    {displayTestMFAButton && (
+                    {displayTestMultifactorAuthenticationButton && (
                         <Button
-                            text={translate('iou.approve', {formattedAmount: '(MFA test)'})}
+                            text={translate('iou.approve', {formattedAmount: '(MultifactorAuthentication test)'})}
                             success
                             style={[styles.ph4, styles.pb4]}
-                            onPress={navigateToMFA}
+                            onPress={navigateToMultifactorAuthentication}
                         />
                     )}
                 </View>

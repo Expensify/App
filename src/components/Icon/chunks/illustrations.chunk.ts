@@ -20,7 +20,7 @@ import HumptyDumpty from '@assets/images/humpty-dumpty.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
-// MFA Illustrations
+// Multifactor Authentication Illustrations
 import OpenPadlock from '@assets/images/open-padlock.svg';
 // Product Illustrations
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
@@ -262,7 +262,7 @@ const Illustrations = {
     Mailbox,
     ShieldYellow,
 
-    // MFA Illustrations
+    // Multifactor Authentication Illustrations
     OpenPadlock,
     ApprovedTransactionHand,
     DeniedTransactionHand,

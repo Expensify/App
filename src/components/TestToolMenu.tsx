@@ -8,7 +8,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isUsingStagingApi} from '@libs/ApiUtils';
-import MFA from '@libs/MultifactorAuthentication/Biometrics/MFA';
+import MultifactorAuthenticationObserver from '@libs/MultifactorAuthentication/Biometrics/Observer';
 import Navigation from '@libs/Navigation/Navigation';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
@@ -32,7 +32,7 @@ function TestToolMenu() {
     const {translate} = useLocalize();
     const {setup} = useNativeBiometrics();
 
-    useEffect(() => MFA.registerCallback('TestToolMenu', setup.refresh), [setup.refresh]);
+    useEffect(() => MultifactorAuthenticationObserver.registerCallback('TestToolMenu', setup.refresh), [setup.refresh]);
 
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
