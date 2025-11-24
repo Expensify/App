@@ -5,5 +5,3 @@
 export default async function requestReview(): Promise<void> {
     // no-op
 }
-
-
