@@ -2,12 +2,12 @@
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
 import type * as RNAppLogs from 'react-native-app-logs';
+import type {ReadDirItem} from 'react-native-fs';
 import 'react-native-gesture-handler/jestSetup';
 import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
-import type {ReadDirItem} from 'react-native-fs';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 import setupMockReactNativeWorklets from './setupMockReactNativeWorklets';
@@ -72,9 +72,9 @@ jest.mock('react-native-fs', () => ({
     ),
     readDir: jest.fn(
         () =>
-            new Promise<ReadDirItem[]>(res => {
+            new Promise<ReadDirItem[]>((res) => {
                 res([]);
-            })
+            }),
     ),
     CachesDirectoryPath: jest.fn(),
 }));
