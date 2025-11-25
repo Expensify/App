@@ -580,7 +580,6 @@ describe('SidebarUtils', () => {
             const expenseChatID = generateReportID();
             const expenseReportID = generateReportID();
             const holdReportActionID = generateReportID();
-            const delegateEmail = 'copilot@example.com';
 
             const policyExpenseChat: Report = {
                 reportID: expenseChatID,
@@ -635,13 +634,6 @@ describe('SidebarUtils', () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: {
                         accountID: 12345,
-                        email: delegateEmail,
-                    },
-                    [ONYXKEYS.ACCOUNT]: {
-                        delegatedAccess: {
-                            delegate: delegateEmail,
-                            delegates: [{email: delegateEmail, role: CONST.DELEGATE_ROLE.ALL}],
-                        },
                     },
                     [`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat,
                     [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: expenseReport,
