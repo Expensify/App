@@ -66,6 +66,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                 numberOfLinesTitle={2}
                 titleStyle={[styles.fontSizeLabel, styles.textMono, styles.wordBreakAll]}
                 descriptionTextStyle={[styles.fontSizeLabel, styles.pb1]}
+                textInputContainerStyles={styles.pt1}
                 numberOfLines={9}
                 multiline
                 onValueCommitted={(metaIdentity) => {
