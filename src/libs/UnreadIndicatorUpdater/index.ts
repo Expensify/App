@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions, ReportNameValuePairs} from '@src/types/onyx';
 import updateUnread from './updateUnread';
+import { Platform } from 'react-native';
 
 let allReports: OnyxCollection<Report> = {};
 
@@ -112,4 +113,88 @@ AppStateMonitor.addBecameActiveListener(() => {
     triggerUnreadUpdate();
 });
 
-export default {getUnreadReportsForUnreadIndicator};
+/**
+ * Manually trigger an unread update by reading current Onyx data.
+ * This is useful in background/headless JS contexts where Onyx.connectWithoutView callbacks may not run.
+ * It reads the latest data from Onyx and calculates the unread count.
+ */
+function triggerUnreadUpdateFromOnyx(): Promise<void> {
+    // Android does not yet implement this
+    if (Platform.OS === 'android') {
+        return Promise.resolve();
+    }
+
+
+    // Use one-time connections to read current Onyx values
+    const readReports = (): Promise<OnyxCollection<Report>> => {
+        return new Promise<OnyxCollection<Report>>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    resolve((value ?? {}) as OnyxCollection<Report>);
+                },
+            });
+        });
+    };
+
+    const readReportActions = (): Promise<OnyxCollection<ReportActions>> => {
+        return new Promise<OnyxCollection<ReportActions>>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    resolve((value ?? {}) as OnyxCollection<ReportActions>);
+                },
+            });
+        });
+    };
+
+    const readReportNameValuePairs = (): Promise<OnyxCollection<ReportNameValuePairs>> => {
+        return new Promise<OnyxCollection<ReportNameValuePairs>>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    resolve((value ?? {}) as OnyxCollection<ReportNameValuePairs>);
+                },
+            });
+        });
+    };
+
+    const readDraftComments = (): Promise<OnyxCollection<string>> => {
+        return new Promise<OnyxCollection<string>>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
+                waitForCollectionCallback: true,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    resolve((value ?? {}) as OnyxCollection<string>);
+                },
+            });
+        });
+    };
+
+    return Promise.all([readReports(), readReportActions(), readReportNameValuePairs(), readDraftComments()]).then(
+        ([reports, reportActions, reportNameValuePairs, draftComments]) => {
+            // Update module-level variables with fresh data
+            allReports = reports;
+            allReportActions = reportActions;
+            allReportNameValuePairs = reportNameValuePairs;
+            allDraftComments = draftComments;
+
+            // Calculate current report ID (may be undefined in headless context)
+            const currentReportID = navigationRef?.isReady?.() ? Navigation.getTopmostReportId() : undefined;
+            const draftComment = draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${currentReportID}`];
+
+            // Calculate unread count
+            const unreadReports = getUnreadReportsForUnreadIndicator(reports, currentReportID, draftComment);
+            updateUnread(unreadReports.length);
+        },
+    );
+}
+
+export default {getUnreadReportsForUnreadIndicator, triggerUnreadUpdateFromOnyx};

@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import UnreadIndicatorUpdater from '@libs/UnreadIndicatorUpdater';
 import Visibility from '@libs/Visibility';
 import {updateLastVisitedPath} from '@userActions/App';
 import * as Modal from '@userActions/Modal';
@@ -84,19 +85,19 @@ function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasP
         const isDataMissing = !lastUpdateID || !onyxData || !previousUpdateID;
         logMissingOnyxDataInfo(isDataMissing);
         if (isDataMissing) {
-            return Promise.resolve();
+            // return Promise.resolve();
         }
 
         updates = {
-            type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
-            lastUpdateID,
-            previousUpdateID,
-            updates: [
-                {
-                    eventType: '', // This is only needed for Pusher events
-                    data: onyxData,
-                },
-            ],
+            // type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
+            // lastUpdateID,
+            // previousUpdateID,
+            // updates: [
+            //     {
+            //         eventType: '', // This is only needed for Pusher events
+            //         data: onyxData,
+            //     },
+            // ],
         };
     }
 
@@ -106,7 +107,16 @@ function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasP
      * and pass it as a param
      */
     return getLastUpdateIDAppliedToClient()
-        .then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}))
+        .then(() => {
+            // Update unread indicator after applying Onyx data
+            // This is especially important in background/headless JS contexts where
+            // Onyx.connectWithoutView callbacks may not run automatically
+            return UnreadIndicatorUpdater.triggerUnreadUpdateFromOnyx().catch((error) => {
+                Log.warn('[PushNotification] Failed to update unread indicator', {error});
+            });
+        })    
+        .then(() => applyOnyxUpdatesReliably(updates, {shouldRunSync: true}))
+        
         .then(() => NativeModules.PushNotificationBridge.finishBackgroundProcessing());
 }
 
