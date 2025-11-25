@@ -12,10 +12,10 @@ import type {
 } from '@react-navigation/native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationPromptType} from '@components/MultifactorAuthentication/types';
 import type {SearchQueryString} from '@components/Search/types';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type {SaveSearchParams} from '@libs/API/parameters';
-import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationPromptType} from '@libs/MultifactorAuthentication/Biometrics/notifications.types';
 import type {ReimbursementAccountStepToOpen} from '@libs/ReimbursementAccountUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {AttachmentModalContainerModalProps} from '@pages/media/AttachmentModalScreen/types';

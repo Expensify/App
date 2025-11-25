@@ -5,12 +5,12 @@
  */
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {UpperCaseCharacters} from 'type-fest/source/internal';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationPromptType} from './components/MultifactorAuthentication/types';
 import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import Log from './libs/Log';
-import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationPromptType} from './libs/MultifactorAuthentication/Biometrics/notifications.types';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
 import {getUrlWithParams} from './libs/Url';

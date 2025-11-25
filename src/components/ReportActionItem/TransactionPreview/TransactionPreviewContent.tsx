@@ -60,7 +60,7 @@ function TransactionPreviewContent({
     shouldShowPayerAndReceiver,
     navigateToReviewFields,
     isReviewDuplicateTransactionPage = false,
-    // TODO: Remove this before the actual release
+    // TODO: MFA/Release Remove this before the actual release
     displayTestMultifactorAuthenticationButton = false,
 }: TransactionPreviewContentProps) {
     const theme = useTheme();

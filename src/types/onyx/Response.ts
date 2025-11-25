@@ -1,5 +1,5 @@
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/Biometrics/ED25519.types';
+import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 
 /** Model of commands data */
 type Data = {

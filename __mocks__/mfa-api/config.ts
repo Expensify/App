@@ -1,4 +1,4 @@
-import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/Biometrics/ED25519.types';
+import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import type {ReadCommands, WriteCommands} from './types';
 
 const WRITE_COMMANDS = {

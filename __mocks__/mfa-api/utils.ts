@@ -1,7 +1,7 @@
 import {Buffer} from 'buffer';
 import 'react-native-get-random-values';
 import {concatBytes, createBinaryData, hexToBytes, sha256, utf8ToBytes, verify} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
-import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519.types';
+import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import {READ_COMMANDS, STORAGE} from './config';
 import Logger from './Logger';
 import type {Base64URL, ReadCommandType, WriteCommandType} from './types';

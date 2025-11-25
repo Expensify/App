@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import useNativeBiometrics from '@components/MultifactorAuthentication/useNativeBiometrics';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -17,6 +16,7 @@ import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import Button from './Button';
+import useNativeBiometrics from './MultifactorAuthentication/useNativeBiometrics';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
@@ -93,7 +93,7 @@ function TestToolMenu() {
                         />
                     </TestToolRow>
 
-                    {/* Allows to test the Biometrics flow */}
+                    {/* Allows you to test the Biometrics flow */}
                     <TestToolRow title={biometricsTitle}>
                         <View style={[styles.flexRow, styles.gap2]}>
                             <Button
@@ -119,7 +119,7 @@ function TestToolMenu() {
                 </TestToolRow>
             )}
 
-            {/* When toggled the app will be forced offline. */}
+            {/* When toggled, the app will be forced offline. */}
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.forceOffline')}>
                 <Switch
                     accessibilityLabel="Force offline"
@@ -129,7 +129,7 @@ function TestToolMenu() {
                 />
             </TestToolRow>
 
-            {/* When toggled the app will randomly change internet connection every 2-5 seconds */}
+            {/* When toggled, the app will randomly change internet connection every 2-5 seconds */}
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulatePoorConnection')}>
                 <Switch
                     accessibilityLabel="Simulate poor internet connection"
@@ -139,7 +139,7 @@ function TestToolMenu() {
                 />
             </TestToolRow>
 
-            {/* When toggled all network requests will fail. */}
+            {/* When toggled, all network requests will fail. */}
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulateFailingNetworkRequests')}>
                 <Switch
                     accessibilityLabel="Simulate failing network requests"

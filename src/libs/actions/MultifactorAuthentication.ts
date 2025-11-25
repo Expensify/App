@@ -1,8 +1,8 @@
 /* eslint-disable rulesdir/no-api-side-effects-method */
-// TODO: remove this
+// TODO: MFA/Release Remove this
 import {makeRequestWithSideEffects} from '@mfa/api';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
-import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519.types';
+import type {SignedChallenge} from '@libs/MultifactorAuthentication/Biometrics/ED25519/types';
 import {parseHttpCode} from '@libs/MultifactorAuthentication/Biometrics/helpers';
 import CONST from '@src/CONST';
 
