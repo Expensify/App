@@ -15,7 +15,7 @@ import SCENARIO from './scenarios';
  * - Regular transaction authorization needs a transaction ID
  * - Authorization with validation code needs a transaction ID
  * - Fallback authorization needs a transaction ID
- * - Multi-factor authentication setup needs a public key
+ * - Multifactor authentication setup needs a public key
  */
 type MultifactorAuthenticationScenarioParameters = {
     [SCENARIO.AUTHORIZE_TRANSACTION]: {

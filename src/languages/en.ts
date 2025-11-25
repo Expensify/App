@@ -919,7 +919,7 @@ const translations = {
             validationCodeInvalid: 'Invalid validation code',
             otpCodeInvalid: 'Invalid OTP code',
             otpCodeRequired: 'Please provide an OTP code',
-            multifactorAuthenticationSuccess: 'Multi-factor authentication registration successful',
+            multifactorAuthenticationSuccess: 'Multifactor authentication registration successful',
             noTransactionID: 'Transaction ID not provided',
             userNotRegistered: 'User registration not found',
             unableToAuthorize: 'Authorization failed with provided credentials',
