@@ -919,7 +919,7 @@ function MoneyRequestConfirmationList({
                     const perDiemAmountInCents = computePerDiemExpenseAmount(transaction.comment?.customUnit ?? {});
                     const perDiemAmountString = convertToFrontendAmountAsString(perDiemAmountInCents, iouCurrencyCode);
                     if (!validateAmount(perDiemAmountString, decimals)) {
-                        setFormError('iou.error.invalidAmount');
+                        setFormError('iou.error.invalidQuantity');
                         return;
                     }
                 }
