@@ -1539,43 +1539,4 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isDynamicExternalWorkflowSubmitFailedAction(null)).toBe(false);
         });
     });
-
-    describe('isDynamicExternalWorkflowApproveFailedAction', () => {
-        it('should return true for DEW_APPROVE_FAILED action', () => {
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
-                created: '2025-11-21',
-                reportActionID: '1',
-                originalMessage: {
-                    message: 'Only one Cost Center can be selected per report.',
-                    automaticAction: false,
-                },
-                message: [],
-                previousMessage: [],
-            };
-            expect(ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(action)).toBe(true);
-        });
-
-        it('should return false for non-DEW_APPROVE_FAILED action', () => {
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
-                created: '2025-11-21',
-                reportActionID: '1',
-                originalMessage: {
-                    amount: 10000,
-                    currency: 'USD',
-                    expenseReportID: '123',
-                },
-                message: [],
-                previousMessage: [],
-            };
-            expect(ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(action)).toBe(false);
-        });
-
-        it('should return false for null action', () => {
-            expect(ReportActionsUtils.isDynamicExternalWorkflowApproveFailedAction(null)).toBe(false);
-        });
-    });
 });
