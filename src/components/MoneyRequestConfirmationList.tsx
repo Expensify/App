@@ -453,7 +453,7 @@ function MoneyRequestConfirmationList({
 
         // If none of the above conditions are met, display the rate error
         setFormError(errorKey);
-    }, [isDistanceRequest, isPolicyExpenseChat, transactionID, mileageRate, customUnitRateID, policy, isMovingTransactionFromTrackExpense, setFormError, clearFormErrors]);
+    }, [isDistanceRequest, isPolicyExpenseChat, transactionID, mileageRate.rate, mileageRate.unit, customUnitRateID, policy, isMovingTransactionFromTrackExpense, setFormError, clearFormErrors]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isFirstUpdatedDistanceAmount = useRef(false);
@@ -565,7 +565,7 @@ function MoneyRequestConfirmationList({
             const amountInCents = convertToBackendAmount(value);
             setIndividualShare(transaction?.transactionID, accountID, amountInCents);
         },
-        [transaction],
+        [transaction?.transactionID],
     );
 
     useEffect(() => {

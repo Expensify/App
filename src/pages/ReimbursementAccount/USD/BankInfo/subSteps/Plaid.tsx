@@ -55,7 +55,7 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
         }
         setBankAccountSubStep(null);
         setUSDBankAccountStep(null);
-    }, [isFocused, plaidData, setUSDBankAccountStep]);
+    }, [isFocused, plaidData?.bankAccounts, setUSDBankAccountStep]);
 
     const handlePlaidExit = () => {
         setBankAccountSubStep(null);

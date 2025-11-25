@@ -90,7 +90,7 @@ function TaskAssigneeSelectorModal() {
             });
         }
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
-    }, [reports, route]);
+    }, [reports, route.params?.reportID]);
 
     const sections = useMemo(() => {
         const sectionsList = [];

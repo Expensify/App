@@ -62,7 +62,7 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
                 ],
                 isSelected: selectedWorkspace?.policyID === policy.id,
             }));
-    }, [allPolicies, currentUserLogin, selectedWorkspace, localeCompare, expensifyIcons.FallbackWorkspaceAvatar]);
+    }, [allPolicies, currentUserLogin, selectedWorkspace?.policyID, localeCompare, expensifyIcons.FallbackWorkspaceAvatar]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

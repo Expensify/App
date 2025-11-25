@@ -93,7 +93,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
             ],
             noResultsFound: false,
         };
-    }, [isSearchable, items, value, selectedItem, debouncedSearchTerm]);
+    }, [isSearchable, items, value, selectedItem?.value, debouncedSearchTerm]);
 
     const dataLength = useMemo(() => sections.flatMap((section) => section.data).length, [sections]);
 

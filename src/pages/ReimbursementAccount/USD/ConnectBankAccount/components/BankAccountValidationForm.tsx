@@ -94,7 +94,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
                 BankAccounts.validateBankAccount(bankAccountID, validateCode, policyID);
             }
         },
-        [reimbursementAccount, policyID, permittedDecimalSeparator],
+        [reimbursementAccount?.achData?.bankAccountID, policyID, permittedDecimalSeparator],
     );
     // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
     // See https://github.com/Expensify/App/issues/51868 for more information

@@ -234,7 +234,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
      */
     const inviteUser = useCallback(() => {
         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_INVITE.getRoute(report.reportID, backTo));
-    }, [report, backTo]);
+    }, [report.reportID, backTo]);
 
     /**
      * Remove selected users from the workspace
@@ -368,7 +368,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                 )}
             </View>
         );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, isGroupChat, canSelectMultiple, shouldUseNarrowLayout]);
+    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, isGroupChat, canSelectMultiple, shouldUseNarrowLayout]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
@@ -379,7 +379,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             }
             Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID, Navigation.getActiveRoute()));
         },
-        [report, isCurrentUserAdmin, isGroupChat, backTo],
+        [report.reportID, isCurrentUserAdmin, isGroupChat, backTo],
     );
     const headerTitle = useMemo(() => {
         if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report) || isTaskReport(report) || isMoneyRequestReport(report) || isGroupChat) {

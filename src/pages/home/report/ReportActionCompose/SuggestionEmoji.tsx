@@ -181,7 +181,7 @@ function SuggestionEmoji({
         }
 
         calculateEmojiSuggestion(value, selection.start, selection.end);
-    }, [value, selection, calculateEmojiSuggestion, isComposerFocused]);
+    }, [value, selection.start, selection.end, calculateEmojiSuggestion, isComposerFocused]);
 
     const setShouldBlockSuggestionCalc = useCallback(
         (shouldBlockSuggestionCalc: boolean) => {
@@ -190,7 +190,7 @@ function SuggestionEmoji({
         [shouldBlockCalc],
     );
 
-    const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues]);
+    const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues.suggestedEmojis]);
 
     const getIsSuggestionsMenuVisible = useCallback(() => isEmojiSuggestionsMenuVisible, [isEmojiSuggestionsMenuVisible]);
 

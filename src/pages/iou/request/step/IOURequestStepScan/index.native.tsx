@@ -174,7 +174,7 @@ function IOURequestStepScan({
         }
 
         return !isArchivedReport(reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy, reportNameValuePairs]);
+    }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, reportNameValuePairs]);
 
     const {translate} = useLocalize();
 
@@ -517,7 +517,7 @@ function IOURequestStepScan({
             initialTransaction?.reportID,
             reportNameValuePairs,
             iouType,
-            personalPolicy,
+            personalPolicy?.autoReporting,
             defaultExpensePolicy,
             report,
             initialTransactionID,
@@ -647,7 +647,7 @@ function IOURequestStepScan({
             }
             navigateToConfirmationStep(files, false);
         },
-        [shouldSkipConfirmation, navigateToConfirmationStep, initialTransaction, iouType, shouldStartLocationPermissionFlow],
+        [shouldSkipConfirmation, navigateToConfirmationStep, initialTransaction?.amount, iouType, shouldStartLocationPermissionFlow],
     );
 
     const viewfinderLayout = useRef<LayoutRectangle>(null);

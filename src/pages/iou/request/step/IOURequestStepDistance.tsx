@@ -101,7 +101,7 @@ function IOURequestStepDistance({
                 waypoint0: {keyForList: 'start_waypoint'},
                 waypoint1: {keyForList: 'stop_waypoint'},
             },
-        [optimisticWaypoints, transaction],
+        [optimisticWaypoints, transaction?.comment?.waypoints],
     );
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
@@ -198,7 +198,7 @@ function IOURequestStepDistance({
             !isArchivedReport(reportNameValuePairs) &&
             !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
         );
-    }, [report, skipConfirmation, policy, reportNameValuePairs, iouType]);
+    }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, reportNameValuePairs, iouType]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {

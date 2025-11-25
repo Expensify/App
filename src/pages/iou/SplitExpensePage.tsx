@@ -88,7 +88,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
-    const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction]);
+    const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction?.comment?.splitExpenses]);
     const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
 
     const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
@@ -317,7 +317,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         onAddSplitExpense,
         onMakeSplitsEven,
         translate,
-        childTransactions,
+        childTransactions.length,
         shouldUseNarrowLayout,
         styles.w100,
         styles.ph4,

@@ -107,7 +107,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         return () => {
             clearReimbursementAccountSaveCorpayOnboardingDirectorInformation();
         };
-    }, [reimbursementAccount, onSubmit, currency, currentSubStep]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation, reimbursementAccount?.isSuccess, onSubmit, currency, currentSubStep]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -118,7 +118,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames}: SignerInfoProps) {
         if (reimbursementAccount?.isAskingForCorpaySignerInformationSuccess) {
             setCurrentSubStep(SUBSTEP.HANG_TIGHT);
         }
-    }, [reimbursementAccount]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isAskingForCorpaySignerInformation, reimbursementAccount?.isAskingForCorpaySignerInformationSuccess]);
 
     const bodyContent = useMemo(() => {
         if (isUserOwner) {

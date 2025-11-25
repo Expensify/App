@@ -353,7 +353,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 )}
             </View>
         );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, canSelectMultiple, shouldUseNarrowLayout]);
+    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout]);
 
     /** Opens the room member details page */
     const openRoomMemberDetails = useCallback(
@@ -364,7 +364,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
 
             Navigation.navigate(ROUTES.ROOM_MEMBER_DETAILS.getRoute(report.reportID, item?.accountID, backTo));
         },
-        [report, backTo],
+        [report.reportID, backTo],
     );
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
