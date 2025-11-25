@@ -426,7 +426,7 @@ function MoneyRequestReportPreviewContent({
             return;
         }
         setTimeout(() => {
-            carouselRef.current?.scrollToIndex({index});
+            carouselRef.current?.scrollToIndex({index, viewOffset: 5});
         }, CONST.ANIMATED_TRANSITION);
 
         // eslint-disable-next-line react-compiler/react-compiler
