@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -693,6 +694,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
+        reportName: '报告名称',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -1322,7 +1324,7 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 已发送${comment ? `对于${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `将费用从个人空间移动到${workspaceName ?? `与${reportName}聊天`}`,
         movedToPersonalSpace: '将费用移至个人空间',
-        tagSelection: '选择一个标签以更好地组织您的支出。',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `选择${policyTagListName ?? '一个标签'}以更好地管理您的支出。`,
         categorySelection: '选择一个类别以更好地组织您的支出。',
         error: {
             invalidCategoryLength: '类别名称超过255个字符。请缩短或选择不同的类别。',
@@ -5774,7 +5776,7 @@ ${
                 billableDescription: '费用通常会重新计费给客户。',
                 nonBillable: '非计费',
                 nonBillableDescription: '费用有时会重新计入客户账单。',
-                eReceipts: 'eReceipts',
+                eReceipts: '电子收据',
                 eReceiptsHint: `电子收据是自动创建的[用于大多数美元贷记交易](${CONST.DEEP_DIVE_ERECEIPTS})。`,
                 attendeeTracking: '参与者跟踪',
                 attendeeTrackingHint: '跟踪每笔费用的每人成本。',

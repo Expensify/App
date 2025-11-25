@@ -438,11 +438,12 @@ function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDeta
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : lastAction;
 
     if (
+        !lastReportAction ||
         !lastActorDetails ||
         reportUtilsIsSelfDM(report) ||
         (isDM(report) && lastActorDetails.accountID !== currentUserAccountID) ||
-        (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lastReportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) ||
-        (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+        lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
+        (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             Object.keys(report?.participants ?? {})?.some((participantID) => participantID === CONST.ACCOUNT_ID.MANAGER_MCTEST.toString()))
     ) {
         return false;
@@ -1226,20 +1227,12 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
     };
 }
 
-function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
+function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, reportAttributesDerived?: ReportAttributesDerivedValue['reports'], config?: PreviewConfig) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
     return {
         item: report,
-        ...createOption(
-            accountIDs,
-            personalDetails,
-            report,
-            {
-                showPersonalDetails: true,
-            },
-            reportAttributesDerived,
-        ),
+        ...createOption(accountIDs, personalDetails, report, config, reportAttributesDerived),
     };
 }
 
