@@ -395,39 +395,53 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         [isInNarrowPaneModal, backTo],
     );
 
-    let headerView = (
-        <HeaderView
-            reportID={reportIDFromRoute}
-            onNavigationMenuButtonClicked={onBackButtonPress}
-            report={report}
-            parentReportAction={parentReportAction}
-            shouldUseNarrowLayout={shouldUseNarrowLayout}
-        />
-    );
+    const headerView = useMemo(() => {
+        if (isTransactionThreadView) {
+            return (
+                <MoneyRequestHeader
+                    report={report}
+                    policy={policy}
+                    parentReportAction={parentReportAction}
+                    onBackButtonPress={onBackButtonPress}
+                />
+            );
+        }
 
-    if (isTransactionThreadView) {
-        headerView = (
-            <MoneyRequestHeader
+        if (isMoneyRequestOrInvoiceReport) {
+            return (
+                <MoneyReportHeader
+                    report={report}
+                    policy={policy}
+                    transactionThreadReportID={transactionThreadReportID}
+                    isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
+                    reportActions={reportActions}
+                    onBackButtonPress={onBackButtonPress}
+                />
+            );
+        }
+
+        return (
+            <HeaderView
+                reportID={reportIDFromRoute}
+                onNavigationMenuButtonClicked={onBackButtonPress}
                 report={report}
-                policy={policy}
                 parentReportAction={parentReportAction}
-                onBackButtonPress={onBackButtonPress}
+                shouldUseNarrowLayout={shouldUseNarrowLayout}
             />
         );
-    }
-
-    if (isMoneyRequestOrInvoiceReport) {
-        headerView = (
-            <MoneyReportHeader
-                report={report}
-                policy={policy}
-                transactionThreadReportID={transactionThreadReportID}
-                isLoadingInitialReportActions={reportMetadata.isLoadingInitialReportActions}
-                reportActions={reportActions}
-                onBackButtonPress={onBackButtonPress}
-            />
-        );
-    }
+    }, [
+        isTransactionThreadView,
+        isMoneyRequestOrInvoiceReport,
+        report,
+        policy,
+        parentReportAction,
+        onBackButtonPress,
+        transactionThreadReportID,
+        reportMetadata.isLoadingInitialReportActions,
+        reportActions,
+        reportIDFromRoute,
+        shouldUseNarrowLayout,
+    ]);
 
     useEffect(() => {
         if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction)) {
