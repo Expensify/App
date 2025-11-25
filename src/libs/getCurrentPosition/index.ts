@@ -8,6 +8,7 @@ const getCurrentPosition: GetCurrentPosition = async (success, error, options) =
 
     if (foregroundPermissionResponse.status !== PermissionStatus.GRANTED) {
         error({code: GeolocationErrorCode.PERMISSION_DENIED, message: 'Geolocation is not supported by this environment.'});
+        return;
     }
 
     try {
@@ -15,13 +16,18 @@ const getCurrentPosition: GetCurrentPosition = async (success, error, options) =
         success(currentPosition);
     } catch (caughtError) {
         let message = 'Geolocation call failed';
-        if (caughtError instanceof Error) {
+        let code = GeolocationErrorCode.POSITION_UNAVAILABLE;
+
+        if (caughtError instanceof GeolocationPositionError) {
+            code = caughtError.code;
+            message = caughtError.message;
+        } else if (caughtError instanceof Error) {
             message = caughtError.message;
         } else if (typeof caughtError === 'string') {
             message = caughtError;
         }
 
-        error({code: GeolocationErrorCode.POSITION_UNAVAILABLE, message});
+        error({code, message});
     }
 };
 
