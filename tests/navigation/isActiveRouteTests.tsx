@@ -1,25 +1,39 @@
-import {describe, expect, it, jest} from '@jest/globals';
-import {isRouteActive} from '@libs/Navigation/helpers/isRouteActive';
+import {afterEach, beforeEach, describe, expect, it, jest} from '@jest/globals';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
+import type {Route} from '@src/ROUTES';
 
-jest.mock('@src/CONST', () => ({
-    REGEX: {
-        ROUTES: {
-            REDUNDANT_SLASHES: /(\/{2,})|(\/$)/g,
-        },
-    },
-}));
+jest.mock('@react-navigation/native', () => {
+    const actual = jest.requireActual('@react-navigation/native');
+    return Object.assign({}, actual, {
+        getPathFromState: jest.fn().mockReturnValue('/settings/profile?backTo=settings'),
+    });
+});
 
 describe('Navigation', () => {
-    it('Should correctly identify active routes', () => {
-        const currentRoute = 'settings/profile?backTo=settings';
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
 
-        expect(isRouteActive(currentRoute, 'settings/profile')).toBe(true);
-        expect(isRouteActive(currentRoute, 'settings/profile/')).toBe(true);
-        expect(isRouteActive(currentRoute, 'settings/profile?param=1')).toBe(true);
-        expect(isRouteActive(currentRoute, 'settings/profile/display-name')).toBe(false);
-        expect(isRouteActive(currentRoute, 'settings/preferences/')).toBe(false);
-        expect(isRouteActive(currentRoute, 'report')).toBe(false);
-        expect(isRouteActive(currentRoute, 'report/1234')).toBe(false);
-        expect(isRouteActive(currentRoute, 'report/1234?param=1')).toBe(false);
+    beforeEach(() => {
+        // Minimal stubs so getActiveRoute() can derive a path without rendering navigation containers.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (navigationRef as any).getRootState = jest.fn().mockReturnValue({});
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (navigationRef as any).current = {getCurrentRoute: jest.fn().mockReturnValue({name: 'DUMMY'})};
+        jest.spyOn(navigationRef, 'isReady').mockReturnValue(true);
+    });
+
+    it('Should correctly identify active routes', () => {
+        expect(Navigation.isActiveRoute('settings/profile' as Route)).toBe(true);
+        expect(Navigation.isActiveRoute('settings/profile/' as Route)).toBe(true);
+        expect(Navigation.isActiveRoute('settings/profile?param=1' as Route)).toBe(true);
+        expect(Navigation.isActiveRoute('settings/profile/display-name' as Route)).toBe(false);
+        expect(Navigation.isActiveRoute('settings/profile/display-name/' as Route)).toBe(false);
+        expect(Navigation.isActiveRoute('settings/preferences' as Route)).toBe(false);
+        expect(Navigation.isActiveRoute('settings/preferences/' as Route)).toBe(false);
+        expect(Navigation.isActiveRoute('report' as Route)).toBe(false);
+        expect(Navigation.isActiveRoute('report/123/' as Route)).toBe(false);
+        expect(Navigation.isActiveRoute('report/123' as Route)).toBe(false);
     });
 });
