@@ -550,12 +550,7 @@ function IOURequestStepConfirmation({
     );
 
     const getReportToUseAndBackToReport = useCallback(
-        (
-            participant: Participant | undefined,
-            parentChatReport: Report | undefined,
-            reportParam: Report | undefined,
-            backToReportParam: string | undefined,
-        ) => {
+        (participant: Participant | undefined, parentChatReport: Report | undefined, reportParam: Report | undefined, backToReportParam: string | undefined) => {
             const reportToUse = participant?.isPolicyExpenseChat ? parentChatReport : undefined;
 
             const backToReportToUse = backToReportParam ?? (isMoneyRequestReport(reportParam) ? reportParam?.reportID : undefined);
