@@ -29,20 +29,17 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Errors that occurred when fetching validation code */
     validateCodeError?: OnyxCommon.Errors;
 
-    /** Domain-related settings */
-    settings?: {
-        /** Whether setting SAML enabled/disabled setting is in progress */
-        isSamlEnabledLoading?: boolean;
+    /** Whether setting SAML enabled/disabled setting is in progress */
+    isSamlEnabledLoading?: boolean;
 
-        /** Whether setting SAML enabled/disabled setting has failed and why */
-        samlEnabledError?: OnyxCommon.Errors;
+    /** Whether setting SAML enabled/disabled setting has failed and why */
+    samlEnabledError?: OnyxCommon.Errors;
 
-        /** Whether setting SAML required setting is in progress */
-        isSamlRequiredLoading?: boolean;
+    /** Whether setting SAML required setting is in progress */
+    isSamlRequiredLoading?: boolean;
 
-        /** Whether setting SAML required setting has failed and why */
-        samlRequiredError?: OnyxCommon.Errors;
-    };
+    /** Whether setting SAML required setting has failed and why */
+    samlRequiredError?: OnyxCommon.Errors;
 }>;
 
 /** Model of SAML metadata */

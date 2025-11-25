@@ -174,10 +174,8 @@ function setSamlEnabled(enabled: boolean, accountID: number, domainName: string)
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
             value: {
-                settings: {
-                    isSamlEnabledLoading: true,
-                    samlEnabledError: null,
-                },
+                isSamlEnabledLoading: true,
+                samlEnabledError: null,
             },
         },
     ];
@@ -185,19 +183,26 @@ function setSamlEnabled(enabled: boolean, accountID: number, domainName: string)
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {settings: {isSamlEnabledLoading: null}},
+            value: {isSamlEnabledLoading: null},
         },
     ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {settings: {isSamlEnabledLoading: null, samlEnabledError: getMicroSecondOnyxErrorWithTranslationKey('domain.samlLogin.enableError')}},
+            value: {
+                isSamlEnabledLoading: null,
+                samlEnabledError: getMicroSecondOnyxErrorWithTranslationKey('domain.samlLogin.enableError'),
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`,
-            value: {settings: {samlEnabled: !enabled}},
+            value: {
+                settings: {
+                    samlEnabled: !enabled,
+                },
+            },
         },
     ];
 
@@ -209,9 +214,7 @@ function setSamlEnabled(enabled: boolean, accountID: number, domainName: string)
  * Resets the errors only on the client's side, no server call is performed
  */
 function resetSamlEnabledError(accountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {
-        settings: {samlEnabledError: null},
-    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {samlEnabledError: null});
 }
 
 /**
@@ -232,10 +235,8 @@ function setSamlRequired(required: boolean, accountID: number, domainName: strin
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
             value: {
-                settings: {
-                    isSamlRequiredLoading: true,
-                    samlRequiredError: null,
-                },
+                isSamlRequiredLoading: true,
+                samlRequiredError: null,
             },
         },
     ];
@@ -243,19 +244,23 @@ function setSamlRequired(required: boolean, accountID: number, domainName: strin
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {settings: {isSamlRequiredLoading: null}},
+            value: {isSamlRequiredLoading: null},
         },
     ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {settings: {isSamlRequiredLoading: null}},
+            value: {isSamlRequiredLoading: null},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${accountID}`,
-            value: {settings: {samlRequired: !required}},
+            value: {
+                settings: {
+                    samlRequired: !required,
+                },
+            },
         },
     ];
 
@@ -267,9 +272,7 @@ function setSamlRequired(required: boolean, accountID: number, domainName: strin
  * Resets the errors only on the client's side, no server call is performed
  */
 function resetSamlRequiredError(accountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {
-        settings: {samlRequiredError: null},
-    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {samlRequiredError: null});
 }
 
 /**

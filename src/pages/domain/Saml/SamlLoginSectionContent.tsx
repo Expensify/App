@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {resetSamlEnabledError, resetSamlRequiredError, setSamlEnabled, setSamlRequired} from '@libs/actions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {domainSettingsSelector} from '@src/selectors/Domain';
+import {domainSamlSettingsStateSelector} from '@src/selectors/Domain';
 
 type SamlLoginSectionContentProps = {
     /** The unique identifier for the domain. */
@@ -31,14 +31,14 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
 
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {
         canBeMissing: false,
-        selector: domainSettingsSelector,
+        selector: domainSamlSettingsStateSelector,
     });
 
     return (
         <>
             <OfflineWithFeedback
-                pendingAction={domain?.settings?.isSamlEnabledLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
-                errors={domain?.settings?.samlEnabledError}
+                pendingAction={domain?.isSamlEnabledLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
+                errors={domain?.samlEnabledError}
                 onClose={() => resetSamlEnabledError(accountID)}
                 dismissError={() => resetSamlEnabledError(accountID)}
             >
@@ -59,8 +59,8 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
 
             {isSamlEnabled && (
                 <OfflineWithFeedback
-                    pendingAction={domain?.settings?.isSamlRequiredLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
-                    errors={domain?.settings?.samlRequiredError}
+                    pendingAction={domain?.isSamlRequiredLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
+                    errors={domain?.samlRequiredError}
                     onClose={() => resetSamlRequiredError(accountID)}
                     dismissError={() => resetSamlRequiredError(accountID)}
                 >

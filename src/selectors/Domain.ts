@@ -3,11 +3,14 @@ import type {CardFeeds, Domain} from '@src/types/onyx';
 
 const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
 
-const domainSettingsSelector = (domain: OnyxEntry<Domain>) =>
+const domainSamlSettingsStateSelector = (domain: OnyxEntry<Domain>) =>
     domain
         ? {
-              settings: domain.settings,
+              isSamlEnabledLoading: domain.isSamlEnabledLoading,
+              samlEnabledError: domain.samlEnabledError,
+              isSamlRequiredLoading: domain.isSamlEnabledLoading,
+              samlRequiredError: domain.samlRequiredError,
           }
         : undefined;
 
-export {domainMemberSamlSettingsSelector, domainSettingsSelector};
+export {domainMemberSamlSettingsSelector, domainSamlSettingsStateSelector};
