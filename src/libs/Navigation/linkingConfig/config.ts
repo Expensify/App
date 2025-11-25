@@ -879,6 +879,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
                             path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
                         },
+                        [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE_UPGRADE]: {
+                            path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.route,
+                        },
                         [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.route,
                         },
