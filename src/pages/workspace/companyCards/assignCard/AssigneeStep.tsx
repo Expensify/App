@@ -36,7 +36,7 @@ type AssigneeStepProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Selected feed */
-    feed: OnyxTypes.CompanyCardFeed;
+    feed: OnyxTypes.CompanyCardFeedWithDomainID;
 
     /** Route params */
     route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD>;
@@ -50,9 +50,9 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [list] = useCardsList(policyID, feed);
+    const [list] = useCardsList(feed);
     const [cardFeeds] = useCardFeeds(policyID);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
