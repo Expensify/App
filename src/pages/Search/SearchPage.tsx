@@ -924,7 +924,7 @@ function SearchPage({route}: SearchPageProps) {
         } else {
             dismissRejectUseExplanation();
             // For reject action, we would navigate to reject flow if needed
-            // Currently, reject is not available in search bulk actions, so this is just for consistency
+            // Reject is being fixed in PR#75007
         }
         setRejectModalAction(null);
     }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
