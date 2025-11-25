@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -9,7 +10,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
-import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 
 type SectionMenuItem = {
@@ -28,33 +28,38 @@ type HoldOrRejectEducationalModalProps = {
     onConfirm: () => void;
 };
 
-const menuSections: SectionMenuItem[] = [
-    {
-        icon: Illustrations.Stopwatch,
-        titleTranslationKey: 'iou.reject.holdExpenseTitle',
-    },
-    {
-        icon: Illustrations.RealtimeReport,
-        titleTranslationKey: 'iou.reject.heldExpenseLeftBehindTitle',
-    },
-    {
-        icon: Illustrations.ThumbsDown,
-        titleTranslationKey: 'iou.reject.rejectExpenseTitle',
-    },
-];
-
 function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducationalModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['Stopwatch', 'Rules', 'RealtimeReport', 'ThumbsDown', 'ModalHoldOrReject'] as const);
 
     useBeforeRemove(onClose);
+
+    const menuSections: SectionMenuItem[] = [
+        {
+            icon: illustrations.Stopwatch,
+            titleTranslationKey: 'iou.reject.holdExpenseTitle',
+        },
+        {
+            icon: illustrations.Rules,
+            titleTranslationKey: 'iou.reject.approveExpenseTitle',
+        },
+        {
+            icon: illustrations.RealtimeReport,
+            titleTranslationKey: 'iou.reject.heldExpenseLeftBehindTitle',
+        },
+        {
+            icon: illustrations.ThumbsDown,
+            titleTranslationKey: 'iou.reject.rejectExpenseTitle',
+        },
+    ];
 
     return (
         <FeatureTrainingModal
             title={translate('iou.reject.educationalTitle')}
             description={translate('iou.reject.educationalText')}
             confirmText={translate('common.buttonConfirm')}
-            image={Illustrations.ModalHoldOrReject}
+            image={illustrations.ModalHoldOrReject}
             contentFitImage="cover"
             width={variables.holdEducationModalWidth}
             illustrationAspectRatio={CONST.ILLUSTRATION_ASPECT_RATIO}

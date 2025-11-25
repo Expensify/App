@@ -147,6 +147,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'mention-short': HTMLElementModel.fromCustomModel({tagName: 'mention-short', contentModel: HTMLContentModel.textual}),
             'copy-text': HTMLElementModel.fromCustomModel({tagName: 'copy-text', contentModel: HTMLContentModel.textual}),
             'concierge-link': HTMLElementModel.fromCustomModel({tagName: 'concierge-link', contentModel: HTMLContentModel.textual}),
+            'account-manager-link': HTMLElementModel.fromCustomModel({tagName: 'account-manager-link', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
                 mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},

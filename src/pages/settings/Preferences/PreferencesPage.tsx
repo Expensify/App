@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -27,6 +27,7 @@ import ROUTES from '@src/ROUTES';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 function PreferencesPage() {
+    const illustrations = useMemoizedLazyIllustrations(['Gears'] as const);
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
 
     const platform = getPlatform(true);
@@ -52,7 +53,7 @@ function PreferencesPage() {
         >
             <HeaderWithBackButton
                 title={translate('common.preferences')}
-                icon={Illustrations.Gears}
+                icon={illustrations.Gears}
                 shouldUseHeadlineHeader
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
