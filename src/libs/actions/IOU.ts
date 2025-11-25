@@ -14898,12 +14898,17 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
     const transactionThreadReportID = params.firstIOU?.childReportID;
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
+    const superWideRHPReportScreen = Navigation.getSuperWideRHPRouteByID(transactionReport?.reportID);
 
     // Reset selected transactions in search after saving split expenses
     params?.searchContext?.clearSelectedTransactions?.(undefined, true);
 
     if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
-        Navigation.dismissToFirstRHP();
+        if (superWideRHPReportScreen?.key) {
+            Navigation.dismissToFirstRHP();
+        } else {
+            Navigation.dismissModal();
+        }
 
         // After the modal is dismissed, remove the transaction thread report screen
         // to avoid navigating back to a report removed by the split transaction.
@@ -14917,6 +14922,12 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
         return;
     }
+
+    if (superWideRHPReportScreen?.key) {
+        Navigation.dismissToFirstRHP();
+        return;
+    }
+
     Navigation.dismissModalWithReport({reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
 
     // After the modal is dismissed, remove the transaction thread report screen
