@@ -82,7 +82,6 @@ import {getAccountIDsByLogins, getLoginByAccountID} from '@libs/PersonalDetailsU
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     arePaymentsEnabled,
-    getCorrectedAutoReportingFrequency,
     getDistanceRateCustomUnit,
     getDistanceRateCustomUnitRate,
     getMemberAccountIDsForWorkspace,
