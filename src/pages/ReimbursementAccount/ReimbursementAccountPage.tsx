@@ -94,7 +94,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const hasUnsupportedCurrency =
         isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) && isNonUSDWorkspace
             ? !isCurrencySupportedForECards(policyCurrency)
-            : !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType, isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND));
+            : !isCurrencySupportedForGlobalReimbursement(policyCurrency as CurrencyType);
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
     let workspaceRoute = '';
     const isFocused = useIsFocused();

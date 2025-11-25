@@ -1,9 +1,9 @@
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -29,7 +29,6 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const policyName = policy?.name ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -75,7 +74,7 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
                     onAddBankAccountPress={handleAddBankAccountPress}
                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                    itemIconRight={expensifyIcons.ArrowRight}
+                    itemIconRight={Expensicons.ArrowRight}
                     filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
                     filterCurrency={policy?.outputCurrency ?? ''}
                     shouldHideDefaultBadge
