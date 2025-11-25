@@ -31,6 +31,8 @@ type TryNewDot = {
     nudgeMigration?: {
         /** Indicates timestamp of an action. */
         timestamp: Date;
+        /** Indicates the user cohort type. */
+        cohort?: string;
     };
 };
 
