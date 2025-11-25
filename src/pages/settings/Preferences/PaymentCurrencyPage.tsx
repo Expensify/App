@@ -11,6 +11,7 @@ import {updateGeneralSettings} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import KeyboardUtils from '@src/utils/keyboard';
 
 function PaymentCurrencyPage() {
     const styles = useThemeStyles();
@@ -30,7 +31,11 @@ function PaymentCurrencyPage() {
                     <HeaderWithBackButton
                         title={translate('billingCurrency.paymentCurrency')}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.goBack()}
+                        onBackButtonPress={() =>
+                            KeyboardUtils.dismiss().then(() => {
+                                Navigation.goBack();
+                            })
+                        }
                     />
 
                     <Text style={[styles.mh5, styles.mv4]}>{translate('billingCurrency.paymentCurrencyDescription')}</Text>
@@ -42,7 +47,9 @@ function PaymentCurrencyPage() {
                             if (option.currencyCode !== paymentCurrency) {
                                 updateGeneralSettings(personalPolicyID, personalPolicy?.name ?? '', option.currencyCode);
                             }
-                            Navigation.goBack();
+                            KeyboardUtils.dismiss().then(() => {
+                                Navigation.goBack();
+                            });
                         }}
                         initiallySelectedCurrencyCode={paymentCurrency}
                         didScreenTransitionEnd={didScreenTransitionEnd}
