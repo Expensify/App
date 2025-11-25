@@ -189,14 +189,17 @@ const webViewStyles = (theme: ThemeColors) =>
 
             ul: {
                 maxWidth: '100%',
+                whiteSpace: 'normal',
             },
 
             ol: {
                 maxWidth: '100%',
+                whiteSpace: 'normal',
             },
 
             li: {
                 flexShrink: 1,
+                whiteSpace: 'pre',
             },
 
             pre: {
