@@ -24,12 +24,12 @@ import type SCREENS from '@src/SCREENS';
 type WorkspaceWorkflowsConnectExistingBankAccountPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT>;
 
 function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWorkflowsConnectExistingBankAccountPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
     const policyID = route.params?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const policyName = policy?.name ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -75,7 +75,7 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
                     onAddBankAccountPress={handleAddBankAccountPress}
                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                    itemIconRight={icons.ArrowRight}
+                    itemIconRight={expensifyIcons.ArrowRight}
                     filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
                     filterCurrency={policy?.outputCurrency ?? ''}
                     shouldHideDefaultBadge

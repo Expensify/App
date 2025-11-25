@@ -34,6 +34,8 @@ import type {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
+import * as Expensicons from './Icon/Expensicons';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
@@ -517,7 +519,6 @@ function MenuItem({
     hasSubMenuItems = false,
     ref,
 }: MenuItemProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'ArrowRight', 'DotIndicator', 'Checkmark'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -526,10 +527,7 @@ function MenuItem({
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
     const deviceHasHoverSupport = hasHoverSupport();
-
-    // Set default values for icons that previously used Expensicons
-    const defaultFallbackIcon = fallbackIcon ?? icons.FallbackAvatar;
-    const defaultIconRight = iconRight ?? icons.ArrowRight;
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar'] as const);
 
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
@@ -603,13 +601,14 @@ function MenuItem({
         return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
     }, [shouldParseHelperText, helperHtml]);
 
-    const hasPressableRightComponent = iconRight ?? (shouldShowRightComponent && rightComponent);
+    const hasPressableRightComponent = (iconRight ?? expensifyIcons.ArrowRight) || (shouldShowRightComponent && rightComponent);
 
     const renderTitleContent = () => {
         if (title && titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
             return (
                 <DisplayNames
                     fullTitle={title}
+                    shouldParseFullTitle={!shouldRenderAsHTML}
                     displayNamesWithTooltips={titleWithTooltips}
                     tooltipEnabled
                     numberOfLines={1}
@@ -799,7 +798,7 @@ function MenuItem({
                                                                     imageStyles={[styles.alignSelfCenter]}
                                                                     size={CONST.AVATAR_SIZE.DEFAULT}
                                                                     source={icon}
-                                                                    fallbackIcon={defaultFallbackIcon}
+                                                                    fallbackIcon={fallbackIcon ?? expensifyIcons.FallbackAvatar}
                                                                     name={title}
                                                                     avatarID={avatarID}
                                                                     type={CONST.ICON_TYPE_WORKSPACE}
@@ -810,7 +809,7 @@ function MenuItem({
                                                                     imageStyles={[styles.alignSelfCenter]}
                                                                     source={icon}
                                                                     avatarID={avatarID}
-                                                                    fallbackIcon={defaultFallbackIcon}
+                                                                    fallbackIcon={fallbackIcon ?? expensifyIcons.FallbackAvatar}
                                                                     size={avatarSize}
                                                                     type={CONST.ICON_TYPE_AVATAR}
                                                                 />
@@ -944,7 +943,7 @@ function MenuItem({
                                                 {!!brickRoadIndicator && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                                         <Icon
-                                                            src={icons.DotIndicator}
+                                                            src={Expensicons.DotIndicator}
                                                             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
                                                         />
                                                     </View>
@@ -965,7 +964,7 @@ function MenuItem({
                                                         ]}
                                                     >
                                                         <Icon
-                                                            src={defaultIconRight}
+                                                            src={iconRight ?? expensifyIcons.ArrowRight}
                                                             fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
                                                             width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
                                                             height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
@@ -976,7 +975,7 @@ function MenuItem({
                                                 {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
                                                 {shouldShowSelectedItemCheck && isSelected && (
                                                     <Icon
-                                                        src={icons.Checkmark}
+                                                        src={Expensicons.Checkmark}
                                                         fill={theme.iconSuccessFill}
                                                         additionalStyles={styles.alignSelfCenter}
                                                     />
