@@ -28,7 +28,6 @@ type UseDeleteTransactionsParams = {
 function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransactionsParams) {
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
@@ -143,19 +142,18 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
                 const chatIOUReportID = chatReport?.reportID;
                 const isChatIOUReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`);
-                deleteMoneyRequest({
+                deleteMoneyRequest(
                     transactionID,
-                    reportAction: action,
-                    transactions: duplicateTransactions,
-                    violations: duplicateTransactionViolations,
+                    action,
+                    duplicateTransactions,
+                    duplicateTransactionViolations,
                     iouReport,
                     chatReport,
                     isChatIOUReportArchived,
-                    allSnapshots,
                     isSingleTransactionView,
-                    transactionIDsPendingDeletion: deletedTransactionIDs,
-                    selectedTransactionIDs: transactionIDs,
-                });
+                    deletedTransactionIDs,
+                    transactionIDs,
+                );
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
                     deletedTransactionThreadReportIDs.add(action.childReportID);
@@ -175,7 +173,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             policy,
             archivedReportsIdSet,
             isBetaEnabled,
-            allSnapshots,
             currentUserPersonalDetails.accountID,
             currentUserPersonalDetails.login,
             transactionViolations,
