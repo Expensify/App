@@ -557,6 +557,14 @@ const config = defineConfig([
         },
     },
 
+    {
+        files: ['src/**/*'],
+        ignores: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
+        rules: {
+            'max-lines': ['error', 4000],
+        },
+    },
+
     globalIgnores([
         '!**/.storybook',
         '!**/.github',
@@ -579,6 +587,7 @@ const config = defineConfig([
         '**/vendor',
         'modules/group-ib-fp/**/*',
         'web/snippets/gib.js',
+        'desktop/**/*',
     ]),
 ]);
 

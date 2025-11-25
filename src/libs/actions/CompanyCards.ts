@@ -78,6 +78,7 @@ function addNewCompanyCardsFeed(
     const feedType = CardUtils.getFeedType(cardFeed, cardFeeds);
 
     const optimisticData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
@@ -121,6 +122,7 @@ function addNewCompanyCardsFeed(
     ];
 
     const successData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`,
@@ -215,7 +217,8 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, domainOrWorkspaceAccou
     const successFeedUpdates = {[bankName]: null};
     const failureFeedUpdates = {[bankName]: {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}};
     const optimisticCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]));
-    const successAndFailureCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, {pendingAction: null}]));
+    const successCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, null]));
+    const failureCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, {pendingAction: null}]));
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -255,12 +258,12 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, domainOrWorkspaceAccou
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
-            value: successAndFailureCardUpdates,
+            value: successCardUpdates,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
-            value: successAndFailureCardUpdates,
+            value: successCardUpdates,
         },
     ];
 
@@ -277,12 +280,12 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, domainOrWorkspaceAccou
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
-            value: successAndFailureCardUpdates,
+            value: failureCardUpdates,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.CARD_LIST,
-            value: successAndFailureCardUpdates,
+            value: failureCardUpdates,
         },
     ];
 

@@ -2,8 +2,8 @@ import {useNavigationState} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {personalDetailsByEmailSelector} from '@src/selectors/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceWorkflowsApprovalsApproverPageProps = WithPolicyAndFullscreenLoadingProps &
@@ -31,6 +32,10 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const [currentApprovalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
+    const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+        selector: personalDetailsByEmailSelector,
+    });
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
 
     const approverIndex = Number(route.params.approverIndex) ?? 0;
@@ -38,6 +43,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const defaultApprover = getDefaultApprover(policy);
     const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
     const rhpRoutes = useNavigationState((state) => state.routes);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     useEffect(() => {
         const currentApprover = approvalWorkflow?.approvers[approverIndex];
@@ -90,7 +96,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     keyForList: email,
                     isSelected: selectedApproverEmail === email,
                     login: email,
-                    icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
+                    icons: [{source: avatar ?? expensifyIcons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                     rightElement: (
                         <MemberRightIcon
                             role={employee.role}
@@ -113,6 +119,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         approverIndex,
         defaultApprover,
         personalDetails,
+        expensifyIcons.FallbackAvatar,
     ]);
 
     const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading;
@@ -149,6 +156,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     approverIndex,
                     currentApprovalWorkflow,
                     policy,
+                    personalDetailsByEmail,
                 });
             }
 
@@ -158,7 +166,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 goBack();
             }
         },
-        [selectedApproverEmail, isInitialCreationFlow, approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack],
+        [selectedApproverEmail, isInitialCreationFlow, approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail],
     );
 
     const subtitle = useMemo(

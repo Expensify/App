@@ -6,6 +6,7 @@ import type {SvgProps} from 'react-native-svg';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
@@ -14,6 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -34,7 +36,7 @@ import {
 } from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
 import addTrailingForwardSlash from '@libs/UrlUtils';
-import {getAvatarUrl} from '@libs/UserUtils';
+import {getAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
@@ -67,11 +69,13 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
 }
 
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
@@ -102,7 +106,9 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
         : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID)}`;
 
-    const logo = isReport ? getLogoForWorkspace(report, policy) : (getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
+    const logo = isReport
+        ? getLogoForWorkspace(report, policy)
+        : (getAvatarURL({avatarSource: currentUserPersonalDetails?.avatar, accountID: currentUserPersonalDetails?.accountID}) as ImageSourcePropType);
 
     // Default logos (avatars) are SVG and they require some special logic to display correctly
     let svgLogo: React.FC<SvgProps> | undefined;
@@ -110,7 +116,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     let svgLogoFillColor: string | undefined;
 
     if (!logo && policy && !policy.avatarURL) {
-        svgLogo = getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
+        svgLogo = getDefaultWorkspaceAvatar(policy.name) || expensifyIcons.FallbackAvatar;
 
         const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id);
         logoBackgroundColor = defaultWorkspaceAvatarColors.backgroundColor?.toString();
@@ -157,7 +163,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         <MenuItem
                             isAnonymousAction
                             title={translate('common.download')}
-                            icon={Expensicons.Download}
+                            icon={icons.Download}
                             // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             onPress={() => qrCodeRef.current?.download?.()}
                         />

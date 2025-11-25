@@ -42,6 +42,7 @@ import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetai
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
+import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
 
@@ -63,6 +64,7 @@ const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
 
     // Map SYNTAX_FILTER_KEYS values to their user-friendly names
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS).forEach(([keyName, keyValue]) => {
         if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
             return;
@@ -71,6 +73,7 @@ const createKeyToUserFriendlyMap = () => {
     });
 
     // Map SYNTAX_ROOT_KEYS values to their user-friendly names
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS).forEach(([keyName, keyValue]) => {
         if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
             return;
@@ -186,12 +189,13 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
  */
 function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]) {
     const delimiter = filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? ' ' : ',';
-    const allowedOps: string[] = [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO];
+    const allowedOps = new Set<string>([CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]);
 
     let filterValueString = '';
+    // eslint-disable-next-line unicorn/no-array-for-each
     queryFilters.forEach((queryFilter, index) => {
-        const previousValueHasSameOp = allowedOps.includes(queryFilter.operator) && queryFilters?.at(index - 1)?.operator === queryFilter.operator;
-        const nextValueHasSameOp = allowedOps.includes(queryFilter.operator) && queryFilters?.at(index + 1)?.operator === queryFilter.operator;
+        const previousValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index - 1)?.operator === queryFilter.operator;
+        const nextValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index + 1)?.operator === queryFilter.operator;
 
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
         if (index !== 0 && (previousValueHasSameOp || nextValueHasSameOp)) {
@@ -247,6 +251,7 @@ function getFilters(queryJSON: SearchQueryJSON) {
                 value: node.right as string | number,
             });
         } else {
+            // eslint-disable-next-line unicorn/no-array-for-each
             node.right.forEach((element) => {
                 filterArray.push({
                     operator: node.operator,
@@ -353,6 +358,7 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
             return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
         })
         .sort((a, b) => customCollator.compare(a.filterString, b.filterString))
+        // eslint-disable-next-line unicorn/no-array-for-each
         .forEach(({filterString, filterKey}) => {
             if (!similarSearchIgnoredFilters.has(filterKey)) {
                 filterSet.add(filterKey);
@@ -478,6 +484,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     // When switching types/setting the type, ensure we aren't polluting our query with filters that are
     // only available for the previous type. Remove all filters that are not allowed for the new type
     const providedFilterKeys = Object.keys(supportedFilterValues) as SearchAdvancedFiltersKey[];
+    // eslint-disable-next-line unicorn/no-array-for-each
     providedFilterKeys.forEach((filter) => {
         if (isFilterSupported(filter, supportedFilterValues.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE)) {
             return;
@@ -623,11 +630,13 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     filtersString.push(...mappedFilters);
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     DATE_FILTER_KEYS.forEach((dateKey) => {
         const dateFilter = buildDateFilterQuery(supportedFilterValues, dateKey);
         filtersString.push(dateFilter);
     });
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     AMOUNT_FILTER_KEYS.forEach((filterKey) => {
         const amountFilter = buildAmountFilterQuery(filterKey, supportedFilterValues);
         filtersString.push(amountFilter);
@@ -679,13 +688,13 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
             filtersForm[key as typeof filterKey] = filterValues.join(',');
         }
-        if (
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION
-        ) {
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
             filtersForm[key as typeof filterKey] = filterValues.at(0);
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) {
+            const actionValue = filterValues.at(0);
+            filtersForm[key as typeof filterKey] =
+                actionValue && Object.values(CONST.SEARCH.ACTION_FILTERS).includes(actionValue as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>) ? actionValue : undefined;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
             const validExpenseTypes = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
@@ -701,9 +710,9 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
             const validWithdrawalTypes = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
-            filtersForm[key as typeof filterKey] = filterValues
-                .filter((withdrawalType): withdrawalType is SearchWithdrawalType => validWithdrawalTypes.has(withdrawalType as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>))
-                .at(0);
+            filtersForm[key as typeof filterKey] = filterValues.find((withdrawalType): withdrawalType is SearchWithdrawalType =>
+                validWithdrawalTypes.has(withdrawalType as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>),
+            );
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
             filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList[card]);
@@ -737,7 +746,7 @@ function buildFilterFormValuesFromQuery(
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY) {
             const validCurrency = new Set(Object.keys(currencyList));
-            filtersForm[filterKey] = filterValues.filter((currency) => validCurrency.has(currency)).at(0);
+            filtersForm[filterKey] = filterValues.find((currency) => validCurrency.has(currency));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
             const tags = policyID
@@ -1206,13 +1215,13 @@ function shouldHighlight(referenceText: string, searchText: string) {
         return false;
     }
 
-    const escapedText = searchText
+    const escapedText = StringUtils.normalizeAccents(searchText)
         .toLowerCase()
         .trim()
-        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        .replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const pattern = new RegExp(`(^|\\s)${escapedText}(?=\\s|$)`, 'i');
 
-    return pattern.test(referenceText.toLowerCase());
+    return pattern.test(StringUtils.normalizeAccents(referenceText).toLowerCase());
 }
 
 export {

@@ -1,17 +1,20 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
+import SearchBar from '@components/SearchBar';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit, getPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, getPolicyExpenseChat} from '@libs/ReportUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,6 +41,7 @@ function IOURequestStepPerDiemWorkspace({
     const {translate, localeCompare} = useLocalize();
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar'] as const);
 
     const selectedWorkspace = useMemo(() => transaction?.participants?.[0], [transaction]);
 
@@ -61,14 +65,28 @@ function IOURequestStepPerDiemWorkspace({
                     {
                         id: policy.id,
                         source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        fallbackIcon: expensifyIcons.FallbackWorkspaceAvatar,
                         name: policy.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
                     },
                 ],
                 isSelected: selectedWorkspace?.policyID === policy.id,
             }));
-    }, [allPolicies, currentUserLogin, selectedWorkspace, localeCompare]);
+    }, [allPolicies, currentUserLogin, selectedWorkspace, localeCompare, expensifyIcons.FallbackWorkspaceAvatar]);
+
+    const filterWorkspace = useCallback((workspaceOption: WorkspaceListItem, searchInput: string) => {
+        const results = tokenizedSearch([workspaceOption], searchInput, (option) => [option.text ?? '']);
+        return results.length > 0;
+    }, []);
+
+    const sortWorkspaces = useCallback(
+        (data: WorkspaceListItem[]) => {
+            return data.sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
+        },
+        [localeCompare],
+    );
+
+    const [inputValue, setInputValue, filteredWorkspaceOptions] = useSearchResults(workspaceOptions, filterWorkspace, sortWorkspaces);
 
     const selectWorkspace = (item: WorkspaceListItem) => {
         const policyExpenseReportID = getPolicyExpenseChat(accountID, item.value)?.reportID;
@@ -95,12 +113,21 @@ function IOURequestStepPerDiemWorkspace({
 
     return (
         <>
-            <View style={[styles.optionsListSectionHeader]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('iou.chooseWorkspace')}</Text>
-            </View>
+            {workspaceOptions.length > CONST.SEARCH_ITEM_LIMIT ? (
+                <SearchBar
+                    label={translate('workspace.common.findWorkspace')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={workspaceOptions.length > 0 && filteredWorkspaceOptions.length === 0}
+                />
+            ) : (
+                <View style={[styles.optionsListSectionHeader]}>
+                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('iou.chooseWorkspace')}</Text>
+                </View>
+            )}
             <SelectionList
                 key={selectedWorkspace?.policyID}
-                data={workspaceOptions}
+                data={filteredWorkspaceOptions}
                 onSelectRow={selectWorkspace}
                 shouldSingleExecuteRowSelect
                 ListItem={UserListItem}
