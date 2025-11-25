@@ -110,7 +110,6 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
             const approver = approvalWorkflow.approvers.at(approverIndex);
             const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
 
-            // If the approver has an approval limit set, navigate to the approval limit page for editing
             if (approver?.approvalLimit && approver?.overLimitForwardsTo) {
                 Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex, backTo));
                 return;

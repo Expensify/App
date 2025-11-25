@@ -63,13 +63,11 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
             overLimitForwardsTo: employee.overLimitForwardsTo,
         });
 
-        // If we've already seen this approver, break to prevent infinite loop
         if (isCircularReference) {
             break;
         }
         currentApproverEmails.add(nextEmail);
 
-        // If there is a forwardsTo, set the next approver to the forwardsTo
         nextEmail = employees[nextEmail].forwardsTo;
     }
 
@@ -261,7 +259,6 @@ function convertApprovalWorkflowToPolicyEmployees({
         const approvalLimit = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? undefined : approver.approvalLimit;
         const overLimitForwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (approver.overLimitForwardsTo ?? '');
 
-        // For every approver, we check if the forwardsTo, approvalLimit, or overLimitForwardsTo fields have changed.
         const previousEmployee = previousEmployeeList[approver.email];
         const forwardsToChanged = previousEmployee?.forwardsTo !== forwardsTo;
         const approvalLimitChanged = previousEmployee?.approvalLimit !== approvalLimit;
@@ -287,8 +284,6 @@ function convertApprovalWorkflowToPolicyEmployees({
     for (const {email} of approvalWorkflow.members) {
         const submitsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (firstApprover.email ?? '');
 
-        // For every member, we check if the submitsTo field has changed.
-        // If it has, we update the employee list with the new submitsTo value.
         if (previousEmployeeList[email]?.submitsTo === submitsTo) {
             continue;
         }

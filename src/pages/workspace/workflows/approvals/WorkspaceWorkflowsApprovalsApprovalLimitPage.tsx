@@ -58,8 +58,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
-    // Read the overLimitForwardsTo directly from the current approver in the workflow
-    // This ensures we get the updated value after returning from the approver selector
     const selectedApproverEmail = currentApprover?.overLimitForwardsTo ?? '';
 
     const selectedApproverDisplayName = useMemo(() => {
@@ -70,7 +68,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         return Str.removeSMSDomain(personalDetails?.displayName ?? selectedApproverEmail);
     }, [selectedApproverEmail, personalDetailsByEmail]);
 
-    // Check if selected approver already exists in the workflow (circular reference)
     const isCircularReference = useMemo(() => {
         if (!selectedApproverEmail || !approvalWorkflow?.approvers) {
             return false;
@@ -84,17 +81,11 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const hasAmount = approvalLimit.length > 0 && Number(approvalLimit) > 0;
     const hasApprover = selectedApproverEmail.length > 0;
 
-    // Determine which error type to show based on the state
-    // When both are empty: show only the combined error at bottom
-    // When only one is empty: show error on that specific field
     const bothEmpty = !hasAmount && !hasApprover;
     const onlyAmountEmpty = !hasAmount && hasApprover;
     const onlyApproverEmpty = hasAmount && !hasApprover;
 
-    // Bottom error message - only shown when both fields are empty
     const bottomErrorMessage = hasSubmitted && bothEmpty ? translate('workflowsApprovalLimitPage.enterBothError') : '';
-
-    // Field-level errors - only shown when the OTHER field has a value
     const amountErrorText = hasSubmitted && onlyAmountEmpty ? translate('workflowsApprovalLimitPage.enterAmountError') : undefined;
     const approverErrorText = useMemo(() => {
         if (isCircularReference) {
@@ -123,7 +114,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
         const limitInCents = convertToBackendAmount(Number.parseFloat(approvalLimit));
 
-        // Update the approver with the approval limit and overLimitForwardsTo
         setApprovalWorkflowApprover({
             approver: {
                 ...currentApprover,
@@ -140,7 +130,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     }, [approvalLimit, selectedApproverEmail, isCircularReference, approvalWorkflow, currentApprover, approverIndex, policyFromHook, personalDetailsByEmail, route.params.policyID]);
 
     const navigateToApproverSelector = useCallback(() => {
-        // Navigate to the over-limit approver selector page
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(route.params.policyID, approverIndex));
     }, [route.params.policyID, approverIndex]);
 

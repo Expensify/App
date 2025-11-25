@@ -42,7 +42,6 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const employeeList = policy?.employeeList;
     const approversFromWorkflow = approvalWorkflow?.approvers;
 
-    // Build a list of available approvers, excluding those already in the workflow chain
     const allApprovers: SelectionListApprover[] = useMemo(() => {
         if (isApprovalWorkflowLoading || !employeeList) {
             return [];
@@ -56,8 +55,6 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                     return null;
                 }
 
-                // Do not allow selecting an approver that's already in the workflow chain
-                // This prevents circular references
                 const isEmailAlreadyInApprovers = approversFromWorkflow?.some((approver) => approver?.email === email);
                 if (isEmailAlreadyInApprovers) {
                     return null;
@@ -103,7 +100,6 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
             const accountID = Number(selectedApprover.login ? policyMemberEmailsToAccountIDs[selectedApprover.login] : '');
             const {avatar, displayName = selectedApprover.login} = personalDetails?.[accountID] ?? {};
 
-            // Update the current approver with the selected over-limit approver
             setApprovalWorkflowApprover({
                 approver: {
                     ...currentApprover,
@@ -121,10 +117,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     );
 
     const subtitle = useMemo(
-        () =>
-            !shouldShowListEmptyContent && (
-                <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApprovalLimitPage.additionalApproverLabel')}</Text>
-            ),
+        () => !shouldShowListEmptyContent && <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApprovalLimitPage.additionalApproverLabel')}</Text>,
         [shouldShowListEmptyContent, translate, styles.textHeadlineH1, styles.mh5, styles.mv3],
     );
 
@@ -155,4 +148,3 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
 WorkspaceWorkflowsApprovalsOverLimitApproverPage.displayName = 'WorkspaceWorkflowsApprovalsOverLimitApproverPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsOverLimitApproverPage);
-
