@@ -11,13 +11,15 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar, MakeAdmin, Plus, RemoveMembers, User} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {Plus} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -62,6 +64,7 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
 function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const backTo = route.params.backTo;
+    const icons = useMemoizedLazyExpensifyIcons(['User', 'MakeAdmin', 'RemoveMembers', 'FallbackAvatar'] as const);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -182,7 +185,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                 pendingAction,
                 icons: [
                     {
-                        source: details?.avatar ?? FallbackAvatar,
+                        source: details?.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -304,7 +307,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             {
                 text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
-                icon: RemoveMembers,
+                icon: icons.RemoveMembers,
                 onSelected: () => setRemoveMembersConfirmModalVisible(true),
             },
         ];
@@ -315,7 +318,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             options.push({
                 text: translate('workspace.people.makeMember'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                icon: User,
+                icon: icons.User,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
             });
         }
@@ -326,13 +329,13 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             options.push({
                 text: translate('workspace.people.makeAdmin'),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-                icon: MakeAdmin,
+                icon: icons.MakeAdmin,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
             });
         }
 
         return options;
-    }, [changeUserRole, translate, setRemoveMembersConfirmModalVisible, selectedMembers, report.participants]);
+    }, [icons.RemoveMembers, icons.User, icons.MakeAdmin, changeUserRole, translate, setRemoveMembersConfirmModalVisible, selectedMembers, report.participants]);
 
     const headerButtons = useMemo(() => {
         if (!isGroupChat) {

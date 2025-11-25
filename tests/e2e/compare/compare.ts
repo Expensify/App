@@ -69,6 +69,7 @@ function compareResults(baselineEntries: Metric | string, compareEntries: Metric
     const compared: Entry[] = [];
 
     if (typeof compareEntries !== 'string' && typeof baselineEntries !== 'string') {
+        // eslint-disable-next-line unicorn/no-array-for-each
         names.forEach((name: string) => {
             const current = compareEntries[name];
             const baseline = baselineEntries[name];
