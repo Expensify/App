@@ -565,6 +565,29 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
     return null;
 }
 
+function getSuperWideRHPRouteByID(reportID?: string, routes: NavigationRoute[] = navigationRef.getRootState().routes): NavigationRoute | null {
+    if (!reportID || !routes?.length) {
+        return null;
+    }
+    for (const route of routes) {
+        if (
+            (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT || route.name === SCREENS.EXPENSE_REPORT_RHP) &&
+            !!route.params &&
+            'reportID' in route.params &&
+            route.params.reportID === reportID
+        ) {
+            return route;
+        }
+        if (route.state?.routes) {
+            const partialRoute = getSuperWideRHPRouteByID(reportID, route.state.routes);
+            if (partialRoute) {
+                return partialRoute;
+            }
+        }
+    }
+    return null;
+}
+
 /**
  * Closes the modal navigator (RHP, onboarding).
  *
@@ -792,6 +815,7 @@ export default {
     dismissToFirstRHP,
     dismissToWideRHP,
     dismissToSuperWideRHP,
+    getSuperWideRHPRouteByID,
 };
 
 export {navigationRef};
