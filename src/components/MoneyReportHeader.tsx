@@ -71,6 +71,7 @@ import {
     isDM,
     isExported as isExportedUtils,
     isInvoiceReport as isInvoiceReportUtil,
+    isOpenExpenseReport,
     isProcessingReport,
     isReportOwner,
     navigateOnDeleteExpense,
@@ -232,6 +233,7 @@ function MoneyReportHeader({
         'Info',
         'Export',
         'Document',
+        'Feed',
         'CheckmarkCircle',
         'ReceiptMultiple',
     ] as const);
@@ -334,9 +336,12 @@ function MoneyReportHeader({
 
     // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
     // wrapped in useMemo to avoid unnecessary re-renders and for better performance (array operation inside of function)
-    const hasAllPendingRTERViolations = useMemo(() => allHavePendingRTERViolation(transactions, violations), [transactions, violations]);
+    const hasAllPendingRTERViolations = useMemo(
+        () => allHavePendingRTERViolation(transactions, violations, email ?? '', moneyRequestReport, policy),
+        [transactions, violations, email, moneyRequestReport, policy],
+    );
     // Check if user should see broken connection violation warning.
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, moneyRequestReport, policy, violations);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '');
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
@@ -425,7 +430,7 @@ function MoneyReportHeader({
 
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
 
-    const hasDuplicates = hasDuplicateTransactions(moneyRequestReport?.reportID);
+    const hasDuplicates = hasDuplicateTransactions(email ?? '', moneyRequestReport, policy);
     const shouldShowMarkAsResolved = isMarkAsResolvedAction(moneyRequestReport, transactionViolations);
     const shouldShowStatusBar =
         hasAllPendingRTERViolations ||
@@ -444,7 +449,7 @@ function MoneyReportHeader({
     const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
     let optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
 
-    if (shouldBlockSubmit && isReportOwner(moneyRequestReport)) {
+    if (shouldBlockSubmit && isReportOwner(moneyRequestReport) && isOpenExpenseReport(moneyRequestReport)) {
         optimisticNextStep = buildOptimisticNextStepForStrictPolicyRuleViolations();
     }
 
@@ -484,7 +489,7 @@ function MoneyReportHeader({
             } else {
                 startAnimation();
                 payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy);
-                if (currentSearchQueryJSON) {
+                if (currentSearchQueryJSON && !isOffline) {
                     search({
                         searchKey: currentSearchKey,
                         shouldCalculateTotals,
@@ -601,7 +606,9 @@ function MoneyReportHeader({
             return {icon: getStatusIcon(expensifyIcons.Flag), description: translate('iou.duplicateTransaction', {isSubmitted: isProcessingReport(moneyRequestReport)})};
         }
 
-        if (!!transaction?.transactionID && shouldShowBrokenConnectionViolation) {
+        // Show the broken connection violation message only if it's part of transactionViolations (i.e., visible to the user).
+        // This prevents displaying an empty message.
+        if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
             return {
                 icon: getStatusIcon(expensifyIcons.Hourglass),
                 description: (
@@ -625,7 +632,7 @@ function MoneyReportHeader({
     };
 
     const getFirstDuplicateThreadID = (transactionsList: OnyxTypes.Transaction[], allReportActions: OnyxTypes.ReportAction[]) => {
-        const duplicateTransaction = transactionsList.find((reportTransaction) => isDuplicate(reportTransaction));
+        const duplicateTransaction = transactionsList.find((reportTransaction) => isDuplicate(reportTransaction, email ?? '', moneyRequestReport, policy));
         if (!duplicateTransaction) {
             return null;
         }
@@ -806,7 +813,7 @@ function MoneyReportHeader({
                     }
                     startSubmittingAnimation();
                     submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
-                    if (currentSearchQueryJSON) {
+                    if (currentSearchQueryJSON && !isOffline) {
                         search({
                             searchKey: currentSearchKey,
                             shouldCalculateTotals,
@@ -877,6 +884,7 @@ function MoneyReportHeader({
                     const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions, transactions, policy);
 
                     if (IOUActions.length) {
+                        // eslint-disable-next-line unicorn/no-array-for-each
                         IOUActions.forEach(changeMoneyRequestHoldStatus);
                         return;
                     }
@@ -916,7 +924,7 @@ function MoneyReportHeader({
                 onPress={() => {
                     let threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
                     if (!threadID) {
-                        const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction));
+                        const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction, email ?? '', moneyRequestReport, policy));
                         const transactionID = duplicateTransaction?.transactionID;
                         const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
                         const createdTransactionThreadReport = createTransactionThreadReport(moneyRequestReport, iouAction);
@@ -1175,6 +1183,17 @@ function MoneyReportHeader({
                     return;
                 }
                 Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT]: {
+            text: translate('reportLayout.reportLayout'),
+            icon: expensifyIcons.Feed,
+            value: CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT,
+            onSelected: () => {
+                if (!moneyRequestReport) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.REPORT_SETTINGS_REPORT_LAYOUT.getRoute(moneyRequestReport.reportID));
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
