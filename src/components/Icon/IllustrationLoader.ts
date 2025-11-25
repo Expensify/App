@@ -59,6 +59,15 @@ function loadIllustration(illustrationName: IllustrationName): Promise<{default:
         });
 }
 
-export {loadIllustration, loadIllustrationsChunk};
+/**
+ * Get the cached Illustrations chunk synchronously
+ * Returns null if the chunk hasn't been loaded yet
+ * Use this to avoid Promise microtask delay when chunk is already loaded
+ */
+function getIllustrationsChunkSync(): IllustrationsChunk | null {
+    return illustrationsChunk;
+}
 
-export type {IllustrationName};
+export {loadIllustration, loadIllustrationsChunk, getIllustrationsChunkSync};
+
+export type {IllustrationName, IllustrationsChunk};

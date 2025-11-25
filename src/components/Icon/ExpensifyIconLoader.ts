@@ -61,6 +61,15 @@ function loadExpensifyIcon(iconName: ExpensifyIconName): Promise<{default: IconA
         });
 }
 
-export {loadExpensifyIcon, loadExpensifyIconsChunk};
+/**
+ * Get the cached ExpensifyIcons chunk synchronously
+ * Returns null if the chunk hasn't been loaded yet
+ * Use this to avoid Promise microtask delay when chunk is already loaded
+ */
+function getExpensifyIconsChunkSync(): ExpensifyIconsChunk | null {
+    return expensifyIconsChunk;
+}
 
-export type {ExpensifyIconName};
+export {loadExpensifyIcon, loadExpensifyIconsChunk, getExpensifyIconsChunkSync};
+
+export type {ExpensifyIconName, ExpensifyIconsChunk};
