@@ -52,8 +52,8 @@ function canApprove(report: Report, policy?: Policy, transactions?: Transaction[
     const currentUserID = getCurrentUserAccountID();
     const isExpense = isExpenseReport(report);
     const isProcessing = isProcessingReport(report);
-    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
-    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    const managerID = report.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserID;
     const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
@@ -62,7 +62,7 @@ function canApprove(report: Report, policy?: Policy, transactions?: Transaction[
         return false;
     }
 
-    if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 
