@@ -1,4 +1,3 @@
-import {forwardRef} from 'react';
 import type {ForwardedRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -12,9 +11,12 @@ type OptionRowRendererComponentProps = {
 
     /** Style prop for customizing the option row */
     style?: StyleProp<ViewStyle>;
+
+    /** Reference to outer element */
+    ref?: ForwardedRef<View>;
 };
 
-function OptionRowRendererComponent(props: OptionRowRendererComponentProps, ref: ForwardedRef<View>) {
+function OptionRowRendererComponent({ref, ...props}: OptionRowRendererComponentProps) {
     return (
         <View
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -27,4 +29,4 @@ function OptionRowRendererComponent(props: OptionRowRendererComponentProps, ref:
 
 OptionRowRendererComponent.displayName = 'OptionRowRendererComponent';
 
-export default forwardRef(OptionRowRendererComponent);
+export default OptionRowRendererComponent;
