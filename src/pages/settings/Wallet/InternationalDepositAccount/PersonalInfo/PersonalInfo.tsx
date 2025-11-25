@@ -39,7 +39,11 @@ function PersonalInfoPage() {
                   ...selectedPlaidBankAccount,
                   plaidAccessToken: plaidData?.plaidAccessToken ?? '',
               };
-        addPersonalBankAccount({...personalBankAccount, ...bankAccountWithToken});
+        const accountData = {
+            ...personalBankAccount,
+            ...bankAccountWithToken,
+        };
+        addPersonalBankAccount(accountData);
     }, [plaidData, personalBankAccount]);
 
     const skipSteps = useMemo(() => getSkippedStepsPersonalInfo(privatePersonalDetails), [privatePersonalDetails]);

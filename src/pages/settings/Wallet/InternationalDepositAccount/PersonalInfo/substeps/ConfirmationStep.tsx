@@ -39,7 +39,16 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
             addressState: bankAccountPersonalDetails?.addressState ?? currentAddress?.state ?? '',
             addressZip: bankAccountPersonalDetails?.addressZipCode ?? currentAddress?.zipCode ?? '',
         };
-    }, [bankAccountPersonalDetails, privatePersonalDetails]);
+    }, [
+        bankAccountPersonalDetails?.addressCity,
+        bankAccountPersonalDetails?.addressState,
+        bankAccountPersonalDetails?.addressStreet,
+        bankAccountPersonalDetails?.addressZipCode,
+        bankAccountPersonalDetails?.legalFirstName,
+        bankAccountPersonalDetails?.legalLastName,
+        bankAccountPersonalDetails?.phoneNumber,
+        privatePersonalDetails,
+    ]);
 
     const summaryItems = useMemo(() => {
         const selectedPlaidAccount = plaidData?.bankAccounts?.find((bankAccount) => bankAccount?.plaidAccountID === bankAccountPersonalDetails?.selectedPlaidAccountID);
