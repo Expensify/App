@@ -9,14 +9,14 @@ const clearStorage: ClearCache = async () => {
     const files = await readDir(CachesDirectoryPath);
     const results = await Promise.allSettled(files.map((file) => unlink(file.path)));
 
-    results.forEach((result, index) => {
+    for (const [index, result] of results.entries()) {
         if (result.status === 'fulfilled') {
-            return;
+            continue;
         }
 
         const fileName = files.at(index)?.path ?? 'unknown path';
         Log.warn(`Failed to delete cache file: ${fileName}`, String(result.reason));
-    });
+    }
 };
 
 export default clearStorage;
