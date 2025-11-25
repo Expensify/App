@@ -264,9 +264,7 @@ function Search({
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
-
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
-    const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useContext(WideRHPContext);
 
     // Filter violations based on user visibility
     const filteredViolations = useMemo(() => {
@@ -676,8 +674,12 @@ function Search({
 
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                createAndOpenSearchTransactionThread(item, hash, backTo);
-                return;
+                // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
+                const shouldOpenTransactionThread = !item.isFromOneTransactionReport || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                createAndOpenSearchTransactionThread(item, hash, backTo, undefined, shouldOpenTransactionThread);
+                if (shouldOpenTransactionThread) {
+                    return;
+                }
             }
 
             if (isTransactionMemberGroupListItemType(item)) {
@@ -746,13 +748,6 @@ function Search({
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
                     }
                 }
-
-                if (item.transactions.length > 1) {
-                    markReportIDAsMultiTransactionExpense(reportID);
-                } else {
-                    unmarkReportIDAsMultiTransactionExpense(reportID);
-                }
-
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
