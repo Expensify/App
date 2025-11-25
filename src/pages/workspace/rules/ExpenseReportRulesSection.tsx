@@ -25,6 +25,8 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const {environmentURL} = useEnvironment();
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable = !policy?.areWorkflowsEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !hasVBBA(policyID);
+    const membersCount = Object.values(policy?.employeeList ?? {}).filter((employee) => employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const shouldLockPreventSelfApprovals = workflowApprovalsUnavailable || membersCount === 1;
 
     const renderFallbackSubtitle = ({featureName, variant = 'unlock'}: {featureName: string; variant?: 'unlock' | 'enable'}) => {
         const moreFeaturesLink = `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
@@ -37,14 +39,14 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
     const optionItems = [
         {
             title: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
-            subtitle: workflowApprovalsUnavailable
+            subtitle: shouldLockPreventSelfApprovals
                 ? renderFallbackSubtitle({featureName: translate('common.approvals').toLowerCase()})
                 : translate('workspace.rules.expenseReportRules.preventSelfApprovalsSubtitle'),
-            shouldParseSubtitle: workflowApprovalsUnavailable,
+            shouldParseSubtitle: shouldLockPreventSelfApprovals,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
             isActive: policy?.preventSelfApproval,
-            disabled: workflowApprovalsUnavailable,
-            showLockIcon: workflowApprovalsUnavailable,
+            disabled: shouldLockPreventSelfApprovals,
+            showLockIcon: shouldLockPreventSelfApprovals,
             pendingAction: policy?.pendingFields?.preventSelfApproval,
             onToggle: (isEnabled: boolean) => setPolicyPreventSelfApproval(policyID, isEnabled),
         },

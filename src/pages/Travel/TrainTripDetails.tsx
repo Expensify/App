@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -20,6 +20,7 @@ type TrainTripDetailsProps = {
 function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
     const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
@@ -94,7 +95,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 <MenuItem
                     label={translate('travel.trainDetails.passenger')}
                     title={displayName}
-                    icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                    icon={personalDetails?.avatar ?? expensifyIcons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
                     interactive={false}

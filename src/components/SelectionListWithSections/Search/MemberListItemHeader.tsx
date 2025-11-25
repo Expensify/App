@@ -3,11 +3,11 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {ListItem, TransactionMemberGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -60,6 +60,7 @@ function MemberListItemHeader<TItem extends ListItem>({
         () => [formatPhoneNumber(getDisplayNameOrDefault(memberItem)), formatPhoneNumber(memberItem.login ?? '')],
         [memberItem, formatPhoneNumber],
     );
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow'] as const);
 
     return (
         <View>
@@ -112,7 +113,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                             >
                                 {({hovered}) => (
                                     <Icon
-                                        src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                        src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
                                         fill={theme.icon}
                                         additionalStyles={!hovered && styles.opacitySemiTransparent}
                                         small

@@ -1227,20 +1227,12 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
     };
 }
 
-function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
+function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, reportAttributesDerived?: ReportAttributesDerivedValue['reports'], config?: PreviewConfig) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
     return {
         item: report,
-        ...createOption(
-            accountIDs,
-            personalDetails,
-            report,
-            {
-                showPersonalDetails: true,
-            },
-            reportAttributesDerived,
-        ),
+        ...createOption(accountIDs, personalDetails, report, config, reportAttributesDerived),
     };
 }
 

@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -1340,8 +1341,8 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} wysłano${comment ? `dla ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `przeniesiono wydatek z przestrzeni osobistej do ${workspaceName ?? `czat z ${reportName}`}`,
         movedToPersonalSpace: 'przeniesiono wydatek do przestrzeni osobistej',
-        tagSelection: 'Wybierz tag, aby lepiej zorganizować swoje wydatki.',
-        categorySelection: 'Wybierz kategorię, aby lepiej zorganizować swoje wydatki.',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `Wybierz ${policyTagListName ?? 'tag'}, aby lepiej uporządkować swoje wydatki.`,
+        categorySelection: 'Wybierz kategorię, aby lepiej uporządkować swoje wydatki.',
         error: {
             invalidCategoryLength: 'Nazwa kategorii przekracza 255 znaków. Proszę ją skrócić lub wybrać inną kategorię.',
             invalidTagLength: 'Nazwa tagu przekracza 255 znaków. Proszę skrócić ją lub wybrać inny tag.',
@@ -2096,6 +2097,10 @@ ${amount} dla ${merchant} - ${date}`,
         addApprovalsDescription: 'Wymagaj dodatkowej zgody przed autoryzacją płatności.',
         makeOrTrackPaymentsTitle: 'Dokonuj lub śledź płatności',
         makeOrTrackPaymentsDescription: 'Dodaj upoważnionego płatnika do płatności dokonywanych w Expensify lub śledź płatności dokonane gdzie indziej.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>Dla tego obszaru roboczego włączono niestandardowy przepływ zatwierdzania. Aby przejrzeć lub zmienić ten przepływ pracy, skontaktuj się z <account-manager-link>Menedżerem konta</account-manager-link> lub <concierge-link>Concierge</concierge-link>.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>Dla tego obszaru roboczego włączono niestandardowy przepływ zatwierdzania. Aby przejrzeć lub zmienić ten przepływ pracy, skontaktuj się z <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         editor: {
             submissionFrequency: 'Wybierz, jak długo Expensify powinno czekać przed udostępnieniem wydatków bez błędów.',
         },
