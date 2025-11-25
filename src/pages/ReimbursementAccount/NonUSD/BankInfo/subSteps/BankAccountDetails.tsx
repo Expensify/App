@@ -56,6 +56,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
 
+            // eslint-disable-next-line unicorn/no-array-for-each
             corpayFields?.formFields?.forEach((field) => {
                 const fieldID = field.id as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>;
 
@@ -63,6 +64,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                     errors[fieldID] = translate('common.error.fieldRequired');
                 }
 
+                // eslint-disable-next-line unicorn/no-array-for-each
                 field.validationRules.forEach((rule) => {
                     if (!rule.regEx) {
                         return;

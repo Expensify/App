@@ -73,7 +73,8 @@ describe('getReportPreviewAction', () => {
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        expect(getReportPreviewAction(VIOLATIONS, false, CURRENT_USER_EMAIL, report, undefined, [])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE);
+        const policy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
+        expect(getReportPreviewAction(VIOLATIONS, false, CURRENT_USER_EMAIL, report, policy, [])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE);
     });
 
     it('canSubmit should return true for expense preview report with manual submit', async () => {

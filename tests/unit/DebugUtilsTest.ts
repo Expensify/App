@@ -1515,6 +1515,7 @@ describe('DebugUtils', () => {
                         reportID: '1',
                         parentReportActionID: '0',
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                         ownerAccountID: 1234,
                         policyID: '1',
                     },
@@ -1522,7 +1523,7 @@ describe('DebugUtils', () => {
                         transactionID: '1',
                         amount: 10,
                         modifiedAmount: 10,
-                        reportID: '0',
+                        reportID: '1',
                     },
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1` as const]: [
                         {

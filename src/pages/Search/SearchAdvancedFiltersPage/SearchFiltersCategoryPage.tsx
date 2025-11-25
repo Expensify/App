@@ -55,8 +55,10 @@ function SearchFiltersCategoryPage() {
         const uniqueCategoryNames = new Set<string>();
 
         if (!selectedPoliciesCategories || selectedPoliciesCategories.length === 0) {
+            // eslint-disable-next-line unicorn/no-array-for-each
             Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
         } else {
+            // eslint-disable-next-line unicorn/no-array-for-each
             selectedPoliciesCategories.forEach((category) => uniqueCategoryNames.add(category.name));
         }
         items.push(

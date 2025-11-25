@@ -42,6 +42,9 @@ type TimePickerProps = {
 
     /** Whether the picker shows hours, minutes, seconds and milliseconds */
     showFullFormat?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<TimePickerRef>;
 };
 
 const AMOUNT_VIEW_ID = 'amountView';
@@ -121,10 +124,7 @@ function clearSelectedValue(
     setSelection({start: newCursorPosition, end: newCursorPosition});
 }
 
-function TimePicker(
-    {defaultValue = '', onSubmit, onInputChange = () => {}, shouldValidate = true, shouldValidateFutureTime = true, showFullFormat = false}: TimePickerProps,
-    ref: ForwardedRef<TimePickerRef>,
-) {
+function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shouldValidate = true, shouldValidateFutureTime = true, showFullFormat = false, ref}: TimePickerProps) {
     const {numberFormat, translate} = useLocalize();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -922,6 +922,6 @@ function TimePicker(
 
 TimePicker.displayName = 'TimePicker';
 
-export default React.forwardRef(TimePicker);
+export default TimePicker;
 
 export type {TimePickerProps, TimePickerRef, TimePickerRefName};

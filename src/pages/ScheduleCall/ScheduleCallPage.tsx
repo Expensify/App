@@ -94,6 +94,7 @@ function ScheduleCallPage() {
 
         const allTimeSlots = guides.reduce((allSlots, guideAccountID) => {
             const guideSchedule = calendlySchedule?.data?.[guideAccountID];
+            // eslint-disable-next-line unicorn/no-array-for-each
             guideSchedule?.timeSlots.forEach((timeSlot) => {
                 allSlots.push({
                     guideAccountID: Number(guideAccountID),
@@ -107,6 +108,7 @@ function ScheduleCallPage() {
 
         // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
+        // eslint-disable-next-line unicorn/no-array-for-each
         allTimeSlots.forEach((timeSlot) => {
             const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
             if (!timeSlotMap[timeSlotDate]) {
@@ -116,6 +118,7 @@ function ScheduleCallPage() {
         });
 
         // Sort time slots within each date array to have in chronological order
+        // eslint-disable-next-line unicorn/no-array-for-each
         Object.values(timeSlotMap).forEach((slots) => {
             slots.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
         });

@@ -152,7 +152,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     return undefined;
                 }
 
-                const option = createOptionFromReport(report, personalDetails);
+                const option = createOptionFromReport(report, personalDetails, undefined, {showPersonalDetails: true});
                 reportForContextualSearch = option;
             }
 

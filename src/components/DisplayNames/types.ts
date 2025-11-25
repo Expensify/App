@@ -20,6 +20,14 @@ type DisplayNamesProps = ForwardedFSClassProps & {
     /** The full title of the DisplayNames component (not split up) */
     fullTitle: string;
 
+    /**
+     * Whether `fullTitle` should be processed through Parser.htmlToText().
+     * Set to true when `fullTitle` contains HTML that needs to be converted to plain text
+     * Set to false when `fullTitle` is already plain text or when you want to preserve
+     * any HTML formatting in the display.
+     */
+    shouldParseFullTitle?: boolean;
+
     /** Array of objects that map display names to their corresponding tooltip */
     displayNamesWithTooltips?: DisplayNameWithTooltip[];
 

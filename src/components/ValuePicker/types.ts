@@ -1,3 +1,5 @@
+import type {ForwardedRef} from 'react';
+import type {View} from 'react-native';
 import type {ListItem} from '@components/SelectionList/types';
 
 type ValuePickerListItem = ListItem & {
@@ -68,6 +70,9 @@ type ValuePickerProps = {
 
     /** Whether to show the selector modal */
     shouldShowModal?: boolean;
+
+    /** Reference to the outer element */
+    ref: ForwardedRef<View>;
 };
 
 export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};

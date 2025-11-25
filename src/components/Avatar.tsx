@@ -96,12 +96,8 @@ function Avatar({
         optimizedSource = getAvatarLocal(maybeDefaultAvatarName);
     }
     const useFallBackAvatar = imageError || !source || source === defaultAvatars.FallbackAvatar;
-    let fallbackAvatar;
-    if (isWorkspace) {
-        fallbackAvatar = getDefaultWorkspaceAvatar(name);
-    } else {
-        fallbackAvatar = fallbackIcon ?? defaultAvatars.FallbackAvatar;
-    }
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const fallbackAvatar = isWorkspace ? getDefaultWorkspaceAvatar(name) : fallbackIcon || defaultAvatars.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
     const avatarSource = useFallBackAvatar ? fallbackAvatar : optimizedSource;
 

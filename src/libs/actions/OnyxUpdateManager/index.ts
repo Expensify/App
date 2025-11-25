@@ -204,6 +204,7 @@ function handleMissingOnyxUpdates(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFr
 function updateAuthTokenIfNecessary(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>): void {
     // Consolidate all of the given Onyx updates
     const onyxUpdates: OnyxUpdate[] = [];
+    // eslint-disable-next-line unicorn/no-array-for-each
     onyxUpdatesFromServer?.updates?.forEach((updateEvent) => onyxUpdates.push(...updateEvent.data));
     onyxUpdates.push(...(onyxUpdatesFromServer?.response?.onyxData ?? []));
 
@@ -211,6 +212,7 @@ function updateAuthTokenIfNecessary(onyxUpdatesFromServer: OnyxEntry<OnyxUpdates
     const sessionUpdates = onyxUpdates?.filter((onyxUpdate) => onyxUpdate.key === ONYXKEYS.SESSION);
 
     // If any of the updates changes the authToken, let's update it now
+    // eslint-disable-next-line unicorn/no-array-for-each
     sessionUpdates?.forEach((sessionUpdate) => {
         const session = (sessionUpdate.value ?? {}) as Session;
         const newAuthToken = session.authToken ?? '';
