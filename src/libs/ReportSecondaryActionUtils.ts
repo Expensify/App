@@ -61,6 +61,7 @@ import {
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
+    isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
@@ -611,13 +612,17 @@ function isReportLayoutAction(report: Report, reportTransactions: Transaction[])
 }
 
 function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
+    // Only single transactions are supported for now
     if (reportTransactions.length !== 1) {
         return false;
     }
 
-    const isExpenseReport = isExpenseReportUtils(report);
+    const reportTransaction = reportTransactions.at(0);
 
-    if (!isExpenseReport) {
+    // Per diem's will be handled separately in a follow-up
+    const isPerDiemRequest = isPerDiemRequestTransactionUtils(reportTransaction);
+
+    if (isPerDiemRequest) {
         return false;
     }
 
@@ -629,7 +634,6 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
         return false;
     }
 
-    const reportTransaction = reportTransactions.at(0);
     const isManagedCardTransaction = isManagedCardTransactionTransactionUtils(reportTransaction);
 
     if (isManagedCardTransaction) {
