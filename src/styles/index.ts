@@ -1843,7 +1843,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         optionRowCompact: {
-            height: variables.optionRowHeightCompact,
             minHeight: variables.optionRowHeightCompact,
             paddingTop: 12,
             paddingBottom: 12,
@@ -4238,6 +4237,14 @@ const staticStyles = (theme: ThemeColors) =>
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+        },
+
+        reportLayoutGroupHeader: {
+            paddingHorizontal: 12,
+            marginTop: 16,
+            marginBottom: 8,
+            backgroundColor: theme.appBG,
+            justifyContent: 'center',
         },
 
         reportActionItemImageBorder: {
