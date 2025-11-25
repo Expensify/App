@@ -9,9 +9,12 @@ import type {
     MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationStatus,
 } from '@libs/MultifactorAuthentication/Biometrics/types';
+import Navigation from '@navigation/Navigation';
 import {requestBiometricChallenge} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
-import type {AuthTypeName, BiometricsStatus, MultifactorAuthenticationScenarioStatus, MultifactorAuthenticationStatusKeyType} from './types';
+import ROUTES, {MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import type {AllMultifactorAuthenticationNotificationType, AuthTypeName, BiometricsStatus, MultifactorAuthenticationScenarioStatus, MultifactorAuthenticationStatusKeyType} from './types';
 
 const failedStep = {
     wasRecentStepSuccessful: false,
@@ -277,6 +280,59 @@ const createFallbackNotAllowedStatus = <T extends MultifactorAuthenticationScena
     ];
 };
 
+const isProtectedRoute = (route: string) => Object.values(MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES).some((protectedRoute) => route.startsWith(`/${protectedRoute}`));
+
+const isOnProtectedRoute = () => isProtectedRoute(Navigation.getActiveRouteWithoutParams());
+
+const getNotificationPath = (
+    overriddenPath: AllMultifactorAuthenticationNotificationType | undefined,
+    scenarioPrefix: Lowercase<MultifactorAuthenticationScenario> | undefined,
+    suffix: string,
+): AllMultifactorAuthenticationNotificationType | undefined => {
+    if (overriddenPath) {
+        return overriddenPath;
+    }
+    if (scenarioPrefix) {
+        return `${scenarioPrefix}-${suffix}` as AllMultifactorAuthenticationNotificationType;
+    }
+    return undefined;
+};
+
+const getNotificationRoute = (path: AllMultifactorAuthenticationNotificationType | undefined): Route => {
+    if (!path) {
+        return ROUTES.MULTIFACTOR_AUTHENTICATION_NOT_FOUND;
+    }
+    return ROUTES.MULTIFACTOR_AUTHENTICATION_NOTIFICATION.getRoute(path);
+};
+
+const getCancelStatus = (
+    type: MultifactorAuthenticationScenarioStatus['type'],
+    wasRecentStepSuccessful: boolean | undefined,
+    nativeBiometricsCancel: (wasRecentStepSuccessful?: boolean) => MultifactorAuthenticationStatus<boolean>,
+    fallbackCancel: (wasRecentStepSuccessful?: boolean) => MultifactorAuthenticationStatus<number | undefined>,
+    setupCancel: (wasRecentStepSuccessful?: boolean) => MultifactorAuthenticationStatus<BiometricsStatus>,
+) => {
+    if (type === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION) {
+        return nativeBiometricsCancel(wasRecentStepSuccessful);
+    }
+    if (type === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION_FALLBACK) {
+        return fallbackCancel(wasRecentStepSuccessful);
+    }
+    return setupCancel(wasRecentStepSuccessful);
+};
+
+const navigateToOTPRoute = (is2FAEnabled: boolean) => {
+    if (is2FAEnabled && !Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_AUTHENTICATOR)) {
+        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_AUTHENTICATOR);
+        return true;
+    }
+    if (!is2FAEnabled && !Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_SMS_OTP)) {
+        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_SMS_OTP);
+        return true;
+    }
+    return false;
+};
+
 function convertResultIntoMultifactorAuthenticationStatus<T extends MultifactorAuthenticationScenario>(
     status: MultifactorAuthenticationStatus<unknown>,
     scenario: T | undefined,
@@ -349,6 +405,12 @@ export {
     shouldAllowFallback,
     shouldAllowBiometrics,
     convertResultIntoMultifactorAuthenticationStatus,
+    getNotificationRoute,
+    getNotificationPath,
+    isOnProtectedRoute,
+    isProtectedRoute,
+    navigateToOTPRoute,
+    getCancelStatus,
     EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS,
     MergedHooksStatus,
     Status,
