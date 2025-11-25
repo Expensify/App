@@ -5948,31 +5948,31 @@ ${amount} para ${merchant} - ${date}`,
         updatedFeatureEnabled: ({enabled, featureName}) => {
             switch (featureName) {
                 case 'categories':
-                    return `${enabled ? 'habilitó' : 'deshabilitó'} las categorías`;
+                    return `${enabled ? 'activó' : 'desactivó'} las categorías`;
                 case 'tags':
-                    return `${enabled ? 'habilitó' : 'deshabilitó'} las etiquetas`;
+                    return `${enabled ? 'activó' : 'desactivó'} las etiquetas`;
                 case 'workflows':
-                    return `${enabled ? 'habilitó' : 'deshabilitó'} los flujos de trabajo`;
+                    return `${enabled ? 'activó' : 'desactivó'} los flujos de trabajo`;
                 case 'distance rates':
-                    return `${enabled ? 'habilitó' : 'deshabilitó'} las tasas por distancia`;
+                    return `${enabled ? 'activó las tasas por distancia' : 'desactivó las tasas por distancia'}`;
                 case 'accounting':
-                    return `${enabled ? 'habilitó' : 'deshabilitó'} la contabilidad`;
+                    return `${enabled ? 'activó' : 'desactivó'} la contabilidad`;
                 case 'Expensify Cards':
-                    return `${enabled ? 'habilitó' : 'deshabilitó'} las Tarjetas Expensify`;
+                    return `${enabled ? 'activó' : 'desactivó'} las tarjetas Expensify`;
                 case 'company cards':
-                    return `${enabled ? 'habilitó' : 'deshabilitó'} las tarjetas de empresa`;
+                    return `${enabled ? 'activó' : 'desactivó'} las tarjetas de empresa`;
                 case 'invoicing':
-                    return `${enabled ? 'habilitó' : 'deshabilitó'} la facturación`;
+                    return `${enabled ? 'activó' : 'desactivó'} las facturas`;
                 case 'per diem':
-                    return `${enabled ? 'habilitó' : 'deshabilitó'} los viáticos`;
+                    return `${enabled ? 'activó' : 'desactivó'} per diem`;
                 case 'receipt partners':
-                    return `${enabled ? 'habilitó' : 'deshabilitó'} los socios de recibos`;
+                    return `${enabled ? 'activó' : 'desactivó'} la importación de recibos`;
                 case 'rules':
-                    return `${enabled ? 'habilitó' : 'deshabilitó'} las reglas`;
+                    return `${enabled ? 'activó' : 'desactivó'} las reglas`;
                 case 'tax tracking':
-                    return `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de impuestos`;
+                    return `${enabled ? 'activó' : 'desactivó'} el seguimiento de impuestos`;
                 default:
-                    return `${enabled ? 'habilitó' : 'deshabilitó'} ${featureName}`;
+                    return `${enabled ? 'activó' : 'desactivó'} ${featureName}`;
             }
         },
         addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,
