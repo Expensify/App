@@ -176,19 +176,16 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        (async () => {
-            try {
-                const rotatedImage = await cropOrRotateImage(
-                    imageUri,
-                    [{rotate: 90}],
-                    {
-                        compress: 1,
-                        name: receiptFilename,
-                        type: receiptType,
-                    },
-                );
-
+        cropOrRotateImage(
+            imageUri,
+            [{rotate: 90}],
+            {
+                compress: 1,
+                name: receiptFilename,
+                type: receiptType,
+            },
+        )
+            .then((rotatedImage) => {
                 if (!rotatedImage) {
                     return;
                 }
@@ -202,32 +199,33 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 const file = rotatedImage as File;
                 const rotatedFilename = file.name ?? receiptFilename;
 
-                // Update the transaction immediately so the modal displays the rotated image right away
-                setMoneyRequestReceipt(transaction.transactionID, imageUriResult, rotatedFilename, isDraftTransaction, receiptType);
+                if (isDraftTransaction) {
+                    // Update the transaction immediately so the modal displays the rotated image right away
+                    setMoneyRequestReceipt(transaction.transactionID, imageUriResult, rotatedFilename, isDraftTransaction, receiptType);
+                } else {
+                    // replaceReceipt({
+                    //     transactionID: transaction.transactionID,
+                    //     file,
+                    //     source: imageUriResult,
+                    //     transactionPolicyCategories: policyCategories,
+                    // });
+                }
 
                 // // Then save it to the backend
-                // replaceReceipt({
-                //     transactionID: transaction.transactionID,
-                //     file,
-                //     source: imageUriResult,
-                //     transactionPolicyCategories: policyCategories,
-                // });
-            } catch (error) {
+            })
+            .catch(() => {
                 // Silently fail if rotation fails
-            }
-        })();
+            });
     }, [transaction, source, isDraftTransaction, receiptURIs.image]);
 
+    const receiptFilenameForRotation = transaction ? getReceiptFilenameFromTransaction(transaction) : undefined;
     const shouldShowRotateReceiptButton =
         shouldShowReplaceReceiptButton &&
         transaction &&
         hasReceiptSource(transaction) &&
         !isEReceipt &&
         !transaction?.receipt?.isTestDriveReceipt &&
-        (() => {
-            const receiptFilename = getReceiptFilenameFromTransaction(transaction);
-            return receiptFilename ? Str.isImage(receiptFilename) : false;
-        })();
+        (receiptFilenameForRotation ? Str.isImage(receiptFilenameForRotation) : false);
 
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {
