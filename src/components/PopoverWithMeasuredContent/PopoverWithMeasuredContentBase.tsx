@@ -182,7 +182,16 @@ function PopoverWithMeasuredContentBase({
         }
 
         return result;
-    }, [adjustedAnchorPosition.left, adjustedAnchorPosition.top, positionCalculations.horizontalShift, positionCalculations.verticalShift, anchorAlignment.vertical, windowHeight, popoverHeight, shouldMeasureAnchorPositionFromTop]);
+    }, [
+        adjustedAnchorPosition.left,
+        adjustedAnchorPosition.top,
+        positionCalculations.horizontalShift,
+        positionCalculations.verticalShift,
+        anchorAlignment.vertical,
+        windowHeight,
+        popoverHeight,
+        shouldMeasureAnchorPositionFromTop,
+    ]);
 
     return isContentMeasured ? (
         <Popover

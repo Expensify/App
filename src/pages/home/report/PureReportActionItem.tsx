@@ -704,7 +704,8 @@ function PureReportActionItem({
         },
         [
             draftMessage,
-            action.errors, action.reportActionID,
+            action.errors,
+            action.reportActionID,
             reportID,
             toggleContextMenuFromActiveReportAction,
             originalReportID,

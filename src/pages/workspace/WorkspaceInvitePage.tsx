@@ -152,7 +152,10 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
     }, [route.params.policyID, selectedOptions]);
 
-    const [policyName, shouldShowAlertPrompt] = useMemo(() => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage], [policy?.name, policy?.errors, policy?.alertMessage]);
+    const [policyName, shouldShowAlertPrompt] = useMemo(
+        () => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage],
+        [policy?.name, policy?.errors, policy?.alertMessage],
+    );
 
     const headerMessage = useMemo(() => {
         const searchValue = searchTerm.trim().toLowerCase();

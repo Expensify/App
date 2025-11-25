@@ -651,8 +651,10 @@ function SearchFiltersBar({
 
         return filterList;
     }, [
-        type?.value, type?.text,
-        groupBy?.value, groupBy?.text,
+        type?.value,
+        type?.text,
+        groupBy?.value,
+        groupBy?.text,
         groupCurrency?.value,
         withdrawalType?.text,
         displayDate,

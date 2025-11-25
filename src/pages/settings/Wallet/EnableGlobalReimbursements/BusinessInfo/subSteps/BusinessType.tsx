@@ -17,7 +17,10 @@ function BusinessType({onNext, onMove, isEditing}: SubStepProps) {
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS, {canBeMissing: true});
 
     const incorporationTypeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.ApplicantType), [corpayOnboardingFields?.picklists.ApplicantType]);
-    const natureOfBusinessListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.NatureOfBusiness), [corpayOnboardingFields?.picklists.NatureOfBusiness]);
+    const natureOfBusinessListOptions = useMemo(
+        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.NatureOfBusiness),
+        [corpayOnboardingFields?.picklists.NatureOfBusiness],
+    );
 
     const pushRowFields = useMemo(
         () => [

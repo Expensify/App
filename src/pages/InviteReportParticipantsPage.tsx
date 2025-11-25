@@ -167,7 +167,17 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
             countryCode,
             false,
         );
-    }, [searchTerm, availableOptions.userToInvite, availableOptions.recentReports.length, availableOptions.personalDetails.length, selectedOptionsForDisplay.length, excludedUsers, translate, reportName, countryCode]);
+    }, [
+        searchTerm,
+        availableOptions.userToInvite,
+        availableOptions.recentReports.length,
+        availableOptions.personalDetails.length,
+        selectedOptionsForDisplay.length,
+        excludedUsers,
+        translate,
+        reportName,
+        countryCode,
+    ]);
 
     const footerContent = useMemo(
         () => (
