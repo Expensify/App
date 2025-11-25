@@ -37,7 +37,7 @@ This indicates that the users being billed for are members of a workspace that w
 
 No problem! You can downgrade your workspace at any time. Just note that downgrading will remove access to any Control-specific features.
 
-## How to downgrade your Control workspace to Collect
+**How to downgrade your Control workspace to Collect**
 
 1. In the navigation menu, select **Workspaces > [Workspace Name] > Overview**.  
 2. Click **Plan type**.  
