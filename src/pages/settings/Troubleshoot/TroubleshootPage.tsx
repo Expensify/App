@@ -45,6 +45,7 @@ type BaseMenuItem = {
 };
 
 function TroubleshootPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'ExpensifyLogoNew', 'Bug', 'RotateLeft'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Lightbulb'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -65,7 +66,6 @@ function TroubleshootPage() {
             ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
         });
     }, [shouldMaskOnyxState]);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyLogoNew', 'Bug', 'RotateLeft', 'Download'] as const);
 
     const surveyCompletedWithinLastMonth = useMemo(() => {
         const surveyThresholdInDays = 30;
@@ -99,7 +99,7 @@ function TroubleshootPage() {
 
         return {
             translationKey: 'exitSurvey.goToExpensifyClassic',
-            icon: expensifyIcons.ExpensifyLogoNew,
+            icon: icons.ExpensifyLogoNew,
             ...(CONFIG.IS_HYBRID_APP
                 ? {
                       action: () => closeReactNativeApp({shouldSetNVP: true}),
@@ -121,24 +121,24 @@ function TroubleshootPage() {
                       },
                   }),
         };
-    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, expensifyIcons.ExpensifyLogoNew, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage]);
+    }, [tryNewDot?.classicRedirect?.isLockedToNewDot, icons.ExpensifyLogoNew, surveyCompletedWithinLastMonth, shouldOpenSurveyReasonPage]);
 
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
             translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
-            icon: expensifyIcons.Bug,
+            icon: icons.Bug,
             action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(ROUTES.SETTINGS_TROUBLESHOOT))),
         };
 
         const baseMenuItems: BaseMenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.troubleshoot.clearCacheAndRestart',
-                icon: expensifyIcons.RotateLeft,
+                icon: icons.RotateLeft,
                 action: () => setIsConfirmationModalVisible(true),
             },
             {
                 translationKey: 'initialSettingsPage.troubleshoot.exportOnyxState',
-                icon: expensifyIcons.Download,
+                icon: icons.Download,
                 action: exportOnyxState,
             },
         ];
@@ -158,17 +158,7 @@ function TroubleshootPage() {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             }))
             .reverse();
-    }, [
-        expensifyIcons.Bug,
-        expensifyIcons.RotateLeft,
-        expensifyIcons.Download,
-        waitForNavigate,
-        exportOnyxState,
-        shouldStoreLogs,
-        classicRedirectMenuItem,
-        translate,
-        styles.sectionMenuItemTopDescription,
-    ]);
+    }, [icons.Bug, icons.RotateLeft, icons.Download, waitForNavigate, exportOnyxState, shouldStoreLogs, classicRedirectMenuItem, translate, styles.sectionMenuItemTopDescription]);
 
     return (
         <ScreenWrapper
