@@ -664,7 +664,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message with AI attribution', () => {
-                const expectedResult = `changed the Category based on past activity to "Travel" (previously "Food")`;
+                const expectedResult = `changed the category based on past activity to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 
@@ -684,7 +684,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message with MCC attribution for non-admin', () => {
-                const expectedResult = `changed the Category based on workspace rule to "Travel" (previously "Food")`;
+                const expectedResult = `changed the category based on workspace rule to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 
@@ -730,7 +730,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message with AI attribution', () => {
-                const expectedResult = `set the Category based on past activity to "Travel"`;
+                const expectedResult = `set the category based on past activity to "Travel"`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 
@@ -750,7 +750,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message with AI attribution', () => {
-                const expectedResult = `removed the Category based on past activity (previously "Travel")`;
+                const expectedResult = `removed the category based on past activity (previously "Travel")`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 
@@ -789,7 +789,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message without attribution', () => {
-                const expectedResult = `changed the Category to "Travel" (previously "Food")`;
+                const expectedResult = `changed the category to "Travel" (previously "Food")`;
 
                 const result = getForReportAction({reportAction, policyID: report.policyID});
 
