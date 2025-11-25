@@ -170,21 +170,17 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         }
 
         const receiptType = transaction?.receipt?.type ?? CONST.IMAGE_FILE_FORMAT.JPEG;
-        const imageUri = isDraftTransaction && typeof source === 'string' ? source : receiptURIs.image ?? '';
+        const imageUri = isDraftTransaction && typeof source === 'string' ? source : (receiptURIs.image ?? '');
 
         if (!imageUri || typeof imageUri !== 'string') {
             return;
         }
 
-        cropOrRotateImage(
-            imageUri,
-            [{rotate: 90}],
-            {
-                compress: 1,
-                name: receiptFilename,
-                type: receiptType,
-            },
-        )
+        cropOrRotateImage(imageUri, [{rotate: 90}], {
+            compress: 1,
+            name: receiptFilename,
+            type: receiptType,
+        })
             .then((rotatedImage) => {
                 if (!rotatedImage) {
                     return;
