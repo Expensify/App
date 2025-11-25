@@ -199,7 +199,7 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const sourceTransactionDetails = getTransactionDetails(sourceTransaction);
 
-    getMergeFields(targetTransaction).forEach((field) => {
+    for (const field of getMergeFields(targetTransaction)) {
         const targetValue = getMergeFieldValue(targetTransactionDetails, targetTransaction, field);
         const sourceValue = getMergeFieldValue(sourceTransactionDetails, sourceTransaction, field);
 
@@ -212,45 +212,46 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
             if (isManagedCardTransaction(targetTransaction)) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
-                return;
+                continue;
             }
 
             // When one of the selected expenses has a $0 amount, we should automatically select the non-zero amount.
             if (targetValue === 0 || sourceValue === 0) {
                 mergeableData[field] = sourceValue === 0 ? targetValue : sourceValue;
                 mergeableData.currency = sourceValue === 0 ? getCurrency(targetTransaction) : getCurrency(sourceTransaction);
-                return;
+                continue;
             }
 
             // Check for currency differences when values equal
             if (targetValue === sourceValue && getCurrency(targetTransaction) !== getCurrency(sourceTransaction)) {
                 conflictFields.push(field);
-                return;
+                continue;
             }
 
             // When the values are the same and the currencies are the same, we should merge the values
             if (targetValue === sourceValue && getCurrency(targetTransaction) === getCurrency(sourceTransaction)) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
-                return;
+                continue;
             }
         }
 
         // We allow user to select unreported report
         if (field === 'reportID') {
             if (targetValue === sourceValue) {
-                mergeableData[field] = targetValue;
+                const updatedValues = getMergeFieldUpdatedValues(targetTransaction, field, SafeString(targetValue));
+                Object.assign(mergeableData, updatedValues);
             } else {
                 conflictFields.push(field);
             }
-            return;
+            continue;
         }
 
         // Use the reimbursable flag coming from card transactions automatically
         // See https://github.com/Expensify/App/issues/69598
         if (field === 'reimbursable' && isManagedCardTransaction(targetTransaction)) {
             mergeableData[field] = targetValue;
-            return;
+            continue;
         }
 
         if (field === 'attendees') {
@@ -262,15 +263,18 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
             } else {
                 conflictFields.push(field);
             }
-            return;
+            continue;
         }
 
         if (isTargetValueEmpty || isSourceValueEmpty || targetValue === sourceValue) {
-            mergeableData[field] = isTargetValueEmpty ? sourceValue : targetValue;
+            const selectedTransaction = isTargetValueEmpty ? sourceTransaction : targetTransaction;
+            const selectedFieldValue = isTargetValueEmpty ? sourceValue : targetValue;
+            const updatedValues = getMergeFieldUpdatedValues(selectedTransaction, field, selectedFieldValue as MergeTransaction[typeof field]);
+            Object.assign(mergeableData, updatedValues);
         } else {
             conflictFields.push(field);
         }
-    });
+    }
 
     return {mergeableData, conflictFields};
 }
@@ -336,6 +340,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
+        reportName: mergeTransaction.reportName,
         routes: mergeTransaction.routes,
     };
 }
@@ -387,7 +392,11 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, transla
         return getCommaSeparatedTagNameWithSanitizedColons(SafeString(fieldValue));
     }
     if (field === 'reportID') {
-        return fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID ? translate('common.none') : getReportName(getReportOrDraftReport(SafeString(fieldValue)));
+        if (fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return translate('common.none');
+        }
+
+        return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue)));
     }
     if (field === 'attendees') {
         return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue) : '';
@@ -452,6 +461,10 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(transaction: OnyxEn
 
     if (field === 'amount') {
         updatedValues.currency = getCurrency(transaction);
+    }
+
+    if (field === 'reportID') {
+        updatedValues.reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction)));
     }
 
     if (field === 'merchant' && isDistanceRequest(transaction)) {
