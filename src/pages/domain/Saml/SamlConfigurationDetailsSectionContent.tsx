@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getSamlSettings, setSamlIdentity} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import StringUtils from '@libs/StringUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -62,13 +63,13 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                 value={samlMetadata.metaIdentity}
                 inputID="identityProviderMetadata"
                 description={translate('domain.samlConfigurationDetails.identityProviderMetaData')}
+                label={translate('domain.samlConfigurationDetails.identityProviderMetaData')}
                 wrapperStyle={styles.sectionMenuItemTopDescription}
                 numberOfLinesTitle={2}
                 titleStyle={[styles.fontSizeLabel, styles.textMono, styles.wordBreakAll]}
                 descriptionTextStyle={[styles.fontSizeLabel, styles.pb1]}
-                textInputContainerStyles={styles.pt1}
-                numberOfLines={9}
-                multiline
+                autoGrowHeight
+                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                 onValueCommitted={(metaIdentity) => {
                     if (metaIdentity === StringUtils.normalizeCRLF(samlMetadata.metaIdentity)) {
                         return;
