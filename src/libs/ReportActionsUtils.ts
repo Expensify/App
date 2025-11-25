@@ -246,10 +246,6 @@ function isDynamicExternalWorkflowSubmitFailedAction(reportAction: OnyxInputOrEn
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED);
 }
 
-function isDynamicExternalWorkflowApproveFailedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED);
-}
-
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
 }
@@ -3468,7 +3464,6 @@ export {
     isUnapprovedAction,
     isForwardedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
-    isDynamicExternalWorkflowApproveFailedAction,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,
