@@ -89,19 +89,18 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
         }
     }, [isKeyboardOpen, prevWindowHeight, toggleKeyboardOnSmallScreens, windowHeight]);
 
-    const loadingIndicator = useMemo(() => (
-        <View
-            style={
-                isUsedAsChatAttachment && [
-                    styles.chatItemPDFAttachmentLoading,
-                    StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT),
-                    styles.pRelative,
-                ]
-            }
-        >
-            <ActivityIndicator size="large" />
-        </View>
-    ), [StyleUtils, isUsedAsChatAttachment, styles.chatItemPDFAttachmentLoading, styles.pRelative])
+    const loadingIndicator = useMemo(
+        () => (
+            <View
+                style={
+                    isUsedAsChatAttachment && [styles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT), styles.pRelative]
+                }
+            >
+                <ActivityIndicator size="large" />
+            </View>
+        ),
+        [StyleUtils, isUsedAsChatAttachment, styles.chatItemPDFAttachmentLoading, styles.pRelative],
+    );
 
     const renderPDFView = () => {
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
