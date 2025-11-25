@@ -466,7 +466,6 @@ function WorkspacesListPage() {
             );
         },
         [
-            icons.Building,
             session?.email,
             session?.accountID,
             activePolicyID,
@@ -487,7 +486,6 @@ function WorkspacesListPage() {
             isRestrictedToPreferredPolicy,
             policyIDToDelete,
             preferredPolicyID,
-            icons.Exit,
         ],
     );
 
