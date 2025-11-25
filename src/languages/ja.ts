@@ -2023,6 +2023,7 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountFailure: '銀行口座の共有中に予期しないエラーが発生しました。もう一度お試しください。',
         shareBankAccountEmptyTitle: '管理者がいません',
         shareBankAccountEmptyDescription: 'この銀行口座を共有できるワークスペース管理者がいません',
+        shareBankAccountNoAdminsSelected: '続行する前に管理者を選択してください',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

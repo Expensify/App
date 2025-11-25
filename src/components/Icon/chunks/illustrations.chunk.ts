@@ -189,7 +189,6 @@ const Illustrations = {
     InvoiceBlue,
     MagnifyingGlassMoney,
     MoneyReceipts,
-    MoneyIntoWallet,
     MoneyWings,
     PerDiem,
     RealtimeReport,

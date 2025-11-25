@@ -1997,6 +1997,7 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountFailure: '尝试共享银行账户时发生意外错误。请重试。',
         shareBankAccountEmptyTitle: '暂无管理员可用',
         shareBankAccountEmptyDescription: '没有可与您共享此银行账户的工作区管理员。',
+        shareBankAccountNoAdminsSelected: '请先选择一位管理员再继续',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

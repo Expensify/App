@@ -2026,6 +2026,7 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountFailure: 'Er is een onverwachte fout opgetreden bij het delen van de bankrekening. Probeer het opnieuw.',
         shareBankAccountEmptyTitle: 'Geen beheerders beschikbaar',
         shareBankAccountEmptyDescription: 'Er zijn geen werkruimtebeheerders waarmee u deze bankrekening kunt delen.',
+        shareBankAccountNoAdminsSelected: 'Selecteer een beheerder voordat u verdergaat',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

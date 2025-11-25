@@ -4,7 +4,6 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
-import {getBankAccountFromID} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,6 +31,7 @@ import type {
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserEmail} from './actions/Report';
@@ -202,33 +202,59 @@ function getActiveAllAdminsFromWorkspaces(
 ): MemberForList[] {
     const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
     const activePolicies = getActivePolicies(policies, currentUserLogin);
+
+    if (!activePolicies) {
+        return [];
+    }
+
     const adminMap = new Map<string, MemberForList>();
-    Object.values(activePolicies ?? {}).forEach((policy) => {
-        getAdminEmployees(policy).forEach((admin) => {
-            const accountID = admin.email ? getAccountIDsByLogins([admin.email]).at(0) : undefined;
-            const isBankAlreadyShared = !!(bankAccountID && accountID && bankAccountShareDetails?.[`${ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS}${bankAccountID}_${accountID}`]);
-            if (currentUserLogin === admin?.email || !admin?.email || adminMap.has(admin.email) || isBankAlreadyShared || currentBankAccount?.accountData?.sharees?.includes(admin?.email)) {
-                return;
+
+    // O(1) checks for already-shared emails
+    const shareesSet = new Set(currentBankAccount?.accountData?.sharees ?? []);
+
+    // Build prefix once (avoids string concat in loop)
+    const shareKeyPrefix = bankAccountID ? `${ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS}${bankAccountID}_` : undefined;
+
+    for (const policy of Object.values(activePolicies)) {
+        for (const admin of getAdminEmployees(policy)) {
+            const email = admin?.email;
+
+            // Cheap skips first
+            if (!email || email === currentUserLogin || adminMap.has(email) || shareesSet.has(email)) {
+                continue;
             }
-            const personalDetails = getPersonalDetailByEmail(admin.email);
+
+            // Only compute accountID and share check if bankAccountID exists
+            if (bankAccountID && shareKeyPrefix) {
+                const accountID = getAccountIDsByLogins([email]).at(0);
+                if (accountID) {
+                    const isBankAlreadyShared = !!bankAccountShareDetails?.[`${shareKeyPrefix}${accountID}`];
+                    if (isBankAlreadyShared) {
+                        continue;
+                    }
+                }
+            }
+
+            const personalDetails = getPersonalDetailByEmail(email);
             if (!personalDetails) {
-                return;
+                continue;
             }
 
             adminMap.set(
-                admin.email,
+                email,
                 formatMemberForList({
-                    text: personalDetails?.displayName,
-                    alternateText: personalDetails?.login,
-                    keyForList: personalDetails?.login,
-                    accountID: personalDetails?.accountID,
-                    login: personalDetails?.login,
-                    pendingAction: personalDetails?.pendingAction,
+                    text: personalDetails.displayName,
+                    alternateText: personalDetails.login,
+                    keyForList: personalDetails.login,
+                    accountID: personalDetails.accountID,
+                    login: personalDetails.login,
+                    pendingAction: personalDetails.pendingAction,
                     reportID: '',
                 }),
             );
-        });
-    });
+        }
+    }
+
     return Array.from(adminMap.values());
 }
 

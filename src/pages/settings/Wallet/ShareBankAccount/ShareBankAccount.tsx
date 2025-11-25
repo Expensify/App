@@ -162,6 +162,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         () => (
             <FormAlertWithSubmitButton
                 isLoading={isLoading}
+                message={translate('walletPage.shareBankAccountNoAdminsSelected')}
                 isAlertVisible={isAlertVisible}
                 shouldRenderFooterAboveSubmit
                 isDisabled={!admins?.length}

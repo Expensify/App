@@ -1780,6 +1780,7 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountFailure: 'Se produjo un error inesperado al intentar compartir la cuenta bancaria. Inténtelo de nuevo.',
         shareBankAccountEmptyTitle: 'No hay administradores disponibles',
         shareBankAccountEmptyDescription: 'No hay administradores del espacio de trabajo con los que puedas compartir esta cuenta bancaria',
+        shareBankAccountNoAdminsSelected: 'Seleccione un administrador antes de continuar',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',

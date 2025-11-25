@@ -2023,6 +2023,7 @@ const translations: TranslationDeepObject<typeof en> = {
         shareBankAccountFailure: 'Wystąpił nieoczekiwany błąd podczas próby udostępnienia konta bankowego. Spróbuj ponownie.',
         shareBankAccountEmptyTitle: 'Brak dostępnych administratorów',
         shareBankAccountEmptyDescription: 'Brak administratorów obszaru roboczego, z którymi można udostępnić to konto bankowe.',
+        shareBankAccountNoAdminsSelected: 'Wybierz administratora przed kontynuowaniem',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
