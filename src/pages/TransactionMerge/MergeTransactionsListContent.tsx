@@ -4,8 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -64,20 +64,19 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         getTransactionsForMerging({isOffline, targetTransaction, transactions, policy, report, currentUserLogin});
     }, [transactions, isOffline, mergeTransaction, policy, report, currentUserLogin, targetTransaction]);
 
-    const sections = useMemo(() => {
-        return [
-            {
-                data: (eligibleTransactions ?? [])
-                    .map((eligibleTransaction) => ({
-                        ...fillMissingReceiptSource(eligibleTransaction),
-                        keyForList: eligibleTransaction.transactionID,
-                        isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
-                        errors: eligibleTransaction.errors as Errors | undefined,
-                    }))
-                    .sort((a, b) => localeCompare(getCreated(b), getCreated(a))),
-                shouldShow: true,
-            },
-        ];
+    const data = useMemo(() => {
+        if (!eligibleTransactions) {
+            return [];
+        }
+
+        return eligibleTransactions
+            .map((eligibleTransaction) => ({
+                ...fillMissingReceiptSource(eligibleTransaction),
+                keyForList: eligibleTransaction.transactionID,
+                isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
+                errors: eligibleTransaction.errors as Errors | undefined,
+            }))
+            .sort((a, b) => localeCompare(getCreated(b), getCreated(a)));
     }, [eligibleTransactions, mergeTransaction, localeCompare]);
 
     const handleSelectRow = useCallback(
@@ -149,6 +148,17 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
     }, [mergeTransaction, transactionID, targetTransaction, localeCompare]);
 
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.continue'),
+            style: styles.justifyContentCenter,
+            isDisabled: !mergeTransaction?.sourceTransactionID,
+            onConfirm: handleConfirm,
+        }),
+        [handleConfirm, mergeTransaction?.sourceTransactionID, styles.justifyContentCenter, translate],
+    );
+
     if (eligibleTransactions?.length === 0) {
         return (
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
@@ -167,21 +177,17 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     }
 
     return (
-        <SelectionList<MergeTransactionListItemType>
-            sections={sections}
-            shouldShowTextInput={false}
-            ListItem={MergeTransactionItem}
-            confirmButtonStyles={[styles.justifyContentCenter]}
-            showConfirmButton
-            confirmButtonText={translate('common.continue')}
-            isConfirmButtonDisabled={!mergeTransaction?.sourceTransactionID}
-            onSelectRow={handleSelectRow}
-            showLoadingPlaceholder
-            LoadingPlaceholderComponent={MergeExpensesSkeleton}
-            fixedNumItemsForLoader={3}
-            headerContent={headerContent}
-            onConfirm={handleConfirm}
-        />
+        <>
+            {headerContent}
+            <SelectionList<MergeTransactionListItemType>
+                data={data}
+                onSelectRow={handleSelectRow}
+                ListItem={MergeTransactionItem}
+                confirmButtonOptions={confirmButtonOptions}
+                showLoadingPlaceholder
+                customLoadingPlaceholder={<MergeExpensesSkeleton fixedNumItems={3} />}
+            />
+        </>
     );
 }
 
