@@ -676,7 +676,7 @@ function Search({
             if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
                 const isFromOneTransactionReport = isOneTransactionReport(item.report);
-                const shouldOpenTransactionThread = !isOneTransactionReport || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                const shouldOpenTransactionThread = !isFromOneTransactionReport || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
                 createAndOpenSearchTransactionThread(item, hash, backTo, undefined, shouldOpenTransactionThread);
                 if (shouldOpenTransactionThread) {
                     return;
