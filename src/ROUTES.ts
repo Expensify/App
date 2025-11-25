@@ -83,17 +83,6 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
-
-    EXPENSE_REPORT_RHP: {
-        route: 'e/:reportID',
-        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
-            const baseRoute = `e/${reportID}` as const;
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(baseRoute, backTo);
-        },
-    },
-
     SEARCH_REPORT_VERIFY_ACCOUNT: {
         route: `search/view/:reportID/${VERIFY_ACCOUNT}`,
         getRoute: (reportID: string) => `search/view/${reportID}/${VERIFY_ACCOUNT}` as const,
@@ -627,6 +616,10 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/visibility` as const, backTo),
+    },
+    REPORT_SETTINGS_REPORT_LAYOUT: {
+        route: 'r/:reportID/settings/report-layout',
+        getRoute: (reportID: string) => `r/${reportID}/settings/report-layout` as const,
     },
     REPORT_CHANGE_APPROVER: {
         route: 'r/:reportID/change-approver',
