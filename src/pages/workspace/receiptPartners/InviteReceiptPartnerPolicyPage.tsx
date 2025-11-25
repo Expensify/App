@@ -1,13 +1,12 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -32,12 +31,14 @@ type InviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<WorkspaceSpl
 
 function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['ToddInCar'] as const);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [isInvitationSent, setIsInvitationSent] = useState(false);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const policyID = route.params?.policyID;
     const policy = usePolicy(policyID);
@@ -76,7 +77,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                     accountID: personalDetail?.accountID,
                     icons: [
                         {
-                            source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
+                            source: personalDetail?.avatar ?? expensifyIcons.FallbackAvatar,
                             name: formatPhoneNumber(email),
                             type: CONST.ICON_TYPE_AVATAR,
                             id: personalDetail?.accountID,
@@ -94,7 +95,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, policy?.receiptPartners?.uber?.employees, localeCompare]);
+    }, [isOffline, policy?.employeeList, policy?.receiptPartners?.uber?.employees, localeCompare, expensifyIcons.FallbackAvatar]);
 
     const sections = useMemo(() => {
         if (workspaceMembers.length === 0) {
@@ -206,7 +207,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                     onBackButtonPress={() => Navigation.dismissModal()}
                 />
                 <ConfirmationPage
-                    illustration={Illustrations.ToddInCar}
+                    illustration={illustrations.ToddInCar}
                     illustrationStyle={styles.uberConfirmationIllustrationContainer}
                     heading={translate('workspace.receiptPartners.uber.readyToRoll')}
                     description={translate('workspace.receiptPartners.uber.takeBusinessRideMessage')}
