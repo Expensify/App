@@ -114,8 +114,8 @@ function SplitListItem<TItem extends ListItem>({
                                 {splitItem.headerText}
                             </Text>
                         </View>
-                        <View style={[styles.minHeight5, styles.justifyContentCenter, styles.gap2]}>
-                            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                        <View style={[styles.minHeight5, styles.justifyContentCenter]}>
+                            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.gap1]}>
                                 <Text
                                     fontSize={variables.fontSizeNormal}
                                     style={[styles.flexShrink1]}
@@ -171,17 +171,8 @@ function SplitListItem<TItem extends ListItem>({
                 </View>
                 <View style={[styles.flexRow]}>
                     <View style={[styles.justifyContentCenter]}>
-                        {isPercentageMode ? (
-                            <SplitPercentageInput
-                                splitItem={splitItem}
-                                contentWidth={contentWidth}
-                                percentageDraft={percentageDraft}
-                                onSplitExpenseValueChange={onSplitExpenseValueChange}
-                                setPercentageDraft={setPercentageDraft}
-                                focusHandler={focusHandler}
-                                onInputBlur={onInputBlur}
-                            />
-                        ) : (
+                        {/* Amount input is always mounted, just hidden in percentage mode to avoid layout flicker */}
+                        <View style={isPercentageMode ? styles.dNone : undefined}>
                             <SplitAmountInput
                                 splitItem={splitItem}
                                 contentWidth={contentWidth}
@@ -191,7 +182,19 @@ function SplitListItem<TItem extends ListItem>({
                                 onInputBlur={onInputBlur}
                                 inputCallbackRef={inputCallbackRef}
                             />
-                        )}
+                        </View>
+                        {/* Percentage input can stay conditional since it doesn't calculate width at mount */}
+                        <View style={!isPercentageMode ? styles.dNone : undefined}>
+                            <SplitPercentageInput
+                                splitItem={splitItem}
+                                contentWidth={contentWidth}
+                                percentageDraft={percentageDraft}
+                                onSplitExpenseValueChange={onSplitExpenseValueChange}
+                                setPercentageDraft={setPercentageDraft}
+                                focusHandler={focusHandler}
+                                onInputBlur={onInputBlur}
+                            />
+                        </View>
                     </View>
                     <View style={[styles.popoverMenuIcon]}>
                         {!splitItem.isEditable ? null : (
