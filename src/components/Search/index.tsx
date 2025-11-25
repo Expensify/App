@@ -728,7 +728,7 @@ function Search({
 
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-            const reportID = isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && !IOUReportAction?.childReportID ? IOUReportAction?.childReportID : item.reportID;
+            const reportID = isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && IOUReportAction?.childReportID ? IOUReportAction?.childReportID : item.reportID;
 
             if (!reportID) {
                 return;

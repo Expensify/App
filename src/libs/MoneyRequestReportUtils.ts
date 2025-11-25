@@ -63,9 +63,7 @@ function getThreadReportIDsForTransactions(reportActions: ReportAction[], transa
 function getReportIDForTransaction(transactionItem: TransactionListItemType, IOUTransactionID?: string) {
     const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-    return (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && IOUTransactionID !== CONST.REPORT.UNREPORTED_REPORT_ID && IOUTransactionID
-        ? IOUTransactionID
-        : transactionItem.reportID;
+    return (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && IOUTransactionID ? IOUTransactionID : transactionItem.reportID;
 }
 
 /**
