@@ -3,6 +3,7 @@ import Button from '@components/Button';
 import CopyableTextField from '@components/Domain/CopyableTextField';
 import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getScimToken} from '@libs/actions/Domain';
 import type {ScimTokenWithState} from '@libs/actions/ScimToken/ScimTokenUtils';
@@ -16,6 +17,7 @@ type ScimTokenContentProps = {
 function ScimTokenContent({domainName}: ScimTokenContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
 
     const [oktaScimToken, setOktaScimToken] = useState<ScimTokenWithState>(undefined);
 
@@ -32,6 +34,7 @@ function ScimTokenContent({domainName}: ScimTokenContentProps) {
                 style={styles.alignSelfStart}
                 onPress={fetchOktaScimToken}
                 isLoading={oktaScimToken?.state === ScimTokenState.LOADING}
+                isDisabled={isOffline}
             />
         );
     }
