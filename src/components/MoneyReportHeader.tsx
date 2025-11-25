@@ -1433,7 +1433,7 @@ function MoneyReportHeader({
 
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
-    const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || (isReportInSearch && !shouldDisplayNarrowMoreButton);
+    const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
 
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
@@ -1473,12 +1473,6 @@ function MoneyReportHeader({
                                     shouldAlwaysShowDropdownMenu
                                 />
                             </View>
-                        )}
-                        {isReportInSearch && (
-                            <MoneyRequestReportNavigation
-                                reportID={moneyRequestReport?.reportID}
-                                shouldDisplayNarrowVersion={!shouldDisplayNarrowMoreButton}
-                            />
                         )}
                     </View>
                 )}
@@ -1524,10 +1518,10 @@ function MoneyReportHeader({
                             />
                         )}
                     </View>
-                    {isReportInSearch && !shouldDisplayNarrowMoreButton && (
+                    {isReportInSearch && (
                         <MoneyRequestReportNavigation
                             reportID={moneyRequestReport?.reportID}
-                            shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+                            shouldDisplayNarrowVersion={!shouldDisplayNarrowMoreButton}
                         />
                     )}
                 </View>
