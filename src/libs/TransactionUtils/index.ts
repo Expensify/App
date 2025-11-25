@@ -136,6 +136,14 @@ Onyx.connect({
     callback: (value) => (allTransactionViolations = value),
 });
 
+let deprecatedCurrentUserAccountID = -1;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        deprecatedCurrentUserAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    },
+});
+
 function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction>): boolean {
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
@@ -1442,7 +1450,7 @@ function isViolationDismissed(
     const dismissedByEmails = Object.keys(violationDismissals);
 
     // Current user dismissed it themselves
-    if (dismissedByEmails.includes(currentUserEmail || deprecatedCurrentUserEmail)) {
+    if (dismissedByEmails.includes(currentUserEmail)) {
         return true;
     }
 
@@ -2092,10 +2100,6 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
 
         return (transA.inserted ?? '') < (transB.inserted ?? '') ? -1 : 1;
     });
-}
-
-function shouldShowRTERViolationMessage(transactions: Transaction[] | undefined, currentUserEmail: string, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
-    return transactions?.length === 1 && hasPendingUI(transactions?.at(0), getTransactionViolations(transactions?.at(0), allTransactionViolations, currentUserEmail, report, policy));
 }
 
 function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>): boolean {
