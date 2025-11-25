@@ -678,7 +678,7 @@ function Search({
                 IOUReportAction = getIOUActionForTransactionID(Object.values(expenseReportActions), item.transactionID);
             }
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && IOUReportAction?.childReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            if (isTransactionItem && !IOUReportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
                 const shouldOpenTransactionThread = !item.isFromOneTransactionReport || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
                 createAndOpenSearchTransactionThread(item, backTo, IOUReportAction?.childReportID, undefined, shouldOpenTransactionThread);
@@ -728,10 +728,7 @@ function Search({
 
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-            const reportID =
-                isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && IOUReportAction?.childReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-                    ? IOUReportAction?.childReportID
-                    : item.reportID;
+            const reportID = isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && !IOUReportAction?.childReportID ? IOUReportAction?.childReportID : item.reportID;
 
             if (!reportID) {
                 return;
@@ -751,7 +748,7 @@ function Search({
                     ? getIOUActionForTransactionID(Object.values(expenseReportActionsOfFirstTransaction), firstTransaction?.transactionID)
                     : undefined;
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
-                    if (IOUReportActionOfFirstTransaction?.childReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+                    if (!IOUReportActionOfFirstTransaction?.childReportID) {
                         createAndOpenSearchTransactionThread(firstTransaction, backTo, IOUReportActionOfFirstTransaction?.childReportID, transactionPreviewData, false);
                     } else {
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, IOUReportActionOfFirstTransaction?.childReportID);
@@ -775,7 +772,7 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense, reportActions],
+        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, markReportIDAsExpense, reportActions],
     );
 
     const currentColumns = useMemo(() => {

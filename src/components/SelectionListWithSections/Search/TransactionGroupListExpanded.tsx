@@ -117,7 +117,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         const reportID = getReportIDForTransaction(transactionItem, IOUReportAction?.childReportID);
 
         const navigateToTransactionThread = () => {
-            if (IOUReportAction?.childReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            if (!IOUReportAction?.childReportID) {
                 createAndOpenSearchTransactionThread(transactionItem, backTo, IOUReportAction?.childReportID);
                 return;
             }
