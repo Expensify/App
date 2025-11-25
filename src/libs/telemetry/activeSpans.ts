@@ -1,4 +1,3 @@
-import {SPAN_STATUS_ERROR } from '@sentry/core';
 import type {StartSpanOptions} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import CONST from '@src/CONST';
@@ -18,17 +17,12 @@ function startSpan(spanId: string, options: StartSpanOptions) {
     return span;
 }
 
-function endSpan(spanId: string, endDueToError = false) {
+function endSpan(spanId: string) {
     const span = activeSpans.get(spanId);
 
     if (!span) {
         return;
     }
-
-    if (endDueToError) {
-        span.setStatus({message: 'error', code: SPAN_STATUS_ERROR});
-    }
-
     span.setStatus({code: 1});
     span.end();
     activeSpans.delete(spanId);
