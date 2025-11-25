@@ -10,7 +10,6 @@ import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './acti
 import {isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {getCurrentUserEmail} from './Network/NetworkStore';
 import {getPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
 import {
@@ -216,7 +215,6 @@ function getTransactionPreviewTextAndTranslationPaths({
     const isTransactionScanning = isScanning(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
     const isPaidGroupPolicy = isPaidGroupPolicyUtil(iouReport);
-    const currentUserEmail = getCurrentUserEmail();
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
