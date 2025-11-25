@@ -59,6 +59,9 @@ type HybridApp = {
 
     /** Timestamp when the transition from OldDot started (in milliseconds) */
     transitionStartTimestamp?: number;
+
+    /** Indicates if user pressed the "Try New Expensify" button */
+    pressedTryNewExpensify?: boolean;
 };
 
 export default HybridApp;

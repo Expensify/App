@@ -49,6 +49,9 @@ function HybridAppHandler() {
                 name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
                 op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
                 startTime: hybridAppSettings.hybridApp.transitionStartTimestamp ?? Date.now(),
+                attributes: {
+                    [CONST.TELEMETRY.ATTRIBUTE_TRY_NEW_EXPENSIFY]: hybridAppSettings.hybridApp.pressedTryNewExpensify,
+                },
             });
 
             finalizeTransitionFromOldDot(hybridAppSettings);

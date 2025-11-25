@@ -1676,6 +1676,7 @@ const CONST = {
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
+        ATTRIBUTE_TRY_NEW_EXPENSIFY: 'try_new_expensify',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
