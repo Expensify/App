@@ -16,7 +16,7 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
 
     const groups = new Map<string, Transaction[]>();
 
-    transactions.forEach((transaction) => {
+    for (const transaction of transactions) {
         const category = getCategory(transaction);
         const categoryKey = category || '';
 
@@ -24,10 +24,10 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
             groups.set(categoryKey, []);
         }
         groups.get(categoryKey)?.push(transaction);
-    });
+    }
 
     const result: GroupedTransactions[] = [];
-    groups.forEach((transactionList, categoryKey) => {
+    for (const [categoryKey, transactionList] of groups) {
         // Translation handled at component level
         const displayName = categoryKey;
 
@@ -47,7 +47,7 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
             totalAmount,
             isExpanded: true,
         });
-    });
+    }
 
     // Sort alphabetically (A→Z), empty keys (uncategorized) at the end
     return result.sort((a, b) => {
@@ -72,7 +72,7 @@ function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<R
 
     const groups = new Map<string, Transaction[]>();
 
-    transactions.forEach((transaction) => {
+    for (const transaction of transactions) {
         const tag = getTag(transaction);
         const tagKey = tag || '';
 
@@ -80,10 +80,10 @@ function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<R
             groups.set(tagKey, []);
         }
         groups.get(tagKey)?.push(transaction);
-    });
+    }
 
     const result: GroupedTransactions[] = [];
-    groups.forEach((transactionList, tagKey) => {
+    for (const [tagKey, transactionList] of groups) {
         // Translation handled at component level
         const displayName = tagKey;
 
@@ -103,7 +103,7 @@ function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<R
             totalAmount,
             isExpanded: true,
         });
-    });
+    }
 
     // Sort alphabetically (A→Z), empty keys (untagged) at the end
     return result.sort((a, b) => {
