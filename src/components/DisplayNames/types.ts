@@ -52,10 +52,13 @@ type DisplayNamesProps = ForwardedFSClassProps & {
     /** If we should add an ellipsis after the participants list */
     shouldAddEllipsis?: boolean;
 
+     /** Whether to parse HTML in the title */
+  shouldParseFullTitle?: boolean;
+
     /** Additional Text component to render after the displayNames */
     renderAdditionalText?: () => React.ReactNode;
 
-    /** TestID indicating order */
+    //** TestID indicating order */
     testID?: number;
 };
 
