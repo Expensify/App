@@ -18,7 +18,7 @@ function AccessMoneyRequestReportPreviewPlaceHolder() {
     return (
         <View style={[styles.alignItemsCenter, styles.highlightBG, styles.ml0, styles.mr0, styles.gap4, styles.reportContainerBorderRadius]}>
             <View style={[styles.emptyStateMoneyRequestPreviewReport, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <View style={[{width: shouldUseNarrowLayout ? '100%' : 303}, styles.m1, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap4]}>
+                <View style={[shouldUseNarrowLayout ? styles.w100 : {width: 303}, styles.m1, styles.justifyContentCenter, styles.alignItemsCenter, styles.gap4]}>
                     <ImageSVG
                         fill={theme.border}
                         height={64}
