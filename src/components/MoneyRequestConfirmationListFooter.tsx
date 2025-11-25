@@ -324,15 +324,13 @@ function MoneyRequestConfirmationListFooter({
     const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, policyID, undefined, false)) || isUnreported;
 
+    const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
+
     const availableOutstandingReports = useMemo(() => {
-        return getOutstandingReportsForUser(
-            policyID,
-            selectedParticipants?.at(0)?.ownerAccountID,
-            outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-            reportNameValuePairs,
-            false,
-        ).sort((a, b) => localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''));
-    }, [policyID, selectedParticipants, outstandingReportsByPolicyID, reportNameValuePairs, localeCompare]);
+        return getOutstandingReportsForUser(policyID, ownerAccountID, outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, reportNameValuePairs, false).sort((a, b) =>
+            localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''),
+        );
+    }, [policyID, ownerAccountID, outstandingReportsByPolicyID, reportNameValuePairs, localeCompare]);
 
     const iouReportID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.iouReportID;
     const outstandingReportID = isPolicyExpenseChat ? (iouReportID ?? availableOutstandingReports.at(0)?.reportID) : reportID;
