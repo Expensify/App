@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {loadExpensifyIconsChunk} from '@components/Icon/ExpensifyIconLoader';
+import {getExpensifyIconsChunkSync, loadExpensifyIconsChunk} from '@components/Icon/ExpensifyIconLoader';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
-import {loadIllustrationsChunk} from '@components/Icon/IllustrationLoader';
+import {getIllustrationsChunkSync, loadIllustrationsChunk} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -93,15 +93,33 @@ function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => Promise<{defa
 /**
  * Hook for loading multiple illustrations at once
  * Loads the illustrations chunk once and returns an object keyed by illustration names
+ * Uses synchronous access when chunk is cached to avoid flash
  * @param names - Array of illustration names (use `as const` for type safety)
  * @returns Object with illustration names as keys and IconAsset as values
  */
 function useMemoizedLazyIllustrations<const TName extends readonly IllustrationName[]>(names: TName): Record<TName[number], IconAsset> {
-    const [assets, setAssets] = useState<Record<string, IconAsset>>({});
+    const cachedChunk = getIllustrationsChunkSync();
     const namesKey = useMemo(() => names.join(','), [names]);
     const namesList = useMemo(() => namesKey.split(',') as Array<TName[number]>, [namesKey]);
 
+    // Try to get cached chunk synchronously to avoid Promise microtask delay
+    const [assets, setAssets] = useState<Record<string, IconAsset>>(() => {
+        if (cachedChunk) {
+            const loaded: Record<string, IconAsset> = {};
+            for (const name of names) {
+                loaded[name as string] = cachedChunk.getIllustration(name) ?? PlaceholderIcon;
+            }
+            return loaded;
+        }
+        return {};
+    });
+
     useEffect(() => {
+        // If already loaded synchronously, skip async load
+        if (cachedChunk) {
+            return;
+        }
+
         let isMounted = true;
 
         loadIllustrationsChunk()
@@ -131,7 +149,7 @@ function useMemoizedLazyIllustrations<const TName extends readonly IllustrationN
         return () => {
             isMounted = false;
         };
-    }, [namesList]);
+    }, [namesList, cachedChunk]);
 
     return useMemo(() => Object.fromEntries(namesList.map((name) => [name, assets[name as string] ?? PlaceholderIcon])) as Record<TName[number], IconAsset>, [assets, namesList]);
 }
@@ -139,15 +157,32 @@ function useMemoizedLazyIllustrations<const TName extends readonly IllustrationN
 /**
  * Hook for loading multiple Expensify icons at once
  * Loads the Expensify icons chunk once and returns an object keyed by icon names
+ * Uses synchronous access when chunk is cached to avoid flash
  * @param names - Array of Expensify icon names (use `as const` for type safety)
  * @returns Object with icon names as keys and IconAsset as values
  */
 function useMemoizedLazyExpensifyIcons<const TName extends readonly ExpensifyIconName[]>(names: TName): Record<TName[number], IconAsset> {
-    const [assets, setAssets] = useState<Record<string, IconAsset>>({});
+    const cachedChunk = getExpensifyIconsChunkSync();
     const namesKey = useMemo(() => names.join(','), [names]);
     const namesList = useMemo(() => namesKey.split(',') as Array<TName[number]>, [namesKey]);
 
+    // Try to get cached chunk synchronously to avoid Promise microtask delay
+    const [assets, setAssets] = useState<Record<string, IconAsset>>(() => {
+        if (cachedChunk) {
+            const loaded: Record<string, IconAsset> = {};
+            for (const name of namesList) {
+                loaded[name as string] = cachedChunk.getExpensifyIcon(name) ?? PlaceholderIcon;
+            }
+            return loaded;
+        }
+        return {};
+    });
+
     useEffect(() => {
+        if (cachedChunk) {
+            return;
+        }
+
         let isMounted = true;
 
         loadExpensifyIconsChunk()
@@ -177,7 +212,7 @@ function useMemoizedLazyExpensifyIcons<const TName extends readonly ExpensifyIco
         return () => {
             isMounted = false;
         };
-    }, [namesList]);
+    }, [namesList, cachedChunk]);
 
     return useMemo(() => Object.fromEntries(namesList.map((name) => [name, assets[name as string] ?? PlaceholderIcon])) as Record<TName[number], IconAsset>, [assets, namesList]);
 }
