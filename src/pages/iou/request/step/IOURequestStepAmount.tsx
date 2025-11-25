@@ -16,7 +16,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {createDraftTransaction, removeDraftTransaction} from '@libs/actions/TransactionEdit';
 import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
-import {navigateToParticipantPage} from '@libs/IOUUtils';
+import {navigateToParticipantPage, shouldRequireMerchant} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -252,8 +252,15 @@ function IOURequestStepAmount({
                 setSplitShares(transaction, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, participantAccountIDs);
             }
             setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
+                // Check if merchant is required and missing before proceeding
+                // If so, navigate to merchant step first
+                if (shouldRequireMerchant(transaction, report, isEditingSplitBill)) {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, reportActionID));
+                    return;
+                }
                 navigateToConfirmationPage();
             });
+
             return;
         }
 
@@ -273,7 +280,7 @@ function IOURequestStepAmount({
             const resetToDefaultWorkspace = () => {
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, activePolicyExpenseChat?.reportID));
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, activePolicyExpenseChat?.reportID, undefined, reportActionID));
                 });
             };
 

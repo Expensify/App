@@ -338,6 +338,9 @@ function IOURequestStepParticipants({
             return;
         }
 
+        const firstParticipant = participants?.at(0);
+        const isMerchantRequired = !!firstParticipant?.isPolicyExpenseChat;
+
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,
             iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
@@ -348,9 +351,18 @@ function IOURequestStepParticipants({
             action === CONST.IOU.ACTION.SHARE ? Navigation.getActiveRoute() : undefined,
         );
 
+        // eslint-disable-next-line no-nested-ternary
         const route = isCategorizing
             ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, initialTransactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
-            : iouConfirmationPageRoute;
+            : isMerchantRequired
+              ? ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
+                    action,
+                    iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
+                    initialTransactionID,
+                    newReportID,
+                    undefined,
+                )
+              : iouConfirmationPageRoute;
 
         Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE);
         waitForKeyboardDismiss(() => {
