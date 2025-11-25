@@ -11,14 +11,6 @@ import getBackgroundColor from './getBackground';
 import getOpacity from './getOpacity';
 import TabSelectorItem from './TabSelectorItem';
 
-/**
- * Navigation-agnostic tab selector UI that renders a row of TabSelectorItem components.
- *
- * This component owns the shared layout, width/position measurements, and animation helpers
- * (getOpacity / getBackgroundColor). It is reused by both navigation-based TabSelector and
- * inline tab selectors like SplitExpensePage.
- */
-
 type TabSelectorBaseItem = {
     /** Stable key for the tab. */
     key: string;
@@ -59,6 +51,13 @@ type TabSelectorBaseProps = {
     renderProductTrainingTooltip?: () => React.JSX.Element;
 };
 
+/**
+ * Navigation-agnostic tab selector UI that renders a row of TabSelectorItem components.
+ *
+ * This component owns the shared layout, width/position measurements, and animation helpers
+ * (getOpacity / getBackgroundColor). It is reused by both navigation-based TabSelector and
+ * inline tab selectors like SplitExpensePage.
+ */
 function TabSelectorBase({
     tabs,
     activeTabKey,

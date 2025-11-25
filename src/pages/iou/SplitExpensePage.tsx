@@ -78,8 +78,8 @@ const tabs: TabType[] = [
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {ArrowsLeftRight, MoneyCircle, Percent, Plus} = useMemoizedLazyExpensifyIcons(['Plus', 'ArrowsLeftRight', 'MoneyCircle', 'Percent'] as const);
     const {listRef, viewRef, footerRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'MoneyCircle', 'Percent', 'Plus'] as const);
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -160,12 +160,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             const splitExpenseWithoutID = {...splitExpenses.at(0), transactionID: ''};
             // When we try to save one split during splits creation and if the data is identical to the original transaction we should close the split flow
             if (!childTransactions.length && deepEqual(splitFieldDataFromOriginalTransactionWithoutID, splitExpenseWithoutID)) {
-                Navigation.dismissToFirstRHP();
+                Navigation.dismissModal();
                 return;
             }
             // When we try to save splits during editing splits and if the data is identical to the already created transactions we should close the split flow
             if (childTransactions.length && deepEqual(splitFieldDataFromChildTransactions, splitExpenses)) {
-                Navigation.dismissToFirstRHP();
+                Navigation.dismissModal();
                 return;
             }
             // When we try to save one split during splits creation and if the data is not identical to the original transaction we should show the error
@@ -193,7 +193,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
         // When we try to save splits during editing splits and if the data is identical to the already created transactions we should close the split flow
         if (deepEqual(splitFieldDataFromChildTransactions, splitExpenses)) {
-            Navigation.dismissToFirstRHP();
+            Navigation.dismissModal();
             return;
         }
 
@@ -337,14 +337,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 <MenuItem
                     onPress={onAddSplitExpense}
                     title={translate('iou.addSplit')}
-                    icon={Plus}
+                    icon={expensifyIcons.Plus}
                     style={[styles.ph4]}
                 />
                 {shouldShowMakeSplitsEven && (
                     <MenuItem
                         onPress={onMakeSplitsEven}
                         title={translate('iou.makeSplitsEven')}
-                        icon={ArrowsLeftRight}
+                        icon={expensifyIcons.ArrowsLeftRight}
                         style={[styles.ph4]}
                     />
                 )}
@@ -361,8 +361,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         styles.flexColumn,
         styles.mt1,
         styles.mb3,
-        ArrowsLeftRight,
-        Plus,
+        expensifyIcons.ArrowsLeftRight,
+        expensifyIcons.Plus,
     ]);
 
     const footerContent = useMemo(() => {
@@ -411,7 +411,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 tabs={tabs.map((tab) => ({
                     key: tab.key,
                     title: translate(tab.titleKey),
-                    icon: tab.key === CONST.IOU.SPLIT_TYPE.AMOUNT ? MoneyCircle : Percent,
+                    icon: tab.key === CONST.IOU.SPLIT_TYPE.AMOUNT ? expensifyIcons.MoneyCircle : expensifyIcons.Percent,
                     testID: tab.testID,
                 }))}
                 activeTabKey={activeTabKey}
@@ -420,7 +420,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 equalWidth
             />
         );
-    }, [MoneyCircle, Percent, isPercentageMode, shouldShowMakeSplitsEven, translate]);
+    }, [expensifyIcons.MoneyCircle, expensifyIcons.Percent, isPercentageMode, shouldShowMakeSplitsEven, translate]);
 
     const headerTitle = useMemo(() => {
         if (splitExpenseTransactionID) {
