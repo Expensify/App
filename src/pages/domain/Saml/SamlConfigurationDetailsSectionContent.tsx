@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getSamlSettings, setSamlIdentity} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -68,6 +69,9 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                 numberOfLines={9}
                 multiline
                 onValueCommitted={(metaIdentity) => {
+                    if (metaIdentity === StringUtils.normalizeCRLF(samlMetadata.metaIdentity)) {
+                        return;
+                    }
                     setSamlIdentity(accountID, domainName, metaIdentity);
                 }}
                 errorText={getLatestErrorMessage({errors: samlMetadata.samlMetadataError})}
