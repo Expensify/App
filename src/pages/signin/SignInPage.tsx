@@ -3,6 +3,8 @@ import {Str} from 'expensify-common';
 import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Alert} from 'react-native';
+import type {NativeConfig} from 'react-native-config';
+import Config from 'react-native-config';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
@@ -301,9 +303,15 @@ function SignInPage({ref}: SignInPageProps) {
     }));
     useHandleBackButton(navigateBack);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const get = (config: NativeConfig, key: string, defaultValue: string): string => (config?.[key] ?? defaultValue).trim();
+
     const throwAlert = () => {
         Sentry.captureException(new Error('Test Alert Source Maps'));
-        Alert.alert('Test Alert', JSON.stringify({env: CONFIG.ENVIRONMENT, SentryOptions: Sentry.getClient()?.getOptions()}));
+        Alert.alert('Test Alert', JSON.stringify({env: CONFIG.ENVIRONMENT, authToken: get(Config, 'SENTRY_AUTH_TOKEN', 'default')}, null, 2));
+    };
+    const sentryOptionsAlert = () => {
+        Alert.alert('Test Alert', JSON.stringify(Sentry.getClient()?.getOptions(), null, 2));
     };
 
     return (
@@ -311,6 +319,10 @@ function SignInPage({ref}: SignInPageProps) {
             <Button
                 text="Throw Alert"
                 onPress={throwAlert}
+            />
+            <Button
+                text="Sentry Options Alert"
+                onPress={sentryOptionsAlert}
             />
             <CustomStatusBarAndBackground isNested />
             <LoginProvider>
