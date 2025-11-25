@@ -2873,7 +2873,7 @@ function buildNewReportOptimisticData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
-            value: {lastVisibleActionCreated: optimisticReportPreview.created, iouReportID: reportID, ...outstandingChildRequest},
+            value: {iouReportID: reportID, ...outstandingChildRequest},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2919,7 +2919,7 @@ function buildNewReportOptimisticData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`,
-            value: {lastVisibleActionCreated: parentReport?.lastVisibleActionCreated, hasOutstandingChildRequest: parentReport?.hasOutstandingChildRequest},
+            value: {hasOutstandingChildRequest: parentReport?.hasOutstandingChildRequest},
         },
     ];
 
@@ -3585,6 +3585,9 @@ function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
                         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                     },
                 },
+                pendingFields: {
+                    reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
             },
         },
     ];
@@ -3608,6 +3611,15 @@ function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
     ];
 
     const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    reportID: null,
+                },
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -3658,6 +3670,9 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
                                   notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
                               },
                           },
+                          pendingFields: {
+                              reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                          },
                       },
         },
     ];
@@ -3686,6 +3701,15 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     }
 
     const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    reportID: null,
+                },
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -5060,31 +5084,54 @@ function deleteAppReport(reportID: string | undefined) {
         value: reportActionsForReport,
     });
 
-    // 7. Delete the report
+    // 7. Mark the iouReport as being deleted and then delete it
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            pendingFields: {
+                preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            },
+        },
+    });
+
+    successData.push({
+        onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: null,
     });
 
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
+        onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: report,
     });
 
-    // 8. Delete chat report preview
+    // 8. Mark chat report preview action as deleted
     const reportActionID = report?.parentReportActionID;
-    const reportAction = allReportActions?.[reportID];
     const parentReportID = report?.parentReportID;
+    const parentReportAction = parentReportID && reportActionID ? allReportActions?.[parentReportID]?.[reportActionID] : undefined;
 
     if (reportActionID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {
-                [reportActionID]: null,
+                [reportActionID]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {
+                [reportActionID]: {
+                    pendingAction: null,
+                    errors: null,
+                },
             },
         });
 
@@ -5092,7 +5139,10 @@ function deleteAppReport(reportID: string | undefined) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {
-                [reportActionID]: reportAction,
+                [reportActionID]: {
+                    ...parentReportAction,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDeleteFailureMessage'),
+                },
             },
         });
     }
@@ -5978,11 +6028,47 @@ function changeReportPolicyAndInviteSubmitter(
 }
 
 /**
+ * Generic helper function to resolve Concierge AI-suggested options (category or description)
+ * @param reportID - The report ID where the comment should be added and the report action should be updated
+ * @param notifyReportID - The report ID we should notify for new actions
+ * @param reportActionID - The specific report action ID to update
+ * @param selectedValue - The value selected by the user
+ * @param timezoneParam - The user's timezone
+ * @param selectedField - The field to update in the original message ('selectedCategory' or 'selectedDescription')
+ * @param ancestors - Array of ancestor reports for proper threading
+ */
+function resolveConciergeOptions(
+    reportID: string | undefined,
+    notifyReportID: string | undefined,
+    reportActionID: string | undefined,
+    selectedValue: string,
+    timezoneParam: Timezone,
+    selectedField: 'selectedCategory' | 'selectedDescription',
+    ancestors: Ancestor[] = [],
+) {
+    if (!reportID || !reportActionID) {
+        return;
+    }
+
+    addComment(reportID, notifyReportID ?? reportID, ancestors, selectedValue, timezoneParam);
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        [reportActionID]: {
+            originalMessage: {
+                [selectedField]: selectedValue,
+            },
+        },
+    } as Partial<ReportActions>);
+}
+
+/**
  * Resolves Concierge category options by adding a comment and updating the report action
  * @param reportID - The report ID where the comment should be added and the report action should be updated
  * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
  * @param reportActionID - The specific report action ID to update
  * @param selectedCategory - The category selected by the user
+ * @param timezoneParam - The user's timezone
+ * @param ancestors - Array of ancestor reports for proper threading
  */
 function resolveConciergeCategoryOptions(
     reportID: string | undefined,
@@ -5992,19 +6078,27 @@ function resolveConciergeCategoryOptions(
     timezoneParam: Timezone,
     ancestors: Ancestor[] = [],
 ) {
-    if (!reportID || !reportActionID) {
-        return;
-    }
+    resolveConciergeOptions(reportID, notifyReportID, reportActionID, selectedCategory, timezoneParam, 'selectedCategory', ancestors);
+}
 
-    addComment(reportID, notifyReportID ?? reportID, ancestors, selectedCategory, timezoneParam);
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        [reportActionID]: {
-            originalMessage: {
-                selectedCategory,
-            },
-        },
-    } as Partial<ReportActions>);
+/**
+ * Resolves Concierge description options by adding a comment and updating the report action
+ * @param reportID - The report ID where the comment should be added and the report action should be updated
+ * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
+ * @param reportActionID - The specific report action ID to update
+ * @param selectedDescription - The description selected by the user
+ * @param timezoneParam - The user's timezone
+ * @param ancestors - Array of ancestor reports for proper threading
+ */
+function resolveConciergeDescriptionOptions(
+    reportID: string | undefined,
+    notifyReportID: string | undefined,
+    reportActionID: string | undefined,
+    selectedDescription: string,
+    timezoneParam: Timezone,
+    ancestors: Ancestor[] = [],
+) {
+    resolveConciergeOptions(reportID, notifyReportID, reportActionID, selectedDescription, timezoneParam, 'selectedDescription', ancestors);
 }
 
 /**
@@ -6105,6 +6199,7 @@ export {
     resolveActionableMentionConfirmWhisper,
     resolveActionableReportMentionWhisper,
     resolveConciergeCategoryOptions,
+    resolveConciergeDescriptionOptions,
     savePrivateNotesDraft,
     saveReportActionDraft,
     saveReportDraftComment,
