@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -269,6 +270,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -696,6 +698,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '予想より時間がかかっています...',
         domains: 'ドメイン',
+        reportName: 'レポート名',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1341,7 +1344,7 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 送信済み${comment ? `${comment} のために` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `個人スペースから${workspaceName ?? `${reportName}とチャットする`}に経費を移動しました。`,
         movedToPersonalSpace: '経費を個人スペースに移動しました',
-        tagSelection: '支出をより整理するためにタグを選択してください。',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `支出をより適切に整理するために、${policyTagListName ?? 'aタグ'} を選択してください。`,
         categorySelection: '支出をより整理するためにカテゴリを選択してください。',
         error: {
             invalidCategoryLength: 'カテゴリ名が255文字を超えています。短くするか、別のカテゴリを選んでください。',
@@ -1488,6 +1491,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: '保留しますか、それとも却下しますか？',
             educationalText: '経費を承認または支払う準備ができていない場合は、保留または却下できます。',
             holdExpenseTitle: '承認または支払いの前に詳細を確認するため、経費を保留にします。',
+            approveExpenseTitle: '保留中の経費はあなたに割り当てられたまま、他の経費を承認できます。',
             heldExpenseLeftBehindTitle: 'レポート全体を承認すると、保留中の経費は除外されます。',
             rejectExpenseTitle: '承認または支払うつもりのない経費を却下します。',
             reasonPageTitle: '経費を却下',
@@ -1616,9 +1620,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'この機能を使用するには、アカウントの確認が必要です。',
         validateAccount: 'アカウントを確認してください',
         helpText: ({email}: {email: string}) =>
-            `領収書を送信する方法を追加してください。それらを転送する先は <copy-text text="${email}"/> または、47777（米国の番号のみ）にテキストメッセージを送信してください。`,
-        pleaseVerify: 'この連絡方法を確認してください',
-        getInTouch: '私たちがあなたに連絡を取る必要がある場合、この連絡方法を使用します。',
+            `Expensify にログインしたり領収書を送信したりする方法を追加できます。<br/><br/>領収書を <a href="mailto:${email}">${email}</a> に転送するメールアドレスを追加するか、電話番号を追加して領収書を 47777 にテキスト送信します（米国の番号のみ）。`,
+        pleaseVerify: 'この連絡方法を確認してください。',
+        getInTouch: 'この方法を使ってご連絡します。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
         setAsDefault: 'デフォルトに設定',
         yourDefaultContactMethod: 'これは現在のデフォルトの連絡方法です。削除する前に、別の連絡方法を選択し、「デフォルトに設定」をクリックする必要があります。',
@@ -2089,6 +2093,10 @@ ${date} - ${merchant}に${amount}`,
         addApprovalsDescription: '支払いを承認する前に追加の承認が必要です。',
         makeOrTrackPaymentsTitle: '支払いを行うまたは追跡する',
         makeOrTrackPaymentsDescription: 'Expensifyでの支払いのために認可された支払者を追加するか、他の場所で行われた支払いを追跡します。',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>このワークスペースでは、カスタム承認ワークフローが有効になっています。このワークフローを確認または変更するには、<account-manager-link>アカウントマネージャー</account-manager-link>または<concierge-link>コンシェルジュ</concierge-link>にお問い合わせください。</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>このワークスペースでは、カスタム承認ワークフローが有効になっています。このワークフローを確認または変更するには、<concierge-link>コンシェルジュ</concierge-link>にお問い合わせください。</muted-text-label>',
         editor: {
             submissionFrequency: 'Expensifyがエラーフリーの支出を共有するまでの待機時間を選択してください。',
         },
@@ -3276,6 +3284,9 @@ ${
         whatsYourAddress: '住所は何ですか？',
         whatAreTheLast: '所有者の社会保障番号の下4桁は何ですか？',
         whatsYourLast: 'あなたの社会保障番号の最後の4桁は何ですか？',
+        whatsYourNationality: 'あなたの市民権の国はどこですか？',
+        whatsTheOwnersNationality: '所有者の市民権の国はどこですか？',
+        countryOfCitizenship: '市民権の国',
         dontWorry: 'ご安心ください、私たちは個人の信用調査を行いません！',
         last4: 'SSNの下4桁',
         whyDoWeAsk: 'なぜこれを尋ねるのですか？',
@@ -4605,7 +4616,7 @@ ${
             companyCard: '会社カード',
             chooseCardFeed: 'カードフィードを選択',
             ukRegulation:
-                'Expensify, Inc.は、Plaid Financial Ltd.の代理店であり、支払いサービス規則2017に基づいて金融行動監視機構によって規制されている認可支払い機関です（会社参照番号: 804718）。Plaidは、Expensify Limitedをその代理店として通じて、規制されたアカウント情報サービスを提供します。',
+                'Expensify Limitedは、Plaid Financial Ltd.の代理店であり、支払いサービス規則2017に基づいて金融行動監視機構によって規制されている認可支払い機関です（会社参照番号: 804718）。Plaidは、Expensify Limitedをその代理店として通じて、規制されたアカウント情報サービスを提供します。',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensifyカードを発行および管理する',
@@ -5176,6 +5187,7 @@ ${
             issueCard: 'カードを発行',
             issueNewCard: {
                 whoNeedsCard: '誰がカードを必要としていますか？',
+                inviteNewMember: '新しいメンバーを招待',
                 findMember: 'メンバーを探す',
                 chooseCardType: 'カードタイプを選択',
                 physicalCard: '物理カード',
@@ -5844,7 +5856,7 @@ ${
                 billableDescription: '経費は多くの場合、クライアントに再請求されます。',
                 nonBillable: '非請求対象',
                 nonBillableDescription: '経費は時々クライアントに再請求されます。',
-                eReceipts: 'eReceipts',
+                eReceipts: 'eレシート',
                 eReceiptsHint: `eレシートは[ほとんどのUSDクレジット取引で](${CONST.DEEP_DIVE_ERECEIPTS})自動作成されます。`,
                 attendeeTracking: '出席者の追跡',
                 attendeeTrackingHint: '各経費の一人当たりの費用を追跡します。',
@@ -6151,6 +6163,7 @@ ${
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `レポートが手動承認のためにランダムにルーティングされる割合を${Math.round(newAuditRate * 100)}%（以前は${Math.round(oldAuditRate * 100)}%）に変更しました。`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `すべての経費の手動承認限度額を${newLimit}に変更しました（以前は${oldLimit}）`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `このワークスペースの${enabled ? '有効' : '無効'}件の払い戻し`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `税 "${taxName}" を追加しました`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `税 "${taxName}" を削除しました`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6175,6 +6188,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 参加者の追跡`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -7426,6 +7440,18 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name}がExpensifyの試用にあなたを招待しました\nこんにちは！私はExpensifyを試用するための*3ヶ月無料*を手に入れました。これは、経費を処理する最速の方法です。\n\nこちらがその仕組みを示す*テスト領収書*です：`,
+    },
+    reportLayout: {
+        reportLayout: 'レポートレイアウト',
+        groupByLabel: 'グループ化：',
+        selectGroupByOption: 'レポート経費のグループ化方法を選択',
+        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
+        groupHeaderHint: ({action}: {action: string}) => `このグループを${action}`,
+        selectGroup: ({groupName}: {groupName: string}) => `${groupName}のすべての経費を選択`,
+        groupBy: {
+            category: 'カテゴリ',
+            tag: 'タグ',
+        },
     },
     export: {
         basicExport: '基本エクスポート',

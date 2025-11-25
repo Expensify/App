@@ -32,6 +32,7 @@ import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
@@ -156,6 +157,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             return;
         }
 
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+            op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+        });
         Navigation.navigate(ROUTES.HOME);
     }, [selectedTab]);
 
@@ -165,6 +170,16 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
+            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
+                name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
+                op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
+            });
+
+            startSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS, {
+                name: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
+                op: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
+            });
+
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
             const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
             const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
@@ -226,7 +241,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                         chatTabBrickRoad={chatTabBrickRoad}
                     />
                 )}
-                <View style={styles.leftNavigationTabBarContainer}>
+                <View
+                    style={styles.leftNavigationTabBarContainer}
+                    testID={NavigationTabBar.displayName}
+                >
                     <HeaderGap />
                     <View style={styles.flex1}>
                         <PressableWithFeedback
@@ -375,7 +393,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     chatTabBrickRoad={chatTabBrickRoad}
                 />
             )}
-            <View style={styles.navigationTabBarContainer}>
+            <View
+                style={styles.navigationTabBarContainer}
+                testID={NavigationTabBar.displayName}
+            >
                 <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.BUTTON}

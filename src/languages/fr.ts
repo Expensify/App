@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -269,6 +270,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -696,6 +698,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copier dans le presse-papiers',
         thisIsTakingLongerThanExpected: 'Cela prend plus de temps que prévu...',
         domains: 'Domaines',
+        reportName: 'Nom du rapport',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1346,7 +1349,7 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `déplacé la dépense de l'espace personnel vers ${workspaceName ?? `discuter avec ${reportName}`}`,
         movedToPersonalSpace: "a déplacé la dépense vers l'espace personnel",
-        tagSelection: 'Sélectionnez une étiquette pour mieux organiser vos dépenses.',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `Sélectionnez ${policyTagListName ?? 'une étiquette'} pour mieux organiser vos dépenses.`,
         categorySelection: 'Sélectionnez une catégorie pour mieux organiser vos dépenses.',
         error: {
             invalidCategoryLength: 'Le nom de la catégorie dépasse 255 caractères. Veuillez le raccourcir ou choisir une autre catégorie.',
@@ -1494,6 +1497,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Faut-il mettre en attente ou rejeter ?',
             educationalText: "Si vous n'êtes pas prêt à approuver ou à payer une dépense, vous pouvez la mettre en attente ou la rejeter.",
             holdExpenseTitle: 'Mettez une dépense en attente pour demander plus de détails avant de l’approuver ou de la payer.',
+            approveExpenseTitle: 'Approuvez d’autres dépenses tout en gardant les dépenses mises en attente assignées à vous.',
             heldExpenseLeftBehindTitle: 'Les dépenses mises en attente sont laissées de côté lorsque vous approuvez un rapport complet.',
             rejectExpenseTitle: 'Rejetez une dépense que vous n’avez pas l’intention d’approuver ou de payer.',
             reasonPageTitle: 'Rejeter la dépense',
@@ -1622,9 +1626,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Cette fonctionnalité nécessite que vous validiez votre compte.',
         validateAccount: 'Validez votre compte',
         helpText: ({email}: {email: string}) =>
-            `Ajoutez plus de moyens pour envoyer des reçus. Transférez-les à <copy-text text="${email}"/> ou envoyez-les par SMS au 47777 (numéros américains uniquement).`,
-        pleaseVerify: 'Veuillez vérifier cette méthode de contact',
-        getInTouch: 'Chaque fois que nous devons vous contacter, nous utiliserons cette méthode de contact.',
+            `Ajoutez d’autres façons de vous connecter et d’envoyer des reçus à Expensify.<br/><br/>Ajoutez une adresse e-mail pour transférer des reçus à <a href="mailto:${email}">${email}</a> ou ajoutez un numéro de téléphone pour envoyer des reçus par SMS au 47777 (numéros américains uniquement).`,
+        pleaseVerify: 'Veuillez vérifier cette méthode de contact.',
+        getInTouch: 'Nous utiliserons cette méthode pour vous contacter.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Veuillez entrer le code magique envoyé à ${contactMethod}. Il devrait arriver dans une minute ou deux.`,
         setAsDefault: 'Définir par défaut',
         yourDefaultContactMethod:
@@ -2105,6 +2109,10 @@ ${amount} pour ${merchant} - ${date}`,
         addApprovalsDescription: "Exiger une approbation supplémentaire avant d'autoriser un paiement.",
         makeOrTrackPaymentsTitle: 'Effectuer ou suivre des paiements',
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
+        customApprovalWorkflowEnabled:
+            "<muted-text-label>Un flux d'approbation personnalisé est activé sur ce workspace. Pour examiner ou modifier ce flux de travail, veuillez contacter votre <account-manager-link>Account Manager</account-manager-link> ou <concierge-link>Concierge</concierge-link>.</muted-text-label>",
+        customApprovalWorkflowEnabledConciergeOnly:
+            "<muted-text-label>Un flux d'approbation personnalisé est activé sur ce workspace. Pour examiner ou modifier ce flux de travail, veuillez contacter <concierge-link>Concierge</concierge-link>.</muted-text-label>",
         editor: {
             submissionFrequency: 'Choisissez combien de temps Expensify doit attendre avant de partager les dépenses sans erreur.',
         },
@@ -3308,6 +3316,9 @@ ${
         whatsYourAddress: 'Quelle est votre adresse ?',
         whatAreTheLast: 'Quels sont les 4 derniers chiffres du numéro de sécurité sociale du propriétaire ?',
         whatsYourLast: 'Quels sont les 4 derniers chiffres de votre numéro de sécurité sociale ?',
+        whatsYourNationality: 'Quel est votre pays de citoyenneté ?',
+        whatsTheOwnersNationality: 'Quel est le pays de citoyenneté du propriétaire ?',
+        countryOfCitizenship: 'Pays de citoyenneté',
         dontWorry: 'Ne vous inquiétez pas, nous ne faisons aucune vérification de crédit personnel !',
         last4: 'Derniers 4 du SSN',
         whyDoWeAsk: 'Pourquoi demandons-nous cela ?',
@@ -4664,7 +4675,7 @@ ${
             companyCard: "carte d'entreprise",
             chooseCardFeed: 'Choisir le flux de cartes',
             ukRegulation:
-                "Expensify, Inc. est un agent de Plaid Financial Ltd., une institution de paiement autorisée régulée par la Financial Conduct Authority sous les Payment Services Regulations 2017 (Numéro de Référence de l'Entreprise : 804718). Plaid vous fournit des services d'information de compte régulés via Expensify Limited en tant qu'agent.",
+                "Expensify Limited est un agent de Plaid Financial Ltd., une institution de paiement autorisée régulée par la Financial Conduct Authority sous les Payment Services Regulations 2017 (Numéro de Référence de l'Entreprise : 804718). Plaid vous fournit des services d'information de compte régulés via Expensify Limited en tant qu'agent.",
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos cartes Expensify',
@@ -5243,6 +5254,7 @@ ${
             issueCard: 'Émettre une carte',
             issueNewCard: {
                 whoNeedsCard: "Qui a besoin d'une carte ?",
+                inviteNewMember: 'Inviter un nouveau membre',
                 findMember: 'Trouver un membre',
                 chooseCardType: 'Choisissez un type de carte',
                 physicalCard: 'Carte physique',
@@ -5921,7 +5933,7 @@ ${
                 billableDescription: 'Les dépenses sont le plus souvent refacturées aux clients.',
                 nonBillable: 'Non-facturable',
                 nonBillableDescription: 'Les dépenses sont occasionnellement refacturées aux clients.',
-                eReceipts: 'eReceipts',
+                eReceipts: 'Reçus électroniques',
                 eReceiptsHint: `Les reçus électroniques sont créés automatiquement [pour la plupart des transactions de crédit en USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Suivi des participants',
                 attendeeTrackingHint: 'Suivez le coût par personne pour chaque dépense.',
@@ -6236,6 +6248,7 @@ ${
             `a changé le taux de rapports acheminés aléatoirement pour approbation manuelle à ${Math.round(newAuditRate * 100)}% (précédemment ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `a modifié la limite d'approbation manuelle pour toutes les dépenses à ${newLimit} (précédemment ${oldLimit})`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'activé' : 'désactivé'} remboursements pour cet espace de travail`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `a ajouté la taxe "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `a supprimé la taxe "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6260,6 +6273,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} suivi des participants`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre non trouvé.',
@@ -7517,6 +7531,18 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} vous a invité à essayer Expensify\nSalut ! Je viens de nous obtenir *3 mois gratuits* pour essayer Expensify, la façon la plus rapide de gérer les notes de frais.\n\nVoici un *reçu de test* pour vous montrer comment cela fonctionne :`,
+    },
+    reportLayout: {
+        reportLayout: 'Disposition du rapport',
+        groupByLabel: 'Grouper par :',
+        selectGroupByOption: 'Sélectionnez comment grouper les dépenses du rapport',
+        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
+        groupHeaderHint: ({action}: {action: string}) => `${action} ce groupe`,
+        selectGroup: ({groupName}: {groupName: string}) => `Sélectionner toutes les dépenses dans ${groupName}`,
+        groupBy: {
+            category: 'Catégorie',
+            tag: 'Étiquette',
+        },
     },
     export: {
         basicExport: 'Exportation basique',

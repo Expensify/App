@@ -5,10 +5,12 @@ import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import type {FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import RenderHTML from '@components/RenderHTML';
 import Section, {CARD_LAYOUT} from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,7 +31,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     const theme = useTheme();
     const styles = useThemeStyles();
     const [shouldShowPaymentCardForm, setShouldShowPaymentCardForm] = useState(false);
-
+    const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const policyID = policy?.id;
 
     const checkIfCanBeRendered = useCallback(() => {
@@ -87,7 +89,7 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
                         <RenderHTML html={translate('workspace.changeOwner.addPaymentCardReadAndAcceptText')} />
                     </View>
                     <Section
-                        icon={Illustrations.ShieldYellow}
+                        icon={ShieldYellow}
                         cardLayout={CARD_LAYOUT.ICON_ON_LEFT}
                         title={translate('requestorStep.isMyDataSafe')}
                         containerStyles={[styles.mh0, styles.mt5]}
