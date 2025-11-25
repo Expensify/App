@@ -2757,7 +2757,9 @@ function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
         return false;
     }
     for (let i = 0; i < a.reports.length; i++) {
-        if (a.reports.at(i)?.reportID !== b.reports.at(i)?.reportID) {
+        const reportA = a.reports.at(i);
+        const reportB = b.reports.at(i);
+        if (reportA?.reportID !== reportB?.reportID || reportA?.lastMessageText !== reportB?.lastMessageText) {
             return false;
         }
     }
