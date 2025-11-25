@@ -2550,34 +2550,8 @@ PODS:
     - Yoga
   - react-native-launch-arguments (4.0.2):
     - React
-  - react-native-netinfo (11.2.1):
-    - boost
-    - DoubleConversion
-    - fast_float
-    - fmt
-    - glog
-    - hermes-engine
-    - RCT-Folly
-    - RCT-Folly/Fabric
-    - RCTRequired
-    - RCTTypeSafety
+  - react-native-netinfo (11.4.1):
     - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - SocketRocket
-    - Yoga
   - react-native-pager-view (6.9.1):
     - boost
     - DoubleConversion
@@ -4741,7 +4715,7 @@ SPEC CHECKSUMS:
   react-native-key-command: 7538df85ed26502b2a929c0584235459b26c7a91
   react-native-keyboard-controller: c4ca61f44d66c2f8987a7e67e9b78e80dc965c45
   react-native-launch-arguments: d4759f7591e2766e6c5ec746b7032429edaf7058
-  react-native-netinfo: b88a57a1f93f4d63aeab839d51c746484641564b
+  react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-pager-view: 0e228ec2dfdd87807d125c7bbfb83299edede19c
   react-native-pdf: 6a09a9be0e7ee954ea671437483316f9a28f8572
   react-native-performance: d77c7992b9ebf63be75f95bcdcafd12048fac487
@@ -4753,7 +4727,7 @@ SPEC CHECKSUMS:
   react-native-webview: cdce419e8022d0ef6f07db21890631258e7a9e6e
   React-NativeModulesApple: 8c7eb6057b00c191a11ad5ced41826ec5a0e4d78
   React-oscompat: 93b5535ea7f7dff46aaee4f78309a70979bdde9d
-  React-perflogger: 5536d2df3d18fe0920263466f7b46a56351c0510
+  React-perflogger: e7dcbfcb796d346be7936b75740c3e27a4bb3977
   React-performancetimeline: c6c9393c1a0453a51e1852e3531defe60790b36c
   React-RCTActionSheet: 42195ae666e6d79b4af2346770f765b7c29435b9
   React-RCTAnimation: fa103ccc3503b1ed8dedca7e62e7823937748843
@@ -4768,7 +4742,7 @@ SPEC CHECKSUMS:
   React-RCTSettings: 71f5c7fd7b5f4e725a4e2114a4b4373d0e46048f
   React-RCTText: b94d4699b49285bee22b8ebf768924d607eccee3
   React-RCTVibration: 6e3993c4f6c36a3899059f9a9ead560ddaf5a7d7
-  React-rendererconsistency: 612d0f6603d9837bb1236d7fd5194203b35c8799
+  React-rendererconsistency: bef28690433e2b4bb00c2f884b22b86e61a430f2
   React-renderercss: e5c2c3b84976f7a587cde8423c671db07a6a77da
   React-rendererdebug: cc7a6131733605b8897754f72c0c35c79f77da9e
   React-RuntimeApple: 3f96102fc1ebf738d36719cdce5422a5769293fb
