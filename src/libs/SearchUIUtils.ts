@@ -2573,6 +2573,7 @@ function getColumnsToShow(
     };
 
     if (Array.isArray(data)) {
+        // eslint-disable-next-line unicorn/no-array-for-each
         data.forEach(updateColumns);
     } else {
         for (const key of Object.keys(data)) {

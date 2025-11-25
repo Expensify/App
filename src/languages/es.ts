@@ -1379,9 +1379,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Esta función requiere que valides tu cuenta.',
         validateAccount: 'Valida tu cuenta',
         helpText: ({email}: {email: string}) =>
-            `Añade más formas de enviar recibos. Reenvíalos a <copy-text text="${email}"/> o envíalos por mensaje de texto al 47777 (solo números de EE. UU.).`,
-        pleaseVerify: 'Por favor, verifica este método de contacto',
-        getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
+            `Agrega más formas de iniciar sesión y enviar recibos a Expensify.<br/><br/>Agrega una dirección de correo electrónico para reenviar recibos a <a href="mailto:${email}">${email}</a> o agrega un número de teléfono para enviar recibos por mensaje de texto al 47777 (solo números de EE. UU.).`,
+        pleaseVerify: 'Por favor, verifica este método de contacto.',
+        getInTouch: 'Usaremos este método para comunicarnos contigo.',
         enterMagicCode: ({contactMethod}) => `Por favor, introduce el código mágico enviado a ${contactMethod}. Debería llegar en un par de minutos.`,
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
@@ -6201,6 +6201,18 @@ ${amount} para ${merchant} - ${date}`,
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
+        },
+    },
+    reportLayout: {
+        reportLayout: 'Diseño del informe',
+        groupByLabel: 'Agrupar por:',
+        selectGroupByOption: 'Selecciona cómo agrupar los gastos del informe',
+        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
+        groupHeaderHint: ({action}: {action: string}) => `${action} este grupo`,
+        selectGroup: ({groupName}: {groupName: string}) => `Seleccionar todos los gastos en ${groupName}`,
+        groupBy: {
+            category: 'Categoría',
+            tag: 'Etiqueta',
         },
     },
     genericErrorPage: {

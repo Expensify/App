@@ -1619,9 +1619,10 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: 'Metodi di contatto',
         featureRequiresValidate: 'Questa funzione richiede di convalidare il tuo account.',
         validateAccount: 'Convalida il tuo account',
-        helpText: ({email}: {email: string}) => `Aggiungi più modi per inviare le ricevute. Inoltrale a <copy-text text="${email}"/> o inviarli al 47777 (solo numeri USA).`,
-        pleaseVerify: 'Si prega di verificare questo metodo di contatto',
-        getInTouch: 'Ogni volta che avremo bisogno di contattarti, useremo questo metodo di contatto.',
+        helpText: ({email}: {email: string}) =>
+            `Aggiungi altri modi per accedere e inviare ricevute a Expensify.<br/><br/>Aggiungi un indirizzo email per inoltrare le ricevute a <a href="mailto:${email}">${email}</a> oppure aggiungi un numero di telefono per inviare ricevute via SMS al 47777 (solo numeri statunitensi).`,
+        pleaseVerify: 'Si prega di verificare questo metodo di contatto.',
+        getInTouch: 'Useremo questo metodo per contattarti.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Per favore, inserisci il codice magico inviato a ${contactMethod}. Dovrebbe arrivare entro un minuto o due.`,
         setAsDefault: 'Imposta come predefinito',
         yourDefaultContactMethod:
@@ -7509,6 +7510,18 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} ti ha invitato a provare Expensify\nEhi! Ho appena ottenuto *3 mesi gratis* per provare Expensify, il modo più veloce per gestire le spese.\n\nEcco una *ricevuta di prova* per mostrarti come funziona:`,
+    },
+    reportLayout: {
+        reportLayout: 'Layout del report',
+        groupByLabel: 'Raggruppa per:',
+        selectGroupByOption: 'Seleziona come raggruppare le spese del report',
+        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
+        groupHeaderHint: ({action}: {action: string}) => `${action} questo gruppo`,
+        selectGroup: ({groupName}: {groupName: string}) => `Seleziona tutte le spese in ${groupName}`,
+        groupBy: {
+            category: 'Categoria',
+            tag: 'Tag',
+        },
     },
     export: {
         basicExport: 'Esportazione basica',
