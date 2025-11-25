@@ -1624,9 +1624,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Diese Funktion erfordert, dass Sie Ihr Konto verifizieren.',
         validateAccount: 'Bestätigen Sie Ihr Konto',
         helpText: ({email}: {email: string}) =>
-            `Fügen Sie weitere Möglichkeiten hinzu, Belege zu senden. Leiten Sie sie weiter an <copy-text text="${email}"/> oder senden Sie ihnen eine SMS an 47777 (nur US-Nummern).`,
-        pleaseVerify: 'Bitte überprüfen Sie diese Kontaktmethode',
-        getInTouch: 'Wann immer wir mit Ihnen in Kontakt treten müssen, werden wir diese Kontaktmethode verwenden.',
+            `Fügen Sie weitere Möglichkeiten hinzu, sich anzumelden und Belege an Expensify zu senden.<br/><br/>Fügen Sie eine E-Mail-Adresse hinzu, um Belege an <a href="mailto:${email}">${email}</a> weiterzuleiten, oder fügen Sie eine Telefonnummer hinzu, um Belege per SMS an 47777 zu senden (nur US-Nummern).`,
+        pleaseVerify: 'Bitte überprüfen Sie diese Kontaktmethode.',
+        getInTouch: 'Wir verwenden diese Methode, um Sie zu kontaktieren.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Bitte geben Sie den magischen Code ein, der an ${contactMethod} gesendet wurde. Er sollte in ein bis zwei Minuten ankommen.`,
         setAsDefault: 'Als Standard festlegen',
