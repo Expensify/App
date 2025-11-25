@@ -216,7 +216,7 @@ function TaskAssigneeSelectorModal() {
                 }
             });
         });
-    }, [task?.assigneeAccountID, sections]);
+    }, [task?.assigneeAccountID]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);
