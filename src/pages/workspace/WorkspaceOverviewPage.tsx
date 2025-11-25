@@ -277,8 +277,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (!isFocused || !prevIsPendingDelete || isPendingDelete) {
             return;
         }
-        shouldActOnDeleteModalHideRef.current = true;
-        setIsDeleteModalOpen(false);
+
+        if (!policyLastErrorMessage) {
+            goBackFromInvalidPolicy();
+            return;
+        }
+        setIsDeleteWorkspaceErrorModalOpen(true);
     }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage]);
 
     const onDeleteWorkspace = useCallback(() => {
@@ -474,18 +478,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 onConfirm={confirmDelete}
                 onCancel={() => {
                     setIsDeleteModalOpen(false);
-                }}
-                onModalHide={() => {
-                    if (!shouldActOnDeleteModalHideRef.current) {
-                        return;
-                    }
-                    // Reset flags so subsequent hides don't trigger
-                    shouldActOnDeleteModalHideRef.current = false;
-                    if (!policyLastErrorMessage) {
-                        goBackFromInvalidPolicy();
-                        return;
-                    }
-                    setIsDeleteWorkspaceErrorModalOpen(true);
                 }}
                 prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
                 confirmText={translate('common.delete')}

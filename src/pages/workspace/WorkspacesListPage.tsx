@@ -122,7 +122,6 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
@@ -337,7 +336,7 @@ function WorkspacesListPage() {
 
             const threeDotsMenuItems: PopoverMenuItem[] = [
                 {
-                    icon: icons.Building,
+                    icon: expensifyIcons.Building,
                     text: translate('workspace.common.goToWorkspace'),
                     onSelected: item.action,
                 },
@@ -345,7 +344,7 @@ function WorkspacesListPage() {
 
             if (!isOwner && (item.policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy)) {
                 threeDotsMenuItems.push({
-                    icon: icons.Exit,
+                    icon: expensifyIcons.Exit,
                     text: translate('common.leave'),
                     onSelected: callFunctionIfActionIsAllowed(() => {
                         close(() => {
@@ -463,7 +462,6 @@ function WorkspacesListPage() {
             );
         },
         [
-            icons.Building,
             session?.email,
             session?.accountID,
             activePolicyID,
@@ -483,7 +481,12 @@ function WorkspacesListPage() {
             isRestrictedToPreferredPolicy,
             policyIDToDelete,
             preferredPolicyID,
-            icons.Exit,
+            expensifyIcons.Exit,
+            expensifyIcons.Building,
+            expensifyIcons.Copy,
+            expensifyIcons.Star,
+            expensifyIcons.Trashcan,
+            expensifyIcons.Transfer,
         ],
     );
 
