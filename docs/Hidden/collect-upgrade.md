@@ -50,23 +50,23 @@ No problem! You can downgrade your workspace at any time. Just note that downgra
 
 Yes, if you are using any of the following advanced features on your Collect workspace:
 
-- You have set **cash expenses** to be
-  - Always reimbursable/non-reimbursable
-  - Defaulted to non-reimbursable  
 - You have enabled **Billable expenses**  
 - You have disabled **eReceipts** for your USD company card feed  
-- You have enabled **Public Receipt Visibility**  
-- You have enabled **Per Diem**  
-- You enforce the **Report Title formula**  
-- You have enabled **Report Fields**  
+- You have enabled **Public receipt visibility**  
+- You have enabled **Per diem**  
+- You enforce the **Report title formula**  
+- You have enabled **Report fields**  
 - You have connected software other than **QuickBooks Online** and **Xero**  
-- You have enabled multi-level tags not imported from your connected software  
+- You have enabled **Multi-level tags** not imported from your connected software  
 - You have users with the **Auditor** role  
 - You have enabled **Auto approval**  
 - You have enabled **Prevent self-approval**  
 - You have enabled **Auto reimbursement**  
 - Your employees use **Attendee tracking**  
-- You have more than one **Company card feed**  
+- You have more than one **Company card feed**
+- You have set **Cash expenses** to be
+  - Always reimbursable/non-reimbursable
+  - Defaulted to non-reimbursable   
 
 ## Will my workspace stay on Collect?
 
