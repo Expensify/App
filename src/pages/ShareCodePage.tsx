@@ -75,7 +75,6 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
@@ -116,7 +115,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     let svgLogoFillColor: string | undefined;
 
     if (!logo && policy && !policy.avatarURL) {
-        svgLogo = getDefaultWorkspaceAvatar(policy.name) || expensifyIcons.FallbackAvatar;
+        svgLogo = getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
 
         const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id);
         logoBackgroundColor = defaultWorkspaceAvatarColors.backgroundColor?.toString();
