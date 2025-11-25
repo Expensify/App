@@ -1161,6 +1161,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
                             path: ROUTES.REPORT_SETTINGS_VISIBILITY.route,
                         },
+                        [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: {
+                            path: ROUTES.REPORT_SETTINGS_REPORT_LAYOUT.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: {
