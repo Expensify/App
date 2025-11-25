@@ -872,6 +872,15 @@ function isResolvedConciergeCategoryOptions(reportAction: OnyxEntry<ReportAction
 }
 
 /**
+ * Checks whether an action is concierge description options and resolved.
+ */
+function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAction>): boolean {
+    const originalMessage = getOriginalMessage(reportAction);
+    const selectedDescription = originalMessage && typeof originalMessage === 'object' && 'selectedDescription' in originalMessage ? originalMessage?.selectedDescription : null;
+    return !!selectedDescription;
+}
+
+/**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
@@ -1937,7 +1946,7 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
-    if (isConciergeCategoryOptions(action)) {
+    if (isConciergeCategoryOptions(action) || isConciergeDescriptionOptions(action)) {
         const message = getReportActionMessageText(action);
         return [{text: message, html: message, type: 'COMMENT'}];
     }
@@ -2036,6 +2045,10 @@ function isActionableJoinRequestPendingReportAction(reportAction: OnyxEntry<Repo
 
 function isConciergeCategoryOptions(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS);
+}
+
+function isConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS);
 }
 
 function getActionableJoinRequestPendingReportAction(reportID: string): OnyxEntry<ReportAction> {
@@ -3391,7 +3404,9 @@ export {
     isActionableTrackExpense,
     isExpenseChatWelcomeWhisper,
     isConciergeCategoryOptions,
+    isConciergeDescriptionOptions,
     isResolvedConciergeCategoryOptions,
+    isResolvedConciergeDescriptionOptions,
     isAddCommentAction,
     isApprovedOrSubmittedReportAction,
     isIOURequestReportAction,

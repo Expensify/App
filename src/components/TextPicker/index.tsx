@@ -1,5 +1,4 @@
-import React, {forwardRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,27 +7,25 @@ import KeyboardUtils from '@src/utils/keyboard';
 import TextSelectorModal from './TextSelectorModal';
 import type {TextPickerProps} from './types';
 
-function TextPicker(
-    {
-        value,
-        description,
-        placeholder = '',
-        errorText = '',
-        onInputChange,
-        onValueCommitted,
-        furtherDetails,
-        rightLabel,
-        disabled = false,
-        interactive = true,
-        required = false,
-        wrapperStyle,
-        numberOfLinesTitle,
-        titleStyle,
-        descriptionTextStyle,
-        ...rest
-    }: TextPickerProps,
-    forwardedRef: ForwardedRef<View>,
-) {
+function TextPicker({
+    value,
+    description,
+    placeholder = '',
+    errorText = '',
+    onInputChange,
+    onValueCommitted,
+    furtherDetails,
+    rightLabel,
+    disabled = false,
+    interactive = true,
+    required = false,
+    wrapperStyle,
+    numberOfLinesTitle,
+    titleStyle,
+    descriptionTextStyle,
+    ref,
+    ...rest
+}: TextPickerProps) {
     const styles = useThemeStyles();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -57,7 +54,7 @@ function TextPicker(
     return (
         <View>
             <MenuItemWithTopDescription
-                ref={forwardedRef}
+                ref={ref}
                 shouldShowRightIcon={!disabled}
                 title={value ?? placeholder ?? ''}
                 description={description}
@@ -90,4 +87,4 @@ function TextPicker(
 
 TextPicker.displayName = 'TextPicker';
 
-export default forwardRef(TextPicker);
+export default TextPicker;
