@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -1348,7 +1349,7 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `déplacé la dépense de l'espace personnel vers ${workspaceName ?? `discuter avec ${reportName}`}`,
         movedToPersonalSpace: "a déplacé la dépense vers l'espace personnel",
-        tagSelection: 'Sélectionnez une étiquette pour mieux organiser vos dépenses.',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `Sélectionnez ${policyTagListName ?? 'une étiquette'} pour mieux organiser vos dépenses.`,
         categorySelection: 'Sélectionnez une catégorie pour mieux organiser vos dépenses.',
         error: {
             invalidCategoryLength: 'Le nom de la catégorie dépasse 255 caractères. Veuillez le raccourcir ou choisir une autre catégorie.',
@@ -5928,7 +5929,7 @@ ${
                 billableDescription: 'Les dépenses sont le plus souvent refacturées aux clients.',
                 nonBillable: 'Non-facturable',
                 nonBillableDescription: 'Les dépenses sont occasionnellement refacturées aux clients.',
-                eReceipts: 'eReceipts',
+                eReceipts: 'Reçus électroniques',
                 eReceiptsHint: `Les reçus électroniques sont créés automatiquement [pour la plupart des transactions de crédit en USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Suivi des participants',
                 attendeeTrackingHint: 'Suivez le coût par personne pour chaque dépense.',
