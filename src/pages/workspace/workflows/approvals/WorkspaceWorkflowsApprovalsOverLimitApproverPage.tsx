@@ -36,6 +36,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     });
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
+    const policyID = route.params.policyID;
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const currentApprover = approvalWorkflow?.approvers?.[approverIndex];
 
@@ -86,8 +87,8 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading;
 
     const goBack = useCallback(() => {
-        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex));
-    }, [route.params.policyID, approverIndex]);
+        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex));
+    }, [policyID, approverIndex]);
 
     const selectApprover = useCallback(
         (approvers: SelectionListApprover[]) => {
@@ -123,7 +124,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={route.params.policyID}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
             <ApproverSelectionList

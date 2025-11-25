@@ -14,7 +14,6 @@ import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -38,16 +37,16 @@ type WorkspaceWorkflowsApprovalsApprovalLimitPageProps = WithPolicyAndFullscreen
 function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApprovalLimitPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyFromHook = usePolicy(route.params.policyID);
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
         selector: personalDetailsByEmailSelector,
     });
 
+    const policyID = route.params.policyID;
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const currentApprover = approvalWorkflow?.approvers?.[approverIndex];
-    const currency = policyFromHook?.outputCurrency ?? CONST.CURRENCY.USD;
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const [approvalLimit, setApprovalLimit] = useState<string>(() => {
         if (currentApprover?.approvalLimit) {
@@ -98,8 +97,8 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     }, [hasSubmitted, onlyApproverEmpty, isCircularReference, selectedApproverDisplayName, translate]);
 
     const handleSkip = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
-    }, [route.params.policyID]);
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
+    }, [policyID]);
 
     const handleNext = useCallback(() => {
         setHasSubmitted(true);
@@ -122,16 +121,16 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
             },
             approverIndex,
             currentApprovalWorkflow: approvalWorkflow,
-            policy: policyFromHook,
+            policy,
             personalDetailsByEmail,
         });
 
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
-    }, [approvalLimit, selectedApproverEmail, isCircularReference, approvalWorkflow, currentApprover, approverIndex, policyFromHook, personalDetailsByEmail, route.params.policyID]);
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
+    }, [approvalLimit, selectedApproverEmail, isCircularReference, approvalWorkflow, currentApprover, approverIndex, policy, personalDetailsByEmail, policyID]);
 
     const navigateToApproverSelector = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(route.params.policyID, approverIndex));
-    }, [route.params.policyID, approverIndex]);
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(policyID, approverIndex));
+    }, [policyID, approverIndex]);
 
     const buttonContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mh5, styles.mb5]});
 
@@ -139,7 +138,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={route.params.policyID}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
             <ScreenWrapper
@@ -155,7 +154,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsApprovalLimitPage.title')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, approverIndex))}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex))}
                     />
                     <ScrollView
                         style={styles.flex1}
