@@ -61,8 +61,9 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             value: bankAccount.accountData?.bankAccountID,
             keyForList: bankAccount.accountData?.bankAccountID?.toString() ?? `${bankAccount.title}-${index}`,
             isSelected: bankAccount.accountData?.bankAccountID === paymentBankAccountID,
+            alternateText: bankAccount.description ?? (bankAccount.accountData?.accountNumber ? `${translate('bankAccount.accountEnding')} ${getLastFourDigits(bankAccount.accountData.accountNumber)}` : ''),
         }));
-    }, [bankAccountList, paymentBankAccountID]);
+    }, [bankAccountList, paymentBankAccountID, translate]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backTo ?? ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection));
