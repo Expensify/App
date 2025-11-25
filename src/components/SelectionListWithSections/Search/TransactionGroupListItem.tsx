@@ -311,7 +311,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             : undefined);
 
     const hasViolations = transactions.some((transaction) => {
-        const transactionViolations = getTransactionViolations(transaction, violations);
+        const transactionViolations = getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', undefined, undefined);
         return transactionViolations && transactionViolations.length > 0;
     });
 
