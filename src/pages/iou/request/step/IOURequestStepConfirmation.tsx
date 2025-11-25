@@ -525,34 +525,45 @@ function IOURequestStepConfirmation({
         });
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
-    function getMoneyRequestContextForParticipant(participant: Participant | undefined) {
-        const isWorkspaceTarget = !!participant?.isPolicyExpenseChat;
-        const workspaceChatReport = isWorkspaceTarget && participant?.reportID ? getReportOrDraftReport(participant.reportID) : undefined;
-        return {
-            parentChatReport: isWorkspaceTarget ? workspaceChatReport : undefined,
-            policyParams: isWorkspaceTarget
-                ? {
-                      policy,
-                      policyTagList: policyTags,
-                      policyCategories,
-                      policyRecentlyUsedCategories,
-                  }
-                : {},
-        };
-    }
+    const policyParams = useMemo(
+        () => ({
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+            policyRecentlyUsedCategories,
+        }),
+        [policy, policyTags, policyCategories, policyRecentlyUsedCategories],
+    );
 
-    function getReportToUseAndBackToReport(
-        participant: Participant | undefined,
-        parentChatReport: Report | undefined,
-        reportParam: Report | undefined,
-        backToReportParam: string | undefined,
-    ) {
-        const reportToUse = participant?.isPolicyExpenseChat ? parentChatReport : undefined;
+    const emptyPolicyParams = useMemo(() => ({}), []);
 
-        const backToReportToUse = backToReportParam ?? (isMoneyRequestReport(reportParam) ? reportParam?.reportID : undefined);
+    const getMoneyRequestContextForParticipant = useCallback(
+        (participant: Participant | undefined) => {
+            const isWorkspaceTarget = !!participant?.isPolicyExpenseChat;
+            const workspaceChatReport = isWorkspaceTarget && participant?.reportID ? getReportOrDraftReport(participant.reportID) : undefined;
+            return {
+                parentChatReport: isWorkspaceTarget ? workspaceChatReport : undefined,
+                policyParams: isWorkspaceTarget ? policyParams : emptyPolicyParams,
+            };
+        },
+        [policyParams, emptyPolicyParams],
+    );
 
-        return {reportToUse, backToReportToUse};
-    }
+    const getReportToUseAndBackToReport = useCallback(
+        (
+            participant: Participant | undefined,
+            parentChatReport: Report | undefined,
+            reportParam: Report | undefined,
+            backToReportParam: string | undefined,
+        ) => {
+            const reportToUse = participant?.isPolicyExpenseChat ? parentChatReport : undefined;
+
+            const backToReportToUse = backToReportParam ?? (isMoneyRequestReport(reportParam) ? reportParam?.reportID : undefined);
+
+            return {reportToUse, backToReportToUse};
+        },
+        [],
+    );
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
