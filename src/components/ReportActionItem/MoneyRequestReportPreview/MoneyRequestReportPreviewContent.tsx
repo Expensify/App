@@ -609,15 +609,7 @@ function MoneyRequestReportPreviewContent({
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
             <Button
-                text={translate('common.view')}
-                onPress={() => {
-                    openReportFromPreview();
-                }}
-            />
-        ),
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW_REPORT]: (
-            <Button
-                text={translate('common.viewReport')}
+                text={shouldShowAccessPlaceHolder ? translate('common.viewReport') : translate('common.view')}
                 onPress={() => {
                     openReportFromPreview();
                 }}

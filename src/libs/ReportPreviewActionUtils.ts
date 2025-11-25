@@ -236,7 +236,7 @@ function getReportPreviewAction(
     areStrictPolicyRulesEnabled?: boolean,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW_REPORT;
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
     // We want to have action displayed for either paid or approved animations
