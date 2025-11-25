@@ -335,7 +335,6 @@ function PaymentMethodList({
         });
         return combinedPaymentMethods;
     }, [
-        icons,
         shouldShowAssignedCards,
         isLoadingBankAccountList,
         bankAccountList,
@@ -352,7 +351,6 @@ function PaymentMethodList({
         itemIconRight,
         activePaymentMethodID,
         actionPaymentMethodType,
-        StyleUtils,
         expensifyIcons.ThreeDots,
         onThreeDotsMenuPress,
     ]);

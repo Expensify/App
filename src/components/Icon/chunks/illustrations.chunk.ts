@@ -201,7 +201,6 @@ const Illustrations = {
     ThumbsDown,
     TreasureChest,
     ExpensifyMobileApp,
-    MoneyIntoWallet,
     PalmTree,
     PaperAirplane,
     PiggyBank,

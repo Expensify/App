@@ -7,7 +7,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {BankName} from '@components/Icon/BankIconsUtils';
-import {Plus} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -77,7 +76,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const illustrations = useMemoizedLazyIllustrations(['Workflows'] as const);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Info', 'Plus'] as const);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply a correct padding style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -210,7 +209,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (bankAccountConnectedToWorkspace?.accountData?.state ?? '');
         const isAccountInSetupState = isBankAccountPartiallySetup(state);
 
-        const shouldShowBankAccount = (isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
@@ -288,7 +287,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         <MenuItem
                             title={translate('workflowsPage.addApprovalButton')}
                             titleStyle={styles.textStrong}
-                            icon={Plus}
+                            icon={expensifyIcons.Plus}
                             iconHeight={20}
                             iconWidth={20}
                             style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
@@ -355,7 +354,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         iconStyles={bankIcon.iconStyles}
                                         disabled={isOffline || !isPolicyAdmin}
                                         badgeText={isAccountInSetupState ? translate('common.actionRequired') : undefined}
-                                        badgeIcon={isAccountInSetupState ? icons.DotIndicator : undefined}
+                                        badgeIcon={isAccountInSetupState ? expensifyIcons.DotIndicator : undefined}
                                         badgeSuccess={isAccountInSetupState ? true : undefined}
                                         shouldShowRightIcon={isAccountInSetupState}
                                         shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
@@ -384,7 +383,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                         }
                                         navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
                                     }}
-                                    icon={icons.Plus}
+                                    icon={expensifyIcons.Plus}
                                     iconHeight={20}
                                     iconWidth={20}
                                     disabled={isOffline || !isPolicyAdmin}
@@ -425,7 +424,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, [
         policy,
         bankAccountList,
-        currentUserLogin,
         styles,
         theme,
         translate,
