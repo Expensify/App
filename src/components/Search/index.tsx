@@ -921,6 +921,7 @@ function Search({
 
     if (searchResults === undefined) {
         Log.alert('[Search] Undefined search type');
+        cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
         return <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>;
     }
 
