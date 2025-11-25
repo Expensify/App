@@ -64,7 +64,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                 description={translate('domain.samlConfigurationDetails.identityProviderMetaData')}
                 wrapperStyle={styles.sectionMenuItemTopDescription}
                 numberOfLinesTitle={2}
-                titleStyle={[styles.fontSizeLabel, styles.textMono]}
+                titleStyle={[styles.fontSizeLabel, styles.textMono, styles.wordBreakAll]}
                 descriptionTextStyle={[styles.fontSizeLabel, styles.pb1]}
                 numberOfLines={9}
                 multiline

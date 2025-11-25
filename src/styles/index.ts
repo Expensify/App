@@ -5526,6 +5526,9 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: -16,
             ...overflowMoneyRequestView,
         },
+        wordBreakAll: {
+            ...wordBreak.breakAll,
+        },
     }) satisfies StaticStyles;
 
 const dynamicStyles = (theme: ThemeColors) =>
