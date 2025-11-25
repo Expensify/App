@@ -300,6 +300,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                             <DisplayNames
                                                 fullTitle={title}
                                                 displayNamesWithTooltips={displayNamesWithTooltips}
+                                                shouldParseFullTitle={!isGroupChat}
                                                 tooltipEnabled
                                                 numberOfLines={1}
                                                 textStyles={[styles.headerText, styles.pre]}
