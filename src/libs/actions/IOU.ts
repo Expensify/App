@@ -14313,6 +14313,62 @@ function updateSplitTransactions({
         };
 
         if (isCreationOfSplits) {
+            if (firstIOU?.childReportID && iouReport?.reportID) {
+                const transactionThreadReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${firstIOU.childReportID}`];
+                const isOneThreadTransaction = isOneTransactionThread(transactionThreadReport ?? undefined, iouReport ?? undefined, firstIOU ?? undefined);
+
+                if (isOneThreadTransaction) {
+                    const threadReportActions = getAllReportActions(firstIOU.childReportID);
+                    const iouReportActionsToMove: Record<string, ReportAction> = {};
+
+                    // Get all reportActions from thread report except the created action
+                    Object.values(threadReportActions).forEach((action) => {
+                        if (action && !isCreatedAction(action)) {
+                            iouReportActionsToMove[action.reportActionID] = action;
+                        }
+                    });
+
+                    // Move reportActions from thread report to iou report
+                    if (Object.keys(iouReportActionsToMove).length > 0) {
+                        optimisticData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                            value: iouReportActionsToMove,
+                        });
+
+                        // Remove reportActions from thread report (except created action)
+                        const threadReportActionsToRemove: Record<string, null> = {};
+                        Object.keys(iouReportActionsToMove).forEach((reportActionID) => {
+                            threadReportActionsToRemove[reportActionID] = null;
+                        });
+
+                        optimisticData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${firstIOU.childReportID}`,
+                            value: threadReportActionsToRemove,
+                        });
+
+                        // Add failure data to revert the changes
+                        failureData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                            value: Object.keys(iouReportActionsToMove).reduce(
+                                (acc, reportActionID) => {
+                                    acc[reportActionID] = null;
+                                    return acc;
+                                },
+                                {} as Record<string, null>,
+                            ),
+                        });
+
+                        failureData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${firstIOU.childReportID}`,
+                            value: iouReportActionsToMove,
+                        });
+                    }
+                }
+            }
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
         } else {
