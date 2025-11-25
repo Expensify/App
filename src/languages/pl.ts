@@ -1619,9 +1619,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Ta funkcja wymaga weryfikacji konta.',
         validateAccount: 'Zweryfikuj swoje konto',
         helpText: ({email}: {email: string}) =>
-            `Dodaj więcej sposobów na przesyłanie paragonów. Prześlij je do <copy-text text="${email}"/> lub wyślij SMS na numer 47777 (tylko numery w USA).`,
-        pleaseVerify: 'Proszę zweryfikować tę metodę kontaktu',
-        getInTouch: 'Kiedy będziemy musieli się z Tobą skontaktować, użyjemy tej metody kontaktu.',
+            `Dodaj więcej sposobów logowania się i wysyłania paragonów do Expensify.<br/><br/>Dodaj adres e-mail, aby przesyłać paragony na <a href="mailto:${email}">${email}</a> lub dodaj numer telefonu, aby wysyłać paragony SMS-em na 47777 (tylko numery z USA).`,
+        pleaseVerify: 'Proszę zweryfikować tę metodę kontaktu.',
+        getInTouch: 'Użyjemy tej metody, aby się z Tobą skontaktować.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}. Powinien dotrzeć w ciągu minuty lub dwóch.`,
         setAsDefault: 'Ustaw jako domyślne',
         yourDefaultContactMethod: 'To jest Twoja domyślna metoda kontaktu. Zanim będziesz mógł ją usunąć, musisz wybrać inną metodę kontaktu i kliknąć „Ustaw jako domyślną”.',
@@ -7476,6 +7476,18 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} zaprosił Cię do wypróbowania Expensify\nHej! Właśnie zdobyłem dla nas *3 miesiące za darmo*, aby wypróbować Expensify, najszybszy sposób na rozliczanie wydatków.\n\nOto *przykładowy paragon*, aby pokazać Ci, jak to działa:`,
+    },
+    reportLayout: {
+        reportLayout: 'Układ raportu',
+        groupByLabel: 'Grupuj według:',
+        selectGroupByOption: 'Wybierz sposób grupowania wydatków w raporcie',
+        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
+        groupHeaderHint: ({action}: {action: string}) => `${action} tę grupę`,
+        selectGroup: ({groupName}: {groupName: string}) => `Wybierz wszystkie wydatki w ${groupName}`,
+        groupBy: {
+            category: 'Kategoria',
+            tag: 'Tag',
+        },
     },
     export: {
         basicExport: 'Eksport podstawowy',
