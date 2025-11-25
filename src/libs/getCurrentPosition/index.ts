@@ -7,7 +7,7 @@ const getCurrentPosition: GetCurrentPosition = async (success, error, options) =
     const foregroundPermissionResponse: PermissionResponse = await requestForegroundPermissionsAsync();
 
     if (foregroundPermissionResponse.status !== PermissionStatus.GRANTED) {
-        error({code: GeolocationErrorCode.PERMISSION_DENIED, message: 'Geolocation is not supported by this environment.'});
+        error({code: GeolocationErrorCode.PERMISSION_DENIED, message: 'User denied access to location.'});
         return;
     }
 
