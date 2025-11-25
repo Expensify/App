@@ -1,4 +1,5 @@
 type CreateAppReportParams = {
+    accountID?: number;
     reportName: string;
     policyID?: string;
     type: string;
