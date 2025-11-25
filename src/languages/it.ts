@@ -1620,9 +1620,10 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: 'Metodi di contatto',
         featureRequiresValidate: 'Questa funzione richiede di convalidare il tuo account.',
         validateAccount: 'Convalida il tuo account',
-        helpText: ({email}: {email: string}) => `Aggiungi più modi per inviare le ricevute. Inoltrale a <copy-text text="${email}"/> o inviarli al 47777 (solo numeri USA).`,
-        pleaseVerify: 'Si prega di verificare questo metodo di contatto',
-        getInTouch: 'Ogni volta che avremo bisogno di contattarti, useremo questo metodo di contatto.',
+        helpText: ({email}: {email: string}) =>
+            `Aggiungi altri modi per accedere e inviare ricevute a Expensify.<br/><br/>Aggiungi un indirizzo email per inoltrare le ricevute a <a href="mailto:${email}">${email}</a> oppure aggiungi un numero di telefono per inviare ricevute via SMS al 47777 (solo numeri statunitensi).`,
+        pleaseVerify: 'Si prega di verificare questo metodo di contatto.',
+        getInTouch: 'Useremo questo metodo per contattarti.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Per favore, inserisci il codice magico inviato a ${contactMethod}. Dovrebbe arrivare entro un minuto o due.`,
         setAsDefault: 'Imposta come predefinito',
         yourDefaultContactMethod:
@@ -2101,6 +2102,10 @@ ${amount} per ${merchant} - ${date}`,
         addApprovalsDescription: "Richiedi un'approvazione aggiuntiva prima di autorizzare un pagamento.",
         makeOrTrackPaymentsTitle: 'Effettua o traccia pagamenti',
         makeOrTrackPaymentsDescription: 'Aggiungi un pagatore autorizzato per i pagamenti effettuati in Expensify o traccia i pagamenti effettuati altrove.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>Un flusso di approvazione personalizzato è abilitato su questo workspace. Per rivedere o modificare questo flusso di lavoro, contatta il tuo <account-manager-link>Account Manager</account-manager-link> o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>Un flusso di approvazione personalizzato è abilitato su questo workspace. Per rivedere o modificare questo flusso di lavoro, contatta <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         editor: {
             submissionFrequency: 'Scegli quanto tempo Expensify dovrebbe aspettare prima di condividere le spese senza errori.',
         },
@@ -7506,6 +7511,18 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} ti ha invitato a provare Expensify\nEhi! Ho appena ottenuto *3 mesi gratis* per provare Expensify, il modo più veloce per gestire le spese.\n\nEcco una *ricevuta di prova* per mostrarti come funziona:`,
+    },
+    reportLayout: {
+        reportLayout: 'Layout del report',
+        groupByLabel: 'Raggruppa per:',
+        selectGroupByOption: 'Seleziona come raggruppare le spese del report',
+        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
+        groupHeaderHint: ({action}: {action: string}) => `${action} questo gruppo`,
+        selectGroup: ({groupName}: {groupName: string}) => `Seleziona tutte le spese in ${groupName}`,
+        groupBy: {
+            category: 'Categoria',
+            tag: 'Tag',
+        },
     },
     export: {
         basicExport: 'Esportazione basica',

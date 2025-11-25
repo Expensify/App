@@ -1621,9 +1621,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'この機能を使用するには、アカウントの確認が必要です。',
         validateAccount: 'アカウントを確認してください',
         helpText: ({email}: {email: string}) =>
-            `領収書を送信する方法を追加してください。それらを転送する先は <copy-text text="${email}"/> または、47777（米国の番号のみ）にテキストメッセージを送信してください。`,
-        pleaseVerify: 'この連絡方法を確認してください',
-        getInTouch: '私たちがあなたに連絡を取る必要がある場合、この連絡方法を使用します。',
+            `Expensify にログインしたり領収書を送信したりする方法を追加できます。<br/><br/>領収書を <a href="mailto:${email}">${email}</a> に転送するメールアドレスを追加するか、電話番号を追加して領収書を 47777 にテキスト送信します（米国の番号のみ）。`,
+        pleaseVerify: 'この連絡方法を確認してください。',
+        getInTouch: 'この方法を使ってご連絡します。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod}に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
         setAsDefault: 'デフォルトに設定',
         yourDefaultContactMethod: 'これは現在のデフォルトの連絡方法です。削除する前に、別の連絡方法を選択し、「デフォルトに設定」をクリックする必要があります。',
@@ -2094,6 +2094,10 @@ ${date} - ${merchant}に${amount}`,
         addApprovalsDescription: '支払いを承認する前に追加の承認が必要です。',
         makeOrTrackPaymentsTitle: '支払いを行うまたは追跡する',
         makeOrTrackPaymentsDescription: 'Expensifyでの支払いのために認可された支払者を追加するか、他の場所で行われた支払いを追跡します。',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>このワークスペースでは、カスタム承認ワークフローが有効になっています。このワークフローを確認または変更するには、<account-manager-link>アカウントマネージャー</account-manager-link>または<concierge-link>コンシェルジュ</concierge-link>にお問い合わせください。</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>このワークスペースでは、カスタム承認ワークフローが有効になっています。このワークフローを確認または変更するには、<concierge-link>コンシェルジュ</concierge-link>にお問い合わせください。</muted-text-label>',
         editor: {
             submissionFrequency: 'Expensifyがエラーフリーの支出を共有するまでの待機時間を選択してください。',
         },
@@ -7437,6 +7441,18 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name}がExpensifyの試用にあなたを招待しました\nこんにちは！私はExpensifyを試用するための*3ヶ月無料*を手に入れました。これは、経費を処理する最速の方法です。\n\nこちらがその仕組みを示す*テスト領収書*です：`,
+    },
+    reportLayout: {
+        reportLayout: 'レポートレイアウト',
+        groupByLabel: 'グループ化：',
+        selectGroupByOption: 'レポート経費のグループ化方法を選択',
+        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
+        groupHeaderHint: ({action}: {action: string}) => `このグループを${action}`,
+        selectGroup: ({groupName}: {groupName: string}) => `${groupName}のすべての経費を選択`,
+        groupBy: {
+            category: 'カテゴリ',
+            tag: 'タグ',
+        },
     },
     export: {
         basicExport: '基本エクスポート',
