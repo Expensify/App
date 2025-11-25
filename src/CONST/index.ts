@@ -1134,6 +1134,7 @@ const CONST = {
             EXPORT: 'export',
             PAY: 'pay',
             MERGE: 'merge',
+            REPORT_LAYOUT: 'reportLayout',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1681,6 +1682,12 @@ const CONST = {
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
+    },
+    REPORT_LAYOUT: {
+        GROUP_BY: {
+            CATEGORY: 'mcc',
+            TAG: 'tag',
+        },
     },
     THEME: {
         DEFAULT: 'system',
