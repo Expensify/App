@@ -45,6 +45,8 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const policyID = route.params.policyID;
     const approverIndex = Number(route.params.approverIndex) ?? 0;
+    const backTo = route.params?.backTo;
+    const isEditFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT;
     const currentApprover = approvalWorkflow?.approvers?.[approverIndex];
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -97,8 +99,27 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     }, [hasSubmitted, onlyApproverEmpty, isCircularReference, selectedApproverDisplayName, translate]);
 
     const handleSkip = useCallback(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
-    }, [policyID]);
+        // Clear any existing approval limit when skipping
+        if (approvalWorkflow && currentApprover && (currentApprover.approvalLimit || currentApprover.overLimitForwardsTo)) {
+            setApprovalWorkflowApprover({
+                approver: {
+                    ...currentApprover,
+                    approvalLimit: undefined,
+                    overLimitForwardsTo: '',
+                },
+                approverIndex,
+                currentApprovalWorkflow: approvalWorkflow,
+                policy,
+                personalDetailsByEmail,
+            });
+        }
+
+        if (isEditFlow) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
+        }
+    }, [approvalWorkflow, currentApprover, approverIndex, policy, personalDetailsByEmail, isEditFlow, backTo, policyID]);
 
     const handleNext = useCallback(() => {
         setHasSubmitted(true);
@@ -125,12 +146,30 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
             personalDetailsByEmail,
         });
 
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
-    }, [approvalLimit, selectedApproverEmail, isCircularReference, approvalWorkflow, currentApprover, approverIndex, policy, personalDetailsByEmail, policyID]);
+        if (isEditFlow) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
+        }
+    }, [approvalLimit, selectedApproverEmail, isCircularReference, approvalWorkflow, currentApprover, approverIndex, policy, personalDetailsByEmail, isEditFlow, backTo, policyID]);
 
     const navigateToApproverSelector = useCallback(() => {
+        // Save the current amount to Onyx before navigating so it persists when we come back
+        if (approvalWorkflow && currentApprover && approvalLimit) {
+            const limitInCents = convertToBackendAmount(Number.parseFloat(approvalLimit));
+            setApprovalWorkflowApprover({
+                approver: {
+                    ...currentApprover,
+                    approvalLimit: limitInCents,
+                },
+                approverIndex,
+                currentApprovalWorkflow: approvalWorkflow,
+                policy,
+                personalDetailsByEmail,
+            });
+        }
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(policyID, approverIndex));
-    }, [policyID, approverIndex]);
+    }, [policyID, approverIndex, approvalWorkflow, currentApprover, approvalLimit, policy, personalDetailsByEmail]);
 
     const buttonContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mh5, styles.mb5]});
 

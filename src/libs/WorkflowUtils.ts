@@ -261,6 +261,7 @@ function convertApprovalWorkflowToPolicyEmployees({
         const approvalLimit = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? undefined : approver.approvalLimit;
         const overLimitForwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (approver.overLimitForwardsTo ?? '');
 
+        // For every approver, we check if the forwardsTo, approvalLimit, or overLimitForwardsTo fields have changed.
         const previousEmployee = previousEmployeeList[approver.email];
         const forwardsToChanged = previousEmployee?.forwardsTo !== forwardsTo;
         const approvalLimitChanged = previousEmployee?.approvalLimit !== approvalLimit;
@@ -275,7 +276,7 @@ function convertApprovalWorkflowToPolicyEmployees({
             email: approver.email,
             forwardsTo,
             ...(approvalLimit !== undefined ? {approvalLimit} : {}),
-            ...(overLimitForwardsTo ? {overLimitForwardsTo} : {}),
+            ...(overLimitForwardsToChanged ? {overLimitForwardsTo} : {}),
             pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : pendingAction,
             pendingFields: {
                 forwardsTo: pendingAction,

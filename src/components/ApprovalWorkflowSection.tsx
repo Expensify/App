@@ -3,12 +3,15 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsByEmailSelector} from '@src/selectors/PersonalDetails';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
@@ -36,6 +39,10 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
+    const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+        selector: personalDetailsByEmailSelector,
+    });
 
     const approverTitle = useCallback(
         (index: number) =>
@@ -50,14 +57,15 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
             }
 
             const formattedAmount = convertToDisplayString(approver.approvalLimit, currency);
-            const approverDisplayName = Str.removeSMSDomain(approver.overLimitForwardsTo);
+            const overLimitApproverDetails = personalDetailsByEmail?.[approver.overLimitForwardsTo];
+            const approverDisplayName = Str.removeSMSDomain(overLimitApproverDetails?.displayName ?? approver.overLimitForwardsTo);
 
             return translate('workflowsApprovalLimitPage.forwardLimitDescription', {
                 approvalLimit: formattedAmount,
                 approverName: approverDisplayName,
             });
         },
-        [currency, translate],
+        [currency, translate, personalDetailsByEmail],
     );
 
     const members = useMemo(() => {

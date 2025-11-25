@@ -41,7 +41,6 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const currentApprover = approvalWorkflow?.approvers?.[approverIndex];
 
     const employeeList = policy?.employeeList;
-    const approversFromWorkflow = approvalWorkflow?.approvers;
 
     const allApprovers: SelectionListApprover[] = useMemo(() => {
         if (isApprovalWorkflowLoading || !employeeList) {
@@ -53,11 +52,6 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 const email = employee.email;
 
                 if (!email) {
-                    return null;
-                }
-
-                const isEmailAlreadyInApprovers = approversFromWorkflow?.some((approver) => approver?.email === email);
-                if (isEmailAlreadyInApprovers) {
                     return null;
                 }
 
@@ -82,7 +76,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [isApprovalWorkflowLoading, employeeList, approversFromWorkflow, personalDetails, policy?.owner, currentApprover?.overLimitForwardsTo, expensifyIcons.FallbackAvatar]);
+    }, [isApprovalWorkflowLoading, employeeList, personalDetails, policy?.owner, currentApprover?.overLimitForwardsTo, expensifyIcons.FallbackAvatar]);
 
     const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading;
 
@@ -97,10 +91,6 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 return;
             }
 
-            const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
-            const accountID = Number(selectedApprover.login ? policyMemberEmailsToAccountIDs[selectedApprover.login] : '');
-            const {avatar, displayName = selectedApprover.login} = personalDetails?.[accountID] ?? {};
-
             setApprovalWorkflowApprover({
                 approver: {
                     ...currentApprover,
@@ -114,7 +104,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
 
             goBack();
         },
-        [approvalWorkflow, currentApprover, employeeList, personalDetails, approverIndex, policy, personalDetailsByEmail, goBack],
+        [approvalWorkflow, currentApprover, approverIndex, policy, personalDetailsByEmail, goBack],
     );
 
     const subtitle = useMemo(
