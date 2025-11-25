@@ -20,6 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -28,7 +29,6 @@ import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, ReportAction, ReportActions} from '@src/types/onyx';
 import type {SearchReport} from '@src/types/onyx/SearchResults';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
 function TransactionListItem<TItem extends ListItem>({
@@ -108,7 +108,7 @@ function TransactionListItem<TItem extends ListItem>({
     const transactionViolations = useMemo(() => {
         return (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
             (violation: TransactionViolation) =>
-                !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '') &&
+                !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', snapshotReport, snapshotPolicy) &&
                 shouldShowViolation(snapshotReport, snapshotPolicy, violation.name, currentUserDetails.email ?? '', false),
         );
     }, [snapshotPolicy, snapshotReport, transactionItem, violations, currentUserDetails.email]);
