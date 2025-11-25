@@ -1,7 +1,7 @@
-import {PHONE_NUMBER} from '@mfa/api';
 import React from 'react';
 import {useMultifactorAuthenticationContext} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationValidateCodePage from '@components/MultifactorAuthentication/ValidateCodePage';
+import {PHONE_NUMBER} from '@libs/API/MultifactorAuthenticationMock';
 
 function MultifactorAuthenticationFactorSmsOtpPage() {
     // TODO: MFA/Dev Phone number should be retrieved from the currently logged account

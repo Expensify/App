@@ -745,7 +745,6 @@
         "webrtc",
         "welldone",
         "Woohoo",
-        "Wooo",
         "Wordmark",
         "wordprocessingml",
         "worklet",
@@ -797,7 +796,8 @@
         "Selec",
         "setuptools",
         "DYNAMICEXTERNAL",
-        "RNCORE"
+        "RNCORE",
+        "Wooo"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

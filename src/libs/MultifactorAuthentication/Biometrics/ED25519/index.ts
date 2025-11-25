@@ -9,7 +9,7 @@ import {sha256, sha512} from '@noble/hashes/sha2';
 import {utf8ToBytes} from '@noble/hashes/utils';
 import {Buffer} from 'buffer';
 import 'react-native-get-random-values';
-import VALUES from '../VALUES';
+import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
 import type {Base64URL, BinaryData, ChallengeFlag, MultifactorAuthenticationChallengeObject, SignedChallenge} from './types';
 
 hashes.sha512 = sha512;
