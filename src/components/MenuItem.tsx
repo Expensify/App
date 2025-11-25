@@ -895,7 +895,7 @@ function MenuItem({
                                                     </View>
                                                 </View>
                                             </View>
-                                            <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact)]}>
+                                            <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact), !hasPressableRightComponent && styles.pointerEventsNone]}>
                                                 {!!badgeText && (
                                                     <Badge
                                                         text={badgeText}
@@ -929,7 +929,7 @@ function MenuItem({
                                                 {!!brickRoadIndicator && (
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                                         <Icon
-                                                            src={icons.DotIndicator}
+                                                            src={Expensicons.DotIndicator}
                                                             fill={brickRoadIndicator === 'error' ? theme.danger : theme.success}
                                                         />
                                                     </View>
@@ -961,7 +961,7 @@ function MenuItem({
                                                 {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
                                                 {shouldShowSelectedItemCheck && isSelected && (
                                                     <Icon
-                                                        src={icons.Checkmark}
+                                                        src={Expensicons.Checkmark}
                                                         fill={theme.iconSuccessFill}
                                                         additionalStyles={styles.alignSelfCenter}
                                                     />
