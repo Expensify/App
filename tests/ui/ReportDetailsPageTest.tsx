@@ -49,7 +49,6 @@ describe('ReportDetailsPage', () => {
         const trackExpenseActionID = '123';
         const transactionID = '3';
         const transaction = createRandomTransaction(1);
-
         const trackExpenseReport: Report = {
             ...createRandomReport(Number(trackExpenseReportID), undefined),
             parentReportID: selfDMReportID,

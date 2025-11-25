@@ -2002,7 +2002,6 @@ describe('actions/Report', () => {
 
     describe('deleteAppReport', () => {
         it('should only moves CREATE or TRACK type of IOU action to self DM', async () => {
-
             // Given an expense report with CREATE, TRACK, and PAY of IOU actions
             const reportID = '1';
             const firstIOUAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
@@ -2059,6 +2058,7 @@ describe('actions/Report', () => {
                     },
                 });
             });
+            // The length is 3 to include the CREATED action
             expect(Object.keys(selfDMReportActions ?? {}).length).toBe(3);
         });
 
