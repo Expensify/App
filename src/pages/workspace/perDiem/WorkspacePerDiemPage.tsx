@@ -8,7 +8,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,7 +19,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -56,6 +55,9 @@ type PolicyOption = ListItem & {
 
     /** rateID is used as a key for identification of the entry */
     rateID: string;
+
+    /** subRateName is used for filters */
+    subRateName: string;
 };
 
 type SubRateData = {
@@ -127,6 +129,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const illustrations = useMemoizedLazyIllustrations(['PerDiem'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Trashcan'] as const);
 
     const [customUnit, allRatesArray, allSubRates] = useMemo(() => {
         const customUnits = getPerDiemCustomUnit(policy);
@@ -164,6 +167,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     keyForList: value.subRateID,
                     isDisabled,
                     pendingAction: value.pendingAction,
+                    subRateName: value.subRateName,
                     rightElement: (
                         <>
                             <View style={styles.flex2}>
@@ -190,7 +194,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     );
 
     const filterRate = useCallback((rate: PolicyOption, searchInput: string) => {
-        const results = tokenizedSearch([rate], searchInput, (option) => [option.text ?? '']);
+        const results = tokenizedSearch([rate], searchInput, (option) => [option.text ?? '', option.subRateName ?? '']);
         return results.length > 0;
     }, []);
     const sortRates = useCallback((rates: PolicyOption[]) => rates.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')), [localeCompare]);
@@ -271,14 +275,14 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         const menuItems = [];
         if (policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {})) {
             menuItems.push({
-                icon: Expensicons.Gear,
+                icon: expensifyIcons.Gear,
                 text: translate('common.settings'),
                 onSelected: openSettings,
                 value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             });
         }
         menuItems.push({
-            icon: Expensicons.Table,
+            icon: expensifyIcons.Table,
             text: translate('spreadsheet.importSpreadsheet'),
             onSelected: () => {
                 if (isOffline) {
@@ -291,30 +295,43 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         });
         if (hasVisibleSubRates) {
             menuItems.push({
-                icon: Expensicons.Download,
+                icon: expensifyIcons.Download,
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
                         close(() => setIsOfflineModalVisible(true));
                         return;
                     }
-                    downloadPerDiemCSV(policyID, () => {
-                        setIsDownloadFailureModalVisible(true);
-                    });
+                    close(() =>
+                        downloadPerDiemCSV(policyID, () => {
+                            setIsDownloadFailureModalVisible(true);
+                        }),
+                    );
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
             });
         }
 
         return menuItems;
-    }, [policy?.areCategoriesEnabled, policyCategories, translate, hasVisibleSubRates, openSettings, isOffline, policyID]);
+    }, [
+        policy?.areCategoriesEnabled,
+        policyCategories,
+        translate,
+        hasVisibleSubRates,
+        openSettings,
+        isOffline,
+        policyID,
+        expensifyIcons.Gear,
+        expensifyIcons.Table,
+        expensifyIcons.Download,
+    ]);
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
         if (shouldUseNarrowLayout ? canSelectMultiple : selectedPerDiem.length > 0) {
             options.push({
-                icon: Expensicons.Trashcan,
+                icon: expensifyIcons.Trashcan,
                 text: translate('workspace.perDiem.deleteRates', {count: selectedPerDiem.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setDeletePerDiemConfirmModalVisible(true),

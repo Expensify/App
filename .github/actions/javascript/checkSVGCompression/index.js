@@ -20362,7 +20362,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replaceAll('`', '');
             return {
                 title: issue.title,
                 url: issue.url,
@@ -20471,7 +20471,7 @@ class GithubUtils {
                 console.log('Found the following Internal QA PRs:', internalQAPRMap);
                 const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                 console.log('Found the following NO QA PRs:', noQAPRs);
-                const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs])];
+                const verifiedOrNoQAPRs = new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs]);
                 const sortedPRList = [...new Set((0, arrayDifference_1.default)(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
                 const sortedPRListMobileExpensify = [...new Set(PRListMobileExpensify)].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
                 const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
@@ -20486,43 +20486,43 @@ class GithubUtils {
                 // PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '**This release contains changes from the following pull requests:**\r\n';
-                    sortedPRList.forEach((URL) => {
-                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                    for (const URL of sortedPRList) {
+                        issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Mobile-Expensify PR list
                 if (sortedPRListMobileExpensify.length > 0) {
                     issueBody += '**Mobile-Expensify PRs:**\r\n';
-                    sortedPRListMobileExpensify.forEach((URL) => {
-                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                    for (const URL of sortedPRListMobileExpensify) {
+                        issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Internal QA PR list
                 if (!(0, isEmptyObject_1.isEmptyObject)(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '**Internal QA:**\r\n';
-                    Object.keys(internalQAPRMap).forEach((URL) => {
+                    for (const URL of Object.keys(internalQAPRMap)) {
                         const merger = internalQAPRMap[URL];
                         const mergerMention = `@${merger}`;
                         issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
                         issueBody += ` - ${mergerMention}`;
                         issueBody += '\r\n';
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Deploy blockers
                 if (deployBlockers.length > 0) {
                     issueBody += '**Deploy Blockers:**\r\n';
-                    sortedDeployBlockers.forEach((URL) => {
+                    for (const URL of sortedDeployBlockers) {
                         issueBody += resolvedDeployBlockers.includes(URL) ? '- [x] ' : '- [ ] ';
                         issueBody += URL;
                         issueBody += '\r\n';
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 issueBody += '**Deployer verifications:**';
@@ -21042,7 +21042,9 @@ function validateSvgFiles(filePaths) {
     }
     if (errors.length) {
         console.error('Validation errors:');
-        errors.forEach((error) => console.error(`   ${error}`));
+        for (const error of errors) {
+            console.error(`   ${error}`);
+        }
         throw new Error('SVG file validation failed');
     }
     return validFiles;
@@ -21073,19 +21075,19 @@ function logIgnoredFiles(ignoredFiles) {
         return;
     }
     console.log('\nFiles skipped (ignore-compression):');
-    ignoredFiles.forEach((filePath) => {
+    for (const filePath of ignoredFiles) {
         console.log(`${filePath}: ⏭️  Skipped`);
-    });
+    }
 }
 function logSummary(summary) {
     const { totalFiles, totalCompressedFilesLength, totalOriginalSize, totalCompressedSize, totalSavings, totalSavingsPercent, results, ignoredFiles } = summary;
     logIgnoredFiles(ignoredFiles);
     if (totalCompressedFilesLength) {
         console.log('\nFiles compressed:');
-        results.forEach((result) => {
+        for (const result of results) {
             const { compressedSize, originalSize, savings, savingsPercent, filePath } = result;
             if (!result.savings) {
-                return;
+                continue;
             }
             const prefix = `${filePath}: ✅`;
             console.log(getSummarySavingString({
@@ -21095,7 +21097,7 @@ function logSummary(summary) {
                 savings,
                 savingsPercent,
             }));
-        });
+        }
         const ignoreFilesLength = ignoredFiles.length;
         console.log(`\nFiles processed: ${totalFiles}`);
         console.log(`Files already properly compressed: ${totalFiles - ignoreFilesLength - totalCompressedFilesLength}`);
@@ -21116,10 +21118,10 @@ function logSummary(summary) {
 function logSummaryCheck(summary) {
     const { totalFiles, totalCompressedFilesLength, results, ignoredFiles } = summary;
     console.log('');
-    results.forEach((result) => {
+    for (const result of results) {
         const { filePath, savings } = result;
         console.log(`${filePath}: ${savings > 0 ? 'Not properly compressed ❌' : 'Compressed ✅'}`);
-    });
+    }
     logIgnoredFiles(ignoredFiles);
     console.log(`\nFiles processed: ${totalFiles}`);
     console.log(`Files ignored: ${ignoredFiles.length}`);
