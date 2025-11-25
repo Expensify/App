@@ -75,11 +75,13 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                     return null;
                 }
 
+                // Do not allow the same email to be added twice
                 const isEmailAlreadyInApprovers = approversFromWorkflow?.some((approver, index) => approver?.email === email && index !== approverIndex);
                 if (isEmailAlreadyInApprovers && selectedApproverEmail !== email) {
                     return null;
                 }
 
+                // Do not allow the default approver to be added as the first approver
                 if (!isDefault && approverIndex === 0 && defaultApprover === email) {
                     return null;
                 }
@@ -160,6 +162,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
 
             const isRemovingApprover = selectedApproverEmail === approver?.login;
             if (isInitialCreationFlow) {
+                // Navigate to approval limit page to optionally set a limit, or back to create page if removing
                 if (isRemovingApprover) {
                     Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
                 } else {
