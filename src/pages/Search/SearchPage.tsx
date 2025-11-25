@@ -327,9 +327,12 @@ function SearchPage({route}: SearchPageProps) {
             return false;
         }
 
-        return selectedTransactionReportIDs.length > 0  && selectedTransactionReportIDs.every((id) => {
-            return isCurrentUserSubmitter(getReportOrDraftReport(id));
-        });
+        return (
+            selectedTransactionReportIDs.length > 0 &&
+            selectedTransactionReportIDs.every((id) => {
+                return isCurrentUserSubmitter(getReportOrDraftReport(id));
+            })
+        );
     }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID]);
 
     const headerButtonsOptions = useMemo(() => {
