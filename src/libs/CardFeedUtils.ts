@@ -430,7 +430,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
             const id = `${fundID}_${feed}`;
 
             if (cardFeedsForDisplay[id]) {
-                continue;
+                return;
             }
 
             cardFeedsForDisplay[id] = {
