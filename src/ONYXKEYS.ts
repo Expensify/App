@@ -149,6 +149,9 @@ const ONYXKEYS = {
     /** Contains the user preference for the LHN priority mode */
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
+    /** Contains the user preference for report layout group-by option */
+    NVP_REPORT_LAYOUT_GROUP_BY: 'nvp_expensify_groupByOption',
+
     /** Contains the users's block expiration (if they have one) */
     NVP_BLOCKED_FROM_CONCIERGE: 'nvp_private_blockedFromConcierge',
 
@@ -836,8 +839,6 @@ const ONYXKEYS = {
         DISABLE_AUTO_RENEW_SURVEY_FORM_DRAFT: 'disableAutoRenewSurveyFormDraft',
         REQUEST_EARLY_CANCELLATION_FORM: 'requestEarlyCancellationForm',
         REQUEST_EARLY_CANCELLATION_FORM_DRAFT: 'requestEarlyCancellationFormDraft',
-        EXIT_SURVEY_REASON_FORM: 'exitSurveyReasonForm',
-        EXIT_SURVEY_REASON_FORM_DRAFT: 'exitSurveyReasonFormDraft',
         EXIT_SURVEY_RESPONSE_FORM: 'exitSurveyResponseForm',
         EXIT_SURVEY_RESPONSE_FORM_DRAFT: 'exitSurveyResponseFormDraft',
         WALLET_ADDITIONAL_DETAILS: 'walletAdditionalDetails',
@@ -960,7 +961,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.EDIT_TASK_FORM]: FormTypes.EditTaskForm;
     [ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM]: FormTypes.FeedbackSurveyForm;
     [ONYXKEYS.FORMS.REQUEST_EARLY_CANCELLATION_FORM]: FormTypes.FeedbackSurveyForm;
-    [ONYXKEYS.FORMS.EXIT_SURVEY_REASON_FORM]: FormTypes.ExitSurveyReasonForm;
     [ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM]: FormTypes.ExitSurveyResponseForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM]: FormTypes.MoneyRequestDescriptionForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM]: FormTypes.MoneyRequestMerchantForm;
@@ -1147,6 +1147,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.BETA_CONFIGURATION]: OnyxTypes.BetaConfiguration;
     [ONYXKEYS.NVP_MUTED_PLATFORMS]: Partial<Record<Platform, true>>;
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
+    [ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY]: string;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.QUEUE_FLUSHED_DATA]: OnyxUpdate[];
 

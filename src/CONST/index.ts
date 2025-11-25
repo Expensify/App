@@ -175,6 +175,7 @@ const EMAIL = {
     EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
     TEAM: 'team@expensify.com',
     MANAGER_MCTEST: 'manager_mctest@expensify.com',
+    QA_GUIDE: 'qa.guide@team.expensify.com',
 };
 
 const CONST = {
@@ -620,6 +621,7 @@ const CONST = {
                 PREFIX: 'beneficialOwner',
                 FIRST_NAME: 'firstName',
                 LAST_NAME: 'lastName',
+                NATIONALITY: 'nationality',
                 OWNERSHIP_PERCENTAGE: 'ownershipPercentage',
                 DOB: 'dob',
                 SSN_LAST_4: 'ssnLast4',
@@ -627,7 +629,7 @@ const CONST = {
                 CITY: 'city',
                 STATE: 'state',
                 ZIP_CODE: 'zipCode',
-                COUNTRY: 'nationality',
+                COUNTRY: 'country',
                 PROOF_OF_OWNERSHIP: 'proofOfBeneficialOwner',
                 COPY_OF_ID: 'copyOfIDForBeneficialOwner',
                 ADDRESS_PROOF: 'addressProofForBeneficialOwner',
@@ -952,6 +954,7 @@ const CONST = {
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
     IMAGE_BASE64_MATCH: 'base64',
     DEEPLINK_BASE_URL: 'new-expensify://',
+    SAML_REDIRECT_URL: 'expensify://open',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
@@ -1131,6 +1134,7 @@ const CONST = {
             EXPORT: 'export',
             PAY: 'pay',
             MERGE: 'merge',
+            REPORT_LAYOUT: 'reportLayout',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1257,6 +1261,7 @@ const CONST = {
                 UNSHARE: 'UNSHARE', // OldDot Action
                 UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
                 CONCIERGE_CATEGORY_OPTIONS: 'CONCIERGECATEGORYOPTIONS',
+                CONCIERGE_DESCRIPTION_OPTIONS: 'CONCIERGEDESCRIPTIONOPTIONS',
                 CONCIERGE_AUTO_MAP_MCC_GROUPS: 'CONCIERGEAUTOMAPMCCGROUPS',
                 POLICY_CHANGE_LOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
@@ -1314,6 +1319,7 @@ const CONST = {
                     UPDATE_DISABLED_FIELDS: 'POLICYCHANGELOG_UPDATE_DISABLED_FIELDS',
                     UPDATE_EMPLOYEE: 'POLICYCHANGELOG_UPDATE_EMPLOYEE',
                     UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
+                    UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
                     UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT',
@@ -1632,6 +1638,7 @@ const CONST = {
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
+        MENTION_SUGGESTION_DEBOUNCE_TIME: 100,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
@@ -1653,12 +1660,34 @@ const CONST = {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
+        // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
+        SPAN_NAVIGATE_TO_REPORTS_TAB: 'ManualNavigateToReportsTab',
+        SPAN_ON_LAYOUT_SKELETON_REPORTS: 'ManualOnLayoutSkeletonReports',
+        SPAN_NAVIGATE_TO_INBOX_TAB: 'ManualNavigateToInboxTab',
+        SPAN_OD_ND_TRANSITION: 'ManualOdNdTransition',
+        SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
+        SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
+        SPAN_SEND_MESSAGE: 'ManualSendMessage',
+        // Attribute names
+        ATTRIBUTE_IOU_TYPE: 'iou_type',
+        ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
+        ATTRIBUTE_REPORT_ID: 'report_id',
+        ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
+        ATTRIBUTE_CANCELED: 'canceled',
+        ATTRIBUTE_ROUTE_FROM: 'route_from',
+        ATTRIBUTE_ROUTE_TO: 'route_to',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
+    },
+    REPORT_LAYOUT: {
+        GROUP_BY: {
+            CATEGORY: 'mcc',
+            TAG: 'tag',
+        },
     },
     THEME: {
         DEFAULT: 'system',
@@ -2621,6 +2650,7 @@ const CONST = {
         STUDENT_AMBASSADOR: Number(Config?.EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR ?? 10476956),
         SVFG: Number(Config?.EXPENSIFY_ACCOUNT_ID_SVFG ?? 2012843),
         MANAGER_MCTEST: Number(Config?.EXPENSIFY_ACCOUNT_ID_MANAGER_MCTEST ?? 18964612),
+        QA_GUIDE: Number(Config?.EXPENSIFY_ACCOUNT_ID_QA_GUIDE ?? 14365522),
     },
 
     ENVIRONMENT: {
@@ -3251,6 +3281,7 @@ const CONST = {
                 tags: {},
             },
         } as PolicyTagLists,
+        DEFAULT_TAG_NAME: 'Tag',
         REQUIRE_RECEIPTS_OVER_OPTIONS: {
             DEFAULT: 'default',
             NEVER: 'never',
@@ -3360,6 +3391,7 @@ const CONST = {
             CARD_NAME: 'CardName',
             TRANSACTION_START_DATE: 'TransactionStartDate',
             CONFIRMATION: 'Confirmation',
+            INVITE_NEW_MEMBER: 'InviteNewMember',
         },
         TRANSACTION_START_DATE_OPTIONS: {
             FROM_BEGINNING: 'fromBeginning',
@@ -3405,6 +3437,7 @@ const CONST = {
             LIMIT: 'Limit',
             CARD_NAME: 'CardName',
             CONFIRMATION: 'Confirmation',
+            INVITE_NEW_MEMBER: 'InviteNewMember',
         },
         CARD_TYPE: {
             PHYSICAL: 'physical',
@@ -3477,6 +3510,9 @@ const CONST = {
             LAST_DAY_OF_MONTH: 'LAST_DAY_OF_MONTH',
             LAST_BUSINESS_DAY_OF_MONTH: 'LAST_BUSINESS_DAY_OF_MONTH',
             CUSTOM_DAY_OF_MONTH: 'CUSTOM_DAY_OF_MONTH',
+        },
+        CARD_NAME: {
+            CASH: '__CASH__',
         },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
@@ -3789,6 +3825,7 @@ const CONST = {
         EMAIL.SVFG,
         EMAIL.TEAM,
         EMAIL.MANAGER_MCTEST,
+        EMAIL.QA_GUIDE,
     ] as string[],
     get EXPENSIFY_ACCOUNT_IDS() {
         return [
@@ -6669,6 +6706,7 @@ const CONST = {
             CATEGORY: 'category',
             TAG: 'tag',
             TOTAL_AMOUNT: 'amount',
+            TOTAL: 'total',
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
@@ -6678,6 +6716,8 @@ const CONST = {
             COMMENTS: 'comments',
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawalID',
+            AVATAR: 'avatar',
+            STATUS: 'status',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -6861,6 +6901,7 @@ const CONST = {
         SEARCH_CONTEXT_MEMBER_INVITE: 'memberInvite',
         SEARCH_CONTEXT_SHARE_LOG: 'shareLog',
         SEARCH_CONTEXT_SHARE_DESTINATION: 'shareDestination',
+        SEARCH_CONTEXT_ATTENDEES: 'attendees',
     },
     EXPENSE: {
         TYPE: {

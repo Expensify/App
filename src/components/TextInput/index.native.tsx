@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {AppState, Keyboard} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -6,6 +7,7 @@ import type {BaseTextInputProps} from './BaseTextInput/types';
 
 function TextInput({ref, ...props}: BaseTextInputProps) {
     const styles = useThemeStyles();
+    const navigation = useNavigation();
 
     useEffect(() => {
         if (!props.disableKeyboard) {
@@ -13,7 +15,7 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
         }
 
         const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
-            if (!nextAppState.match(/inactive|background/)) {
+            if (!nextAppState.match(/inactive|background/) || !navigation.isFocused()) {
                 return;
             }
 
@@ -23,7 +25,7 @@ function TextInput({ref, ...props}: BaseTextInputProps) {
         return () => {
             appStateSubscription.remove();
         };
-    }, [props.disableKeyboard]);
+    }, [props.disableKeyboard, navigation]);
 
     return (
         <BaseTextInput
