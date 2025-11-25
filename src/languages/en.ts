@@ -2269,8 +2269,7 @@ const translations = {
     workflowsApprovalLimitPage: {
         title: 'Approver',
         header: '(Optional) Want to add an approval limit?',
-        description: ({approverName}: {approverName: string}) =>
-            `Add another approver when <strong>${approverName}</strong> is approver and report exceeds the amount below:`,
+        description: ({approverName}: {approverName: string}) => `Add another approver when <strong>${approverName}</strong> is approver and report exceeds the amount below:`,
         reportAmountLabel: 'Report amount',
         additionalApproverLabel: 'Additional approver',
         skip: 'Skip',
@@ -2280,8 +2279,7 @@ const translations = {
         enterBothError: 'Enter a report amount and additional approver',
         circularReferenceError: ({approverName}: {approverName: string}) =>
             `<strong>${approverName}</strong> already approves reports in this workflow. Choose a different approver to avoid a circular workflow.`,
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
-            `Reports above ${approvalLimit} forward to ${approverName}`,
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Reports above ${approvalLimit} forward to ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
