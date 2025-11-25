@@ -438,6 +438,7 @@ function removeMembers(
 
     if (hasApprovers) {
         const ownerEmail = ownerDetails.login;
+        // eslint-disable-next-line unicorn/no-array-for-each
         accountIDs.forEach((accountID) => {
             const removedApprover = allPersonalDetails?.[accountID];
             if (!removedApprover?.login || !ownerEmail) {
@@ -448,6 +449,7 @@ function removeMembers(
                 removedApprover,
                 ownerDetails,
             });
+            // eslint-disable-next-line unicorn/no-array-for-each
             updatedWorkflows.forEach((workflow) => {
                 if (workflow?.removeApprovalWorkflow) {
                     const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
