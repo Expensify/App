@@ -359,6 +359,7 @@ async function filterResultsByDiff(
         // Filter failures to only include those on changed lines
         const filteredFailures = new Map<string, CompilerFailure>();
 
+        // eslint-disable-next-line unicorn/no-array-for-each
         failures.forEach((failure, key) => {
             const changedLines = changedLinesMap.get(failure.file);
 
@@ -398,6 +399,7 @@ async function filterResultsByDiff(
     // Filter success set to only include files that are in the diff
     const changedFiles = new Set(diffResult.files.map((file) => file.filePath));
     const filteredSuccesses = new Set<string>();
+    // eslint-disable-next-line unicorn/no-array-for-each
     results.success.forEach((file) => {
         if (!changedFiles.has(file)) {
             return;
@@ -440,6 +442,7 @@ function printResults({success, failures, suppressedFailures}: CompilerResults, 
         logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
         log();
 
+        // eslint-disable-next-line unicorn/no-array-for-each
         success.forEach((successFile) => {
             logSuccess(`${successFile}`);
         });
@@ -450,6 +453,7 @@ function printResults({success, failures, suppressedFailures}: CompilerResults, 
     if (shouldPrintSuppressedErrors && suppressedFailures.size > 0) {
         // Create a Map of suppressed error type -> Failure[] with distinct errors and a list of failures with that error
         const suppressedErrorMap = new Map<string, CompilerFailure[]>();
+        // eslint-disable-next-line unicorn/no-array-for-each
         suppressedFailures.forEach((failure) => {
             if (!failure.reason) {
                 return;
@@ -482,6 +486,7 @@ function printResults({success, failures, suppressedFailures}: CompilerResults, 
     }
 
     const distinctFileNames = new Set<string>();
+    // eslint-disable-next-line unicorn/no-array-for-each
     failures.forEach((failure) => {
         distinctFileNames.add(failure.file);
     });
@@ -490,6 +495,7 @@ function printResults({success, failures, suppressedFailures}: CompilerResults, 
     logError(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
     log();
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     failures.forEach((failure) => {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
         logBold(`${failure.file}${location}`);

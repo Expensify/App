@@ -1394,7 +1394,10 @@ describe('OptionsListUtils', () => {
             // Given a report without reportID (so it uses the lastReportAction)
             const report: Report | undefined = undefined;
             const lastActorDetails = PERSONAL_DETAILS['3'];
-            const lastAction = createRandomReportAction(1);
+            const lastAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
 
             // When we call shouldShowLastActorDisplayName with all valid conditions
             const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
@@ -1406,7 +1409,10 @@ describe('OptionsListUtils', () => {
             // Given a report without reportID (so it uses the lastReportAction)
             const report: Report | undefined = undefined;
             const lastActorDetails = PERSONAL_DETAILS['2'];
-            const lastAction = createRandomReportAction(1);
+            const lastAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
 
             const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
             expect(result).toBe(true);
@@ -1417,7 +1423,10 @@ describe('OptionsListUtils', () => {
             // Given a report without reportID
             const report: Report | undefined = undefined;
             const lastActorDetails = PERSONAL_DETAILS['2'];
-            const lastAction = createRandomReportAction(1);
+            const lastAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
 
             // When we call shouldShowLastActorDisplayName with the current user as last actor
             const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);

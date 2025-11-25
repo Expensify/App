@@ -31,6 +31,7 @@ function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
     tagListsUnpacked
         .map(getTagNamesFromTagsLists)
         .flat()
+        // eslint-disable-next-line unicorn/no-array-for-each
         .forEach((tag) => uniqueTagNames.add(tag));
     return Array.from(uniqueTagNames);
 }
@@ -43,6 +44,7 @@ function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTag
     Object.values(allRecentTags ?? {})
         .map((recentTag) => Object.values(recentTag ?? {}))
         .flat(2)
+        // eslint-disable-next-line unicorn/no-array-for-each
         .forEach((tag) => uniqueTagNames.add(tag));
     return Array.from(uniqueTagNames);
 }
@@ -52,6 +54,7 @@ function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTag
  */
 function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCategories>) {
     const uniqueCategoryNames = new Set<string>();
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
     return Array.from(uniqueCategoryNames);
 }
@@ -61,6 +64,7 @@ function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCat
  */
 function getAutocompleteRecentCategories(allRecentCategories: OnyxCollection<RecentlyUsedCategories>) {
     const uniqueCategoryNames = new Set<string>();
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.values(allRecentCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category)));
     return Array.from(uniqueCategoryNames);
 }

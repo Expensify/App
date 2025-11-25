@@ -99,6 +99,7 @@ function detectGapsAndSplit(lastUpdateIDFromClient: number): DetectGapAndSplitRe
 
         // Add all deferred updates after the gap(s) to "updatesAfterGaps".
         // If "firstUpdateToBeAppliedAfterGap" is set to the last deferred update, the array will be empty.
+        // eslint-disable-next-line unicorn/no-array-for-each
         Object.entries(pendingDeferredUpdates).forEach(([lastUpdateID, update]) => {
             if (Number(lastUpdateID) < firstUpdateToBeAppliedAfterGap) {
                 return;

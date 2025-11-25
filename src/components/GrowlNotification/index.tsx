@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useState} from 'react';
 import {View} from 'react-native';
 import {Directions, Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
@@ -10,7 +10,7 @@ import * as Pressables from '@components/Pressable';
 import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Growl from '@libs/Growl';
+import {setIsReady} from '@libs/Growl';
 import type {GrowlRef} from '@libs/Growl';
 import CONST from '@src/CONST';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
@@ -19,7 +19,12 @@ const INACTIVE_POSITION_Y = -255;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
-function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
+type GrowlNotificationProps = {
+    /** Reference to outer element */
+    ref?: ForwardedRef<GrowlRef>;
+};
+
+function GrowlNotification({ref}: GrowlNotificationProps) {
     const translateY = useSharedValue(INACTIVE_POSITION_Y);
     const [bodyText, setBodyText] = useState('');
     const [type, setType] = useState('success');
@@ -96,7 +101,7 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
     );
 
     useEffect(() => {
-        Growl.setIsReady();
+        setIsReady();
     }, []);
 
     useEffect(() => {
@@ -144,4 +149,4 @@ function GrowlNotification(_: unknown, ref: ForwardedRef<GrowlRef>) {
 
 GrowlNotification.displayName = 'GrowlNotification';
 
-export default forwardRef(GrowlNotification);
+export default GrowlNotification;

@@ -1,28 +1,24 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import Text from '@components/Text';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {navigateToConciergeChat as navigateToConciergeChatAction} from '@userActions/Report';
+import Navigation from '@libs/Navigation/Navigation';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
-type ConciergeLinkRendererProps = CustomRendererProps<TText | TPhrasing>;
+type AccountManagerLinkRendererProps = CustomRendererProps<TText | TPhrasing>;
 
-/**
- * Simple wrapper to create a stable reference without passing event args to navigation function.
- */
-function navigateToConciergeChat() {
-    navigateToConciergeChatAction();
-}
-
-function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
+function AccountManagerLinkRenderer({tnode, style}: AccountManagerLinkRendererProps) {
     const styles = useThemeStyles();
+    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {canBeMissing: true});
 
     // Define link style based on context
     let linkStyle: StyleProp<TextStyle> = styles.link;
 
-    // Special handling for links in RBR to maintain consistent font size
     if (HTMLEngineUtils.isChildOfRBR(tnode)) {
         linkStyle = [
             styles.link,
@@ -32,10 +28,17 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
         ];
     }
 
+    const navigateToAccountManager = useCallback(() => {
+        if (!accountManagerReportID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(accountManagerReportID));
+    }, [accountManagerReportID]);
+
     return (
         <Text
             style={[style as TextStyle, linkStyle]}
-            onPress={navigateToConciergeChat}
+            onPress={navigateToAccountManager}
             suppressHighlighting
         >
             <TNodeChildrenRenderer tnode={tnode} />
@@ -43,6 +46,6 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     );
 }
 
-ConciergeLinkRenderer.displayName = 'ConciergeLinkRenderer';
+AccountManagerLinkRenderer.displayName = 'AccountManagerLinkRenderer';
 
-export default ConciergeLinkRenderer;
+export default AccountManagerLinkRenderer;

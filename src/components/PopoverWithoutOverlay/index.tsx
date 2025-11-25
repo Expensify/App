@@ -1,5 +1,4 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useContext, useEffect, useMemo} from 'react';
+import React, {useContext, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import {PopoverContext} from '@components/PopoverProvider';
@@ -14,21 +13,19 @@ import type PopoverWithoutOverlayProps from './types';
 
 const NOOP = () => {};
 
-function PopoverWithoutOverlay(
-    {
-        anchorPosition = {},
-        anchorRef,
-        withoutOverlayRef,
-        innerContainerStyle = {},
-        outerStyle,
-        onModalShow = () => {},
-        isVisible,
-        onClose,
-        onModalHide = () => {},
-        children,
-    }: PopoverWithoutOverlayProps,
-    ref: ForwardedRef<View>,
-) {
+function PopoverWithoutOverlay({
+    anchorPosition = {},
+    anchorRef,
+    withoutOverlayRef,
+    innerContainerStyle = {},
+    outerStyle,
+    onModalShow = () => {},
+    isVisible,
+    onClose,
+    onModalHide = () => {},
+    children,
+    ref,
+}: PopoverWithoutOverlayProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {onOpen, close} = useContext(PopoverContext);
@@ -116,4 +113,4 @@ function PopoverWithoutOverlay(
 
 PopoverWithoutOverlay.displayName = 'PopoverWithoutOverlay';
 
-export default forwardRef(PopoverWithoutOverlay);
+export default PopoverWithoutOverlay;
