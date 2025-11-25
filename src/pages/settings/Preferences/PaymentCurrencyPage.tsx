@@ -31,11 +31,11 @@ function PaymentCurrencyPage() {
                     <HeaderWithBackButton
                         title={translate('billingCurrency.paymentCurrency')}
                         shouldShowBackButton
-                        onBackButtonPress={() =>
+                        onBackButtonPress={() => {
                             KeyboardUtils.dismiss().then(() => {
                                 Navigation.goBack();
-                            })
-                        }
+                            });
+                        }}
                     />
 
                     <Text style={[styles.mh5, styles.mv4]}>{translate('billingCurrency.paymentCurrencyDescription')}</Text>
