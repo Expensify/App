@@ -345,6 +345,7 @@ function useReportActionAvatars({
             chatReport,
             action,
         },
+        reportPreviewSenderID,
     };
 }
 

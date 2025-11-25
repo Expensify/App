@@ -6,7 +6,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import useReportActionAvatars from '@components/ReportActionAvatars/useReportActionAvatars';
-import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -86,18 +85,12 @@ function ReportActionItemSingle({
         canBeMissing: true,
     });
 
-    const {avatarType, avatars, details, source} = useReportActionAvatars({report: potentialIOUReport ?? report, action});
+    const {avatarType, avatars, details, source, reportPreviewSenderID} = useReportActionAvatars({report: potentialIOUReport ?? report, action});
 
     const reportID = source.chatReport?.reportID;
     const iouReportID = source.iouReport?.reportID;
 
     const [primaryAvatar, secondaryAvatar] = avatars;
-
-    const reportPreviewSenderID = useReportPreviewSenderID({
-        iouReport: potentialIOUReport,
-        action,
-        chatReport: source.chatReport,
-    });
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const mainAccountID = delegateAccountID ? (reportPreviewSenderID ?? potentialIOUReport?.ownerAccountID ?? action?.childOwnerAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const mainAccountLogin = mainAccountID ? (personalDetails?.[mainAccountID]?.login ?? details.login) : details.login;
