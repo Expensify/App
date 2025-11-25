@@ -14322,11 +14322,12 @@ function updateSplitTransactions({
                     const iouReportActionsToMove: Record<string, ReportAction> = {};
 
                     // Get all reportActions from thread report except the created action
-                    Object.values(threadReportActions).forEach((action) => {
-                        if (action && !isCreatedAction(action)) {
-                            iouReportActionsToMove[action.reportActionID] = action;
+                    for (const action of Object.values(threadReportActions)) {
+                        if (!action || isCreatedAction(action)) {
+                            continue;
                         }
-                    });
+                        iouReportActionsToMove[action.reportActionID] = action;
+                    }
 
                     // Move reportActions from thread report to iou report
                     if (Object.keys(iouReportActionsToMove).length > 0) {
@@ -14338,9 +14339,9 @@ function updateSplitTransactions({
 
                         // Remove reportActions from thread report (except created action)
                         const threadReportActionsToRemove: Record<string, null> = {};
-                        Object.keys(iouReportActionsToMove).forEach((reportActionID) => {
+                        for (const reportActionID of Object.keys(iouReportActionsToMove)) {
                             threadReportActionsToRemove[reportActionID] = null;
-                        });
+                        }
 
                         optimisticData.push({
                             onyxMethod: Onyx.METHOD.MERGE,
