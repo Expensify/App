@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -1344,7 +1345,7 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `verschobene Ausgabe von persönlichem Bereich zu ${workspaceName ?? `chatten mit ${reportName}`}`,
         movedToPersonalSpace: 'Ausgabe in den persönlichen Bereich verschoben',
-        tagSelection: 'Wählen Sie ein Tag aus, um Ihre Ausgaben besser zu organisieren.',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `Wählen Sie ${policyTagListName ?? 'ein Tag'}, um Ihre Ausgaben besser zu organisieren.`,
         categorySelection: 'Wählen Sie eine Kategorie, um Ihre Ausgaben besser zu organisieren.',
         error: {
             invalidCategoryLength: 'Der Kategoriename überschreitet 255 Zeichen. Bitte kürzen Sie ihn oder wählen Sie eine andere Kategorie.',
@@ -5920,8 +5921,8 @@ ${
                 billableDescription: 'Spesen werden meist an Kunden weiterberechnet.',
                 nonBillable: 'Nicht abrechenbar',
                 nonBillableDescription: 'Spesen werden gelegentlich an Kunden weiterberechnet.',
-                eReceipts: 'eReceipts',
-                eReceiptsHint: `eReceipts werden automatisch erstellt [für die meisten USD-Kredit-Transaktionen](${CONST.DEEP_DIVE_ERECEIPTS}).`,
+                eReceipts: 'eQuittungen',
+                eReceiptsHint: `eQuittungen werden automatisch erstellt [für die meisten USD-Kredit-Transaktionen](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Teilnehmerverfolgung',
                 attendeeTrackingHint: 'Verfolgen Sie die Kosten pro Person für jede Ausgabe.',
                 prohibitedDefaultDescription:
