@@ -72,7 +72,7 @@ function sendPoliciesContext() {
 
 function sendTryNewDotCohortTag() {
     const cohort = tryNewDot?.nudgeMigration?.cohort;
-    if (cohort) {
+    if (!cohort) {
         return;
     }
     Sentry.setTag(CONST.TELEMETRY.TAG_NUDGE_MIGRATION_COHORT, cohort);
