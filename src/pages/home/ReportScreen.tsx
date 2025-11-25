@@ -376,11 +376,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(
         (prioritizeBackTo = false) => {
-            if (backTo === SCREENS.SEARCH.REPORT_RHP) {
+            if (backTo === SCREENS.SEARCH.REPORT_RHP || isDisplayedInWidePaneModal) {
                 Navigation.goBack();
                 return;
             }
-            if ((prioritizeBackTo && backTo) || isDisplayedInWidePaneModal) {
+            if (prioritizeBackTo && backTo) {
                 Navigation.goBack(backTo as Route);
                 return;
             }
@@ -417,9 +417,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 report={report}
                 policy={policy}
                 parentReportAction={parentReportAction}
-                onBackButtonPress={() => {
-                    onBackButtonPress(true);
-                }}
+                onBackButtonPress={onBackButtonPress}
             />
         );
     }
