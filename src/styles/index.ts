@@ -4239,6 +4239,14 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        reportLayoutGroupHeader: {
+            paddingHorizontal: 12,
+            marginTop: 16,
+            marginBottom: 8,
+            backgroundColor: theme.appBG,
+            justifyContent: 'center',
+        },
+
         reportActionItemImageBorder: {
             borderRightWidth: 4,
             borderColor: theme.cardBG,
