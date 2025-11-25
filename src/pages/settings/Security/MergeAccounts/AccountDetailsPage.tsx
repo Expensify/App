@@ -67,12 +67,12 @@ function AccountDetailsPage() {
     const navigation = useNavigation();
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: getValidateCodeForAccountMergeSelector, canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS>>();
     const [email, setEmail] = useState(params?.email ?? '');
     const {inputCallbackRef} = useAutoFocusInput();
-
     const validateCodeSent = getValidateCodeForAccountMerge?.validateCodeSent;
     const latestError = getLatestErrorMessage(getValidateCodeForAccountMerge);
     const errorKey = getValidateCodeErrorKey(latestError);
@@ -83,7 +83,7 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (!validateCodeSent || !email) {
                     return;
@@ -98,7 +98,7 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (!errorKey || !email) {
                     return;
@@ -112,7 +112,7 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
                     return;
@@ -145,7 +145,7 @@ function AccountDetailsPage() {
         } else if (login.trim() === userEmailOrPhone) {
             addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.error.email'));
         } else {
-            const phoneLogin = getPhoneLogin(login);
+            const phoneLogin = getPhoneLogin(login, countryCode);
             const validateIfNumber = validateNumber(phoneLogin);
 
             if (!Str.isValidEmail(login) && !validateIfNumber) {

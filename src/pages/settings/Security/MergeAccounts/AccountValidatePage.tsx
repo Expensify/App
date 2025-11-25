@@ -127,7 +127,7 @@ function AccountValidatePage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
                     return;
@@ -159,6 +159,7 @@ function AccountValidatePage() {
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
             testID={AccountValidatePage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
@@ -196,7 +197,7 @@ function AccountValidatePage() {
                     validateError={validateCodeError}
                     hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeResent}
                     submitButtonText={translate('mergeAccountsPage.mergeAccount')}
-                    forwardedRef={validateCodeFormRef}
+                    ref={validateCodeFormRef}
                     isLoading={mergeWithValidateCode?.isLoading}
                 />
             </ScrollView>

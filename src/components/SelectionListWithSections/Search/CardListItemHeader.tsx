@@ -1,10 +1,14 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import Icon from '@components/Icon';
+import {PressableWithFeedback} from '@components/Pressable';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +38,12 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
+
+    /** Callback for when the down arrow is clicked */
+    onDownArrowClick?: () => void;
+
+    /** Whether the down arrow is expanded */
+    isExpanded?: boolean;
 };
 
 function CardListItemHeader<TItem extends ListItem>({
@@ -44,11 +54,16 @@ function CardListItemHeader<TItem extends ListItem>({
     canSelectMultiple,
     isSelectAllChecked,
     isIndeterminate,
+    onDownArrowClick,
+    isExpanded,
 }: CardListItemHeaderProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow'] as const);
+
     const formattedDisplayName = useMemo(() => formatPhoneNumber(getDisplayNameOrDefault(cardItem)), [cardItem, formatPhoneNumber]);
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
@@ -76,7 +91,7 @@ function CardListItemHeader<TItem extends ListItem>({
                         <View style={[styles.gapHalf, styles.flexShrink1]}>
                             <TextWithTooltip
                                 text={formattedDisplayName}
-                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
+                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
                             />
                             <TextWithTooltip
                                 text={`${cardItem.cardName}${cardItem.lastFourPAN ? ` ${CONST.DOT_SEPARATOR} ` : ''}${cardItem.lastFourPAN}`}
@@ -85,11 +100,30 @@ function CardListItemHeader<TItem extends ListItem>({
                         </View>
                     </View>
                 </View>
-                <View style={[styles.flexShrink0, styles.mr3]}>
+                <View style={[styles.flexShrink0, styles.mr3, styles.gap1]}>
                     <TotalCell
                         total={cardItem.total}
                         currency={cardItem.currency}
                     />
+                    {!isLargeScreenWidth && !!onDownArrowClick && (
+                        <View>
+                            <PressableWithFeedback
+                                onPress={onDownArrowClick}
+                                style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                            >
+                                {({hovered}) => (
+                                    <Icon
+                                        src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
+                                        fill={theme.icon}
+                                        additionalStyles={!hovered && styles.opacitySemiTransparent}
+                                        small
+                                    />
+                                )}
+                            </PressableWithFeedback>
+                        </View>
+                    )}
                 </View>
             </View>
         </View>

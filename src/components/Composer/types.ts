@@ -1,5 +1,7 @@
-import type {NativeSyntheticEvent, StyleProp, TextInputProps, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {Ref} from 'react';
+import type {StyleProp, TextInput, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type TextSelection = {
     start: number;
@@ -7,7 +9,7 @@ type TextSelection = {
     positionX?: number;
     positionY?: number;
 };
-type CustomSelectionChangeEvent = NativeSyntheticEvent<TextInputSelectionChangeEventData> & {
+type CustomSelectionChangeEvent = TextInputSelectionChangeEvent & {
     positionX?: number;
     positionY?: number;
 };
@@ -35,7 +37,7 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
     onChangeText?: (numberOfLines: string) => void;
 
     /** Callback method to handle pasting a file */
-    onPasteFile?: (file: FileObject) => void;
+    onPasteFile?: (files: FileObject | FileObject[]) => void;
 
     /** General styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types
@@ -68,6 +70,9 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
 
     /** Indicates whether the composer is in a group policy report. Used for disabling report mentioning style in markdown input */
     isGroupPolicyReport?: boolean;
+
+    /** Ref exposing imperative methods on the underlying text input */
+    ref?: Ref<TextInput | HTMLInputElement | HTMLTextAreaElement | AnimatedMarkdownTextInputRef>;
 };
 
 export type {TextSelection, ComposerProps, CustomSelectionChangeEvent};

@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -8,12 +7,12 @@ import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ImageSVG from '@components/ImageSVG';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +32,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'LaptopWithSecondScreenSync'] as const);
     const policyID: string = route.params.policyID;
     const [hasError, setHasError] = useState(false);
     const [codatSetupLink, setCodatSetupLink] = useState<string>('');
@@ -94,7 +94,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 {shouldShowError && (
                     <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9]}>
                         <Icon
-                            src={Illustrations.BrokenMagnifyingGlass}
+                            src={illustrations.BrokenMagnifyingGlass}
                             width={116}
                             height={168}
                         />
@@ -107,7 +107,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 {!shouldShowError && (
                     <View style={[styles.flex1, styles.ph5]}>
                         <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer, styles.pv6]}>
-                            <ImageSVG src={Computer} />
+                            <ImageSVG src={illustrations.LaptopWithSecondScreenSync} />
                         </View>
 
                         <Text style={[styles.textHeadlineH1, styles.pt5]}>{translate('workspace.qbd.setupPage.title')}</Text>

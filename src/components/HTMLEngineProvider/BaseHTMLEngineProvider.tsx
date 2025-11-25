@@ -73,6 +73,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.mutedNormalTextLabel, ...styles.mb0},
                 contentModel: HTMLContentModel.block,
             }),
+            'label-text': HTMLElementModel.fromCustomModel({
+                tagName: 'label-text',
+                mixedUAStyles: {...styles.textLabel, ...styles.mb0, ...styles.textLineHeightNormal},
+                contentModel: HTMLContentModel.block,
+            }),
             'muted-text-xs': HTMLElementModel.fromCustomModel({
                 tagName: 'muted-text-xs',
                 mixedUAStyles: {...styles.textExtraSmallSupporting, ...styles.mb0},
@@ -140,7 +145,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
             'mention-here': HTMLElementModel.fromCustomModel({tagName: 'mention-here', contentModel: HTMLContentModel.textual}),
             'mention-short': HTMLElementModel.fromCustomModel({tagName: 'mention-short', contentModel: HTMLContentModel.textual}),
+            'copy-text': HTMLElementModel.fromCustomModel({tagName: 'copy-text', contentModel: HTMLContentModel.textual}),
             'concierge-link': HTMLElementModel.fromCustomModel({tagName: 'concierge-link', contentModel: HTMLContentModel.textual}),
+            'account-manager-link': HTMLElementModel.fromCustomModel({tagName: 'account-manager-link', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
                 mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
@@ -193,6 +200,8 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.textSuccess,
             styles.textExtraSmallSupporting,
             styles.textMicroSupporting,
+            styles.textLabel,
+            styles.textLineHeightNormal,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */

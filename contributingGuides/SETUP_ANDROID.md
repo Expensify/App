@@ -1,6 +1,55 @@
 # Android Setup Instructions
 
-## Prerequisites
+## Running the mobile application using Rock 🪨
+
+This project uses [Rock](https://rockjs.dev/) to manage native builds. Rather than compiling native code locally when running commands like `npm run android`, Rock first attempts to download remote builds (artifacts prebuilt on CI) from S3. If a matching remote build isn’t available, it automatically falls back to building locally.
+
+By storing complete native build artifacts remotely, Rock reduces the need for local compilation and simplifies setup through automated downloads.
+
+**Note:** Any changes to files involved in generating a fingerprint (e.g., `package.json`) will trigger a local build.
+
+The following steps describe how to configure the project to fully utilize Rock.
+
+### Running the mobile application 📱
+* To install project dependencies run: `npm install`
+* To start metro server run: `npm run start`
+**Note:** For now this is a required step — metro needs to be called manually in a separate terminal.
+* To run application on a **Development Simulator**:
+    - For standalone `npm run android-standalone`
+    - For hybrid app `npm run android`
+
+After completing these steps, you should be able to start both mobile platform apps using the remote build.
+
+### Troubleshooting
+If you haven't done any intentional edits outside of `src/` (like adding new dependencies) but your app is still running into a full build, remember that it's way easier to debug and address a remote cache miss rather than any compilation error.
+
+* Try re-installing dependencies:
+    - `npm run i-standalone` for the standalone app
+    - `npm install` for the hybrid app
+
+* Try running:
+    - For standalone `npm run android-standalone`
+    - For hybrid app `npm run android`
+
+* If you’re still encountering errors, you can try running:
+    - `git clean -fdx android/` when running standalone app
+    - `git clean -fdx ./Mobile-Expensify` when running hybrid app
+
+* Then try running again: 
+    - For standalone `npm run android-standalone`
+    - For hybrid app `npm run android`
+
+* If the issue persists, verify that workflow in the GitHub repository have completed successfully:
+    - [Android builds](https://github.com/Expensify/App/actions/workflows/remote-build-android.yml)
+    If the workflow is still running, open it and verify it matches your fingerprint. Once complete, Rock should download the remote build. If not, check whether the last main commit hash merged into your branch has the same fingerprint as yours.
+
+    If the fingerprints do not match, run:
+    - `npx rock fingerprint -p android --verbose`
+    Compare the results with the GitHub Actions output to see which files have different fingerprints.
+
+* In the event of workflow failures, it is recommended to have the option to manually build the application. The following steps will cover the manual build process.
+
+## Running the mobile application using manual builds
 
 ### Android-Specific Prerequisites
 
@@ -9,6 +58,13 @@
 
 2. **React Native Environment Setup**
    - Go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup?guide=native&platform=android) to start running the app on android.
+
+3. **ccache Setup (Optional)**
+   - The Android project can utilize [ccache](https://ccache.dev/) to significantly reduce compilation times. Since C/C++ code doesn't change as frequently, ccache can cache compilation results and reuse them across builds.
+   - Install ccache via Homebrew: `brew install ccache`
+   - Once installed, the build system will automatically detect and use ccache when available.
+   - To view cumulative statistics on cache usage, run: `ccache --show-stats`
+   - **Note:** If you encounter any issues with the ccache cache, our clean command (via Rock CLI) will automatically clean the ccache directory as well.
 
 ## Running the Android App
 
@@ -121,7 +177,7 @@ project.ext.react = [
 ```
 
 ### Recording Traces
-1. Install the necessary packages: `npm i && npm run pod-install`
+1. Install the necessary packages: `npm i`
 2. Run your Android app in production mode
 3. Navigate to the feature you wish to profile.
 4. Initiate the profiling session by tapping with four fingers to open the menu and selecting **`Use Profiling`**.

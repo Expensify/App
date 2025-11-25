@@ -4,25 +4,25 @@ import CONST from '@src/CONST';
  * Strip comma from the amount
  */
 function stripCommaFromAmount(amount: string): string {
-    return amount.replace(/,/g, '');
+    return amount.replaceAll(',', '');
 }
 
 /**
  * Strip spaces from the amount
  */
 function stripSpacesFromAmount(amount: string): string {
-    return amount.replace(/\s+/g, '');
+    return amount.replaceAll(/\s+/g, '');
 }
 
 function replaceCommasWithPeriod(amount: string): string {
-    return amount.replace(/,+/g, '.');
+    return amount.replaceAll(/,+/g, '.');
 }
 
 /**
  * Strip decimals from the amount
  */
 function stripDecimalsFromAmount(amount: string): string {
-    return amount.replace(/\.\d*$/, '');
+    return amount.replaceAll(/\.\d*$/g, '');
 }
 
 /**
@@ -79,4 +79,29 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
         .join('');
 }
 
-export {addLeadingZero, replaceAllDigits, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, replaceCommasWithPeriod, validateAmount, validatePercentage};
+/**
+ * Handles negative amount flipping by toggling the negative state and removing the '-' prefix
+ * @param amount - The amount string to process
+ * @param allowFlippingAmount - Whether flipping amount is allowed
+ * @param toggleNegative - Function to toggle negative state
+ * @returns The processed amount string without the '-' prefix
+ */
+function handleNegativeAmountFlipping(amount: string, allowFlippingAmount: boolean, toggleNegative?: () => void): string {
+    if (allowFlippingAmount && amount.startsWith('-')) {
+        toggleNegative?.();
+        return amount.slice(1);
+    }
+    return amount;
+}
+
+export {
+    addLeadingZero,
+    replaceAllDigits,
+    stripCommaFromAmount,
+    stripDecimalsFromAmount,
+    stripSpacesFromAmount,
+    replaceCommasWithPeriod,
+    validateAmount,
+    validatePercentage,
+    handleNegativeAmountFlipping,
+};

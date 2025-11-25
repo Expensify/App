@@ -1,19 +1,24 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo} from 'react';
+import {accountIDSelector} from '@selectors/Session';
+import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -24,9 +29,18 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import {canCreateTaskInReport, getPayeeName, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import {
+    canCreateTaskInReport,
+    getPayeeName,
+    hasEmptyReportsForPolicy,
+    hasViolations as hasViolationsReportUtils,
+    isPaidGroupPolicy,
+    isPolicyExpenseChat,
+    isReportOwner,
+    reportSummariesOnyxSelector,
+    temporary_getMoneyRequestOptions,
+} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
 import {close} from '@userActions/Modal';
 import {createNewReport, setIsComposerFullSize} from '@userActions/Report';
@@ -36,6 +50,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type MoneyRequestOptions = Record<
     Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>,
@@ -49,8 +65,8 @@ type AttachmentPickerWithMenuItemsProps = {
     /** The personal details of the current user */
     currentUserPersonalDetails: OnyxTypes.PersonalDetails;
 
-    /** Callback to open the file in the modal */
-    displayFilesInModal: (files: FileObject[]) => void;
+    /** Callback when the attachment is picked */
+    onAttachmentPicked: (url: FileObject | FileObject[]) => void;
 
     /** Whether or not the full size composer is available */
     isFullComposerAvailable: boolean;
@@ -105,7 +121,7 @@ function AttachmentPickerWithMenuItems({
     report,
     currentUserPersonalDetails,
     reportParticipantIDs,
-    displayFilesInModal,
+    onAttachmentPicked,
     isFullComposerAvailable,
     isComposerFullSize,
     reportID,
@@ -121,6 +137,7 @@ function AttachmentPickerWithMenuItems({
     raiseIsScrollLikelyLayoutTriggered,
     shouldDisableAttachmentItem,
 }: AttachmentPickerWithMenuItemsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Paperclip'] as const);
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -134,6 +151,17 @@ function AttachmentPickerWithMenuItems({
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {setIsLoaderVisible} = useFullScreenLoader();
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
+    const [reportSummaries = getEmptyArray<ReturnType<typeof reportSummariesOnyxSelector>[number]>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        canBeMissing: true,
+        selector: reportSummariesOnyxSelector,
+    });
+    const hasEmptyReport = useMemo(() => hasEmptyReportsForPolicy(reportSummaries, report?.policyID, accountID), [accountID, report?.policyID, reportSummaries]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Collapse', 'Expand'] as const);
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
@@ -146,6 +174,23 @@ function AttachmentPickerWithMenuItems({
         },
         [policy],
     );
+
+    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+        policyID: report?.policyID,
+        policyName: policy?.name ?? '',
+        onConfirm: () => selectOption(() => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID, true), true),
+    });
+
+    const openCreateReportConfirmationRef = useRef(openCreateReportConfirmation);
+    openCreateReportConfirmationRef.current = openCreateReportConfirmation;
+
+    const handleCreateReport = useCallback(() => {
+        if (hasEmptyReport) {
+            openCreateReportConfirmationRef.current();
+        } else {
+            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID, true);
+        }
+    }, [currentUserPersonalDetails, hasEmptyReport, isASAPSubmitBetaEnabled, hasViolations, report?.policyID]);
 
     const teacherUnitePolicyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
     const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
@@ -223,17 +268,17 @@ function AttachmentPickerWithMenuItems({
 
         return moneyRequestOptionsList.flat().filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
     }, [
-        translate,
-        shouldUseNarrowLayout,
-        report,
+        isDelegateAccessRestricted,
+        isReportArchived,
+        isRestrictedToPreferredPolicy,
+        lastDistanceExpenseType,
         policy,
+        report,
         reportParticipantIDs,
         selectOption,
-        isDelegateAccessRestricted,
+        shouldUseNarrowLayout,
         showDelegateNoAccessModal,
-        isReportArchived,
-        lastDistanceExpenseType,
-        isRestrictedToPreferredPolicy,
+        translate,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
@@ -243,12 +288,13 @@ function AttachmentPickerWithMenuItems({
 
         return [
             {
-                icon: Expensicons.Document,
+                icon: icons.Document,
                 text: translate('report.newReport.createReport'),
-                onSelected: () => selectOption(() => createNewReport(currentUserPersonalDetails, report?.policyID, true), true),
+                shouldCallAfterModalHide: shouldUseNarrowLayout,
+                onSelected: () => selectOption(() => handleCreateReport(), true),
             },
         ];
-    }, [currentUserPersonalDetails, report, selectOption, translate]);
+    }, [icons.Document, handleCreateReport, report, selectOption, shouldUseNarrowLayout, translate]);
 
     /**
      * Determines if we can show the task option
@@ -263,10 +309,10 @@ function AttachmentPickerWithMenuItems({
                 icon: Expensicons.Task,
                 text: translate('newTaskPage.assignTask'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                onSelected: () => clearOutTaskInfoAndNavigate(reportID, report),
+                onSelected: () => clearOutTaskInfoAndNavigate(currentUserPersonalDetails.accountID, undefined, reportID, report),
             },
         ];
-    }, [report, reportID, translate, shouldUseNarrowLayout]);
+    }, [report, translate, shouldUseNarrowLayout, currentUserPersonalDetails.accountID, reportID]);
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
@@ -325,7 +371,7 @@ function AttachmentPickerWithMenuItems({
                 const triggerAttachmentPicker = () => {
                     onTriggerAttachmentPicker();
                     openPicker({
-                        onPicked: (data) => displayFilesInModal(data),
+                        onPicked: onAttachmentPicked,
                         onCanceled: () => {
                             onCanceledAttachmentPicker?.();
                             setIsLoaderVisible(false);
@@ -338,13 +384,14 @@ function AttachmentPickerWithMenuItems({
                     ...(!isTeachersUniteReport ? createReportOption : []),
                     ...taskOption,
                     {
-                        icon: Expensicons.Paperclip,
+                        icon: icons.Paperclip,
                         text: translate('reportActionCompose.addAttachment'),
                         disabled: shouldDisableAttachmentItem,
                     },
                 ];
                 return (
                     <>
+                        {CreateReportConfirmationModal}
                         <View style={outerContainerStyles}>
                             <View style={innerContainerStyles}>
                                 <View style={createButtonContainerStyles}>
@@ -396,7 +443,7 @@ function AttachmentPickerWithMenuItems({
                                                 >
                                                     <Icon
                                                         fill={theme.icon}
-                                                        src={Expensicons.Collapse}
+                                                        src={expensifyIcons.Collapse}
                                                     />
                                                 </PressableWithFeedback>
                                             </Tooltip>
@@ -420,7 +467,7 @@ function AttachmentPickerWithMenuItems({
                                                 >
                                                     <Icon
                                                         fill={theme.icon}
-                                                        src={Expensicons.Expand}
+                                                        src={expensifyIcons.Expand}
                                                     />
                                                 </PressableWithFeedback>
                                             </Tooltip>

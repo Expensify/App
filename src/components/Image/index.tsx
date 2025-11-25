@@ -10,12 +10,14 @@ import type {ImageOnLoadEvent, ImageProps} from './types';
 
 function Image({
     source: propsSource,
+    shouldCalculateAspectRatioForWideImage = false,
     isAuthTokenRequired = false,
     onLoad,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
     style,
     loadingIconSize,
     loadingIndicatorStyles,
+    imageWidthToCalculateHeight,
     ...forwardedProps
 }: ImageProps) {
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
@@ -24,20 +26,35 @@ function Image({
 
     const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
 
+    const aspectRatioStyle = useMemo(() => {
+        if (!shouldSetAspectRatioInStyle || !aspectRatio) {
+            return {};
+        }
+
+        if (!!imageWidthToCalculateHeight && typeof aspectRatio === 'number') {
+            return {
+                width: '100%',
+                height: imageWidthToCalculateHeight / aspectRatio,
+            };
+        }
+
+        return {aspectRatio, height: 'auto'};
+    }, [shouldSetAspectRatioInStyle, aspectRatio, imageWidthToCalculateHeight]);
+
     const updateAspectRatio = useCallback(
         (width: number, height: number) => {
             if (!isObjectPositionTop) {
                 return;
             }
 
-            if (width > height) {
+            if (width > height && !shouldCalculateAspectRatioForWideImage) {
                 setAspectRatio(1);
                 return;
             }
 
             setAspectRatio(height ? width / height : 'auto');
         },
-        [isObjectPositionTop],
+        [isObjectPositionTop, shouldCalculateAspectRatioForWideImage],
     );
 
     const handleLoad = useCallback(
@@ -146,12 +163,13 @@ function Image({
             />
         );
     }
+
     return (
         <BaseImage
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...forwardedProps}
             onLoad={handleLoad}
-            style={[style, shouldSetAspectRatioInStyle && aspectRatio ? {aspectRatio, height: 'auto'} : {}, shouldOpacityBeZero && {opacity: 0}]}
+            style={[style, aspectRatioStyle, shouldOpacityBeZero && {opacity: 0}]}
             source={source}
         />
     );
@@ -159,4 +177,7 @@ function Image({
 
 Image.displayName = 'Image';
 
-export default React.memo(Image, (prevProps: ImageProps, nextProps: ImageProps) => prevProps.source === nextProps.source);
+export default React.memo(
+    Image,
+    (prevProps: ImageProps, nextProps: ImageProps) => prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight,
+);

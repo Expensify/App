@@ -25,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function PlaidConnectionStep({feed, policyID}: {feed?: CompanyCardFeed; policyID?: string}) {
+function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeed; policyID?: string; onExit?: () => void}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
@@ -65,7 +65,9 @@ function PlaidConnectionStep({feed, policyID}: {feed?: CompanyCardFeed; policyID
      * Unblocks the keyboard shortcuts that can navigate
      */
     const unsubscribeToNavigationShortcuts = () => {
-        subscribedKeyboardShortcuts.current.forEach((unsubscribe) => unsubscribe());
+        for (const unsubscribe of subscribedKeyboardShortcuts.current) {
+            unsubscribe();
+        }
         subscribedKeyboardShortcuts.current = [];
     };
 
@@ -130,8 +132,9 @@ function PlaidConnectionStep({feed, policyID}: {feed?: CompanyCardFeed; policyID
                                     JSON.stringify(metadata?.accounts),
                                     addNewCard.data.statementPeriodEnd,
                                     addNewCard.data.statementPeriodEndDay,
+                                    '',
                                 );
-                                // eslint-disable-next-line deprecation/deprecation
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     setAssignCardStepAndData({
                                         data: {
@@ -177,7 +180,10 @@ function PlaidConnectionStep({feed, policyID}: {feed?: CompanyCardFeed; policyID
                     }}
                     // User prematurely exited the Plaid flow
                     // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                    onExit={handleBackButtonPress}
+                    onExit={() => {
+                        onExit?.();
+                        handleBackButtonPress();
+                    }}
                 />
             );
         }

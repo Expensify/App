@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
@@ -15,10 +15,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardFeedIcon, getCompanyFeeds, getDefaultCardName, getDomainOrWorkspaceAccountID, getPlaidInstitutionIconUrl, maskCardNumber} from '@libs/CardUtils';
@@ -53,7 +55,10 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MoneySearch', 'RemoveMembers'] as const);
+
     const {isOffline} = useNetwork();
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
@@ -125,11 +130,23 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                         )}
                     </View>
+                    {!cardholder?.validated && (
+                        <MenuItem
+                            icon={Expensicons.Hourglass}
+                            iconStyles={styles.mln2}
+                            descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
+                            description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
+                            numberOfLinesDescription={0}
+                            interactive={false}
+                        />
+                    )}
 
                     <MenuItem
                         label={translate('workspace.moreFeatures.companyCards.cardholder')}
                         title={displayName}
-                        icon={cardholder?.avatar ?? FallbackAvatar}
+                        titleStyle={styles.mt1}
+                        iconStyles={styles.mt1}
+                        icon={cardholder?.avatar ?? expensifyIcons.FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         description={cardholder?.login}
                         interactive={false}
@@ -188,7 +205,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         interactive={false}
                     />
                     <MenuItem
-                        icon={Expensicons.MoneySearch}
+                        icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
                         style={styles.mt3}
                         onPress={() => {
@@ -214,7 +231,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         />
                     </OfflineWithFeedback>
                     <MenuItem
-                        icon={Expensicons.RemoveMembers}
+                        icon={expensifyIcons.RemoveMembers}
                         title={translate('workspace.moreFeatures.companyCards.unassignCard')}
                         style={styles.mb1}
                         onPress={() => setIsUnassignModalVisible(true)}

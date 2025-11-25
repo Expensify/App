@@ -3,9 +3,13 @@ import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
+import {PressableWithFeedback} from '@components/Pressable';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
@@ -29,6 +33,12 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
+
+    /** Callback for when the down arrow is clicked */
+    onDownArrowClick?: () => void;
+
+    /** Whether the down arrow is expanded */
+    isExpanded?: boolean;
 };
 
 function WithdrawalIDListItemHeader<TItem extends ListItem>({
@@ -38,9 +48,15 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     canSelectMultiple,
     isIndeterminate,
     isSelectAllChecked,
+    onDownArrowClick,
+    isExpanded,
 }: WithdrawalIDListItemHeaderProps<TItem>) {
+    const {isLargeScreenWidth} = useResponsiveLayout();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow'] as const);
+
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
     const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
@@ -71,7 +87,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                         <View style={[styles.gapHalf, styles.flexShrink1]}>
                             <TextWithTooltip
                                 text={`${formattedBankName} xx${withdrawalIDItem.accountNumber.slice(-4)}`}
-                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
+                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
                             />
                             <TextWithTooltip
                                 text={`${formattedWithdrawalDate}  ${translate('common.withdrawalID')}: ${withdrawalIDItem.entryID}`}
@@ -80,11 +96,30 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                         </View>
                     </View>
                 </View>
-                <View style={[styles.flexShrink0, styles.mr3]}>
+                <View style={[styles.flexShrink0, styles.mr3, styles.gap1]}>
                     <TotalCell
                         total={withdrawalIDItem.total}
                         currency={withdrawalIDItem.currency}
                     />
+                    {!isLargeScreenWidth && !!onDownArrowClick && (
+                        <View>
+                            <PressableWithFeedback
+                                onPress={onDownArrowClick}
+                                style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                            >
+                                {({hovered}) => (
+                                    <Icon
+                                        src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
+                                        fill={theme.icon}
+                                        additionalStyles={!hovered && styles.opacitySemiTransparent}
+                                        small
+                                    />
+                                )}
+                            </PressableWithFeedback>
+                        </View>
+                    )}
                 </View>
             </View>
         </View>

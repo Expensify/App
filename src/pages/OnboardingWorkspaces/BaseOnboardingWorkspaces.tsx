@@ -3,11 +3,11 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -34,6 +34,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar'] as const);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -101,14 +102,14 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     {
                         id: policyInfo.policyID,
                         source: getDefaultWorkspaceAvatar(policyInfo.policyName),
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        fallbackIcon: expensifyIcons.FallbackWorkspaceAvatar,
                         name: policyInfo.policyName,
                         type: CONST.ICON_TYPE_WORKSPACE,
                     },
                 ],
             };
         });
-    }, [translate, isOffline, joinablePolicies, handleJoinWorkspace]);
+    }, [translate, isOffline, joinablePolicies, handleJoinWorkspace, expensifyIcons.FallbackWorkspaceAvatar]);
 
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
@@ -126,6 +127,19 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         Navigation.goBack();
     }, []);
 
+    const skipJoiningWorkspaces = () => {
+        if (isVsb) {
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+            return;
+        }
+
+        if (isSmb) {
+            Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
+            return;
+        }
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -140,14 +154,14 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 onBackButtonPress={handleBackButtonPress}
             />
             <SelectionList
-                sections={[{data: policyIDItems}]}
+                data={policyIDItems}
                 onSelectRow={() => {}}
                 ListItem={UserListItem}
-                listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}
+                style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}}
                 showLoadingPlaceholder={joinablePoliciesLoading}
                 shouldStopPropagation
                 showScrollIndicator
-                headerContent={
+                customListHeader={
                     <View style={[wrapperPadding, onboardingIsMediumOrLargerScreenWidth && styles.mt5, styles.mb5]}>
                         <Text style={styles.textHeadlineH1}>{translate('onboarding.joinAWorkspace')}</Text>
                         <Text style={[styles.textSupporting, styles.mt3]}>{translate('onboarding.listOfWorkspaces')}</Text>
@@ -159,18 +173,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                         large
                         text={translate('common.skip')}
                         testID="onboardingWorkSpaceSkipButton"
-                        onPress={() => {
-                            if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
-                                return;
-                            }
-
-                            if (isSmb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
-                        }}
+                        onPress={skipJoiningWorkspaces}
                         style={[styles.mt5]}
                     />
                 }

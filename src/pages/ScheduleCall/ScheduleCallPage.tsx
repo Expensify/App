@@ -10,6 +10,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useSession} from '@components/OnyxListItemProvider';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -93,6 +94,7 @@ function ScheduleCallPage() {
 
         const allTimeSlots = guides.reduce((allSlots, guideAccountID) => {
             const guideSchedule = calendlySchedule?.data?.[guideAccountID];
+            // eslint-disable-next-line unicorn/no-array-for-each
             guideSchedule?.timeSlots.forEach((timeSlot) => {
                 allSlots.push({
                     guideAccountID: Number(guideAccountID),
@@ -106,6 +108,7 @@ function ScheduleCallPage() {
 
         // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
+        // eslint-disable-next-line unicorn/no-array-for-each
         allTimeSlots.forEach((timeSlot) => {
             const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
             if (!timeSlotMap[timeSlotDate]) {
@@ -115,6 +118,7 @@ function ScheduleCallPage() {
         });
 
         // Sort time slots within each date array to have in chronological order
+        // eslint-disable-next-line unicorn/no-array-for-each
         Object.values(timeSlotMap).forEach((slots) => {
             slots.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
         });
@@ -198,11 +202,12 @@ function ScheduleCallPage() {
                         )}
                         {!!scheduleCallDraft?.date && (
                             <View style={[styles.ph5, styles.mb5]}>
-                                <Text style={[styles.mb5, styles.colorMuted]}>
-                                    {translate('scheduledCall.book.slots')}
-                                    <Text style={[styles.textStrong, styles.colorMuted]}>
-                                        {DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT)}
-                                    </Text>
+                                <Text style={[styles.mb5]}>
+                                    <RenderHTML
+                                        html={translate('scheduledCall.book.slots', {
+                                            date: DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT),
+                                        })}
+                                    />
                                 </Text>
                                 <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentStart, styles.gap2]}>
                                     {timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (

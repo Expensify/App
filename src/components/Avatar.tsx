@@ -1,18 +1,19 @@
 import React, {useEffect, useState} from 'react';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getAvatarLocal} from '@libs/Avatars/PresetAvatarCatalog';
 import {getDefaultWorkspaceAvatar, getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
-import type {AvatarSource} from '@libs/UserUtils';
-import {getAvatar} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {getAvatar, getPresetAvatarNameFromURL} from '@libs/UserAvatarUtils';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
 
 type AvatarProps = {
@@ -65,7 +66,7 @@ function Avatar({
     containerStyles,
     size = CONST.AVATAR_SIZE.DEFAULT,
     fill,
-    fallbackIcon = Expensicons.FallbackAvatar,
+    fallbackIcon,
     fallbackIconTestID = '',
     type,
     name = '',
@@ -76,6 +77,7 @@ function Avatar({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [imageError, setImageError] = useState(false);
+    const defaultAvatars = useDefaultAvatars();
 
     useNetwork({onReconnect: () => setImageError(false)});
 
@@ -86,11 +88,18 @@ function Avatar({
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const userAccountID = isWorkspace ? undefined : (avatarID as number);
 
-    const source = isWorkspace ? originalSource : getAvatar(originalSource, userAccountID);
-    const useFallBackAvatar = imageError || !source || source === Expensicons.FallbackAvatar;
-    const fallbackAvatar = isWorkspace ? getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
+    const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID: userAccountID, defaultAvatars});
+    let optimizedSource = source;
+    const maybeDefaultAvatarName = getPresetAvatarNameFromURL(source);
+
+    if (maybeDefaultAvatarName) {
+        optimizedSource = getAvatarLocal(maybeDefaultAvatarName);
+    }
+    const useFallBackAvatar = imageError || !source || source === defaultAvatars.FallbackAvatar;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const fallbackAvatar = isWorkspace ? getDefaultWorkspaceAvatar(name) : fallbackIcon || defaultAvatars.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
-    const avatarSource = useFallBackAvatar ? fallbackAvatar : source;
+    const avatarSource = useFallBackAvatar ? fallbackAvatar : optimizedSource;
 
     // We pass the color styles down to the SVG for the workspace and fallback avatar.
     const iconSize = StyleUtils.getAvatarSize(size);
@@ -101,12 +110,11 @@ function Avatar({
     if (isWorkspace) {
         iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(avatarID?.toString() ?? '');
         // Assign the icon fill color only for the default fallback avatar
-    } else if (useFallBackAvatar && avatarSource === Expensicons.FallbackAvatar) {
+    } else if (useFallBackAvatar && avatarSource === defaultAvatars.FallbackAvatar) {
         iconColors = StyleUtils.getBackgroundColorAndFill(theme.buttonHoveredBG, theme.icon);
     } else {
         iconColors = null;
     }
-
     return (
         <View
             style={[containerStyles, styles.pointerEventsNone]}
@@ -139,4 +147,5 @@ function Avatar({
 
 Avatar.displayName = 'Avatar';
 
+export type {AvatarProps};
 export default Avatar;

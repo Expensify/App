@@ -4,6 +4,7 @@ import React, {useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -15,7 +16,7 @@ import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
@@ -33,6 +34,7 @@ import type {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
@@ -421,13 +423,13 @@ function MenuItem({
     iconWidth,
     iconHeight,
     iconStyles,
-    fallbackIcon = Expensicons.FallbackAvatar,
+    fallbackIcon,
     shouldShowTitleIcon = false,
     titleIcon,
     rightIconAccountID,
     iconAccountID,
     shouldShowRightIcon = false,
-    iconRight = Expensicons.ArrowRight,
+    iconRight,
     furtherDetailsIcon,
     furtherDetails,
     furtherDetailsNumberOfLines = 2,
@@ -516,9 +518,10 @@ function MenuItem({
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
     const deviceHasHoverSupport = hasHoverSupport();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar'] as const);
 
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
-    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
+    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
 
     const combinedTitleTextStyle = StyleUtils.combineStyles(
@@ -531,7 +534,7 @@ function MenuItem({
             numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             interactive && disabled ? {...styles.userSelectNone} : {},
             styles.ltr,
-            isDeleted ? styles.offlineFeedback.deleted : {},
+            isDeleted ? styles.offlineFeedbackDeleted : {},
             shouldBreakWord ? styles.breakWord : {},
             styles.mw100,
         ],
@@ -544,7 +547,7 @@ function MenuItem({
         title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
         (descriptionTextStyle as TextStyle) || styles.breakWord,
-        isDeleted ? styles.offlineFeedback.deleted : {},
+        isDeleted ? styles.offlineFeedbackDeleted : {},
     ]);
 
     const html = useMemo(() => {
@@ -589,13 +592,14 @@ function MenuItem({
         return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
     }, [shouldParseHelperText, helperHtml]);
 
-    const hasPressableRightComponent = iconRight || (shouldShowRightComponent && rightComponent);
+    const hasPressableRightComponent = (iconRight ?? expensifyIcons.ArrowRight) || (shouldShowRightComponent && rightComponent);
 
     const renderTitleContent = () => {
         if (title && titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
             return (
                 <DisplayNames
                     fullTitle={title}
+                    shouldParseFullTitle={!shouldRenderAsHTML}
                     displayNamesWithTooltips={titleWithTooltips}
                     tooltipEnabled
                     numberOfLines={1}
@@ -785,7 +789,7 @@ function MenuItem({
                                                                     imageStyles={[styles.alignSelfCenter]}
                                                                     size={CONST.AVATAR_SIZE.DEFAULT}
                                                                     source={icon}
-                                                                    fallbackIcon={fallbackIcon}
+                                                                    fallbackIcon={fallbackIcon ?? expensifyIcons.FallbackAvatar}
                                                                     name={title}
                                                                     avatarID={avatarID}
                                                                     type={CONST.ICON_TYPE_WORKSPACE}
@@ -796,7 +800,7 @@ function MenuItem({
                                                                     imageStyles={[styles.alignSelfCenter]}
                                                                     source={icon}
                                                                     avatarID={avatarID}
-                                                                    fallbackIcon={fallbackIcon}
+                                                                    fallbackIcon={fallbackIcon ?? expensifyIcons.FallbackAvatar}
                                                                     size={avatarSize}
                                                                     type={CONST.ICON_TYPE_AVATAR}
                                                                 />
@@ -889,7 +893,7 @@ function MenuItem({
                                                                 </Text>
                                                             </View>
                                                         )}
-                                                        {!!furtherDetailsComponent && <View style={[styles.flexRow, styles.alignItemsCenter]}>{furtherDetailsComponent}</View>}
+                                                        {furtherDetailsComponent}
                                                         {titleComponent}
                                                     </View>
                                                 </View>
@@ -949,7 +953,7 @@ function MenuItem({
                                                         ]}
                                                     >
                                                         <Icon
-                                                            src={iconRight}
+                                                            src={iconRight ?? expensifyIcons.ArrowRight}
                                                             fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
                                                             width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
                                                             height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}

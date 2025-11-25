@@ -16,6 +16,7 @@ export default {
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
+    componentSizeXSmall: getValueUsingPixelRatio(20, 24),
     componentSizeNormal: 40,
     componentSizeMedium: 48,
     inputComponentSizeNormal: 40,
@@ -33,6 +34,7 @@ export default {
     appModalAppIconSize: 48,
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
+    avatarSizeXXLarge: 720,
     avatarSizeXLarge: 100,
     avatarSizeLarge: 80,
     avatarSizeMediumLarge: 60,
@@ -103,6 +105,7 @@ export default {
     receiptPaneRHPMaxWidth: 465,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
+    chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
     pdfPageMaxWidth: 992,
@@ -330,6 +333,7 @@ export default {
     w44: 44,
     w46: 46,
     w52: 52,
+    w72: 72,
     w80: 80,
     w92: 92,
     w96: 96,
@@ -377,4 +381,7 @@ export default {
     uberEmployeeInviteButtonWidth: 62,
     uberEmptyListIconWidth: 190,
     uberEmptyListIconHeight: 136,
+
+    // Report search header max width
+    reportSearchHeaderMaxWidth: 700,
 } as const;

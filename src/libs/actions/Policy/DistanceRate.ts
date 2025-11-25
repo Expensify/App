@@ -27,12 +27,12 @@ import type {OnyxData} from '@src/types/onyx/Request';
  */
 function prepareCustomUnitRatesArray(customUnitRates: Rate[]): Rate[] {
     const customUnitRateArray: Rate[] = [];
-    customUnitRates.forEach((rate) => {
+    for (const rate of customUnitRates) {
         const cleanedRate = {...rate};
         delete cleanedRate.pendingFields;
         delete cleanedRate.errorFields;
         customUnitRateArray.push(cleanedRate);
-    });
+    }
 
     return customUnitRateArray;
 }
@@ -118,7 +118,8 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean, customUni
 
     const parameters: EnablePolicyDistanceRatesParams = {policyID, enabled};
 
-    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
+    // We can't use writeWithNoDuplicatesEnableFeatureConflicts because the distance rates data is also changed when disabling/enabling this feature
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
@@ -323,10 +324,10 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
     const optimisticRates: Record<string, NullishDeep<Rate>> = {};
     const successRates: Record<string, NullishDeep<Rate>> = {};
     const failureRates: Record<string, NullishDeep<Rate>> = {};
-    const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
+    const rateIDs = new Set(customUnitRates.map((rate) => rate.customUnitRateID));
 
     for (const rateID of Object.keys(currentRates)) {
-        if (rateIDs.includes(rateID)) {
+        if (rateIDs.has(rateID)) {
             const foundRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
             optimisticRates[rateID] = {...foundRate, pendingFields: {enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
             successRates[rateID] = {...foundRate, pendingFields: {enabled: null}};

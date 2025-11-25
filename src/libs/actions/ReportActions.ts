@@ -34,18 +34,17 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
     }
 
     if (reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || reportAction.isOptimisticAction) {
-        // Delete the optimistic action
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
-            [reportAction.reportActionID]: null,
-        });
-
         // If there's a linked transaction, delete that too
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const linkedTransactionID = getLinkedTransactionID(reportAction.reportActionID, originalReportID);
+        const linkedTransactionID = getLinkedTransactionID(reportAction);
         if (linkedTransactionID) {
             Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, null);
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`, null);
         }
+
+        // Delete the optimistic action
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
+            [reportAction.reportActionID]: null,
+        });
 
         // Delete the failed task report too
         const taskReportID = getReportActionMessage(reportAction)?.taskReportID;
@@ -58,9 +57,9 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
     if (keys) {
         const errors: Record<string, null> = {};
 
-        keys.forEach((key) => {
+        for (const key of keys) {
             errors[key] = null;
-        });
+        }
 
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
             [reportAction.reportActionID]: {
@@ -99,10 +98,10 @@ function clearAllRelatedReportActionErrors(reportID: string | undefined, reportA
 
     if (reportAction.childReportID && ignore !== 'child') {
         const childActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`] ?? {};
-        Object.values(childActions).forEach((action) => {
+        for (const action of Object.values(childActions)) {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
             clearAllRelatedReportActionErrors(reportAction.childReportID, action, 'parent', childErrorKeys);
-        });
+        }
     }
 }
 

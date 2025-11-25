@@ -1,4 +1,3 @@
-import {isUserValidatedSelector} from '@selectors/Account';
 import type {RefObject} from 'react';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -14,16 +13,18 @@ import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 import variables from '@styles/variables';
-import {deletePaymentBankAccount, openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
+import {deletePaymentBankAccount} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
 import {setInvoicingTransferBankAccount} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceInvoiceVBASectionProps = {
@@ -37,7 +38,6 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
@@ -94,7 +94,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 formattedSelectedPaymentMethod = {
                     title: accountData?.addressName ?? '',
                     icon,
-                    description: description ?? getPaymentMethodDescription(accountType, accountData),
+                    description: description ?? getPaymentMethodDescription(accountType, accountData, translate),
                     type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 };
             }
@@ -127,20 +127,20 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
 
     const makeDefaultPaymentMethod = useCallback(() => {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, {}, styles);
+        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, {}, styles, translate);
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
             setInvoicingTransferBankAccount(currentPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID, policyID, previousPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID);
         }
-    }, [bankAccountList, styles, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID]);
+    }, [bankAccountList, styles, translate, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID]);
 
     const onAddBankAccountPress = () => {
         if (shouldShowDefaultDeleteMenu) {
             setShouldShowDefaultDeleteMenu(false);
             return;
         }
-        openPersonalBankAccountSetupView({policyID, source: 'invoice', isUserValidated});
+        navigateToBankAccountRoute(policyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
     };
 
     return (
@@ -160,6 +160,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                 policyID={policyID}
+                filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
             />
             <Popover
                 isVisible={shouldShowDefaultDeleteMenu}

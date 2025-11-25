@@ -1,6 +1,8 @@
+import {useIsFocused} from '@react-navigation/native';
+import {isUserValidatedSelector} from '@selectors/Account';
 import {emailSelector} from '@selectors/Session';
 import {searchResultsErrorSelector} from '@selectors/Snapshot';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -8,9 +10,13 @@ import type {ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import * as Expensicons from '@components/Icon/Expensicons';
+import KYCWall from '@components/KYCWall';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
+import type {PaymentMethodType} from '@components/KYCWall/types';
+import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
+import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
@@ -19,37 +25,35 @@ import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopu
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SearchDateValues} from '@components/Search/SearchDatePresetFilterBase';
-import type {SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
+import type {BankAccountMenuItem, SearchDateFilterKeys, SearchQueryJSON, SingularSearchStatus} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceList from '@hooks/useWorkspaceList';
 import {close} from '@libs/actions/Modal';
-import {updateAdvancedFilters} from '@libs/actions/Search';
+import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllTaxRates, isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {
-    buildFilterFormValuesFromQuery,
-    buildQueryStringFromFilterFormValues,
-    buildSearchQueryJSON,
-    buildSearchQueryString,
-    isFilterSupported,
-    isSearchDatePreset,
-} from '@libs/SearchQueryUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getActiveAdminWorkspaces, getAllTaxRates, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isExpenseReport} from '@libs/ReportUtils';
+import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS, {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CurrencyList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -66,17 +70,33 @@ type SearchFiltersBarProps = {
     queryJSON: SearchQueryJSON;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     isMobileSelectionModeEnabled: boolean;
+    currentSelectedPolicyID?: string | undefined;
+    currentSelectedReportID?: string | undefined;
+    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
+    latestBankItems?: BankAccountMenuItem[] | undefined;
 };
 
-function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionModeEnabled}: SearchFiltersBarProps) {
+function SearchFiltersBar({
+    queryJSON,
+    headerButtonsOptions,
+    isMobileSelectionModeEnabled,
+    currentSelectedPolicyID,
+    currentSelectedReportID,
+    confirmPayment,
+    latestBankItems,
+}: SearchFiltersBarProps) {
+    const isFocused = useIsFocused();
     const scrollRef = useRef<RNScrollView>(null);
-
+    const currentPolicy = usePolicy(currentSelectedPolicyID);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
     const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
-
+    const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
+    const isCurrentSelectedExpenseReport = isExpenseReport(currentSelectedReportID);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
+    const kycWallRef = useContext(KYCWallContext);
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
@@ -92,9 +112,34 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: searchResultsErrorSelector});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter'] as const);
 
-    const taxRates = getAllTaxRates();
+    const taxRates = getAllTaxRates(allPolicies);
+
+    // Get workspace data for the filter
+    const {sections: workspaces} = useWorkspaceList({
+        policies: allPolicies,
+        currentUserLogin: email,
+        shouldShowPendingDeletePolicy: false,
+        selectedPolicyIDs: undefined,
+        searchTerm: '',
+        localeCompare,
+    });
+
+    const shouldDisplayWorkspaceFilter = useMemo(() => workspaces.some((section) => section.data.length > 1), [workspaces]);
+
+    const workspaceOptions = useMemo<Array<MultiSelectItem<string>>>(() => {
+        return workspaces
+            .flatMap((section) => section.data)
+            .filter((workspace): workspace is typeof workspace & {policyID: string} => !!workspace.policyID)
+            .map((workspace) => ({
+                text: workspace.text,
+                value: workspace.policyID,
+            }));
+    }, [workspaces]);
+
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
     const hasMultipleOutputCurrency = useMemo(() => {
@@ -107,6 +152,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
+    // Get selected workspace options from filterFormValues or queryJSON
+    const selectedWorkspaceOptions = useMemo(() => {
+        const policyIDs = filterFormValues.policyID ?? queryJSON.policyID;
+        if (!policyIDs) {
+            return [];
+        }
+        const normalizedIDs = Array.isArray(policyIDs) ? policyIDs : [policyIDs];
+        return workspaceOptions.filter((option) => normalizedIDs.includes(option.value));
+    }, [filterFormValues.policyID, queryJSON.policyID, workspaceOptions]);
+
     const hasErrors = Object.keys(searchResultsErrors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || isMobileSelectionModeEnabled);
 
@@ -115,6 +170,27 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         const value = options.find((option) => option.value === unsafeType) ?? null;
         return [options, value];
     }, [allPolicies, email, unsafeType]);
+
+    const isExpenseReportType = useMemo(() => type?.value === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [type]);
+
+    const selectedItemsCount = useMemo(() => {
+        if (!selectedTransactions) {
+            return 0;
+        }
+
+        if (isExpenseReportType) {
+            // In expense report mode, count unique reports instead of individual transactions
+            const reportIDs = new Set(
+                Object.values(selectedTransactions)
+                    .map((transaction) => transaction?.reportID)
+                    .filter((reportID): reportID is string => !!reportID),
+            );
+            return reportIDs.size;
+        }
+
+        // Otherwise count transactions
+        return selectedTransactionsKeys.length;
+    }, [selectedTransactions, isExpenseReportType, selectedTransactionsKeys.length]);
 
     const [groupByOptions, groupBy] = useMemo(() => {
         const options = getGroupByOptions();
@@ -136,12 +212,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
     }, [flatFilters, allFeeds, allCards]);
 
     const [statusOptions, status] = useMemo(() => {
-        const options = type ? getStatusOptions(type.value, groupBy?.value) : [];
+        const options = type ? getStatusOptions(translate, type.value) : [];
         const value = [
             Array.isArray(unsafeStatus) ? options.filter((option) => unsafeStatus.includes(option.value)) : (options.find((option) => option.value === unsafeStatus) ?? []),
         ].flat();
         return [options, value];
-    }, [unsafeStatus, type, groupBy]);
+    }, [translate, unsafeStatus, type]);
 
     const [hasOptions, has] = useMemo(() => {
         const hasFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS)?.filters?.map((filter) => filter.value);
@@ -218,6 +294,8 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         const value = options.find((option) => option.value === filterFormValues.withdrawalType) ?? null;
         return [options, value];
     }, [translate, filterFormValues.withdrawalType]);
+    const {accountID} = useCurrentUserPersonalDetails();
+    const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
 
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
@@ -231,9 +309,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
             }
 
-            const filterString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
-            const searchQueryJSON = buildSearchQueryJSON(filterString);
-            const queryString = buildSearchQueryString(searchQueryJSON);
+            const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
 
             close(() => {
                 Navigation.setParams({q: queryString});
@@ -254,10 +330,12 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
             return;
         }
         if (filterFormValues && Object.keys(filterFormValues).length > 0) {
-            updateAdvancedFilters(filterFormValues, true);
+            if (isFocused) {
+                updateAdvancedFilters(filterFormValues, true);
+            }
             isFormInitializedRef.current = true;
         }
-    }, [queryJSON, filterFormValues]);
+    }, [queryJSON, filterFormValues, isFocused]);
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
@@ -431,6 +509,15 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         [filterFormValues.from, updateFilterForm],
     );
 
+    const workspaceComponent = useMemo(() => {
+        const updateWorkspaceFilterForm = (items: Array<MultiSelectItem<string>>) => {
+            updateFilterForm({policyID: items.map((item) => item.value)});
+        };
+        return createMultiSelectComponent('workspace.common.workspace', workspaceOptions, selectedWorkspaceOptions, updateWorkspaceFilterForm);
+    }, [createMultiSelectComponent, workspaceOptions, selectedWorkspaceOptions, updateFilterForm]);
+
+    const workspaceValue = useMemo(() => selectedWorkspaceOptions.map((option) => option.text), [selectedWorkspaceOptions]);
+
     const {typeFiltersKeys} = useAdvancedSearchFilters();
 
     /**
@@ -438,9 +525,9 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
      * filter bar
      */
     const filters = useMemo<FilterItem[]>(() => {
-        const fromValue = filterFormValues.from?.map((accountID) => personalDetails?.[accountID]?.displayName ?? accountID) ?? [];
+        const fromValue = filterFormValues.from?.map((currentAccountID) => getDisplayNameOrDefault(personalDetails?.[currentAccountID], currentAccountID, false)) ?? [];
 
-        const shouldDisplayGroupByFilter = !!groupBy?.value && groupBy?.value !== CONST.SEARCH.GROUP_BY.REPORTS;
+        const shouldDisplayGroupByFilter = !!groupBy?.value;
         const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter && hasMultipleOutputCurrency;
         const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
         const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
@@ -552,6 +639,16 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                 value: fromValue,
                 filterKey: FILTER_KEYS.FROM,
             },
+            ...(shouldDisplayWorkspaceFilter
+                ? [
+                      {
+                          label: translate('workspace.common.workspace'),
+                          PopoverComponent: workspaceComponent,
+                          value: workspaceValue,
+                          filterKey: FILTER_KEYS.POLICY_ID,
+                      },
+                  ]
+                : []),
         ].filter((filterItem) => isFilterSupported(filterItem.filterKey, type?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE));
 
         return filterList;
@@ -592,23 +689,45 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         hasMultipleOutputCurrency,
         has,
         is,
+        shouldDisplayWorkspaceFilter,
+        workspaceComponent,
+        workspaceValue,
     ]);
 
     const hiddenSelectedFilters = useMemo(() => {
         const advancedSearchFiltersKeys = typeFiltersKeys.flat();
-        const exposedFiltersKeys = filters.flatMap((filter) => {
-            const dateFilterKey = DATE_FILTER_KEYS.find((key) => filter.filterKey.startsWith(key));
-            if (dateFilterKey) {
-                return dateFilterKey;
-            }
-            return filter.filterKey;
-        });
-        const hiddenFilters = advancedSearchFiltersKeys.filter((key) => !exposedFiltersKeys.includes(key as SearchAdvancedFiltersKey));
+        const exposedFiltersKeys = new Set(
+            filters.flatMap((filter) => {
+                const dateFilterKey = DATE_FILTER_KEYS.find((key) => filter.filterKey.startsWith(key));
+                if (dateFilterKey) {
+                    return dateFilterKey;
+                }
+                return filter.filterKey;
+            }),
+        );
+
+        const hiddenFilters = advancedSearchFiltersKeys.filter((key) => !exposedFiltersKeys.has(key as SearchAdvancedFiltersKey));
+        const hasReportFields = Object.keys(filterFormValues).some((key) => key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && !key.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX));
+
         return hiddenFilters.filter((key) => {
             const dateFilterKey = DATE_FILTER_KEYS.find((dateKey) => key === dateKey);
             if (dateFilterKey) {
                 return filterFormValues[`${dateFilterKey}On`] ?? filterFormValues[`${dateFilterKey}After`] ?? filterFormValues[`${dateFilterKey}Before`];
             }
+
+            if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
+                return hasReportFields;
+            }
+
+            const amountFilterKey = AMOUNT_FILTER_KEYS.find((amountKey) => key === amountKey);
+            if (amountFilterKey) {
+                return (
+                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] ??
+                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] ??
+                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]
+                );
+            }
+
             return filterFormValues[key as SearchAdvancedFiltersKey];
         });
     }, [filterFormValues, filters, typeFiltersKeys]);
@@ -621,37 +740,62 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
         return <SearchFiltersSkeleton shouldAnimate />;
     }
 
-    const selectionButtonText = areAllMatchingItemsSelected
-        ? translate('search.exportAll.allMatchingItemsSelected')
-        : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
+    const selectionButtonText = areAllMatchingItemsSelected ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedItemsCount});
 
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>
             {shouldShowSelectedDropdown ? (
-                <View style={[styles.flexRow, styles.gap3]}>
-                    <ButtonWithDropdownMenu
-                        onPress={() => null}
-                        shouldAlwaysShowDropdownMenu
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                        customText={selectionButtonText}
-                        options={headerButtonsOptions}
-                        isSplitButton={false}
-                        anchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                        }}
-                    />
-                    {!areAllMatchingItemsSelected && showSelectAllMatchingItems && (
-                        <Button
-                            link
-                            small
-                            shouldUseDefaultHover={false}
-                            innerStyles={styles.p0}
-                            onPress={() => selectAllMatchingItems(true)}
-                            text={translate('search.exportAll.selectAllMatchingItems')}
-                        />
+                <KYCWall
+                    ref={kycWallRef}
+                    chatReportID={currentSelectedReportID}
+                    enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                    iouReport={selectedIOUReport}
+                    addBankAccountRoute={
+                        isCurrentSelectedExpenseReport ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(currentSelectedPolicyID, undefined, Navigation.getActiveRoute()) : undefined
+                    }
+                    onSuccessfulKYC={(paymentType) => confirmPayment?.(paymentType)}
+                >
+                    {(triggerKYCFlow, buttonRef) => (
+                        <View style={[styles.flexRow, styles.gap3]}>
+                            <ButtonWithDropdownMenu
+                                onPress={() => null}
+                                shouldAlwaysShowDropdownMenu
+                                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
+                                customText={selectionButtonText}
+                                options={headerButtonsOptions}
+                                onSubItemSelected={(subItem) =>
+                                    handleBulkPayItemSelected(
+                                        subItem,
+                                        triggerKYCFlow,
+                                        isAccountLocked,
+                                        showLockedAccountModal,
+                                        currentPolicy,
+                                        latestBankItems,
+                                        activeAdminPolicies,
+                                        isUserValidated,
+                                        confirmPayment,
+                                    )
+                                }
+                                isSplitButton={false}
+                                buttonRef={buttonRef}
+                                anchorAlignment={{
+                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                                }}
+                            />
+                            {!areAllMatchingItemsSelected && showSelectAllMatchingItems && (
+                                <Button
+                                    link
+                                    small
+                                    shouldUseDefaultHover={false}
+                                    innerStyles={styles.p0}
+                                    onPress={() => selectAllMatchingItems(true)}
+                                    text={translate('search.exportAll.selectAllMatchingItems')}
+                                />
+                            )}
+                        </View>
                     )}
-                </View>
+                </KYCWall>
             ) : (
                 <ScrollView
                     horizontal
@@ -677,7 +821,7 @@ function SearchFiltersBar({queryJSON, headerButtonsOptions, isMobileSelectionMod
                         text={translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : '')}
                         iconFill={theme.link}
                         iconHoverFill={theme.linkHover}
-                        icon={Expensicons.Filter}
+                        icon={expensifyIcons.Filter}
                         textStyles={[styles.textMicroBold]}
                         onPress={openAdvancedFilters}
                     />

@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
@@ -6,7 +6,7 @@ import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import {defaultTheme} from '@styles/theme';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const getMockForStatus = (status: string) =>
     ({
@@ -156,183 +156,279 @@ describe('useAccountTabIndicatorStatus', () => {
     });
 
     describe.each(TEST_CASES)('$name', (testCase) => {
-        beforeAll(() => {
-            return Onyx.multiSet(getMockForStatus(testCase.status)).then(waitForBatchedUpdates);
+        beforeAll(async () => {
+            await act(async () => {
+                await Onyx.multiSet(getMockForStatus(testCase.status));
+                await waitForBatchedUpdatesWithAct();
+            });
         });
 
-        it('returns correct indicatorColor', () => {
+        it('returns correct indicatorColor', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {indicatorColor} = result.current;
             expect(indicatorColor).toBe(testCase.indicatorColor);
         });
 
-        it('returns correct status', () => {
+        it('returns correct status', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {status} = result.current;
             expect(status).toBe(testCase.status);
         });
     });
 
     describe('no errors or info', () => {
-        beforeAll(() => {
-            return Onyx.multiSet({
-                [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
-                [ONYXKEYS.USER_WALLET]: {},
-                [ONYXKEYS.WALLET_TERMS]: {},
-                [ONYXKEYS.LOGIN_LIST]: {},
-                [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                [`${ONYXKEYS.CARD_LIST}`]: {},
-                [ONYXKEYS.SESSION]: {
-                    email: 'johndoe12@expensify.com',
-                },
-            } as unknown as OnyxMultiSetInput).then(waitForBatchedUpdates);
+        beforeAll(async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                    [ONYXKEYS.USER_WALLET]: {},
+                    [ONYXKEYS.WALLET_TERMS]: {},
+                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                    [`${ONYXKEYS.CARD_LIST}`]: {},
+                    [ONYXKEYS.SESSION]: {
+                        email: 'johndoe12@expensify.com',
+                    },
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
         });
 
-        it('returns undefined status when no errors or info exist', () => {
+        it('returns undefined status when no errors or info exist', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {status} = result.current;
             expect(status).toBeUndefined();
         });
 
-        it('returns success color when no errors or info exist', () => {
+        it('returns success color when no errors or info exist', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {indicatorColor} = result.current;
             expect(indicatorColor).toBe(defaultTheme.success);
         });
     });
 
     describe('wallet terms with chatReportID', () => {
-        beforeAll(() => {
-            return Onyx.multiSet({
-                [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
-                [ONYXKEYS.USER_WALLET]: {},
-                [ONYXKEYS.WALLET_TERMS]: {
-                    errors: {
-                        error: 'Something went wrong',
+        beforeAll(async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                    [ONYXKEYS.USER_WALLET]: {},
+                    [ONYXKEYS.WALLET_TERMS]: {
+                        errors: {
+                            error: 'Something went wrong',
+                        },
+                        chatReportID: '123',
                     },
-                    chatReportID: '123',
-                },
-                [ONYXKEYS.LOGIN_LIST]: {},
-                [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                [`${ONYXKEYS.CARD_LIST}`]: {},
-                [ONYXKEYS.SESSION]: {
-                    email: 'johndoe12@expensify.com',
-                },
-            } as unknown as OnyxMultiSetInput).then(waitForBatchedUpdates);
+                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                    [`${ONYXKEYS.CARD_LIST}`]: {},
+                    [ONYXKEYS.SESSION]: {
+                        email: 'johndoe12@expensify.com',
+                    },
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
         });
 
-        it('does not show wallet terms error when chatReportID exists', () => {
+        it('does not show wallet terms error when chatReportID exists', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {status} = result.current;
             expect(status).toBeUndefined();
         });
     });
 
     describe('multiple errors', () => {
-        beforeAll(() => {
-            return Onyx.multiSet({
-                [ONYXKEYS.BANK_ACCOUNT_LIST]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    12345: {
-                        methodID: 12345,
-                        errors: {
-                            error: 'Payment method error',
+        beforeAll(async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        12345: {
+                            methodID: 12345,
+                            errors: {
+                                error: 'Payment method error',
+                            },
                         },
                     },
-                },
-                [ONYXKEYS.USER_WALLET]: {
-                    bankAccountID: 12345,
-                    errors: {
-                        error: 'Wallet error',
+                    [ONYXKEYS.USER_WALLET]: {
+                        bankAccountID: 12345,
+                        errors: {
+                            error: 'Wallet error',
+                        },
                     },
-                },
-                [ONYXKEYS.WALLET_TERMS]: {},
-                [ONYXKEYS.LOGIN_LIST]: {},
-                [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                [`${ONYXKEYS.CARD_LIST}`]: {},
-                [ONYXKEYS.SESSION]: {
-                    email: 'johndoe12@expensify.com',
-                },
-            } as unknown as OnyxMultiSetInput).then(waitForBatchedUpdates);
+                    [ONYXKEYS.WALLET_TERMS]: {},
+                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                    [`${ONYXKEYS.CARD_LIST}`]: {},
+                    [ONYXKEYS.SESSION]: {
+                        email: 'johndoe12@expensify.com',
+                    },
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
         });
 
-        it('returns the first error status found', () => {
+        it('returns the first error status found', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {status} = result.current;
             // Should return the first error in the errorChecking object
             expect(status).toBe(CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS);
         });
 
-        it('returns danger color for multiple errors', () => {
+        it('returns danger color for multiple errors', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {indicatorColor} = result.current;
             expect(indicatorColor).toBe(defaultTheme.danger);
         });
     });
 
     describe('error takes priority over info', () => {
-        beforeAll(() => {
-            return Onyx.multiSet({
-                [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
-                [ONYXKEYS.USER_WALLET]: {
-                    bankAccountID: 12345,
-                    errors: {
-                        error: 'Wallet error',
+        beforeAll(async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                    [ONYXKEYS.USER_WALLET]: {
+                        bankAccountID: 12345,
+                        errors: {
+                            error: 'Wallet error',
+                        },
                     },
-                },
-                [ONYXKEYS.WALLET_TERMS]: {},
-                [ONYXKEYS.LOGIN_LIST]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    'johndoe12@expensify.com': {
-                        partnerName: 'John Doe',
-                        partnerUserID: 'johndoe12@expensify.com',
-                        validatedDate: undefined, // This would trigger info status
+                    [ONYXKEYS.WALLET_TERMS]: {},
+                    [ONYXKEYS.LOGIN_LIST]: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'johndoe12@expensify.com': {
+                            partnerName: 'John Doe',
+                            partnerUserID: 'johndoe12@expensify.com',
+                            validatedDate: undefined, // This would trigger info status
+                        },
                     },
-                },
-                [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
-                [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
-                [`${ONYXKEYS.CARD_LIST}`]: {},
-                [ONYXKEYS.SESSION]: {
-                    email: 'johndoe12@expensify.com',
-                },
-            } as unknown as OnyxMultiSetInput).then(waitForBatchedUpdates);
+                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                    [`${ONYXKEYS.CARD_LIST}`]: {},
+                    [ONYXKEYS.SESSION]: {
+                        email: 'johndoe12@expensify.com',
+                    },
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
         });
 
-        it('returns error status when both error and info exist', () => {
+        it('returns error status when both error and info exist', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {status} = result.current;
             expect(status).toBe(CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS);
         });
 
-        it('returns danger color when error takes priority', () => {
+        it('returns danger color when error takes priority', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {indicatorColor} = result.current;
             expect(indicatorColor).toBe(defaultTheme.danger);
         });
     });
 
     describe('missing data', () => {
-        beforeAll(() => {
-            return Onyx.multiSet({
-                [ONYXKEYS.BANK_ACCOUNT_LIST]: null,
-                [ONYXKEYS.USER_WALLET]: null,
-                [ONYXKEYS.WALLET_TERMS]: null,
-                [ONYXKEYS.LOGIN_LIST]: null,
-                [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: null,
-                [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: null,
-                [`${ONYXKEYS.CARD_LIST}`]: null,
-                [ONYXKEYS.SESSION]: null,
-            } as unknown as OnyxMultiSetInput).then(waitForBatchedUpdates);
+        beforeAll(async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.BANK_ACCOUNT_LIST]: null,
+                    [ONYXKEYS.USER_WALLET]: null,
+                    [ONYXKEYS.WALLET_TERMS]: null,
+                    [ONYXKEYS.LOGIN_LIST]: null,
+                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: null,
+                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: null,
+                    [`${ONYXKEYS.CARD_LIST}`]: null,
+                    [ONYXKEYS.SESSION]: null,
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
         });
 
-        it('handles missing data gracefully', () => {
+        it('handles missing data gracefully', async () => {
             const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
             const {status, indicatorColor} = result.current;
             expect(status).toBeUndefined();
             expect(indicatorColor).toBe(defaultTheme.success);
+        });
+    });
+
+    describe('card connection RBR logic', () => {
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('shows error for third party card with broken connection', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.CARD_LIST}`]: {
+                        card1: {
+                            bank: 'Chase',
+                            lastScrapeResult: 403,
+                        },
+                    },
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status, indicatorColor} = result.current;
+
+            expect(status).toBe(CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR);
+            expect(indicatorColor).toBe(defaultTheme.danger);
+        });
+
+        it('does not show error for Expensify Card with broken connection', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.CARD_LIST}`]: {
+                        card1: {
+                            bank: CONST.EXPENSIFY_CARD.BANK,
+                            lastScrapeResult: 403,
+                        },
+                    },
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status} = result.current;
+
+            expect(status).toBeUndefined();
+        });
+
+        it('does not show error for third party card with good connection', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.CARD_LIST}`]: {
+                        card1: {
+                            bank: 'Chase',
+                            lastScrapeResult: 200,
+                        },
+                    },
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status} = result.current;
+
+            expect(status).toBeUndefined();
         });
     });
 });

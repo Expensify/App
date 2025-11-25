@@ -1,13 +1,14 @@
-import React from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import ExpenseReportRulesSection from './ExpenseReportRulesSection';
@@ -20,6 +21,15 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const illustrations = useMemoizedLazyIllustrations(['Rules'] as const);
+
+    const fetchRules = useCallback(() => {
+        openPolicyRulesPage(policyID);
+    }, [policyID]);
+
+    useEffect(() => {
+        fetchRules();
+    }, [fetchRules]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -33,7 +43,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 headerText={translate('workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
-                icon={Illustrations.Rules}
+                icon={illustrations.Rules}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
                 addBottomSafeAreaPadding

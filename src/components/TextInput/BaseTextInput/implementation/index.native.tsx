@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
+import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -105,7 +105,7 @@ function BaseTextInput({
     const [textInputHeight, setTextInputHeight] = useState(0);
     const [height, setHeight] = useState<number>(variables.componentSizeLarge);
     const [width, setWidth] = useState<number | null>(null);
-    const [prefixCharacterPadding, setPrefixCharacterPadding] = useState(8);
+    const [prefixCharacterPadding, setPrefixCharacterPadding] = useState<number>(CONST.CHARACTER_WIDTH);
     const [isPrefixCharacterPaddingCalculated, setIsPrefixCharacterPaddingCalculated] = useState(() => !prefixCharacter);
     const labelScale = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE);
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y);
@@ -155,12 +155,12 @@ function BaseTextInput({
         isLabelActive.current = false;
     }, [animateLabel, forceActiveLabel, prefixCharacter, suffixCharacter, value]);
 
-    const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const onFocus = (event: FocusEvent) => {
         inputProps.onFocus?.(event);
         setIsFocused(true);
     };
 
-    const onBlur = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const onBlur = (event: BlurEvent) => {
         inputProps.onBlur?.(event);
         setIsFocused(false);
     };
@@ -230,7 +230,7 @@ function BaseTextInput({
      * Set Value & activateLabel
      */
     const setValue = (newValue: string) => {
-        const formattedValue = isMultiline ? newValue : newValue.replace(/\n/g, ' ');
+        const formattedValue = isMultiline ? newValue : newValue.replaceAll('\n', ' ');
 
         onInputChange?.(formattedValue);
 

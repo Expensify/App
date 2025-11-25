@@ -9,9 +9,12 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type CarouselItemProps = {
     /** Attachment required information such as the source and file name */
@@ -35,6 +38,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(AttachmentModalContext);
     const [isHidden, setIsHidden] = useState(() => (item.reportActionID && isAttachmentHidden(item.reportActionID)) ?? item.hasBeenFlagged);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
 
     const renderButton = (style: StyleProp<ViewStyle>) => (
         <Button
@@ -78,6 +82,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
         <View style={[styles.flex1]}>
             <View style={[styles.imageModalImageCenterContainer]}>
                 <AttachmentView
+                    attachmentID={item.attachmentID}
                     source={item.source}
                     previewSource={item.previewSource}
                     file={item.file}
@@ -90,6 +95,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered, reportID}: Caro
                     duration={item.duration}
                     fallbackSource={Expensicons.AttachmentNotFound}
                     reportID={reportID}
+                    isUploaded={!isEmptyObject(report)}
                 />
             </View>
 

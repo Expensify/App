@@ -29,7 +29,20 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 - Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.ts`
 
 ### Production Build
-- To run the production web build: `npm run web:prod`
+To build and run the production web build locally:
+
+```bash
+# 1. Set USE_WEB_PROXY environment variable in .env.production
+USE_WEB_PROXY=true
+
+# 2. Build the production bundle
+npm run build
+
+# 3. Run the distribution server
+npm run web:dist
+```
+
+The `web:dist` command starts both the proxy server (port 9000) and web server (port 8080) concurrently. Access the application at **http://localhost:8080**
 
 ## Environment Variables
 
@@ -42,7 +55,7 @@ Creating an `.env` file is not necessary. We advise external contributors agains
 - `EXPENSIFY_PARTNER_NAME` - Constant used for the app when authenticating.
 - `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public)
 - `PUSHER_APP_KEY` - Key used to authenticate with Pusher.com
-- `USE_WEB_PROXY`⚠️- Used in web/desktop development, it starts a server along the local development server to proxy requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors. If you don't want to start the proxy server set this explicitly to `false`
+- `USE_WEB_PROXY`⚠️- Used in web development, it starts a server along the local development server to proxy requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors. If you don't want to start the proxy server set this explicitly to `false`
 
 ### Optional Performance Variables
 - `CAPTURE_METRICS` (optional) - Set this to `true` to capture performance metrics and see them in Flipper. See [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information

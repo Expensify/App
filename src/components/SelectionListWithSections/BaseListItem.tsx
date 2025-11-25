@@ -2,10 +2,12 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseContext} from '@hooks/useMouseContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -42,12 +44,17 @@ function BaseListItem<TItem extends ListItem>({
     testID,
     shouldUseDefaultRightHandSideCheckmark = true,
     forwardedFSClass,
+    shouldShowRightCaret = false,
+    shouldHighlightSelectedItem = true,
+    shouldDisableHoverStyle,
+    shouldStopMouseLeavePropagation = true,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     const pressableRef = useRef<View>(null);
 
@@ -55,7 +62,9 @@ function BaseListItem<TItem extends ListItem>({
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
-        e.stopPropagation();
+        if (shouldStopMouseLeavePropagation) {
+            e.stopPropagation();
+        }
         setMouseUp();
     };
 
@@ -103,13 +112,15 @@ function BaseListItem<TItem extends ListItem>({
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
-                hoverStyle={[!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle]}
+                hoverStyle={!shouldDisableHoverStyle ? [!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={keyForList ?? ''}
                 style={[
                     pressableStyle,
-                    isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocused &&
+                        shouldHighlightSelectedItem &&
+                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
                 onMouseLeave={handleMouseLeave}
@@ -122,7 +133,9 @@ function BaseListItem<TItem extends ListItem>({
                     accessibilityState={{selected: !!isFocused}}
                     style={[
                         wrapperStyle,
-                        isFocused && StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                        isFocused &&
+                            shouldHighlightSelectedItem &&
+                            StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     ]}
                     fsClass={forwardedFSClass}
                 >
@@ -152,6 +165,17 @@ function BaseListItem<TItem extends ListItem>({
                     )}
 
                     {rightHandSideComponentRender()}
+                    {shouldShowRightCaret && (
+                        <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.ml2]}>
+                            <Icon
+                                src={expensifyIcons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                                isButtonIcon
+                                medium
+                            />
+                        </View>
+                    )}
                 </View>
                 {FooterComponent}
             </PressableWithFeedback>

@@ -5,13 +5,13 @@ import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, Vie
 import {StyleSheet, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,6 +43,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Any additional styles to pass to the icon wrapper container. */
     iconWrapperStyles?: StyleProp<ViewStyle>;
+
+    /** Extra-small sized button */
+    extraSmall?: boolean;
 
     /** Small sized button */
     small?: boolean;
@@ -224,7 +227,7 @@ KeyboardShortcutComponent.displayName = 'KeyboardShortcutComponent';
 function Button({
     allowBubble = false,
 
-    iconRight = Expensicons.ArrowRight,
+    iconRight,
     iconFill,
     iconHoverFill,
     icon = null,
@@ -233,9 +236,10 @@ function Button({
     iconWrapperStyles = [],
     text = '',
 
+    extraSmall = false,
     small = false,
     large = false,
-    medium = !small && !large,
+    medium = !extraSmall && !small && !large,
 
     isLoading = false,
     isDisabled = false,
@@ -285,6 +289,7 @@ function Button({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     const renderContent = () => {
         if ('children' in rest) {
@@ -298,6 +303,7 @@ function Button({
                     isLoading && styles.opacity0,
                     styles.pointerEventsNone,
                     styles.buttonText,
+                    extraSmall && styles.buttonExtraSmallText,
                     small && styles.buttonSmallText,
                     medium && styles.buttonMediumText,
                     large && styles.buttonLargeText,
@@ -348,10 +354,11 @@ function Button({
                 <View style={[isContentCentered ? styles.justifyContentCenter : styles.justifyContentBetween, styles.flexRow, iconWrapperStyles, styles.mw100]}>
                     <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexShrink1]}>
                         {!!icon && (
-                            <View style={[styles.mr2, !text && styles.mr0, iconStyles]}>
+                            <View style={[extraSmall ? styles.mr1 : styles.mr2, !text && styles.mr0, iconStyles]}>
                                 <Icon
                                     src={icon}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
+                                    extraSmall={extraSmall}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -365,8 +372,9 @@ function Button({
                         <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, iconRightStyles]}>
                             {!isSplitButton ? (
                                 <Icon
-                                    src={iconRight}
+                                    src={iconRight ?? expensifyIcons.ArrowRight}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
+                                    extraSmall={extraSmall}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -374,8 +382,9 @@ function Button({
                                 />
                             ) : (
                                 <Icon
-                                    src={iconRight}
+                                    src={iconRight ?? expensifyIcons.ArrowRight}
                                     fill={isHovered ? (iconHoverFill ?? defaultFill) : (iconFill ?? defaultFill)}
+                                    extraSmall={extraSmall}
                                     small={small}
                                     medium={medium}
                                     large={large}
@@ -394,7 +403,7 @@ function Button({
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.button,
-            StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
+            StyleUtils.getButtonStyleWithIcon(styles, extraSmall, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
             success ? styles.buttonSuccess : undefined,
             danger ? styles.buttonDanger : undefined,
             isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
@@ -418,6 +427,7 @@ function Button({
             shouldRemoveRightBorderRadius,
             shouldShowRightIcon,
             small,
+            extraSmall,
             styles,
             success,
             text,
@@ -525,6 +535,7 @@ function Button({
                     <ActivityIndicator
                         color={success || danger ? theme.textLight : theme.text}
                         style={[styles.pAbsolute, styles.l0, styles.r0]}
+                        size={extraSmall ? 12 : undefined}
                     />
                 )}
             </PressableWithFeedback>

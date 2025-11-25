@@ -59,6 +59,9 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Subrates of the given rate */
         subRates?: Subrate[];
+
+        /** Sort order index for displaying rates */
+        index?: number;
     },
     keyof TaxRateAttributes
 >;
@@ -148,6 +151,10 @@ type UberReceiptPartner = {
      * name of the organization in uber
      */
     organizationName?: string;
+    /**
+     * account to import the receipts to
+     */
+    centralBillingAccountEmail?: string;
 
     /**
      * Mapping of workspace member email to Uber employee status
@@ -533,7 +540,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Configuration of the export */
     export: {
         /** E-mail of the exporter */
-        exporter: string;
+        exporter?: string;
     };
 
     /** Collections of form field errors */
@@ -634,9 +641,7 @@ type XeroConnectionData = {
 type XeroMappingType = {
     /** TODO: Will be handled in another issue */
     customer: string;
-} & {
-    [key in `trackingCategory_${string}`]: string;
-};
+} & Record<`trackingCategory_${string}`, string>;
 
 /** Xero auto synchronization configs */
 type XeroAutoSyncConfig = {
@@ -665,7 +670,7 @@ type XeroExportConfig = {
     billable: ExpenseTypesValues;
 
     /** The e-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** TODO: Will be handled in another issue */
     nonReimbursable: ExpenseTypesValues;
@@ -1036,7 +1041,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoCreateEntities: boolean;
 
         /** The account to run auto export */
-        exporter: string;
+        exporter?: string;
 
         /** The transaction date to set upon export */
         exportDate?: NetSuiteExportDateOptions;
@@ -1246,7 +1251,7 @@ type SageIntacctExportConfig = {
     exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
 
     /** The e-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** Defines how non-reimbursable expenses are exported */
     nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
@@ -1359,7 +1364,7 @@ type QBDConnectionData = {
  */
 type QBDExportConfig = {
     /** E-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** Defines how reimbursable expenses are exported */
     reimbursable: QBDReimbursableExportAccountType;
@@ -1378,6 +1383,9 @@ type QBDExportConfig = {
 
     /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
+
+    /** Accounting method for QBD */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 /**
@@ -1978,6 +1986,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             /** The guide's email */
             email: string;
         };
+
+        /** Email address of the technical contact */
+        technicalContact?: string;
 
         /** Indicate whether the Workspace plan can be downgraded */
         canDowngrade?: boolean;

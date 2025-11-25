@@ -15,6 +15,7 @@ import {containsCustomEmoji, containsOnlyCustomEmoji as containsOnlyCustomEmojiU
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -66,6 +67,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.SEND_MESSAGE, {message: text});
         Timing.end(CONST.TIMING.SEND_MESSAGE);
+        endSpan(CONST.TELEMETRY.SPAN_SEND_MESSAGE);
     }, [text]);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
@@ -77,7 +79,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted) && (containsOnlyEmojis || !containsCustomEmoji(text))) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
         // We need to replace the space at the beginning of each line with &nbsp;
-        const escapedHtml = html.replace(/(^|<br \/>)[ ]+/gm, (match: string, p1: string) => p1 + '&nbsp;'.repeat(match.length - p1.length));
+        const escapedHtml = html.replaceAll(/(^|<br \/>)[ ]+/gm, (match: string, p1: string) => p1 + '&nbsp;'.repeat(match.length - p1.length));
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${escapedHtml}</del>` : escapedHtml;
 
         let htmlContent = htmlWithDeletedTag;
@@ -120,7 +122,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                     style={[
                         styles.ltr,
                         style,
-                        styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                        styleAsDeleted ? styles.offlineFeedbackDeleted : undefined,
                         styleAsMuted ? styles.colorMuted : undefined,
                         !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                     ]}
@@ -131,7 +133,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                         containsOnlyEmojis ? styles.onlyEmojisText : undefined,
                         styles.ltr,
                         style,
-                        styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                        styleAsDeleted ? styles.offlineFeedbackDeleted : undefined,
                         styleAsMuted ? styles.colorMuted : undefined,
                         !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                         containsOnlyCustomEmoji && styles.customEmojiFont,
@@ -146,7 +148,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={theme.textSupporting}
-                        style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedback.deleted, style]}
+                        style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedbackDeleted, style]}
                     >
                         {translate('reportActionCompose.edited')}
                     </Text>

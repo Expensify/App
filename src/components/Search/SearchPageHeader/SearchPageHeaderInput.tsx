@@ -5,7 +5,6 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
@@ -20,6 +19,7 @@ import type {SearchQueryItem} from '@components/SelectionListWithSections/Search
 import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -57,10 +57,11 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const taxRates = useMemo(() => getAllTaxRates(), []);
+    const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
@@ -196,9 +197,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     );
 
     const submitSearch = useCallback(
-        (queryString: SearchQueryString) => {
+        (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion);
 
             if (!updatedQuery) {
                 return;
@@ -268,7 +269,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             timestamp: endTime,
                         });
                     } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH) {
-                        submitSearch(item.searchQuery);
+                        submitSearch(item.searchQuery, item.keyForList !== 'findItem');
 
                         const endTime = Date.now();
                         Log.info('[CMD_K_DEBUG] Page search submitted', false, {
@@ -338,7 +339,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const searchQueryItem = textInputValue
         ? {
               text: textInputValue,
-              singleIcon: Expensicons.MagnifyingGlass,
+              singleIcon: expensifyIcons.MagnifyingGlass,
               searchQuery: textInputValue,
               itemStyle: styles.activeComponentBG,
               keyForList: 'findItem',

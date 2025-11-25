@@ -1,4 +1,5 @@
 import {isUserValidatedSelector} from '@selectors/Account';
+import {tierNameSelector} from '@selectors/UserWallet';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -19,13 +20,14 @@ type DuplicateTransactionItemProps = {
     allReports: OnyxCollection<Report>;
     /** All the data of the policy collection */
     policies: OnyxCollection<Policy>;
+    onPreviewPressed: (reportID: string) => void;
 };
 
 const linkedTransactionRouteErrorSelector = (transaction: OnyxEntry<Transaction>) => transaction?.errorFields?.route ?? null;
 
-function DuplicateTransactionItem({transaction, index, allReports, policies}: DuplicateTransactionItemProps) {
+function DuplicateTransactionItem({transaction, index, allReports, policies, onPreviewPressed}: DuplicateTransactionItemProps) {
     const styles = useThemeStyles();
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: (wallet) => wallet?.tierName, canBeMissing: false});
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector, canBeMissing: false});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
@@ -55,14 +57,14 @@ function DuplicateTransactionItem({transaction, index, allReports, policies}: Du
         selector: linkedTransactionRouteErrorSelector,
     });
 
-    const contextValue = useMemo(() => ({shouldOpenReportInRHP: true}), []);
+    const contextValue = useMemo(() => ({shouldOpenReportInRHP: true, onPreviewPressed}), [onPreviewPressed]);
 
     if (!action || !report) {
         return null;
     }
 
     const reportDraftMessage = draftMessage?.[action.reportActionID];
-    const matchingDraftMessage = typeof reportDraftMessage === 'string' ? reportDraftMessage : reportDraftMessage?.message;
+    const matchingDraftMessage = reportDraftMessage?.message;
 
     return (
         <View style={styles.pb2}>

@@ -11,6 +11,7 @@ import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeSplitBill, setDraftSplitTransaction} from '@libs/actions/IOU';
@@ -40,6 +41,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const {isBetaEnabled} = usePermissions();
 
     const reportID = report?.reportID;
     const originalMessage = reportAction && isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
@@ -68,12 +70,13 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const participantsExcludingPayee = participants.filter((participant) => participant.accountID !== reportAction?.actorAccountID);
 
     const hasSmartScanFailed = hasReceipt(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
-    const isEditingSplitBill = session?.accountID === actorAccountID && areRequiredFieldsEmpty(transaction);
     const isDistanceRequest = isDistanceRequestUtil(transaction);
+    const isEditingSplitBill = session?.accountID === actorAccountID && areRequiredFieldsEmpty(transaction) && !isDistanceRequest;
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
     const [isConfirmed, setIsConfirmed] = useState(false);
 
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {
         amount: splitAmount,
         currency: splitCurrency,
@@ -86,8 +89,8 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
 
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
-        completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email);
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email]);
+        completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, isASAPSubmitBetaEnabled, session?.email);
+    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled]);
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
@@ -143,7 +146,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
                                 action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
                                 onToggleBillable={(billable) => {
-                                    setDraftSplitTransaction(transaction?.transactionID, {billable});
+                                    setDraftSplitTransaction(transaction?.transactionID, draftTransaction, {billable});
                                 }}
                                 isConfirmed={isConfirmed}
                             />

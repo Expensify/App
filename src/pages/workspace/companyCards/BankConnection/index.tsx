@@ -3,12 +3,13 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {PendingBank} from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
+import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -21,6 +22,7 @@ import {checkIfNewFeedConnected, getBankName, isSelectedFeedExpired} from '@libs
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import WorkspaceCompanyCardsErrorConfirmation from '@pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation';
 import {updateSelectedFeed} from '@userActions/Card';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {getCompanyCardBankConnection} from '@userActions/getCompanyCardBankConnection';
@@ -53,6 +55,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const policyID = policyIDFromProps ?? policyIDFromRoute;
     const [cardFeeds] = useCardFeeds(policyID);
     const prevFeedsData = usePrevious(cardFeeds?.settings?.oAuthAccountDetails);
+    const illustrations = useMemoizedLazyIllustrations(['PendingBank'] as const);
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const selectedBank = addNewCard?.data?.selectedBank;
     const bankName = feed ? getBankName(feed) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
@@ -70,14 +73,26 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.settings?.oAuthAccountDetails?.[feed]) : false;
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
+    const isNewFeedHasError = !!(newFeed && cardFeeds?.settings?.oAuthAccountDetails?.[newFeed]?.errors);
     const onImportPlaidAccounts = useImportPlaidAccounts(policyID);
+    const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
 
     const onOpenBankConnectionFlow = useCallback(() => {
         if (!url) {
             return;
         }
+        // eslint-disable-next-line react-compiler/react-compiler
         customWindow = openBankConnection(url);
     }, [url]);
+
+    useEffect(() => {
+        if (!policyID || !isBlockedToAddNewFeeds) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
+            forceReplace: true,
+        });
+    }, [isBlockedToAddNewFeeds, policyID]);
 
     const handleBackButtonPress = () => {
         customWindow?.close();
@@ -115,7 +130,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     );
 
     useEffect(() => {
-        if ((!url && !isPlaid) || isOffline) {
+        if ((!url && !isPlaid) || isOffline || isNewFeedHasError || isAllFeedsResultLoading || isBlockedToAddNewFeeds) {
             return;
         }
 
@@ -154,8 +169,9 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             // Direct feeds (except those added via Plaid) are created with default statement period end date.
             // Redirect the user to set a custom date.
             if (policyID && !isPlaid) {
-                Navigation.closeRHPFlow();
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.getRoute(policyID));
+                setAddNewCompanyCardStepAndData({
+                    step: CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE,
+                });
             } else {
                 Navigation.closeRHPFlow();
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
@@ -173,7 +189,9 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         }
     }, [
         isNewFeedConnected,
+        isAllFeedsResultLoading,
         shouldBlockWindowOpen,
+        isBlockedToAddNewFeeds,
         newFeed,
         policyID,
         url,
@@ -185,7 +203,38 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         onImportPlaidAccounts,
         isFeedConnectionBroken,
         updateBrokenConnection,
+        isNewFeedHasError,
     ]);
+
+    const getContent = () => {
+        if (isNewFeedHasError) {
+            return (
+                <WorkspaceCompanyCardsErrorConfirmation
+                    policyID={policyID}
+                    newFeed={newFeed}
+                />
+            );
+        }
+        if (!isPlaid && !isAllFeedsResultLoading && !isBlockedToAddNewFeeds) {
+            return (
+                <BlockingView
+                    icon={illustrations.PendingBank}
+                    iconWidth={styles.pendingBankCardIllustration.width}
+                    iconHeight={styles.pendingBankCardIllustration.height}
+                    title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')}
+                    CustomSubtitle={CustomSubtitle}
+                    onLinkPress={onOpenBankConnectionFlow}
+                    addBottomSafeAreaPadding
+                />
+            );
+        }
+        return (
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                style={styles.flex1}
+            />
+        );
+    };
 
     return (
         <ScreenWrapper
@@ -196,24 +245,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 title={headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <FullPageOfflineBlockingView addBottomSafeAreaPadding>
-                {isPlaid ? (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={styles.flex1}
-                    />
-                ) : (
-                    <BlockingView
-                        icon={PendingBank}
-                        iconWidth={styles.pendingBankCardIllustration.width}
-                        iconHeight={styles.pendingBankCardIllustration.height}
-                        title={translate('workspace.moreFeatures.companyCards.pendingBankTitle')}
-                        CustomSubtitle={CustomSubtitle}
-                        onLinkPress={onOpenBankConnectionFlow}
-                        addBottomSafeAreaPadding
-                    />
-                )}
-            </FullPageOfflineBlockingView>
+            <FullPageOfflineBlockingView addBottomSafeAreaPadding>{getContent()}</FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }

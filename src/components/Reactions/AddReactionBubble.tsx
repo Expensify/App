@@ -2,14 +2,15 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
+import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {emojiPickerRef, resetEmojiPopoverAnchor, showEmojiPicker} from '@userActions/EmojiPickerAction';
 import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
@@ -53,23 +54,25 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
     const StyleUtils = useStyleUtils();
     const ref = useRef<View | HTMLDivElement>(null);
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['AddReaction'] as const);
 
     useEffect(() => resetEmojiPopoverAnchor, []);
 
     const onPress = () => {
         const openPicker = (refParam?: PickerRefElement, anchorOrigin?: AnchorOrigin) => {
-            showEmojiPicker(
-                () => {
+            showEmojiPicker({
+                onModalHide: () => {
                     setIsEmojiPickerActive?.(false);
                 },
-                (emojiCode, emojiObject) => {
+                onEmojiSelected: (emojiCode, emojiObject) => {
                     onSelectEmoji(emojiObject);
                 },
-                refParam ?? ref,
+                emojiPopoverAnchor: refParam ?? ref,
                 anchorOrigin,
-                onWillShowPicker,
-                reportAction.reportActionID,
-            );
+                onWillShow: onWillShowPicker,
+                id: reportAction.reportActionID,
+                composerToRefocusOnClose: contextMenuRef.current?.composerToRefocusOnCloseEmojiPicker,
+            });
         };
 
         if (!emojiPickerRef.current?.isEmojiPickerVisible) {
@@ -114,7 +117,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                         <Text style={[styles.opacity0, StyleUtils.getEmojiReactionBubbleTextStyle(isContextMenu)]}>{'\u2800\u2800'}</Text>
                         <View style={styles.pAbsolute}>
                             <Icon
-                                src={Expensicons.AddReaction}
+                                src={expensifyIcons.AddReaction}
                                 width={isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
                                 height={isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}

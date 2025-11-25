@@ -9,7 +9,6 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import WorkspaceCategoriesPage from '@pages/workspace/categories/WorkspaceCategoriesPage';
@@ -21,6 +20,7 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.unmock('react-native-reanimated');
+jest.unmock('react-native-worklets');
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
@@ -130,7 +130,7 @@ describe('WorkspaceCategories', () => {
 
         // Wait for menu items to be visible
         await waitFor(() => {
-            const deleteText = translateLocal('workspace.categories.deleteCategories');
+            const deleteText = TestHelper.translateLocal('workspace.categories.deleteCategories');
             expect(screen.getByText(deleteText)).toBeOnTheScreen();
         });
 
@@ -151,18 +151,18 @@ describe('WorkspaceCategories', () => {
 
         // After clicking delete categories dropdown menu item, verify the confirmation modal appears
         await waitFor(() => {
-            const confirmModalPrompt = translateLocal('workspace.categories.deleteCategoriesPrompt');
+            const confirmModalPrompt = TestHelper.translateLocal('workspace.categories.deleteCategoriesPrompt');
             expect(screen.getByText(confirmModalPrompt)).toBeOnTheScreen();
         });
 
         // Verify the delete button in the modal is visible
         await waitFor(() => {
-            const deleteConfirmButton = screen.getByLabelText(translateLocal('common.delete'));
+            const deleteConfirmButton = screen.getByLabelText(TestHelper.translateLocal('common.delete'));
             expect(deleteConfirmButton).toBeOnTheScreen();
         });
 
         // Click the delete button in the confirmation modal
-        const deleteConfirmButton = screen.getByLabelText(translateLocal('common.delete'));
+        const deleteConfirmButton = screen.getByLabelText(TestHelper.translateLocal('common.delete'));
         fireEvent.press(deleteConfirmButton);
 
         await waitForBatchedUpdatesWithAct();
@@ -236,7 +236,7 @@ describe('WorkspaceCategories', () => {
 
         // Wait for menu items to be visible
         await waitFor(() => {
-            const disableText = translateLocal('workspace.categories.disableCategories');
+            const disableText = TestHelper.translateLocal('workspace.categories.disableCategories');
             expect(screen.getByText(disableText)).toBeOnTheScreen();
         });
 
@@ -257,7 +257,7 @@ describe('WorkspaceCategories', () => {
 
         // After clicking disable categories dropdown menu item, verify the blocking modal appears
         await waitFor(() => {
-            const blockingPrompt = translateLocal('workspace.categories.cannotDeleteOrDisableAllCategories.title');
+            const blockingPrompt = TestHelper.translateLocal('workspace.categories.cannotDeleteOrDisableAllCategories.title');
             expect(screen.getByText(blockingPrompt)).toBeOnTheScreen();
         });
 

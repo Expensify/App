@@ -8,8 +8,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
@@ -25,11 +23,12 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
@@ -39,7 +38,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearPolicyTagErrors,
     deletePolicyTags,
-    downloadMultiLevelIndependentTagsCSV,
+    downloadMultiLevelTagsCSV,
     downloadTagsCSV,
     openPolicyTagsPage,
     setPolicyTagsRequired,
@@ -58,11 +57,10 @@ import {
     getTagLists,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
-    hasIndependentTags as hasIndependentTagsPolicyUtils,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import StringUtils from '@libs/StringUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -88,10 +86,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
     const [isCannotMakeLastTagOptionalModalVisible, setIsCannotMakeLastTagOptionalModalVisible] = useState(false);
-    const policyID = route.params.policyID;
-    const backTo = route.params.backTo;
-    const policy = usePolicy(policyID);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const {backTo, policyID} = route.params;
+    const policyData = usePolicyData(policyID);
+    const {policy, tags: policyTags} = policyData;
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {environmentURL} = useEnvironment();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
@@ -100,15 +97,19 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
-    const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
-        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags), hasIndependentTagsPolicyUtils(policy, policyTags)],
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark'] as const);
+
+    const [policyTagLists, isMultiLevelTags, hasDependentTags] = useMemo(
+        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
     );
+
     const canSelectMultiple = !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
+    const illustrations = useMemoizedLazyIllustrations(['Tag'] as const);
 
     const tagsList = useMemo(() => {
         if (isMultiLevelTags) {
@@ -201,16 +202,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const updateWorkspaceTagEnabled = useCallback(
         (value: boolean, tagName: string) => {
-            setWorkspaceTagEnabled({policyID, tagsToUpdate: {[tagName]: {name: tagName, enabled: value}}, tagListIndex: 0, policyTags});
+            setWorkspaceTagEnabled(policyData, {[tagName]: {name: tagName, enabled: value}}, 0);
         },
-        [policyID, policyTags],
+        [policyData],
     );
 
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean, orderWeight: number) => {
-            setPolicyTagsRequired(policyID, value, orderWeight);
+            setPolicyTagsRequired(policyData, value, orderWeight);
         },
-        [policyID],
+        [policyData],
     );
 
     const tagList = useMemo<TagListItem[]>(() => {
@@ -234,10 +235,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     required: policyTagList.required,
                     isDisabledCheckbox: isSwitchDisabled,
                     rightElement: hasDependentTags ? (
-                        <ListItemRightCaretWithLabel
-                            labelText={translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length})}
-                            shouldShowCaret
-                        />
+                        <ListItemRightCaretWithLabel labelText={translate('workspace.tags.tagCount', {count: Object.keys(policyTagList?.tags ?? {}).length})} />
                     ) : (
                         <Switch
                             isOn={isSwitchEnabled}
@@ -285,10 +283,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [isMultiLevelTags, policyTagLists, hasDependentTags, translate, policy, policyTags, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
-        const tagText = StringUtils.normalize(tag.text?.toLowerCase() ?? '');
-        const tagValue = StringUtils.normalize(tag.value?.toLowerCase() ?? '');
-        const normalizeSearchInput = StringUtils.normalize(searchInput.toLowerCase());
-        return tagText.includes(normalizeSearchInput) || tagValue.includes(normalizeSearchInput);
+        const results = tokenizedSearch([tag], searchInput, (option) => [option.text ?? '', option.value ?? '']);
+        return results.length > 0;
     }, []);
     const sortTags = useCallback(
         (tags: TagListItem[]) => {
@@ -333,7 +329,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     canSelectMultiple={false}
                     leftHeaderText={translate('common.name')}
                     rightHeaderText={translate('common.count')}
-                    rightHeaderMinimumWidth={120}
+                    shouldShowRightCaret
                 />
             );
         }
@@ -343,6 +339,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate(isMultiLevelTags ? 'common.required' : 'common.enabled')}
+                shouldShowRightCaret
             />
         );
     };
@@ -370,10 +367,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const deleteTags = () => {
-        deletePolicyTags(policyID, selectedTags, policyTags);
+        deletePolicyTags(policyData, selectedTags);
         setIsDeleteTagsConfirmModalVisible(false);
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedTags([]);
             if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
@@ -401,7 +398,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const secondaryActions = useMemo(() => {
         const menuItems = [];
         menuItems.push({
-            icon: Expensicons.Gear,
+            icon: expensifyIcons.Gear,
             text: translate('common.settings'),
             onSelected: navigateToTagsSettings,
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
@@ -409,16 +406,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (!hasAccountingConnections) {
             menuItems.push({
-                icon: Expensicons.Table,
+                icon: expensifyIcons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
                 onSelected: navigateToImportSpreadsheet,
                 value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
             });
         }
 
-        if (hasVisibleTags && !hasDependentTags) {
+        if (hasVisibleTags) {
             menuItems.push({
-                icon: Expensicons.Download,
+                icon: expensifyIcons.Download,
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
@@ -426,10 +423,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     close(() => {
-                        if (hasIndependentTags) {
-                            downloadMultiLevelIndependentTagsCSV(policyID, () => {
-                                setIsDownloadFailureModalVisible(true);
-                            });
+                        if (isMultiLevelTags) {
+                            downloadMultiLevelTagsCSV(
+                                policyID,
+                                () => {
+                                    setIsDownloadFailureModalVisible(true);
+                                },
+                                hasDependentTags,
+                            );
                         } else {
                             downloadTagsCSV(policyID, () => {
                                 setIsDownloadFailureModalVisible(true);
@@ -442,7 +443,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [translate, navigateToTagsSettings, hasDependentTags, hasVisibleTags, isOffline, policyID, hasIndependentTags, hasAccountingConnections, navigateToImportSpreadsheet]);
+    }, [translate, navigateToTagsSettings, hasAccountingConnections, hasVisibleTags, navigateToImportSpreadsheet, isOffline, isMultiLevelTags, policyID, hasDependentTags, expensifyIcons]);
 
     const getHeaderButtons = () => {
         const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);
@@ -456,7 +457,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         <Button
                             success
                             onPress={navigateToCreateTagPage}
-                            icon={Expensicons.Plus}
+                            icon={expensifyIcons.Plus}
                             text={translate('workspace.tags.addTag')}
                             style={[shouldUseNarrowLayout && styles.flex1]}
                         />
@@ -478,7 +479,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (!hasAccountingConnections && !isMultiLevelTags) {
             options.push({
-                icon: Expensicons.Trashcan,
+                icon: expensifyIcons.Trashcan,
                 text: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => {
@@ -514,7 +515,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (enabledTagCount > 0 && !isMultiLevelTags) {
             options.push({
-                icon: Expensicons.Close,
+                icon: expensifyIcons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
@@ -523,19 +524,21 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled({policyID, tagsToUpdate: tagsToDisable, tagListIndex: 0, policyTags});
+
+                    // Disable the selected tags
+                    setWorkspaceTagEnabled(policyData, tagsToDisable, 0);
                 },
             });
         }
 
         if (disabledTagCount > 0 && !isMultiLevelTags) {
             options.push({
-                icon: Expensicons.Checkmark,
+                icon: expensifyIcons.Checkmark,
                 text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagEnabled({policyID, tagsToUpdate: tagsToEnable, tagListIndex: 0, policyTags});
+                    setWorkspaceTagEnabled(policyData, tagsToEnable, 0);
                 },
             });
         }
@@ -558,7 +561,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (requiredTagCount > 0 && !hasDependentTags && isMultiLevelTags) {
             options.push({
-                icon: Expensicons.Close,
+                icon: expensifyIcons.Close,
                 text: translate('workspace.tags.notRequireTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.REQUIRE,
                 onSelected: () => {
@@ -567,19 +570,19 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         return;
                     }
                     setSelectedTags([]);
-                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkOptional, false, policyTags);
+                    setWorkspaceTagRequired(policyData, tagListIndexesToMarkOptional, false);
                 },
             });
         }
 
         if (optionalTagCount > 0 && !hasDependentTags && isMultiLevelTags) {
             options.push({
-                icon: Expensicons.Checkmark,
+                icon: expensifyIcons.Checkmark,
                 text: translate(requiredTagCount === 1 ? 'workspace.tags.requireTag' : 'workspace.tags.requireTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.NOT_REQUIRED,
                 onSelected: () => {
                     setSelectedTags([]);
-                    setWorkspaceTagRequired(policyID, tagListIndexesToMarkRequired, true, policyTags);
+                    setWorkspaceTagRequired(policyData, tagListIndexesToMarkRequired, true);
                 },
             });
         }
@@ -667,7 +670,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     offlineIndicatorStyle={styles.mtAuto}
                 >
                     <HeaderWithBackButton
-                        icon={!selectionModeHeader ? Illustrations.Tag : undefined}
+                        icon={!selectionModeHeader ? illustrations.Tag : undefined}
                         shouldUseHeadlineHeader={!selectionModeHeader}
                         title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
                         shouldShowBackButton={shouldUseNarrowLayout}
@@ -718,6 +721,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onDismissError={(item) => !hasDependentTags && clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: 0, policyTags})}
                             showScrollIndicator={false}
                             addBottomSafeAreaPadding
+                            shouldShowRightCaret
                         />
                     )}
                     {!hasVisibleTags && !isLoading && (
@@ -737,11 +741,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                               {
                                                   success: true,
                                                   buttonAction: navigateToCreateTagPage,
-                                                  icon: Expensicons.Plus,
+                                                  icon: expensifyIcons.Plus,
                                                   buttonText: translate('workspace.tags.addTag'),
                                               },
                                               {
-                                                  icon: Expensicons.Table,
+                                                  icon: expensifyIcons.Table,
                                                   buttonText: translate('common.import'),
                                                   buttonAction: navigateToImportSpreadsheet,
                                               },

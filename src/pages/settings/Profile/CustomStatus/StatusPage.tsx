@@ -7,6 +7,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -16,6 +17,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -47,6 +49,7 @@ function StatusPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const formRef = useRef<FormRef>(null);
     const [brickRoadIndicator, setBrickRoadIndicator] = useState<ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>>();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const hasVacationDelegate = !!vacationDelegate?.delegate;
@@ -82,13 +85,13 @@ function StatusPage() {
 
     const navigateBackToPreviousScreenTask = useRef<{
         then: (
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             onfulfilled?: () => typeof InteractionManager.runAfterInteractions,
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             onrejected?: () => typeof InteractionManager.runAfterInteractions,
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
         ) => Promise<typeof InteractionManager.runAfterInteractions>;
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         done: (...args: Array<typeof InteractionManager.runAfterInteractions>) => typeof InteractionManager.runAfterInteractions;
         cancel: () => void;
     } | null>(null);
@@ -122,7 +125,7 @@ function StatusPage() {
                 emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
                 clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
             });
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
                 clearDraftCustomStatus();
                 navigateBackToPreviousScreen();
@@ -143,7 +146,7 @@ function StatusPage() {
         });
         formRef.current?.resetForm({[INPUT_IDS.EMOJI_CODE]: ''});
 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         navigateBackToPreviousScreenTask.current = InteractionManager.runAfterInteractions(() => {
             navigateBackToPreviousScreen();
         });
@@ -269,7 +272,7 @@ function StatusPage() {
                                 title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
                                 description={fallbackVacationDelegateLogin}
                                 avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                                icon={vacationDelegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                                icon={vacationDelegatePersonalDetails?.avatar ?? expensifyIcons.FallbackAvatar}
                                 iconType={CONST.ICON_TYPE_AVATAR}
                                 numberOfLinesDescription={1}
                                 shouldShowRightIcon

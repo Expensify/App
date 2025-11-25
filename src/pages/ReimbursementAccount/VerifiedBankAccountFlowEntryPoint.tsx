@@ -197,6 +197,7 @@ function VerifiedBankAccountFlowEntryPoint({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID={VerifiedBankAccountFlowEntryPoint.displayName}
+            shouldShowOfflineIndicatorInWideScreen={!!isValidateCodeActionModalVisible}
         >
             <HeaderWithBackButton
                 title={translate('bankAccount.addBankAccount')}

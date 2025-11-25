@@ -2,7 +2,6 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
-import {BrokenMagnifyingGlass} from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
@@ -13,12 +12,13 @@ import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getBankName, getCardFeedIcon, getCustomOrFormattedFeedName, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -39,13 +39,13 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
+    const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass'] as const);
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
     const [list] = useCardsList(policyID, feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
-    const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames);
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
@@ -130,7 +130,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             {!cardListOptions.length ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9, safeAreaPaddingBottomStyle]}>
                     <Icon
-                        src={BrokenMagnifyingGlass}
+                        src={lazyIllustrations.BrokenMagnifyingGlass}
                         width={116}
                         height={168}
                     />
@@ -159,12 +159,13 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                                 />
                             </View>
                             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
-                            <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
-                                {translate('workspace.companyCards.chooseCardFor', {
-                                    assignee: assigneeDisplayName,
-                                    feed: plaidUrl && formattedFeedName ? formattedFeedName : getBankName(feed),
-                                })}
-                            </Text>
+                            <View style={[styles.renderHTML, styles.ph5, styles.mv3, styles.textSupporting]}>
+                                <RenderHTML
+                                    html={translate('workspace.companyCards.chooseCardFor', {
+                                        assignee: assigneeDisplayName,
+                                    })}
+                                />
+                            </View>
                         </View>
                     }
                     shouldShowTextInputAfterHeader
