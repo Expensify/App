@@ -10,6 +10,7 @@ import BusinessInfo from './BusinessInfo/BusinessInfo';
 import CompleteVerification from './CompleteVerification/CompleteVerification';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import Country from './Country';
+import Documents from './Documents';
 import RequestorStep from './Requestor/RequestorStep';
 
 type USDVerifiedBankAccountFlowProps = {
@@ -38,12 +39,13 @@ function USDVerifiedBankAccountFlow({
     switch (USDBankAccountStep) {
         case CONST.BANK_ACCOUNT.STEP.COUNTRY:
             CurrentStep = (
-                <Country
-                    onBackButtonPress={onBackButtonPress}
-                    policyID={policyID}
-                    setUSDBankAccountStep={setUSDBankAccountStep}
-                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-                />
+                <Documents onBackButtonPress={onBackButtonPress} />
+                // <Country
+                //     onBackButtonPress={onBackButtonPress}
+                //     policyID={policyID}
+                //     setUSDBankAccountStep={setUSDBankAccountStep}
+                //     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
+                // />
             );
             break;
         case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:

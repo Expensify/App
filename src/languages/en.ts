@@ -3550,6 +3550,9 @@ const translations = {
         weTake: 'We take your security seriously. Please set up 2FA now to add an extra layer of protection to your account.',
         secure: 'Secure your account',
     },
+    documentsStep: {
+        subheader: 'Bank info',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'One moment',
         explanationLine: "We’re taking a look at your information. You'll be able to continue with next steps shortly.",
