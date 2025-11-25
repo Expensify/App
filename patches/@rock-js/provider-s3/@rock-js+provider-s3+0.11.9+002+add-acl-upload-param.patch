@@ -1,0 +1,27 @@
+diff --git a/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.d.ts b/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.d.ts
+index 1038c91..fdb2e2e 100644
+--- a/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.d.ts
++++ b/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.d.ts
+@@ -53,6 +53,10 @@ type ProviderConfig = {
+      * If true, the provider will not sign requests and will try to access the S3 bucket without authentication.
+      */
+     publicAccess?: boolean;
++    /**
++     * ACL (Access Control List) to use for uploaded objects
++     */
++    acl?: clientS3.ObjectCannedACL;
+ };
+ export declare class S3BuildCache implements RemoteBuildCache {
+     name: string;
+diff --git a/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js b/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js
+index 813abcd..3c31f65 100644
+--- a/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js
++++ b/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js
+@@ -77,6 +77,7 @@ export class S3BuildCache {
+                 Key: key,
+                 Body: buffer,
+                 ContentType: contentType || 'application/octet-stream',
++                ...(this.config.acl && { ACL: this.config.acl }),
+                 Metadata: {
+                     createdAt: new Date().toISOString(),
+                 },

@@ -451,7 +451,7 @@ function updateXeroExportExporter(
 ) {
     const parameters: UpdateXeroGenericTypeParams = {
         policyID,
-        settingValue: exporter,
+        settingValue: exporter ?? '',
         idempotencyKey: String(CONST.XERO_CONFIG.EXPORTER),
     };
 

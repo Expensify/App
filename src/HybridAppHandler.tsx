@@ -6,6 +6,7 @@ import {getHybridAppSettings} from './libs/actions/HybridApp';
 import type HybridAppSettings from './libs/actions/HybridApp/types';
 import {setupNewDotAfterTransitionFromOldDot} from './libs/actions/Session';
 import Log from './libs/Log';
+import {endSpan, startSpan} from './libs/telemetry/activeSpans';
 import ONYXKEYS from './ONYXKEYS';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
@@ -24,6 +25,8 @@ function HybridAppHandler() {
                     return;
                 }
 
+                endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION);
+
                 setSplashScreenState(loggedOutFromOldDot ? CONST.BOOT_SPLASH_STATE.HIDDEN : CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
             });
         },
@@ -34,6 +37,11 @@ function HybridAppHandler() {
         if (!CONFIG.IS_HYBRID_APP || isLoadingTryNewDot) {
             return;
         }
+
+        startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, {
+            name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
+            op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
+        });
 
         getHybridAppSettings().then((hybridAppSettings: HybridAppSettings | null) => {
             if (!hybridAppSettings) {
