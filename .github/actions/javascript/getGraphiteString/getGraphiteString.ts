@@ -26,6 +26,7 @@ const run = () => {
     let timestamp: number;
 
     // Iterate over each entry
+    // eslint-disable-next-line unicorn/no-array-for-each
     regressionEntries.forEach((entry) => {
         // Skip empty lines
         if (entry.trim() === '') {
