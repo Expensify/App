@@ -1,7 +1,5 @@
 import React from 'react';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -49,18 +47,18 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
     const {translate} = useLocalize();
     const {isAdmin, isValidated} = item;
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Globe'] as const);
 
     const threeDotsMenuItems: PopoverMenuItem[] | undefined =
         !isValidated && isAdmin
             ? [
                   {
-                      icon: Expensicons.Globe,
+                      icon: expensifyIcons.Globe,
                       text: translate('domain.goToDomain'),
                       onSelected: item.action,
                   },
                   {
-                      icon: Expensicons.Globe,
+                      icon: expensifyIcons.Globe,
                       text: translate('domain.verifyDomain.title'),
                       onSelected: () => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(item.accountID)),
                   },

@@ -100,7 +100,7 @@ function AvatarWithImagePicker({
     disabled = false,
     onViewPhotoPress,
     enablePreview = false,
-    editIcon = Expensicons.Pencil,
+    editIcon,
     name = '',
 }: AvatarWithImagePickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Upload'] as const);
@@ -118,7 +118,7 @@ function AvatarWithImagePicker({
     const {calculatePopoverPosition} = usePopoverPosition();
     const anchorRef = useRef<View>(null);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Pencil'] as const);
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -267,7 +267,7 @@ function AvatarWithImagePicker({
                                         fallbackIcon={fallbackIcon ?? expensifyIcons.FallbackAvatar}
                                         anchorRef={anchorRef}
                                         DefaultAvatar={DefaultAvatar}
-                                        editIcon={editIcon}
+                                        editIcon={editIcon ?? expensifyIcons.Pencil}
                                         size={size}
                                         type={type}
                                         disabled={disabled}

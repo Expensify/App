@@ -92,7 +92,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'Gear', 'NewWindow', 'ExpensifyCard'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'Gear', 'NewWindow', 'Key', 'Pencil', 'ExpensifyCard'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Accounting'] as const);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
@@ -134,7 +134,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(shouldShowEnterCredentials
                 ? [
                       {
-                          icon: Expensicons.Key,
+                          icon: icons.Key,
                           text: translate('workspace.accounting.enterCredentials'),
                           onSelected: () => startIntegrationFlow({name: connectedIntegration}),
                           shouldCallAfterModalHide: true,
@@ -158,6 +158,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             },
         ],
         [
+            icons.Key,
             icons.NewWindow,
             icons.CircularArrowBackwards,
             shouldShowEnterCredentials,
@@ -336,7 +337,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 
         const configurationOptions = [
             {
-                icon: Expensicons.Pencil,
+                icon: icons.Pencil,
                 iconRight: icons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.import'),
@@ -411,6 +412,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         ];
     }, [
         icons.Gear,
+        icons.Pencil,
         policy,
         isSyncInProgress,
         policyID,

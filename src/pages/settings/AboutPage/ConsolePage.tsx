@@ -54,7 +54,7 @@ function ConsolePage() {
     const theme = useTheme();
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
     const isAuthenticated = useIsAuthenticated();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['All'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['All', 'Globe'] as const);
 
     const menuItems: PopoverMenuItem[] = useMemo(
         () => [
@@ -74,7 +74,7 @@ function ConsolePage() {
                 },
             },
             {
-                icon: Expensicons.Globe,
+                icon: expensifyIcons.Globe,
                 text: translate('common.network'),
                 iconFill: activeFilterIndex === filterBy.network ? theme.iconSuccessFill : theme.icon,
                 iconRight: Expensicons.CheckCircle,
@@ -85,7 +85,7 @@ function ConsolePage() {
                 },
             },
         ],
-        [activeFilterIndex, expensifyIcons.All, theme.icon, theme.iconSuccessFill, translate],
+        [activeFilterIndex, expensifyIcons.All, expensifyIcons.Globe, theme.icon, theme.iconSuccessFill, translate],
     );
 
     const prevLogs = useRef<OnyxEntry<CapturedLogs>>({});

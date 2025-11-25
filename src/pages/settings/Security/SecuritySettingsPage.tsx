@@ -55,7 +55,7 @@ type BaseMenuItemType = {
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'FallbackAvatar', 'Pencil', 'ThreeDots', 'UserLock', 'UserPlus'] as const);
     const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -296,7 +296,7 @@ function SecuritySettingsPage() {
     const delegatePopoverMenuItems: PopoverMenuItem[] = [
         {
             text: translate('delegate.changeAccessLevel'),
-            icon: Expensicons.Pencil,
+            icon: icons.Pencil,
             onPress: () => {
                 if (isDelegateAccessRestricted) {
                     modalClose(() => showDelegateNoAccessModal());

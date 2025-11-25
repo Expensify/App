@@ -12,8 +12,6 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
@@ -85,13 +83,13 @@ function AvatarButtonWithIcon({
     type = CONST.ICON_TYPE_AVATAR,
     avatarStyle,
     disabled = false,
-    editIcon = Expensicons.Pencil,
+    editIcon,
     anchorRef,
     name = '',
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Pencil'] as const);
 
     return (
         <Tooltip
@@ -127,7 +125,7 @@ function AvatarButtonWithIcon({
                     <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                         <Icon
                             testID="avatar-button-edit-icon"
-                            src={editIcon}
+                            src={editIcon ?? expensifyIcons.Pencil}
                             width={variables.iconSizeSmall}
                             height={variables.iconSizeSmall}
                             fill={theme.icon}
