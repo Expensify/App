@@ -8920,15 +8920,17 @@ function deleteMoneyRequest(
     const errorKey = DateUtils.getMicroseconds();
 
     const originalReportActionsUpdate = {} as Record<string, Partial<OnyxTypes.ReportAction>>;
-    Object.values(iouReportActions ?? {}).forEach((action) => {
-        if (action.reportActionID === reportAction.reportActionID) {
-            return;
-        }
-        originalReportActionsUpdate[action.reportActionID] = {
-            pendingAction: action.pendingAction ?? null,
-            message: action.message,
-        };
-    });
+    if (shouldDeleteIOUReport) {
+        Object.values(iouReportActions ?? {}).forEach((action) => {
+            if (action.reportActionID === reportAction.reportActionID) {
+                return;
+            }
+            originalReportActionsUpdate[action.reportActionID] = {
+                pendingAction: action.pendingAction ?? null,
+                message: action.message,
+            };
+        });
+    }
     failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
