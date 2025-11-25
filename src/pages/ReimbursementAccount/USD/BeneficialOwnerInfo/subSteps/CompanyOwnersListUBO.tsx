@@ -2,10 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -42,9 +42,10 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
     const requestorData = getSubStepValues(REQUESTOR_PERSONAL_INFO_KEYS, undefined, reimbursementAccount);
@@ -62,7 +63,7 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
                     title={`${beneficialOwnerData.firstName} ${beneficialOwnerData.lastName}`}
                     description={`${beneficialOwnerData.street}, ${beneficialOwnerData.city}, ${beneficialOwnerData.state} ${beneficialOwnerData.zipCode}`}
                     wrapperStyle={[styles.ph5]}
-                    icon={FallbackAvatar}
+                    icon={expensifyIcons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     onPress={() => {
                         handleUBOEdit(ownerKey);
@@ -90,7 +91,7 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
                         title={`${requestorData.firstName} ${requestorData.lastName}`}
                         description={`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}
                         wrapperStyle={[styles.ph5]}
-                        icon={FallbackAvatar}
+                        icon={expensifyIcons.FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
                         iconWidth={40}
                         iconHeight={40}
