@@ -3551,7 +3551,35 @@ const translations = {
         secure: 'Secure your account',
     },
     documentsStep: {
-        subheader: 'Bank info',
+        beforeYouGo: 'Before you go, we need some documents to verify some things',
+        subheader: 'Verification',
+        verificationFailed: "The verification failed, so we'll need some extra documents to verify you and your business",
+        taxIDVerification: 'Tax ID Verification',
+        taxIDVerificationDescription: dedent(`
+            Please upload one of the following files:
+            • IRS TIN/EIN Assignment Letter
+            • IRS TIN/EIN Application confirmation (Normally states "Congratulations! The EIN has been successfully assigned")
+            • IRS tax exemption letter that lists your company name and EIN`),
+        nameChangeDocument: 'Name Change Document',
+        nameChangeDocumentDescription: 'If your company’s name has changed since filing for the TIN/EIN we need this document to verify the Tax ID number you provided',
+        companyAddressVerification: 'Company address verification',
+        companyAddressVerificationDescription: dedent(`
+            Please upload one of the following files:
+            • Recent utility bill showing company name and address
+            • Bank Statement showing company name and address
+            • Current Lease/Rental Agreement including the signature page showing your company name and current address
+            • Insurance Statement showing company name and address
+            • TIN assignment doc showing company name and address`),
+        userAddressVerification: 'Address verification',
+        userAddressVerificationDescription: dedent(`
+            Please upload one of the following files:
+            • Voter Registration Card
+            • Drivers License
+            • Bank Statement
+            • Utility Bill`),
+        userDOBVerification: 'Date of birth verification',
+        userDOBVerificationDescription: 'Please upload a US issued ID',
+        finishViaChat: 'Finish via chat',
     },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'One moment',
