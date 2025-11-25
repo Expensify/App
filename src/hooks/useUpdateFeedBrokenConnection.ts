@@ -1,14 +1,14 @@
 import {useCallback} from 'react';
-import {checkIfFeedConnectionIsBroken, getCompanyFeeds, getDomainOrWorkspaceAccountID, getFeedConnectionBrokenCard} from '@libs/CardUtils';
+import {checkIfFeedConnectionIsBroken, getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID, getFeedConnectionBrokenCard} from '@libs/CardUtils';
 import {updateWorkspaceCompanyCard} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import useCardFeeds from './useCardFeeds';
 import useCardsList from './useCardsList';
 import usePolicy from './usePolicy';
 
-export default function useUpdateFeedBrokenConnection({policyID, feed}: {policyID?: string; feed?: CompanyCardFeed}) {
-    const [cardsList] = useCardsList(policyID, feed);
+export default function useUpdateFeedBrokenConnection({policyID, feed}: {policyID?: string; feed?: CompanyCardFeedWithDomainID}) {
+    const [cardsList] = useCardsList(feed);
     const policy = usePolicy(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
@@ -23,7 +23,7 @@ export default function useUpdateFeedBrokenConnection({policyID, feed}: {policyI
         if (!brokenCardId || !feed) {
             return;
         }
-        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, brokenCardId, feed, brokenCard?.lastScrapeResult);
+        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, brokenCardId, getCompanyCardFeed(feed), brokenCard?.lastScrapeResult);
     }, [brokenCard?.lastScrapeResult, brokenCardId, domainOrWorkspaceAccountID, feed]);
 
     return {updateBrokenConnection, isFeedConnectionBroken};
