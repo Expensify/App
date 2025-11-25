@@ -45,7 +45,6 @@ import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, R
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
-import type SearchResults from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
@@ -701,7 +700,7 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
 function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData: loadingOptimisticData, finallyData} = getOnyxLoadingData(hash);
 
-    transactionIDList.forEach((transactionID) => {
+    for (const transactionID of transactionIDList) {
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const optimisticData: OnyxUpdate[] = [
@@ -732,7 +731,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
         ];
 
         API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList: [transactionID]}, {optimisticData, failureData, finallyData});
-    });
+    }
 }
 
 type Params = Record<string, ExportSearchItemsToCSVParams>;
