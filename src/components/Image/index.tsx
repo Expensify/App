@@ -1,6 +1,8 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {StyleSheet, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import {useSession} from '@components/OnyxListItemProvider';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {isExpiredSession} from '@libs/actions/Session';
 import activateReauthenticator from '@libs/actions/Session/AttachmentImageReauthenticator';
 import CONST from '@src/CONST';
@@ -20,6 +22,7 @@ function Image({
     imageWidthToCalculateHeight,
     ...forwardedProps
 }: ImageProps) {
+    const styles = useThemeStyles();
     const [aspectRatio, setAspectRatio] = useState<string | number | null>(null);
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
     const session = useSession();
@@ -157,10 +160,9 @@ function Image({
     }
     if (source === undefined) {
         return (
-            <FullScreenLoadingIndicator
-                iconSize={loadingIconSize}
-                style={loadingIndicatorStyles}
-            />
+            <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, loadingIndicatorStyles]}>
+                <ActivityIndicator size={loadingIconSize} />
+            </View>
         );
     }
 
