@@ -160,8 +160,15 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 });
             }
 
+            const isRemovingApprover = selectedApproverEmail === approver?.login;
             if (isInitialCreationFlow) {
-                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
+                // If removing an approver during creation, go back to the create page
+                // Otherwise, navigate to the approval limit page to optionally set a limit
+                if (isRemovingApprover) {
+                    Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
+                } else {
+                    Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex));
+                }
             } else {
                 goBack();
             }

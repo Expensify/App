@@ -6,8 +6,11 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
+import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
+import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
@@ -21,9 +24,12 @@ type ApprovalWorkflowSectionProps = {
 
     /** A function that is called when the section is pressed */
     onPress: () => void;
+
+    /** Currency used for formatting approval limits */
+    currency?: string;
 };
 
-function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSectionProps) {
+function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CURRENCY.USD}: ApprovalWorkflowSectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Users', 'UserCheck'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -35,6 +41,23 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
         (index: number) =>
             approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`,
         [approvalWorkflow.approvers.length, toLocaleOrdinal, translate],
+    );
+
+    const getApprovalLimitDescription = useCallback(
+        (approver: Approver): string | undefined => {
+            if (!approver.approvalLimit || !approver.overLimitForwardsTo) {
+                return undefined;
+            }
+
+            const formattedAmount = convertToDisplayString(approver.approvalLimit, currency);
+            const approverDisplayName = Str.removeSMSDomain(approver.overLimitForwardsTo);
+
+            return translate('workflowsApprovalLimitPage.forwardLimitDescription', {
+                approvalLimit: formattedAmount,
+                approverName: approverDisplayName,
+            });
+        },
+        [currency, translate],
     );
 
     const members = useMemo(() => {
@@ -86,26 +109,30 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                     shouldRemoveBackground
                 />
 
-                {approvalWorkflow.approvers.map((approver, index) => (
-                    // eslint-disable-next-line react/no-array-index-key
-                    <View key={`approver-${approver.email}-${index}`}>
-                        <View style={styles.workflowApprovalVerticalLine} />
-                        <MenuItem
-                            title={approverTitle(index)}
-                            style={styles.p0}
-                            titleStyle={styles.textLabelSupportingNormal}
-                            descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
-                            description={Str.removeSMSDomain(approver.displayName)}
-                            icon={icons.UserCheck}
-                            iconHeight={20}
-                            iconWidth={20}
-                            numberOfLinesDescription={1}
-                            iconFill={theme.icon}
-                            onPress={onPress}
-                            shouldRemoveBackground
-                        />
-                    </View>
-                ))}
+                {approvalWorkflow.approvers.map((approver, index) => {
+                    const approvalLimitDescription = getApprovalLimitDescription(approver);
+                    return (
+                        // eslint-disable-next-line react/no-array-index-key
+                        <View key={`approver-${approver.email}-${index}`}>
+                            <View style={styles.workflowApprovalVerticalLine} />
+                            <MenuItem
+                                title={approverTitle(index)}
+                                style={styles.p0}
+                                titleStyle={styles.textLabelSupportingNormal}
+                                descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
+                                description={Str.removeSMSDomain(approver.displayName)}
+                                icon={icons.UserCheck}
+                                iconHeight={20}
+                                iconWidth={20}
+                                numberOfLinesDescription={1}
+                                iconFill={theme.icon}
+                                onPress={onPress}
+                                shouldRemoveBackground
+                                helperText={approvalLimitDescription}
+                            />
+                        </View>
+                    );
+                })}
             </View>
             <Icon
                 src={expensifyIcons.ArrowRight}

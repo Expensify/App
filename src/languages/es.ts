@@ -1909,6 +1909,23 @@ ${amount} para ${merchant} - ${date}`,
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
         header: 'Enviar a este miembro para su aprobación:',
     },
+    workflowsApprovalLimitPage: {
+        title: 'Aprobador',
+        header: '(Opcional) ¿Quieres añadir un límite de aprobación?',
+        description: ({approverName}: {approverName: string}) =>
+            `Añadir otro aprobador cuando <strong>${approverName}</strong> es aprobador y el informe excede el monto a continuación:`,
+        reportAmountLabel: 'Monto del informe',
+        additionalApproverLabel: 'Aprobador adicional',
+        skip: 'Omitir',
+        next: 'Siguiente',
+        enterAmountError: 'Por favor ingrese un monto válido',
+        enterApproverError: 'Por favor ingrese un aprobador',
+        enterBothError: 'Ingrese un monto del informe y un aprobador adicional',
+        circularReferenceError: ({approverName}: {approverName: string}) =>
+            `<strong>${approverName}</strong> ya aprueba informes en este flujo de trabajo. Elija un aprobador diferente para evitar un flujo de trabajo circular.`,
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
+            `Informes por encima de ${approvalLimit} se envían a ${approverName}`,
+    },
     workflowsPayerPage: {
         title: 'Pagador autorizado',
         genericErrorMessage: 'El pagador autorizado no se pudo cambiar. Por favor, inténtalo mas tarde.',

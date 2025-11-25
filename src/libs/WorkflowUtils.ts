@@ -52,12 +52,15 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
         }
 
         const isCircularReference = currentApproverEmails.has(nextEmail);
+        const employee = employees[nextEmail];
         approvers.push({
             email: nextEmail,
-            forwardsTo: employees[nextEmail].forwardsTo,
+            forwardsTo: employee.forwardsTo,
             avatar: personalDetailsByEmail[nextEmail]?.avatar,
             displayName: personalDetailsByEmail[nextEmail]?.displayName ?? nextEmail,
             isCircularReference,
+            approvalLimit: employee.approvalLimit,
+            overLimitForwardsTo: employee.overLimitForwardsTo,
         });
 
         // If we've already seen this approver, break to prevent infinite loop
@@ -255,17 +258,25 @@ function convertApprovalWorkflowToPolicyEmployees({
     for (const [index, approver] of approvalWorkflow.approvers.entries()) {
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         const forwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (nextApprover?.email ?? '');
+        const approvalLimit = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? undefined : approver.approvalLimit;
+        const overLimitForwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (approver.overLimitForwardsTo ?? '');
 
-        // For every approver, we check if the forwardsTo field has changed.
-        // If it has, we update the employee list with the new forwardsTo value.
-        if (previousEmployeeList[approver.email]?.forwardsTo === forwardsTo) {
+        // For every approver, we check if the forwardsTo, approvalLimit, or overLimitForwardsTo fields have changed.
+        const previousEmployee = previousEmployeeList[approver.email];
+        const forwardsToChanged = previousEmployee?.forwardsTo !== forwardsTo;
+        const approvalLimitChanged = previousEmployee?.approvalLimit !== approvalLimit;
+        const overLimitForwardsToChanged = previousEmployee?.overLimitForwardsTo !== overLimitForwardsTo;
+
+        if (!forwardsToChanged && !approvalLimitChanged && !overLimitForwardsToChanged) {
             continue;
         }
 
-        const previousPendingAction = previousEmployeeList[approver.email]?.pendingAction;
+        const previousPendingAction = previousEmployee?.pendingAction;
         updatedEmployeeList[approver.email] = {
             email: approver.email,
             forwardsTo,
+            ...(approvalLimit !== undefined ? {approvalLimit} : {}),
+            ...(overLimitForwardsTo ? {overLimitForwardsTo} : {}),
             pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : pendingAction,
             pendingFields: {
                 forwardsTo: pendingAction,
