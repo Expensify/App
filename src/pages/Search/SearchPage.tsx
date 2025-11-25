@@ -53,6 +53,7 @@ import {
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import {setTransactionReport} from '@libs/actions/Transaction';
+import {setNameValuePair} from '@libs/actions/User';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -64,7 +65,6 @@ import {
     getReportOrDraftReport,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
-    isDM,
     isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
@@ -74,7 +74,6 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 import {dismissRejectUseExplanation, initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
-import {setNameValuePair} from '@libs/actions/User';
 import {openOldDotLink} from '@userActions/Link';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -125,7 +124,6 @@ function SearchPage({route}: SearchPageProps) {
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
