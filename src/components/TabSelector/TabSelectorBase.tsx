@@ -153,12 +153,7 @@ function TabSelectorBase({
                         return;
                     }
 
-                    if (activeIndex >= 0) {
-                        setAffectedAnimatedTabs([activeIndex, index]);
-                    } else {
-                        setAffectedAnimatedTabs([index]);
-                    }
-
+                    setAffectedAnimatedTabs([activeIndex, index]);
                     onTabPress(tab.key);
                 };
 

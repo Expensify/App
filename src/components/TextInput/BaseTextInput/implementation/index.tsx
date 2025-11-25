@@ -107,7 +107,6 @@ function BaseTextInput({
     const [width, setWidth] = useState<number | null>(null);
     const [prefixCharacterPadding, setPrefixCharacterPadding] = useState<number>(CONST.CHARACTER_WIDTH);
     const [isPrefixCharacterPaddingCalculated, setIsPrefixCharacterPaddingCalculated] = useState(() => !prefixCharacter);
-    const [isReadyToDisplay, setIsReadyToDisplay] = useState(false);
 
     const labelScale = useSharedValue<number>(initialActiveLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE);
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y);
@@ -287,7 +286,6 @@ function BaseTextInput({
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
-    const shouldPreventInputWidthFlicker = !autoGrow && (contentWidth === undefined || (contentWidth >= 0 && isReadyToDisplay));
     return (
         <>
             <View
@@ -322,8 +320,6 @@ function BaseTextInput({
 
                             // When autoGrow is on and minWidth is not supplied, add a minWidth to allow the input to be focusable.
                             autoGrow && !newTextInputContainerStyles?.minWidth && styles.mnw2,
-                            // Prevent flicker of input when we are measuring content width
-                            shouldPreventInputWidthFlicker ? [styles.opacity1] : [styles.opacity0],
                         ]}
                     >
                         {hasLabel ? (
@@ -533,11 +529,7 @@ function BaseTextInput({
                 inputPaddingLeft={inputPaddingLeft}
                 autoGrow={autoGrow}
                 isAutoGrowHeightMarkdown={isAutoGrowHeightMarkdown}
-                onSetTextInputWidth={(inputWidth) => {
-                    setTextInputWidth(inputWidth);
-                    // Once we have the width measurement, we are ready to display the input to prevent flicker
-                    setIsReadyToDisplay(true);
-                }}
+                onSetTextInputWidth={setTextInputWidth}
                 onSetTextInputHeight={setTextInputHeight}
                 isPrefixCharacterPaddingCalculated={isPrefixCharacterPaddingCalculated}
             />

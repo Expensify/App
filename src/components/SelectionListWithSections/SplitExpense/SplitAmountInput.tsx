@@ -57,4 +57,6 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
     );
 }
 
+SplitAmountInput.displayName = 'SplitAmountInput';
+
 export default SplitAmountInput;

@@ -8,11 +8,11 @@ import CONST from '@src/CONST';
 
 type SplitAmountDisplayProps = {
     splitItem: SplitListItemType;
-    contentWidth: number;
+    contentWidth?: number | string;
     shouldRemoveSpacing?: boolean;
 };
 
-function SplitAmountDisplay({splitItem, contentWidth, shouldRemoveSpacing = false}: SplitAmountDisplayProps) {
+function SplitAmountDisplay({splitItem, contentWidth = '100%', shouldRemoveSpacing = false}: SplitAmountDisplayProps) {
     const styles = useThemeStyles();
     const [prefixCharacterMargin, setPrefixCharacterMargin] = useState<number>(CONST.CHARACTER_WIDTH);
 
@@ -38,5 +38,7 @@ function SplitAmountDisplay({splitItem, contentWidth, shouldRemoveSpacing = fals
         </View>
     );
 }
+
+SplitAmountDisplay.displayName = 'SplitAmountDisplay';
 
 export default SplitAmountDisplay;

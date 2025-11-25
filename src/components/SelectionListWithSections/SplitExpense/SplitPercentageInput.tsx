@@ -52,4 +52,6 @@ function SplitPercentageInput({splitItem, contentWidth, percentageDraft, onSplit
     );
 }
 
+SplitPercentageInput.displayName = 'SplitPercentageInput';
+
 export default SplitPercentageInput;

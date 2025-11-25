@@ -329,7 +329,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         onSplitExpenseValueChange,
     ]);
 
-    const shouldShowMakeSplitsEven = useMemo(() => childTransactions.length === 0, [childTransactions]);
+    const isInitialSplit = useMemo(() => childTransactions.length === 0, [childTransactions]);
 
     const listFooterContent = useMemo(() => {
         return (
@@ -340,7 +340,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     icon={expensifyIcons.Plus}
                     style={[styles.ph4]}
                 />
-                {shouldShowMakeSplitsEven && (
+                {isInitialSplit && (
                     <MenuItem
                         onPress={onMakeSplitsEven}
                         title={translate('iou.makeSplitsEven')}
@@ -354,7 +354,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         onAddSplitExpense,
         onMakeSplitsEven,
         translate,
-        shouldShowMakeSplitsEven,
+        isInitialSplit,
         shouldUseNarrowLayout,
         styles.w100,
         styles.ph4,
@@ -400,7 +400,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const headerContent = useMemo(() => {
         // Only show split tab selector if we are creating a split (not editing existing splits)
-        if (!shouldShowMakeSplitsEven) {
+        if (!isInitialSplit) {
             return;
         }
 
@@ -420,7 +420,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 equalWidth
             />
         );
-    }, [expensifyIcons.MoneyCircle, expensifyIcons.Percent, isPercentageMode, shouldShowMakeSplitsEven, translate]);
+    }, [expensifyIcons.MoneyCircle, expensifyIcons.Percent, isPercentageMode, isInitialSplit, translate]);
 
     const headerTitle = useMemo(() => {
         if (splitExpenseTransactionID) {

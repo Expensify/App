@@ -127,7 +127,6 @@ function SplitListItem<TItem extends ListItem>({
                                     <SplitAmountDisplay
                                         shouldRemoveSpacing
                                         splitItem={splitItem}
-                                        contentWidth={contentWidth}
                                     />
                                 )}
                             </View>

@@ -5536,7 +5536,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             paddingBottom: bottomSafeAreaOffset,
         }),
 
-        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number) => ({
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,
             marginRight: 4,
