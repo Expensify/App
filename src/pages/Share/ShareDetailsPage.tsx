@@ -64,8 +64,14 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const ancestors = useAncestors(report);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
 
+    const shouldShowAttachment = !isTextShared;
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
-    const validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
+
+    let validateFileName = '';
+    if (shouldShowAttachment) {
+        validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
+    }
+
     const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? CONST.SHARE_FILE_MIMETYPE.JPEG) : (currentAttachment?.mimeType ?? '');
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
@@ -80,7 +86,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     }, [reportAttachmentsContext, fileSource, validateFileName, expensifyIcons.FallbackAvatar]);
 
     useEffect(() => {
-        if (!currentAttachment?.content || errorTitle) {
+        if (!currentAttachment?.content || errorTitle || !shouldShowAttachment) {
             return;
         }
         getFileSize(currentAttachment?.content).then((size) => {
@@ -94,7 +100,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 setErrorMessage(translate('attachmentPicker.sizeNotMet'));
             }
         });
-    }, [currentAttachment, errorTitle, translate]);
+    }, [currentAttachment, errorTitle, translate, shouldShowAttachment]);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -110,7 +116,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
 
     const isDraft = isDraftReport(reportOrAccountID);
     const currentUserID = getCurrentUserAccountID();
-    const shouldShowAttachment = !isTextShared;
+
     const handleShare = () => {
         if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
             return;
