@@ -55,7 +55,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import {endSpan, startSpan, cancelSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
