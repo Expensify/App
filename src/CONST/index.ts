@@ -1202,7 +1202,6 @@ const CONST = {
                 CREATED: 'CREATED',
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // Deprecated OldDot Action
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
-                DEW_APPROVE_FAILED: 'DEW_APPROVE_FAILED',
                 DEW_SUBMIT_FAILED: 'DEW_SUBMIT_FAILED',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
