@@ -450,6 +450,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
 
     const finallyData: OnyxUpdate[] = [];
     const currentTime = DateUtils.getDBTime();
+    // eslint-disable-next-line unicorn/no-array-for-each
     reportsToArchive.forEach((report) => {
         const {reportID, ownerAccountID, oldPolicyName} = report ?? {};
         const isInvoiceReceiverReport = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID;
@@ -541,6 +542,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         }
     });
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.keys(lastUsedPaymentMethods ?? {})?.forEach((paymentMethodKey) => {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodKey];
 
@@ -1044,6 +1046,7 @@ function leaveWorkspace(policyID?: string) {
 
     const pendingChatMembers = ReportUtils.getPendingChatMembers([sessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     workspaceChats.forEach((report) => {
         const parentReport = ReportUtils.getRootParentReport({report});
         const reportToCheckOwner = isEmptyObject(parentReport) ? report : parentReport;
@@ -1242,6 +1245,7 @@ function createPolicyExpenseChats(
         reportCreationData: {},
     };
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.keys(invitedEmailsToAccountIDs).forEach((email) => {
         const accountID = invitedEmailsToAccountIDs[email];
         const cleanAccountID = Number(accountID);
@@ -1272,6 +1276,7 @@ function createPolicyExpenseChats(
             });
             const currentTime = DateUtils.getDBTime();
             const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChat.reportID}`] ?? {};
+            // eslint-disable-next-line unicorn/no-array-for-each
             Object.values(reportActions).forEach((action) => {
                 if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     return;
@@ -2361,6 +2366,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     if (getAdminPolicies().length === 0 && lastUsedPaymentMethod) {
         Object.values(allReports ?? {})
             .filter((iouReport) => iouReport?.type === CONST.REPORT.TYPE.IOU)
+            // eslint-disable-next-line unicorn/no-array-for-each
             .forEach((iouReport) => {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (lastUsedPaymentMethod?.iou?.name || !iouReport?.policyID) {
@@ -3702,6 +3708,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     // For performance reasons, we are going to compose a merge collection data for transactions
     const transactionsOptimisticData: Record<string, Transaction> = {};
     const transactionFailureData: Record<string, Transaction> = {};
+    // eslint-disable-next-line unicorn/no-array-for-each
     reportTransactions.forEach((transaction) => {
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
@@ -5266,8 +5273,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
     API.write(WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE, parameters, onyxData);
 }
 
-function getCashExpenseReimbursableMode(policyID: string): PolicyCashExpenseMode | undefined {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+function getCashExpenseReimbursableMode(policy: OnyxEntry<Policy>): PolicyCashExpenseMode | undefined {
     if (!policy) {
         return undefined;
     }
@@ -5678,18 +5684,13 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
     });
 }
 
-/**
- * Call the API to enable or disable self approvals for the reports
- * @param policyID - id of the policy to apply the naming pattern to
- * @param preventSelfApproval - flag whether to prevent workspace members from approving their own expense reports
- */
-function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boolean) {
+function getSetPolicyPreventSelfApprovalOnyxData(policyID: string, preventSelfApproval: boolean): OnyxData {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     if (preventSelfApproval === policy?.preventSelfApproval) {
-        return;
+        return {};
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -5733,6 +5734,25 @@ function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boo
             },
         },
     ];
+
+    return {optimisticData, failureData, successData};
+}
+
+/**
+ * Call the API to enable or disable self approvals for the reports
+ * @param policyID - id of the policy to apply the naming pattern to
+ * @param preventSelfApproval - flag whether to prevent workspace members from approving their own expense reports
+ */
+function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boolean) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policy = getPolicy(policyID);
+
+    if (preventSelfApproval === policy?.preventSelfApproval) {
+        return;
+    }
+
+    const {optimisticData, failureData, successData} = getSetPolicyPreventSelfApprovalOnyxData(policyID, preventSelfApproval);
 
     const parameters: SetPolicyPreventSelfApprovalParams = {
         preventSelfApproval,
@@ -6128,6 +6148,7 @@ function clearAllPolicies() {
     if (!allPolicies) {
         return;
     }
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.keys(allPolicies).forEach((key) => delete allPolicies[key]);
 }
 
@@ -6533,4 +6554,5 @@ export {
     clearPolicyTitleFieldError,
     inviteWorkspaceEmployeesToUber,
     setWorkspaceConfirmationCurrency,
+    getSetPolicyPreventSelfApprovalOnyxData,
 };

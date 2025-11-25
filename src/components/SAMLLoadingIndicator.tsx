@@ -1,18 +1,19 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import * as Illustrations from './Icon/Illustrations';
 import Text from './Text';
 
 function SAMLLoadingIndicator() {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['RocketBlue'] as const);
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
     return (
         <View style={[StyleSheet.absoluteFillObject, styles.deeplinkWrapperContainer]}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -20,7 +21,7 @@ function SAMLLoadingIndicator() {
                     <Icon
                         width={200}
                         height={164}
-                        src={Illustrations.RocketBlue}
+                        src={illustrations.RocketBlue}
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('samlSignIn.launching')}</Text>
@@ -38,7 +39,7 @@ function SAMLLoadingIndicator() {
                     width={154}
                     height={34}
                     fill={theme.success}
-                    src={Expensicons.ExpensifyWordmark}
+                    src={icons.ExpensifyWordmark}
                 />
             </View>
         </View>
