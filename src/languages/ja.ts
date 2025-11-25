@@ -4616,7 +4616,7 @@ ${
             companyCard: '会社カード',
             chooseCardFeed: 'カードフィードを選択',
             ukRegulation:
-                'Expensify, Inc.は、Plaid Financial Ltd.の代理店であり、支払いサービス規則2017に基づいて金融行動監視機構によって規制されている認可支払い機関です（会社参照番号: 804718）。Plaidは、Expensify Limitedをその代理店として通じて、規制されたアカウント情報サービスを提供します。',
+                'Expensify Limitedは、Plaid Financial Ltd.の代理店であり、支払いサービス規則2017に基づいて金融行動監視機構によって規制されている認可支払い機関です（会社参照番号: 804718）。Plaidは、Expensify Limitedをその代理店として通じて、規制されたアカウント情報サービスを提供します。',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensifyカードを発行および管理する',
