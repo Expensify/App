@@ -103,6 +103,7 @@ import {
     isClosedReport,
     isInvoiceReport,
     isMoneyRequestReport,
+    isOneTransactionReport,
     isOpenExpenseReport,
     isOpenReport,
     isSettled,
@@ -1291,7 +1292,7 @@ function getActions(
     }
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
     // If this condition is not met, return early for performance reasons
-    const isFromOneTransactionReport = report.transactionCount === 1;
+    const isFromOneTransactionReport = isOneTransactionReport(report);
     if (isTransaction && !isFromOneTransactionReport) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
