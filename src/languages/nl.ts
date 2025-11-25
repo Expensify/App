@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -696,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopiëren naar klembord',
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
+        reportName: 'Rapportnaam',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1341,7 +1343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `verplaatste uitgave van persoonlijke ruimte naar ${workspaceName ?? `chat met ${reportName}`}`,
         movedToPersonalSpace: 'verplaatste uitgave naar persoonlijke ruimte',
-        tagSelection: 'Selecteer een tag om uw uitgaven beter te organiseren.',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `Selecteer ${policyTagListName ?? 'een tag'} om je uitgaven beter te organiseren.`,
         categorySelection: 'Selecteer een categorie om uw uitgaven beter te organiseren.',
         error: {
             invalidCategoryLength: 'De categorienaam overschrijdt 255 tekens. Verkort deze of kies een andere categorie.',
@@ -1618,9 +1620,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Deze functie vereist dat je je account verifieert.',
         validateAccount: 'Valideer uw account',
         helpText: ({email}: {email: string}) =>
-            `Voeg meer manieren toe om bonnen te verzenden. Stuur ze naar <copy-text text="${email}"/> of stuur ze naar 47777 (alleen Amerikaanse nummers).`,
-        pleaseVerify: 'Verifieer deze contactmethode alstublieft',
-        getInTouch: 'Telkens wanneer we contact met je moeten opnemen, gebruiken we deze contactmethode.',
+            `Voeg meer manieren toe om in te loggen en bonnetjes naar Expensify te sturen.<br/><br/>Voeg een e-mailadres toe om bonnetjes door te sturen naar <a href="mailto:${email}">${email}</a> of voeg een telefoonnummer toe om bonnetjes te sms’en naar 47777 (alleen Amerikaanse nummers).`,
+        pleaseVerify: 'Verifieer deze contactmethode alstublieft.',
+        getInTouch: 'We gebruiken deze methode om contact met je op te nemen.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Voer de magische code in die is verzonden naar ${contactMethod}. Het zou binnen een minuut of twee moeten aankomen.`,
         setAsDefault: 'Instellen als standaard',
         yourDefaultContactMethod:
@@ -2098,6 +2100,10 @@ ${amount} voor ${merchant} - ${date}`,
         addApprovalsDescription: 'Vereis extra goedkeuring voordat een betaling wordt geautoriseerd.',
         makeOrTrackPaymentsTitle: 'Betalingen maken of volgen',
         makeOrTrackPaymentsDescription: 'Voeg een geautoriseerde betaler toe voor betalingen gedaan in Expensify of volg betalingen die elders zijn gedaan.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>Er is een aangepaste goedkeuringsworkflow ingeschakeld voor deze workspace. Neem contact op met uw <account-manager-link>Accountmanager</account-manager-link> of <concierge-link>Concierge</concierge-link> om deze workflow te bekijken of te wijzigen.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>Er is een aangepaste goedkeuringsworkflow ingeschakeld voor deze workspace. Neem contact op met <concierge-link>Concierge</concierge-link> om deze workflow te bekijken of te wijzigen.</muted-text-label>',
         editor: {
             submissionFrequency: 'Kies hoe lang Expensify moet wachten voordat foutloze uitgaven worden gedeeld.',
         },
@@ -3292,6 +3298,9 @@ ${
         whatsYourAddress: 'Wat is jouw adres?',
         whatAreTheLast: 'Wat zijn de laatste 4 cijfers van het burgerservicenummer van de eigenaar?',
         whatsYourLast: 'Wat zijn de laatste 4 cijfers van uw burgerservicenummer?',
+        whatsYourNationality: 'Wat is uw nationaliteitsland?',
+        whatsTheOwnersNationality: 'Wat is het nationaliteitsland van de eigenaar?',
+        countryOfCitizenship: 'Nationaliteitsland',
         dontWorry: 'Maak je geen zorgen, we doen geen persoonlijke kredietcontroles!',
         last4: 'Laatste 4 van SSN',
         whyDoWeAsk: 'Waarom vragen we hierom?',
@@ -5887,7 +5896,7 @@ ${
                 billableDescription: 'Uitgaven worden meestal doorberekend aan klanten.',
                 nonBillable: 'Niet-factureerbaar',
                 nonBillableDescription: 'Uitgaven worden soms opnieuw gefactureerd aan klanten.',
-                eReceipts: 'eReceipts',
+                eReceipts: 'eRecepten',
                 eReceiptsHint: `eRecepten worden automatisch aangemaakt [voor de meeste USD-krediettransacties](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Deelnemer tracking',
                 attendeeTrackingHint: 'Volg de kosten per persoon voor elke uitgave.',
@@ -6226,6 +6235,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} bijhouden van aanwezigen`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',
