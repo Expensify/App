@@ -50,8 +50,6 @@ describe('ReportDetailsPage', () => {
         const transactionID = '3';
         const transaction = createRandomTransaction(1);
 
-        Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReportID);
-
         const trackExpenseReport: Report = {
             ...createRandomReport(Number(trackExpenseReportID), undefined),
             parentReportID: selfDMReportID,

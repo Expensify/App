@@ -2002,8 +2002,6 @@ describe('actions/Report', () => {
 
     describe('deleteAppReport', () => {
         it('should only moves CREATE or TRACK type of IOU action to self DM', async () => {
-            const SELF_DM_REPORT_ID = '10';
-            Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, SELF_DM_REPORT_ID);
 
             // Given an expense report with CREATE, TRACK, and PAY of IOU actions
             const reportID = '1';
@@ -2052,7 +2050,6 @@ describe('actions/Report', () => {
 
             // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
             const selfDMReportID = ReportUtils.findSelfDMReportID();
-            expect(selfDMReportID).toBe(SELF_DM_REPORT_ID);
             const selfDMReportActions = await new Promise<OnyxEntry<OnyxTypes.ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,

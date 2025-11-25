@@ -7842,10 +7842,9 @@ describe('actions/IOU', () => {
             let personalDetailsList: OnyxEntry<PersonalDetailsList>;
             let expenseReport: OnyxEntry<Report>;
             let transaction: OnyxEntry<Transaction>;
-            const SELF_DM_REPORT_ID = '10';
+
             // Given a signed in account, which owns a workspace, and has a policy expense chat
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
-            Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, SELF_DM_REPORT_ID);
             const creatorPersonalDetails = personalDetailsList?.[CARLOS_ACCOUNT_ID] ?? {accountID: CARLOS_ACCOUNT_ID};
 
             const policyID = generatePolicyID();
@@ -7863,7 +7862,7 @@ describe('actions/IOU', () => {
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
-                reportID: SELF_DM_REPORT_ID,
+                reportID: '10',
             };
 
             const amount = 100;

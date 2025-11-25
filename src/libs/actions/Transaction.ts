@@ -753,11 +753,6 @@ function changeTransactionsReport(
                     [selfDMCreatedReportAction.reportActionID]: selfDMCreatedReportAction,
                 },
             },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.SELF_DM_REPORT_ID,
-                value: selfDMReport.reportID,
-            },
         );
 
         // Add success data for self DM report
@@ -801,11 +796,6 @@ function changeTransactionsReport(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                value: null,
-            },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.SELF_DM_REPORT_ID,
                 value: null,
             },
         );

@@ -4846,11 +4846,6 @@ function deleteAppReport(reportID: string | undefined) {
                     [createdAction.reportActionID]: createdAction,
                 },
             },
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.SELF_DM_REPORT_ID,
-                value: selfDMReport.reportID,
-            },
         );
 
         successData.push(
@@ -4880,12 +4875,6 @@ function deleteAppReport(reportID: string | undefined) {
                 },
             },
         );
-
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.SELF_DM_REPORT_ID,
-            value: null,
-        });
     }
 
     // 1. Get all report transactions

@@ -3996,10 +3996,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     // STEP 1: Get existing chat report
     let chatReport = !isEmptyObject(parentChatReport) && parentChatReport?.reportID ? parentChatReport : null;
 
-    const selfDMReportID = findSelfDMReportID();
     // If no chat report is passed, defaults to the self-DM report
     if (!chatReport) {
-        chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`] ?? null;
+        chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`] ?? null;
     }
 
     // If we are still missing the chat report then optimistically create the self-DM report and use it
