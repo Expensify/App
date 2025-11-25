@@ -210,7 +210,8 @@ function WorkspaceReportFieldsPage({
                                 pendingAction={reportTitlePendingFields.defaultValue}
                                 shouldForceOpacity={!!reportTitlePendingFields.defaultValue}
                                 errors={reportTitleErrors}
-                                errorRowStyles={[styles.mh0, styles.mt2]}
+                                errorRowStyles={[styles.mh0]}
+                                errorRowTextStyles={[styles.mv2]}
                                 onClose={clearTitleFieldError}
                             >
                                 <MenuItemWithTopDescription
