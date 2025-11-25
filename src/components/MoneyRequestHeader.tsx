@@ -161,7 +161,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const duplicateTransaction = useCallback(
         (transactions: Array<OnyxEntry<Transaction>>) => {
-            if (!transactions.length || !activePolicyExpenseChat || !defaultExpensePolicy) {
+            if (!transactions.length) {
                 return;
             }
 

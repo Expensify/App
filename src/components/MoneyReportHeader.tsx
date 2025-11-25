@@ -561,7 +561,7 @@ function MoneyReportHeader({
 
     const duplicateExpenseTransaction = useCallback(
         (transactionList: Array<OnyxEntry<OnyxTypes.Transaction>>) => {
-            if (!transactionList.length || !activePolicyExpenseChat || !defaultExpensePolicy) {
+            if (!transactionList.length) {
                 return;
             }
 

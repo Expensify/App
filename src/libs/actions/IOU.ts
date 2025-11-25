@@ -6675,6 +6675,13 @@ function duplicateTransaction(
         backToReport: false,
     };
 
+    // If no workspace is provided the expense should be unreported
+    if (!targetPolicy) {
+        params.report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`] ?? null;
+        params.policyParams = {};
+        return trackExpense(params);
+    }
+
     const transactionType = getTransactionType(transaction);
 
     switch (transactionType) {
@@ -6687,7 +6694,6 @@ function duplicateTransaction(
         default:
             return requestMoney(params);
     }
-    
 }
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
