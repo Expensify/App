@@ -6655,6 +6655,7 @@ const translations = {
                 `Are you sure you want to create another report in ${workspaceName}? You can access your empty reports in`,
             emptyReportConfirmationPromptLink: 'Reports',
             genericWorkspaceName: 'this workspace',
+            autoUpdateRateHint: 'The expense rate will be automatically updated to the workspace rate',
         },
         genericCreateReportFailureMessage: 'Unexpected error creating this chat. Please try again later.',
         genericAddCommentFailureMessage: 'Unexpected error posting the comment. Please try again later.',

@@ -6551,6 +6551,7 @@ ${
                 `Czy na pewno chcesz utworzyć kolejny raport w ${workspaceName}? Do pustych raportów możesz przejść w`,
             emptyReportConfirmationPromptLink: 'Raporty',
             genericWorkspaceName: 'tej przestrzeni roboczej',
+            autoUpdateRateHint: 'Stawka wydatku zostanie automatycznie zaktualizowana do stawki w obszarze roboczym.',
         },
         genericCreateReportFailureMessage: 'Nieoczekiwany błąd podczas tworzenia tego czatu. Proszę spróbować ponownie później.',
         genericAddCommentFailureMessage: 'Nieoczekiwany błąd podczas publikowania komentarza. Spróbuj ponownie później.',

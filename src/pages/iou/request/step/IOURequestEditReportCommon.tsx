@@ -223,6 +223,7 @@ function IOURequestEditReportCommon({
                 onPress={createReport}
                 title={translate('report.newReport.createReport')}
                 description={policyForMovingExpenses?.name}
+                hintText={translate('report.newReport.autoUpdateRateHint')}
                 icon={icons.Document}
             />
         );

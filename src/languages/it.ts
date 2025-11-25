@@ -6581,6 +6581,7 @@ ${
                 `Sei sicuro di voler creare un altro rapporto in ${workspaceName}? Puoi accedere ai tuoi rapporti vuoti in`,
             emptyReportConfirmationPromptLink: 'Rapporti',
             genericWorkspaceName: 'questo spazio di lavoro',
+            autoUpdateRateHint: 'Il tasso della spesa sarà aggiornato automaticamente al tasso del workspace.',
         },
         genericCreateReportFailureMessage: 'Errore imprevisto durante la creazione di questa chat. Si prega di riprovare più tardi.',
         genericAddCommentFailureMessage: 'Errore imprevisto durante la pubblicazione del commento. Per favore riprova più tardi.',
