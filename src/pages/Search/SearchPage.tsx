@@ -123,7 +123,6 @@ function SearchPage({route}: SearchPageProps) {
     > | null>(null);
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
@@ -324,27 +323,14 @@ function SearchPage({route}: SearchPageProps) {
 
     // Check if all selected transactions are from the submitter
     const areAllTransactionsFromSubmitter = useMemo(() => {
-        if (selectedTransactionsKeys.length === 0 || !allReports || !currentUserPersonalDetails?.accountID) {
+        if (!currentUserPersonalDetails?.accountID) {
             return false;
         }
 
-        return selectedTransactionsKeys.every((transactionID) => {
-            const transaction = selectedTransactions[transactionID];
-            if (!transaction?.reportID) {
-                return false;
-            }
-            const report = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
-            if (!report) {
-                return false;
-            }
-            // Check if the report is an IOU report and if current user is the submitter
-            const isIOUReport = isIOUReportUtil(report.reportID) || isExpenseReportUtil(report.reportID);
-            if (!isIOUReport) {
-                return false;
-            }
-            return isCurrentUserSubmitter(report);
+        return selectedTransactionReportIDs.length > 0  && selectedTransactionReportIDs.every((id) => {
+            return isCurrentUserSubmitter(getReportOrDraftReport(id));
         });
-    }, [selectedTransactionsKeys, selectedTransactions, allReports, currentUserPersonalDetails?.accountID]);
+    }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID]);
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
