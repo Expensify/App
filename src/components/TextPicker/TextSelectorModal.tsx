@@ -145,7 +145,11 @@ function TextSelectorModal({
                     addBottomSafeAreaPadding
                     enterKeyEventListenerPriority={0}
                 >
-                    <View style={styles.pb4}>{!!subtitle && <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>}</View>
+                    {!!subtitle && (
+                        <View style={styles.pb4}>
+                            <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>
+                        </View>
+                    )}
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
