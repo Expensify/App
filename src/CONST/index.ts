@@ -3041,11 +3041,6 @@ const CONST = {
             REIMBURSEMENT_NO: 'reimburseNo', // None
             REIMBURSEMENT_MANUAL: 'reimburseManual', // Indirect
         },
-        ENFORCEMENT_SETTING: {
-            PREVENT_SELF_APPROVAL: 'preventSelfApproval',
-            AUTO_APPROVE_COMPLIANT_REPORTS: 'autoApproveCompliantReports',
-            AUTO_PAY_APPROVED_REPORTS: 'autoPayApprovedReports',
-        },
         CASH_EXPENSE_REIMBURSEMENT_CHOICES: {
             REIMBURSABLE_DEFAULT: 'reimbursableDefault', // Reimbursable by default
             NON_REIMBURSABLE_DEFAULT: 'nonReimbursableDefault', // Non-reimbursable by default
@@ -7000,6 +6995,24 @@ const CONST = {
             policyPreventMemberChangingTitle: {
                 id: 'policyPreventMemberChangingTitle' as const,
                 alias: 'policy-prevent-member-changing-title',
+                name: undefined,
+                icon: undefined,
+            },
+            preventSelfApproval: {
+                id: 'preventSelfApproval' as const,
+                alias: 'prevent-self-approval',
+                name: undefined,
+                icon: undefined,
+            },
+            autoApproveCompliantReports: {
+                id: 'autoApproveCompliantReports' as const,
+                alias: 'auto-approve-compliant-reports',
+                name: undefined,
+                icon: undefined,
+            },
+            autoPayApprovedReports: {
+                id: 'autoPayApprovedReports' as const,
+                alias: 'auto-pay-approved-reports',
                 name: undefined,
                 icon: undefined,
             },

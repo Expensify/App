@@ -18,7 +18,6 @@ import {canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
-import {clearPendingEnforcementSetting} from '@src/libs/actions/Policy/EnforcementSettings';
 import {
     enableAutoApprovalOptions,
     enableCompanyCards,
@@ -59,19 +58,27 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
 
-    const feature = useMemo(
-        () =>
-            Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
-                .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
-                .find((f) => f.alias === featureNameAlias),
-        [featureNameAlias],
-    );
+    const feature = useMemo(() => {
+        // For enforcement settings, use the approvals feature content
+        const enforcementAliases = [
+            CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.alias,
+            CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.alias,
+            CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias,
+        ];
+
+        if (featureNameAlias && enforcementAliases.includes(featureNameAlias as string)) {
+            return CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals;
+        }
+
+        return Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
+            .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
+            .find((f) => f.alias === featureNameAlias);
+    }, [featureNameAlias]);
     const {translate} = useLocalize();
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false, selector: ownerPoliciesSelectorWithAccountID});
-    const [pendingEnforcementSetting] = useOnyx(ONYXKEYS.PENDING_ENFORCEMENT_SETTING, {canBeMissing: true});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 
@@ -89,22 +96,27 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         switch (feature?.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id:
-                if (pendingEnforcementSetting && pendingEnforcementSetting.policyID === policyID) {
-                    switch (pendingEnforcementSetting.setting) {
-                        case CONST.POLICY.ENFORCEMENT_SETTING.PREVENT_SELF_APPROVAL:
-                            setPolicyPreventSelfApproval(policyID, true);
-                            break;
-                        case CONST.POLICY.ENFORCEMENT_SETTING.AUTO_APPROVE_COMPLIANT_REPORTS:
-                            enableAutoApprovalOptions(policyID, true);
-                            break;
-                        case CONST.POLICY.ENFORCEMENT_SETTING.AUTO_PAY_APPROVED_REPORTS:
-                            enablePolicyAutoReimbursementLimit(policyID, true);
-                            break;
-                        default:
-                            break;
-                    }
-                    clearPendingEnforcementSetting();
+                Navigation.goBack();
+                if (route.params.backTo) {
+                    Navigation.navigate(route.params.backTo);
                 }
+                return;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id:
+                setPolicyPreventSelfApproval(policyID, true);
+                Navigation.goBack();
+                if (route.params.backTo) {
+                    Navigation.navigate(route.params.backTo);
+                }
+                return;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id:
+                enableAutoApprovalOptions(policyID, true);
+                Navigation.goBack();
+                if (route.params.backTo) {
+                    Navigation.navigate(route.params.backTo);
+                }
+                return;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
+                enablePolicyAutoReimbursementLimit(policyID, true);
                 Navigation.goBack();
                 if (route.params.backTo) {
                     Navigation.navigate(route.params.backTo);
@@ -131,7 +143,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             default:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
-    }, [feature, policyID, route.params?.backTo, route.params?.featureName, featureNameAlias, pendingEnforcementSetting]);
+    }, [feature, policyID, route.params?.backTo, route.params?.featureName, featureNameAlias]);
 
     const onUpgradeToCorporate = () => {
         if (!canPerformUpgrade || !policy) {

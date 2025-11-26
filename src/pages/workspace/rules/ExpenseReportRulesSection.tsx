@@ -7,7 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setPendingEnforcementSetting} from '@libs/actions/Policy/EnforcementSettings';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getWorkflowApprovalsUnavailable, hasVBBA, isControlPolicy} from '@libs/PolicyUtils';
@@ -15,7 +14,6 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {PendingEnforcementSetting} from '@src/types/onyx';
 
 type ExpenseReportRulesSectionProps = {
     policyID: string;
@@ -41,18 +39,6 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
         return translate('workspace.rules.expenseReportRules.enableFeatureSubtitle', {featureName, moreFeaturesLink});
     };
 
-    const handleToggleWithUpgradeCheck = (isEnabled: boolean, action: () => void, settingType: PendingEnforcementSetting['setting']) => {
-        if (!policyID) {
-            return;
-        }
-        if (isEnabled && !isControlPolicy(policy)) {
-            setPendingEnforcementSetting({policyID, setting: settingType});
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
-            return;
-        }
-        action();
-    };
-
     const optionItems = [
         {
             title: translate('workspace.rules.expenseReportRules.preventSelfApprovalsTitle'),
@@ -65,8 +51,16 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             disabled: shouldLockPreventSelfApprovals || isPolicyPendingCreation,
             showLockIcon: shouldLockPreventSelfApprovals,
             pendingAction: policy?.pendingFields?.preventSelfApproval,
-            onToggle: (isEnabled: boolean) =>
-                handleToggleWithUpgradeCheck(isEnabled, () => setPolicyPreventSelfApproval(policyID, isEnabled), CONST.POLICY.ENFORCEMENT_SETTING.PREVENT_SELF_APPROVAL),
+            onToggle: (isEnabled: boolean) => {
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(
+                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)),
+                    );
+                    return;
+                }
+
+                setPolicyPreventSelfApproval(policyID, isEnabled);
+            },
         },
         {
             title: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
@@ -79,8 +73,16 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             disabled: workflowApprovalsUnavailable || isPolicyPendingCreation,
             showLockIcon: workflowApprovalsUnavailable,
             pendingAction: policy?.pendingFields?.shouldShowAutoApprovalOptions,
-            onToggle: (isEnabled: boolean) =>
-                handleToggleWithUpgradeCheck(isEnabled, () => enableAutoApprovalOptions(policyID, isEnabled), CONST.POLICY.ENFORCEMENT_SETTING.AUTO_APPROVE_COMPLIANT_REPORTS),
+            onToggle: (isEnabled: boolean) => {
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(
+                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)),
+                    );
+                    return;
+                }
+
+                enableAutoApprovalOptions(policyID, isEnabled);
+            },
             subMenuItems: [
                 <OfflineWithFeedback
                     pendingAction={!policy?.pendingFields?.shouldShowAutoApprovalOptions && policy?.autoApproval?.pendingFields?.limit ? policy?.autoApproval?.pendingFields?.limit : null}
@@ -117,8 +119,16 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                 : translate('workspace.rules.expenseReportRules.autoPayApprovedReportsSubtitle'),
             shouldParseSubtitle: autoPayApprovedReportsUnavailable,
             switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.autoPayApprovedReportsTitle'),
-            onToggle: (isEnabled: boolean) =>
-                handleToggleWithUpgradeCheck(isEnabled, () => enablePolicyAutoReimbursementLimit(policyID, isEnabled), CONST.POLICY.ENFORCEMENT_SETTING.AUTO_PAY_APPROVED_REPORTS),
+            onToggle: (isEnabled: boolean) => {
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(
+                        ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)),
+                    );
+                    return;
+                }
+
+                enablePolicyAutoReimbursementLimit(policyID, isEnabled);
+            },
             disabled: autoPayApprovedReportsUnavailable || isPolicyPendingCreation,
             showLockIcon: autoPayApprovedReportsUnavailable,
             isActive: policy?.shouldShowAutoReimbursementLimitOption && !autoPayApprovedReportsUnavailable,
