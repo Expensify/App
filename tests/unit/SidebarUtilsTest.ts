@@ -923,8 +923,8 @@ describe('SidebarUtils', () => {
                 message: [
                     {
                         type: 'COMMENT',
-                        html: `<muted-text>This workspace has been upgraded to the Control plan. Click <a href="${CONST.PLAN_TYPES_AND_PRICING_HELP_URL}">here</a> for more information.</muted-text>`,
-                        text: `This workspace has been upgraded to the Control plan. Click <a href="${CONST.PLAN_TYPES_AND_PRICING_HELP_URL}">here</a> for more information.`,
+                        html: `<muted-text>This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.</muted-text>`,
+                        text: `This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.`,
                         isDeletedParentAction: false,
                         deleted: '',
                     },

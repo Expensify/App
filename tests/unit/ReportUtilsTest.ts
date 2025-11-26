@@ -1523,7 +1523,7 @@ describe('ReportUtils', () => {
                             });
 
                             expect(reportName).toBe(
-                                `This workspace has been upgraded to the Control plan. Click <a href="${CONST.PLAN_TYPES_AND_PRICING_HELP_URL}">here</a> for more information.`,
+                                `This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.`,
                             );
                         });
                     });
