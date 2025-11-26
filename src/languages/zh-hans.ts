@@ -1594,9 +1594,10 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: '联系方式',
         featureRequiresValidate: '此功能需要您验证您的账户。',
         validateAccount: '验证您的账户',
-        helpText: ({email}: {email: string}) => `添加更多发送收据的方式。转发到 <copy-text text="${email}"/> 或将其发送至 47777（仅限美国号码）。`,
-        pleaseVerify: '请验证此联系方式',
-        getInTouch: '每当我们需要联系您时，我们将使用此联系方式。',
+        helpText: ({email}: {email: string}) =>
+            `添加更多登录方式并将收据发送到 Expensify。<br/><br/>添加电子邮件地址以将收据转发至 <a href="mailto:${email}">${email}</a>，或添加电话号码将收据短信发送至 47777（仅限美国号码）。`,
+        pleaseVerify: '请验证此联系方式。',
+        getInTouch: '我们将使用此方式与您联系。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码。验证码将在一分钟内到达。`,
         setAsDefault: '设为默认',
         yourDefaultContactMethod: '这是您当前的默认联系方式。在删除它之前，您需要选择另一种联系方式并点击“设为默认”。',
@@ -4556,7 +4557,7 @@ ${
             companyCard: '公司卡',
             chooseCardFeed: '选择卡片信息流',
             ukRegulation:
-                'Expensify, Inc. 是 Plaid Financial Ltd. 的代理商，Plaid Financial Ltd. 是一家授权支付机构，受金融行为监管局根据2017年支付服务条例的监管（公司参考编号：804718）。Plaid 通过 Expensify Limited 作为其代理商为您提供受监管的账户信息服务。',
+                'Expensify Limited 是 Plaid Financial Ltd. 的代理商，Plaid Financial Ltd. 是一家授权支付机构，受金融行为监管局根据2017年支付服务条例的监管（公司参考编号：804718）。Plaid 通过 Expensify Limited 作为其代理商为您提供受监管的账户信息服务。',
         },
         expensifyCard: {
             issueAndManageCards: '发行和管理您的Expensify卡片',
@@ -7328,6 +7329,18 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name}邀请你试用Expensify\n嘿！我刚为我们获得了*3个月免费*试用Expensify，这是处理费用的最快方式。\n\n这里有一个*测试收据*来向你展示它的工作原理：`,
+    },
+    reportLayout: {
+        reportLayout: '报告布局',
+        groupByLabel: '分组方式：',
+        selectGroupByOption: '选择如何对报告费用进行分组',
+        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
+        groupHeaderHint: ({action}: {action: string}) => `${action}此组`,
+        selectGroup: ({groupName}: {groupName: string}) => `选择${groupName}中的所有费用`,
+        groupBy: {
+            category: '类别',
+            tag: '标签',
+        },
     },
     export: {
         basicExport: '基本导出',
