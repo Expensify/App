@@ -598,6 +598,8 @@ const translations: TranslationDeepObject<typeof en> = {
         draft: 'Bozza',
         finished: 'Finito',
         upgrade: 'Aggiorna',
+        upgradeWorkspaceWarning: 'Impossibile aggiornare lo spazio di lavoro',
+        upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'La tua azienda ha limitato la creazione di spazi di lavoro. Contatta un amministratore per assistenza.',
         downgradeWorkspace: 'Declassa spazio di lavoro',
         companyID: 'ID azienda',
         userID: 'User ID',

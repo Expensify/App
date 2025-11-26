@@ -598,6 +598,8 @@ const translations: TranslationDeepObject<typeof en> = {
         draft: 'Entwurf',
         finished: 'Fertiggestellt',
         upgrade: 'Upgrade',
+        upgradeWorkspaceWarning: 'Arbeitsbereich kann nicht aktualisiert werden',
+        upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Ihr Unternehmen hat die Erstellung von Arbeitsbereichen eingeschränkt. Bitte wenden Sie sich an einen Administrator.',
         downgradeWorkspace: 'Arbeitsbereich herabstufen',
         companyID: 'Unternehmens-ID',
         userID: 'Benutzer-ID',

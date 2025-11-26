@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,6 +10,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
@@ -46,12 +48,14 @@ function IOURequestStepUpgrade({
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [showConfirmationForm, setShowConfirmationForm] = useState(false);
     const [createdPolicyName, setCreatedPolicyName] = useState('');
+    const [isUpgradeWarningModalOpen, setIsUpgradeWarningModalOpen] = useState(false);
     const policyDataRef = useRef<CreateWorkspaceParams | null>(null);
     const isDistanceRateUpgrade = upgradePath === CONST.UPGRADE_PATHS.DISTANCE_RATES;
     const isCategorizing = upgradePath === CONST.UPGRADE_PATHS.CATEGORIES;
     const isReporting = upgradePath === CONST.UPGRADE_PATHS.REPORTS;
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
+    const {isRestrictedPolicyCreation} = usePreferredPolicy();
 
     const feature = useMemo(
         () =>
@@ -128,6 +132,11 @@ function IOURequestStepUpgrade({
             setShowConfirmationForm(true);
             return;
         }
+
+        if (isRestrictedPolicyCreation) {
+            setIsUpgradeWarningModalOpen(true);
+            return;
+        }
         const policyData = Policy.createWorkspace({
             policyOwnerEmail: undefined,
             policyName: undefined,
@@ -145,7 +154,7 @@ function IOURequestStepUpgrade({
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
-    }, [isCategorizing, isReporting, currentUserPersonalDetails?.localCurrencyCode, isDistanceRateUpgrade, adminParticipant]);
+    }, [isCategorizing, isReporting, isRestrictedPolicyCreation, currentUserPersonalDetails?.localCurrencyCode, isDistanceRateUpgrade, adminParticipant]);
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
@@ -210,6 +219,14 @@ function IOURequestStepUpgrade({
                     addBottomSafeAreaPadding={false}
                 />
             )}
+            <ConfirmModal
+                isVisible={isUpgradeWarningModalOpen}
+                shouldShowCancelButton={false}
+                onConfirm={() => setIsUpgradeWarningModalOpen(false)}
+                title={translate('common.upgradeWorkspaceWarning')}
+                prompt={translate('common.upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt')}
+                confirmText={translate('common.buttonConfirm')}
+            />
         </ScreenWrapper>
     );
 }

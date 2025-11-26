@@ -598,6 +598,8 @@ const translations: TranslationDeepObject<typeof en> = {
         draft: 'Conceptversie',
         finished: 'Voltooid',
         upgrade: 'Upgrade',
+        upgradeWorkspaceWarning: 'Kan werkruimte niet upgraden',
+        upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Uw bedrijf heeft de creatie van werkruimten beperkt. Neem contact op met een beheerder voor hulp.',
         downgradeWorkspace: 'Werkruimte downgraden',
         companyID: 'Bedrijfs-ID',
         userID: 'Gebruikers-ID',

@@ -598,6 +598,8 @@ const translations: TranslationDeepObject<typeof en> = {
         draft: 'Szkic',
         finished: 'Zakończono',
         upgrade: 'Ulepszanie',
+        upgradeWorkspaceWarning: 'Nie można ulepszyć przestrzeni roboczej',
+        upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Twoja firma ograniczyła tworzenie przestrzeni roboczych. Skontaktuj się z administratorem, aby uzyskać pomoc.',
         downgradeWorkspace: 'Obniż poziom przestrzeni roboczej',
         companyID: 'ID firmy',
         userID: 'ID użytkownika',
