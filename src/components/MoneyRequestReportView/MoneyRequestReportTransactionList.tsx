@@ -183,7 +183,7 @@ function MoneyRequestReportTransactionList({
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(icons, report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [report?.reportID, policy, lastDistanceExpenseType],
+        [report?.reportID, policy, lastDistanceExpenseType, icons],
     );
 
     const hasPendingAction = useMemo(() => {

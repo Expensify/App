@@ -56,7 +56,7 @@ function MigratedUserWelcomeModal() {
                 translationKey: 'migratedUserWelcomeModal.features.crossPlatform',
             },
         ],
-        [illustrations.ExpensifyMobileApp],
+        [illustrations.ExpensifyMobileApp, illustrations.ChatBubbles],
     );
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {

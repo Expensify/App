@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import EmptyStateComponent from '@components/EmptyStateComponent';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
