@@ -192,7 +192,7 @@ function SuggestionEmoji({
         }
 
         debouncedCalculateEmojiSuggestion(value, selection.start, selection.end);
-    }, [value, selection, debouncedCalculateEmojiSuggestion, isComposerFocused]);
+    }, [value, selection.start, selection.end, debouncedCalculateEmojiSuggestion, isComposerFocused]);
 
     const setShouldBlockSuggestionCalc = useCallback(
         (shouldBlockSuggestionCalc: boolean) => {
