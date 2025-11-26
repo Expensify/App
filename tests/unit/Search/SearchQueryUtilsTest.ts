@@ -294,6 +294,47 @@ describe('SearchQueryUtils', () => {
                 category: ['Maintenance', 'none,Uncategorized'],
             });
         });
+
+        test('action filter should be set to undefined if the input value is invalid', () => {
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            let queryString = 'sortBy:date sortOrder:desc type:expense action:submit';
+            let queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            let result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                action: 'submit',
+            });
+
+            // invalid action value
+            queryString = 'sortBy:date sortOrder:desc type:expense action:INVALID,submit';
+            queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                action: undefined,
+            });
+        });
     });
 
     describe('shouldHighlight', () => {
@@ -304,6 +345,10 @@ describe('SearchQueryUtils', () => {
 
         it('matches exact word at beginning', () => {
             expect(shouldHighlight('Take a 2-minute tour', 'Take')).toBe(true);
+        });
+
+        it('matches word with accent', () => {
+            expect(shouldHighlight('f200é', 'f200e')).toBe(true);
         });
 
         it('matches exact word in middle', () => {
@@ -535,12 +580,12 @@ describe('SearchQueryUtils', () => {
                 CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
             ];
 
-            filterKeys.forEach((filterKey) => {
+            for (const filterKey of filterKeys) {
                 const result = getFilterDisplayValue(filterKey, '55555', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID);
 
                 expect(result).toBe('+15553334444');
                 expect(result).not.toContain('@expensify.sms');
-            });
+            }
         });
     });
 });

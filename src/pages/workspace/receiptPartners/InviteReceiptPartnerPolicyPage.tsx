@@ -1,13 +1,14 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -32,6 +33,7 @@ type InviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<WorkspaceSpl
 
 function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['ToddInCar'] as const);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -52,9 +54,9 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         // Get the list of employees from the U4B organization
         const uberEmployees = policy?.receiptPartners?.uber?.employees ?? {};
 
-        Object.entries(policy.employeeList).forEach(([email, policyEmployee]) => {
+        for (const [email, policyEmployee] of Object.entries(policy.employeeList)) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
-                return;
+                continue;
             }
 
             // Skip employees who are in the "Linked" section
@@ -64,7 +66,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                 employeeStatus === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.LINKED_PENDING_APPROVAL ||
                 employeeStatus === CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPLOYEE_STATUS.SUSPENDED
             ) {
-                return;
+                continue;
             }
 
             const personalDetail = getPersonalDetailByEmail(email);
@@ -89,7 +91,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
 
                 membersList.push(memberForList);
             }
-        });
+        }
 
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
@@ -124,12 +126,12 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         const unselectedMembers = membersToDisplay.filter(({login}) => !selectedLogins.has(login));
 
         const allMembersWithState: MemberForList[] = [];
-        filterSelectedOptions.forEach((member) => {
+        for (const member of filterSelectedOptions) {
             allMembersWithState.push({...member, isSelected: true});
-        });
-        unselectedMembers.forEach((member) => {
+        }
+        for (const member of unselectedMembers) {
             allMembersWithState.push({...member, isSelected: false});
-        });
+        }
 
         return [
             {
@@ -206,7 +208,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                     onBackButtonPress={() => Navigation.dismissModal()}
                 />
                 <ConfirmationPage
-                    illustration={Illustrations.ToddInCar}
+                    illustration={illustrations.ToddInCar}
                     illustrationStyle={styles.uberConfirmationIllustrationContainer}
                     heading={translate('workspace.receiptPartners.uber.readyToRoll')}
                     description={translate('workspace.receiptPartners.uber.takeBusinessRideMessage')}
