@@ -14,9 +14,9 @@ if [ -f .env ]; then
 fi
 
 IOS_MODE="DebugDevelopment"
-ANDROID_MODE="developmentDebug"
+ANDROID_MODE="productionRelease"
 SCHEME="New Expensify Dev"
-APP_ID="com.expensify.chat.dev"
+APP_ID="com.expensify.chat.perf.base"
 
 # Function to print error message and exit
 function print_error_and_exit {
@@ -80,7 +80,7 @@ case "$BUILD" in
             "${SCRIPT_DIR}/import-cloudflare-certs-into-jdk.sh"
         fi
 
-        npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose --dev-server "${ROCK_FLAGS[@]}"
+        npx rock run:android --local --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose --dev-server "${ROCK_FLAGS[@]}"
         ;;
     *)
         print_error_and_exit
