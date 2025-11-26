@@ -9601,15 +9601,15 @@ describe('ReportUtils', () => {
 
         const approverAccountID = 42;
         const approverEmail = 'clara+admin3@test.com';
-        const employeeAccountID = 100;
+        const employeeAccountID1 = 100;
         const employeeEmail = 'employee@test.com';
-        const policyID = 'policy-with-removed-approver';
+        const policyID1 = 'policy-with-removed-approver';
         const expenseReportID = '30000';
         const chatReportID = '30001';
 
         // Given a workspace with an admin as approver
         const policy: Policy = {
-            id: policyID,
+            id: policyID1,
             name: 'Test Policy',
             role: CONST.POLICY.ROLE.ADMIN,
             type: CONST.POLICY.TYPE.TEAM,
@@ -9634,25 +9634,25 @@ describe('ReportUtils', () => {
 
         // Employee creates and submits an expense report to the admin
         const expenseReport: Report = {
-            ...LHNTestUtils.getFakeReport([employeeAccountID, approverAccountID]),
+            ...LHNTestUtils.getFakeReport([employeeAccountID1, approverAccountID]),
             reportID: expenseReportID,
             chatReportID,
             type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: employeeAccountID,
+            ownerAccountID: employeeAccountID1,
             managerID: approverAccountID,
             currency: CONST.CURRENCY.USD,
             total: 10000,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-            policyID,
+            policyID1,
         };
 
         // The expense report chat (where GBR should appear)
         const expenseReportChat: Report = {
-            ...LHNTestUtils.getFakeReport([employeeAccountID, approverAccountID]),
+            ...LHNTestUtils.getFakeReport([employeeAccountID1, approverAccountID]),
             reportID: chatReportID,
             iouReportID: expenseReportID,
-            policyID,
+            policyID:policyID1,
             hasOutstandingChildRequest: true,
         };
 
@@ -9673,7 +9673,7 @@ describe('ReportUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
                 [submitAction.reportActionID]: submitAction,
             }),
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID1}`, policy),
         ]);
         await waitForBatchedUpdates();
 
@@ -9712,7 +9712,7 @@ describe('ReportUtils', () => {
         };
 
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID1}`, updatedPolicy);
             await waitForBatchedUpdates();
         });
 
