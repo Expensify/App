@@ -7528,18 +7528,6 @@ ${
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} hat dich eingeladen, Expensify auszuprobieren\nHey! Ich habe uns gerade *3 Monate kostenlos* gesichert, um Expensify auszuprobieren, den schnellsten Weg, um Ausgaben zu verwalten.\n\nHier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     },
-    reportLayout: {
-        reportLayout: 'Berichtslayout',
-        groupByLabel: 'Gruppieren nach:',
-        selectGroupByOption: 'Wählen Sie aus, wie Berichtsausgaben gruppiert werden sollen',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `${action} diese Gruppe`,
-        selectGroup: ({groupName}: {groupName: string}) => `Alle Ausgaben in ${groupName} auswählen`,
-        groupBy: {
-            category: 'Kategorie',
-            tag: 'Schlagwort',
-        },
-    },
     export: {
         basicExport: 'Basis Export',
         reportLevelExport: 'Alle Daten - Berichtsebene',

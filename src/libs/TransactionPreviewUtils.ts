@@ -10,7 +10,6 @@ import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './acti
 import {isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {getCurrentUserEmail} from './Network/NetworkStore';
 import {getPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
 import {
@@ -187,6 +186,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     shouldShowRBR,
     violationMessage,
     reportActions,
+    currentUserEmail,
     originalTransaction,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -198,6 +198,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     shouldShowRBR: boolean;
     violationMessage?: string;
     reportActions?: OnyxTypes.ReportActions;
+    currentUserEmail: string;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
@@ -213,7 +214,6 @@ function getTransactionPreviewTextAndTranslationPaths({
     const isTransactionScanning = isScanning(transaction);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
     const isPaidGroupPolicy = isPaidGroupPolicyUtil(iouReport);
-    const currentUserEmail = getCurrentUserEmail();
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -341,6 +341,7 @@ function createTransactionPreviewConditionals({
     isBillSplit,
     isReportAPolicyExpenseChat,
     areThereDuplicates,
+    currentUserEmail,
 }: {
     iouReport: OnyxInputValue<OnyxTypes.Report> | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction> | undefined;
@@ -350,6 +351,7 @@ function createTransactionPreviewConditionals({
     isBillSplit: boolean;
     isReportAPolicyExpenseChat: boolean;
     areThereDuplicates: boolean;
+    currentUserEmail: string;
 }) {
     const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactionDetails;
 
@@ -359,8 +361,6 @@ function createTransactionPreviewConditionals({
     const isMoneyRequestSettled = isSettled(iouReport?.reportID);
     const isApproved = isReportApproved({report: iouReport});
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
-
-    const currentUserEmail = getCurrentUserEmail();
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
