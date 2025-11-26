@@ -8,6 +8,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
@@ -22,7 +23,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -91,6 +92,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'NewWindow', 'ExpensifyCard'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Accounting'] as const);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
@@ -125,7 +127,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           onSelected: () => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBD}),
                           shouldCallAfterModalHide: true,
                           disabled: isOffline,
-                          iconRight: Expensicons.NewWindow,
+                          iconRight: icons.NewWindow,
                       },
                   ]
                 : []),
@@ -137,7 +139,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           onSelected: () => startIntegrationFlow({name: connectedIntegration}),
                           shouldCallAfterModalHide: true,
                           disabled: isOffline,
-                          iconRight: Expensicons.NewWindow,
+                          iconRight: icons.NewWindow,
                       },
                   ]
                 : [
@@ -155,7 +157,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldCallAfterModalHide: true,
             },
         ],
-        [shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow],
+        [icons.NewWindow, shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow],
     );
 
     useFocusEffect(
@@ -349,7 +351,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(shouldShowCardReconciliationOption
                 ? [
                       {
-                          icon: Expensicons.ExpensifyCard,
+                          icon: icons.ExpensifyCard,
                           iconRight: Expensicons.ArrowRight,
                           shouldShowRightIcon: true,
                           title: translate('workspace.accounting.cardReconciliation'),
@@ -359,7 +361,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                   ]
                 : []),
             {
-                icon: Expensicons.Gear,
+                icon: icons.Gear,
                 iconRight: Expensicons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.advanced'),
@@ -398,6 +400,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(isEmptyObject(policy?.connections) || !isConnectionVerified ? [] : configurationOptions),
         ];
     }, [
+        icons.Gear,
         policy,
         isSyncInProgress,
         policyID,
@@ -420,6 +423,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         datetimeToRelative,
+        icons.ExpensifyCard,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {

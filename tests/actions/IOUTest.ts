@@ -76,7 +76,14 @@ import {
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
-import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread, createDraftTransactionAndNavigateToParticipantSelector, isIOUReport} from '@libs/ReportUtils';
+import {
+    buildOptimisticIOUReport,
+    buildOptimisticIOUReportAction,
+    buildTransactionThread,
+    createDraftTransactionAndNavigateToParticipantSelector,
+    findSelfDMReportID,
+    isIOUReport,
+} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -7793,6 +7800,7 @@ describe('actions/IOU', () => {
                     created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
                     merchant: 'merchant',
                     billable: false,
+                    reimbursable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
             });
@@ -7844,7 +7852,9 @@ describe('actions/IOU', () => {
                 expect(result.current.report).toBeDefined();
             });
 
-            changeTransactionsReport([transaction?.transactionID], false, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, result.current.report);
+            const selfDMReportID = findSelfDMReportID();
+
+            changeTransactionsReport([transaction?.transactionID], false, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, result.current.report, undefined, undefined, undefined, selfDMReportID);
 
             let updatedTransaction: OnyxEntry<Transaction>;
             let updatedIOUReportActionOnSelfDMReport: OnyxEntry<ReportAction>;
