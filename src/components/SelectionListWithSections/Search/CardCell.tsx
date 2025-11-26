@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ColorValue} from 'react-native';
+import type {ColorValue} from 'react-native';
 import {View} from 'react-native';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import TextWithTooltip from '@components/TextWithTooltip';
