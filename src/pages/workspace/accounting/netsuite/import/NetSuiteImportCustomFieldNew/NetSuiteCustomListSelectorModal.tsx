@@ -52,7 +52,7 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
         const isEmpty = debouncedSearchValue.trim() && !filteredCustomLists.length;
 
         return {
-            options: isEmpty ? [] : [...filteredCustomLists],
+            options: isEmpty ? [] : filteredCustomLists,
             showTextInput: customListData.length > CONST.STANDARD_LIST_ITEM_LIMIT,
         };
     }, [debouncedSearchValue, policy?.connections?.netsuite?.options?.data?.customLists, currentCustomListValue]);
