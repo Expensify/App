@@ -1,81 +1,83 @@
-import React, {useCallback, useMemo} from 'react';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import React, {useCallback} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {getReportLayoutGroupBy, setReportLayoutGroupBy} from '@libs/actions/ReportLayout';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isExpenseReport, isIOUReport} from '@libs/ReportUtils';
-import type {ReportSettingsNavigatorParamList} from '@navigation/types';
-import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
-import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
-import {getReportLayoutGroupBy, setReportLayoutGroupBy} from '@userActions/ReportLayout';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type {ReportLayoutGroupBy} from '@src/types/onyx';
 
-type ReportLayoutPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.REPORT_LAYOUT>;
+type ReportLayoutItem = ListItem & {
+    value: ReportLayoutGroupBy;
+};
 
-function ReportLayoutPage({report}: ReportLayoutPageProps) {
+function ReportLayoutPage() {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
-    const shouldShowPage = isExpenseReport(report) && !isIOUReport(report);
+    const [reportLayoutGroupByNVP] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
 
-    const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
+    const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupByNVP);
 
-    const groupByOptions = useMemo(
-        () => [
-            {
-                value: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
-                text: translate('reportLayout.groupBy.category'),
-                keyForList: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
-                isSelected: currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
-            },
-            {
-                value: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
-                text: translate('reportLayout.groupBy.tag'),
-                keyForList: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
-                isSelected: currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG,
-            },
-        ],
-        [currentGroupBy, translate],
-    );
+    const goBack = useCallback(() => {
+        Navigation.dismissModal();
+    }, []);
 
-    const updateGroupBy = useCallback(
-        (value: ReportLayoutGroupBy) => {
-            setReportLayoutGroupBy(value, reportLayoutGroupBy);
-            Navigation.goBack();
+    const onSelectGroupBy = useCallback(
+        (item: ReportLayoutItem) => {
+            if (item.value === currentGroupBy) {
+                goBack();
+                return;
+            }
+            setReportLayoutGroupBy(item.value, reportLayoutGroupByNVP);
+            goBack();
         },
-        [reportLayoutGroupBy],
+        [currentGroupBy, reportLayoutGroupByNVP, goBack],
     );
+
+    const layoutOptions: ReportLayoutItem[] = [
+        {
+            text: translate('reportLayout.groupBy.category'),
+            keyForList: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
+            value: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
+            isSelected: currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
+        },
+        {
+            text: translate('reportLayout.groupBy.tag'),
+            keyForList: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
+            value: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
+            isSelected: currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG,
+        },
+    ];
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             testID={ReportLayoutPage.displayName}
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
         >
-            <FullPageNotFoundView shouldShow={!shouldShowPage}>
-                <HeaderWithBackButton
-                    title={translate('reportLayout.reportLayout')}
-                    onBackButtonPress={Navigation.goBack}
-                />
-                <SelectionList
-                    data={groupByOptions}
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={(option) => updateGroupBy(option.value)}
-                    shouldSingleExecuteRowSelect
-                    shouldHighlightSelectedItem={false}
-                    initiallyFocusedItemKey={groupByOptions.find((option) => option.isSelected)?.keyForList}
-                />
-            </FullPageNotFoundView>
+            <HeaderWithBackButton
+                title={translate('reportLayout.reportLayout')}
+                onBackButtonPress={goBack}
+            />
+            <Text style={[styles.textLabel, styles.textSupporting, styles.mh5, styles.mv3]}>{translate('reportLayout.groupByLabel')}</Text>
+            <SelectionList
+                data={layoutOptions}
+                ListItem={SingleSelectListItem}
+                onSelectRow={onSelectGroupBy}
+                shouldHighlightSelectedItem={false}
+                initiallyFocusedItemKey={layoutOptions.find((option) => option.isSelected)?.keyForList}
+            />
         </ScreenWrapper>
     );
 }
 
 ReportLayoutPage.displayName = 'ReportLayoutPage';
 
-export default withReportOrNotFound()(ReportLayoutPage);
+export default ReportLayoutPage;

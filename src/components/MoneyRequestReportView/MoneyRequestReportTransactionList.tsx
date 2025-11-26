@@ -182,7 +182,7 @@ function MoneyRequestReportTransactionList({
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
-    const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
+    const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report) && transactionsWithoutPendingDelete.length >= 2;
 
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
