@@ -1,13 +1,7 @@
-import type {NavigationState} from '@react-navigation/native';
-import {findFocusedRoute} from '@react-navigation/native';
+import type {NavigationRoute} from '@libs/Navigation/types';
 import getVisibleWideRHPKeys from './getVisibleRHPRouteKeys';
 
-function getIsWideRHPOpenedBelow(state: NavigationState | undefined, allWideRHPKeys: string[]) {
-    if (!state) {
-        return false;
-    }
-    const focusedRoute = findFocusedRoute(state);
-
+function getIsWideRHPOpenedBelow(focusedRoute: NavigationRoute | undefined, allWideRHPKeys: string[]) {
     // Shouldn't ever happen but for type safety
     if (!focusedRoute?.key) {
         return false;
