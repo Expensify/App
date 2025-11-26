@@ -1,4 +1,6 @@
-import type {StyleProp, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
+import type {Ref} from 'react';
+import type {StyleProp, TextInput, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -70,6 +72,9 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> &
 
         /** Indicates whether the composer is in a group policy report. Used for disabling report mentioning style in markdown input */
         isGroupPolicyReport?: boolean;
+
+        /** Ref exposing imperative methods on the underlying text input */
+        ref?: Ref<TextInput | HTMLInputElement | HTMLTextAreaElement | AnimatedMarkdownTextInputRef>;
     };
 
 export type {TextSelection, ComposerProps, CustomSelectionChangeEvent};
