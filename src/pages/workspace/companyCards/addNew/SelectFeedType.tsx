@@ -1,12 +1,12 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -27,7 +27,7 @@ function SelectFeedType() {
     const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
 
-    const submit = () => {
+    const submit = useCallback(() => {
         if (!typeSelected) {
             setHasError(true);
             return;
@@ -46,7 +46,7 @@ function SelectFeedType() {
             step,
             data: {selectedFeedType: typeSelected},
         });
-    };
+    }, [isBetaEnabled, isUSCountry, typeSelected]);
 
     useEffect(() => {
         if (addNewCard?.data.selectedFeedType) {
@@ -94,6 +94,15 @@ function SelectFeedType() {
 
     const finalData = getFinalData();
 
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.next'),
+            onConfirm: submit,
+        }),
+        [submit, translate],
+    );
+
     return (
         <ScreenWrapper
             testID={SelectFeedType.displayName}
@@ -112,20 +121,18 @@ function SelectFeedType() {
             </View>
 
             <SelectionList
+                key={typeSelected ? 'feed-type-loaded' : 'feed-type-loading'}
                 ListItem={RadioListItem}
+                data={finalData}
                 onSelectRow={({value}) => {
                     setTypeSelected(value);
                     setHasError(false);
                 }}
-                sections={[{data: finalData}]}
                 shouldSingleExecuteRowSelect
-                isAlternateTextMultilineSupported
-                alternateTextNumberOfLines={3}
-                initiallyFocusedOptionKey={typeSelected}
+                confirmButtonOptions={confirmButtonOptions}
+                alternateNumberOfSupportedLines={3}
+                initiallyFocusedItemKey={typeSelected}
                 shouldUpdateFocusedIndex
-                showConfirmButton
-                confirmButtonText={translate('common.next')}
-                onConfirm={submit}
                 addBottomSafeAreaPadding
             >
                 {hasError && (
