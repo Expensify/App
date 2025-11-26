@@ -3,6 +3,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
@@ -123,10 +124,11 @@ function createPolicyWithTaxAndDistance(): Policy {
         customUnits: {
             [CONST.CUSTOM_UNITS.NAME_DISTANCE]: {
                 name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                customUnitID: 'customUnitID',
+                customUnitID: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                 enabled: true,
                 attributes: {
                     unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    taxEnabled: true,
                 },
                 rates: {
                     altTaxRate: {
@@ -144,6 +146,10 @@ function createPolicyWithTaxAndDistance(): Policy {
             },
         },
     };
+}
+
+function HTMLProviderWrapper({children}: {children: React.ReactNode}) {
+    return <HTMLEngineProvider>{children}</HTMLEngineProvider>;
 }
 
 // Helper to create waypoints
@@ -219,24 +225,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
         render(
             <OnyxListItemProvider>
-                <CurrentUserPersonalDetailsProvider>
-                    <LocaleContextProvider>
-                        <IOURequestStepConfirmationWithWritableReportOrNotFound
-                            route={{
-                                key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
-                                name: 'Money_Request_Step_Confirmation',
-                                params: {
-                                    action: 'create',
-                                    iouType: 'invoice',
-                                    transactionID: TRANSACTION_ID,
-                                    reportID: routeReportID,
-                                },
-                            }}
-                            // @ts-expect-error we don't need navigation param here.
-                            navigation={undefined}
-                        />
-                    </LocaleContextProvider>
-                </CurrentUserPersonalDetailsProvider>
+                <HTMLProviderWrapper>
+                    <CurrentUserPersonalDetailsProvider>
+                        <LocaleContextProvider>
+                            <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                route={{
+                                    key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
+                                    name: 'Money_Request_Step_Confirmation',
+                                    params: {
+                                        action: 'create',
+                                        iouType: 'invoice',
+                                        transactionID: TRANSACTION_ID,
+                                        reportID: routeReportID,
+                                    },
+                                }}
+                                // @ts-expect-error we don't need navigation param here.
+                                navigation={undefined}
+                            />
+                        </LocaleContextProvider>
+                    </CurrentUserPersonalDetailsProvider>
+                </HTMLProviderWrapper>
             </OnyxListItemProvider>,
         );
 
@@ -260,24 +268,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
         render(
             <OnyxListItemProvider>
-                <CurrentUserPersonalDetailsProvider>
-                    <LocaleContextProvider>
-                        <IOURequestStepConfirmationWithWritableReportOrNotFound
-                            route={{
-                                key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
-                                name: 'Money_Request_Step_Confirmation',
-                                params: {
-                                    action: 'create',
-                                    iouType: 'split',
-                                    transactionID: TRANSACTION_ID,
-                                    reportID: REPORT_ID,
-                                },
-                            }}
-                            // @ts-expect-error we don't need navigation param here.
-                            navigation={undefined}
-                        />
-                    </LocaleContextProvider>
-                </CurrentUserPersonalDetailsProvider>
+                <HTMLProviderWrapper>
+                    <CurrentUserPersonalDetailsProvider>
+                        <LocaleContextProvider>
+                            <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                route={{
+                                    key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
+                                    name: 'Money_Request_Step_Confirmation',
+                                    params: {
+                                        action: 'create',
+                                        iouType: 'split',
+                                        transactionID: TRANSACTION_ID,
+                                        reportID: REPORT_ID,
+                                    },
+                                }}
+                                // @ts-expect-error we don't need navigation param here.
+                                navigation={undefined}
+                            />
+                        </LocaleContextProvider>
+                    </CurrentUserPersonalDetailsProvider>
+                </HTMLProviderWrapper>
             </OnyxListItemProvider>,
         );
         fireEvent.press(await screen.findByText(translateLocal('iou.splitExpense')));
@@ -309,24 +319,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
         render(
             <OnyxListItemProvider>
-                <CurrentUserPersonalDetailsProvider>
-                    <LocaleContextProvider>
-                        <IOURequestStepConfirmationWithWritableReportOrNotFound
-                            route={{
-                                key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
-                                name: 'Money_Request_Step_Confirmation',
-                                params: {
-                                    action: 'create',
-                                    iouType: 'split',
-                                    transactionID: TRANSACTION_ID,
-                                    reportID: REPORT_ID,
-                                },
-                            }}
-                            // @ts-expect-error we don't need navigation param here.
-                            navigation={undefined}
-                        />
-                    </LocaleContextProvider>
-                </CurrentUserPersonalDetailsProvider>
+                <HTMLProviderWrapper>
+                    <CurrentUserPersonalDetailsProvider>
+                        <LocaleContextProvider>
+                            <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                route={{
+                                    key: 'Money_Request_Step_Confirmation--30aPPAdjWan56sE5OpcG',
+                                    name: 'Money_Request_Step_Confirmation',
+                                    params: {
+                                        action: 'create',
+                                        iouType: 'split',
+                                        transactionID: TRANSACTION_ID,
+                                        reportID: REPORT_ID,
+                                    },
+                                }}
+                                // @ts-expect-error we don't need navigation param here.
+                                navigation={undefined}
+                            />
+                        </LocaleContextProvider>
+                    </CurrentUserPersonalDetailsProvider>
+                </HTMLProviderWrapper>
             </OnyxListItemProvider>,
         );
         fireEvent.press(await screen.findByText(translateLocal('iou.createExpenses', {expensesNumber: 2})));
@@ -386,24 +398,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             const {rerender} = render(
                 <OnyxListItemProvider>
-                    <CurrentUserPersonalDetailsProvider>
-                        <LocaleContextProvider>
-                            <IOURequestStepConfirmationWithWritableReportOrNotFound
-                                route={{
-                                    key: 'Money_Request_Step_Confirmation',
-                                    name: 'Money_Request_Step_Confirmation',
-                                    params: {
-                                        action: 'create',
-                                        iouType: 'submit',
-                                        transactionID: TRANSACTION_ID,
-                                        reportID: REPORT_ID,
-                                    },
-                                }}
-                                // @ts-expect-error we don't need navigation param here.
-                                navigation={undefined}
-                            />
-                        </LocaleContextProvider>
-                    </CurrentUserPersonalDetailsProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'submit',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error we don't need navigation param here.
+                                    navigation={undefined}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
                 </OnyxListItemProvider>,
             );
 
@@ -443,24 +457,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             rerender(
                 <OnyxListItemProvider>
-                    <CurrentUserPersonalDetailsProvider>
-                        <LocaleContextProvider>
-                            <IOURequestStepConfirmationWithWritableReportOrNotFound
-                                route={{
-                                    key: 'Money_Request_Step_Confirmation',
-                                    name: 'Money_Request_Step_Confirmation',
-                                    params: {
-                                        action: 'create',
-                                        iouType: 'submit',
-                                        transactionID: TRANSACTION_ID,
-                                        reportID: REPORT_ID,
-                                    },
-                                }}
-                                // @ts-expect-error we don't need navigation param here.
-                                navigation={undefined}
-                            />
-                        </LocaleContextProvider>
-                    </CurrentUserPersonalDetailsProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'submit',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error we don't need navigation param here.
+                                    navigation={undefined}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
                 </OnyxListItemProvider>,
             );
 
@@ -509,24 +525,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             const {rerender} = render(
                 <OnyxListItemProvider>
-                    <CurrentUserPersonalDetailsProvider>
-                        <LocaleContextProvider>
-                            <IOURequestStepConfirmationWithWritableReportOrNotFound
-                                route={{
-                                    key: 'Money_Request_Step_Confirmation',
-                                    name: 'Money_Request_Step_Confirmation',
-                                    params: {
-                                        action: 'create',
-                                        iouType: 'submit',
-                                        transactionID: TRANSACTION_ID,
-                                        reportID: REPORT_ID,
-                                    },
-                                }}
-                                // @ts-expect-error we don't need navigation param here.
-                                navigation={undefined}
-                            />
-                        </LocaleContextProvider>
-                    </CurrentUserPersonalDetailsProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'submit',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error we don't need navigation param here.
+                                    navigation={undefined}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
                 </OnyxListItemProvider>,
             );
 
@@ -547,24 +565,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             rerender(
                 <OnyxListItemProvider>
-                    <CurrentUserPersonalDetailsProvider>
-                        <LocaleContextProvider>
-                            <IOURequestStepConfirmationWithWritableReportOrNotFound
-                                route={{
-                                    key: 'Money_Request_Step_Confirmation',
-                                    name: 'Money_Request_Step_Confirmation',
-                                    params: {
-                                        action: 'create',
-                                        iouType: 'submit',
-                                        transactionID: TRANSACTION_ID,
-                                        reportID: REPORT_ID,
-                                    },
-                                }}
-                                // @ts-expect-error we don't need navigation param here.
-                                navigation={undefined}
-                            />
-                        </LocaleContextProvider>
-                    </CurrentUserPersonalDetailsProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'submit',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error we don't need navigation param here.
+                                    navigation={undefined}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
                 </OnyxListItemProvider>,
             );
 
@@ -646,24 +666,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             render(
                 <OnyxListItemProvider>
-                    <CurrentUserPersonalDetailsProvider>
-                        <LocaleContextProvider>
-                            <IOURequestStepConfirmationWithWritableReportOrNotFound
-                                route={{
-                                    key: 'Money_Request_Step_Confirmation',
-                                    name: 'Money_Request_Step_Confirmation',
-                                    params: {
-                                        action: 'create',
-                                        iouType: 'submit',
-                                        transactionID: TRANSACTION_ID,
-                                        reportID: REPORT_ID,
-                                    },
-                                }}
-                                // @ts-expect-error we don't need navigation param here.
-                                navigation={undefined}
-                            />
-                        </LocaleContextProvider>
-                    </CurrentUserPersonalDetailsProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'submit',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error we don't need navigation param here.
+                                    navigation={undefined}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
                 </OnyxListItemProvider>,
             );
 
@@ -747,24 +769,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             const {rerender} = render(
                 <OnyxListItemProvider>
-                    <CurrentUserPersonalDetailsProvider>
-                        <LocaleContextProvider>
-                            <IOURequestStepConfirmationWithWritableReportOrNotFound
-                                route={{
-                                    key: 'Money_Request_Step_Confirmation',
-                                    name: 'Money_Request_Step_Confirmation',
-                                    params: {
-                                        action: 'create',
-                                        iouType: 'submit',
-                                        transactionID: TRANSACTION_ID,
-                                        reportID: REPORT_ID,
-                                    },
-                                }}
-                                // @ts-expect-error we don't need navigation param here.
-                                navigation={undefined}
-                            />
-                        </LocaleContextProvider>
-                    </CurrentUserPersonalDetailsProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'submit',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error we don't need navigation param here.
+                                    navigation={undefined}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
                 </OnyxListItemProvider>,
             );
 
@@ -803,24 +827,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             rerender(
                 <OnyxListItemProvider>
-                    <CurrentUserPersonalDetailsProvider>
-                        <LocaleContextProvider>
-                            <IOURequestStepConfirmationWithWritableReportOrNotFound
-                                route={{
-                                    key: 'Money_Request_Step_Confirmation',
-                                    name: 'Money_Request_Step_Confirmation',
-                                    params: {
-                                        action: 'create',
-                                        iouType: 'submit',
-                                        transactionID: TRANSACTION_ID,
-                                        reportID: REPORT_ID,
-                                    },
-                                }}
-                                // @ts-expect-error we don't need navigation param here.
-                                navigation={undefined}
-                            />
-                        </LocaleContextProvider>
-                    </CurrentUserPersonalDetailsProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: 'create',
+                                            iouType: 'submit',
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: REPORT_ID,
+                                        },
+                                    }}
+                                    // @ts-expect-error we don't need navigation param here.
+                                    navigation={undefined}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
                 </OnyxListItemProvider>,
             );
 
