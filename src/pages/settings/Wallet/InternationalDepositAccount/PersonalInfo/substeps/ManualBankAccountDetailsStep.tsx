@@ -21,7 +21,7 @@ type ManualProps = SubStepProps;
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const STEP_FIELDS = [BANK_INFO_STEP_KEYS.ROUTING_NUMBER, BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER];
 
-function ManualBankAccountDetailsStep({onNext}: ManualProps) {
+function ManualBankAccountDetailsStep({onNext, isEditing}: ManualProps) {
     const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
     const {translate} = useLocalize();
@@ -69,7 +69,7 @@ function ManualBankAccountDetailsStep({onNext}: ManualProps) {
             formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
             onSubmit={handleSubmit}
             validate={validate}
-            submitButtonText={translate('common.next')}
+            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             style={[styles.mh5, styles.flexGrow1]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('bankAccount.manuallyAdd')}</Text>

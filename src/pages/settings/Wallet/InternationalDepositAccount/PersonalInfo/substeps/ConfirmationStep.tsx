@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import CommonConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -6,6 +6,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
+import {clearPersonalBankAccountErrors} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
@@ -34,10 +35,10 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
             phoneNumber: (phone && parsePhoneNumber(phone, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
             legalFirstName: bankAccountPersonalDetails?.legalFirstName ?? privatePersonalDetails?.legalFirstName ?? '',
             legalLastName: bankAccountPersonalDetails?.legalLastName ?? privatePersonalDetails?.legalLastName ?? '',
-            addressStreet: bankAccountPersonalDetails?.addressStreet ?? currentAddress?.addressLine1 ?? '',
+            addressStreet: bankAccountPersonalDetails?.addressStreet ?? currentAddress?.street ?? '',
             addressCity: bankAccountPersonalDetails?.addressCity ?? currentAddress?.city ?? '',
             addressState: bankAccountPersonalDetails?.addressState ?? currentAddress?.state ?? '',
-            addressZip: bankAccountPersonalDetails?.addressZipCode ?? currentAddress?.zipCode ?? '',
+            addressZip: bankAccountPersonalDetails?.addressZipCode ?? currentAddress?.zip ?? '',
         };
     }, [
         bankAccountPersonalDetails?.addressCity,
@@ -50,6 +51,16 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
         privatePersonalDetails,
     ]);
 
+    const moveToEditStep = useCallback(
+        (step: number) => {
+            if (error) {
+                clearPersonalBankAccountErrors();
+            }
+            onMove(step);
+        },
+        [error, onMove],
+    );
+
     const summaryItems = useMemo(() => {
         const selectedPlaidAccount = plaidData?.bankAccounts?.find((bankAccount) => bankAccount?.plaidAccountID === bankAccountPersonalDetails?.selectedPlaidAccountID);
         const bankConnection = isManual
@@ -59,7 +70,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
                       title: bankAccountPersonalDetails?.routingNumber,
                       shouldShowRightIcon: true,
                       onPress: () => {
-                          onMove(0);
+                          moveToEditStep(0);
                       },
                   },
                   {
@@ -67,7 +78,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
                       title: bankAccountPersonalDetails?.accountNumber,
                       shouldShowRightIcon: true,
                       onPress: () => {
-                          onMove(0);
+                          moveToEditStep(0);
                       },
                   },
               ]
@@ -77,7 +88,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
                       title: selectedPlaidAccount?.addressName ?? '',
                       shouldShowRightIcon: true,
                       onPress: () => {
-                          onMove(0);
+                          moveToEditStep(0);
                       },
                   },
               ];
@@ -89,7 +100,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
                 title: `${personalDetails[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${personalDetails[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`,
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(1);
+                    moveToEditStep(1);
                 },
             },
             {
@@ -97,7 +108,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
                 title: `${personalDetails?.addressStreet}, ${personalDetails?.addressCity}, ${personalDetails?.addressState} ${personalDetails?.addressZip}`,
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(2);
+                    moveToEditStep(2);
                 },
             },
             {
@@ -105,7 +116,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
                 title: personalDetails[PERSONAL_INFO_STEP_KEYS.PHONE_NUMBER],
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    onMove(3);
+                    moveToEditStep(3);
                 },
             },
         ];
@@ -114,7 +125,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
         bankAccountPersonalDetails?.routingNumber,
         bankAccountPersonalDetails?.selectedPlaidAccountID,
         isManual,
-        onMove,
+        moveToEditStep,
         personalDetails,
         plaidData?.bankAccounts,
         translate,

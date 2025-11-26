@@ -26,10 +26,10 @@ function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
     const currentAddress = getCurrentAddress(privatePersonalDetails);
 
     const defaultValues = {
-        street: currentAddress?.addressLine1 ?? '',
+        street: currentAddress?.street ?? '',
         city: currentAddress?.city ?? '',
         state: currentAddress?.state ?? '',
-        zipCode: currentAddress?.zipCode ?? '',
+        zipCode: currentAddress?.zip ?? '',
     };
 
     const handleSubmit = usePersonalBankAccountDetailsFormSubmit({

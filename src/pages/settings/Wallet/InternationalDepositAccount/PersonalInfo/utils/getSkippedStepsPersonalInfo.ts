@@ -11,7 +11,7 @@ function getSkippedStepsPersonalInfo(data?: Partial<PrivatePersonalDetails>): nu
         skippedSteps.push(1);
     }
 
-    if (!!currentAddress?.addressLine1 && !!currentAddress?.city && currentAddress?.state && !!currentAddress?.zipCode) {
+    if (!!currentAddress?.street && !!currentAddress?.city && currentAddress?.state && !!currentAddress?.zip) {
         skippedSteps.push(2);
     }
 
