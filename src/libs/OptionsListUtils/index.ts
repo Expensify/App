@@ -30,6 +30,7 @@ import {
     getCountOfEnabledTagsOfList,
     getCountOfRequiredTagLists,
     getSubmitToAccountID,
+    hasDynamicExternalWorkflow,
     isCurrentUserMemberOfAnyPolicy,
 } from '@libs/PolicyUtils';
 import {
@@ -711,9 +712,15 @@ function getLastMessageTextForReport({
         isMarkAsClosedAction(lastReportAction)
     ) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? (getOriginalMessage(lastReportAction)?.harvesting ?? false) : false;
+        const isPendingAdd = lastReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+        const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+
         if (wasSubmittedViaHarvesting) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = Parser.htmlToText(translateLocal('iou.automaticallySubmitted'));
+        } else if (isPendingAdd && isDEWPolicy) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            lastMessageTextFromReport = translateLocal('iou.queuedToSubmitViaDEW');
         } else {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.submitted', {memo: getOriginalMessage(lastReportAction)?.message});
