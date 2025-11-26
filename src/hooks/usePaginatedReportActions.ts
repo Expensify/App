@@ -54,12 +54,12 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
             return undefined;
         }
 
-        return sortedAllReportActions?.findLast((reportAction) => {
-            if (!initialReportLastReadTime.current) {
-                return false;
-            }
+        if (!initialReportLastReadTime.current) {
+            return undefined;
+        }
 
-            return reportAction.created > initialReportLastReadTime.current;
+        return sortedAllReportActions?.findLast((reportAction) => {
+            return reportAction.created > initialReportLastReadTime.current!;
         })?.reportActionID;
     }, [reportActionID, shouldLinkToOldestUnreadReportAction, sortedAllReportActions]);
 
