@@ -7535,18 +7535,6 @@ ${
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} vous a invité à essayer Expensify\nSalut ! Je viens de nous obtenir *3 mois gratuits* pour essayer Expensify, la façon la plus rapide de gérer les notes de frais.\n\nVoici un *reçu de test* pour vous montrer comment cela fonctionne :`,
     },
-    reportLayout: {
-        reportLayout: 'Disposition du rapport',
-        groupByLabel: 'Grouper par :',
-        selectGroupByOption: 'Sélectionnez comment grouper les dépenses du rapport',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `${action} ce groupe`,
-        selectGroup: ({groupName}: {groupName: string}) => `Sélectionner toutes les dépenses dans ${groupName}`,
-        groupBy: {
-            category: 'Catégorie',
-            tag: 'Étiquette',
-        },
-    },
     export: {
         basicExport: 'Exportation basique',
         reportLevelExport: 'Toutes les données - niveau rapport',

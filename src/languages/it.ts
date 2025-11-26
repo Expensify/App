@@ -7514,18 +7514,6 @@ ${
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} ti ha invitato a provare Expensify\nEhi! Ho appena ottenuto *3 mesi gratis* per provare Expensify, il modo più veloce per gestire le spese.\n\nEcco una *ricevuta di prova* per mostrarti come funziona:`,
     },
-    reportLayout: {
-        reportLayout: 'Layout del report',
-        groupByLabel: 'Raggruppa per:',
-        selectGroupByOption: 'Seleziona come raggruppare le spese del report',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `${action} questo gruppo`,
-        selectGroup: ({groupName}: {groupName: string}) => `Seleziona tutte le spese in ${groupName}`,
-        groupBy: {
-            category: 'Categoria',
-            tag: 'Tag',
-        },
-    },
     export: {
         basicExport: 'Esportazione basica',
         reportLevelExport: 'Tutti i dati - livello report',
