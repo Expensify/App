@@ -699,6 +699,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: '予想より時間がかかっています...',
         domains: 'ドメイン',
         reportName: 'レポート名',
+        showLess: '表示を減らす',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -7523,6 +7524,17 @@ ${
                         return `管理者が経費を承認するのを待っています。`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `このレポートを<strong>あなた</strong>がエクスポートするのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong> がこのレポートをエクスポートするのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者がこのレポートをエクスポートするのを待っています。`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7593,6 +7605,32 @@ ${
             onePasswordForAnything: 'すべてを1つのパスワードで',
         },
         goToDomain: 'ドメインに移動',
+        samlLogin: {
+            title: 'SAMLログイン',
+            subtitle: `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML シングルサインオン（SSO）</a>でメンバーのサインインを設定します。</muted-text>`,
+            enableSamlLogin: 'SAML ログインを有効にする',
+            allowMembers: 'メンバーが SAML でログインできるようにする。',
+            requireSamlLogin: 'SAML ログインを必須にする',
+            anyMemberWillBeRequired: '別の方法でサインインしたメンバーは、SAMLを使用して再認証する必要があります。',
+            enableError: 'SAMLの有効化設定を更新できませんでした',
+            requireError: 'SAML の要件設定を更新できませんでした',
+        },
+        samlConfigurationDetails: {
+            title: 'SAML 設定の詳細',
+            subtitle: 'これらの詳細を使用して SAML をセットアップしてください。',
+            identityProviderMetaData: 'アイデンティティプロバイダーのメタデータ',
+            entityID: 'エンティティ ID',
+            nameIDFormat: 'Name ID 形式',
+            loginUrl: 'ログインURL',
+            acsUrl: 'ACS（アサーションコンシューマサービス）URL',
+            logoutUrl: 'ログアウトURL',
+            sloUrl: 'SLO（シングルログアウト）URL',
+            serviceProviderMetaData: 'サービスプロバイダーのメタデータ',
+            oktaScimToken: 'Okta SCIM トークン',
+            revealToken: 'トークンを表示',
+            fetchError: 'SAML 構成の詳細を取得できませんでした',
+            setMetadataGenericError: 'SAML メタデータを設定できませんでした',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

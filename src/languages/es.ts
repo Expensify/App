@@ -222,6 +222,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsDoThis: '¡Hagámoslo!',
         letsStart: 'Empecemos',
         showMore: 'Mostrar más',
+        showLess: 'Mostrar menos',
         merchant: 'Comerciante',
         category: 'Categoría',
         report: 'Informe',
@@ -1293,6 +1294,17 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que <strong>${actor}</strong> apruebe los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Esperando a que un administrador apruebe los gastos.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> exportes este informe.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> exporte este informe.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador exporte este informe.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}) => {
@@ -7734,6 +7746,32 @@ ${amount} para ${merchant} - ${date}`,
             onePasswordForAnything: 'Una sola contraseña para todo',
         },
         goToDomain: 'Ir al dominio',
+        samlLogin: {
+            title: 'Inicio de sesión SAML',
+            subtitle: `<muted-text>Configura el inicio de sesión de los miembros con <a href="${CONST.SAML_HELP_URL}">Inicio de sesión único SAML (SSO).</a></muted-text>`,
+            enableSamlLogin: 'Habilitar inicio de sesión SAML',
+            allowMembers: 'Permitir que los miembros inicien sesión con SAML.',
+            requireSamlLogin: 'Requerir inicio de sesión SAML',
+            anyMemberWillBeRequired: 'Cualquier miembro que haya iniciado sesión con un método diferente deberá volver a autenticarse usando SAML.',
+            enableError: 'No se pudo actualizar la configuración de habilitación de SAML',
+            requireError: 'No se pudo actualizar la configuración de requerimiento de SAML',
+        },
+        samlConfigurationDetails: {
+            title: 'Detalles de configuración de SAML',
+            subtitle: 'Utiliza estos detalles para configurar SAML.',
+            identityProviderMetaData: 'Metadatos del proveedor de identidad',
+            entityID: 'ID de entidad',
+            nameIDFormat: 'Formato de ID de nombre',
+            loginUrl: 'URL de inicio de sesión',
+            acsUrl: 'URL ACS (Assertion Consumer Service)',
+            logoutUrl: 'URL de cierre de sesión',
+            sloUrl: 'URL SLO (Single Logout)',
+            serviceProviderMetaData: 'Metadatos del proveedor de servicios',
+            oktaScimToken: 'Token SCIM de Okta',
+            revealToken: 'Revelar token',
+            fetchError: 'No se pudieron obtener los detalles de configuración de SAML',
+            setMetadataGenericError: 'No se pudieron establecer los metadatos de SAML',
+        },
     },
 };
 

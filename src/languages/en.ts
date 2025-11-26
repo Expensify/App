@@ -540,6 +540,7 @@ const translations = {
         letsDoThis: `Let's do this!`,
         letsStart: `Let's start`,
         showMore: 'Show more',
+        showLess: 'Show less',
         merchant: 'Merchant',
         category: 'Category',
         report: 'Report',
@@ -1644,6 +1645,18 @@ const translations = {
                         return `Waiting for <strong>${actor}</strong> to approve expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Waiting for an admin to approve expenses.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to export this report.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to export this report.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to export this report.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
@@ -7616,6 +7629,32 @@ const translations = {
             onePasswordForAnything: 'One password for everything',
         },
         goToDomain: 'Go to domain',
+        samlLogin: {
+            title: 'SAML login',
+            subtitle: `<muted-text>Configure member sign-in with <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'Enable SAML login',
+            allowMembers: 'Allow members to log in with SAML.',
+            requireSamlLogin: 'Require SAML login',
+            anyMemberWillBeRequired: 'Any member signed in with a different method will be required to re-authenticate using SAML.',
+            enableError: "Couldn't update SAML enablement setting",
+            requireError: "Couldn't update SAML requirement setting",
+        },
+        samlConfigurationDetails: {
+            title: 'SAML configuration details',
+            subtitle: 'Use these details to get SAML set up.',
+            identityProviderMetaData: 'Identity Provider MetaData',
+            entityID: 'Entity ID',
+            nameIDFormat: 'Name ID Format',
+            loginUrl: 'Login URL',
+            acsUrl: 'ACS (Assertion Consumer Service) URL',
+            logoutUrl: 'Logout URL',
+            sloUrl: 'SLO (Single Logout) URL',
+            serviceProviderMetaData: 'Service Provider MetaData',
+            oktaScimToken: 'Okta SCIM Token',
+            revealToken: 'Reveal token',
+            fetchError: "Couldn't fetch SAML configuration details",
+            setMetadataGenericError: "Couldn't set SAML MetaData",
+        },
     },
 };
 

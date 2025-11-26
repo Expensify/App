@@ -698,6 +698,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
         reportName: 'Rapportnaam',
+        showLess: 'Minder weergeven',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -7566,6 +7567,17 @@ ${
                         return `Wachten tot een beheerder de uitgaven goedkeurt.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Wachten tot <strong>jij</strong> dit rapport exporteert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Wachten tot <strong>${actor}</strong> dit rapport exporteert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Wachten tot een beheerder dit rapport exporteert.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7637,6 +7649,32 @@ ${
             onePasswordForAnything: 'Eén wachtwoord voor alles',
         },
         goToDomain: 'Ga naar het domein',
+        samlLogin: {
+            title: 'SAML-aanmelding',
+            subtitle: `<muted-text>Configureer het inloggen voor leden met <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'SAML-aanmelding inschakelen',
+            allowMembers: 'Leden toestaan om met SAML in te loggen.',
+            requireSamlLogin: 'SAML-aanmelding vereisen',
+            anyMemberWillBeRequired: 'Elk lid dat met een andere methode is aangemeld, moet zich opnieuw authenticeren via SAML.',
+            enableError: 'Kon de instelling voor SAML-inschakeling niet bijwerken',
+            requireError: 'Kan SAML-vereiste-instelling niet bijwerken',
+        },
+        samlConfigurationDetails: {
+            title: 'SAML-configuratiedetails',
+            subtitle: 'Gebruik deze gegevens om SAML in te stellen.',
+            identityProviderMetaData: 'Metagegevens van identiteitsprovider',
+            entityID: 'Entiteit-ID',
+            nameIDFormat: 'Naam-ID-formaat',
+            loginUrl: 'Inlog-URL',
+            acsUrl: 'ACS-URL (Assertion Consumer Service)',
+            logoutUrl: 'URL voor afmelden',
+            sloUrl: 'SLO (Eenmalige afmelding) URL',
+            serviceProviderMetaData: 'Serviceprovider-metagegevens',
+            oktaScimToken: 'Okta SCIM-token',
+            revealToken: 'Token weergeven',
+            fetchError: 'Kon SAML-configuratiedetails niet ophalen',
+            setMetadataGenericError: 'Kon SAML-metadata niet instellen',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
