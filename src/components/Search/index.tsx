@@ -834,12 +834,8 @@ function Search({
         if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
             // Use requestAnimationFrame to safely update navigation params without overriding the current route
             requestAnimationFrame(() => {
-                const cannedQuery = buildCannedSearchQuery();
-                // We are passing rawQuery as undefined because if we don’t clear it when the advanced filters build a
-                // new canonical q, the stale rawQuery would keep overriding parts of the query (and the displayed
-                // readable query) even though the user just changed filters. Navigation.setParams merges with the
-                // existing route params so if we omit rawQuery, whatever value was set will stay on the route.
-                Navigation.setParams({q: cannedQuery, rawQuery: undefined});
+                // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+                Navigation.setParams({q: buildCannedSearchQuery(), rawQuery: undefined});
             });
             if (shouldResetSearchQuery) {
                 setShouldResetSearchQuery(false);
@@ -956,6 +952,7 @@ function Search({
         clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
         onSortPressedCallback?.();
+        // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
         navigation.setParams({q: newQuery, rawQuery: undefined});
     };
 
