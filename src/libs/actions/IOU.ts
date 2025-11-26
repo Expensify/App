@@ -14128,6 +14128,10 @@ function updateSplitTransactions({
                 }
             }
 
+            if (isReverseSplitOperation) {
+                delete transactionChanges.transactionID;
+            }
+
             if (Object.keys(transactionChanges).length > 0) {
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
                     transactionID: existingTransactionID,
