@@ -1059,7 +1059,7 @@ function openReport(
         emailList: participantLoginList ? participantLoginList.join(',') : '',
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
-        transactionID: transactionID,
+        transactionID,
         useLastUnreadReportAction: true,
     };
 
