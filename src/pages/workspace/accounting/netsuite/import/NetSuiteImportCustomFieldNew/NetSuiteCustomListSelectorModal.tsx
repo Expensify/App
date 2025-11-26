@@ -37,8 +37,10 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
+    const rawCustomLists = policy?.connections?.netsuite?.options?.data?.customLists;
+
     const {options, showTextInput} = useMemo(() => {
-        const customLists = policy?.connections?.netsuite?.options?.data?.customLists ?? [];
+        const customLists = rawCustomLists ?? [];
         const customListData = customLists.map((customListRecord) => ({
             text: customListRecord.name,
             value: customListRecord.name,
@@ -55,7 +57,7 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
             options: isEmpty ? [] : filteredCustomLists,
             showTextInput: customListData.length > CONST.STANDARD_LIST_ITEM_LIMIT,
         };
-    }, [debouncedSearchValue, policy?.connections?.netsuite?.options?.data?.customLists, currentCustomListValue]);
+    }, [debouncedSearchValue, rawCustomLists, currentCustomListValue]);
 
     const textInputOptions = useMemo(
         () => ({
