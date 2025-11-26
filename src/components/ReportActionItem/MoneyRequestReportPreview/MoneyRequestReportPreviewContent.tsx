@@ -141,7 +141,8 @@ function MoneyRequestReportPreviewContent({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
@@ -486,7 +487,13 @@ function MoneyRequestReportPreviewContent({
             name: 'MoneyRequestReportPreviewContent',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
-        Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
+        // Small screens navigate to full report view since super wide RHP
+        // is not available on narrow layouts and would break the navigation logic.
+        if (isSmallScreenWidth) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
+        } else {
+            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
+        }
     }, [iouReportID]);
 
     const reportPreviewAction = useMemo(() => {
