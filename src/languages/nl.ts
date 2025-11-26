@@ -4651,7 +4651,7 @@ ${
             companyCard: 'bedrijfskaart',
             chooseCardFeed: 'Kies kaartfeed',
             ukRegulation:
-                'Expensify, Inc. is een agent van Plaid Financial Ltd., een erkende betalingsinstelling gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid biedt u gereguleerde rekeninginformatiediensten via Expensify Limited als zijn agent.',
+                'Expensify Limited is een agent van Plaid Financial Ltd., een erkende betalingsinstelling gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid biedt u gereguleerde rekeninginformatiediensten via Expensify Limited als zijn agent.',
         },
         expensifyCard: {
             issueAndManageCards: 'Uitgeven en beheren van uw Expensify-kaarten',
@@ -7488,18 +7488,6 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} heeft je uitgenodigd om Expensify uit te proberen\nHey! Ik heb ons net *3 maanden gratis* gekregen om Expensify uit te proberen, de snelste manier om onkosten te beheren.\n\nHier is een *testbon* om je te laten zien hoe het werkt:`,
-    },
-    reportLayout: {
-        reportLayout: 'Rapportindeling',
-        groupByLabel: 'Groeperen op:',
-        selectGroupByOption: 'Selecteer hoe rapportuitgaven te groeperen',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `${action} deze groep`,
-        selectGroup: ({groupName}: {groupName: string}) => `Selecteer alle uitgaven in ${groupName}`,
-        groupBy: {
-            category: 'Categorie',
-            tag: 'Tag',
-        },
     },
     export: {
         basicExport: 'Basis export',
