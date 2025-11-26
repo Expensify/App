@@ -4676,7 +4676,7 @@ ${
             companyCard: 'Firmenkarte',
             chooseCardFeed: 'Karten-Feed auswählen',
             ukRegulation:
-                'Expensify, Inc. ist ein Agent von Plaid Financial Ltd., einem autorisierten Zahlungsinstitut, das von der Financial Conduct Authority gemäß den Payment Services Regulations 2017 reguliert wird (Firmennummer: 804718). Plaid bietet Ihnen regulierte Kontoinformationsdienste über Expensify Limited als seinen Agenten an.',
+                'Expensify Limited ist ein Agent von Plaid Financial Ltd., einem autorisierten Zahlungsinstitut, das von der Financial Conduct Authority gemäß den Payment Services Regulations 2017 reguliert wird (Firmennummer: 804718). Plaid bietet Ihnen regulierte Kontoinformationsdienste über Expensify Limited als seinen Agenten an.',
         },
         expensifyCard: {
             issueAndManageCards: 'Ausstellen und Verwalten Ihrer Expensify-Karten',
@@ -7536,18 +7536,6 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} hat dich eingeladen, Expensify auszuprobieren\nHey! Ich habe uns gerade *3 Monate kostenlos* gesichert, um Expensify auszuprobieren, den schnellsten Weg, um Ausgaben zu verwalten.\n\nHier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
-    },
-    reportLayout: {
-        reportLayout: 'Berichtslayout',
-        groupByLabel: 'Gruppieren nach:',
-        selectGroupByOption: 'Wählen Sie aus, wie Berichtsausgaben gruppiert werden sollen',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `${action} diese Gruppe`,
-        selectGroup: ({groupName}: {groupName: string}) => `Alle Ausgaben in ${groupName} auswählen`,
-        groupBy: {
-            category: 'Kategorie',
-            tag: 'Schlagwort',
-        },
     },
     export: {
         basicExport: 'Basis Export',
