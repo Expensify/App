@@ -165,6 +165,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         Navigation.navigate(ROUTES.HOME);
     }, [selectedTab]);
 
+    const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
+
     const navigateToSearch = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SEARCH) {
             return;
@@ -204,8 +206,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             const flattenedMenuItems = typeMenuSections.flatMap((section) => section.menuItems);
             const defaultActionableSearchQuery =
                 getDefaultActionableSearchMenuItem(flattenedMenuItems)?.searchQuery ?? flattenedMenuItems.at(0)?.searchQuery ?? typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+
             const savedSearchQuery = Object.values(savedSearches ?? {}).at(0)?.query;
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultActionableSearchQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
+            const lastQueryFromOnyx = lastSearchParams?.queryJSON ? buildSearchQueryString(lastSearchParams.queryJSON) : undefined;
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultActionableSearchQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
         });
     }, [selectedTab, typeMenuSections, savedSearches]);
 
