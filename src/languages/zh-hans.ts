@@ -693,6 +693,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
         reportName: '报告名称',
+        showLess: '显示更少',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -1594,9 +1595,10 @@ const translations: TranslationDeepObject<typeof en> = {
         contactMethods: '联系方式',
         featureRequiresValidate: '此功能需要您验证您的账户。',
         validateAccount: '验证您的账户',
-        helpText: ({email}: {email: string}) => `添加更多发送收据的方式。转发到 <copy-text text="${email}"/> 或将其发送至 47777（仅限美国号码）。`,
-        pleaseVerify: '请验证此联系方式',
-        getInTouch: '每当我们需要联系您时，我们将使用此联系方式。',
+        helpText: ({email}: {email: string}) =>
+            `添加更多登录方式并将收据发送到 Expensify。<br/><br/>添加电子邮件地址以将收据转发至 <a href="mailto:${email}">${email}</a>，或添加电话号码将收据短信发送至 47777（仅限美国号码）。`,
+        pleaseVerify: '请验证此联系方式。',
+        getInTouch: '我们将使用此方式与您联系。',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到${contactMethod}的验证码。验证码将在一分钟内到达。`,
         setAsDefault: '设为默认',
         yourDefaultContactMethod: '这是您当前的默认联系方式。在删除它之前，您需要选择另一种联系方式并点击“设为默认”。',
@@ -2066,6 +2068,10 @@ ${merchant}的${amount} - ${date}`,
         addApprovalsDescription: '在授权付款之前需要额外批准。',
         makeOrTrackPaymentsTitle: '进行或跟踪付款',
         makeOrTrackPaymentsDescription: '添加授权付款人以便在Expensify中进行付款或跟踪在其他地方进行的付款。',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>此工作区已启用自定义审批工作流程。要查看或更改此工作流程，请联系您的<account-manager-link>客户经理</account-manager-link>或<concierge-link>礼宾服务</concierge-link>。</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>此工作区已启用自定义审批工作流程。要查看或更改此工作流程，请联系<concierge-link>礼宾服务</concierge-link>。</muted-text-label>',
         editor: {
             submissionFrequency: '选择Expensify在分享无错误支出前应等待的时间。',
         },
@@ -4552,7 +4558,7 @@ ${
             companyCard: '公司卡',
             chooseCardFeed: '选择卡片信息流',
             ukRegulation:
-                'Expensify, Inc. 是 Plaid Financial Ltd. 的代理商，Plaid Financial Ltd. 是一家授权支付机构，受金融行为监管局根据2017年支付服务条例的监管（公司参考编号：804718）。Plaid 通过 Expensify Limited 作为其代理商为您提供受监管的账户信息服务。',
+                'Expensify Limited 是 Plaid Financial Ltd. 的代理商，Plaid Financial Ltd. 是一家授权支付机构，受金融行为监管局根据2017年支付服务条例的监管（公司参考编号：804718）。Plaid 通过 Expensify Limited 作为其代理商为您提供受监管的账户信息服务。',
         },
         expensifyCard: {
             issueAndManageCards: '发行和管理您的Expensify卡片',
@@ -7396,6 +7402,17 @@ ${
                         return `正在等待管理员批准费用。`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `正在等待<strong>您</strong>导出此报告。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `正在等待<strong>${actor}</strong>导出此报告。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `正在等待管理员导出此报告。`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7466,6 +7483,32 @@ ${
             onePasswordForAnything: '一个密码搞定一切',
         },
         goToDomain: '前往域',
+        samlLogin: {
+            title: 'SAML 登录',
+            subtitle: `<muted-text>使用<a href="${CONST.SAML_HELP_URL}">SAML 单点登录（SSO）</a>配置成员登录。</muted-text>`,
+            enableSamlLogin: '启用 SAML 登录',
+            allowMembers: '允许成员通过 SAML 登录。',
+            requireSamlLogin: '强制使用 SAML 登录',
+            anyMemberWillBeRequired: '使用不同方式登录的任何成员将被要求使用 SAML 重新进行身份验证。',
+            enableError: '无法更新 SAML 启用设置',
+            requireError: '无法更新 SAML 要求设置',
+        },
+        samlConfigurationDetails: {
+            title: 'SAML 配置详细信息',
+            subtitle: '使用这些详细信息来设置 SAML。',
+            identityProviderMetaData: '身份提供者元数据',
+            entityID: '实体 ID',
+            nameIDFormat: '名称 ID 格式',
+            loginUrl: '登录网址',
+            acsUrl: 'ACS（断言消费者服务）URL',
+            logoutUrl: '注销 URL',
+            sloUrl: 'SLO (单点登出) URL',
+            serviceProviderMetaData: '服务提供商元数据',
+            oktaScimToken: 'Okta SCIM 令牌',
+            revealToken: '显示令牌',
+            fetchError: '无法获取 SAML 配置详细信息',
+            setMetadataGenericError: '无法设置 SAML 元数据',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -222,6 +222,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsDoThis: '¡Hagámoslo!',
         letsStart: 'Empecemos',
         showMore: 'Mostrar más',
+        showLess: 'Mostrar menos',
         merchant: 'Comerciante',
         category: 'Categoría',
         report: 'Informe',
@@ -1295,6 +1296,17 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que un administrador apruebe los gastos.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> exportes este informe.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> exporte este informe.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador exporte este informe.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -1379,9 +1391,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Esta función requiere que valides tu cuenta.',
         validateAccount: 'Valida tu cuenta',
         helpText: ({email}: {email: string}) =>
-            `Añade más formas de enviar recibos. Reenvíalos a <copy-text text="${email}"/> o envíalos por mensaje de texto al 47777 (solo números de EE. UU.).`,
-        pleaseVerify: 'Por favor, verifica este método de contacto',
-        getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
+            `Agrega más formas de iniciar sesión y enviar recibos a Expensify.<br/><br/>Agrega una dirección de correo electrónico para reenviar recibos a <a href="mailto:${email}">${email}</a> o agrega un número de teléfono para enviar recibos por mensaje de texto al 47777 (solo números de EE. UU.).`,
+        pleaseVerify: 'Por favor, verifica este método de contacto.',
+        getInTouch: 'Usaremos este método para comunicarnos contigo.',
         enterMagicCode: ({contactMethod}) => `Por favor, introduce el código mágico enviado a ${contactMethod}. Debería llegar en un par de minutos.`,
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
@@ -1840,6 +1852,10 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>Este espacio de trabajo tiene habilitado un flujo de aprobación personalizado. Para revisar o cambiar este flujo de trabajo, comunícate con tu <account-manager-link>Administrador de cuenta</account-manager-link> o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>Este espacio de trabajo tiene habilitado un flujo de aprobación personalizado. Para revisar o cambiar este flujo de trabajo, comunícate con <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         editor: {
             submissionFrequency: 'Elige cuánto tiempo Expensify debe esperar antes de compartir los gastos sin errores.',
         },
@@ -4395,7 +4411,7 @@ ${amount} para ${merchant} - ${date}`,
             companyCard: 'tarjeta de empresa',
             chooseCardFeed: 'Elige feed de tarjetas',
             ukRegulation:
-                'Expensify, Inc. es un agente de Plaid Financial Ltd., una institución de pago autorizada y regulada por la Financial Conduct Authority conforme al Reglamento de Servicios de Pago de 2017 (Número de Referencia de la Firma: 804718). Plaid te proporciona servicios regulados de información de cuentas a través de Expensify Limited como su agente.',
+                'Expensify Limited es un agente de Plaid Financial Ltd., una institución de pago autorizada y regulada por la Financial Conduct Authority conforme al Reglamento de Servicios de Pago de 2017 (Número de Referencia de la Firma: 804718). Plaid te proporciona servicios regulados de información de cuentas a través de Expensify Limited como su agente.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
@@ -7730,6 +7746,32 @@ ${amount} para ${merchant} - ${date}`,
             onePasswordForAnything: 'Una sola contraseña para todo',
         },
         goToDomain: 'Ir al dominio',
+        samlLogin: {
+            title: 'Inicio de sesión SAML',
+            subtitle: `<muted-text>Configura el inicio de sesión de los miembros con <a href="${CONST.SAML_HELP_URL}">Inicio de sesión único SAML (SSO).</a></muted-text>`,
+            enableSamlLogin: 'Habilitar inicio de sesión SAML',
+            allowMembers: 'Permitir que los miembros inicien sesión con SAML.',
+            requireSamlLogin: 'Requerir inicio de sesión SAML',
+            anyMemberWillBeRequired: 'Cualquier miembro que haya iniciado sesión con un método diferente deberá volver a autenticarse usando SAML.',
+            enableError: 'No se pudo actualizar la configuración de habilitación de SAML',
+            requireError: 'No se pudo actualizar la configuración de requerimiento de SAML',
+        },
+        samlConfigurationDetails: {
+            title: 'Detalles de configuración de SAML',
+            subtitle: 'Utiliza estos detalles para configurar SAML.',
+            identityProviderMetaData: 'Metadatos del proveedor de identidad',
+            entityID: 'ID de entidad',
+            nameIDFormat: 'Formato de ID de nombre',
+            loginUrl: 'URL de inicio de sesión',
+            acsUrl: 'URL ACS (Assertion Consumer Service)',
+            logoutUrl: 'URL de cierre de sesión',
+            sloUrl: 'URL SLO (Single Logout)',
+            serviceProviderMetaData: 'Metadatos del proveedor de servicios',
+            oktaScimToken: 'Token SCIM de Okta',
+            revealToken: 'Revelar token',
+            fetchError: 'No se pudieron obtener los detalles de configuración de SAML',
+            setMetadataGenericError: 'No se pudieron establecer los metadatos de SAML',
+        },
     },
 };
 

@@ -698,6 +698,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
         reportName: 'Rapportnaam',
+        showLess: 'Minder weergeven',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1620,9 +1621,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Deze functie vereist dat je je account verifieert.',
         validateAccount: 'Valideer uw account',
         helpText: ({email}: {email: string}) =>
-            `Voeg meer manieren toe om bonnen te verzenden. Stuur ze naar <copy-text text="${email}"/> of stuur ze naar 47777 (alleen Amerikaanse nummers).`,
-        pleaseVerify: 'Verifieer deze contactmethode alstublieft',
-        getInTouch: 'Telkens wanneer we contact met je moeten opnemen, gebruiken we deze contactmethode.',
+            `Voeg meer manieren toe om in te loggen en bonnetjes naar Expensify te sturen.<br/><br/>Voeg een e-mailadres toe om bonnetjes door te sturen naar <a href="mailto:${email}">${email}</a> of voeg een telefoonnummer toe om bonnetjes te sms’en naar 47777 (alleen Amerikaanse nummers).`,
+        pleaseVerify: 'Verifieer deze contactmethode alstublieft.',
+        getInTouch: 'We gebruiken deze methode om contact met je op te nemen.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Voer de magische code in die is verzonden naar ${contactMethod}. Het zou binnen een minuut of twee moeten aankomen.`,
         setAsDefault: 'Instellen als standaard',
         yourDefaultContactMethod:
@@ -2100,6 +2101,10 @@ ${amount} voor ${merchant} - ${date}`,
         addApprovalsDescription: 'Vereis extra goedkeuring voordat een betaling wordt geautoriseerd.',
         makeOrTrackPaymentsTitle: 'Betalingen maken of volgen',
         makeOrTrackPaymentsDescription: 'Voeg een geautoriseerde betaler toe voor betalingen gedaan in Expensify of volg betalingen die elders zijn gedaan.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>Er is een aangepaste goedkeuringsworkflow ingeschakeld voor deze workspace. Neem contact op met uw <account-manager-link>Accountmanager</account-manager-link> of <concierge-link>Concierge</concierge-link> om deze workflow te bekijken of te wijzigen.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>Er is een aangepaste goedkeuringsworkflow ingeschakeld voor deze workspace. Neem contact op met <concierge-link>Concierge</concierge-link> om deze workflow te bekijken of te wijzigen.</muted-text-label>',
         editor: {
             submissionFrequency: 'Kies hoe lang Expensify moet wachten voordat foutloze uitgaven worden gedeeld.',
         },
@@ -4646,7 +4651,7 @@ ${
             companyCard: 'bedrijfskaart',
             chooseCardFeed: 'Kies kaartfeed',
             ukRegulation:
-                'Expensify, Inc. is een agent van Plaid Financial Ltd., een erkende betalingsinstelling gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid biedt u gereguleerde rekeninginformatiediensten via Expensify Limited als zijn agent.',
+                'Expensify Limited is een agent van Plaid Financial Ltd., een erkende betalingsinstelling gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid biedt u gereguleerde rekeninginformatiediensten via Expensify Limited als zijn agent.',
         },
         expensifyCard: {
             issueAndManageCards: 'Uitgeven en beheren van uw Expensify-kaarten',
@@ -7562,6 +7567,17 @@ ${
                         return `Wachten tot een beheerder de uitgaven goedkeurt.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Wachten tot <strong>jij</strong> dit rapport exporteert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Wachten tot <strong>${actor}</strong> dit rapport exporteert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Wachten tot een beheerder dit rapport exporteert.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7633,6 +7649,32 @@ ${
             onePasswordForAnything: 'Eén wachtwoord voor alles',
         },
         goToDomain: 'Ga naar het domein',
+        samlLogin: {
+            title: 'SAML-aanmelding',
+            subtitle: `<muted-text>Configureer het inloggen voor leden met <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'SAML-aanmelding inschakelen',
+            allowMembers: 'Leden toestaan om met SAML in te loggen.',
+            requireSamlLogin: 'SAML-aanmelding vereisen',
+            anyMemberWillBeRequired: 'Elk lid dat met een andere methode is aangemeld, moet zich opnieuw authenticeren via SAML.',
+            enableError: 'Kon de instelling voor SAML-inschakeling niet bijwerken',
+            requireError: 'Kan SAML-vereiste-instelling niet bijwerken',
+        },
+        samlConfigurationDetails: {
+            title: 'SAML-configuratiedetails',
+            subtitle: 'Gebruik deze gegevens om SAML in te stellen.',
+            identityProviderMetaData: 'Metagegevens van identiteitsprovider',
+            entityID: 'Entiteit-ID',
+            nameIDFormat: 'Naam-ID-formaat',
+            loginUrl: 'Inlog-URL',
+            acsUrl: 'ACS-URL (Assertion Consumer Service)',
+            logoutUrl: 'URL voor afmelden',
+            sloUrl: 'SLO (Eenmalige afmelding) URL',
+            serviceProviderMetaData: 'Serviceprovider-metagegevens',
+            oktaScimToken: 'Okta SCIM-token',
+            revealToken: 'Token weergeven',
+            fetchError: 'Kon SAML-configuratiedetails niet ophalen',
+            setMetadataGenericError: 'Kon SAML-metadata niet instellen',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -699,6 +699,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'To trwa dłużej niż oczekiwano...',
         domains: 'Domeny',
         reportName: 'Nazwa raportu',
+        showLess: 'Pokaż mniej',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1618,9 +1619,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Ta funkcja wymaga weryfikacji konta.',
         validateAccount: 'Zweryfikuj swoje konto',
         helpText: ({email}: {email: string}) =>
-            `Dodaj więcej sposobów na przesyłanie paragonów. Prześlij je do <copy-text text="${email}"/> lub wyślij SMS na numer 47777 (tylko numery w USA).`,
-        pleaseVerify: 'Proszę zweryfikować tę metodę kontaktu',
-        getInTouch: 'Kiedy będziemy musieli się z Tobą skontaktować, użyjemy tej metody kontaktu.',
+            `Dodaj więcej sposobów logowania się i wysyłania paragonów do Expensify.<br/><br/>Dodaj adres e-mail, aby przesyłać paragony na <a href="mailto:${email}">${email}</a> lub dodaj numer telefonu, aby wysyłać paragony SMS-em na 47777 (tylko numery z USA).`,
+        pleaseVerify: 'Proszę zweryfikować tę metodę kontaktu.',
+        getInTouch: 'Użyjemy tej metody, aby się z Tobą skontaktować.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}. Powinien dotrzeć w ciągu minuty lub dwóch.`,
         setAsDefault: 'Ustaw jako domyślne',
         yourDefaultContactMethod: 'To jest Twoja domyślna metoda kontaktu. Zanim będziesz mógł ją usunąć, musisz wybrać inną metodę kontaktu i kliknąć „Ustaw jako domyślną”.',
@@ -2097,6 +2098,10 @@ ${amount} dla ${merchant} - ${date}`,
         addApprovalsDescription: 'Wymagaj dodatkowej zgody przed autoryzacją płatności.',
         makeOrTrackPaymentsTitle: 'Dokonuj lub śledź płatności',
         makeOrTrackPaymentsDescription: 'Dodaj upoważnionego płatnika do płatności dokonywanych w Expensify lub śledź płatności dokonane gdzie indziej.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>Dla tego obszaru roboczego włączono niestandardowy przepływ zatwierdzania. Aby przejrzeć lub zmienić ten przepływ pracy, skontaktuj się z <account-manager-link>Menedżerem konta</account-manager-link> lub <concierge-link>Concierge</concierge-link>.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>Dla tego obszaru roboczego włączono niestandardowy przepływ zatwierdzania. Aby przejrzeć lub zmienić ten przepływ pracy, skontaktuj się z <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         editor: {
             submissionFrequency: 'Wybierz, jak długo Expensify powinno czekać przed udostępnieniem wydatków bez błędów.',
         },
@@ -4634,7 +4639,7 @@ ${
             companyCard: 'karta firmowa',
             chooseCardFeed: 'Wybierz kanał kart',
             ukRegulation:
-                'Expensify, Inc. jest agentem Plaid Financial Ltd., autoryzowanej instytucji płatniczej regulowanej przez Financial Conduct Authority zgodnie z Payment Services Regulations 2017 (Numer referencyjny firmy: 804718). Plaid dostarcza Ci regulowane usługi informacyjne o rachunkach za pośrednictwem Expensify Limited jako swojego agenta.',
+                'Expensify Limited jest agentem Plaid Financial Ltd., autoryzowanej instytucji płatniczej regulowanej przez Financial Conduct Authority zgodnie z Payment Services Regulations 2017 (Numer referencyjny firmy: 804718). Plaid dostarcza Ci regulowane usługi informacyjne o rachunkach za pośrednictwem Expensify Limited jako swojego agenta.',
         },
         expensifyCard: {
             issueAndManageCards: 'Wydawaj i zarządzaj swoimi kartami Expensify',
@@ -7550,6 +7555,17 @@ ${
                         return `Oczekiwanie na zatwierdzenie wydatków przez administratora.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Czekamy, aż <strong>ty</strong> wyeksportujesz ten raport.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Oczekiwanie na <strong>${actor}</strong> w celu wyeksportowania tego raportu.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Oczekiwanie na eksport tego raportu przez administratora.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7621,6 +7637,32 @@ ${
             onePasswordForAnything: 'Jedno hasło do wszystkiego',
         },
         goToDomain: 'Przejdź do domeny',
+        samlLogin: {
+            title: 'Logowanie SAML',
+            subtitle: `<muted-text>Skonfiguruj logowanie członków przy użyciu <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'Włącz logowanie SAML',
+            allowMembers: 'Zezwól członkom logować się za pomocą SAML.',
+            requireSamlLogin: 'Wymagaj logowania za pomocą SAML',
+            anyMemberWillBeRequired: 'Każdy członek, który zalogował się inną metodą, będzie musiał ponownie się uwierzytelnić za pomocą SAML.',
+            enableError: 'Nie udało się zaktualizować ustawienia włączenia SAML',
+            requireError: 'Nie udało się zaktualizować ustawienia wymogu SAML',
+        },
+        samlConfigurationDetails: {
+            title: 'Szczegóły konfiguracji SAML',
+            subtitle: 'Skorzystaj z tych informacji, aby skonfigurować SAML.',
+            identityProviderMetaData: 'Metadane dostawcy tożsamości',
+            entityID: 'Identyfikator podmiotu',
+            nameIDFormat: 'Format identyfikatora nazwy',
+            loginUrl: 'Adres URL logowania',
+            acsUrl: 'Adres URL usługi ACS (Assertion Consumer Service)',
+            logoutUrl: 'Adres URL wylogowania',
+            sloUrl: 'Adres URL SLO (Single Logout)',
+            serviceProviderMetaData: 'Metadane dostawcy usług',
+            oktaScimToken: 'Token SCIM Okta',
+            revealToken: 'Pokaż token',
+            fetchError: 'Nie udało się pobrać szczegółów konfiguracji SAML',
+            setMetadataGenericError: 'Nie można ustawić metadanych SAML',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

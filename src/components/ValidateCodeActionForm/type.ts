@@ -37,9 +37,6 @@ type ValidateCodeActionFormProps = {
     /** Whether the form is loading or not */
     isLoading?: boolean;
 
-    /** Ref for validate code form */
-    forwardedRef: ForwardedRef<ValidateCodeFormHandle>;
-
     /** Whether to show the skip button */
     shouldShowSkipButton?: boolean;
 
@@ -51,6 +48,9 @@ type ValidateCodeActionFormProps = {
 
     /** Skip the call to sendValidateCode fn on initial render */
     shouldSkipInitialValidation?: boolean;
+
+    /** Ref for validate code form */
+    ref: ForwardedRef<ValidateCodeFormHandle>;
 };
 
 // eslint-disable-next-line import/prefer-default-export
