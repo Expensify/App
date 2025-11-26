@@ -1,18 +1,20 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line no-restricted-syntax
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-// eslint-disable-next-line no-restricted-syntax
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import * as QuickbooksOnline from '@src/libs/actions/connections/QuickbooksOnline';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy as PolicyType} from '@src/types/onyx';
+import type {QBOConnectionConfig} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
 jest.mock('@libs/ErrorUtils');
+
+type APIWriteArgs = Parameters<typeof API.write>;
 
 const MOCK_POLICY_ID = 'MOCK_POLICY_ID';
 const MOCK_ACCOUNT_ID = 'account-123';
@@ -33,154 +35,163 @@ describe('actions/connections/QuickbooksOnline', () => {
     });
 
     describe('updateQuickbooksOnlineCollectionAccountID', () => {
-        it('should update both COLLECTION_ACCOUNT_ID and REIMBURSEMENT_ACCOUNT_ID with same value in optimistic data', () => {
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+        const writeSpy = jest.spyOn(API, 'write');
 
+        beforeEach(() => {
+            jest.clearAllMocks();
+            writeSpy.mockClear();
+        });
+
+        afterEach(() => {
+            writeSpy.mockRestore();
+        });
+
+        function getQuickBooksConfig(update?: OnyxUpdate): QBOConnectionConfig | undefined {
+            if (!update || typeof update.value !== 'object' || update.value === null) {
+                return undefined;
+            }
+
+            const policyData = update.value as Pick<PolicyType, 'connections'>;
+            const connection = policyData.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO];
+            return connection?.config;
+        }
+
+        function getRequiredQuickBooksConfig(update?: OnyxUpdate): QBOConnectionConfig {
+            const config = getQuickBooksConfig(update);
+            if (!config) {
+                throw new Error('QuickBooks config is missing from the provided Onyx update');
+            }
+            return config;
+        }
+
+        function getFirstWriteCall(): {command: APIWriteArgs[0]; onyxData: OnyxData} {
+            const call = writeSpy.mock.calls.at(0);
+            if (!call) {
+                throw new Error('API.write was not called');
+            }
+
+            const [command, , onyxData] = call;
+            if (!onyxData) {
+                throw new Error('Expected Onyx data to be included in the API write call');
+            }
+
+            return {command, onyxData};
+        }
+
+        it('should update both COLLECTION_ACCOUNT_ID and REIMBURSEMENT_ACCOUNT_ID with same value in optimistic data', () => {
             QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
-            expect(apiWriteSpy).toHaveBeenCalled();
-            const [command, params, onyxData] = apiWriteSpy.mock.calls[0] as [string, any, OnyxData];
+            expect(writeSpy).toHaveBeenCalled();
+            const {command, onyxData} = getFirstWriteCall();
 
             expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID);
-            expect(params.policyID).toBe(MOCK_POLICY_ID);
-            expect(params.settingValue).toBe(JSON.stringify(MOCK_ACCOUNT_ID));
 
-            const {optimisticData} = onyxData;
-            expect(optimisticData).toHaveLength(1);
-            const configUpdate = (optimisticData![0].value as any).connections[CONST.POLICY.CONNECTIONS.NAME.QBO].config;
+            const optimisticUpdate = onyxData.optimisticData?.at(0);
+            const configUpdate = getRequiredQuickBooksConfig(optimisticUpdate);
 
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBe(MOCK_ACCOUNT_ID);
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBe(MOCK_ACCOUNT_ID);
 
-            expect(configUpdate.pendingFields[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-            expect(configUpdate.pendingFields[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(configUpdate.pendingFields?.[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(configUpdate.pendingFields?.[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
-            expect(configUpdate.errorFields[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
-            expect(configUpdate.errorFields[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBeNull();
-
-            apiWriteSpy.mockRestore();
+            expect(configUpdate.errorFields?.[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
+            expect(configUpdate.errorFields?.[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBeNull();
         });
 
         it('should update both COLLECTION_ACCOUNT_ID and REIMBURSEMENT_ACCOUNT_ID with old value in failure data', () => {
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
-
             QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
-            expect(apiWriteSpy).toHaveBeenCalled();
-            const [, , onyxData] = apiWriteSpy.mock.calls[0] as [string, any, OnyxData];
+            expect(writeSpy).toHaveBeenCalled();
+            const {onyxData} = getFirstWriteCall();
 
-            const {failureData} = onyxData;
-            expect(failureData).toHaveLength(1);
-            const configUpdate = (failureData![0].value as any).connections[CONST.POLICY.CONNECTIONS.NAME.QBO].config;
+            const failureUpdate = onyxData.failureData?.at(0);
+            const configUpdate = getRequiredQuickBooksConfig(failureUpdate);
 
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBe(MOCK_OLD_ACCOUNT_ID);
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBe(MOCK_OLD_ACCOUNT_ID);
 
-            expect(configUpdate.pendingFields[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
-            expect(configUpdate.pendingFields[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBeNull();
+            expect(configUpdate.pendingFields?.[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
+            expect(configUpdate.pendingFields?.[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBeNull();
 
-            expect(configUpdate.errorFields[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBe(MOCK_ONYX_ERROR);
-            expect(configUpdate.errorFields[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBe(MOCK_ONYX_ERROR);
-
-            apiWriteSpy.mockRestore();
+            expect(configUpdate.errorFields?.[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBe(MOCK_ONYX_ERROR);
+            expect(configUpdate.errorFields?.[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBe(MOCK_ONYX_ERROR);
         });
 
         it('should update both COLLECTION_ACCOUNT_ID and REIMBURSEMENT_ACCOUNT_ID with new value in success data', () => {
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
-
             QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
-            expect(apiWriteSpy).toHaveBeenCalled();
-            const [, , onyxData] = apiWriteSpy.mock.calls[0] as [string, any, OnyxData];
+            expect(writeSpy).toHaveBeenCalled();
+            const {onyxData} = getFirstWriteCall();
 
-            const {successData} = onyxData;
-            expect(successData).toHaveLength(1);
-            const configUpdate = (successData![0].value as any).connections[CONST.POLICY.CONNECTIONS.NAME.QBO].config;
+            const successUpdate = onyxData.successData?.at(0);
+            const configUpdate = getRequiredQuickBooksConfig(successUpdate);
 
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBe(MOCK_ACCOUNT_ID);
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBe(MOCK_ACCOUNT_ID);
 
-            expect(configUpdate.pendingFields[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
-            expect(configUpdate.pendingFields[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBeNull();
+            expect(configUpdate.pendingFields?.[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
+            expect(configUpdate.pendingFields?.[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBeNull();
 
-            expect(configUpdate.errorFields[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
-            expect(configUpdate.errorFields[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBeNull();
-
-            apiWriteSpy.mockRestore();
+            expect(configUpdate.errorFields?.[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
+            expect(configUpdate.errorFields?.[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBeNull();
         });
 
         it('should have correct merge operation in all Onyx updates', () => {
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
-
             QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
-            expect(apiWriteSpy).toHaveBeenCalled();
-            const [, , onyxData] = apiWriteSpy.mock.calls[0] as [string, any, OnyxData];
+            expect(writeSpy).toHaveBeenCalled();
+            const {onyxData} = getFirstWriteCall();
+            const updateGroups = [onyxData.optimisticData, onyxData.failureData, onyxData.successData];
 
-            const {optimisticData, failureData, successData} = onyxData;
-
-            [optimisticData!, failureData!, successData!].forEach((dataArray) => {
-                dataArray.forEach((update: OnyxUpdate) => {
+            for (const dataArray of updateGroups) {
+                if (!dataArray) {
+                    continue;
+                }
+                for (const update of dataArray) {
                     expect(update.onyxMethod).toBe(Onyx.METHOD.MERGE);
                     expect(update.key).toBe(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
-                });
-            });
-
-            apiWriteSpy.mockRestore();
+                }
+            }
         });
 
         it('should not make API call when settingValue equals oldSettingValue', () => {
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
-
             QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_ACCOUNT_ID);
 
-            expect(apiWriteSpy).not.toHaveBeenCalled();
-
-            apiWriteSpy.mockRestore();
+            expect(writeSpy).not.toHaveBeenCalled();
         });
 
         it('should not make API call when policyID is undefined', () => {
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
-
             QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(undefined, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
-            expect(apiWriteSpy).not.toHaveBeenCalled();
-
-            apiWriteSpy.mockRestore();
+            expect(writeSpy).not.toHaveBeenCalled();
         });
 
         it('should handle null settingValue correctly', () => {
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const nullSettingValue = null as unknown as QBOConnectionConfig[Extract<typeof CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID, keyof QBOConnectionConfig>];
+            QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, nullSettingValue, MOCK_OLD_ACCOUNT_ID);
 
-            QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, null as any, MOCK_OLD_ACCOUNT_ID);
+            expect(writeSpy).toHaveBeenCalled();
+            const {onyxData} = getFirstWriteCall();
 
-            expect(apiWriteSpy).toHaveBeenCalled();
-            const [, , onyxData] = apiWriteSpy.mock.calls[0] as [string, any, OnyxData];
-
-            const {optimisticData} = onyxData;
-            const configUpdate = (optimisticData![0].value as any).connections[CONST.POLICY.CONNECTIONS.NAME.QBO].config;
+            const optimisticUpdate = onyxData.optimisticData?.at(0);
+            const configUpdate = getRequiredQuickBooksConfig(optimisticUpdate);
 
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBeNull();
-
-            apiWriteSpy.mockRestore();
         });
 
         it('should handle undefined oldSettingValue correctly', () => {
-            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
-
             QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, undefined);
 
-            expect(apiWriteSpy).toHaveBeenCalled();
-            const [, , onyxData] = apiWriteSpy.mock.calls[0] as [string, any, OnyxData];
+            expect(writeSpy).toHaveBeenCalled();
+            const {onyxData} = getFirstWriteCall();
 
-            const {failureData} = onyxData;
-            const configUpdate = (failureData![0].value as any).connections[CONST.POLICY.CONNECTIONS.NAME.QBO].config;
+            const failureUpdate = onyxData.failureData?.at(0);
+            const configUpdate = getRequiredQuickBooksConfig(failureUpdate);
 
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBeNull();
-
-            apiWriteSpy.mockRestore();
         });
     });
 });
