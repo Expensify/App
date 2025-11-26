@@ -5053,7 +5053,7 @@ function getReportPreviewMessage(
         // 1. After SignIn, the OpenApp API won't return iouReports if they're settled.
         // 2. The iouReport exists in local storage but hasn't been loaded into the allReports. It will be loaded automatically when the user opens the iouReport.
         // Until we know how to solve this the best, we just display the report action message.
-        // If the report is empty, we display the report name ti avoid showing "payer owes 0"
+        // If the report is empty, we display the report name to avoid showing "payer owes 0"
         return !!originalReportAction?.childReportName && originalReportAction?.childMoneyRequestCount === 0 ? originalReportAction?.childReportName : reportActionMessage;
     }
 
