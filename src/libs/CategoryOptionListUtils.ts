@@ -55,6 +55,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
             continue;
         }
 
+        // eslint-disable-next-line unicorn/no-array-for-each
         option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
             const indents = times(index, () => CONST.INDENTS).join('');
             const isChild = array.length - 1 === index;
