@@ -39,7 +39,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         const prevHasConnectionsDataBeenFetched = usePrevious(hasConnectionsDataBeenFetched);
 
         useEffect(() => {
-            if (prevHasConnectionsDataBeenFetched !== undefined || !isBoolean(hasConnectionsDataBeenFetched)) {
+            if (!isBoolean(hasConnectionsDataBeenFetched) || prevHasConnectionsDataBeenFetched === hasConnectionsDataBeenFetched) {
                 return;
             }
             setIsFetchingData(false);
@@ -49,6 +49,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             // When the accounting feature is not enabled, or if the connections data already exists,
             // there is no need to fetch the connections data.
             if (!isConnectionDataFetchNeeded || !props.policy?.id) {
+                setIsFetchingData(false);
                 return;
             }
             setIsFetchingData(true);
