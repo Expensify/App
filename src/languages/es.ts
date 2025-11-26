@@ -1379,9 +1379,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Esta función requiere que valides tu cuenta.',
         validateAccount: 'Valida tu cuenta',
         helpText: ({email}: {email: string}) =>
-            `Añade más formas de enviar recibos. Reenvíalos a <copy-text text="${email}"/> o envíalos por mensaje de texto al 47777 (solo números de EE. UU.).`,
-        pleaseVerify: 'Por favor, verifica este método de contacto',
-        getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
+            `Agrega más formas de iniciar sesión y enviar recibos a Expensify.<br/><br/>Agrega una dirección de correo electrónico para reenviar recibos a <a href="mailto:${email}">${email}</a> o agrega un número de teléfono para enviar recibos por mensaje de texto al 47777 (solo números de EE. UU.).`,
+        pleaseVerify: 'Por favor, verifica este método de contacto.',
+        getInTouch: 'Usaremos este método para comunicarnos contigo.',
         enterMagicCode: ({contactMethod}) => `Por favor, introduce el código mágico enviado a ${contactMethod}. Debería llegar en un par de minutos.`,
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
@@ -1840,6 +1840,10 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>Este espacio de trabajo tiene habilitado un flujo de aprobación personalizado. Para revisar o cambiar este flujo de trabajo, comunícate con tu <account-manager-link>Administrador de cuenta</account-manager-link> o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>Este espacio de trabajo tiene habilitado un flujo de aprobación personalizado. Para revisar o cambiar este flujo de trabajo, comunícate con <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         editor: {
             submissionFrequency: 'Elige cuánto tiempo Expensify debe esperar antes de compartir los gastos sin errores.',
         },
@@ -4395,7 +4399,7 @@ ${amount} para ${merchant} - ${date}`,
             companyCard: 'tarjeta de empresa',
             chooseCardFeed: 'Elige feed de tarjetas',
             ukRegulation:
-                'Expensify, Inc. es un agente de Plaid Financial Ltd., una institución de pago autorizada y regulada por la Financial Conduct Authority conforme al Reglamento de Servicios de Pago de 2017 (Número de Referencia de la Firma: 804718). Plaid te proporciona servicios regulados de información de cuentas a través de Expensify Limited como su agente.',
+                'Expensify Limited es un agente de Plaid Financial Ltd., una institución de pago autorizada y regulada por la Financial Conduct Authority conforme al Reglamento de Servicios de Pago de 2017 (Número de Referencia de la Firma: 804718). Plaid te proporciona servicios regulados de información de cuentas a través de Expensify Limited como su agente.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
