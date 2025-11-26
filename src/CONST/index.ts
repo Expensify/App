@@ -7403,7 +7403,10 @@ const CONST = {
     },
 
     PERFORMANCE: {
-        HERMES_YOUNG_GC_START_MARKER_NAME: 'hermesYoungGcStart',
+        MARKERS: {
+            RUN_JS_BUNDLE_START: 'runJsBundleStart',
+            HERMES_YOUNG_GC_START: 'hermesYoungGcStart',
+        },
     },
 } as const;
 

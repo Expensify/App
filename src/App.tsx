@@ -76,7 +76,7 @@ function App() {
     OnyxUpdateManager();
 
     useEffect(() => {
-        performance.mark(CONST.PERFORMANCE.HERMES_YOUNG_GC_START_MARKER_NAME);
+        performance.mark(CONST.PERFORMANCE.MARKERS.HERMES_YOUNG_GC_START);
 
         gc?.();
         // @ts-expect-error HermesInternal is not typed
@@ -84,7 +84,7 @@ function App() {
         HermesInternal?.ttiReached?.();
 
         setTimeout(() => {
-            stopProfiling(true, 'Margelo_perf.cpuprofile');
+            stopProfiling(true);
         }, 10000);
     }, []);
 
