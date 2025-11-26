@@ -1162,9 +1162,9 @@ function buildUserReadableQueryString(
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
 
-        rawFilterList.forEach((rawFilter) => {
+        for (const rawFilter of rawFilterList) {
             if (!rawFilter) {
-                return;
+                continue;
             }
 
             if (rawFilter.isDefault) {
@@ -1172,7 +1172,7 @@ function buildUserReadableQueryString(
                 if (defaultSegment) {
                     segments.push(defaultSegment);
                 }
-                return;
+                continue;
             }
 
             const rawValues = Array.isArray(rawFilter.value) ? rawFilter.value : [rawFilter.value];
@@ -1185,13 +1185,13 @@ function buildUserReadableQueryString(
                 }));
 
             if (!queryFilters.length) {
-                return;
+                continue;
             }
 
             const displayQueryFilters = getDisplayQueryFiltersForKey(rawFilter.key, queryFilters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
 
             if (!displayQueryFilters.length) {
-                return;
+                continue;
             }
 
             const segment = buildFilterValuesString(getUserFriendlyKey(rawFilter.key as SearchFilterKey), displayQueryFilters).trim();
@@ -1199,7 +1199,7 @@ function buildUserReadableQueryString(
             if (segment) {
                 segments.push(segment);
             }
-        });
+        }
 
         if (segments.length > 0) {
             return segments.join(' ');
