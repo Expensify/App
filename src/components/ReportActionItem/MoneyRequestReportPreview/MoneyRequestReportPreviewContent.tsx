@@ -806,7 +806,7 @@ function MoneyRequestReportPreviewContent({
                                                 ListFooterComponent={<View style={styles.pl2} />}
                                                 ListHeaderComponent={<View style={styles.pr2} />}
                                             />
-                                            {shouldShowAccessPlaceHolder && !shouldShowEmptyPlaceholder && <AccessMoneyRequestReportPreviewPlaceHolder />}
+                                            {shouldShowAccessPlaceHolder && <AccessMoneyRequestReportPreviewPlaceHolder />}
                                             {shouldShowEmptyPlaceholder && !shouldShowAccessPlaceHolder && <EmptyMoneyRequestReportPreview />}
                                         </View>
                                     )}
