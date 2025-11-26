@@ -14,6 +14,8 @@ type HoverableProps = {
     /** Whether to disable the hover action */
     isDisabled?: boolean;
 
+    isFocused?: boolean;
+
     /** Function that executes when the mouse moves over the children. */
     onHoverIn?: () => void;
 
