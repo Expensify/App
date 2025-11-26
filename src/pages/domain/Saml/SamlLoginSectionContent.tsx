@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetSamlEnabledError, resetSamlRequiredError, setSamlEnabled, setSamlRequired} from '@libs/actions/Domain';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {domainSamlSettingsStateSelector} from '@src/selectors/Domain';
@@ -38,7 +39,7 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
         <>
             <OfflineWithFeedback
                 pendingAction={domain?.isSamlEnabledLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
-                errors={domain?.samlEnabledError}
+                errors={getLatestErrorMessageField({errors: domain?.samlEnabledError})}
                 onClose={() => resetSamlEnabledError(accountID)}
                 dismissError={() => resetSamlEnabledError(accountID)}
             >
@@ -60,7 +61,7 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
             {isSamlEnabled && (
                 <OfflineWithFeedback
                     pendingAction={domain?.isSamlRequiredLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
-                    errors={domain?.samlRequiredError}
+                    errors={getLatestErrorMessageField({errors: domain?.samlRequiredError})}
                     onClose={() => resetSamlRequiredError(accountID)}
                     dismissError={() => resetSamlRequiredError(accountID)}
                 >
