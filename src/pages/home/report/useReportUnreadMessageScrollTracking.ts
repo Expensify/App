@@ -81,6 +81,7 @@ export default function useReportUnreadMessageScrollTracking({
             currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
             isFloatingMessageCounterVisible &&
             !hasUnreadMarkerReportAction &&
+            !hasNewerActions
         ) {
             setIsFloatingMessageCounterVisible(false);
         }
