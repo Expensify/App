@@ -168,7 +168,17 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         Navigation.dismissModal();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            changeTransactionsReport([transaction.transactionID], isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '', undefined, undefined, undefined, undefined, selfDMReportID);
+            changeTransactionsReport(
+                [transaction.transactionID],
+                isASAPSubmitBetaEnabled,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                session?.email ?? '',
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                selfDMReportID,
+            );
             removeTransaction(transaction.transactionID);
         });
     };

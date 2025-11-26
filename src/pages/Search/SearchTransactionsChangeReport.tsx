@@ -141,7 +141,17 @@ function SearchTransactionsChangeReport() {
         if (selectedTransactionsKeys.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionsKeys, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '', undefined, undefined, undefined, undefined, selfDMReportID);
+        changeTransactionsReport(
+            selectedTransactionsKeys,
+            isASAPSubmitBetaEnabled,
+            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            session?.email ?? '',
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            selfDMReportID,
+        );
         clearSelectedTransactions();
         Navigation.goBack();
     };

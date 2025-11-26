@@ -91,7 +91,17 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (!selectedReport || selectedTransactionIDs.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionIDs, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '', undefined, undefined, undefined, undefined, selfDMReportID);
+        changeTransactionsReport(
+            selectedTransactionIDs,
+            isASAPSubmitBetaEnabled,
+            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            session?.email ?? '',
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            selfDMReportID,
+        );
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
