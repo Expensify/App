@@ -3671,7 +3671,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         : {};
 
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
-    const hasViolations = hasViolationsReportUtils(iouReport.reportID, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(iouReport.reportID, transactionViolations, currentUserAccountIDParam);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStep = buildNextStepNew({
         report: iouReport,
@@ -7161,7 +7161,7 @@ function createSplitsAndOnyxData({
                   transactionTags: tag,
               })
             : {};
-        const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations);
+        const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, currentUserAccountID);
 
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
@@ -7982,7 +7982,7 @@ function completeSplitBill(
         } else {
             oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
         }
-        const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations);
+        const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID);
 
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
             isNewChatReport: isNewOneOnOneChatReport,
