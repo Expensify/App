@@ -4,6 +4,7 @@ import getArchiveReason from '@selectors/Report';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -198,6 +199,7 @@ function MoneyReportHeader({
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${reportPDFFilename}`, {canBeMissing: true});
     const isDownloadingPDF = download?.isDownloading ?? false;
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
@@ -930,6 +932,7 @@ function MoneyReportHeader({
             reportActions,
             policies,
             isChatReportArchived,
+            betas,
         });
     }, [moneyRequestReport, currentUserLogin, chatReport, transactions, originalIOUTransaction, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived]);
 
