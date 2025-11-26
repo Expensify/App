@@ -68,10 +68,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
     );
-    const badgeProps = useMemo(
-        () => getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme),
-        [withdrawalIDItem.state, translate, theme],
-    );
+    const badgeProps = useMemo(() => getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme), [withdrawalIDItem.state, translate, theme]);
     const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
     const handleUnlockAccount = useCallback(() => {
         Navigation.navigate(ROUTES.SETTINGS_WALLET);

@@ -1721,6 +1721,110 @@ function getCardSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
  * Do not use directly, use only via `getSections()` facade.
  */
 function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): TransactionWithdrawalIDGroupListItemType[] {
+    // ========== MOCK DATA FOR TESTING - REMOVE BEFORE PR ==========
+    // Testing all state values:
+    // - States 5, 6, 7: Failed (Orange badge + error message)
+    // - State 8: Cleared (Pink badge)
+    // - All other states (0, 1, 99, etc.): Pending (Blue badge)
+    return [
+        // ===== PENDING STATES (Blue badge) =====
+        {
+            groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            transactions: [],
+            transactionsQueryJSON: undefined,
+            entryID: 25383880,
+            accountNumber: '1234',
+            bankName: CONST.BANK_NAMES.CHASE,
+            debitPosted: '2025-01-15 14:30:00',
+            count: 3,
+            currency: 'USD',
+            total: 78223,
+            state: 1,
+        },
+        {
+            groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            transactions: [],
+            transactionsQueryJSON: undefined,
+            entryID: 25383890,
+            accountNumber: '2345',
+            bankName: CONST.BANK_NAMES.PNC,
+            debitPosted: '2025-01-15 10:00:00',
+            count: 1,
+            currency: 'USD',
+            total: 5000,
+            state: 0,
+        },
+        {
+            groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            transactions: [],
+            transactionsQueryJSON: undefined,
+            entryID: 25383891,
+            accountNumber: '3456',
+            bankName: CONST.BANK_NAMES.TD_BANK,
+            debitPosted: '2025-01-14 16:00:00',
+            count: 2,
+            currency: 'USD',
+            total: 12500,
+            state: 99,
+        },
+        // ===== CLEARED STATE (Pink badge) =====
+        {
+            groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            transactions: [],
+            transactionsQueryJSON: undefined,
+            entryID: 25383881,
+            accountNumber: '5678',
+            bankName: CONST.BANK_NAMES.CITIBANK,
+            debitPosted: '2025-01-14 10:15:00',
+            count: 5,
+            currency: 'USD',
+            total: 156789,
+            state: 8,
+        },
+        // ===== FAILED STATES (Orange badge + error message) =====
+        {
+            groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            transactions: [],
+            transactionsQueryJSON: undefined,
+            entryID: 25383882,
+            accountNumber: '9012',
+            bankName: CONST.BANK_NAMES.BANK_OF_AMERICA,
+            debitPosted: '2025-01-13 16:45:00',
+            count: 2,
+            currency: 'USD',
+            total: 234500,
+            state: 5,
+        },
+        {
+            groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            transactions: [],
+            transactionsQueryJSON: undefined,
+            entryID: 25383883,
+            accountNumber: '4567',
+            bankName: CONST.BANK_NAMES.CAPITAL_ONE,
+            debitPosted: '2025-01-12 09:20:00',
+            count: 4,
+            currency: 'USD',
+            total: 89900,
+            state: 6,
+        },
+        {
+            groupedBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            transactions: [],
+            transactionsQueryJSON: undefined,
+            entryID: 25383884,
+            accountNumber: '7890',
+            bankName: CONST.BANK_NAMES.US_BANK,
+            debitPosted: '2025-01-11 14:00:00',
+            count: 1,
+            currency: 'USD',
+            total: 45600,
+            state: 7,
+        },
+    ] as TransactionWithdrawalIDGroupListItemType[];
+    // ========== END MOCK DATA ==========
+
+    /* Production code - uncomment before PR
     const withdrawalIDSections: Record<string, TransactionWithdrawalIDGroupListItemType> = {};
 
     for (const key in data) {
@@ -1745,6 +1849,7 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
     }
 
     return Object.values(withdrawalIDSections);
+    */
 }
 
 /**
