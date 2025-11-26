@@ -10107,16 +10107,14 @@ function getTaskAssigneeChatOnyxData(
             },
         );
 
-        if (isOptimisticAssigneeChatReport) {
-            // If task assignee is created optimistically, we need to clear the optimistic personal details to prevent duplication with real data sent from BE.
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                value: {
-                    [assigneeAccountID]: null,
-                },
-            });
-        }
+        // If task assignee is created optimistically, we need to clear the optimistic personal details to prevent duplication with real data sent from BE.
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [assigneeAccountID]: null,
+            },
+        });
 
         failureData.push(
             {
