@@ -22,7 +22,6 @@ import {
     buildOptimisticUnHoldReportAction,
     buildOptimisticUnreportedTransactionAction,
     buildTransactionThread,
-    findSelfDMReportID,
     getReportTransactions,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
