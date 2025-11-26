@@ -698,6 +698,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
         reportName: 'Rapportnaam',
+        showLess: 'Minder weergeven',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -4650,7 +4651,7 @@ ${
             companyCard: 'bedrijfskaart',
             chooseCardFeed: 'Kies kaartfeed',
             ukRegulation:
-                'Expensify, Inc. is een agent van Plaid Financial Ltd., een erkende betalingsinstelling gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid biedt u gereguleerde rekeninginformatiediensten via Expensify Limited als zijn agent.',
+                'Expensify Limited is een agent van Plaid Financial Ltd., een erkende betalingsinstelling gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid biedt u gereguleerde rekeninginformatiediensten via Expensify Limited als zijn agent.',
         },
         expensifyCard: {
             issueAndManageCards: 'Uitgeven en beheren van uw Expensify-kaarten',
@@ -7490,18 +7491,6 @@ ${
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} heeft je uitgenodigd om Expensify uit te proberen\nHey! Ik heb ons net *3 maanden gratis* gekregen om Expensify uit te proberen, de snelste manier om onkosten te beheren.\n\nHier is een *testbon* om je te laten zien hoe het werkt:`,
     },
-    reportLayout: {
-        reportLayout: 'Rapportindeling',
-        groupByLabel: 'Groeperen op:',
-        selectGroupByOption: 'Selecteer hoe rapportuitgaven te groeperen',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `${action} deze groep`,
-        selectGroup: ({groupName}: {groupName: string}) => `Selecteer alle uitgaven in ${groupName}`,
-        groupBy: {
-            category: 'Categorie',
-            tag: 'Tag',
-        },
-    },
     export: {
         basicExport: 'Basis export',
         reportLevelExport: 'Alle gegevens - rapportniveau',
@@ -7578,6 +7567,17 @@ ${
                         return `Wachten tot een beheerder de uitgaven goedkeurt.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Wachten tot <strong>jij</strong> dit rapport exporteert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Wachten tot <strong>${actor}</strong> dit rapport exporteert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Wachten tot een beheerder dit rapport exporteert.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7649,6 +7649,32 @@ ${
             onePasswordForAnything: 'Eén wachtwoord voor alles',
         },
         goToDomain: 'Ga naar het domein',
+        samlLogin: {
+            title: 'SAML-aanmelding',
+            subtitle: `<muted-text>Configureer het inloggen voor leden met <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'SAML-aanmelding inschakelen',
+            allowMembers: 'Leden toestaan om met SAML in te loggen.',
+            requireSamlLogin: 'SAML-aanmelding vereisen',
+            anyMemberWillBeRequired: 'Elk lid dat met een andere methode is aangemeld, moet zich opnieuw authenticeren via SAML.',
+            enableError: 'Kon de instelling voor SAML-inschakeling niet bijwerken',
+            requireError: 'Kan SAML-vereiste-instelling niet bijwerken',
+        },
+        samlConfigurationDetails: {
+            title: 'SAML-configuratiedetails',
+            subtitle: 'Gebruik deze gegevens om SAML in te stellen.',
+            identityProviderMetaData: 'Metagegevens van identiteitsprovider',
+            entityID: 'Entiteit-ID',
+            nameIDFormat: 'Naam-ID-formaat',
+            loginUrl: 'Inlog-URL',
+            acsUrl: 'ACS-URL (Assertion Consumer Service)',
+            logoutUrl: 'URL voor afmelden',
+            sloUrl: 'SLO (Eenmalige afmelding) URL',
+            serviceProviderMetaData: 'Serviceprovider-metagegevens',
+            oktaScimToken: 'Okta SCIM-token',
+            revealToken: 'Token weergeven',
+            fetchError: 'Kon SAML-configuratiedetails niet ophalen',
+            setMetadataGenericError: 'Kon SAML-metadata niet instellen',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

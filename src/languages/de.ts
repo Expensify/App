@@ -699,6 +699,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet...',
         domains: 'Domänen',
         reportName: 'Berichtsname',
+        showLess: 'Weniger anzeigen',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -4667,7 +4668,7 @@ ${
             companyCard: 'Firmenkarte',
             chooseCardFeed: 'Karten-Feed auswählen',
             ukRegulation:
-                'Expensify, Inc. ist ein Agent von Plaid Financial Ltd., einem autorisierten Zahlungsinstitut, das von der Financial Conduct Authority gemäß den Payment Services Regulations 2017 reguliert wird (Firmennummer: 804718). Plaid bietet Ihnen regulierte Kontoinformationsdienste über Expensify Limited als seinen Agenten an.',
+                'Expensify Limited ist ein Agent von Plaid Financial Ltd., einem autorisierten Zahlungsinstitut, das von der Financial Conduct Authority gemäß den Payment Services Regulations 2017 reguliert wird (Firmennummer: 804718). Plaid bietet Ihnen regulierte Kontoinformationsdienste über Expensify Limited als seinen Agenten an.',
         },
         expensifyCard: {
             issueAndManageCards: 'Ausstellen und Verwalten Ihrer Expensify-Karten',
@@ -7528,18 +7529,6 @@ ${
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} hat dich eingeladen, Expensify auszuprobieren\nHey! Ich habe uns gerade *3 Monate kostenlos* gesichert, um Expensify auszuprobieren, den schnellsten Weg, um Ausgaben zu verwalten.\n\nHier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     },
-    reportLayout: {
-        reportLayout: 'Berichtslayout',
-        groupByLabel: 'Gruppieren nach:',
-        selectGroupByOption: 'Wählen Sie aus, wie Berichtsausgaben gruppiert werden sollen',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `${action} diese Gruppe`,
-        selectGroup: ({groupName}: {groupName: string}) => `Alle Ausgaben in ${groupName} auswählen`,
-        groupBy: {
-            category: 'Kategorie',
-            tag: 'Schlagwort',
-        },
-    },
     export: {
         basicExport: 'Basis Export',
         reportLevelExport: 'Alle Daten - Berichtsebene',
@@ -7622,6 +7611,17 @@ ${
                         return `Warten darauf, dass ein Admin die Ausgaben genehmigt.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Es wird darauf gewartet, dass <strong>Sie</strong> diesen Bericht exportieren.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Warten darauf, dass <strong>${actor}</strong> diesen Bericht exportiert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Warten darauf, dass ein Administrator diesen Bericht exportiert.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7693,6 +7693,32 @@ ${
             onePasswordForAnything: 'Ein Passwort für alles',
         },
         goToDomain: 'Zur Domain wechseln',
+        samlLogin: {
+            title: 'SAML-Anmeldung',
+            subtitle: `<muted-text>Konfigurieren Sie die Mitgliederanmeldung mit <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'SAML-Anmeldung aktivieren',
+            allowMembers: 'Mitgliedern die Anmeldung mit SAML erlauben.',
+            requireSamlLogin: 'SAML-Anmeldung erforderlich',
+            anyMemberWillBeRequired: 'Jedes Mitglied, das sich mit einer anderen Methode angemeldet hat, muss sich mithilfe von SAML erneut authentifizieren.',
+            enableError: 'Konnte die SAML-Aktivierungseinstellung nicht aktualisieren',
+            requireError: 'Die SAML-Anforderungseinstellung konnte nicht aktualisiert werden.',
+        },
+        samlConfigurationDetails: {
+            title: 'SAML-Konfigurationsdetails',
+            subtitle: 'Verwenden Sie diese Angaben, um SAML einzurichten.',
+            identityProviderMetaData: 'Metadaten des Identitätsanbieters',
+            entityID: 'Entitäts-ID',
+            nameIDFormat: 'Name-ID-Format',
+            loginUrl: 'Anmelde-URL',
+            acsUrl: 'ACS-URL (Assertion Consumer Service)',
+            logoutUrl: 'Abmelde-URL',
+            sloUrl: 'SLO (Single Logout)-URL',
+            serviceProviderMetaData: 'Metadaten des Dienstanbieters',
+            oktaScimToken: 'Okta SCIM-Token',
+            revealToken: 'Token anzeigen',
+            fetchError: 'SAML-Konfigurationsdetails konnten nicht abgerufen werden',
+            setMetadataGenericError: 'SAML-Metadaten konnten nicht gesetzt werden',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
