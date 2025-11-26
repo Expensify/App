@@ -7479,18 +7479,6 @@ ${
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} zaprosił Cię do wypróbowania Expensify\nHej! Właśnie zdobyłem dla nas *3 miesiące za darmo*, aby wypróbować Expensify, najszybszy sposób na rozliczanie wydatków.\n\nOto *przykładowy paragon*, aby pokazać Ci, jak to działa:`,
     },
-    reportLayout: {
-        reportLayout: 'Układ raportu',
-        groupByLabel: 'Grupuj według:',
-        selectGroupByOption: 'Wybierz sposób grupowania wydatków w raporcie',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `${action} tę grupę`,
-        selectGroup: ({groupName}: {groupName: string}) => `Wybierz wszystkie wydatki w ${groupName}`,
-        groupBy: {
-            category: 'Kategoria',
-            tag: 'Tag',
-        },
-    },
     export: {
         basicExport: 'Eksport podstawowy',
         reportLevelExport: 'Wszystkie dane - poziom raportu',

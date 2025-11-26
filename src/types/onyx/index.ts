@@ -90,7 +90,6 @@ import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
-import type {GroupedTransactions, ReportLayoutGroupBy} from './ReportLayout';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
@@ -289,7 +288,5 @@ export type {
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
-    ReportLayoutGroupBy,
-    GroupedTransactions,
     SamlMetadata,
 };
