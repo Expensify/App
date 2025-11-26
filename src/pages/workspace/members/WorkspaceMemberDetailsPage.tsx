@@ -27,7 +27,16 @@ import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, getPlaidInstitutionIconUrl, isExpensifyCardFullySetUp, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {
+    getAllCardsForWorkspace,
+    getCardFeedIcon,
+    getCompanyCardFeedWithDomainID,
+    getCompanyFeeds,
+    getPlaidInstitutionIconUrl,
+    isExpensifyCardFullySetUp,
+    lastFourNumbersFromCardName,
+    maskCardNumber,
+} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -240,7 +249,17 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, card.cardID.toString(), Navigation.getActiveRoute()));
                 return;
             }
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, card.cardID.toString(), card.bank, Navigation.getActiveRoute()));
+            if (!card.fundID) {
+                return;
+            }
+            Navigation.navigate(
+                ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
+                    policyID,
+                    card.cardID.toString(),
+                    getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID),
+                    Navigation.getActiveRoute(),
+                ),
+            );
         },
         [policyID],
     );
