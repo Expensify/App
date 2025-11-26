@@ -75,7 +75,7 @@ function WorkspaceResetBankAccountModal({
             }
 
             if (setNonUSDBankAccountStep) {
-                setNonUSDBankAccountStep(null);
+                setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
             }
         } else {
             resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod);
