@@ -42,12 +42,12 @@ function SearchChangeApproverPage() {
 
     const selectedPolicies = useMemo(() => {
         const policies = new Map<string, Policy>();
-        selectedReports.forEach((selectedReport) => {
+        for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             if (policy?.id) {
                 policies.set(policy.id, policy);
             }
-        });
+        }
         return Array.from(policies.values());
     }, [selectedReports, allPolicies]);
 
@@ -66,7 +66,7 @@ function SearchChangeApproverPage() {
             }
             if (policiesToUpgrade.length === 1) {
                 Navigation.navigate(
-                    ROUTES.WORKSPACE_UPGRADE.getRoute(policiesToUpgrade[0].id, CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.alias, ROUTES.CHANGE_APPROVER_SEARCH_RHP),
+                    ROUTES.WORKSPACE_UPGRADE.getRoute(policiesToUpgrade.at(0)?.id, CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.alias, ROUTES.CHANGE_APPROVER_SEARCH_RHP),
                 );
                 return;
             }
@@ -75,19 +75,19 @@ function SearchChangeApproverPage() {
             return;
         }
 
-        selectedReports.forEach((selectedReport) => {
+        for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
 
             if (!report || !policy) {
-                return;
+                continue;
             }
 
             if (report.managerID !== currentUserDetails.accountID) {
                 const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations);
                 assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled);
             }
-        });
+        }
 
         Navigation.closeRHPFlow();
     }, [
@@ -137,9 +137,11 @@ function SearchChangeApproverPage() {
     }, [selectedReports, allPolicies, allReports, currentUserDetails.accountID, selectedApproverType, translate]);
 
     useEffect(() => {
-        if (selectedReports.length === 0 || sections[0].data.length === 0) {
-            Navigation.closeRHPFlow();
+        if (selectedReports.length && sections.at(0)?.data.length) {
+            return;
         }
+
+        Navigation.closeRHPFlow();
     }, [selectedReports, sections]);
 
     return (
@@ -174,7 +176,7 @@ function SearchChangeApproverPage() {
                             <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
                                 <RenderHTML
                                     html={translate('iou.changeApprover.description', {
-                                        workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies[0].id)}`,
+                                        workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(selectedPolicies.at(0)?.id)}`,
                                     })}
                                 />
                             </View>

@@ -1,13 +1,14 @@
-import _ from 'lodash';
+import lodashIntersection from 'lodash/intersection';
+import lodashPick from 'lodash/pick';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import Badge from '@components/Badge';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import type {SelectionListApprover} from '@components/WorkspaceMembersSelectionList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -22,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function SearchAddApproverPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const {isBetaEnabled} = usePermissions();
@@ -40,9 +42,10 @@ function SearchAddApproverPage() {
             return [];
         }
 
-        const uniquePolicyIds = _.uniq(selectedReports.map((selectedReport) => selectedReport.policyID));
+        const uniquePolicyIds = Array.from(new Set(selectedReports.map((selectedReport) => selectedReport.policyID)));
         const employeeLists = uniquePolicyIds.map((policyID) => allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList).filter((employeeList) => !!employeeList);
-        const intersectedEmployees = employeeLists.length === 0 ? {} : _.pick(employeeLists[0], _.intersection(...employeeLists.map(Object.keys)));
+        const firstWorkspaceEmployees = employeeLists.at(0);
+        const intersectedEmployees = firstWorkspaceEmployees ? lodashPick(firstWorkspaceEmployees, lodashIntersection(...employeeLists.map(Object.keys))) : {};
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(intersectedEmployees, true, false);
         return Object.values(intersectedEmployees)
             .map((employee): SelectionListApprover | null => {
@@ -96,7 +99,7 @@ function SearchAddApproverPage() {
                     isSelected: selectedApproverEmail === email,
                     login: email,
                     value: accountID,
-                    icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
+                    icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                     rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
                 };
             })
@@ -109,12 +112,12 @@ function SearchAddApproverPage() {
             return;
         }
 
-        selectedReports.forEach((selectedReport) => {
+        for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
 
             if (!report || !policy || report.managerID === employeeAccountID) {
-                return;
+                continue;
             }
 
             const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations);
@@ -128,7 +131,7 @@ function SearchAddApproverPage() {
                 hasViolations,
                 isASAPSubmitBetaEnabled,
             );
-        });
+        }
 
         Navigation.closeRHPFlow();
     }, [
@@ -161,9 +164,11 @@ function SearchAddApproverPage() {
     }, []);
 
     useEffect(() => {
-        if (selectedReports.length === 0) {
-            Navigation.closeRHPFlow();
+        if (selectedReports.length) {
+            return;
         }
+
+        Navigation.closeRHPFlow();
     }, [selectedReports]);
 
     return (
@@ -177,7 +182,7 @@ function SearchAddApproverPage() {
                 </Text>
             }
             isLoadingReportData={false}
-            policy={allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReports[0]?.policyID}`]}
+            policy={allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReports.at(0)?.policyID}`]}
             initiallyFocusedOptionKey={selectedApproverEmail}
             shouldShowNotFoundViewLink={false}
             shouldShowNotFoundView={false}
