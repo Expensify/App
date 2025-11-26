@@ -271,7 +271,14 @@ function isReviewDuplicatesAction(report: Report, reportTransactions: Transactio
     return false;
 }
 
-function isMarkAsCashAction(currentUserEmail: string, currentUserAccountID: number, report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+function isMarkAsCashAction(
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    report: Report,
+    reportTransactions: Transaction[],
+    violations: OnyxCollection<TransactionViolation[]>,
+    policy?: Policy,
+) {
     const isOneExpenseReport = isExpenseReportUtils(report) && reportTransactions.length === 1;
 
     if (!isOneExpenseReport) {
@@ -288,7 +295,14 @@ function isMarkAsCashAction(currentUserEmail: string, currentUserAccountID: numb
     const isReportApprover = isApproverUtils(policy, currentUserEmail);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(reportTransactions, report, policy, violations, currentUserEmail, currentUserAccountID);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+        reportTransactions,
+        report,
+        policy,
+        violations,
+        currentUserEmail,
+        currentUserAccountID,
+    );
     const userControlsReport = isReportSubmitter || isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
@@ -307,7 +321,14 @@ function isMarkAsResolvedAction(report?: Report, violations?: TransactionViolati
     return violations?.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
 }
 
-function isPrimaryMarkAsResolvedAction(currentUserEmail: string, currentUserAccountID: number, report?: Report, reportTransactions?: Transaction[], violations?: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+function isPrimaryMarkAsResolvedAction(
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    report?: Report,
+    reportTransactions?: Transaction[],
+    violations?: OnyxCollection<TransactionViolation[]>,
+    policy?: Policy,
+) {
     if (!reportTransactions || reportTransactions.length !== 1) {
         return false;
     }

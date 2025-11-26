@@ -8952,10 +8952,35 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
 
         return (
             !isInvoiceReport(potentialReport) &&
-            ViolationsUtils.hasVisibleViolationsForUser(potentialReport, transactionViolations, currentUserEmail ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, policy, transactions) &&
+            ViolationsUtils.hasVisibleViolationsForUser(
+                potentialReport,
+                transactionViolations,
+                currentUserEmail ?? '',
+                currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                policy,
+                transactions,
+            ) &&
             (hasViolations(potentialReport.reportID, transactionViolations, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail, true, transactions, potentialReport, policy) ||
-                hasWarningTypeViolations(potentialReport.reportID, transactionViolations, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', true, transactions, potentialReport, policy) ||
-                hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail, true, transactions, potentialReport, policy))
+                hasWarningTypeViolations(
+                    potentialReport.reportID,
+                    transactionViolations,
+                    currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserEmail ?? '',
+                    true,
+                    transactions,
+                    potentialReport,
+                    policy,
+                ) ||
+                hasNoticeTypeViolations(
+                    potentialReport.reportID,
+                    transactionViolations,
+                    currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserEmail,
+                    true,
+                    transactions,
+                    potentialReport,
+                    policy,
+                ))
         );
     });
 }
@@ -8991,7 +9016,9 @@ function hasWarningTypeViolations(
     policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasWarningTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountID, report, policy, shouldShowInReview));
+    return transactions.some((transaction) =>
+        hasWarningTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountID, report, policy, shouldShowInReview),
+    );
 }
 
 /**
@@ -9028,7 +9055,9 @@ function hasNoticeTypeViolations(
     policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasNoticeTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountID, report, policy, shouldShowInReview));
+    return transactions.some((transaction) =>
+        hasNoticeTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountID, report, policy, shouldShowInReview),
+    );
 }
 
 /**

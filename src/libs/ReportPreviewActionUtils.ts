@@ -76,7 +76,8 @@ function canApprove(
     // We should consider only visible violations for the approver, invisible violations should not block approval
     const reportTransactions = transactions.length ? transactions : getReportTransactions(report?.reportID);
     const hasAnyVisibleViolations =
-        hasMissingSmartscanFields(report.reportID, reportTransactions) || ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, currentUserID, policy, reportTransactions);
+        hasMissingSmartscanFields(report.reportID, reportTransactions) ||
+        ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, currentUserID, policy, reportTransactions);
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {

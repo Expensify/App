@@ -605,7 +605,7 @@ function MoneyReportHeader({
     };
 
     const getFirstDuplicateThreadID = (transactionsList: OnyxTypes.Transaction[], allReportActions: OnyxTypes.ReportAction[]) => {
-        const duplicateTransaction = transactionsList.find((reportTransaction) => isDuplicate(reportTransaction, email ?? '',  accountID, moneyRequestReport, policy));
+        const duplicateTransaction = transactionsList.find((reportTransaction) => isDuplicate(reportTransaction, email ?? '', accountID, moneyRequestReport, policy));
         if (!duplicateTransaction) {
             return null;
         }
@@ -933,7 +933,20 @@ function MoneyReportHeader({
             policies,
             isChatReportArchived,
         });
-    }, [moneyRequestReport, currentUserLogin, accountID, chatReport, transactions, originalIOUTransaction, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived]);
+    }, [
+        moneyRequestReport,
+        currentUserLogin,
+        accountID,
+        chatReport,
+        transactions,
+        originalIOUTransaction,
+        violations,
+        policy,
+        reportNameValuePairs,
+        reportActions,
+        policies,
+        isChatReportArchived,
+    ]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {
