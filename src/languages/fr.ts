@@ -6593,6 +6593,15 @@ ${
             message: "Nous n'avons pas pu vérifier la mise à jour. Veuillez réessayer dans un moment.",
         },
     },
+    settlement: {
+        status: {
+            pending: 'En attente',
+            cleared: 'Réglé',
+            failed: 'Échoué',
+        },
+        failedError: 'Nous réessaierons ce règlement lorsque vous',
+        unlockYourAccount: 'déverrouillez votre compte',
+    },
     report: {
         newReport: {
             createReport: 'Créer un rapport',

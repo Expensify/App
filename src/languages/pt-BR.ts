@@ -6554,6 +6554,15 @@ ${
             message: 'Não conseguimos verificar uma atualização. Por favor, tente novamente em breve.',
         },
     },
+    settlement: {
+        status: {
+            pending: 'Pendente',
+            cleared: 'Liquidado',
+            failed: 'Falhou',
+        },
+        failedError: 'Tentaremos esta liquidação novamente quando você',
+        unlockYourAccount: 'desbloquear sua conta',
+    },
     report: {
         newReport: {
             createReport: 'Criar relatório',

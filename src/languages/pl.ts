@@ -6542,6 +6542,15 @@ ${
             message: 'Nie udało nam się sprawdzić aktualizacji. Spróbuj ponownie za chwilę.',
         },
     },
+    settlement: {
+        status: {
+            pending: 'Oczekujące',
+            cleared: 'Rozliczone',
+            failed: 'Niepowodzenie',
+        },
+        failedError: 'Ponowimy tę rozliczenie, gdy',
+        unlockYourAccount: 'odblokujesz swoje konto',
+    },
     report: {
         newReport: {
             createReport: 'Utwórz raport',

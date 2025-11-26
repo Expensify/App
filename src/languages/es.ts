@@ -6307,6 +6307,15 @@ ${amount} para ${merchant} - ${date}`,
             message: 'No hemos podido comprobar si existe una actualización. ¡Inténtalo de nuevo más tarde!.',
         },
     },
+    settlement: {
+        status: {
+            pending: 'Pendiente',
+            cleared: 'Liquidado',
+            failed: 'Fallido',
+        },
+        failedError: 'Reintentaremos esta liquidación cuando',
+        unlockYourAccount: 'desbloquees tu cuenta',
+    },
     report: {
         newReport: {
             createReport: 'Crear informe',

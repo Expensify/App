@@ -6418,6 +6418,15 @@ ${
             message: '我们无法检查更新。请稍后再试。',
         },
     },
+    settlement: {
+        status: {
+            pending: '待处理',
+            cleared: '已结算',
+            failed: '失败',
+        },
+        failedError: '当您',
+        unlockYourAccount: '解锁您的账户时，我们将重试此结算',
+    },
     report: {
         newReport: {
             createReport: '创建报告',

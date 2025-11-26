@@ -5,6 +5,8 @@ import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import {PressableWithFeedback} from '@components/Pressable';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionListWithSections/types';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -12,7 +14,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {getSettlementStatus, getSettlementStatusBadgeProps} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import TotalCell from './TotalCell';
 
 type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
@@ -63,6 +68,8 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
     );
+    const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
+    const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
 
     return (
         <View>
@@ -89,10 +96,17 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                 text={`${formattedBankName} xx${withdrawalIDItem.accountNumber.slice(-4)}`}
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
                             />
-                            <TextWithTooltip
-                                text={`${formattedWithdrawalDate}  ${translate('common.withdrawalID')}: ${withdrawalIDItem.entryID}`}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                            />
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                                {!!badgeProps && (
+                                    <View style={[styles.reportStatusContainer, badgeProps.badgeStyles]}>
+                                        <Text style={[styles.reportStatusText, badgeProps.textStyles]}>{badgeProps.text}</Text>
+                                    </View>
+                                )}
+                                <TextWithTooltip
+                                    text={`${formattedWithdrawalDate} • ${translate('common.withdrawalID')}: ${withdrawalIDItem.entryID}`}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                />
+                            </View>
                         </View>
                     </View>
                 </View>
@@ -122,6 +136,20 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                     )}
                 </View>
             </View>
+            {settlementStatus === CONST.SETTLEMENT_STATUS.FAILED && (
+                <View style={[styles.flexRow, styles.mt2, styles.ml9, styles.mr3]}>
+                    <Text style={[styles.textLabelError, styles.flex1]}>
+                        {translate('settlement.failedError')}{' '}
+                        <TextLink
+                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET)}
+                            style={[styles.textLabelError, styles.link]}
+                        >
+                            {translate('settlement.unlockYourAccount')}
+                        </TextLink>
+                        .
+                    </Text>
+                </View>
+            )}
         </View>
     );
 }

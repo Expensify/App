@@ -6555,6 +6555,15 @@ ${
             message: 'We konden niet controleren op een update. Probeer het over een tijdje opnieuw.',
         },
     },
+    settlement: {
+        status: {
+            pending: 'In behandeling',
+            cleared: 'Afgewikkeld',
+            failed: 'Mislukt',
+        },
+        failedError: 'We proberen deze afwikkeling opnieuw wanneer je',
+        unlockYourAccount: 'je account ontgrendelt',
+    },
     report: {
         newReport: {
             createReport: 'Rapport maken',

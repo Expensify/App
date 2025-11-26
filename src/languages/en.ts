@@ -6659,6 +6659,15 @@ const translations = {
             message: "We couldn't check for an update. Please try again in a bit.",
         },
     },
+    settlement: {
+        status: {
+            pending: 'Pending',
+            cleared: 'Cleared',
+            failed: 'Failed',
+        },
+        failedError: "We'll retry this settlement when you",
+        unlockYourAccount: 'unlock your account',
+    },
     report: {
         newReport: {
             createReport: 'Create report',

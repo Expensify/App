@@ -6585,6 +6585,15 @@ ${
             message: 'Wir konnten nicht nach einem Update suchen. Bitte versuchen Sie es in Kürze erneut.',
         },
     },
+    settlement: {
+        status: {
+            pending: 'Ausstehend',
+            cleared: 'Abgewickelt',
+            failed: 'Fehlgeschlagen',
+        },
+        failedError: 'Wir werden diese Abwicklung erneut versuchen, wenn Sie',
+        unlockYourAccount: 'Ihr Konto entsperren',
+    },
     report: {
         newReport: {
             createReport: 'Bericht erstellen',

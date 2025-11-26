@@ -6508,6 +6508,15 @@ ${
             message: '更新を確認できませんでした。しばらくしてからもう一度お試しください。',
         },
     },
+    settlement: {
+        status: {
+            pending: '保留中',
+            cleared: '決済済み',
+            failed: '失敗',
+        },
+        failedError: 'この決済は次の場合に再試行されます',
+        unlockYourAccount: 'アカウントのロックを解除する',
+    },
     report: {
         newReport: {
             createReport: 'レポートを作成',

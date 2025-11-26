@@ -6573,6 +6573,15 @@ ${
             message: "Non siamo riusciti a verificare la presenza di un aggiornamento. Riprova tra un po'.",
         },
     },
+    settlement: {
+        status: {
+            pending: 'In sospeso',
+            cleared: 'Liquidato',
+            failed: 'Fallito',
+        },
+        failedError: 'Riproveremo questa liquidazione quando',
+        unlockYourAccount: 'sblocchi il tuo account',
+    },
     report: {
         newReport: {
             createReport: 'Crea rapporto',
