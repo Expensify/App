@@ -263,11 +263,10 @@ function convertApprovalWorkflowToPolicyEmployees({
             continue;
         }
 
-        const previousPendingAction = previousEmployeeList[approver.email]?.pendingAction;
         updatedEmployeeList[approver.email] = {
             email: approver.email,
             forwardsTo,
-            pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : pendingAction,
+            pendingAction,
             pendingFields: {
                 forwardsTo: pendingAction,
             },
@@ -283,11 +282,10 @@ function convertApprovalWorkflowToPolicyEmployees({
             continue;
         }
 
-        const previousPendingAction = previousEmployeeList[email]?.pendingAction;
         updatedEmployeeList[email] = {
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             submitsTo,
-            pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : pendingAction,
+            pendingAction,
             pendingFields: {
                 submitsTo: pendingAction,
             },
@@ -298,11 +296,10 @@ function convertApprovalWorkflowToPolicyEmployees({
     // which will set the submitsTo field to the default approver email on backend.
     if (membersToRemove) {
         for (const {email} of membersToRemove) {
-            const previousPendingAction = previousEmployeeList[email]?.pendingAction;
             updatedEmployeeList[email] = {
                 ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
                 submitsTo: defaultApprover,
-                pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : pendingAction,
+                pendingAction,
             };
         }
     }
@@ -311,11 +308,10 @@ function convertApprovalWorkflowToPolicyEmployees({
     // which will reset the forwardsTo on the backend.
     if (approversToRemove) {
         for (const {email} of approversToRemove) {
-            const previousPendingAction = previousEmployeeList[email]?.pendingAction;
             updatedEmployeeList[email] = {
                 ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
                 forwardsTo: '',
-                pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : pendingAction,
+                pendingAction,
             };
         }
     }
