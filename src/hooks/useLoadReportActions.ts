@@ -79,7 +79,11 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
             transactionThreadOldest: transactionThreadOldestAction,
             transactionThreadNewest: transactionThreadNewestAction,
         };
-    }, [allReportActionIDs, reportActions, reportID, transactionThreadReport?.reportID, isTransactionThreadReport]);
+    }, [allReportActionIDs, isTransactionThreadReport, reportActions, reportID, transactionThreadReport?.reportID]);
+
+    const loadedReportActionIDs = useMemo(() => {
+        return new Set(reportActions.map((action) => action.reportActionID));
+    }, [reportActions]);
 
     const isReportActionLoaded = useCallback(
         (actionID: string | undefined) => {
@@ -87,9 +91,9 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                 return true;
             }
 
-            return reportActions.some((action) => action.reportActionID === actionID);
+            return loadedReportActionIDs.has(actionID);
         },
-        [reportActions],
+        [loadedReportActionIDs],
     );
 
     /**
