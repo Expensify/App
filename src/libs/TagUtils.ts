@@ -11,4 +11,4 @@ function isTagMissing(tag: string | undefined): boolean {
     return tag === CONST.SEARCH.TAG_EMPTY_VALUE;
 }
 
-export {isTagMissing};
+export default isTagMissing;

@@ -25,7 +25,7 @@ function ReportLayoutPage({report}: ReportLayoutPageProps) {
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
 
     // Only show for expense reports that are not IOU reports (workspace expense reports)
-    const shouldShowNotFound = !isExpenseReport(report) || isIOUReport(report);
+    const shouldShowPage = isExpenseReport(report) && !isIOUReport(report);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
 
@@ -57,7 +57,7 @@ function ReportLayoutPage({report}: ReportLayoutPageProps) {
             includeSafeAreaPaddingBottom={false}
             testID={ReportLayoutPage.displayName}
         >
-            <FullPageNotFoundView shouldShow={shouldShowNotFound}>
+            <FullPageNotFoundView shouldShow={!shouldShowPage}>
                 <HeaderWithBackButton
                     title={translate('reportLayout.reportLayout')}
                     onBackButtonPress={Navigation.goBack}
