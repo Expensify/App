@@ -169,7 +169,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
-                setWorkspaceApprovalMode(policyID, getDefaultApprover(policy), CONST.POLICY.APPROVAL_MODE.ADVANCED);
+                setWorkspaceApprovalMode(policyID, getDefaultApprover({approver: policy?.approver, owner: policy?.owner}), CONST.POLICY.APPROVAL_MODE.ADVANCED);
                 break;
             default:
         }
@@ -179,7 +179,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         featureNameAlias,
         route.params.featureName,
         perDiemCustomUnit?.customUnitID,
-        policy,
+        policy?.connections?.xero?.config,
+        policy?.connections?.xero?.data,
+        policy?.approver,
+        policy?.owner,
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
