@@ -2,13 +2,13 @@ import {afterEach, beforeEach, describe, expect, it, jest} from '@jest/globals';
 import type {Route} from '@src/ROUTES';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type * as ReactNavigationNative from '@react-navigation/native';
+import type {getPathFromState as GetPathFromState} from '@react-navigation/native';
 
 jest.mock('@react-navigation/native', () => {
-    const actual = jest.requireActual<ReactNavigationNative>('@react-navigation/native');
+    const actual = jest.requireActual('@react-navigation/native') as {getPathFromState: typeof GetPathFromState};
     return {
         ...actual,
-        getPathFromState: jest.fn<ReturnType<typeof actual.getPathFromState>, Parameters<typeof actual.getPathFromState>>(() => '/settings/profile?backTo=settings'),
+        getPathFromState: jest.fn<typeof GetPathFromState>(() => '/settings/profile?backTo=settings'),
     };
 });
 
