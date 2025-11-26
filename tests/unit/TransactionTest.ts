@@ -16,6 +16,7 @@ import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import { findSelfDMReportID } from '@libs/ReportUtils';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const reportID = '1';
@@ -107,7 +108,9 @@ describe('Transaction', () => {
 
             const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
 
-            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report);
+            const selfDMReportID = findSelfDMReportID();
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, undefined, undefined, selfDMReportID);
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
