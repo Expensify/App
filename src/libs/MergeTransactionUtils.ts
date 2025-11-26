@@ -366,26 +366,19 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
  * - Users cannot merge two split expenses
  * - Users can merge any other combinations
  *
- * @param originalTargetTransaction - The transaction where the merge action is started from
- * @param originalSourceTransaction - The selected transaction to be merged with the target transaction
- * @param originalTransactionForSourceTransaction - The original transaction of the source transaction
+ * @param targetTransaction - The transaction where the merge action is started from
+ * @param sourceTransaction - The selected transaction to be merged with the target transaction
+ * @param originalSourceTransaction - The original transaction of the source transaction
  * @returns An object containing the determined targetTransaction and sourceTransaction
  */
-function selectTargetAndSourceTransactionsForMerge(
-    originalTargetTransaction: OnyxEntry<Transaction>,
-    originalSourceTransaction: OnyxEntry<Transaction>,
-    originalTransactionForSourceTransaction?: OnyxEntry<Transaction>,
-) {
+function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, originalSourceTransaction?: OnyxEntry<Transaction>) {
     // If target transaction is a card or split expense, always preserve the target transaction
     // Card takes precedence over split expense
-    if (
-        isManagedCardTransaction(originalSourceTransaction) ||
-        (isExpenseSplit(originalSourceTransaction, originalTransactionForSourceTransaction) && !isManagedCardTransaction(originalTargetTransaction))
-    ) {
-        return {targetTransaction: originalSourceTransaction, sourceTransaction: originalTargetTransaction};
+    if (isManagedCardTransaction(sourceTransaction) || (isExpenseSplit(sourceTransaction, originalSourceTransaction) && !isManagedCardTransaction(targetTransaction))) {
+        return {targetTransaction: sourceTransaction, sourceTransaction: targetTransaction};
     }
 
-    return {targetTransaction: originalTargetTransaction, sourceTransaction: originalSourceTransaction};
+    return {targetTransaction, sourceTransaction};
 }
 
 /**
