@@ -1,12 +1,12 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import {PressableWithFeedback} from '@components/Pressable';
+import RenderHTML from '@components/RenderHTML';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -14,8 +14,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import {getSettlementStatus, getSettlementStatusBadgeProps} from '@libs/SearchUIUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import TotalCell from './TotalCell';
@@ -60,7 +60,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow', 'DotIndicator'] as const);
 
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
     const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
@@ -70,9 +70,8 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     );
     const badgeProps = useMemo(() => getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme), [withdrawalIDItem.state, translate, theme]);
     const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
-    const handleUnlockAccount = useCallback(() => {
-        Navigation.navigate(ROUTES.SETTINGS_WALLET);
-    }, []);
+    const withdrawalInfoText = translate('settlement.withdrawalInfo', {date: formattedWithdrawalDate, withdrawalID: withdrawalIDItem.entryID});
+    const failedErrorHTML = translate('settlement.failedError', {link: ROUTES.SETTINGS_WALLET});
 
     return (
         <View>
@@ -106,7 +105,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                     </View>
                                 )}
                                 <TextWithTooltip
-                                    text={`${formattedWithdrawalDate} • ${translate('common.withdrawalID')}: ${withdrawalIDItem.entryID}`}
+                                    text={withdrawalInfoText}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                                 />
                             </View>
@@ -139,18 +138,17 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                     )}
                 </View>
             </View>
-            {settlementStatus === CONST.SETTLEMENT_STATUS.FAILED && (
-                <View style={[styles.flexRow, styles.mt2, styles.ml9, styles.mr3]}>
-                    <Text style={[styles.textLabelError, styles.flex1]}>
-                        {translate('settlement.failedError')}{' '}
-                        <TextLink
-                            onPress={handleUnlockAccount}
-                            style={[styles.textLabelError, styles.link]}
-                        >
-                            {translate('settlement.unlockYourAccount')}
-                        </TextLink>
-                        .
-                    </Text>
+            {settlementStatus === CONST.SEARCH.SETTLEMENT_STATUS.FAILED && (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mt2, styles.ml9, styles.mr3]}>
+                    <Icon
+                        src={expensifyIcons.DotIndicator}
+                        fill={theme.danger}
+                        height={variables.iconSizeExtraSmall}
+                        width={variables.iconSizeExtraSmall}
+                    />
+                    <View style={[styles.pre, styles.flexShrink1, {color: theme.danger}]}>
+                        <RenderHTML html={`<rbr shouldShowEllipsis="1" issmall >${failedErrorHTML}</rbr>`} />
+                    </View>
                 </View>
             )}
         </View>

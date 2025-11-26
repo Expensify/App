@@ -6561,8 +6561,8 @@ ${
             cleared: 'Afgewikkeld',
             failed: 'Mislukt',
         },
-        failedError: 'We proberen deze afwikkeling opnieuw wanneer je',
-        unlockYourAccount: 'je account ontgrendelt',
+        failedError: ({link}: {link: string}) => `We proberen deze afwikkeling opnieuw wanneer je <a href="${link}"><label>je account ontgrendelt</label></a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Opname-ID: ${withdrawalID}`,
     },
     report: {
         newReport: {

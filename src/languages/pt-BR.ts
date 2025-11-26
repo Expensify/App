@@ -6560,8 +6560,8 @@ ${
             cleared: 'Liquidado',
             failed: 'Falhou',
         },
-        failedError: 'Tentaremos esta liquidação novamente quando você',
-        unlockYourAccount: 'desbloquear sua conta',
+        failedError: ({link}: {link: string}) => `Tentaremos esta liquidação novamente quando você <a href="${link}"><label>desbloquear sua conta</label></a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de saque: ${withdrawalID}`,
     },
     report: {
         newReport: {

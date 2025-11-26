@@ -6313,8 +6313,8 @@ ${amount} para ${merchant} - ${date}`,
             cleared: 'Liquidado',
             failed: 'Fallido',
         },
-        failedError: 'Reintentaremos esta liquidación cuando',
-        unlockYourAccount: 'desbloquees tu cuenta',
+        failedError: ({link}: {link: string}) => `Reintentaremos esta liquidación cuando <a href="${link}"><label>desbloquees tu cuenta</label></a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retiro: ${withdrawalID}`,
     },
     report: {
         newReport: {

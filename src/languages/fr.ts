@@ -6599,8 +6599,8 @@ ${
             cleared: 'Réglé',
             failed: 'Échoué',
         },
-        failedError: 'Nous réessaierons ce règlement lorsque vous',
-        unlockYourAccount: 'déverrouillez votre compte',
+        failedError: ({link}: {link: string}) => `Nous réessaierons ce règlement lorsque vous <a href="${link}"><label>déverrouillez votre compte</label></a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retrait: ${withdrawalID}`,
     },
     report: {
         newReport: {

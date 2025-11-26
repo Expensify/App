@@ -6665,8 +6665,8 @@ const translations = {
             cleared: 'Cleared',
             failed: 'Failed',
         },
-        failedError: "We'll retry this settlement when you",
-        unlockYourAccount: 'unlock your account',
+        failedError: ({link}: {link: string}) => `We'll retry this settlement when you <a href="${link}"><label>unlock your account</label></a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Withdrawal ID: ${withdrawalID}`,
     },
     report: {
         newReport: {

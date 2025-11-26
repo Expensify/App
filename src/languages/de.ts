@@ -6591,8 +6591,8 @@ ${
             cleared: 'Abgewickelt',
             failed: 'Fehlgeschlagen',
         },
-        failedError: 'Wir werden diese Abwicklung erneut versuchen, wenn Sie',
-        unlockYourAccount: 'Ihr Konto entsperren',
+        failedError: ({link}: {link: string}) => `Wir werden diese Abwicklung erneut versuchen, wenn Sie <a href="${link}"><label>Ihr Konto entsperren</label></a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Auszahlungs-ID: ${withdrawalID}`,
     },
     report: {
         newReport: {

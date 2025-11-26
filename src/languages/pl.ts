@@ -6548,8 +6548,8 @@ ${
             cleared: 'Rozliczone',
             failed: 'Niepowodzenie',
         },
-        failedError: 'Ponowimy tę rozliczenie, gdy',
-        unlockYourAccount: 'odblokujesz swoje konto',
+        failedError: ({link}: {link: string}) => `Ponowimy tę rozliczenie, gdy <a href="${link}"><label>odblokujesz swoje konto</label></a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID wypłaty: ${withdrawalID}`,
     },
     report: {
         newReport: {

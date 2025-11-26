@@ -6639,6 +6639,11 @@ const CONST = {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
         },
+        SETTLEMENT_STATUS: {
+            PENDING: 'pending',
+            CLEARED: 'cleared',
+            FAILED: 'failed',
+        },
         IS_VALUES: {
             READ: 'read',
             UNREAD: 'unread',
@@ -7437,12 +7442,6 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
-    },
-
-    SETTLEMENT_STATUS: {
-        PENDING: 'pending',
-        CLEARED: 'cleared',
-        FAILED: 'failed',
     },
 } as const;
 
