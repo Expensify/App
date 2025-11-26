@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getPreferredSkinToneIndex, suggestEmojis} from '@libs/EmojiUtils';
@@ -175,13 +176,23 @@ function SuggestionEmoji({
         [preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
     );
 
+    const debouncedCalculateEmojiSuggestion = useDebounce(
+        useCallback(
+            (newValue: string, selectionStart?: number, selectionEnd?: number) => {
+                calculateEmojiSuggestion(newValue, selectionStart, selectionEnd);
+            },
+            [calculateEmojiSuggestion],
+        ),
+        CONST.TIMING.SUGGESTION_DEBOUNCE_TIME,
+    );
+
     useEffect(() => {
         if (!isComposerFocused) {
             return;
         }
 
-        calculateEmojiSuggestion(value, selection.start, selection.end);
-    }, [value, selection, calculateEmojiSuggestion, isComposerFocused]);
+        debouncedCalculateEmojiSuggestion(value, selection.start, selection.end);
+    }, [value, selection, debouncedCalculateEmojiSuggestion, isComposerFocused]);
 
     const setShouldBlockSuggestionCalc = useCallback(
         (shouldBlockSuggestionCalc: boolean) => {
