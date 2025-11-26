@@ -561,7 +561,7 @@ describe('MergeTransactionUtils', () => {
                 reportID: sharedReportID,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('reportID');
             expect(result.mergeableData).toMatchObject({
