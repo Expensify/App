@@ -5683,13 +5683,18 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
     });
 }
 
-function getSetPolicyPreventSelfApprovalOnyxData(policyID: string, preventSelfApproval: boolean): OnyxData {
+/**
+ * Call the API to enable or disable self approvals for the reports
+ * @param policyID - id of the policy to apply the naming pattern to
+ * @param preventSelfApproval - flag whether to prevent workspace members from approving their own expense reports
+ */
+function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boolean) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     if (preventSelfApproval === policy?.preventSelfApproval) {
-        return {};
+        return;
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -5733,25 +5738,6 @@ function getSetPolicyPreventSelfApprovalOnyxData(policyID: string, preventSelfAp
             },
         },
     ];
-
-    return {optimisticData, failureData, successData};
-}
-
-/**
- * Call the API to enable or disable self approvals for the reports
- * @param policyID - id of the policy to apply the naming pattern to
- * @param preventSelfApproval - flag whether to prevent workspace members from approving their own expense reports
- */
-function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boolean) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
-
-    if (preventSelfApproval === policy?.preventSelfApproval) {
-        return;
-    }
-
-    const {optimisticData, failureData, successData} = getSetPolicyPreventSelfApprovalOnyxData(policyID, preventSelfApproval);
 
     const parameters: SetPolicyPreventSelfApprovalParams = {
         preventSelfApproval,
@@ -6553,5 +6539,4 @@ export {
     clearPolicyTitleFieldError,
     inviteWorkspaceEmployeesToUber,
     setWorkspaceConfirmationCurrency,
-    getSetPolicyPreventSelfApprovalOnyxData,
 };
