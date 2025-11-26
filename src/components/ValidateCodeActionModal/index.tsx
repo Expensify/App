@@ -49,6 +49,7 @@ function ValidateCodeActionModal({
                 threeDotsMenuItems={threeDotsMenuItems}
                 onThreeDotsButtonPress={onThreeDotsButtonPress}
                 isLoading={isLoading}
+                isPageModal={false}
             />
         </Modal>
     );

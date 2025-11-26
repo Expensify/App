@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
-import type {ViolationsRterParams} from './params';
+import type {TagSelectionParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -222,6 +222,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsDoThis: '¡Hagámoslo!',
         letsStart: 'Empecemos',
         showMore: 'Mostrar más',
+        showLess: 'Mostrar menos',
         merchant: 'Comerciante',
         category: 'Categoría',
         report: 'Informe',
@@ -266,6 +267,7 @@ const translations: TranslationDeepObject<typeof en> = {
         businessName: 'Nombre de la empresa',
         clear: 'Borrar',
         type: 'Tipo',
+        reportName: 'Nombre del informe',
         action: 'Acción',
         expenses: 'Gastos',
         totalSpend: 'Gasto total',
@@ -988,7 +990,7 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}) => `movió el gasto desde su espacio personal a ${workspaceName ?? `un chat con ${reportName}`}`,
         movedToPersonalSpace: 'movió el gasto a su espacio personal',
-        tagSelection: 'Selecciona una etiqueta para organizar mejor tus gastos.',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `Selecciona ${policyTagListName ?? 'una etiqueta'} para organizar mejor tus gastos.`,
         categorySelection: 'Selecciona una categoría para organizar mejor tus gastos.',
         error: {
             invalidCategoryLength: 'La longitud de la categoría escogida excede el máximo permitido (255). Por favor, escoge otra categoría o acorta la categoría primero.',
@@ -1134,6 +1136,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: '¿Debes retener o rechazar?',
             educationalText: 'Si no estás listo para aprobar o pagar un gasto, puedes retenerlo o rechazarlo.',
             holdExpenseTitle: 'Retén un gasto para pedir más detalles antes de aprobarlo o pagarlo.',
+            approveExpenseTitle: 'Aprueba otros gastos mientras los gastos retenidos permanecen asignados a ti.',
             heldExpenseLeftBehindTitle: 'Los gastos retenidos se dejan atrás cuando apruebas un informe completo.',
             rejectExpenseTitle: 'Rechaza un gasto que no tengos intención de aprobar o pagar.',
             reasonPageTitle: 'Rechazar gasto',
@@ -1295,6 +1298,17 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que un administrador apruebe los gastos.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> exportes este informe.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> exporte este informe.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador exporte este informe.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -1379,9 +1393,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Esta función requiere que valides tu cuenta.',
         validateAccount: 'Valida tu cuenta',
         helpText: ({email}: {email: string}) =>
-            `Añade más formas de enviar recibos. Reenvíalos a <copy-text text="${email}"/> o envíalos por mensaje de texto al 47777 (solo números de EE. UU.).`,
-        pleaseVerify: 'Por favor, verifica este método de contacto',
-        getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
+            `Agrega más formas de iniciar sesión y enviar recibos a Expensify.<br/><br/>Agrega una dirección de correo electrónico para reenviar recibos a <a href="mailto:${email}">${email}</a> o agrega un número de teléfono para enviar recibos por mensaje de texto al 47777 (solo números de EE. UU.).`,
+        pleaseVerify: 'Por favor, verifica este método de contacto.',
+        getInTouch: 'Usaremos este método para comunicarnos contigo.',
         enterMagicCode: ({contactMethod}) => `Por favor, introduce el código mágico enviado a ${contactMethod}. Debería llegar en un par de minutos.`,
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
@@ -1840,6 +1854,10 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>Este espacio de trabajo tiene habilitado un flujo de aprobación personalizado. Para revisar o cambiar este flujo de trabajo, comunícate con tu <account-manager-link>Administrador de cuenta</account-manager-link> o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>Este espacio de trabajo tiene habilitado un flujo de aprobación personalizado. Para revisar o cambiar este flujo de trabajo, comunícate con <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         editor: {
             submissionFrequency: 'Elige cuánto tiempo Expensify debe esperar antes de compartir los gastos sin errores.',
         },
@@ -2419,10 +2437,18 @@ ${amount} para ${merchant} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: 'Que te reembolsen es tan fácil como enviar un mensaje. Repasemos lo básico.',
             onboardingPersonalSpendMessage: 'Aquí tienes cómo organizar tus gastos en unos pocos clics.',
-            onboardingManageTeamMessage:
-                '# ¡Tu prueba gratuita ha comenzado! Vamos a poner todo a punto.\n👋 Hola, soy tu especialista de configuración de Expensify. Ahora que has creado un espacio de trabajo, aprovecha al máximo tus 30 días de prueba gratuita siguiendo los pasos que aparecen a continuación.',
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # ¡Tu prueba gratuita ha comenzado! Vamos a configurarte.
+                        👋 Hola, soy tu **especialista asignado** de configuración de Expensify. Ya he creado un espacio de trabajo para ayudarte a gestionar los recibos y gastos de tu equipo. Para aprovechar al máximo tu prueba gratuita de 30 días, ¡solo sigue los pasos de configuración restantes que aparecen a continuación!
+                    `)
+                    : dedent(`
+                        # ¡Tu prueba gratuita ha comenzado! Vamos a configurarte.
+                        👋 Hola, soy tu **especialista asignado** de configuración de Expensify. Ahora que ya has creado un espacio de trabajo, aprovecha al máximo tu prueba gratuita de 30 días siguiendo los pasos que aparecen a continuación.
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Vamos a configurarte\n👋 ¡Estoy aquí para ayudarte! Para comenzar, he personalizado la configuración de tu espacio de trabajo para propietarios únicos y negocios similares. Puedes ajustar tu espacio de trabajo haciendo clic en el enlace de abajo.\n\nAsí es como puedes organizar tus gastos en unos pocos clics:',
+                '# Vamos a configurarte\n👋 Hola, soy tu **especialista asignado** de configuración de Expensify. Ya he creado un espacio de trabajo para ayudarte a gestionar tus recibos y gastos. Para aprovechar al máximo tu prueba gratuita de 30 días, ¡solo sigue los pasos de configuración restantes que aparecen a continuación!',
             onboardingChatSplitMessage: 'Dividir cuentas con amigos es tan fácil como enviar un mensaje. Así se hace.',
             onboardingAdminMessage: 'Aprende a gestionar el espacio de tu equipo como administrador y enviar tus propios gastos.',
             onboardingLookingAroundMessage:
@@ -3053,6 +3079,9 @@ ${amount} para ${merchant} - ${date}`,
         whatsYourAddress: '¿Cuál es su dirección?',
         whatAreTheLast: '¿Cuáles son los últimos 4 dígitos del número de seguro social del propietario?',
         whatsYourLast: '¿Cuáles son los últimos 4 dígitos de su número de seguro social?',
+        whatsYourNationality: '¿Cuál es tu país de ciudadanía?',
+        whatsTheOwnersNationality: '¿Cuál es el país de ciudadanía del propietario?',
+        countryOfCitizenship: 'País de ciudadanía',
         dontWorry: 'No se preocupe, ¡no realizamos ninguna verificación de crédito personal!',
         last4: 'Últimos 4 del SSN',
         whyDoWeAsk: '¿Por qué solicitamos esto?',
@@ -4392,7 +4421,7 @@ ${amount} para ${merchant} - ${date}`,
             companyCard: 'tarjeta de empresa',
             chooseCardFeed: 'Elige feed de tarjetas',
             ukRegulation:
-                'Expensify, Inc. es un agente de Plaid Financial Ltd., una institución de pago autorizada y regulada por la Financial Conduct Authority conforme al Reglamento de Servicios de Pago de 2017 (Número de Referencia de la Firma: 804718). Plaid te proporciona servicios regulados de información de cuentas a través de Expensify Limited como su agente.',
+                'Expensify Limited es un agente de Plaid Financial Ltd., una institución de pago autorizada y regulada por la Financial Conduct Authority conforme al Reglamento de Servicios de Pago de 2017 (Número de Referencia de la Firma: 804718). Plaid te proporciona servicios regulados de información de cuentas a través de Expensify Limited como su agente.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
@@ -5213,6 +5242,7 @@ ${amount} para ${merchant} - ${date}`,
             getStartedIssuing: 'Empieza emitiendo tu primera tarjeta virtual o física.',
             issueNewCard: {
                 whoNeedsCard: '¿Quién necesita una tarjeta?',
+                inviteNewMember: 'Invitar nuevo miembro',
                 findMember: 'Buscar miembro',
                 chooseCardType: 'Elegir un tipo de tarjeta',
                 physicalCard: 'Tarjeta física',
@@ -5943,11 +5973,13 @@ ${amount} para ${merchant} - ${date}`,
         updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}) => `actualizó la frecuencia de generación automática de informes a "${newFrequency}" (previamente "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}) => `actualizó el modo de aprobación a "${newValue}" (previamente "${oldValue}")`,
         upgradedWorkspace: 'mejoró este espacio de trabajo al plan Controlar',
+        forcedCorporateUpgrade: `Este espacio de trabajo ha sido actualizado al plan Control. Haz clic <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">aquí</a> para obtener más información.`,
         downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
         updatedAuditRate: ({oldAuditRate, newAuditRate}) =>
             `cambió la tasa de informes enviados aleatoriamente para aprobación manual a ${Math.round(newAuditRate * 100)}% (previamente ${Math.round(oldAuditRate * 100)}%)`,
         updateReimbursementEnabled: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} los reembolsos para este espacio de trabajo`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de asistentes`,
         addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,
         deleteTax: ({taxName}) => `eliminó el impuesto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}) => {
@@ -7605,13 +7637,12 @@ ${amount} para ${merchant} - ${date}`,
     },
     migratedUserWelcomeModal: {
         title: '¡Bienvenido a New Expensify!',
-        subtitle: 'Tiene todo lo que te encanta de nuestra experiencia clásica con un montón de mejoras para hacerte la vida aún más fácil:',
-        confirmText: '¡Vamos!',
-        helpText: 'Prueba la demo de 2 minutos',
+        subtitle: 'New Expensify tiene la misma excelente automatización, pero ahora con una colaboración increíble:',
+        confirmText: 'Vamos!',
         features: {
-            search: 'Búsqueda más potente en móviles, web y ordenadores',
-            concierge: 'Concierge AI integrada para ayudarte a automatizar tus gastos',
-            chat: 'Chatea en tus gastos para resolver cualquier duda rápidamente.',
+            chat: '<strong>Chatea directamente en cualquier gasto</strong>, informe o espacio de trabajo',
+            scanReceipt: '<strong>Escanea recibos</strong> y obtén reembolsos',
+            crossPlatform: 'Haz <strong>todo</strong> desde tu teléfono o navegador',
         },
     },
     productTrainingTooltip: {
@@ -7726,6 +7757,32 @@ ${amount} para ${merchant} - ${date}`,
             onePasswordForAnything: 'Una sola contraseña para todo',
         },
         goToDomain: 'Ir al dominio',
+        samlLogin: {
+            title: 'Inicio de sesión SAML',
+            subtitle: `<muted-text>Configura el inicio de sesión de los miembros con <a href="${CONST.SAML_HELP_URL}">Inicio de sesión único SAML (SSO).</a></muted-text>`,
+            enableSamlLogin: 'Habilitar inicio de sesión SAML',
+            allowMembers: 'Permitir que los miembros inicien sesión con SAML.',
+            requireSamlLogin: 'Requerir inicio de sesión SAML',
+            anyMemberWillBeRequired: 'Cualquier miembro que haya iniciado sesión con un método diferente deberá volver a autenticarse usando SAML.',
+            enableError: 'No se pudo actualizar la configuración de habilitación de SAML',
+            requireError: 'No se pudo actualizar la configuración de requerimiento de SAML',
+        },
+        samlConfigurationDetails: {
+            title: 'Detalles de configuración de SAML',
+            subtitle: 'Utiliza estos detalles para configurar SAML.',
+            identityProviderMetaData: 'Metadatos del proveedor de identidad',
+            entityID: 'ID de entidad',
+            nameIDFormat: 'Formato de ID de nombre',
+            loginUrl: 'URL de inicio de sesión',
+            acsUrl: 'URL ACS (Assertion Consumer Service)',
+            logoutUrl: 'URL de cierre de sesión',
+            sloUrl: 'URL SLO (Single Logout)',
+            serviceProviderMetaData: 'Metadatos del proveedor de servicios',
+            oktaScimToken: 'Token SCIM de Okta',
+            revealToken: 'Revelar token',
+            fetchError: 'No se pudieron obtener los detalles de configuración de SAML',
+            setMetadataGenericError: 'No se pudieron establecer los metadatos de SAML',
+        },
     },
 };
 
