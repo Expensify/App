@@ -16,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, getPersonalPolicy, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {
@@ -35,7 +36,6 @@ import type {Route} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -96,9 +96,8 @@ function IOURequestEditReportCommon({
     }, [targetOwnerAccountID, selectedReport, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest);
-    const policiesWithPerDiem = Object.fromEntries(Object.entries(allPolicies ?? {}).filter(([, policy]) => policy?.arePerDiemRatesEnabled))
 
-    const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
+    const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
@@ -168,7 +167,7 @@ function IOURequestEditReportCommon({
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .filter((report) => {
-                if (isPerDiemRequest && isUnreported && report?.policyID !== perDiemOriginalPolicy?.id) {
+                if (isPerDiemRequest && report?.policyID !== perDiemOriginalPolicy?.id) {
                     return false;
                 }
                 if (isPerDiemRequest && report?.policyID && selectedReportID !== report?.reportID) {
@@ -212,6 +211,7 @@ function IOURequestEditReportCommon({
         allPolicies,
         isPerDiemRequest,
         currentUserPersonalDetails.accountID,
+        perDiemOriginalPolicy?.id
     ]);
 
     const navigateBack = () => {
@@ -229,11 +229,11 @@ function IOURequestEditReportCommon({
             <MenuItem
                 onPress={createReport}
                 title={translate('report.newReport.createReport')}
-                description={policyForMovingExpenses?.name}
+                description={isPerDiemRequest ? perDiemOriginalPolicy?.name : policyForMovingExpenses?.name}
                 icon={icons.Document}
             />
         );
-    }, [icons.Document, createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name]);
+    }, [icons.Document, createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name, perDiemOriginalPolicy?.name]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {
