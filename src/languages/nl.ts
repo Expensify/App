@@ -698,6 +698,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
         reportName: 'Rapportnaam',
+        showLess: 'Minder weergeven',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -1620,9 +1621,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Deze functie vereist dat je je account verifieert.',
         validateAccount: 'Valideer uw account',
         helpText: ({email}: {email: string}) =>
-            `Voeg meer manieren toe om bonnen te verzenden. Stuur ze naar <copy-text text="${email}"/> of stuur ze naar 47777 (alleen Amerikaanse nummers).`,
-        pleaseVerify: 'Verifieer deze contactmethode alstublieft',
-        getInTouch: 'Telkens wanneer we contact met je moeten opnemen, gebruiken we deze contactmethode.',
+            `Voeg meer manieren toe om in te loggen en bonnetjes naar Expensify te sturen.<br/><br/>Voeg een e-mailadres toe om bonnetjes door te sturen naar <a href="mailto:${email}">${email}</a> of voeg een telefoonnummer toe om bonnetjes te sms’en naar 47777 (alleen Amerikaanse nummers).`,
+        pleaseVerify: 'Verifieer deze contactmethode alstublieft.',
+        getInTouch: 'We gebruiken deze methode om contact met je op te nemen.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Voer de magische code in die is verzonden naar ${contactMethod}. Het zou binnen een minuut of twee moeten aankomen.`,
         setAsDefault: 'Instellen als standaard',
         yourDefaultContactMethod:
@@ -2675,12 +2676,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
-            onboardingManageTeamMessage: dedent(`
-                # Je gratis proefperiode is gestart! Laten we je op weg helpen.
-                👋 Hoi, ik ben je Expensify-instelspecialist. Nu je een werkruimte hebt gemaakt, haal je het meeste uit je gratis proefperiode van 30 dagen door de onderstaande stappen te volgen!
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # Je gratis proefperiode is gestart! Laten we je instellen.
+                        👋 Hoi, ik ben je Expensify-instelspecialist. Ik heb al een werkruimte aangemaakt om de bonnetjes en uitgaven van je team te beheren. Om het meeste uit je gratis proefperiode van 30 dagen te halen, volg je gewoon de resterende instelstappen hieronder!
+                    `)
+                    : dedent(`
+                        # Je gratis proefperiode is begonnen! Laten we je instellen.
+                        👋 Hoi! Ik ben je Expensify-specialist voor het instellen. Nu je een werkruimte hebt aangemaakt, haal het meeste uit je gratis proefperiode van 30 dagen door de onderstaande stappen te volgen!
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
+                '# Laten we je instellen\n👋 Hoi, ik ben je Expensify-installatiespecialist. Ik heb al een werkruimte aangemaakt om te helpen bij het beheren van je bonnetjes en uitgaven. Om het meeste uit je gratis proefperiode van 30 dagen te halen, volg je gewoon de resterende instelstappen hieronder!',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
             onboardingAdminMessage: 'Leer hoe u de werkruimte van uw team als beheerder beheert en uw eigen uitgaven indient.',
             onboardingLookingAroundMessage:
@@ -4650,7 +4657,7 @@ ${
             companyCard: 'bedrijfskaart',
             chooseCardFeed: 'Kies kaartfeed',
             ukRegulation:
-                'Expensify, Inc. is een agent van Plaid Financial Ltd., een erkende betalingsinstelling gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid biedt u gereguleerde rekeninginformatiediensten via Expensify Limited als zijn agent.',
+                'Expensify Limited is een agent van Plaid Financial Ltd., een erkende betalingsinstelling gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid biedt u gereguleerde rekeninginformatiediensten via Expensify Limited als zijn agent.',
         },
         expensifyCard: {
             issueAndManageCards: 'Uitgeven en beheren van uw Expensify-kaarten',
@@ -6205,6 +6212,7 @@ ${
             `heeft de frequentie van automatisch rapporteren bijgewerkt naar "${newFrequency}" (voorheen "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `heeft de goedkeuringsmodus bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`,
         upgradedWorkspace: 'heeft deze werkruimte geüpgraded naar het Control-plan',
+        forcedCorporateUpgrade: `Deze werkruimte is geüpgraded naar het Control-abonnement. Klik <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">hier</a> voor meer informatie.`,
         downgradedWorkspace: 'heeft deze werkruimte gedowngraded naar het Collect-plan',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `heeft het percentage van rapporten dat willekeurig wordt doorgestuurd voor handmatige goedkeuring gewijzigd naar ${Math.round(newAuditRate * 100)}% (voorheen ${Math.round(oldAuditRate * 100)}%)`,
@@ -7566,6 +7574,17 @@ ${
                         return `Wachten tot een beheerder de uitgaven goedkeurt.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Wachten tot <strong>jij</strong> dit rapport exporteert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Wachten tot <strong>${actor}</strong> dit rapport exporteert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Wachten tot een beheerder dit rapport exporteert.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7637,6 +7656,32 @@ ${
             onePasswordForAnything: 'Eén wachtwoord voor alles',
         },
         goToDomain: 'Ga naar het domein',
+        samlLogin: {
+            title: 'SAML-aanmelding',
+            subtitle: `<muted-text>Configureer het inloggen voor leden met <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'SAML-aanmelding inschakelen',
+            allowMembers: 'Leden toestaan om met SAML in te loggen.',
+            requireSamlLogin: 'SAML-aanmelding vereisen',
+            anyMemberWillBeRequired: 'Elk lid dat met een andere methode is aangemeld, moet zich opnieuw authenticeren via SAML.',
+            enableError: 'Kon de instelling voor SAML-inschakeling niet bijwerken',
+            requireError: 'Kan SAML-vereiste-instelling niet bijwerken',
+        },
+        samlConfigurationDetails: {
+            title: 'SAML-configuratiedetails',
+            subtitle: 'Gebruik deze gegevens om SAML in te stellen.',
+            identityProviderMetaData: 'Metagegevens van identiteitsprovider',
+            entityID: 'Entiteit-ID',
+            nameIDFormat: 'Naam-ID-formaat',
+            loginUrl: 'Inlog-URL',
+            acsUrl: 'ACS-URL (Assertion Consumer Service)',
+            logoutUrl: 'URL voor afmelden',
+            sloUrl: 'SLO (Eenmalige afmelding) URL',
+            serviceProviderMetaData: 'Serviceprovider-metagegevens',
+            oktaScimToken: 'Okta SCIM-token',
+            revealToken: 'Token weergeven',
+            fetchError: 'Kon SAML-configuratiedetails niet ophalen',
+            setMetadataGenericError: 'Kon SAML-metadata niet instellen',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -857,6 +857,7 @@ function MoneyReportHeader({
                     const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions, transactions, policy);
 
                     if (IOUActions.length) {
+                        // eslint-disable-next-line unicorn/no-array-for-each
                         IOUActions.forEach(changeMoneyRequestHoldStatus);
                         return;
                     }
@@ -1195,7 +1196,7 @@ function MoneyReportHeader({
                 Navigation.goBack(route.params?.backTo);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
-                    deleteAppReport(moneyRequestReport?.reportID);
+                    deleteAppReport(moneyRequestReport?.reportID, email ?? '');
                 });
             },
         },

@@ -689,6 +689,7 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
  * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
 function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<string, string[]> {
     const allTaxRates: Record<string, string[]> = {};
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.values(policies ?? {})?.forEach((policy) => {
         if (!policy?.taxRates?.taxes) {
             return;
@@ -1464,9 +1465,9 @@ function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInp
     return undefined;
 }
 
-function hasOtherControlWorkspaces(currentPolicyID: string) {
-    const otherControlWorkspaces = Object.values(allPolicies ?? {}).filter((policy) => policy?.id !== currentPolicyID && isPolicyAdmin(policy) && isControlPolicy(policy));
-    return otherControlWorkspaces.length > 0;
+function hasOtherControlWorkspaces(adminPolicies: Policy[] | undefined, currentPolicyID: string) {
+    const otherControlWorkspaces = adminPolicies?.filter((policy) => policy?.id !== currentPolicyID && isControlPolicy(policy));
+    return (otherControlWorkspaces?.length ?? 0) > 0;
 }
 
 // If no policyID is provided, it indicates the workspace upgrade/downgrade URL

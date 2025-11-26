@@ -703,7 +703,6 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         NEWDOT_REJECT: 'newDotReject',
         CUSTOM_RULES: 'customRules',
-        GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
@@ -954,7 +953,6 @@ const CONST = {
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
     IMAGE_BASE64_MATCH: 'base64',
     DEEPLINK_BASE_URL: 'new-expensify://',
-    SAML_REDIRECT_URL: 'expensify://open',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
@@ -1027,6 +1025,7 @@ const CONST = {
     BULK_UPLOAD_HELP_URL: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense#option-4-bulk-upload-receipts-desktop-only',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
+    COLLECT_UPGRADE_HELP_URL: 'https://help.expensify.com/Hidden/collect-upgrade',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
     CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
     DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain',
@@ -1260,6 +1259,7 @@ const CONST = {
                 UNSHARE: 'UNSHARE', // OldDot Action
                 UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
                 CONCIERGE_CATEGORY_OPTIONS: 'CONCIERGECATEGORYOPTIONS',
+                CONCIERGE_DESCRIPTION_OPTIONS: 'CONCIERGEDESCRIPTIONOPTIONS',
                 CONCIERGE_AUTO_MAP_MCC_GROUPS: 'CONCIERGEAUTOMAPMCCGROUPS',
                 POLICY_CHANGE_LOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
@@ -1339,6 +1339,7 @@ const CONST = {
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
+                    CORPORATE_FORCE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_FORCE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                 },
                 RECEIPT_SCAN_FAILED: 'RECEIPTSCANFAILED',
@@ -1536,6 +1537,7 @@ const CONST = {
             WAITING_TO_PAY: 'waitingToPay',
             WAITING_FOR_POLICY_BANK_ACCOUNT: 'waitingForPolicyBankAccount',
             WAITING_FOR_PAYMENT: 'waitingForPayment',
+            WAITING_TO_EXPORT: 'waitingToExport',
         },
         ICONS: {
             HOURGLASS: 'hourglass',
@@ -1658,6 +1660,7 @@ const CONST = {
         CONTEXT_FULLSTORY: 'Fullstory',
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
+        TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
@@ -3374,6 +3377,7 @@ const CONST = {
             AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
             CSV: 'ccupload',
         },
+        FEED_KEY_SEPARATOR: '#',
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             BANK_CONNECTION: 'BankConnection',
