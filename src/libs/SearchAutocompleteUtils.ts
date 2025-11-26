@@ -181,7 +181,8 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
             return actionList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY:
-            return categoryList.get().includes(range.value);
+            // Highlight if value is a known category OR one of the empty-category synonyms (e.g., "none", "Uncategorized")
+            return categoryList.get().includes(range.value) || CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',').some((emptyVal) => emptyVal.toLowerCase() === range.value.toLowerCase());
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
             return tagList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:

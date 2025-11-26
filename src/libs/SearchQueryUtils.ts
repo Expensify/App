@@ -771,9 +771,10 @@ function buildFilterFormValuesFromQuery(
                       .flat();
             const uniqueCategories = new Set(categories);
             const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
-            const hasEmptyCategoriesInFilter = emptyCategories.every((category) => filterValues.includes(category));
-            // We split CATEGORY_EMPTY_VALUE into individual values to detect both are present in filterValues.
-            // If empty categories are found, append the CATEGORY_EMPTY_VALUE to filtersForm.
+            // Consider the empty category selected if ANY of its synonyms are present (e.g., "none" OR "Uncategorized")
+            const filterValuesLower = new Set(filterValues.map((v) => v.toLowerCase()));
+            const hasEmptyCategoriesInFilter = emptyCategories.some((category) => filterValuesLower.has(category.toLowerCase()));
+            // If an empty category synonym is found, append CATEGORY_EMPTY_VALUE to filtersForm so the chip appears selected.
             filtersForm[key as typeof filterKey] = filterValues.filter((name) => uniqueCategories.has(name)).concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
