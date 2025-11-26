@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-imports */
 import {Str} from 'expensify-common';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
@@ -74,17 +75,18 @@ function ProfilePage({route}: ProfilePageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
+    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
 
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isCurrentUser = session?.accountID === accountID;
     const reportKey = useMemo(() => {
-        const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID;
+        const reportID = isCurrentUser ? selfDMReportID : getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID;
 
         if (isAnonymousUserSession() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-    }, [accountID, isCurrentUser, reports, session?.accountID]);
+    }, [accountID, selfDMReportID, isCurrentUser, reports, session?.accountID]);
     const [report] = useOnyx(reportKey, {canBeMissing: true});
 
     const styles = useThemeStyles();
