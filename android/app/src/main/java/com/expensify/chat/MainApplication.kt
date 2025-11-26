@@ -24,9 +24,10 @@ import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.margelo.nitro.utils.HybridTtiLogger
+import java.util.concurrent.TimeUnit
 
 class MainApplication : MultiDexApplication(), ReactApplication {
-    val applicationStartedTimestamp = System.currentTimeMillis()
+    val applicationStartedTimestamp = TimeUnit.NANOSECONDS.toMillis(System.nanoTime())
 
     override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(this, object : DefaultReactNativeHost(this) {
         override fun getUseDeveloperSupport() = BuildConfig.DEBUG

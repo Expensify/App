@@ -5,6 +5,7 @@ import android.view.View
 import androidx.annotation.RequiresApi
 import com.facebook.react.uimanager.ThemedReactContext
 import com.margelo.nitro.utils.performance.FirstDrawDoneListener
+import java.util.concurrent.TimeUnit
 
 class HybridTtiMeasurementView(val context: ThemedReactContext) : HybridTtiMeasurementViewSpec() {
     // Props
@@ -25,7 +26,8 @@ class HybridTtiMeasurementView(val context: ThemedReactContext) : HybridTtiMeasu
                 return@registerForNextDraw
             }
 
-            val newFirstDrawTimestamp = System.currentTimeMillis()
+            System.nanoTime()
+            val newFirstDrawTimestamp = TimeUnit.NANOSECONDS.toMillis(System.nanoTime())
             firstDrawTimestamp = newFirstDrawTimestamp
             ttiLogger.mark(TtiMeasurementName.FIRSTDRAW, newFirstDrawTimestamp.toDouble())
         }
