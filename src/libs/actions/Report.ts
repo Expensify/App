@@ -92,7 +92,7 @@ import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
-import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport} from '@libs/ReportUtils';
+import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
     buildOptimisticAddCommentReportAction,
     buildOptimisticChangeFieldAction,
@@ -4822,7 +4822,7 @@ function clearDeleteTransactionNavigateBackUrl() {
 }
 
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
-function deleteAppReport(reportID: string | undefined) {
+function deleteAppReport(reportID: string | undefined, currentUserEmailParam: string) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
         return;
@@ -4835,16 +4835,15 @@ function deleteAppReport(reportID: string | undefined) {
 
     let selfDMReportID = findSelfDMReportID();
     let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
-    let selfDMCreatedReportActionID: string | undefined;
     let createdAction: ReportAction;
+    let selfDMParameters: SelfDMParameters = {};
 
     if (!selfDMReport) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
         selfDMReportID = selfDMReport.reportID;
-        createdAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
-        selfDMCreatedReportActionID = createdAction.reportActionID;
-
+        createdAction = buildOptimisticCreatedReportAction(currentUserEmailParam ?? '', currentTime);
+        selfDMParameters = {reportID: selfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -5152,7 +5151,7 @@ function deleteAppReport(reportID: string | undefined) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
-            value: {hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, report?.reportID)},
+            value: {hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, report?.reportID, currentUserEmailParam)},
         });
     }
 
@@ -5165,8 +5164,8 @@ function deleteAppReport(reportID: string | undefined) {
     const parameters: DeleteAppReportParams = {
         reportID,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
-        selfDMReportID,
-        selfDMCreatedReportActionID,
+        selfDMReportID: selfDMParameters.reportID,
+        selfDMCreatedReportActionID: selfDMParameters.createdReportActionID,
     };
 
     API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters, {optimisticData, successData, failureData});
