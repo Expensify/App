@@ -4616,7 +4616,7 @@ ${
             companyCard: '会社カード',
             chooseCardFeed: 'カードフィードを選択',
             ukRegulation:
-                'Expensify, Inc.は、Plaid Financial Ltd.の代理店であり、支払いサービス規則2017に基づいて金融行動監視機構によって規制されている認可支払い機関です（会社参照番号: 804718）。Plaidは、Expensify Limitedをその代理店として通じて、規制されたアカウント情報サービスを提供します。',
+                'Expensify Limitedは、Plaid Financial Ltd.の代理店であり、支払いサービス規則2017に基づいて金融行動監視機構によって規制されている認可支払い機関です（会社参照番号: 804718）。Plaidは、Expensify Limitedをその代理店として通じて、規制されたアカウント情報サービスを提供します。',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensifyカードを発行および管理する',
@@ -7440,18 +7440,6 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name}がExpensifyの試用にあなたを招待しました\nこんにちは！私はExpensifyを試用するための*3ヶ月無料*を手に入れました。これは、経費を処理する最速の方法です。\n\nこちらがその仕組みを示す*テスト領収書*です：`,
-    },
-    reportLayout: {
-        reportLayout: 'レポートレイアウト',
-        groupByLabel: 'グループ化：',
-        selectGroupByOption: 'レポート経費のグループ化方法を選択',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `このグループを${action}`,
-        selectGroup: ({groupName}: {groupName: string}) => `${groupName}のすべての経費を選択`,
-        groupBy: {
-            category: 'カテゴリ',
-            tag: 'タグ',
-        },
     },
     export: {
         basicExport: '基本エクスポート',
