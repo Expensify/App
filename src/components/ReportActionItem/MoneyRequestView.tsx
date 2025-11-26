@@ -165,11 +165,23 @@ function MoneyRequestView({
     const [policiesWithPerDiem] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (policies) => Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.arePerDiemRatesEnabled)),
     });
-    // If the expense is unreported the policy should be the user's default policy, otherwise it should be the policy the expense was made for
-    const policy = isExpenseUnreported ? policyForMovingExpenses : expensePolicy;
-    const policyID = isExpenseUnreported ? policyForMovingExpensesID : report?.policyID;
+    const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
+    const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
 
-    console.log(getPolicyByCustomUnitID(transaction, policiesWithPerDiem));
+    let policy;
+    let policyID;
+    // If the expense is unreported the policy should be the user's default policy, if the expense is a per diem request and is unreported
+    // the policy should be the one where the per diem rates are enabled, otherwise it should be the expense's report policy
+    if (isExpenseUnreported && !isPerDiemRequest) {
+        policy = policyForMovingExpenses;
+        policyID = policyForMovingExpensesID;
+    } else if (isExpenseUnreported && isPerDiemRequest) {
+        policy = perDiemOriginalPolicy;
+        policyID = perDiemOriginalPolicy?.id;
+    } else {
+        policy = expensePolicy;
+        policyID = report?.policyID;
+    }
 
     const allPolicyCategories = usePolicyCategories();
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
@@ -221,7 +233,6 @@ function MoneyRequestView({
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
-    const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
 
