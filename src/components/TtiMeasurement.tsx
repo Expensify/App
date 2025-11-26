@@ -23,7 +23,7 @@ function TtiMeasurement() {
                 return;
             }
 
-            return timestamp - ttiMeasurement.applicationStartup;
+            return Math.trunc(timestamp) - ttiMeasurement.applicationStartup;
         },
         [ttiMeasurement],
     );
@@ -87,7 +87,7 @@ function TtiMeasurement() {
                     <View style={{borderWidth: 1, borderColor: 'black', padding: 10}}>
                         <Text color="black">Startup timestamp: {ttiMeasurement.applicationStartup}ms</Text>
                         <Text color="black">First draw timestamp: {ttiMeasurement.firstDraw}ms</Text>
-                        <Text>Run JS bundle start timestamp: {runJsBundleStartTimestamp}ms</Text>
+                        <Text color="black">Run JS bundle start timestamp: {runJsBundleStartTimestamp}ms</Text>
                         <Text color="black">Hermes young GC start timestamp: {hermesYoungGcStartTimestamp}ms</Text>
                     </View>
                 </View>
