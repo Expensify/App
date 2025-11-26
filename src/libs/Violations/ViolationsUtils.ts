@@ -9,9 +9,9 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {hasValidModifiedAmount, shouldShowViolation} from '@libs/TransactionUtils';
+import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
@@ -37,7 +37,9 @@ function getTagViolationsForSingleLevelTags(
 
     // Add 'tagOutOfPolicy' violation if tag is not in policy
     if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
-        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION});
+        const tagName = policyTagList[policyTagListName]?.name;
+        const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
+        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}});
     }
 
     // Remove 'tagOutOfPolicy' violation if tag is in policy
@@ -52,7 +54,9 @@ function getTagViolationsForSingleLevelTags(
 
     // Add 'missingTag violation' if tag is required and not set
     if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
-        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION});
+        const tagName = policyTagList[policyTagListName]?.name;
+        const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
+        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}});
     }
     return newTransactionViolations;
 }
@@ -325,7 +329,7 @@ const ViolationsUtils = {
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
+        const amount = updatedTransaction.modifiedAmount || updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
         const canCalculateAmountViolations = policy.outputCurrency === currency;
@@ -619,13 +623,14 @@ const ViolationsUtils = {
     /**
      * Checks if any transactions in the report have violations that should be visible to the current user.
      * Filters violations based on user role (submitter, admin, policy member) and report state.
+     * Also filters out dismissed violations.
      */
     hasVisibleViolationsForUser(
         report: OnyxEntry<Report>,
         violations: OnyxCollection<TransactionViolation[]>,
         currentUserEmail: string,
-        policy?: OnyxEntry<Policy>,
-        transactions?: Transaction[],
+        policy: OnyxEntry<Policy>,
+        transactions: Transaction[],
     ): boolean {
         if (!report || !violations || !transactions) {
             return false;
@@ -638,9 +643,9 @@ const ViolationsUtils = {
                 return false;
             }
 
-            // Check if any violation should be shown based on user role and violation type
+            // Check if any violation is not dismissed and should be shown based on user role and violation type
             return transactionViolations.some((violation: TransactionViolation) => {
-                return shouldShowViolation(report, policy, violation.name, currentUserEmail);
+                return !isViolationDismissed(transaction, violation, currentUserEmail, report, policy) && shouldShowViolation(report, policy, violation.name, currentUserEmail);
             });
         });
     },
