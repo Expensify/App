@@ -54,8 +54,6 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
-        with:
-          IS_DESKTOP_BUILD: true
  
       - name: Run ESLint to check for deprecation warnings
         run: |
