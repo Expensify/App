@@ -21,6 +21,12 @@ function PaymentCurrencyPage() {
 
     const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
+    const handleDismissKeyboardAndGoBack = () => {
+        KeyboardUtils.dismiss().then(() => {
+            Navigation.goBack();
+        });
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -31,11 +37,7 @@ function PaymentCurrencyPage() {
                     <HeaderWithBackButton
                         title={translate('billingCurrency.paymentCurrency')}
                         shouldShowBackButton
-                        onBackButtonPress={() => {
-                            KeyboardUtils.dismiss().then(() => {
-                                Navigation.goBack();
-                            });
-                        }}
+                        onBackButtonPress={handleDismissKeyboardAndGoBack}
                     />
 
                     <Text style={[styles.mh5, styles.mv4]}>{translate('billingCurrency.paymentCurrencyDescription')}</Text>
@@ -47,9 +49,7 @@ function PaymentCurrencyPage() {
                             if (option.currencyCode !== paymentCurrency) {
                                 updateGeneralSettings(personalPolicyID, personalPolicy?.name ?? '', option.currencyCode);
                             }
-                            KeyboardUtils.dismiss().then(() => {
-                                Navigation.goBack();
-                            });
+                            handleDismissKeyboardAndGoBack();
                         }}
                         initiallySelectedCurrencyCode={paymentCurrency}
                         didScreenTransitionEnd={didScreenTransitionEnd}
