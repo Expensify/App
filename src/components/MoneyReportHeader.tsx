@@ -669,6 +669,7 @@ function MoneyReportHeader({
         isChatReportArchived,
         invoiceReceiverPolicy,
         currentUserLogin,
+        accountID,
     ]);
 
     const confirmExport = useCallback(() => {
