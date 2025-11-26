@@ -2280,13 +2280,13 @@ describe('TripReservationUtils', () => {
     });
     describe('getReservationsFromTripReport', () => {
         it('should return an empty array when there are no transactions and trip payload', () => {
-            const report = createRandomReport(1);
+            const report = createRandomReport(1, undefined);
             const result = getReservationsFromTripReport(report, []);
             expect(result).toEqual([]);
         });
 
         it('should return reservations from tripPayload', () => {
-            const report = createRandomReport(1);
+            const report = createRandomReport(1, undefined);
             report.tripData = {
                 tripID: 'trip123',
                 payload: tripWithAllReservations,
@@ -2319,13 +2319,13 @@ describe('TripReservationUtils', () => {
 
     describe('getPNRReservationDataFromTripReport', () => {
         it('should return an empty array when there are no transactions and trip payload', () => {
-            const report = createRandomReport(1);
+            const report = createRandomReport(1, undefined);
             const result = getPNRReservationDataFromTripReport(report, []);
             expect(result).toEqual([]);
         });
 
         it('should return PNR reservation data from tripPayload', () => {
-            const report = createRandomReport(1);
+            const report = createRandomReport(1, undefined);
             report.tripData = {
                 tripID: 'trip123',
                 payload: tripWithAllReservations,

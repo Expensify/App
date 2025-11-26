@@ -1,10 +1,11 @@
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCashExpenseReimbursableMode, setPolicyReimbursableMode} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,9 +24,11 @@ function RulesReimbursableDefaultPage({
 }: RulesReimbursableDefaultPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const reimbursableMode = getCashExpenseReimbursableMode(policyID);
+    const policy = usePolicy(policyID);
 
-    const ReimbursableModes = Object.values(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES).map((mode) => ({
+    const reimbursableMode = getCashExpenseReimbursableMode(policy);
+
+    const reimbursableModes = Object.values(CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES).map((mode) => ({
         text: translate(`workspace.rules.individualExpenseRules.${mode}`),
         alternateText: translate(`workspace.rules.individualExpenseRules.${mode}Description`),
         value: mode,
@@ -52,15 +55,15 @@ function RulesReimbursableDefaultPage({
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.cashExpenseDefaultDescription')}</Text>
                 </Text>
                 <SelectionList
-                    sections={[{data: ReimbursableModes}]}
+                    data={reimbursableModes}
                     ListItem={RadioListItem}
                     onSelectRow={(item) => {
                         setPolicyReimbursableMode(policyID, item.value);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     shouldSingleExecuteRowSelect
-                    containerStyle={[styles.pt3]}
-                    initiallyFocusedOptionKey={reimbursableMode}
+                    style={{containerStyle: styles.pt3}}
+                    initiallyFocusedItemKey={reimbursableMode}
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>

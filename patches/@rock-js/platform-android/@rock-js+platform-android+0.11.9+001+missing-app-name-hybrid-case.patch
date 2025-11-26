@@ -1,0 +1,28 @@
+diff --git a/node_modules/@rock-js/platform-android/dist/src/lib/commands/runAndroid/findOutputFile.js b/node_modules/@rock-js/platform-android/dist/src/lib/commands/runAndroid/findOutputFile.js
+index 2938c29..0a66a15 100644
+--- a/node_modules/@rock-js/platform-android/dist/src/lib/commands/runAndroid/findOutputFile.js
++++ b/node_modules/@rock-js/platform-android/dist/src/lib/commands/runAndroid/findOutputFile.js
+@@ -1,4 +1,4 @@
+-import { existsSync } from 'node:fs';
++import { existsSync, readdirSync } from 'node:fs';
+ import { logger, spawn } from '@rock-js/tools';
+ import { getAdbPath } from './adb.js';
+ export async function findOutputFile(androidProject, tasks, device) {
+@@ -38,6 +38,17 @@ async function getInstallOutputFileName(appName, variant, buildDirectory, apkOrA
+     if (existsSync(`${buildDirectory}/${outputFile}`)) {
+         return outputFile;
+     }
++    
++    // check if there is a file like -debug.apk (missing app name)
++    if (existsSync(buildDirectory)) {
++        const pattern = `-${variant}.${apkOrAab}`;
++        const files = readdirSync(buildDirectory);
++        const matchingFile = files?.find((file) => file.endsWith(pattern));
++        if (matchingFile) {
++        return matchingFile;
++        }
++    }
++
+     logger.debug('Could not find the output file:', {
+         buildDirectory,
+         outputFile,

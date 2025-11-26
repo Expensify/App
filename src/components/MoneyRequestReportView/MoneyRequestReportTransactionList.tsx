@@ -16,20 +16,24 @@ import Text from '@components/Text';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {setOptimisticTransactionThread} from '@libs/actions/Report';
+import {getReportLayoutGroupBy} from '@libs/actions/ReportLayout';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import FS from '@libs/Fullstory';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
 import {
     canAddTransaction,
     getAddExpenseDropdownOptions,
@@ -39,7 +43,17 @@ import {
     isExpenseReport,
 } from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
-import {getAmount, getCategory, getCreated, getMerchant, getTag, getTransactionPendingAction, isTransactionPendingDelete, shouldShowViolation} from '@libs/TransactionUtils';
+import {
+    getAmount,
+    getCategory,
+    getCreated,
+    getMerchant,
+    getTag,
+    getTransactionPendingAction,
+    isTransactionPendingDelete,
+    mergeProhibitedViolations,
+    shouldShowViolation,
+} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -52,6 +66,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import MoneyRequestReportGroupHeader from './MoneyRequestReportGroupHeader';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
 import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionItem';
@@ -81,6 +96,12 @@ type MoneyRequestReportTransactionListProps = {
 
     /** scrollToNewTransaction callback used for scrolling to new transaction when it is created */
     scrollToNewTransaction: (offset: number) => void;
+
+    /** Whether the report that these transactions belong to has any chat comments */
+    hasComments: boolean;
+
+    /** Whether the report actions are being loaded, used to show 'Comments' during loading state */
+    isLoadingInitialReportActions?: boolean;
 };
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
@@ -136,6 +157,8 @@ function MoneyRequestReportTransactionList({
     hasPendingDeletionTransaction = false,
     scrollToNewTransaction,
     policy,
+    hasComments,
+    isLoadingInitialReportActions = false,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const styles = useThemeStyles();
@@ -146,6 +169,7 @@ function MoneyRequestReportTransactionList({
     const {markReportIDAsExpense} = useContext(WideRHPContext);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
+    const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
@@ -156,13 +180,18 @@ function MoneyRequestReportTransactionList({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
-    const addExpenseDropdownOptions = useMemo(() => getAddExpenseDropdownOptions(report?.reportID, policy), [report?.reportID, policy]);
+    const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
+    const addExpenseDropdownOptions = useMemo(
+        () => getAddExpenseDropdownOptions(report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
+        [report?.reportID, policy, lastDistanceExpenseType],
+    );
 
     const hasPendingAction = useMemo(() => {
         return hasPendingDeletionTransaction || transactions.some(getTransactionPendingAction);
     }, [hasPendingDeletionTransaction, transactions]);
 
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+    useHandleSelectionMode(selectedTransactionIDs);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const personalDetailsList = usePersonalDetails();
 
@@ -177,7 +206,9 @@ function MoneyRequestReportTransactionList({
         for (const transaction of transactions) {
             const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             if (transactionViolations) {
-                const filteredTransactionViolations = transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails.email ?? ''));
+                const filteredTransactionViolations = mergeProhibitedViolations(
+                    transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails.email ?? '')),
+                );
 
                 if (filteredTransactionViolations.length > 0) {
                     filtered[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] = filteredTransactionViolations;
@@ -202,6 +233,51 @@ function MoneyRequestReportTransactionList({
     );
 
     const isTransactionSelected = useCallback((transactionID: string) => selectedTransactionIDs.includes(transactionID), [selectedTransactionIDs]);
+
+    // Toggle all transactions in a group
+    const toggleGroupSelection = useCallback(
+        (groupTransactions: OnyxTypes.Transaction[]) => {
+            const groupTransactionIDs = groupTransactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
+            const allSelected = groupTransactionIDs.every((id) => selectedTransactionIDs.includes(id));
+
+            let newSelectedTransactionIDs = selectedTransactionIDs;
+            if (allSelected) {
+                // Deselect all transactions in the group
+                newSelectedTransactionIDs = selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id));
+            } else {
+                // Select all transactions in the group
+                const idsToAdd = groupTransactionIDs.filter((id) => !selectedTransactionIDs.includes(id));
+                newSelectedTransactionIDs = [...selectedTransactionIDs, ...idsToAdd];
+            }
+            setSelectedTransactions(newSelectedTransactionIDs);
+        },
+        [selectedTransactionIDs, setSelectedTransactions],
+    );
+
+    // Check if all transactions in a group are selected
+    const isGroupSelected = useCallback(
+        (groupTransactions: OnyxTypes.Transaction[]) => {
+            const groupTransactionIDs = groupTransactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
+            if (groupTransactionIDs.length === 0) {
+                return false;
+            }
+            return groupTransactionIDs.every((id) => selectedTransactionIDs.includes(id));
+        },
+        [selectedTransactionIDs],
+    );
+
+    // Check if some (but not all) transactions in a group are selected
+    const isGroupIndeterminate = useCallback(
+        (groupTransactions: OnyxTypes.Transaction[]) => {
+            const groupTransactionIDs = groupTransactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
+            if (groupTransactionIDs.length === 0) {
+                return false;
+            }
+            const selectedCount = groupTransactionIDs.filter((id) => selectedTransactionIDs.includes(id)).length;
+            return selectedCount > 0 && selectedCount < groupTransactionIDs.length;
+        },
+        [selectedTransactionIDs],
+    );
 
     useFocusEffect(
         useCallback(() => {
@@ -229,6 +305,18 @@ function MoneyRequestReportTransactionList({
                 shouldBeHighlighted: newTransactions?.includes(transaction),
             }));
     }, [newTransactions, sortBy, sortOrder, transactions, localeCompare, report]);
+
+    // Get the current group-by preference
+    const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
+
+    // Group transactions based on user preference
+    const groupedTransactions = useMemo(() => {
+        if (currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG) {
+            return groupTransactionsByTag(sortedTransactions, report, localeCompare);
+        }
+        // Default to grouping by category
+        return groupTransactionsByCategory(sortedTransactions, report, localeCompare);
+    }, [sortedTransactions, currentGroupBy, report, localeCompare]);
 
     const columnsToShow = useMemo(() => {
         const columns = getColumnsToShow(currentUserDetails?.accountID, transactions, true);
@@ -261,7 +349,7 @@ function MoneyRequestReportTransactionList({
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigation
-            const sortedSiblingTransactionIDs = sortedTransactions.map((transaction) => transaction.transactionID);
+            const sortedSiblingTransactionIDs = sortedTransactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID);
             setActiveTransactionIDs(sortedSiblingTransactionIDs).then(() => {
                 if (reportIDToNavigate) {
                     markReportIDAsExpense(reportIDToNavigate);
@@ -312,6 +400,13 @@ function MoneyRequestReportTransactionList({
         [isMobileSelectionModeEnabled, toggleTransaction, navigateToTransaction],
     );
 
+    const handleArrowRightPress = useCallback(
+        (transactionID: string) => {
+            navigateToTransaction(transactionID);
+        },
+        [navigateToTransaction],
+    );
+
     const listHorizontalPadding = styles.ph5;
 
     const transactionItemFSClass = FS.getChatFSClass(personalDetailsList, report);
@@ -328,6 +423,8 @@ function MoneyRequestReportTransactionList({
                     totalDisplaySpend={totalDisplaySpend}
                     report={report}
                     hasPendingAction={hasPendingAction}
+                    hasComments={hasComments}
+                    isLoadingReportActions={isLoadingInitialReportActions}
                 />
             </>
         );
@@ -336,7 +433,7 @@ function MoneyRequestReportTransactionList({
     return (
         <>
             {!shouldUseNarrowLayout && (
-                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, styles.alignItemsCenter]}>
+                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr16, styles.alignItemsCenter]}>
                     <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
                         <Checkbox
                             onPress={() => {
@@ -372,27 +469,50 @@ function MoneyRequestReportTransactionList({
                     )}
                 </View>
             )}
-            <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
-                {sortedTransactions.map((transaction) => {
+            <View style={[listHorizontalPadding, styles.pb4]}>
+                {groupedTransactions.map((group) => {
+                    const groupTransactionsWithHighlight = group.transactions.map((transaction) => {
+                        const originalTransaction = sortedTransactions.find((t) => t.transactionID === transaction.transactionID);
+                        return originalTransaction ?? transaction;
+                    });
+
                     return (
-                        <MoneyRequestReportTransactionItem
-                            key={transaction.transactionID}
-                            transaction={transaction}
-                            violations={filteredViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
-                            columns={columnsToShow}
-                            report={report}
-                            isSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            toggleTransaction={toggleTransaction}
-                            isSelected={isTransactionSelected(transaction.transactionID)}
-                            handleOnPress={handleOnPress}
-                            handleLongPress={handleLongPress}
-                            dateColumnSize={dateColumnSize}
-                            amountColumnSize={amountColumnSize}
-                            taxAmountColumnSize={taxAmountColumnSize}
-                            // if we add few new transactions, then we need to scroll to the first one
-                            scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
-                            forwardedFSClass={transactionItemFSClass}
-                        />
+                        <View key={group.groupKey}>
+                            <MoneyRequestReportGroupHeader
+                                group={group}
+                                currency={report?.currency ?? ''}
+                                isGroupedByTag={currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG}
+                                isSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                isSelected={isGroupSelected(group.transactions)}
+                                isIndeterminate={isGroupIndeterminate(group.transactions)}
+                                onToggleSelection={() => toggleGroupSelection(group.transactions)}
+                            />
+                            <View style={styles.gap2}>
+                                {groupTransactionsWithHighlight.map((transaction) => {
+                                    return (
+                                        <MoneyRequestReportTransactionItem
+                                            key={transaction.transactionID}
+                                            transaction={transaction}
+                                            violations={filteredViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]}
+                                            columns={columnsToShow}
+                                            report={report}
+                                            isSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                            toggleTransaction={toggleTransaction}
+                                            isSelected={isTransactionSelected(transaction.transactionID)}
+                                            handleOnPress={handleOnPress}
+                                            handleLongPress={handleLongPress}
+                                            dateColumnSize={dateColumnSize}
+                                            amountColumnSize={amountColumnSize}
+                                            taxAmountColumnSize={taxAmountColumnSize}
+                                            // if we add few new transactions, then we need to scroll to the first one
+                                            scrollToNewTransaction={transaction.transactionID === newTransactions?.at(0)?.transactionID ? scrollToNewTransaction : undefined}
+                                            forwardedFSClass={transactionItemFSClass}
+                                            onArrowRightPress={handleArrowRightPress}
+                                        />
+                                    );
+                                })}
+                            </View>
+                        </View>
                     );
                 })}
             </View>

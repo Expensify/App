@@ -7,7 +7,7 @@ import * as Member from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {ImportedSpreadsheet, PersonalDetailsList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -36,7 +36,7 @@ describe('actions/PolicyMember', () => {
         it('Accept user join request to a workspace', async () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 policyID: fakePolicy.id,
             };
             const fakeReportAction = {
@@ -101,7 +101,7 @@ describe('actions/PolicyMember', () => {
                     },
                 },
             };
-            const adminRoom: Report = {...createRandomReport(1), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID: fakePolicy.id};
+            const adminRoom: Report = {...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS), policyID: fakePolicy.id};
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
@@ -109,7 +109,7 @@ describe('actions/PolicyMember', () => {
             Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[fakeUser2.accountID]: fakeUser2});
             await waitForBatchedUpdates();
             // When a user's role is set as admin on a policy
-            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
+            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.login ?? ''], [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -152,7 +152,7 @@ describe('actions/PolicyMember', () => {
             });
             await waitForBatchedUpdates();
             // When an admin is demoted from their admin role to a user role
-            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.USER);
+            Member.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.login ?? ''], [fakeUser2.accountID], CONST.POLICY.ROLE.USER);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -327,9 +327,8 @@ describe('actions/PolicyMember', () => {
                 approver: defaultApprover,
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
-                ...createRandomReport(Number(adminRoomID)),
+                ...createRandomReport(Number(adminRoomID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
                 policyID,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 participants: {
                     [ownerAccountID]: {notificationPreference: 'always'},
                 },
@@ -366,9 +365,8 @@ describe('actions/PolicyMember', () => {
             const userEmail = 'user@example.com';
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
-                ...createRandomReport(Number(workspaceReportID)),
+                ...createRandomReport(Number(workspaceReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 policyID,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 ownerAccountID: userAccountID,
             });
             const expenseAction: ReportAction = {
@@ -429,11 +427,12 @@ describe('actions/PolicyMember', () => {
             const userAccountID = 1236;
             const userEmail = 'user@example.com';
 
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            const allPersonalDetails = {
                 [adminAccountID]: {login: adminEmail},
                 [auditorAccountID]: {login: auditorEmail},
                 [userAccountID]: {login: userEmail},
-            });
+            } as unknown as PersonalDetailsList;
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, allPersonalDetails);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                 ...createRandomPolicy(Number(policyID)),
                 approver: defaultApprover,
@@ -445,9 +444,8 @@ describe('actions/PolicyMember', () => {
                 },
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
-                ...createRandomReport(Number(adminRoomID)),
+                ...createRandomReport(Number(adminRoomID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
                 policyID,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 participants: {
                     [ownerAccountID]: {notificationPreference: 'always'},
                     [adminAccountID]: {notificationPreference: 'always'},
@@ -458,7 +456,12 @@ describe('actions/PolicyMember', () => {
 
             // When removing am admin, auditor, and user members
             mockFetch?.pause?.();
-            Member.removeMembers([adminAccountID, auditorAccountID, userAccountID], policyID);
+            const memberEmailsToAccountIDs = {
+                [adminEmail]: adminAccountID,
+                [auditorEmail]: auditorAccountID,
+                [userEmail]: userAccountID,
+            };
+            Member.removeMembers(policyID, [adminEmail, auditorEmail, userEmail], memberEmailsToAccountIDs, [], allPersonalDetails);
 
             await waitForBatchedUpdates();
 
@@ -499,11 +502,11 @@ describe('actions/PolicyMember', () => {
             const workspaceReportID = '1';
             const expenseReportID = '2';
             const userAccountID = 1236;
+            const userEmail = 'user@example.com';
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
-                ...createRandomReport(Number(workspaceReportID)),
+                ...createRandomReport(Number(workspaceReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 policyID,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 ownerAccountID: userAccountID,
             });
             const expenseAction: ReportAction = {
@@ -515,9 +518,13 @@ describe('actions/PolicyMember', () => {
                 [expenseAction.reportActionID]: expenseAction,
             });
 
+            const allPersonalDetails = {
+                [userAccountID]: {login: userEmail},
+            } as unknown as PersonalDetailsList;
+
             // When removing a member from the workspace
             mockFetch?.pause?.();
-            Member.removeMembers([userAccountID], policyID);
+            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID}, [], allPersonalDetails);
 
             await waitForBatchedUpdates();
 
@@ -542,6 +549,55 @@ describe('actions/PolicyMember', () => {
             });
             expect(isWorkspaceChatArchived && isExpenseReportArchived).toBe(true);
             await mockFetch?.resume?.();
+        });
+
+        it('should preserve pendingAction DELETE when member removal fails', async () => {
+            // Given a workspace with a member
+            const policyID = 'ABCD12345';
+            const userAccountID = 1236;
+            const userEmail = 'user@example.com';
+            const ownerEmail = 'owner@gmail.com';
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [userAccountID]: {login: userEmail},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                owner: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [userEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+            });
+
+            // When removing a member and the request fails
+            mockFetch?.fail?.();
+            const allPersonalDetails = {
+                [userAccountID]: {login: userEmail},
+            } as unknown as PersonalDetailsList;
+            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID}, [], allPersonalDetails);
+
+            await waitForBatchedUpdates();
+
+            // Then the member should have pendingAction DELETE and errors
+            const policy = await new Promise<OnyxEntry<PolicyType>>((resolve, reject) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policyData) => {
+                        Onyx.disconnect(connection);
+                        if (policyData) {
+                            resolve(policyData);
+                        } else {
+                            reject(new Error('Policy not found'));
+                        }
+                    },
+                });
+            });
+
+            const failedMember = policy?.employeeList?.[userEmail];
+            expect(failedMember?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(failedMember?.errors).toBeTruthy();
+            expect(Object.keys(failedMember?.errors ?? {}).length).toBeGreaterThan(0);
         });
     });
 
@@ -569,7 +625,8 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member added success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 0});
         });
 
         it('should show a "multiple members added message" when multiple new members are added', async () => {
@@ -598,7 +655,8 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member added success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 0});
         });
 
         it('should show a "no members added/updated message" when no new members are added or updated', async () => {
@@ -631,7 +689,8 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the no member added/updated message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 0});
         });
 
         it('should show a "single member updated message" when a member is updated', async () => {
@@ -664,7 +723,8 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 1}));
+            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 1});
         });
 
         it('should show a "multiple members updated message" when multiple members are updated', async () => {
@@ -705,7 +765,8 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 2}));
+            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 2});
         });
 
         it('should show a "single member added and updated message" when a member is both added and updated', async () => {
@@ -741,7 +802,8 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member added and updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 1}));
+            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 1});
         });
 
         it('should show a "multiple members added and updated message" when multiple members are both added and updated', async () => {
@@ -784,7 +846,8 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member added and updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 2}));
+            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 2});
         });
     });
 });
