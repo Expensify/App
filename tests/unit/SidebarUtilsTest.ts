@@ -455,6 +455,7 @@ describe('SidebarUtils', () => {
 
             // Given: An APPROVED report action with the deposit/withdrawal account error
             const approvedReportActionID = '999';
+            const errorTimestamp = DateUtils.getMicroseconds();
             const approvedReportAction: ReportAction = {
                 reportActionID: approvedReportActionID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
@@ -467,8 +468,14 @@ describe('SidebarUtils', () => {
                     },
                 ],
                 errors: {
-                    depositWithdrawalAccountError: 'The deposit and withdrawal accounts are the same.',
+                    depositWithdrawalAccountError: {
+                        [errorTimestamp]: 'The deposit and withdrawal accounts are the same.',
+                    },
                 },
+            };
+
+            const MOCK_REPORTS: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}` as const]: chatReport,
             };
 
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
@@ -480,8 +487,9 @@ describe('SidebarUtils', () => {
 
             await act(async () => {
                 await Onyx.multiSet({
-                    [`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`]: chatReport,
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]: MOCK_REPORT_ACTIONS,
+                    ...MOCK_REPORTS,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}` as const]: chatReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}` as const]: MOCK_REPORT_ACTIONS,
                 });
             });
 
@@ -506,6 +514,7 @@ describe('SidebarUtils', () => {
             expect(result).not.toBeNull();
             expect(result?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
             expect(result?.reportAction).toMatchObject<ReportAction>(approvedReportAction);
+            expect(Object.values(reportErrors)).toContain('The deposit and withdrawal accounts are the same.');
 
             await Onyx.clear();
         });
