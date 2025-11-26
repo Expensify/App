@@ -6574,6 +6574,18 @@ ${
             message: "Non siamo riusciti a verificare la presenza di un aggiornamento. Riprova tra un po'.",
         },
     },
+    reportLayout: {
+        reportLayout: 'Layout del rapporto',
+        groupByLabel: 'Raggruppa per:',
+        selectGroupByOption: 'Seleziona come raggruppare le spese del rapporto',
+        uncategorized: 'Non categorizzato',
+        noTag: 'Nessun tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Seleziona tutte le spese in ${groupName}`,
+        groupBy: {
+            category: 'Categoria',
+            tag: 'Tag',
+        },
+    },
     report: {
         newReport: {
             createReport: 'Crea rapporto',

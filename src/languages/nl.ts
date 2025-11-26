@@ -6556,6 +6556,18 @@ ${
             message: 'We konden niet controleren op een update. Probeer het over een tijdje opnieuw.',
         },
     },
+    reportLayout: {
+        reportLayout: 'Rapportindeling',
+        groupByLabel: 'Groeperen op:',
+        selectGroupByOption: 'Selecteer hoe rapportkosten worden gegroepeerd',
+        uncategorized: 'Niet gecategoriseerd',
+        noTag: 'Geen tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Selecteer alle uitgaven in ${groupName}`,
+        groupBy: {
+            category: 'Categorie',
+            tag: 'Tag',
+        },
+    },
     report: {
         newReport: {
             createReport: 'Rapport maken',

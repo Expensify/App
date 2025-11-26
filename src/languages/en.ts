@@ -6648,6 +6648,18 @@ const translations = {
             message: "We couldn't check for an update. Please try again in a bit.",
         },
     },
+    reportLayout: {
+        reportLayout: 'Report layout',
+        groupByLabel: 'Group by:',
+        selectGroupByOption: 'Select how to group report expenses',
+        uncategorized: 'Uncategorized',
+        noTag: 'No tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Select all expenses in ${groupName}`,
+        groupBy: {
+            category: 'Category',
+            tag: 'Tag',
+        },
+    },
     report: {
         newReport: {
             createReport: 'Create report',

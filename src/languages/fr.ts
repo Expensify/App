@@ -6594,6 +6594,18 @@ ${
             message: "Nous n'avons pas pu vérifier la mise à jour. Veuillez réessayer dans un moment.",
         },
     },
+    reportLayout: {
+        reportLayout: 'Mise en page du rapport',
+        groupByLabel: 'Grouper par :',
+        selectGroupByOption: 'Sélectionnez comment grouper les dépenses du rapport',
+        uncategorized: 'Non catégorisé',
+        noTag: 'Pas de tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Sélectionner toutes les dépenses dans ${groupName}`,
+        groupBy: {
+            category: 'Catégorie',
+            tag: 'Tag',
+        },
+    },
     report: {
         newReport: {
             createReport: 'Créer un rapport',

@@ -92,6 +92,7 @@ import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
+import type {GroupedTransactions, ReportLayoutGroupBy} from './ReportLayout';
 import type LastSearchParams from './ReportNavigation';
 import type ReportNextStepDeprecated from './ReportNextStepDeprecated';
 import type ReportUserIsTyping from './ReportUserIsTyping';
@@ -214,6 +215,8 @@ export type {
     ReportViolationName,
     ReportViolations,
     ReportFieldsViolations,
+    ReportLayoutGroupBy,
+    GroupedTransactions,
     Request,
     Response,
     ScreenShareRequest,

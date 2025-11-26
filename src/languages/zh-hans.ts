@@ -6419,6 +6419,18 @@ ${
             message: '我们无法检查更新。请稍后再试。',
         },
     },
+    reportLayout: {
+        reportLayout: '报告布局',
+        groupByLabel: '分组方式：',
+        selectGroupByOption: '选择如何对报告费用进行分组',
+        uncategorized: '未分类',
+        noTag: '无标签',
+        selectGroup: ({groupName}: {groupName: string}) => `选择 ${groupName} 中的所有费用`,
+        groupBy: {
+            category: '类别',
+            tag: '标签',
+        },
+    },
     report: {
         newReport: {
             createReport: '创建报告',

@@ -6555,6 +6555,18 @@ ${
             message: 'Não conseguimos verificar uma atualização. Por favor, tente novamente em breve.',
         },
     },
+    reportLayout: {
+        reportLayout: 'Layout do relatório',
+        groupByLabel: 'Agrupar por:',
+        selectGroupByOption: 'Selecione como agrupar as despesas do relatório',
+        uncategorized: 'Sem categoria',
+        noTag: 'Sem tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Selecionar todas as despesas em ${groupName}`,
+        groupBy: {
+            category: 'Categoria',
+            tag: 'Tag',
+        },
+    },
     report: {
         newReport: {
             createReport: 'Criar relatório',
