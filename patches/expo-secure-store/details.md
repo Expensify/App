@@ -1,34 +1,72 @@
 # `expo-secure-store` patches
 
-### [expo-secure-store+14.2.4+001+additional-config-options.patch](expo-secure-store+14.2.4+001+additional-config-options.patch)
+### [expo-secure-store+14.2.4+001+enable-device-fallback.patch](expo-secure-store+14.2.4+001+enable-device-fallback.patch)
 
 - Reason:
 
     ```
-    Expo SecureStore is a great library, but it lacks some of the functionality we need, i.e.:
-
-    - Returning the type of authentication used for accessing the store
-    - Allowing the fallback to device credentials
-    - Enabling use of device credentials if no biometrics are enrolled/supported.
-    - Enforcing iOS to always ask for the authentication when accessing the store (by default iOS skips the authentication if, for example, user unlocked the screen recently with biometrics)
-    - Letting user know if the key entry is already stored instead of overwriting it without any feedback
-
-
-    This is fixed with this patch, but instead of hardcoding solution for above needs, the patch adds it into the SecureStore options
+    We need to enable users to use any device screen lock instead of biometrics.
+    This is not enabled in the SecureStore, so this patch changes the required input to either biometrics or screen lock knowledge if the 'enableDeviceFallback' flag is set to true.
+    Additionally, support for screen locks can be checked using the new 'canUseDeviceCredentialsAuthentication' method. 
     ```
 
-- Upstream PR/issue: 🛑
+- Upstream PR/issue: ...
 - E/App issue: No issue, this patch adjust the library for our needs.
-- PR introducing patch: https://github.com/Expensify/App/pull/69863
+- PR introducing patch: ...
 
-### [expo-secure-store+14.2.4+002+add-function-to-assert-device-security.patch](expo-secure-store+14.2.4+002+add-function-to-assert-device-security.patch)
+### [expo-secure-store+14.2.4+002+return-auth-type.patch](expo-secure-store+14.2.4+002+return-auth-type.patch)
 
 - Reason:
 
     ```
-    The method `canUseDeviceCredentialsAuthentication` was added to check whether the device has device credentials enabled.
+    This patch makes the read and write methods return the authentication type used to access the store.
+    It uses a pre-defined constant that mimics an enum and can also be imported directly from the app.
     ```
 
-- Upstream PR/issue: 🛑
+- Upstream PR/issue: ...
 - E/App issue: No issue, this patch adjust the library for our needs.
-- PR introducing patch: https://github.com/Expensify/App/pull/72681
+- PR introducing patch: ...
+
+### [expo-secure-store+14.2.4+003+force-authentication-on-save.patch](expo-secure-store+14.2.4+003+force-authentication-on-save.patch)
+
+- Reason:
+
+    ```
+    The iOS does not require authentication when a value is saved to the keychain. We cannot force iOS to do so.
+    However, to maintain consistency with Android, setting the 'forceAuthenticationOnSave' flag to true results in a prompt appearing
+    before the value is saved. This only works in the asynchronous version of the save method.
+    ```
+
+- Upstream PR/issue: ...
+- E/App issue: No issue, this patch adjust the library for our needs.
+- PR introducing patch: ...
+
+### [expo-secure-store+14.2.4+004+fail-on-update.patch](expo-secure-store+14.2.4+004+fail-on-update.patch)
+
+- Reason:
+
+    ```
+    If a value already exists in the SecureStore and a new one is saved, the existing value is simply overwritten.
+    To avoid unexpected behaviour, set the 'failOnUpdate' flag to true to trigger an error when the given key is already in the store.
+    ```
+
+- Upstream PR/issue: ...
+- E/App issue: No issue, this patch adjust the library for our needs.
+- PR introducing patch: ...
+
+### [expo-secure-store+14.2.4+005+force-read-authentication-on-simulators.patch](expo-secure-store+14.2.4+005+force-read-authentication-on-simulators.patch)
+
+- Reason:
+
+    ```
+    The LocalAuthentication behaves slightly differently on iOS simulators.
+    In numerous cases, the authentication prompts are skipped on simulators (as opposed to real devices).
+    Setting 'forceReadAuthenticationOnSimulators' flag to true forces the prompt to appear on simulators when a value with the `requireAuthentication` flag set to true is read.
+    The flag is added is purely for testing the app on simulators, in cases where the prompt does not appear when the value is read.
+    It has no effect on real devices.
+    ```
+
+- Upstream PR/issue: ...
+- E/App issue: No issue, this patch adjust the library for our needs.
+- PR introducing patch: ...
+
