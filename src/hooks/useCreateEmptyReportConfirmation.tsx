@@ -9,8 +9,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from './useThemeStyles';
 import useLocalize from './useLocalize';
+import useThemeStyles from './useThemeStyles';
 
 type UseCreateEmptyReportConfirmationParams = {
     /** The policy ID for which the report is being created */
