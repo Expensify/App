@@ -49,7 +49,7 @@ function HybridAppHandler() {
                 startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, {
                     name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
                     op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
-                    startTime: hybridAppSettings.hybridApp.transitionStartTimestamp ?? Date.now(),
+                    startTime: hybridAppSettings.hybridApp.transitionStartTimestamp,
                 });
             }
 
