@@ -38,7 +38,6 @@ function SearchTransactionsChangeReport() {
             const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             return transaction && isPerDiemRequest(transaction);
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps react-compiler/react-compiler
     }, [selectedTransactionsKeys]);
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
