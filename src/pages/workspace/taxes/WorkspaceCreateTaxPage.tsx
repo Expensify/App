@@ -50,6 +50,8 @@ function WorkspaceCreateTaxPage({
                 return errors;
             };
         },
+        // Note: We need the entire taxes object as isExistingTaxName requires it to check for duplicates
+        // This callback will recreate when taxes change, which is necessary for accurate validation
         [policy?.taxRates?.taxes, translate],
     );
 
