@@ -287,7 +287,7 @@ function MoneyRequestView({
         () =>
             isEditable &&
             canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID) &&
-            (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || policyID === perDiemOriginalPolicy?.id),
+            (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy)),
         [isEditable, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID, isPerDiemRequest, policy],
     );
 
