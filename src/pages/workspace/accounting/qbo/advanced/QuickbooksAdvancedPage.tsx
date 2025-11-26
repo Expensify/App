@@ -9,7 +9,11 @@ import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import {updateQuickbooksOnlineAutoCreateVendor, updateQuickbooksOnlineCollectionAccountID, updateQuickbooksOnlineSyncPeople} from '@libs/actions/connections/QuickbooksOnline';
+import {
+    updateQuickbooksOnlineAutoCreateVendor,
+    updateQuickbooksOnlineSyncPeople,
+    updateQuickbooksOnlineSyncReimbursedReports,
+} from '@libs/actions/connections/QuickbooksOnline';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -137,12 +141,11 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subtitle: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
             isActive: isSyncReimbursedSwitchOn,
-            onToggle: () =>
-                updateQuickbooksOnlineCollectionAccountID(
-                    policyID,
-                    isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions].at(0)?.id,
-                    qboConfig?.collectionAccountID,
-                ),
+            onToggle: () => {
+                const firstAvailableAccountID = [...qboAccountOptions, ...invoiceAccountCollectionOptions].at(0)?.id ?? '';
+                const nextAccountID = isSyncReimbursedSwitchOn ? '' : firstAvailableAccountID;
+                updateQuickbooksOnlineSyncReimbursedReports(policyID, nextAccountID, qboConfig?.collectionAccountID, qboConfig?.reimbursementAccountID);
+            },
             subscribedSetting: CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
             errors: getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
             pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID], qboConfig?.pendingFields),
