@@ -104,9 +104,8 @@ function buildOnyxDataForQuickbooksConfiguration<TSettingName extends keyof Conn
     const exporterOptimisticData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORT ? {exporter: settingValue} : {};
     const exporterErrorData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORT ? {exporter: oldSettingValue} : {};
 
-    const configKeys = settingName === CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID
-        ? [CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]
-        : [settingName];
+    const configKeys =
+        settingName === CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID ? [CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID] : [settingName];
 
     const optimisticData: OnyxUpdate[] = [
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
