@@ -354,7 +354,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
         !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm;
 
-    // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
+    // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web screens
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];

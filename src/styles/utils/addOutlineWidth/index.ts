@@ -1,5 +1,5 @@
 /**
- * Web and desktop platforms support the "addOutlineWidth" property, so it
+ * Web platforms support the "addOutlineWidth" property, so it
  * can be added to the object
  */
 import type AddOutlineWidth from './types';

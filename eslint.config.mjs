@@ -383,7 +383,6 @@ const config = defineConfig([
                         '@styles': './src/styles',
                         // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                         '@src': './src',
-                        '@desktop': './desktop',
                         '@github': './.github',
                     },
                 },
@@ -587,7 +586,6 @@ const config = defineConfig([
         '**/vendor',
         'modules/group-ib-fp/**/*',
         'web/snippets/gib.js',
-        'desktop/**/*',
     ]),
 ]);
 

@@ -1,4 +1,4 @@
-# Test MacOS and iOS app on Windows/Linux
+# Test iOS app on Windows/Linux
 
 If you need help, have any questions or suggestions, please ask in the [`#expensify-open-source` Slack channel](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#asking-questions).
 

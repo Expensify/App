@@ -83,19 +83,14 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
 1. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
 1. `CLA_BOTIFY_TOKEN` - Personal access token for @CLABotify user in GitHub
-1. `CSC_LINK` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
-1. `CSC_KEY_PASSWORD` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
-1. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`
-1. `APPLE_TEAM_ID` - Required for notarizing desktop code in `desktop/notarize.js`
-1. `APPLE_ID_PASSWORD` - Required for notarizing desktop code in `desktop/notarize.js`
-1. `AWS_ACCESS_KEY_ID` - Required for hosting website and desktop compiled code
-1. `AWS_SECRET_ACCESS_KEY` - Required for hosting website and desktop compiled code
-1. `CLOUDFLARE_TOKEN` - Required for hosting website
-1. `APPLE_CONTACT_EMAIL` - Email used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
-1. `APPLE_CONTACT_PHONE` - Phone number used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
-1. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
-1. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
-1. `BROWSERSTACK` - Used to access Browserstack's API
+2. `AWS_ACCESS_KEY_ID` - Required for hosting website compiled code
+3. `AWS_SECRET_ACCESS_KEY` - Required for hosting website compiled code
+4. `CLOUDFLARE_TOKEN` - Required for hosting website
+5. `APPLE_CONTACT_EMAIL` - Email used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
+6. `APPLE_CONTACT_PHONE` - Phone number used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
+7.  `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
+8.  `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
+9.  `BROWSERSTACK` - Used to access Browserstack's API
 
 We use 1Password for many secrets and in general use two different actions from 1Password to fetch secrets:
 

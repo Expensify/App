@@ -8,7 +8,6 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as Browser from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -584,25 +583,10 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSe
     }
 }
 
-function redirectThirdPartyDesktopSignIn() {
-    const currentUrl = getCurrentUrl();
-    if (!currentUrl) {
-        return;
-    }
-    const url = new URL(currentUrl);
-
-    if (url.pathname === `/${ROUTES.GOOGLE_SIGN_IN}` || url.pathname === `/${ROUTES.APPLE_SIGN_IN}`) {
-        Navigation.isNavigationReady().then(() => {
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.DESKTOP_SIGN_IN_REDIRECT);
-        });
-    }
-}
-
 /**
  * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
  */
-function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, isMagicLink?: boolean, initialRoute?: string) {
+function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true) {
     // There's no support for anonymous users on desktop
     if (isAnonymousUser()) {
         return;
@@ -611,7 +595,6 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, isMa
     // If the route that is being handled is a magic link, email and shortLivedAuthToken should not be attached to the url
     // to prevent signing into the wrong account
     if (!currentSessionData.accountID || !shouldAuthenticateWithCurrentAccount) {
-        Browser.openRouteInDesktopApp();
         return;
     }
 
@@ -619,16 +602,14 @@ function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, isMa
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, parameters, {}).then((response) => {
-        if (!response) {
-            Log.alert(
-                'Trying to redirect via deep link, but the response is empty. User likely not authenticated.',
-                {response, shouldAuthenticateWithCurrentAccount, currentUserAccountID: currentSessionData.accountID},
-                true,
-            );
+        if (response) {
             return;
         }
-
-        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentSessionData.email, isMagicLink ? '/r' : initialRoute);
+        Log.alert(
+            'Trying to redirect via deep link, but the response is empty. User likely not authenticated.',
+            {response, shouldAuthenticateWithCurrentAccount, currentUserAccountID: currentSessionData.accountID},
+            true,
+        );
     });
 }
 
@@ -721,7 +702,6 @@ export {
     setLocale,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
-    redirectThirdPartyDesktopSignIn,
     openApp,
     setAppLoading,
     reconnectApp,

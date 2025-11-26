@@ -434,7 +434,6 @@ const CONST = {
     APP_DOWNLOAD_LINKS: {
         ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-travel-expense/id471713959',
-        DESKTOP: `${ACTIVE_EXPENSIFY_URL}NewExpensify.dmg`,
         OLD_DOT_ANDROID: 'https://play.google.com/store/apps/details?id=org.me.mobiexpensifyg&hl=en_US&pli=1',
         OLD_DOT_IOS: 'https://apps.apple.com/us/app/expensify-expense-tracker/id471713959',
     },
@@ -735,11 +734,6 @@ const CONST = {
         RIGHT: 'right',
         UP: 'up',
     },
-    DESKTOP_DEEPLINK_APP_STATE: {
-        CHECKING: 'checking',
-        INSTALLED: 'installed',
-        NOT_INSTALLED: 'not-installed',
-    },
     TAX_RATES: {
         CUSTOM_NAME_MAX_LENGTH: 8,
         NAME_MAX_LENGTH: 50,
@@ -748,7 +742,6 @@ const CONST = {
         IOS: 'ios',
         ANDROID: 'android',
         WEB: 'web',
-        DESKTOP: 'desktop',
         MOBILE_WEB: 'mobileweb',
     },
     PLATFORM_SPECIFIC_KEYS: {
@@ -1068,7 +1061,7 @@ const CONST = {
 
     REQUEST_CODE_DELAY: 30,
 
-    DEEPLINK_PROMPT_DENYLIST: [SCREENS.HOME, SCREENS.SIGN_IN_WITH_APPLE_DESKTOP, SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP],
+    DEEPLINK_PROMPT_DENYLIST: [SCREENS.HOME],
 
     SIGN_IN_METHOD: {
         APPLE: 'Apple',

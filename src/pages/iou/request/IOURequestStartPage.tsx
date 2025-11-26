@@ -51,7 +51,7 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 };
 
 const platform = getPlatform(true);
-const isWeb = ([CONST.PLATFORM.WEB, CONST.PLATFORM.DESKTOP, CONST.PLATFORM.MOBILE_WEB] as Platform[]).includes(platform);
+const isWeb = ([CONST.PLATFORM.WEB, CONST.PLATFORM.MOBILE_WEB] as Platform[]).includes(platform);
 
 function IOURequestStartPage({
     route,

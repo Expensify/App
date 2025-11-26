@@ -83,7 +83,7 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
             },
             cache: {
                 type: 'filesystem',
-                name: environment.platform ?? 'default',
+                name: 'web',
                 buildDependencies: {
                     // By default, webpack and loaders are build dependencies
                     // This (also) makes all dependencies of this config file - build dependencies
