@@ -477,7 +477,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.leaveThread',
-        icon: Expensicons.Bell,
+        icon: Expensicons.Exit,
         shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
