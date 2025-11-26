@@ -348,8 +348,8 @@ export {
     modalStackOverlaySuperWideRHPPositionLeft,
     modalStackOverlayWideRHPPositionLeft,
     secondOverlayProgress,
-    SUPER_WIDE_RIGHT_MODALS,
     thirdOverlayProgress,
-    WIDE_RIGHT_MODALS,
     WideRHPContext,
+    WIDE_RIGHT_MODALS,
+    SUPER_WIDE_RIGHT_MODALS,
 };
