@@ -13,6 +13,13 @@ function validateReceiptFile(
     onFailure: () => void,
 ): Promise<void> {
     const receiptPathString = receiptPath?.toString();
+
+    // The number receiptPath type is the static image on native so we don't need to check file exists.
+    if (typeof receiptPath === 'number') {
+        onSuccess({uri: receiptPathString, name: receiptFilename, type: receiptType, source: receiptPathString} as File);
+        return Promise.resolve();
+    }
+
     return checkFileExists(receiptPathString).then((exists) => {
         if (!exists) {
             onFailure();

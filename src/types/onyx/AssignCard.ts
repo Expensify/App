@@ -2,6 +2,7 @@ import type {LinkAccount} from 'react-native-plaid-link-sdk';
 import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {CompanyCardFeed} from './CardFeeds';
 
 /** Assign card flow steps */
 type AssignCardStep = ValueOf<typeof CONST.COMPANY_CARD.STEP>;
@@ -18,7 +19,7 @@ type AssignCardData = {
     cardNumber: string;
 
     /** The name of the feed */
-    bankName: string;
+    bankName: CompanyCardFeed;
 
     /** The name of the card */
     cardName: string;

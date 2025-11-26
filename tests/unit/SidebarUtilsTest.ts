@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import {generateTransactionID} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getLastActorDisplayName} from '@libs/OptionsListUtils';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
-import {formatReportLastMessageText, getAllReportErrors, getReportPreviewMessage} from '@libs/ReportUtils';
+import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -23,6 +24,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import {createSidebarReportsCollection, createSidebarTestData} from '../utils/collections/sidebarReports';
+import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -571,6 +573,107 @@ describe('SidebarUtils', () => {
             );
 
             expect(result).toBe(true);
+        });
+
+        it('returns true when submitter has held expenses even if outstanding tasks trigger GBR', async () => {
+            const policyID = generateReportID();
+            const expenseChatID = generateReportID();
+            const expenseReportID = generateReportID();
+            const holdReportActionID = generateReportID();
+
+            const policyExpenseChat: Report = {
+                reportID: expenseChatID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                type: CONST.REPORT.TYPE.CHAT,
+                ownerAccountID: 12345,
+                policyID,
+                hasOutstandingChildRequest: true,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const expenseReport: Report = {
+                reportID: expenseReportID,
+                chatReportID: expenseChatID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: 12345,
+                managerID: 12345,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const baseTransaction = createRandomTransaction(700);
+            const transactionID = generateTransactionID();
+            const transaction: Transaction = {
+                ...baseTransaction,
+                transactionID,
+                reportID: expenseReport.reportID,
+                amount: 12345,
+                currency: CONST.CURRENCY.USD,
+                status: CONST.TRANSACTION.STATUS.POSTED,
+                comment: {
+                    ...(baseTransaction.comment ?? {}),
+                    hold: holdReportActionID,
+                },
+            };
+
+            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+            const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
+            const transactionViolations: OnyxCollection<TransactionViolation[]> = {
+                [transactionViolationsKey]: [
+                    {
+                        name: CONST.VIOLATIONS.HOLD,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ],
+            };
+
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        accountID: 12345,
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: expenseReport,
+                    [transactionKey]: transaction,
+                    [transactionViolationsKey]: transactionViolations[transactionViolationsKey],
+                } as unknown as OnyxMultiSetInput);
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            const requiresAttention = getReasonAndReportActionThatRequiresAttention(policyExpenseChat);
+            expect(requiresAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+
+            const {reason} =
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+                    policyExpenseChat,
+                    policyExpenseChat,
+                    {} as OnyxEntry<ReportActions>,
+                    true,
+                    {},
+                    {[transactionKey]: transaction},
+                    transactionViolations,
+                    false,
+                ) ?? {};
+
+            expect(reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(policyExpenseChat.reportID));
+            const hasRedBrickRoad = SidebarUtils.shouldShowRedBrickRoad(
+                policyExpenseChat,
+                policyExpenseChat,
+                {} as OnyxEntry<ReportActions>,
+                true,
+                {},
+                {[transactionKey]: transaction},
+                transactionViolations as OnyxCollection<TransactionViolations>,
+                isReportArchived.current,
+            );
+
+            expect(hasRedBrickRoad).toBe(true);
         });
 
         it('returns true when report has errors', () => {

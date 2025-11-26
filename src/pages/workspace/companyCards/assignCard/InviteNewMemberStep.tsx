@@ -2,6 +2,7 @@ import React, {useCallback, useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import type {CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
@@ -18,13 +19,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
-import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 
 type InviteeNewMemberStepProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     WithCurrentUserPersonalDetailsProps & {
         route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD>;
         /** Selected feed */
-        feed: CompanyCardFeed;
+        feed: CompanyCardFeedWithDomainID;
     };
 
 function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: InviteeNewMemberStepProps) {
@@ -33,9 +33,9 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: 
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const isEditing = assignCard?.isEditing;
     const policyID = route.params.policyID;
-    const [list] = useCardsList(policyID, feed);
+    const [list] = useCardsList(feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
 
     const handleBackButtonPress = () => {
         if (isEditing) {

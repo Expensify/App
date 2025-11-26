@@ -2,10 +2,10 @@ import React, {useCallback, useMemo, useState} from 'react';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import Badge from '@components/Badge';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import type {SelectionListApprover} from '@components/WorkspaceMembersSelectionList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -40,7 +40,6 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -76,12 +75,12 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                     isSelected: selectedApproverEmail === email,
                     login: email,
                     value: accountID,
-                    icons: [{source: avatar ?? expensifyIcons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
+                    icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                     rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [employeeList, report, policy, personalDetails, selectedApproverEmail, translate, expensifyIcons.FallbackAvatar]);
+    }, [employeeList, report, policy, personalDetails, selectedApproverEmail, translate]);
 
     const addApprover = useCallback(() => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;

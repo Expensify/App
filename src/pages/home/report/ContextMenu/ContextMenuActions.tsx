@@ -232,7 +232,7 @@ type ContextMenuActionWithContent = {
 
 type ContextMenuActionWithIcon = {
     textTranslateKey: TranslationPaths;
-    icon: IconAsset | Extract<ExpensifyIconName, 'Download' | 'ThreeDots'>;
+    icon: IconAsset | Extract<ExpensifyIconName, 'Download'>;
     successTextTranslateKey?: TranslationPaths;
     successIcon?: IconAsset | Extract<ExpensifyIconName, 'Download'>;
     onPress: OnPress;
@@ -947,7 +947,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.menu',
-        icon: 'ThreeDots',
+        icon: Expensicons.ThreeDots,
         shouldShow: ({isMini}) => isMini,
         onPress: (closePopover, {openOverflowMenu, event, openContextMenu, anchorRef}) => {
             openOverflowMenu(event as GestureResponderEvent | MouseEvent, anchorRef ?? {current: null});
