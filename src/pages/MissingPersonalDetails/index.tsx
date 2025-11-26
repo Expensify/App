@@ -1,8 +1,10 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
+import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import ROUTES from '@src/ROUTES';
 import MissingPersonalDetailsContent from './MissingPersonalDetailsContent';
 
 function MissingPersonalDetails() {
@@ -10,6 +12,10 @@ function MissingPersonalDetails() {
     const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
 
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, draftValuesMetadata);
+
+    const handleComplete = useCallback(() => {
+        Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
+    }, []);
 
     if (isLoading) {
         return <FullScreenLoadingIndicator />;
@@ -19,6 +25,7 @@ function MissingPersonalDetails() {
         <MissingPersonalDetailsContent
             privatePersonalDetails={privatePersonalDetails}
             draftValues={draftValues}
+            onComplete={handleComplete}
         />
     );
 }

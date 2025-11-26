@@ -14,7 +14,6 @@ import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import Address from './substeps/Address';
@@ -32,8 +31,8 @@ type MissingPersonalDetailsContentProps = {
     /** Optional custom header title */
     headerTitle?: string;
 
-    /** Optional custom completion handler */
-    onComplete?: () => void;
+    /** Completion handler */
+    onComplete: () => void;
 };
 
 const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
@@ -50,10 +49,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
 
     const handleFinishStep = useCallback(() => {
         if (!values) {
-            return;
-        }
-        if (!onComplete) {
-            Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
             return;
         }
         onComplete();
