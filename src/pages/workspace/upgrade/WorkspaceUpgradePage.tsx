@@ -58,22 +58,13 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
 
-    const feature = useMemo(() => {
-        // For enforcement settings, use the approvals feature content
-        const enforcementAliases = [
-            CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.alias,
-            CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.alias,
-            CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.alias,
-        ];
-
-        if (featureNameAlias && enforcementAliases.includes(featureNameAlias as string)) {
-            return CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals;
-        }
-
-        return Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
-            .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
-            .find((f) => f.alias === featureNameAlias);
-    }, [featureNameAlias]);
+    const feature = useMemo(
+        () =>
+            Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
+                .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
+                .find((f) => f.alias === featureNameAlias),
+        [featureNameAlias],
+    );
     const {translate} = useLocalize();
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
