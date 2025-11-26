@@ -1,9 +1,7 @@
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
 import FlatList from '@components/FlatList';
-import useFlatListHandle from '@hooks/useFlatListHandle';
-import type {FlatListInnerRefType} from '@hooks/useFlatListHandle';
 import usePrevious from '@hooks/usePrevious';
 import type {RenderInfo} from './RenderTaskQueue';
 import RenderTaskQueue from './RenderTaskQueue';
@@ -23,6 +21,8 @@ function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: n
     }
     return String(index);
 }
+
+type FlatListInnerRefType<T> = RNFlatList<T> & HTMLElement;
 
 type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem' | 'initialScrollIndex'> & {
     shouldEnableAutoScrollToTopThreshold?: boolean;
@@ -95,7 +95,6 @@ function BaseInvertedFlatList<T>({
     const remainingItemsToDisplay = data.length - displayedData.length;
 
     const listRef = useRef<FlatListInnerRefType<T>>(null);
-    useFlatListHandle({forwardedRef: ref, listRef, setCurrentDataId, remainingItemsToDisplay, onScrollToIndexFailed});
 
     const [didInitialContentRender, setDidInitialContentRender] = useState(false);
     const handleContentSizeChange = useCallback(
@@ -181,6 +180,51 @@ function BaseInvertedFlatList<T>({
             autoscrollToTopThreshold: enableAutoScrollToTopThreshold ? AUTOSCROLL_TO_TOP_THRESHOLD : undefined,
         };
     }, [displayedData.length, initialScrollKey, isInitialData, isLoadingData, isQueueRendering, shouldEnableAutoScrollToTopThreshold, wasLoadingData]);
+
+    useImperativeHandle(ref, () => {
+        // If we're trying to scroll at the start of the list we need to make sure to
+        // render all items.
+        const scrollToOffsetFn: RNFlatList['scrollToOffset'] = (params) => {
+            if (params.offset === 0) {
+                setCurrentDataId(null);
+            }
+
+            requestAnimationFrame(() => {
+                listRef.current?.scrollToOffset(params);
+            });
+        };
+
+        const scrollToIndexFn: RNFlatList['scrollToIndex'] = (params) => {
+            const actualIndex = params.index - remainingItemsToDisplay;
+            try {
+                listRef.current?.scrollToIndex({...params, index: actualIndex});
+            } catch (ex) {
+                // It is possible that scrolling fails since the item we are trying to scroll to
+                // has not been rendered yet. In this case, we call the onScrollToIndexFailed.
+                onScrollToIndexFailed?.({
+                    index: actualIndex,
+                    // These metrics are not implemented.
+                    averageItemLength: 0,
+                    highestMeasuredFrameIndex: 0,
+                });
+            }
+        };
+
+        return new Proxy(
+            {},
+            {
+                get: (_target, prop) => {
+                    if (prop === 'scrollToOffset') {
+                        return scrollToOffsetFn;
+                    }
+                    if (prop === 'scrollToIndex') {
+                        return scrollToIndexFn;
+                    }
+                    return listRef.current?.[prop as keyof RNFlatList];
+                },
+            },
+        ) as RNFlatList;
+    });
 
     return (
         <FlatList
