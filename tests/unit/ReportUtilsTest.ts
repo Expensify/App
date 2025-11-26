@@ -1522,9 +1522,7 @@ describe('ReportUtils', () => {
                                 personalDetails: participantsPersonalDetails,
                             });
 
-                            expect(reportName).toBe(
-                                `This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.`,
-                            );
+                            expect(reportName).toBe(`This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.`);
                         });
                     });
                 });
