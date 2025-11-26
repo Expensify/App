@@ -6424,7 +6424,7 @@ ${
             cleared: '已结算',
             failed: '失败',
         },
-        failedError: ({link}: {link: string}) => `当您<a href="${link}"><label>解锁账户</label></a>时，我们将重试此结算。`,
+        failedError: ({link}: {link: string}) => `当您<a href="${link}">解锁账户</a>时，我们将重试此结算。`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 提款ID: ${withdrawalID}`,
     },
     report: {

@@ -8,6 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -60,6 +61,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow', 'DotIndicator'] as const);
 
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
@@ -71,7 +73,8 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const badgeProps = useMemo(() => getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme), [withdrawalIDItem.state, translate, theme]);
     const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
     const withdrawalInfoText = translate('settlement.withdrawalInfo', {date: formattedWithdrawalDate, withdrawalID: withdrawalIDItem.entryID});
-    const failedErrorHTML = translate('settlement.failedError', {link: ROUTES.SETTINGS_WALLET});
+    const walletLink = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
+    const failedErrorHTML = translate('settlement.failedError', {link: walletLink});
 
     return (
         <View>

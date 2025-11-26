@@ -6514,7 +6514,7 @@ ${
             cleared: '決済済み',
             failed: '失敗',
         },
-        failedError: ({link}: {link: string}) => `この決済は<a href="${link}"><label>アカウントのロックを解除</label></a>すると再試行されます。`,
+        failedError: ({link}: {link: string}) => `この決済は<a href="${link}">アカウントのロックを解除</a>すると再試行されます。`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 出金ID: ${withdrawalID}`,
     },
     report: {

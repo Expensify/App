@@ -6579,7 +6579,7 @@ ${
             cleared: 'Liquidato',
             failed: 'Fallito',
         },
-        failedError: ({link}: {link: string}) => `Riproveremo questa liquidazione quando <a href="${link}"><label>sblocchi il tuo account</label></a>.`,
+        failedError: ({link}: {link: string}) => `Riproveremo questa liquidazione quando <a href="${link}">sblocchi il tuo account</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID prelievo: ${withdrawalID}`,
     },
     report: {

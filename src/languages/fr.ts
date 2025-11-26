@@ -6599,7 +6599,7 @@ ${
             cleared: 'Réglé',
             failed: 'Échoué',
         },
-        failedError: ({link}: {link: string}) => `Nous réessaierons ce règlement lorsque vous <a href="${link}"><label>déverrouillez votre compte</label></a>.`,
+        failedError: ({link}: {link: string}) => `Nous réessaierons ce règlement lorsque vous <a href="${link}">déverrouillez votre compte</a>.`,
         withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retrait: ${withdrawalID}`,
     },
     report: {
