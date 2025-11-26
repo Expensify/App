@@ -11,7 +11,7 @@ import {isReceiptError} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
 import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {shouldShowViolation} from '@libs/TransactionUtils';
+import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
@@ -623,13 +623,14 @@ const ViolationsUtils = {
     /**
      * Checks if any transactions in the report have violations that should be visible to the current user.
      * Filters violations based on user role (submitter, admin, policy member) and report state.
+     * Also filters out dismissed violations.
      */
     hasVisibleViolationsForUser(
         report: OnyxEntry<Report>,
         violations: OnyxCollection<TransactionViolation[]>,
         currentUserEmail: string,
-        policy?: OnyxEntry<Policy>,
-        transactions?: Transaction[],
+        policy: OnyxEntry<Policy>,
+        transactions: Transaction[],
     ): boolean {
         if (!report || !violations || !transactions) {
             return false;
@@ -642,9 +643,9 @@ const ViolationsUtils = {
                 return false;
             }
 
-            // Check if any violation should be shown based on user role and violation type
+            // Check if any violation is not dismissed and should be shown based on user role and violation type
             return transactionViolations.some((violation: TransactionViolation) => {
-                return shouldShowViolation(report, policy, violation.name, currentUserEmail);
+                return !isViolationDismissed(transaction, violation, currentUserEmail, report, policy) && shouldShowViolation(report, policy, violation.name, currentUserEmail);
             });
         });
     },
