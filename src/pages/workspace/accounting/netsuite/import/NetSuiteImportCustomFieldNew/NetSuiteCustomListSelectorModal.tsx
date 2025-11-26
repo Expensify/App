@@ -62,9 +62,9 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
             value: searchValue,
             label: showTextInput ? translate('common.search') : undefined,
             onChangeText: setSearchValue,
-            headerMessage: options.length === 0 ? '' : translate('common.noResultsFound'),
+            headerMessage: debouncedSearchValue.trim() && options.length === 0 ? translate('common.noResultsFound') : '',
         }),
-        [searchValue, showTextInput, translate, setSearchValue, options.length],
+        [searchValue, showTextInput, translate, setSearchValue, debouncedSearchValue, options.length],
     );
 
     return (
