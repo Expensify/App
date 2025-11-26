@@ -73,6 +73,7 @@ import Emoji from '@assets/images/emoji.svg';
 import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
+import Exit from '@assets/images/exit.svg';
 import Expand from '@assets/images/expand.svg';
 import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
@@ -269,6 +270,7 @@ export {
     EReceiptIcon,
     Emoji,
     Exclamation,
+    Exit,
     Expand,
     Export,
     Eye,
