@@ -698,6 +698,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
         reportName: 'Nome do relatório',
+        showLess: 'Mostrar menos',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -2673,12 +2674,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Ser reembolsado é tão fácil quanto enviar uma mensagem. Vamos ver o básico.',
             onboardingPersonalSpendMessage: 'Veja como rastrear seus gastos em poucos cliques.',
-            onboardingManageTeamMessage: dedent(`
-                Seu teste gratuito começou! Vamos deixar tudo pronto.
-                👋 Olá! Sou seu especialista de configuração da Expensify. Agora que você criou um espaço de trabalho, aproveite ao máximo seu teste gratuito de 30 dias seguindo as etapas abaixo!
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # Sua avaliação gratuita foi iniciada! Vamos configurar tudo.
+                        👋 Oi! Sou seu especialista de configuração da Expensify. Já criei um espaço de trabalho para ajudar a gerenciar os recibos e as despesas da sua equipe. Para aproveitar ao máximo seus 30 dias de avaliação gratuita, basta seguir as etapas de configuração restantes abaixo!
+                    `)
+                    : dedent(`
+                        # Seu teste gratuito começou! Vamos configurar tudo.
+                        👋 Olá! Sou seu especialista de configuração da Expensify. Agora que você criou um espaço de trabalho, aproveite ao máximo seu teste gratuito de 30 dias seguindo as etapas abaixo!
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Vamos configurar você\n👋 Estou aqui para ajudar! Para você começar, adaptei as configurações do seu espaço de trabalho para microempreendedores individuais e empresas semelhantes. Você pode ajustar seu espaço de trabalho clicando no link abaixo!\n\nVeja como rastrear seus gastos em poucos cliques:',
+                '# Vamos configurar tudo\n👋 Olá! Sou seu especialista em configuração da Expensify. Já criei um espaço de trabalho para ajudar a gerenciar seus recibos e despesas. Para aproveitar ao máximo sua avaliação gratuita de 30 dias, basta seguir as etapas de configuração restantes abaixo!',
             onboardingChatSplitMessage: 'Dividir contas com amigos é tão fácil quanto enviar uma mensagem. Veja como.',
             onboardingAdminMessage: 'Aprenda a gerenciar o espaço de trabalho da sua equipe como administrador e enviar suas próprias despesas.',
             onboardingLookingAroundMessage:
@@ -6207,6 +6214,7 @@ ${
             `atualizou a frequência de relatórios automáticos para "${newFrequency}" (anteriormente "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `atualizou o modo de aprovação para "${newValue}" (anteriormente "${oldValue}")`,
         upgradedWorkspace: 'atualizou este espaço de trabalho para o plano Control',
+        forcedCorporateUpgrade: `Este espaço de trabalho foi atualizado para o plano Control. Clique <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">aqui</a> para mais informações.`,
         downgradedWorkspace: 'rebaixou este espaço de trabalho para o plano Collect',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `alterou a taxa de relatórios encaminhados aleatoriamente para aprovação manual para ${Math.round(newAuditRate * 100)}% (anteriormente ${Math.round(oldAuditRate * 100)}%)`,
@@ -7574,6 +7582,17 @@ ${
                         return `Aguardando um administrador aprovar as despesas.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Aguardando <strong>você</strong> exportar este relatório.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Aguardando <strong>${actor}</strong> exportar este relatório.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Aguardando um administrador para exportar este relatório.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7645,6 +7664,32 @@ ${
             onePasswordForAnything: 'Uma senha para tudo',
         },
         goToDomain: 'Ir para o domínio',
+        samlLogin: {
+            title: 'Login SAML',
+            subtitle: `<muted-text>Configure o acesso dos membros com <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'Ativar login SAML',
+            allowMembers: 'Permitir que os membros façam login com SAML.',
+            requireSamlLogin: 'Exigir login via SAML',
+            anyMemberWillBeRequired: 'Qualquer membro que tiver feito login com um método diferente precisará se autenticar novamente usando SAML.',
+            enableError: 'Não foi possível atualizar a configuração de habilitação do SAML',
+            requireError: 'Não foi possível atualizar a configuração de obrigatoriedade do SAML',
+        },
+        samlConfigurationDetails: {
+            title: 'Detalhes da configuração do SAML',
+            subtitle: 'Use estes detalhes para configurar o SAML.',
+            identityProviderMetaData: 'Metadados do Provedor de Identidade',
+            entityID: 'ID da entidade',
+            nameIDFormat: 'Formato do ID do nome',
+            loginUrl: 'URL de login',
+            acsUrl: 'URL do ACS (Serviço de Consumo de Asserções)',
+            logoutUrl: 'URL de saída',
+            sloUrl: 'URL do SLO (Single Logout)',
+            serviceProviderMetaData: 'Metadados do Provedor de Serviço',
+            oktaScimToken: 'Token SCIM do Okta',
+            revealToken: 'Revelar token',
+            fetchError: 'Não foi possível obter os detalhes da configuração SAML',
+            setMetadataGenericError: 'Não foi possível definir os metadados SAML',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
