@@ -296,7 +296,10 @@ describe('PersonalDetailsUtils', () => {
                     legalLastName: 'Doe',
                     dob: '1990-01-01',
                     phoneNumber: '+15555555555',
-                    addresses: [{street: '123 Main St', city: 'New York', state: 'NY'}, {street: '456 Oak Ave', city: 'Los Angeles', state: 'CA', current: true}],
+                    addresses: [
+                        {street: '123 Main St', city: 'New York', state: 'NY'},
+                        {street: '456 Oak Ave', city: 'Los Angeles', state: 'CA', current: true},
+                    ],
                 },
                 false,
             ],
@@ -337,7 +340,7 @@ describe('PersonalDetailsUtils', () => {
                 false,
             ],
         ] as const)('should return false when %s', (_description, details, expected) => {
-            expect(arePersonalDetailsMissing(details)).toBe(expected);
+            expect(arePersonalDetailsMissing(details as unknown as PrivatePersonalDetails)).toBe(expected);
         });
 
         it.each([
@@ -438,15 +441,10 @@ describe('PersonalDetailsUtils', () => {
             ],
             ['multiple required fields are missing', {legalFirstName: 'John'}],
             ['all fields are missing', {}],
-        ] as const)('should return true when %s', (_description, details) => {
-            expect(arePersonalDetailsMissing(details)).toBe(true);
-        });
-
-        it.each([
-            ['null', null as unknown as PrivatePersonalDetails],
+            ['null', null],
             ['undefined', undefined],
-        ])('should return true when privatePersonalDetails is %s', (_description, details) => {
-            expect(arePersonalDetailsMissing(details)).toBe(true);
+        ] as const)('should return true when %s', (_description, details) => {
+            expect(arePersonalDetailsMissing(details as PrivatePersonalDetails)).toBe(true);
         });
     });
 });
