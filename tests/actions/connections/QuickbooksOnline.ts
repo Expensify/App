@@ -1,15 +1,16 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as API from '@libs/API';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import type {WriteCommand} from '@libs/API/types';
+import {WRITE_COMMANDS} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
-import * as QuickbooksOnline from '@src/libs/actions/connections/QuickbooksOnline';
+import {updateQuickbooksOnlineCollectionAccountID} from '@src/libs/actions/connections/QuickbooksOnline';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type {QBOConnectionConfig} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type { WriteCommand} from '@libs/API/types';
-import { WRITE_COMMANDS } from '@libs/API/types';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
@@ -31,12 +32,11 @@ describe('actions/connections/QuickbooksOnline', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        (ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey as jest.Mock).mockReturnValue(MOCK_ONYX_ERROR);
+        (getMicroSecondOnyxErrorWithTranslationKey as jest.Mock).mockReturnValue(MOCK_ONYX_ERROR);
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     describe('updateQuickbooksOnlineCollectionAccountID', () => {
-
         beforeEach(() => {
             jest.clearAllMocks();
             writeSpy.mockClear();
@@ -64,29 +64,24 @@ describe('actions/connections/QuickbooksOnline', () => {
             return config;
         }
 
-        function getFirstWriteCall(): {command: WriteCommand, onyxData: OnyxData} {
+        function getFirstWriteCall(): {command: WriteCommand; onyxData?: OnyxData} {
             const call = writeSpy.mock.calls.at(0);
             if (!call) {
                 throw new Error('API.write was not called');
             }
-
             const [command, , onyxData] = call;
-            if (!onyxData) {
-                throw new Error('Expected Onyx data to be included in the API write call');
-            }
-
             return {command, onyxData};
         }
 
         it('should update both COLLECTION_ACCOUNT_ID and REIMBURSEMENT_ACCOUNT_ID with same value in optimistic data', () => {
-            QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
+            updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
             expect(writeSpy).toHaveBeenCalled();
             const {command, onyxData} = getFirstWriteCall();
 
             expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID);
 
-            const optimisticUpdate = onyxData.optimisticData?.at(0);
+            const optimisticUpdate = onyxData?.optimisticData?.at(0);
             const configUpdate = getRequiredQuickBooksConfig(optimisticUpdate);
 
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBe(MOCK_ACCOUNT_ID);
@@ -100,12 +95,12 @@ describe('actions/connections/QuickbooksOnline', () => {
         });
 
         it('should update both COLLECTION_ACCOUNT_ID and REIMBURSEMENT_ACCOUNT_ID with old value in failure data', () => {
-            QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
+            updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
             expect(writeSpy).toHaveBeenCalled();
             const {onyxData} = getFirstWriteCall();
 
-            const failureUpdate = onyxData.failureData?.at(0);
+            const failureUpdate = onyxData?.failureData?.at(0);
             const configUpdate = getRequiredQuickBooksConfig(failureUpdate);
 
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBe(MOCK_OLD_ACCOUNT_ID);
@@ -119,12 +114,12 @@ describe('actions/connections/QuickbooksOnline', () => {
         });
 
         it('should update both COLLECTION_ACCOUNT_ID and REIMBURSEMENT_ACCOUNT_ID with new value in success data', () => {
-            QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
+            updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
             expect(writeSpy).toHaveBeenCalled();
             const {onyxData} = getFirstWriteCall();
 
-            const successUpdate = onyxData.successData?.at(0);
+            const successUpdate = onyxData?.successData?.at(0);
             const configUpdate = getRequiredQuickBooksConfig(successUpdate);
 
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBe(MOCK_ACCOUNT_ID);
@@ -138,11 +133,11 @@ describe('actions/connections/QuickbooksOnline', () => {
         });
 
         it('should have correct merge operation in all Onyx updates', () => {
-            QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
+            updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
             expect(writeSpy).toHaveBeenCalled();
             const {onyxData} = getFirstWriteCall();
-            const updateGroups = [onyxData.optimisticData, onyxData.failureData, onyxData.successData];
+            const updateGroups = [onyxData?.optimisticData, onyxData?.failureData, onyxData?.successData];
 
             for (const dataArray of updateGroups) {
                 if (!dataArray) {
@@ -156,25 +151,25 @@ describe('actions/connections/QuickbooksOnline', () => {
         });
 
         it('should not make API call when settingValue equals oldSettingValue', () => {
-            QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_ACCOUNT_ID);
+            updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_ACCOUNT_ID);
 
             expect(writeSpy).not.toHaveBeenCalled();
         });
 
         it('should not make API call when policyID is undefined', () => {
-            QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(undefined, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
+            updateQuickbooksOnlineCollectionAccountID(undefined, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
             expect(writeSpy).not.toHaveBeenCalled();
         });
 
         it('should handle null settingValue correctly', () => {
             const nullSettingValue = null as unknown as QBOConnectionConfig[Extract<typeof CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID, keyof QBOConnectionConfig>];
-            QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, nullSettingValue, MOCK_OLD_ACCOUNT_ID);
+            updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, nullSettingValue, MOCK_OLD_ACCOUNT_ID);
 
             expect(writeSpy).toHaveBeenCalled();
             const {onyxData} = getFirstWriteCall();
 
-            const optimisticUpdate = onyxData.optimisticData?.at(0);
+            const optimisticUpdate = onyxData?.optimisticData?.at(0);
             const configUpdate = getRequiredQuickBooksConfig(optimisticUpdate);
 
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
@@ -182,12 +177,12 @@ describe('actions/connections/QuickbooksOnline', () => {
         });
 
         it('should handle undefined oldSettingValue correctly', () => {
-            QuickbooksOnline.updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, undefined);
+            updateQuickbooksOnlineCollectionAccountID(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, undefined);
 
             expect(writeSpy).toHaveBeenCalled();
             const {onyxData} = getFirstWriteCall();
 
-            const failureUpdate = onyxData.failureData?.at(0);
+            const failureUpdate = onyxData?.failureData?.at(0);
             const configUpdate = getRequiredQuickBooksConfig(failureUpdate);
 
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
