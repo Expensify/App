@@ -6070,8 +6070,9 @@ ${
         demotedFromWorkspace: ({policyName, oldRole}: DemotedFromWorkspaceParams) => `已将您在${policyName}中的角色从${oldRole}更新为用户。您已被移除出所有提交者费用聊天，除了您自己的。`,
         updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `将默认货币更新为${newCurrency}（之前为${oldCurrency}）`,
         updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) => `将自动报告频率更新为“${newFrequency}”（之前为“${oldFrequency}”）`,
-        updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `将审批模式更新为“${newValue}”（之前为“${oldValue}”）`,
+        updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `将审批模式更新为"${newValue}"（之前为"${oldValue}"）`,
         upgradedWorkspace: '将此工作区升级到Control计划',
+        forcedCorporateUpgrade: `此工作区已升级至 Control 方案。点击 <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">此处</a> 了解更多信息。`,
         downgradedWorkspace: '已将此工作区降级到 Collect 计划',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `将随机分配进行人工审批的报告比例更改为${Math.round(newAuditRate * 100)}％（之前为${Math.round(oldAuditRate * 100)}％）`,

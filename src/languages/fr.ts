@@ -6244,6 +6244,7 @@ ${
             `a mis à jour la fréquence de rapport automatique à "${newFrequency}" (précédemment "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `a mis à jour le mode d'approbation en "${newValue}" (auparavant "${oldValue}")`,
         upgradedWorkspace: 'a mis à niveau cet espace de travail vers le plan Control',
+        forcedCorporateUpgrade: `Cet espace de travail a été mis à niveau vers l'offre Control. Cliquez <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">ici</a> pour plus d'informations.`,
         downgradedWorkspace: 'a rétrogradé cet espace de travail vers le plan Collect',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `a changé le taux de rapports acheminés aléatoirement pour approbation manuelle à ${Math.round(newAuditRate * 100)}% (précédemment ${Math.round(oldAuditRate * 100)}%)`,

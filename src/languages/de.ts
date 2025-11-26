@@ -6236,6 +6236,7 @@ ${
             `hat die automatische Berichterstattungshäufigkeit auf "${newFrequency}" aktualisiert (zuvor "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `hat den Genehmigungsmodus auf "${newValue}" aktualisiert (zuvor "${oldValue}")`,
         upgradedWorkspace: 'dieses Arbeitsbereich auf den Control-Plan hochgestuft',
+        forcedCorporateUpgrade: `Dieser Arbeitsbereich wurde auf den Control-Tarif hochgestuft. Klicken Sie <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">hier</a> für weitere Informationen.`,
         downgradedWorkspace: 'hat dieses Arbeitsbereich auf den Collect-Plan herabgestuft',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `änderte die Rate der Berichte, die zufällig zur manuellen Genehmigung weitergeleitet werden, auf ${Math.round(newAuditRate * 100)}% (zuvor ${Math.round(oldAuditRate * 100)}%)`,

@@ -6160,6 +6160,7 @@ ${
             `自動レポートの頻度を「${newFrequency}」（以前は「${oldFrequency}」）に更新しました。`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `承認モードを"${oldValue}"から"${newValue}"に更新しました。`,
         upgradedWorkspace: 'このワークスペースをコントロールプランにアップグレードしました',
+        forcedCorporateUpgrade: `このワークスペースは Control プランにアップグレードされました。詳しくは<a href="${CONST.COLLECT_UPGRADE_HELP_URL}">こちら</a>をご覧ください。`,
         downgradedWorkspace: 'このワークスペースをCollectプランにダウングレードしました。',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `レポートが手動承認のためにランダムにルーティングされる割合を${Math.round(newAuditRate * 100)}%（以前は${Math.round(oldAuditRate * 100)}%）に変更しました。`,
