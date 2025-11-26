@@ -134,7 +134,7 @@ describe('WorkspaceMembers', () => {
 
             // Wait for menu items to be visible
             await waitFor(() => {
-                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember');
+                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
                 expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
             });
 
@@ -180,7 +180,7 @@ describe('WorkspaceMembers', () => {
 
             // Wait for menu items to be visible
             await waitFor(() => {
-                const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin');
+                const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
                 expect(screen.getByText(makeAdminText)).toBeOnTheScreen();
             });
 
@@ -226,7 +226,7 @@ describe('WorkspaceMembers', () => {
 
             // Wait for menu items to be visible
             await waitFor(() => {
-                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember');
+                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
                 expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
             });
 
@@ -276,20 +276,20 @@ describe('WorkspaceMembers', () => {
 
             // Wait for menu items to be visible
             await waitFor(() => {
-                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember');
+                const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 2});
                 expect(screen.getByText(makeMemberText)).toBeOnTheScreen();
             });
 
-            // Find and verify "Make member" dropdown menu item
-            const makeMemberMenuItem = screen.getByTestId('PopoverMenuItem-Make member');
+            // Find and verify "Make members" dropdown menu item (plural form for 2 selected items)
+            const makeMemberMenuItem = screen.getByTestId('PopoverMenuItem-Make members');
             expect(makeMemberMenuItem).toBeOnTheScreen();
 
-            // Find and verify "Make admin" dropdown menu item
-            const makeAdminMenuItem = screen.getByTestId('PopoverMenuItem-Make admin');
+            // Find and verify "Make admins" dropdown menu item (plural form for 2 selected items)
+            const makeAdminMenuItem = screen.getByTestId('PopoverMenuItem-Make admins');
             expect(makeAdminMenuItem).toBeOnTheScreen();
 
-            // Find and verify "Make auditor" dropdown menu item
-            const makeAuditorMenuItem = screen.getByTestId('PopoverMenuItem-Make auditor');
+            // Find and verify "Make auditors" dropdown menu item (plural form for 2 selected items)
+            const makeAuditorMenuItem = screen.getByTestId('PopoverMenuItem-Make auditors');
             expect(makeAuditorMenuItem).toBeOnTheScreen();
 
             unmount();

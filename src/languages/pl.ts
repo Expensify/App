@@ -5182,9 +5182,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Czy na pewno chcesz usunąć ${memberName}?`,
             removeMemberTitle: 'Usuń członka',
             transferOwner: 'Przenieś właściciela',
-            makeMember: 'Uczyń członkiem',
-            makeAdmin: 'Ustaw jako administratora',
-            makeAuditor: 'Utwórz audytora',
+            makeMember: () => ({
+                one: 'Uczyń członkiem',
+                other: 'Uczyń członkami',
+            }),
+            makeAdmin: () => ({
+                one: 'Ustaw jako administratora',
+                other: 'Ustaw jako administratorów',
+            }),
+            makeAuditor: () => ({
+                one: 'Utwórz audytora',
+                other: 'Utwórz audytorów',
+            }),
             selectAll: 'Zaznacz wszystko',
             error: {
                 genericAdd: 'Wystąpił problem z dodaniem tego członka przestrzeni roboczej',

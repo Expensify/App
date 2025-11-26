@@ -5213,9 +5213,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Möchten Sie ${memberName} wirklich entfernen?`,
             removeMemberTitle: 'Mitglied entfernen',
             transferOwner: 'Besitzer übertragen',
-            makeMember: 'Mitglied machen',
-            makeAdmin: 'Admin machen',
-            makeAuditor: 'Prüfer erstellen',
+            makeMember: () => ({
+                one: 'Mitglied machen',
+                other: 'Mitglieder machen',
+            }),
+            makeAdmin: () => ({
+                one: 'Admin machen',
+                other: 'Admins machen',
+            }),
+            makeAuditor: () => ({
+                one: 'Prüfer erstellen',
+                other: 'Prüfer erstellen',
+            }),
             selectAll: 'Alle auswählen',
             error: {
                 genericAdd: 'Es gab ein Problem beim Hinzufügen dieses Arbeitsbereichsmitglieds.',

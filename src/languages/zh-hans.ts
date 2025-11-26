@@ -5091,9 +5091,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `您确定要移除${memberName}吗？`,
             removeMemberTitle: '移除成员',
             transferOwner: '转移所有者',
-            makeMember: '成为成员',
-            makeAdmin: '设为管理员',
-            makeAuditor: '创建审计员',
+            makeMember: () => ({
+                one: '成为成员',
+                other: '成为成员',
+            }),
+            makeAdmin: () => ({
+                one: '设为管理员',
+                other: '设为管理员',
+            }),
+            makeAuditor: () => ({
+                one: '创建审计员',
+                other: '创建审计员',
+            }),
             selectAll: '全选',
             error: {
                 genericAdd: '添加此工作区成员时出现问题。',

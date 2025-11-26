@@ -5200,9 +5200,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Sei sicuro di voler rimuovere ${memberName}?`,
             removeMemberTitle: 'Rimuovi membro',
             transferOwner: 'Trasferisci proprietario',
-            makeMember: 'Rendi membro',
-            makeAdmin: 'Rendi amministratore',
-            makeAuditor: 'Crea revisore contabile',
+            makeMember: () => ({
+                one: 'Rendi membro',
+                other: 'Rendi membri',
+            }),
+            makeAdmin: () => ({
+                one: 'Rendi amministratore',
+                other: 'Rendi amministratori',
+            }),
+            makeAuditor: () => ({
+                one: 'Crea revisore contabile',
+                other: 'Crea revisori contabili',
+            }),
             selectAll: 'Seleziona tutto',
             error: {
                 genericAdd: "Si è verificato un problema nell'aggiungere questo membro dello spazio di lavoro",

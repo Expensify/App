@@ -5224,9 +5224,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Êtes-vous sûr de vouloir supprimer ${memberName} ?`,
             removeMemberTitle: 'Supprimer le membre',
             transferOwner: 'Transférer le propriétaire',
-            makeMember: 'Rendre membre',
-            makeAdmin: 'Nommer administrateur',
-            makeAuditor: 'Créer un auditeur',
+            makeMember: () => ({
+                one: 'Rendre membre',
+                other: 'Rendre membres',
+            }),
+            makeAdmin: () => ({
+                one: 'Nommer administrateur',
+                other: 'Nommer administrateurs',
+            }),
+            makeAuditor: () => ({
+                one: 'Créer un auditeur',
+                other: 'Créer des auditeurs',
+            }),
             selectAll: 'Tout sélectionner',
             error: {
                 genericAdd: "Un problème est survenu lors de l'ajout de ce membre de l'espace de travail.",
