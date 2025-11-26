@@ -9652,7 +9652,7 @@ describe('ReportUtils', () => {
             ...LHNTestUtils.getFakeReport([employeeAccountID1, approverAccountID]),
             reportID: chatReportID,
             iouReportID: expenseReportID,
-            policyID:policyID1,
+            policyID: policyID1,
             hasOutstandingChildRequest: true,
         };
 
