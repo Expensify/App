@@ -5,12 +5,10 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import type * as ReactNavigationNative from '@react-navigation/native';
 
 jest.mock('@react-navigation/native', () => {
-    const actual = jest.requireActual('@react-navigation/native') as ReactNavigationNative;
+    const actual = jest.requireActual<ReactNavigationNative>('@react-navigation/native');
     return {
         ...actual,
-        getPathFromState: jest.fn<ReturnType<ReactNavigationNative['getPathFromState']>, Parameters<ReactNavigationNative['getPathFromState']>>(
-            () => '/settings/profile?backTo=settings',
-        ),
+        getPathFromState: jest.fn<ReturnType<typeof actual.getPathFromState>, Parameters<typeof actual.getPathFromState>>(() => '/settings/profile?backTo=settings'),
     };
 });
 
