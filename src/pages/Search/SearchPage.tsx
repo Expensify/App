@@ -216,8 +216,17 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         // Prefetch once per unique set of missing IDs
-        missingReportIDs.forEach((id) => id && openReport(id));
-        missingPolicyIDs.forEach((id) => id && openWorkspace(id, []));
+        for (const id of missingReportIDs) {
+            if (id) {
+                openReport(id);
+            }
+        }
+
+        for (const id of missingPolicyIDs) {
+            if (id) {
+                openWorkspace(id, []);
+            }
+        }
 
         lastPrefetchKeyRef.current = key;
     }, [bulkRejectHydrationStatus, isOffline]);

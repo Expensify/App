@@ -747,7 +747,7 @@ function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: strin
             rejectedCommentReportActionID: number;
         }
     > = {};
-    transactionIDs.forEach((transactionID) => {
+    for (const transactionID of transactionIDs) {
         const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, undefined, true);
         if (data) {
             optimisticData.push(...data.optimisticData);
@@ -758,7 +758,7 @@ function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: strin
                 rejectedCommentReportActionID: Number(data.parameters.rejectedCommentReportActionID),
             };
         }
-    });
+    }
 
     API.write(
         WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK,
@@ -782,7 +782,7 @@ function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Selecte
         return acc;
     }, {});
 
-    Object.entries(transactionsByReport).forEach(([reportID, selectedTransactionIDs]) => {
+    for (const [reportID, selectedTransactionIDs] of Object.entries(transactionsByReport)) {
         const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
         const areAllExpensesSelected = allTransactionIDs.every((transactionID) => selectedTransactionIDs.includes(transactionID));
@@ -794,11 +794,11 @@ function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Selecte
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
-            selectedTransactionIDs.forEach((transactionID) => {
+            for (const transactionID of selectedTransactionIDs) {
                 rejectMoneyRequest(transactionID, reportID, comment, {sharedRejectedToReportID});
-            });
+            }
         }
-    });
+    }
 }
 
 type Params = Record<string, ExportSearchItemsToCSVParams>;
