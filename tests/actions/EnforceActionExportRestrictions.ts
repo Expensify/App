@@ -18,6 +18,11 @@ describe('ReportUtils', () => {
         expect(ReportUtils.getReport).toBeUndefined();
     });
 
+    it('does not export isOneTransactionReportDeprecated', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.isOneTransactionReportDeprecated).toBeUndefined();
+    });
+
     it('does not export getPolicy', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getPolicy).toBeUndefined();
