@@ -6290,9 +6290,9 @@ ${
                 case 'company cards':
                     return `${enabled ? 'activé' : 'désactivé'} cartes d’entreprise`;
                 case 'invoicing':
-                    return `Facturation ${enabled ? 'activé' : 'désactivé'}`;
+                    return `${enabled ? 'activé' : 'désactivé'} la facturation`;
                 case 'per diem':
-                    return `${enabled ? 'activé' : 'désactivé'} d'indemnité journalière`;
+                    return `${enabled ? 'activé' : 'désactivé'} les indemnités journalières`;
                 case 'receipt partners':
                     return `${enabled ? 'activé' : 'désactivé'} partenaires de reçus`;
                 case 'rules':
