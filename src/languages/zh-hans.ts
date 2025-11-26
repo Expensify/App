@@ -7473,18 +7473,6 @@ ${
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name}邀请你试用Expensify\n嘿！我刚为我们获得了*3个月免费*试用Expensify，这是处理费用的最快方式。\n\n这里有一个*测试收据*来向你展示它的工作原理：`,
     },
-    reportLayout: {
-        reportLayout: '报告布局',
-        groupByLabel: '分组方式：',
-        selectGroupByOption: '选择如何对报告费用进行分组',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `${action}此组`,
-        selectGroup: ({groupName}: {groupName: string}) => `选择${groupName}中的所有费用`,
-        groupBy: {
-            category: '类别',
-            tag: '标签',
-        },
-    },
     export: {
         basicExport: '基本导出',
         reportLevelExport: '所有数据 - 报告级别',

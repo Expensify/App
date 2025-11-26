@@ -6701,18 +6701,6 @@ const translations = {
             allMatchingItemsSelected: 'All matching items selected',
         },
     },
-    reportLayout: {
-        reportLayout: 'Report layout',
-        groupByLabel: 'Group by:',
-        selectGroupByOption: 'Select how to group report expenses',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `${action} this group`,
-        selectGroup: ({groupName}: {groupName: string}) => `Select all expenses in ${groupName}`,
-        groupBy: {
-            category: 'Category',
-            tag: 'Tag',
-        },
-    },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
         body: {
