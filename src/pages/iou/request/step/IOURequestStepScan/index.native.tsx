@@ -553,22 +553,12 @@ function IOURequestStepScan({
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            // Fix for the issue where the navigation state is lost after returning from device settings https://github.com/Expensify/App/issues/65992
-            const navigationState = navigationRef.current?.getState();
-            const reportsSplitNavigator = navigationState?.routes?.findLast((route) => route.name === 'ReportsSplitNavigator');
-            const hasLostNavigationsState = reportsSplitNavigator && !reportsSplitNavigator.state;
-            if (hasLostNavigationsState) {
-                if (backTo) {
-                    Navigation.navigate(backTo as Route);
-                } else {
-                    Navigation.navigate(ROUTES.HOME);
-                }
-            } else {
-                navigateBack();
-            }
+            const normalizedBackTo = backTo?.trim();
+            const fallbackRoute = (normalizedBackTo ? (normalizedBackTo as Route) : reportID ? (ROUTES.REPORT_WITH_ID.getRoute(reportID) as Route) : ROUTES.HOME) as Route;
+            Navigation.goBack(fallbackRoute);
             replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicyCategories: policyCategories});
         },
-        [initialTransactionID, policyCategories, backTo],
+        [initialTransactionID, policyCategories, backTo, reportID],
     );
 
     /**
