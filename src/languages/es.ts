@@ -5965,7 +5965,7 @@ ${amount} para ${merchant} - ${date}`,
                 case 'workflows':
                     return `${enabled ? 'activó' : 'desactivó'} los flujos de trabajo`;
                 case 'distance rates':
-                    return `${enabled ? 'activó las tasas por distancia' : 'desactivó las tasas por distancia'}`;
+                    return `${enabled ? 'activó' : 'desactivó'} las tasas por distancia`;
                 case 'accounting':
                     return `${enabled ? 'activó' : 'desactivó'} la contabilidad`;
                 case 'Expensify Cards':
