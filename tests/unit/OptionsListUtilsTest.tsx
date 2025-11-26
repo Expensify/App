@@ -30,6 +30,7 @@ import {
     orderOptions,
     orderWorkspaceOptions,
     recentReportComparator,
+    shallowOptionsListCompare,
     shouldShowLastActorDisplayName,
     sortAlphabetically,
 } from '@libs/OptionsListUtils';
@@ -2719,6 +2720,107 @@ describe('OptionsListUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(movedAction, report)));
+        });
+    });
+
+    describe('shallowOptionsListCompare', () => {
+        it('should return false if either argument is null or undefined', () => {
+            const validList: OptionList = {reports: [], personalDetails: []};
+            expect(shallowOptionsListCompare(null as unknown as OptionList, validList)).toBe(false);
+            expect(shallowOptionsListCompare(validList, null as unknown as OptionList)).toBe(false);
+            expect(shallowOptionsListCompare(undefined as unknown as OptionList, validList)).toBe(false);
+        });
+
+        it('should return false if reports arrays have different lengths', () => {
+            const listA: OptionList = {
+                reports: [{reportID: '1', lastMessageText: 'Hello'} as SearchOption<Report>],
+                personalDetails: [],
+            };
+            const listB: OptionList = {
+                reports: [],
+                personalDetails: [],
+            };
+            expect(shallowOptionsListCompare(listA, listB)).toBe(false);
+        });
+
+        it('should return false if personalDetails arrays have different lengths', () => {
+            const listA: OptionList = {
+                reports: [],
+                personalDetails: [{login: 'user1@test.com'} as SearchOption<PersonalDetails>],
+            };
+            const listB: OptionList = {
+                reports: [],
+                personalDetails: [],
+            };
+            expect(shallowOptionsListCompare(listA, listB)).toBe(false);
+        });
+
+        it('should return false if reportIDs are different', () => {
+            const listA: OptionList = {
+                reports: [{reportID: '1', lastMessageText: 'Hello'} as SearchOption<Report>],
+                personalDetails: [],
+            };
+            const listB: OptionList = {
+                reports: [{reportID: '2', lastMessageText: 'Hello'} as SearchOption<Report>],
+                personalDetails: [],
+            };
+            expect(shallowOptionsListCompare(listA, listB)).toBe(false);
+        });
+
+        it('should return false if lastMessageText is different', () => {
+            const listA: OptionList = {
+                reports: [{reportID: '1', lastMessageText: 'Hello'} as SearchOption<Report>],
+                personalDetails: [],
+            };
+            const listB: OptionList = {
+                reports: [{reportID: '1', lastMessageText: 'World'} as SearchOption<Report>],
+                personalDetails: [],
+            };
+            expect(shallowOptionsListCompare(listA, listB)).toBe(false);
+        });
+
+        it('should return false if personalDetails logins are different', () => {
+            const listA: OptionList = {
+                reports: [],
+                personalDetails: [{login: 'user1@test.com'} as SearchOption<PersonalDetails>],
+            };
+            const listB: OptionList = {
+                reports: [],
+                personalDetails: [{login: 'user2@test.com'} as SearchOption<PersonalDetails>],
+            };
+            expect(shallowOptionsListCompare(listA, listB)).toBe(false);
+        });
+
+        it('should return true if both lists are empty', () => {
+            const listA: OptionList = {reports: [], personalDetails: []};
+            const listB: OptionList = {reports: [], personalDetails: []};
+            expect(shallowOptionsListCompare(listA, listB)).toBe(true);
+        });
+
+        it('should return true if all reportIDs, lastMessageText, and logins match', () => {
+            const listA: OptionList = {
+                reports: [{reportID: '1', lastMessageText: 'Hello'} as SearchOption<Report>, {reportID: '2', lastMessageText: 'World'} as SearchOption<Report>],
+                personalDetails: [{login: 'user1@test.com'} as SearchOption<PersonalDetails>],
+            };
+            const listB: OptionList = {
+                reports: [{reportID: '1', lastMessageText: 'Hello'} as SearchOption<Report>, {reportID: '2', lastMessageText: 'World'} as SearchOption<Report>],
+                personalDetails: [{login: 'user1@test.com'} as SearchOption<PersonalDetails>],
+            };
+            expect(shallowOptionsListCompare(listA, listB)).toBe(true);
+        });
+
+        it('should detect lastMessageText change even when reportID stays the same (real-time message update scenario)', () => {
+            // This test verifies the fix for the bug where new messages were not displayed in Search results
+            const originalList: OptionList = {
+                reports: [{reportID: '123', lastMessageText: 'Original message'} as SearchOption<Report>],
+                personalDetails: [],
+            };
+            const updatedList: OptionList = {
+                reports: [{reportID: '123', lastMessageText: 'New message from User A'} as SearchOption<Report>],
+                personalDetails: [],
+            };
+            // Should return false because lastMessageText changed, triggering a re-render
+            expect(shallowOptionsListCompare(originalList, updatedList)).toBe(false);
         });
     });
 });
