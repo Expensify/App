@@ -4,10 +4,11 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import type {Route} from '@src/ROUTES';
 
 jest.mock('@react-navigation/native', () => {
-    const actual = jest.requireActual('@react-navigation/native');
-    return Object.assign({}, actual, {
+    const actual = jest.requireActual('@react-navigation/native') as typeof import('@react-navigation/native');
+    return {
+        ...actual,
         getPathFromState: jest.fn().mockReturnValue('/settings/profile?backTo=settings'),
-    });
+    };
 });
 
 describe('Navigation', () => {
@@ -17,10 +18,9 @@ describe('Navigation', () => {
 
     beforeEach(() => {
         // Minimal stubs so getActiveRoute() can derive a path without rendering navigation containers.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (navigationRef as any).getRootState = jest.fn().mockReturnValue({});
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (navigationRef as any).current = {getCurrentRoute: jest.fn().mockReturnValue({name: 'DUMMY'})};
+        const ref = navigationRef as typeof navigationRef & {current: {getCurrentRoute: () => {name: string}} | null};
+        ref.current = {getCurrentRoute: jest.fn().mockReturnValue({name: 'test'})};
+        jest.spyOn(navigationRef, 'getRootState').mockReturnValue({} as unknown as ReturnType<typeof navigationRef.getRootState>);
         jest.spyOn(navigationRef, 'isReady').mockReturnValue(true);
     });
 
