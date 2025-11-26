@@ -260,7 +260,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 ) : undefined
                                             }
                                         />
-                                        {cardsDetailsErrors[card.cardID] === 'cardPage.missingPrivateDetails' ? (
+                                        {(cardsDetailsErrors[card.cardID] === 'cardPage.missingPrivateDetails' || true) ? (
                                             <FormHelpMessage
                                                 isError
                                                 shouldShowRedDotIndicator
