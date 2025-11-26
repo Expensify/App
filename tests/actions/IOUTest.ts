@@ -5533,6 +5533,9 @@ describe('actions/IOU', () => {
                             },
                             shouldGenerateTransactionThreadReport: true,
                             isASAPSubmitBetaEnabled: false,
+                            currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                            currentUserEmailParam: RORY_EMAIL,
+                            transactionViolations: {},
                         });
                     }
                     return waitForBatchedUpdates();
