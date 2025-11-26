@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -86,12 +86,15 @@ function ApproverSelectionList({
     const shouldShowTextInput = shouldShowTextInputProp ?? allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const lazyIllustrations = useMemoizedLazyIllustrations(['TurtleInShell']);
 
-    const handleSearchChange = (term: string) => {
-        setSearchTerm(term);
-        if (onSearchChange) {
-            onSearchChange(term);
-        }
-    };
+    const handleSearchChange = useCallback(
+        (term: string) => {
+            setSearchTerm(term);
+            if (onSearchChange) {
+                onSearchChange(term);
+            }
+        },
+        [onSearchChange, setSearchTerm],
+    );
 
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
 

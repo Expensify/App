@@ -65,24 +65,22 @@ function WorkspaceInviteMessageComponent({
 }: WorkspaceInviteMessageComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const policyName = policy?.name;
 
-    // Determine header title - use custom title if provided, or detect from backTo route
-    const getHeaderTitle = () => {
-        // If backTo is the expenses from page, use that title
+    const headerTitle = useMemo(() => {
         if (backTo && typeof backTo === 'string' && backTo.includes('expenses-from')) {
             return translate('workflowsExpensesFromPage.title');
         }
         return translate('workspace.inviteMessage.confirmDetails');
-    };
+    }, [backTo, translate]);
 
-    const policyName = policy?.name;
-
-    const getSubtitle = () => {
+    const subtitle = useMemo(() => {
         if (backTo && typeof backTo === 'string' && backTo.includes('expenses-from')) {
             return undefined;
         }
         return policyName;
-    };
+    }, [backTo, policyName]);
+
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
@@ -225,8 +223,8 @@ function WorkspaceInviteMessageComponent({
             >
                 {shouldShowBackButton && (
                     <HeaderWithBackButton
-                        title={getHeaderTitle()}
-                        subtitle={getSubtitle()}
+                        title={headerTitle}
+                        subtitle={subtitle}
                         shouldShowBackButton
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
