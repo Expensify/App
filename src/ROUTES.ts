@@ -83,17 +83,6 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
-
-    EXPENSE_REPORT_RHP: {
-        route: 'e/:reportID',
-        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
-            const baseRoute = `e/${reportID}` as const;
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(baseRoute, backTo);
-        },
-    },
-
     SEARCH_REPORT_VERIFY_ACCOUNT: {
         route: `search/view/:reportID/${VERIFY_ACCOUNT}`,
         getRoute: (reportID: string) => `search/view/${reportID}/${VERIFY_ACCOUNT}` as const,
@@ -1689,7 +1678,12 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY: {
         route: 'workspaces/:policyID/workflows/auto-reporting-frequency',
-        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/auto-reporting-frequency` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY route');
+            }
+            return `workspaces/${policyID}/workflows/auto-reporting-frequency` as const;
+        },
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
         route: 'workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',

@@ -1,5 +1,6 @@
 import {NavigationContainer} from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
+import type {Ref} from 'react';
 import React, {act, createRef} from 'react';
 import type {TextInput, TextInputProps} from 'react-native';
 import TimePicker from '@src/components/TimePicker/TimePicker';
@@ -11,11 +12,11 @@ import type {TimePickerProps, TimePickerRef} from '@src/components/TimePicker/Ti
 jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => {
     const originalReact: typeof React = jest.requireActual('react');
 
-    const TextInputMock = originalReact.forwardRef<TextInput, TextInputProps>((props, ref) => {
+    function TextInputMock(props: TextInputProps & {ref: Ref<TextInput>}) {
         const [isFocused, setIsFocused] = originalReact.useState(false);
 
         originalReact.useImperativeHandle(
-            ref,
+            props.ref,
             () =>
                 ({
                     focus: () => {
@@ -32,7 +33,7 @@ jest.mock('react-native/Libraries/Components/TextInput/TextInput', () => {
         );
 
         return null;
-    });
+    }
 
     return {
         // eslint-disable-next-line @typescript-eslint/naming-convention
