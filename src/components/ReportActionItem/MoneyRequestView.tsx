@@ -36,7 +36,14 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {canSubmitPerDiemExpenseFromWorkspace, getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {
+    canSubmitPerDiemExpenseFromWorkspace,
+    getLengthOfTag,
+    getPolicyByCustomUnitID,
+    getTagLists,
+    hasDependentTags as hasDependentTagsPolicyUtils,
+    isTaxTrackingEnabled,
+} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -155,9 +162,14 @@ function MoneyRequestView({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(updatedTransaction ?? transaction);
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const [policiesWithPerDiem] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) => Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.arePerDiemRatesEnabled)),
+    });
     // If the expense is unreported the policy should be the user's default policy, otherwise it should be the policy the expense was made for
     const policy = isExpenseUnreported ? policyForMovingExpenses : expensePolicy;
     const policyID = isExpenseUnreported ? policyForMovingExpensesID : report?.policyID;
+
+    console.log(getPolicyByCustomUnitID(transaction, policiesWithPerDiem));
 
     const allPolicyCategories = usePolicyCategories();
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
