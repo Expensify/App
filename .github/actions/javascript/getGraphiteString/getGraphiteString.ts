@@ -26,11 +26,10 @@ const run = () => {
     let timestamp: number;
 
     // Iterate over each entry
-    // eslint-disable-next-line unicorn/no-array-for-each
-    regressionEntries.forEach((entry) => {
+    for (const entry of regressionEntries) {
         // Skip empty lines
         if (entry.trim() === '') {
-            return;
+            continue;
         }
 
         try {
@@ -56,7 +55,7 @@ const run = () => {
             console.error(error.message);
             core.setFailed(error);
         }
-    });
+    }
 
     // Set generated graphite string to the github variable
     core.setOutput('GRAPHITE_STRING', graphiteString);
