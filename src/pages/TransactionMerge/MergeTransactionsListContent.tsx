@@ -169,17 +169,15 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     }
 
     return (
-        <>
-            {headerContent}
-            <SelectionList<MergeTransactionListItemType>
-                data={data}
-                onSelectRow={handleSelectRow}
-                ListItem={MergeTransactionItem}
-                confirmButtonOptions={confirmButtonOptions}
-                showLoadingPlaceholder
-                customLoadingPlaceholder={<MergeExpensesSkeleton fixedNumItems={3} />}
-            />
-        </>
+        <SelectionList<MergeTransactionListItemType>
+            data={data}
+            onSelectRow={handleSelectRow}
+            ListItem={MergeTransactionItem}
+            customListHeader={headerContent}
+            confirmButtonOptions={confirmButtonOptions}
+            customLoadingPlaceholder={<MergeExpensesSkeleton fixedNumItems={3} />}
+            showLoadingPlaceholder
+        />
     );
 }
 
