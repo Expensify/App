@@ -872,6 +872,15 @@ function isResolvedConciergeCategoryOptions(reportAction: OnyxEntry<ReportAction
 }
 
 /**
+ * Checks whether an action is concierge description options and resolved.
+ */
+function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAction>): boolean {
+    const originalMessage = getOriginalMessage(reportAction);
+    const selectedDescription = originalMessage && typeof originalMessage === 'object' && 'selectedDescription' in originalMessage ? originalMessage?.selectedDescription : null;
+    return !!selectedDescription;
+}
+
+/**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
@@ -1937,7 +1946,7 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
-    if (isConciergeCategoryOptions(action)) {
+    if (isConciergeCategoryOptions(action) || isConciergeDescriptionOptions(action)) {
         const message = getReportActionMessageText(action);
         return [{text: message, html: message, type: 'COMMENT'}];
     }
@@ -2036,6 +2045,10 @@ function isActionableJoinRequestPendingReportAction(reportAction: OnyxEntry<Repo
 
 function isConciergeCategoryOptions(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS);
+}
+
+function isConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS);
 }
 
 function getActionableJoinRequestPendingReportAction(reportID: string): OnyxEntry<ReportAction> {
@@ -2859,6 +2872,13 @@ function getWorkspaceUpdateFieldMessage(action: ReportAction): string {
     return getReportActionText(action);
 }
 
+function getWorkspaceAttendeeTrackingUpdateMessage(action: ReportAction): string {
+    const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED>) ?? {};
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.updatedAttendeeTracking', {enabled: !!enabled});
+}
+
 function getWorkspaceReimbursementUpdateMessage(action: ReportAction): string {
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED>) ?? {};
 
@@ -3331,12 +3351,6 @@ function getSubmittedTo(action: OnyxEntry<ReportAction>): string | undefined {
     return getOriginalMessage(action)?.to;
 }
 
-function isSystemUserMentioned(action: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER>>): boolean {
-    const mentionedUsers = getOriginalMessage(action)?.inviteeAccountIDs;
-    const systemAccountIDs = new Set(Object.values(CONST.ACCOUNT_ID));
-    return mentionedUsers?.some((accountID) => systemAccountIDs.has(accountID)) ?? false;
-}
-
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -3390,7 +3404,9 @@ export {
     isActionableTrackExpense,
     isExpenseChatWelcomeWhisper,
     isConciergeCategoryOptions,
+    isConciergeDescriptionOptions,
     isResolvedConciergeCategoryOptions,
+    isResolvedConciergeDescriptionOptions,
     isAddCommentAction,
     isApprovedOrSubmittedReportAction,
     isIOURequestReportAction,
@@ -3478,6 +3494,7 @@ export {
     getTravelUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceTaxUpdateMessage,
@@ -3517,7 +3534,6 @@ export {
     isPendingHide,
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,
-    isSystemUserMentioned,
 };
 
 export type {LastVisibleMessage};
