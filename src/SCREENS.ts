@@ -244,6 +244,11 @@ const SCREENS = {
         TRANSACTION_DUPLICATE: 'TransactionDuplicate',
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
+        SEARCH_REPORT_ACTIONS: 'SearchReportActions',
+        // These two routes will be added in a separate PR adding Super Wide RHP routes
+        EXPENSE_REPORT: 'ExpenseReport',
+        SEARCH_MONEY_REQUEST_REPORT: 'SearchMoneyRequestReport',
+
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
         SETTINGS_CATEGORIES: 'SettingsCategories',
