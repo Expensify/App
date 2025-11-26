@@ -700,6 +700,7 @@ function changeTransactionsReport(
     policy?: OnyxEntry<Policy>,
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>,
     policyCategories?: OnyxEntry<PolicyCategories>,
+    selfDMReportIDParam?: string,
 ) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -719,7 +720,7 @@ function changeTransactionsReport(
     const failureData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
 
-    let selfDMReportID = findSelfDMReportID();
+    let selfDMReportID = selfDMReportIDParam;
     let selfDMReport: Report | undefined = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     let selfDMCreatedReportAction: ReportAction | undefined;
 
