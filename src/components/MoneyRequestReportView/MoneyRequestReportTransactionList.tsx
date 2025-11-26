@@ -291,21 +291,21 @@ function MoneyRequestReportTransactionList({
 
     const sortedTransactionsMap = useMemo(() => {
         const map = new Map<string, OnyxTypes.Transaction>();
-        sortedTransactions.forEach((transaction) => {
+        for (const transaction of sortedTransactions) {
             map.set(transaction.transactionID, transaction);
-        });
+        }
         return map;
     }, [sortedTransactions]);
 
     const groupSelectionState = useMemo(() => {
         const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean}>();
 
-        groupedTransactions.forEach((group) => {
+        for (const group of groupedTransactions) {
             const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
 
             if (groupTransactionIDs.length === 0) {
                 state.set(group.groupKey, {isSelected: false, isIndeterminate: false});
-                return;
+                continue;
             }
 
             const selectedCount = groupTransactionIDs.filter((id) => selectedTransactionIDs.includes(id)).length;
@@ -313,7 +313,7 @@ function MoneyRequestReportTransactionList({
                 isSelected: selectedCount === groupTransactionIDs.length,
                 isIndeterminate: selectedCount > 0 && selectedCount < groupTransactionIDs.length,
             });
-        });
+        }
 
         return state;
     }, [groupedTransactions, selectedTransactionIDs]);
