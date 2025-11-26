@@ -25,7 +25,7 @@ type EmojiTrieForLocale = Partial<Record<FullySupportedLocale, Trie<EmojiMetaDat
  * @param shouldPrependKeyword Prepend the keyword (instead of append) to the suggestions
  */
 function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: Emoji, name: string, shouldPrependKeyword = false) {
-    keywords.forEach((keyword) => {
+    for (const keyword of keywords) {
         const keywordNode = trie.search(keyword);
         const normalizedKeyword = StringUtils.normalizeAccents(keyword);
 
@@ -47,7 +47,7 @@ function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: 
             }
             trie.update(keyword, newMetadata);
         }
-    });
+    }
 }
 
 /**
@@ -69,6 +69,7 @@ function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<Em
 
     emojis
         .filter((item: PickerEmoji): item is Emoji => !(item as HeaderEmoji).header)
+        // eslint-disable-next-line unicorn/no-array-for-each
         .forEach((item: Emoji) => {
             const englishName = item.name;
             const localeName = langEmojis?.[item.code]?.name ?? englishName;

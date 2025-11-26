@@ -197,6 +197,7 @@ function ReportActionsList({
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {canBeMissing: true});
 
     const backTo = route?.params?.backTo as string;
     // Display the new message indicator when comment linking and not close to the newest message.
@@ -442,6 +443,11 @@ function ReportActionsList({
             return;
         }
 
+        // Do not try to mark the report as read if the report has not been loaded and shared with the user
+        if (!reportMetadata?.hasOnceLoadedReportActions) {
+            return;
+        }
+
         const isLastActionUnread = lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions);
         if (!isUnread(report, transactionThreadReport, isReportArchived) && !isLastActionUnread) {
             return;
@@ -463,7 +469,15 @@ function ReportActionsList({
         readActionSkipped.current = true;
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, isListInitiallyLoaded, hasNewerActions]);
+    }, [
+        report.lastVisibleActionCreated,
+        transactionThreadReport?.lastVisibleActionCreated,
+        report.reportID,
+        isVisible,
+        reportMetadata?.hasOnceLoadedReportActions,
+        isListInitiallyLoaded,
+        hasNewerActions,
+    ]);
 
     const handleAppVisibilityMarkAsRead = useCallback(() => {
         if (report.reportID !== prevReportID || !isListInitiallyLoaded) {
@@ -905,7 +919,7 @@ function ReportActionsList({
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[
                         styles.chatContentScrollView,
-                        shouldScrollToEndAfterLayout ? styles.opacity0 : styles.opacity1,
+                        shouldScrollToEndAfterLayout ? styles.visibilityHidden : styles.visibilityVisible,
                         shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined,
                     ]}
                     shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}

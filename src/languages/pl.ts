@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -269,6 +270,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -696,6 +698,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Skopiuj do schowka',
         thisIsTakingLongerThanExpected: 'To trwa dłużej niż oczekiwano...',
         domains: 'Domeny',
+        reportName: 'Nazwa raportu',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1338,8 +1341,8 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} wysłano${comment ? `dla ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `przeniesiono wydatek z przestrzeni osobistej do ${workspaceName ?? `czat z ${reportName}`}`,
         movedToPersonalSpace: 'przeniesiono wydatek do przestrzeni osobistej',
-        tagSelection: 'Wybierz tag, aby lepiej zorganizować swoje wydatki.',
-        categorySelection: 'Wybierz kategorię, aby lepiej zorganizować swoje wydatki.',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `Wybierz ${policyTagListName ?? 'tag'}, aby lepiej uporządkować swoje wydatki.`,
+        categorySelection: 'Wybierz kategorię, aby lepiej uporządkować swoje wydatki.',
         error: {
             invalidCategoryLength: 'Nazwa kategorii przekracza 255 znaków. Proszę ją skrócić lub wybrać inną kategorię.',
             invalidTagLength: 'Nazwa tagu przekracza 255 znaków. Proszę skrócić ją lub wybrać inny tag.',
@@ -1486,6 +1489,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Czy powinieneś wstrzymać czy odrzucić?',
             educationalText: 'Jeśli nie jesteś gotów zatwierdzić lub opłacić wydatku, możesz go wstrzymać lub odrzucić.',
             holdExpenseTitle: 'Wstrzymaj wydatek, aby poprosić o więcej szczegółów przed zatwierdzeniem lub opłaceniem.',
+            approveExpenseTitle: 'Zatwierdź inne wydatki, podczas gdy wydatki wstrzymane pozostają przypisane do Ciebie.',
             heldExpenseLeftBehindTitle: 'Wydatki wstrzymane są pomijane, gdy zatwierdzasz cały raport.',
             rejectExpenseTitle: 'Odrzuć wydatek, którego nie zamierzasz zatwierdzić ani opłacić.',
             reasonPageTitle: 'Odrzuć wydatek',
@@ -1614,9 +1618,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Ta funkcja wymaga weryfikacji konta.',
         validateAccount: 'Zweryfikuj swoje konto',
         helpText: ({email}: {email: string}) =>
-            `Dodaj więcej sposobów na przesyłanie paragonów. Prześlij je do <copy-text text="${email}"/> lub wyślij SMS na numer 47777 (tylko numery w USA).`,
-        pleaseVerify: 'Proszę zweryfikować tę metodę kontaktu',
-        getInTouch: 'Kiedy będziemy musieli się z Tobą skontaktować, użyjemy tej metody kontaktu.',
+            `Dodaj więcej sposobów logowania się i wysyłania paragonów do Expensify.<br/><br/>Dodaj adres e-mail, aby przesyłać paragony na <a href="mailto:${email}">${email}</a> lub dodaj numer telefonu, aby wysyłać paragony SMS-em na 47777 (tylko numery z USA).`,
+        pleaseVerify: 'Proszę zweryfikować tę metodę kontaktu.',
+        getInTouch: 'Użyjemy tej metody, aby się z Tobą skontaktować.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Proszę wprowadzić magiczny kod wysłany na ${contactMethod}. Powinien dotrzeć w ciągu minuty lub dwóch.`,
         setAsDefault: 'Ustaw jako domyślne',
         yourDefaultContactMethod: 'To jest Twoja domyślna metoda kontaktu. Zanim będziesz mógł ją usunąć, musisz wybrać inną metodę kontaktu i kliknąć „Ustaw jako domyślną”.',
@@ -2093,6 +2097,10 @@ ${amount} dla ${merchant} - ${date}`,
         addApprovalsDescription: 'Wymagaj dodatkowej zgody przed autoryzacją płatności.',
         makeOrTrackPaymentsTitle: 'Dokonuj lub śledź płatności',
         makeOrTrackPaymentsDescription: 'Dodaj upoważnionego płatnika do płatności dokonywanych w Expensify lub śledź płatności dokonane gdzie indziej.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>Dla tego obszaru roboczego włączono niestandardowy przepływ zatwierdzania. Aby przejrzeć lub zmienić ten przepływ pracy, skontaktuj się z <account-manager-link>Menedżerem konta</account-manager-link> lub <concierge-link>Concierge</concierge-link>.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>Dla tego obszaru roboczego włączono niestandardowy przepływ zatwierdzania. Aby przejrzeć lub zmienić ten przepływ pracy, skontaktuj się z <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         editor: {
             submissionFrequency: 'Wybierz, jak długo Expensify powinno czekać przed udostępnieniem wydatków bez błędów.',
         },
@@ -3284,6 +3292,9 @@ ${
         whatsYourAddress: 'Jaki jest Twój adres?',
         whatAreTheLast: 'Jakie są ostatnie 4 cyfry numeru Social Security właściciela?',
         whatsYourLast: 'Jakie są ostatnie 4 cyfry Twojego numeru Social Security?',
+        whatsYourNationality: 'Jaki jest Twój kraj obywatelstwa?',
+        whatsTheOwnersNationality: 'Jaki jest kraj obywatelstwa właściciela?',
+        countryOfCitizenship: 'Kraj obywatelstwa',
         dontWorry: 'Nie martw się, nie przeprowadzamy żadnych osobistych sprawdzeń kredytowych!',
         last4: 'Ostatnie 4 cyfry numeru SSN',
         whyDoWeAsk: 'Dlaczego o to prosimy?',
@@ -3591,7 +3602,7 @@ ${
             expensifyCard: 'Expensify Card',
             companyCards: 'Karty firmowe',
             workflows: 'Przepływy pracy',
-            workspace: 'Workspace',
+            workspace: 'Przestrzeń robocza',
             findWorkspace: 'Znajdź przestrzeń roboczą',
             edit: 'Edytuj przestrzeń roboczą',
             enabled: 'Włączone',
@@ -5201,6 +5212,7 @@ ${
             issueCard: 'Wydaj kartę',
             issueNewCard: {
                 whoNeedsCard: 'Kto potrzebuje karty?',
+                inviteNewMember: 'Zaproś nowego członka',
                 findMember: 'Znajdź członka',
                 chooseCardType: 'Wybierz typ karty',
                 physicalCard: 'Fizyczna karta',
@@ -5874,7 +5886,7 @@ ${
                 billableDescription: 'Wydatki są najczęściej ponownie fakturowane klientom',
                 nonBillable: 'Niepodlegające fakturowaniu',
                 nonBillableDescription: 'Wydatki są czasami ponownie fakturowane klientom.',
-                eReceipts: 'eReceipts',
+                eReceipts: 'ePokwitowania',
                 eReceiptsHint: `ePokwitowania są tworzone automatycznie [dla większości transakcji kredytowych w USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Śledzenie uczestników',
                 attendeeTrackingHint: 'Śledź koszt na osobę dla każdego wydatku.',
@@ -6185,6 +6197,7 @@ ${
             `zmieniono wskaźnik raportów losowo kierowanych do ręcznej akceptacji na ${Math.round(newAuditRate * 100)}% (wcześniej ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `zmieniono limit ręcznego zatwierdzania dla wszystkich wydatków na ${newLimit} (wcześniej ${oldLimit})`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'włączone' : 'wyłączone'} zwrotów kosztów dla tego obszaru roboczego`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `dodał podatek "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `usunął podatek "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6209,6 +6222,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'Wyłączone'} śledzenie uczestników`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',
@@ -7463,6 +7477,18 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} zaprosił Cię do wypróbowania Expensify\nHej! Właśnie zdobyłem dla nas *3 miesiące za darmo*, aby wypróbować Expensify, najszybszy sposób na rozliczanie wydatków.\n\nOto *przykładowy paragon*, aby pokazać Ci, jak to działa:`,
+    },
+    reportLayout: {
+        reportLayout: 'Układ raportu',
+        groupByLabel: 'Grupuj według:',
+        selectGroupByOption: 'Wybierz sposób grupowania wydatków w raporcie',
+        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
+        groupHeaderHint: ({action}: {action: string}) => `${action} tę grupę`,
+        selectGroup: ({groupName}: {groupName: string}) => `Wybierz wszystkie wydatki w ${groupName}`,
+        groupBy: {
+            category: 'Kategoria',
+            tag: 'Tag',
+        },
     },
     export: {
         basicExport: 'Eksport podstawowy',
