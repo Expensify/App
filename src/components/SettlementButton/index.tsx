@@ -246,7 +246,7 @@ function SettlementButton({
             disabled: !!shouldDisableApproveButton,
         };
 
-        const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType, true);
+        const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
         const canUseBusinessBankAccount = isExpenseReport || (isIOUReport(iouReport) && reportID && !hasRequestFromCurrentAccount(reportID, accountID ?? CONST.DEFAULT_NUMBER_ID));
 
         const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport(iouReport);
