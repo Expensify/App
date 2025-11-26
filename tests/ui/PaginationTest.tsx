@@ -13,7 +13,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import PusherHelper from '../utils/PusherHelper';
-import {getReportScreen, LIST_CONTENT_SIZE, navigateToSidebarOption, REPORT_ID, scrollToOffset, triggerListLayout} from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -34,8 +33,17 @@ jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => 
 TestHelper.setupApp();
 const fetchMock = TestHelper.setupGlobalFetchMock();
 
+const LIST_SIZE = {
+    width: 300,
+    height: 400,
+};
+const LIST_CONTENT_SIZE = {
+    width: 300,
+    height: 600,
+};
 const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
 
+const REPORT_ID = '1';
 const COMMENT_LINKING_REPORT_ID = '2';
 const USER_A_ACCOUNT_ID = 1;
 const USER_A_EMAIL = 'user_a@test.com';
@@ -44,6 +52,39 @@ const USER_B_EMAIL = 'user_b@test.com';
 const TEST_AUTH_TOKEN = 'test-auth-token';
 const TEST_AUTO_GENERATED_LOGIN = 'expensify.cash-abc123';
 
+function getReportScreen(reportID = REPORT_ID) {
+    return screen.getByTestId(`report-screen-${reportID}`);
+}
+
+function scrollToOffset(offset: number) {
+    const hintText = TestHelper.translateLocal('sidebarScreen.listOfChatMessages');
+    fireEvent.scroll(within(getReportScreen()).getByLabelText(hintText), {
+        nativeEvent: {
+            contentOffset: {
+                y: offset,
+            },
+            contentSize: LIST_CONTENT_SIZE,
+            layoutMeasurement: LIST_SIZE,
+        },
+    });
+}
+
+function triggerListLayout(reportID?: string) {
+    const report = getReportScreen(reportID);
+    fireEvent(within(report).getByTestId('report-actions-view-wrapper'), 'onLayout', {
+        nativeEvent: {
+            layout: {
+                x: 0,
+                y: 0,
+                ...LIST_SIZE,
+            },
+        },
+        persist: () => {},
+    });
+
+    fireEvent(within(report).getByTestId('report-actions-list'), 'onContentSizeChange', LIST_CONTENT_SIZE.width, LIST_CONTENT_SIZE.height);
+}
+
 function getReportActions(reportID?: string) {
     const report = getReportScreen(reportID);
     return [
@@ -51,6 +92,17 @@ function getReportActions(reportID?: string) {
         // Created action has a different accessibility label.
         ...within(report).queryAllByLabelText(TestHelper.translateLocal('accessibilityHints.chatWelcomeMessage')),
     ];
+}
+
+async function navigateToSidebarOption(reportID: string): Promise<void> {
+    const optionRow = screen.getByTestId(reportID);
+    fireEvent(optionRow, 'press');
+    await waitFor(() => {
+        (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+    });
+    // ReportScreen relies on the onLayout event to receive updates from onyx.
+    triggerListLayout(reportID);
+    await waitForBatchedUpdatesWithAct();
 }
 
 function buildCreatedAction(reportActionID: string, created: string) {
