@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {Message} from '@src/types/onyx/ReportAction';
 
@@ -31,7 +30,7 @@ function isReportMessageAttachment(message: Message | undefined): boolean {
         return true;
     }
 
-    return Str.isVideo(message.text);
+    return true;
 }
 
 // eslint-disable-next-line import/prefer-default-export
