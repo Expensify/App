@@ -85,6 +85,7 @@ const REPORT_ID = '1';
 const PARTICIPANT_ACCOUNT_ID = 2;
 const TRANSACTION_ID = '1';
 const POLICY_ID = 'test-policy-id';
+const POLICY_CHAT_REPORT_ID = '595';
 
 // Helper to create a policy with tax and distance enabled
 function createPolicyWithTaxAndDistance(): Policy {
@@ -347,6 +348,12 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     policyID: POLICY_ID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_CHAT_REPORT_ID}`, {
+                    reportID: POLICY_CHAT_REPORT_ID,
+                    policyID: POLICY_ID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
                     transactionID: TRANSACTION_ID,
                     reportID: REPORT_ID,
@@ -373,7 +380,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     created: '2025-01-15',
                     taxCode: 'taxRate1',
                     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                    participants: [{isPolicyExpenseChat: true, selected: true, reportID: POLICY_CHAT_REPORT_ID}],
                 });
             });
 
@@ -480,6 +487,12 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     policyID: POLICY_ID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_CHAT_REPORT_ID}`, {
+                    reportID: POLICY_CHAT_REPORT_ID,
+                    policyID: POLICY_ID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
                     transactionID: TRANSACTION_ID,
                     reportID: REPORT_ID,
@@ -490,7 +503,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     taxCode: 'taxRate1',
                     taxAmount: 476,
                     iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
-                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                    participants: [{isPolicyExpenseChat: true, selected: true, reportID: POLICY_CHAT_REPORT_ID}],
                 });
             });
 
@@ -691,6 +704,12 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_CHAT_REPORT_ID}`, {
+                    reportID: POLICY_CHAT_REPORT_ID,
+                    policyID: POLICY_ID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                     reportID: REPORT_ID,
                     policyID: POLICY_ID,
@@ -722,7 +741,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     created: '2025-01-15',
                     taxCode: 'taxRate1',
                     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                    participants: [{isPolicyExpenseChat: true, selected: true, reportID: POLICY_CHAT_REPORT_ID}],
                 });
             });
 
