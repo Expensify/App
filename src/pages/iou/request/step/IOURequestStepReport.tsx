@@ -44,6 +44,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID)) || isUnreported;
     const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
+    const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
     const {removeTransaction, setSelectedTransactions} = useSearchContext();
@@ -55,7 +56,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const personalDetails = usePersonalDetails();
-    const ownerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(reportOrDraftReport?.ownerAccountID) as PersonalDetails, [personalDetails, reportOrDraftReport]);
+    const ownerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID) as PersonalDetails, [personalDetails, selectedReport]);
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
