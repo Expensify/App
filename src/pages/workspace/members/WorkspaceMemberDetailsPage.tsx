@@ -8,6 +8,7 @@ import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
@@ -19,14 +20,13 @@ import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setPolicyPreventSelfApproval} from '@libs/actions/Policy/Policy';
-import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {
     getAllCardsForWorkspace,
     getCardFeedIcon,
@@ -43,7 +43,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
-import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -81,6 +81,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const policyID = route.params.policyID;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -145,7 +146,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
             policy?.connections?.quickbooksOnline?.config?.export?.exporter,
             policy?.connections?.xero?.config?.export?.exporter,
-            policy?.connections?.netsuite?.options.config.exporter,
+            policy?.connections?.netsuite?.options?.config?.exporter,
         ];
         const isUserExporter = exporters.includes(details.login);
 
@@ -234,46 +235,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     // Function to remove a member and close the modal
     const removeMemberAndCloseModal = useCallback(() => {
-        removeMembers(policyID, [memberLogin], {[memberLogin]: accountID});
-        const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
-        const remainingEmployeeCount = previousEmployeesCount - 1;
-        if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
-            // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
-            setPolicyPreventSelfApproval(policyID, false);
-        }
+        removeMembers(policyID, [memberLogin], {[memberLogin]: accountID}, approvalWorkflows, personalDetails);
         setIsRemoveMemberConfirmModalVisible(false);
-    }, [accountID, memberLogin, policy?.employeeList, policy?.preventSelfApproval, policyID]);
-
-    const removeUser = useCallback(() => {
-        const ownerEmail = ownerDetails?.login;
-        const removedApprover = personalDetails?.[accountID];
-
-        // If the user is not an approver, proceed with member removal
-        if (!isApproverUserAction(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
-            removeMemberAndCloseModal();
-            return;
-        }
-
-        // Update approval workflows after approver removal
-        const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
-            approvalWorkflows,
-            removedApprover,
-            ownerDetails,
-        });
-
-        updatedWorkflows.forEach((workflow) => {
-            if (workflow?.removeApprovalWorkflow) {
-                const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
-
-                removeApprovalWorkflowAction(updatedWorkflow, policy);
-            } else {
-                updateApprovalWorkflow(workflow, [], [], policy);
-            }
-        });
-
-        // Remove the member and close the modal
-        removeMemberAndCloseModal();
-    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, removeMemberAndCloseModal, memberLogin]);
+    }, [accountID, memberLogin, approvalWorkflows, policyID, personalDetails]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
@@ -403,7 +367,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     text={translate('workspace.people.removeWorkspaceMemberButtonTitle')}
                                     onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
                                     isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                    icon={Expensicons.RemoveMembers}
+                                    icon={icons.RemoveMembers}
                                     style={styles.mb5}
                                 />
                             )}
@@ -411,7 +375,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 danger
                                 title={translate('workspace.people.removeMemberTitle')}
                                 isVisible={isRemoveMemberConfirmModalVisible}
-                                onConfirm={removeUser}
+                                onConfirm={removeMemberAndCloseModal}
                                 onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
                                 prompt={confirmModalPrompt}
                                 confirmText={translate('common.remove')}

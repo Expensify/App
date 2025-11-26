@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -269,6 +270,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -374,7 +376,7 @@ const translations: TranslationDeepObject<typeof en> = {
         password: 'Senha',
         magicCode: 'Código mágico',
         twoFactorCode: 'Código de dois fatores',
-        workspaces: 'Workspaces',
+        workspaces: 'Espaços de trabalho',
         inbox: 'Caixa de entrada',
         success: 'Sucesso',
         group: 'Grupo',
@@ -695,6 +697,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copiar para a área de transferência',
         thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
+        reportName: 'Nome do relatório',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -1337,7 +1340,7 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? `para ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `moveu a despesa do espaço pessoal para ${workspaceName ?? `conversar com ${reportName}`}`,
         movedToPersonalSpace: 'movido despesa para o espaço pessoal',
-        tagSelection: 'Selecione uma tag para organizar melhor seus gastos.',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `Selecione ${policyTagListName ?? 'uma etiqueta'} para organizar melhor suas despesas.`,
         categorySelection: 'Selecione uma categoria para organizar melhor seus gastos.',
         error: {
             invalidCategoryLength: 'O nome da categoria excede 255 caracteres. Por favor, reduza-o ou escolha uma categoria diferente.',
@@ -1484,6 +1487,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Você deve reter ou rejeitar?',
             educationalText: 'Se você não estiver pronto para aprovar ou pagar uma despesa, pode retê-la ou rejeitá-la.',
             holdExpenseTitle: 'Retenha uma despesa para pedir mais detalhes antes da aprovação ou do pagamento.',
+            approveExpenseTitle: 'Aprove outras despesas enquanto as despesas retidas permanecem atribuídas a você.',
             heldExpenseLeftBehindTitle: 'As despesas retidas ficam de fora quando você aprova um relatório inteiro.',
             rejectExpenseTitle: 'Rejeite uma despesa que você não pretende aprovar ou pagar.',
             reasonPageTitle: 'Rejeitar despesa',
@@ -1612,9 +1616,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Este recurso requer que você valide sua conta.',
         validateAccount: 'Valide sua conta',
         helpText: ({email}: {email: string}) =>
-            `Adicione mais maneiras de enviar recibos. Encaminhe-os para <copy-text text="${email}"/> ou envie uma mensagem para 47777 (apenas números dos EUA).`,
-        pleaseVerify: 'Por favor, verifique este método de contato',
-        getInTouch: 'Sempre que precisarmos entrar em contato com você, usaremos este método de contato.',
+            `Adicione mais formas de fazer login e enviar recibos para o Expensify.<br/><br/>Adicione um endereço de e-mail para encaminhar recibos para <a href="mailto:${email}">${email}</a> ou adicione um número de telefone para enviar recibos por mensagem de texto para 47777 (somente números dos EUA).`,
+        pleaseVerify: 'Por favor, verifique este método de contato.',
+        getInTouch: 'Usaremos este método para entrar em contato com você.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod}. Ele deve chegar em um ou dois minutos.`,
         setAsDefault: 'Definir como padrão',
         yourDefaultContactMethod: 'Este é o seu método de contato padrão atual. Antes de poder excluí-lo, você precisará escolher outro método de contato e clicar em “Definir como padrão”.',
@@ -2092,6 +2096,10 @@ ${amount} para ${merchant} - ${date}`,
         addApprovalsDescription: 'Exigir aprovação adicional antes de autorizar um pagamento.',
         makeOrTrackPaymentsTitle: 'Fazer ou rastrear pagamentos',
         makeOrTrackPaymentsDescription: 'Adicione um pagador autorizado para pagamentos feitos no Expensify ou acompanhe pagamentos feitos em outros lugares.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>Um fluxo de aprovação personalizado está habilitado neste espaço de trabalho. Para revisar ou alterar este fluxo de trabalho, entre em contato com seu <account-manager-link>Gerente de Conta</account-manager-link> ou <concierge-link>Concierge</concierge-link>.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>Um fluxo de aprovação personalizado está habilitado neste espaço de trabalho. Para revisar ou alterar este fluxo de trabalho, entre em contato com o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         editor: {
             submissionFrequency: 'Escolha quanto tempo o Expensify deve esperar antes de compartilhar despesas sem erros.',
         },
@@ -3286,6 +3294,9 @@ ${
         whatsYourAddress: 'Qual é o seu endereço?',
         whatAreTheLast: 'Quais são os últimos 4 dígitos do Número de Seguro Social do proprietário?',
         whatsYourLast: 'Quais são os últimos 4 dígitos do seu Número de Seguro Social?',
+        whatsYourNationality: 'Qual é o seu país de cidadania?',
+        whatsTheOwnersNationality: 'Qual é o país de cidadania do proprietário?',
+        countryOfCitizenship: 'País de cidadania',
         dontWorry: 'Não se preocupe, não fazemos nenhuma verificação de crédito pessoal!',
         last4: 'Últimos 4 do SSN',
         whyDoWeAsk: 'Por que pedimos isso?',
@@ -3592,7 +3603,7 @@ ${
             expensifyCard: 'Expensify Card',
             companyCards: 'Cartões corporativos',
             workflows: 'Fluxos de Trabalho',
-            workspace: 'Workspace',
+            workspace: 'Espaço de trabalho',
             findWorkspace: 'Encontrar espaço de trabalho',
             edit: 'Editar espaço de trabalho',
             enabled: 'Ativado',
@@ -4631,7 +4642,7 @@ ${
             companyCard: 'cartão corporativo',
             chooseCardFeed: 'Escolher feed de cartão',
             ukRegulation:
-                'A Expensify, Inc. é um agente da Plaid Financial Ltd., uma instituição de pagamento autorizada e regulada pela Financial Conduct Authority sob as Payment Services Regulations 2017 (Número de Referência da Empresa: 804718). A Plaid fornece a você serviços de informações de conta regulados através da Expensify Limited como seu agente.',
+                'A Expensify Limited é um agente da Plaid Financial Ltd., uma instituição de pagamento autorizada e regulada pela Financial Conduct Authority sob as Payment Services Regulations 2017 (Número de Referência da Empresa: 804718). A Plaid fornece a você serviços de informações de conta regulados através da Expensify Limited como seu agente.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emita e gerencie seus Cartões Expensify',
@@ -5204,6 +5215,7 @@ ${
             issueCard: 'Emitir cartão',
             issueNewCard: {
                 whoNeedsCard: 'Quem precisa de um cartão?',
+                inviteNewMember: 'Convide um novo membro',
                 findMember: 'Encontrar membro',
                 chooseCardType: 'Escolha um tipo de cartão',
                 physicalCard: 'Cartão físico',
@@ -5883,7 +5895,7 @@ ${
                 billableDescription: 'Despesas são mais frequentemente refaturadas para clientes.',
                 nonBillable: 'Não faturável',
                 nonBillableDescription: 'Despesas são ocasionalmente refaturadas para clientes',
-                eReceipts: 'eReceipts',
+                eReceipts: 'Recibos eletrônicos',
                 eReceiptsHint: `Os recibos eletrônicos são criados automaticamente [para a maioria das transações de crédito em dólares](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Rastreamento de participantes',
                 attendeeTrackingHint: 'Acompanhe o custo por pessoa para cada despesa.',
@@ -6197,6 +6209,7 @@ ${
             `alterou a taxa de relatórios encaminhados aleatoriamente para aprovação manual para ${Math.round(newAuditRate * 100)}% (anteriormente ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `alterou o limite de aprovação manual para todas as despesas para ${newLimit} (anteriormente ${oldLimit})`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'ativado' : 'desativado'} reembolsos para este espaço de trabalho`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `adicionou o imposto "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removeu o imposto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6221,6 +6234,7 @@ ${
                 }
             }
         },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} acompanhamento de participantes`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -7473,6 +7487,18 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} convidou você para experimentar o Expensify\nEi! Acabei de conseguir *3 meses grátis* para testarmos o Expensify, a maneira mais rápida de lidar com despesas.\n\nAqui está um *recibo de teste* para mostrar como funciona:`,
+    },
+    reportLayout: {
+        reportLayout: 'Layout do relatório',
+        groupByLabel: 'Agrupar por:',
+        selectGroupByOption: 'Selecione como agrupar as despesas do relatório',
+        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
+        groupHeaderHint: ({action}: {action: string}) => `${action} este grupo`,
+        selectGroup: ({groupName}: {groupName: string}) => `Selecionar todas as despesas em ${groupName}`,
+        groupBy: {
+            category: 'Categoria',
+            tag: 'Tag',
+        },
     },
     export: {
         basicExport: 'Exportação básica',

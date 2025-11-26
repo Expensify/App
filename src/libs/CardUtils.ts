@@ -2,7 +2,6 @@ import {fromUnixTime, isBefore} from 'date-fns';
 import groupBy from 'lodash/groupBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type IllustrationsType from '@styles/theme/illustrations/types';
@@ -101,22 +100,22 @@ function isCardClosed(card: Card) {
 
 function mergeCardListWithWorkspaceFeeds(workspaceFeeds: Record<string, WorkspaceCardsList | undefined>, cardList: CardList | undefined, shouldExcludeCardHiddenFromSearch = false) {
     const feedCards: CardList = {};
-    Object.values(cardList ?? {}).forEach((card) => {
+    for (const card of Object.values(cardList ?? {})) {
         if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
-            return;
+            continue;
         }
 
         feedCards[card.cardID] = card;
-    });
+    }
 
-    Object.values(workspaceFeeds ?? {}).forEach((currentCardFeed) => {
-        Object.values(currentCardFeed ?? {}).forEach((card) => {
+    for (const currentCardFeed of Object.values(workspaceFeeds ?? {})) {
+        for (const card of Object.values(currentCardFeed ?? {})) {
             if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
-                return;
+                continue;
             }
             feedCards[card.cardID] = card;
-        });
-    });
+        }
+    }
     return feedCards;
 }
 
@@ -173,7 +172,7 @@ function maskCard(lastFour = ''): string {
     const maskedString = '•'.repeat(maskedLength) + lastFour;
 
     // Insert space for every four symbols
-    return maskedString.replace(/(.{4})/g, '$1 ').trim();
+    return maskedString.replaceAll(/(.{4})/g, '$1 ').trim();
 }
 
 /**
@@ -190,21 +189,21 @@ function maskCardNumber(cardName?: string, feed?: string, showOriginalName?: boo
         return '';
     }
     const hasSpace = /\s/.test(cardName);
-    const maskedString = cardName.replace(/X/g, '•');
+    const maskedString = cardName.replaceAll('X', '•');
     const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
 
     if (hasSpace) {
         if (showOriginalName) {
             return cardName;
         }
-        return cardName.replace(/ - \d{4}$/, '');
+        return cardName.replaceAll(/ - \d{4}$/g, '');
     }
 
     if (isAmexBank && maskedString.length === 15) {
-        return maskedString.replace(/(.{4})(.{6})(.{5})/, '$1 $2 $3');
+        return maskedString.replaceAll(/(.{4})(.{6})(.{5})/g, '$1 $2 $3');
     }
 
-    return maskedString.replace(/(.{4})/g, '$1 ').trim();
+    return maskedString.replaceAll(/(.{4})/g, '$1 ').trim();
 }
 
 /**
@@ -224,7 +223,7 @@ function lastFourNumbersFromCardName(cardName: string | undefined): string {
 }
 
 function getMCardNumberString(cardNumber: string): string {
-    return cardNumber.replace(/\s/g, '');
+    return cardNumber.replaceAll(/\s/g, '');
 }
 
 function getTranslationKeyForLimitType(limitType: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES> | undefined): TranslationPaths | '' {
@@ -313,11 +312,11 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
         [CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE]: Illustrations.StripeCompanyCardDetailLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: illustrations.GenericCSVCompanyCardLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: illustrations.GenericCompanyCardLarge,
-        [CONST.EXPENSIFY_CARD.BANK]: ExpensifyCardImage,
+        [CONST.EXPENSIFY_CARD.BANK]: Illustrations.ExpensifyCardImage,
     };
 
     if (cardFeed.startsWith(CONST.EXPENSIFY_CARD.BANK)) {
-        return ExpensifyCardImage;
+        return Illustrations.ExpensifyCardImage;
     }
 
     if (feedIcons[cardFeed]) {
@@ -547,18 +546,18 @@ function getFilteredCardList(list: WorkspaceCardsList | undefined, accountList: 
 
     // Get cards assigned across all workspaces
     const allWorkspaceAssignedCards = new Set<string>();
-    Object.values(workspaceCardFeeds ?? {}).forEach((workspaceCards) => {
+    for (const workspaceCards of Object.values(workspaceCardFeeds ?? {})) {
         if (!workspaceCards) {
-            return;
+            continue;
         }
         const {cardList, ...workspaceCardItems} = workspaceCards;
-        Object.values(workspaceCardItems).forEach((card) => {
+        for (const card of Object.values(workspaceCardItems)) {
             if (!card?.cardName) {
-                return;
+                continue;
             }
             allWorkspaceAssignedCards.add(card.cardName);
-        });
-    });
+        }
+    }
 
     if (accountList) {
         const unassignedDirectFeedCards = accountList.filter((cardNumber) => !assignedCards.has(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber));
@@ -736,7 +735,7 @@ function getFeedConnectionBrokenCard(feedCards: Record<string, Card> | undefined
 }
 
 /** Extract feed from feed with domainID */
-function getCompanyCardFeed(feedWithDomainID: CompanyCardFeedWithDomainID): CompanyCardFeed {
+function getCompanyCardFeed(feedWithDomainID: string): CompanyCardFeed {
     const [feed] = feedWithDomainID.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
     return feed as CompanyCardFeed;
 }

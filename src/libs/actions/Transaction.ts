@@ -28,7 +28,7 @@ import {
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {isManagedCardTransaction, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,6 +50,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyTagsData} from './Policy/Tag';
+import {getCurrentUserAccountID} from './Report';
 
 const allTransactions: Record<string, Transaction> = {};
 Onyx.connect({
@@ -189,9 +190,9 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     }
 
     const reIndexedWaypoints: WaypointCollection = {};
-    waypointValues.forEach((waypoint, idx) => {
+    for (const [idx, waypoint] of waypointValues.entries()) {
         reIndexedWaypoints[`waypoint${idx}`] = waypoint;
-    });
+    }
 
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
@@ -711,9 +712,9 @@ function changeTransactionsReport(
 
     // Store current violations for each transaction to restore on failure
     const currentTransactionViolations: Record<string, TransactionViolation[]> = {};
-    transactionIDs.forEach((id) => {
+    for (const id of transactionIDs) {
         currentTransactionViolations[id] = allTransactionViolation?.[id] ?? [];
-    });
+    }
 
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -722,6 +723,7 @@ function changeTransactionsReport(
     const existingSelfDMReportID = findSelfDMReportID();
     let selfDMReport: Report | undefined;
     let selfDMCreatedReportAction: ReportAction | undefined;
+    const currentUserAccountID = getCurrentUserAccountID();
 
     if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
@@ -806,14 +808,14 @@ function changeTransactionsReport(
     const policyTagList = getPolicyTagsData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
 
-    transactions.forEach((transaction) => {
+    for (const transaction of transactions) {
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
         const selfDMReportID = existingSelfDMReportID ?? selfDMReport?.reportID;
 
         const oldIOUAction = getIOUActionForReportID(isUnreportedExpense ? selfDMReportID : transaction.reportID, transaction.transactionID);
         if (!transaction.reportID || transaction.reportID === reportID) {
-            return;
+            continue;
         }
 
         transactionsMoved = true;
@@ -857,14 +859,14 @@ function changeTransactionsReport(
             const duplicateViolation = currentTransactionViolations?.[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
             const duplicateTransactionIDs = duplicateViolation?.data?.duplicates;
             if (duplicateTransactionIDs) {
-                duplicateTransactionIDs.forEach((id) => {
+                for (const id of duplicateTransactionIDs) {
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
                         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                         value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
                     });
-                });
+                }
             }
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
@@ -1051,16 +1053,22 @@ function changeTransactionsReport(
             );
         }
 
-        // 5. Optimistically update the transaction thread and all threads in the transaction thread
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
-            value: {
-                parentReportID: targetReportID,
-                parentReportActionID: optimisticMoneyRequestReportActionID,
-                policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
-            },
-        });
+        const shouldRemoveOtherParticipants = !isManagedCardTransaction(transaction);
+        const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`];
+        if (childReport) {
+            const participants = childReport.participants;
+            // 5. Optimistically update the transaction thread and all threads in the transaction thread
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
+                value: {
+                    parentReportID: targetReportID,
+                    parentReportActionID: optimisticMoneyRequestReportActionID,
+                    policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
+                    participants: isUnreported && shouldRemoveOtherParticipants ? {[currentUserAccountID]: participants?.[currentUserAccountID]} : participants,
+                },
+            });
+        }
 
         if (oldIOUAction) {
             failureData.push({
@@ -1208,14 +1216,14 @@ function changeTransactionsReport(
                 unholdReportActionID: unHoldAction.reportActionID,
             };
         }
-    });
+    }
 
     if (!transactionsMoved) {
         return;
     }
 
     // 8. Update the report totals
-    Object.entries(updatedReportTotals).forEach(([reportIDToUpdate, total]) => {
+    for (const [reportIDToUpdate, total] of Object.entries(updatedReportTotals)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
@@ -1227,9 +1235,9 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
             value: {total: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.total},
         });
-    });
+    }
 
-    Object.entries(updatedReportNonReimbursableTotals).forEach(([reportIDToUpdate, total]) => {
+    for (const [reportIDToUpdate, total] of Object.entries(updatedReportNonReimbursableTotals)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
@@ -1241,9 +1249,9 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
             value: {nonReimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.nonReimbursableTotal},
         });
-    });
+    }
 
-    Object.entries(updatedReportUnheldNonReimbursableTotals).forEach(([reportIDToUpdate, total]) => {
+    for (const [reportIDToUpdate, total] of Object.entries(updatedReportUnheldNonReimbursableTotals)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
@@ -1257,12 +1265,12 @@ function changeTransactionsReport(
                 unheldNonReimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.unheldNonReimbursableTotal,
             },
         });
-    });
+    }
 
     const reportTransactions = getReportTransactions(reportID);
-    reportTransactions.forEach((transaction) => {
+    for (const transaction of reportTransactions) {
         if (!isPaidGroupPolicy(policy) || !policy?.id) {
-            return;
+            continue;
         }
         const violationData = ViolationsUtils.getViolationsOnyxData(
             transaction,
@@ -1284,7 +1292,7 @@ function changeTransactionsReport(
         if (Array.isArray(violationData.value) && violationData.value.length > 0 && hasOtherViolationsBesideDuplicates) {
             shouldFixViolations = true;
         }
-    });
+    }
 
     // 9. Update next step for report
     const destinationReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (existingSelfDMReportID ?? selfDMReport?.reportID) : reportID;

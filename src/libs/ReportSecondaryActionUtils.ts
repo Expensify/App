@@ -19,7 +19,7 @@ import {
     isPreferredExporter,
     isSubmitAndClose,
 } from './PolicyUtils';
-import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, isPayAction} from './ReportActionsUtils';
+import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, getReportAction, isPayAction} from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
@@ -74,7 +74,7 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return canAddTransaction(report, isReportArchived);
 }
 
-function isSplitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+function isSplitAction(report: Report, reportTransactions: Transaction[], originalTransaction: OnyxEntry<Transaction>, policy?: Policy): boolean {
     if (Number(reportTransactions?.length) !== 1) {
         return false;
     }
@@ -91,7 +91,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], policy
         return false;
     }
 
-    const {isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction);
+    const {isBillSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
     if (isBillSplit) {
         return false;
     }
@@ -157,7 +157,7 @@ function isSubmitAction(
 
     const isExpenseReport = isExpenseReportUtils(report);
 
-    if (!isExpenseReport || report?.total === 0) {
+    if (!isExpenseReport || (report?.total === 0 && reportTransactions.length === 0)) {
         return false;
     }
 
@@ -225,7 +225,7 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction));
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction, currentUserLogin, report, policy));
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -235,9 +235,7 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
         return false;
     }
 
-    const transactionIDs = reportTransactions.map((t) => t.transactionID);
-
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(reportTransactions, violations, currentUserLogin, report, policy);
 
     if (hasAllPendingRTERViolations) {
         return true;
@@ -245,7 +243,7 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(reportTransactions, report, policy, violations, currentUserLogin);
     const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const userControlsReport = isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
@@ -403,7 +401,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
     return (isAdmin && syncEnabled) || (isExporter && !syncEnabled);
 }
 
-function isHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[], reportActions?: ReportAction[]): boolean {
+function isHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[], reportActions: ReportAction[] | undefined, policy: OnyxEntry<Policy>): boolean {
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
     const isOneExpenseReport = reportTransactions.length === 1;
     const transaction = reportTransactions.at(0);
@@ -413,14 +411,15 @@ function isHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTrans
     }
 
     const action = !!reportActions && getIOUActionForTransactionID(reportActions, transaction.transactionID);
-    return !!action && isHoldActionForTransaction(report, transaction, action);
+    return !!action && isHoldActionForTransaction(report, transaction, action, policy);
 }
 
-function isHoldActionForTransaction(report: Report, reportTransaction: Transaction, reportAction: ReportAction): boolean {
+function isHoldActionForTransaction(report: Report, reportTransaction: Transaction, reportAction: ReportAction, policy: OnyxEntry<Policy>): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
     const iouOrExpenseReport = isExpenseReport || isIOUReport;
-    const {canHoldRequest} = canHoldUnholdReportAction(reportAction);
+    const holdReportAction = getReportAction(reportAction?.childReportID, `${reportTransaction?.comment?.hold ?? ''}`);
+    const {canHoldRequest} = canHoldUnholdReportAction(report, reportAction, holdReportAction, reportTransaction, policy);
 
     if (!iouOrExpenseReport || !canHoldRequest) {
         return false;
@@ -435,6 +434,10 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
     const isOpenReport = isOpenReportUtils(report);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isReportManager = isReportManagerUtils(report);
+
+    if (isIOUReport) {
+        return (isSubmitter || isReportManager) && !isSettled(report);
+    }
 
     if (isOpenReport && (isSubmitter || isReportManager)) {
         return true;
@@ -451,6 +454,13 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
         return false;
     }
 
+    const isSubmitter = isCurrentUserSubmitter(report);
+    const isManager = isReportManagerUtils(report);
+
+    if (isIOUReportUtils(report) && !isSubmitter && !isManager) {
+        return false;
+    }
+
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy));
     let hasAvailablePolicies = availablePolicies.length > 1;
@@ -461,8 +471,8 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     return hasAvailablePolicies && canEditReportPolicy(report, reportPolicy) && !isExportedUtils(reportActions);
 }
 
-function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[], policy?: Policy): boolean {
-    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions, policy);
+function isDeleteAction(report: Report, reportTransactions: Transaction[], reportActions: ReportAction[]): boolean {
+    return canDeleteMoneyRequestReport(report, reportTransactions, reportActions);
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
@@ -584,11 +594,27 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
     return isOnHoldTransactionUtils(reportTransaction) && policy?.role === CONST.POLICY.ROLE.ADMIN && !isHoldCreator(reportTransaction, report.reportID);
 }
 
+/**
+ * Checks if the report should show the "Report layout" option
+ * Only shows for expense reports with 2 or more transactions
+ */
+function isReportLayoutAction(report: Report, reportTransactions: Transaction[]): boolean {
+    const isExpenseReport = isExpenseReportUtils(report);
+
+    if (!isExpenseReport) {
+        return false;
+    }
+
+    // Only show if report has 2 or more transactions
+    return reportTransactions.length >= 2;
+}
+
 function getSecondaryReportActions({
     currentUserEmail,
     report,
     chatReport,
     reportTransactions,
+    originalTransaction,
     violations,
     policy,
     reportNameValuePairs,
@@ -600,6 +626,7 @@ function getSecondaryReportActions({
     report: Report;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
+    originalTransaction: OnyxEntry<Transaction>;
     violations: OnyxCollection<TransactionViolation[]>;
     policy?: Policy;
     reportNameValuePairs?: ReportNameValuePairs;
@@ -654,7 +681,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
     }
 
-    if (isHoldAction(report, chatReport, reportTransactions, reportActions)) {
+    if (isHoldAction(report, chatReport, reportTransactions, reportActions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.HOLD);
     }
 
@@ -666,7 +693,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(report, reportTransactions, policy)) {
+    if (isSplitAction(report, reportTransactions, originalTransaction, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
@@ -675,6 +702,10 @@ function getSecondaryReportActions({
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
+
+    if (isReportLayoutAction(report, reportTransactions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT);
+    }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
@@ -688,7 +719,7 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(report, reportTransactions, reportActions ?? [], policy)) {
+    if (isDeleteAction(report, reportTransactions, reportActions ?? [])) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
     return options;
@@ -719,12 +750,13 @@ function getSecondaryTransactionThreadActions(
     parentReport: Report,
     reportTransaction: Transaction,
     reportAction: ReportAction | undefined,
+    originalTransaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
     transactionThreadReport?: OnyxEntry<Report>,
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
-    if (!!reportAction && isHoldActionForTransaction(parentReport, reportTransaction, reportAction)) {
+    if (!!reportAction && isHoldActionForTransaction(parentReport, reportTransaction, reportAction, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
 
@@ -736,7 +768,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(parentReport, [reportTransaction], policy)) {
+    if (isSplitAction(parentReport, [reportTransaction], originalTransaction, policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
 
@@ -752,4 +784,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, getSecondaryExportReportActions, isSplitAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, getSecondaryExportReportActions, isSplitAction, isReportLayoutAction};

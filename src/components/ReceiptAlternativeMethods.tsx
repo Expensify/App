@@ -4,6 +4,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasLoggedIntoMobileApp from '@hooks/useHasLoggedIntoMobileApp';
 import useHasPhoneNumberLogin from '@hooks/useHasPhoneNumberLogin';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,7 +12,8 @@ import CONST from '@src/CONST';
 import {addLeadingForwardSlash} from '@src/libs/Url';
 import ROUTES from '@src/ROUTES';
 import Icon from './Icon';
-import {ChatBubbles, Download, Mail} from './Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {ChatBubbles, Mail} from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
@@ -20,6 +22,7 @@ type ReceiptAlternativeMethodsProps = {
 };
 
 function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
@@ -45,7 +48,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                     <View style={[styles.mr3]}>
                         <Icon
-                            src={Download}
+                            src={icons.Download}
                             width={16}
                             height={16}
                             fill={theme.icon}

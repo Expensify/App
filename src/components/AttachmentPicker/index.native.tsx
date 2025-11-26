@@ -8,11 +8,13 @@ import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -123,6 +125,7 @@ function AttachmentPicker({
     fileLimit = 1,
     onOpenPicker,
 }: AttachmentPickerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Gallery', 'Paperclip'] as const);
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
     const StyleUtils = useStyleUtils();
@@ -188,10 +191,10 @@ function AttachmentPicker({
                         }
                     };
 
-                    assets.forEach((asset) => {
+                    for (const asset of assets) {
                         if (!asset.uri) {
                             checkAllProcessed();
-                            return;
+                            continue;
                         }
 
                         if (asset.type?.startsWith('image')) {
@@ -238,7 +241,7 @@ function AttachmentPicker({
                             processedAssets.push(processedAsset);
                             checkAllProcessed();
                         }
-                    });
+                    }
                 });
             }),
         [fileLimit, showGeneralAlert, type],
@@ -281,14 +284,14 @@ function AttachmentPicker({
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
             {
-                icon: Expensicons.Paperclip,
+                icon: icons.Paperclip,
                 textTranslationKey: 'attachmentPicker.chooseDocument',
                 pickAttachment: showDocumentPicker,
             },
         ];
         if (!shouldHideGalleryOption) {
             data.unshift({
-                icon: Expensicons.Gallery,
+                icon: icons.Gallery,
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => showImagePicker(launchImageLibrary),
             });
@@ -302,7 +305,7 @@ function AttachmentPicker({
         }
 
         return data;
-    }, [showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
+    }, [icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 

@@ -1,6 +1,7 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAvatarErrors, getCurrentUserAccountID, updatePolicyRoomAvatar} from '@libs/actions/Report';
@@ -13,6 +14,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
@@ -36,6 +38,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
         }
     };
 
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ImageCropSquareMask'] as const);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserAccountID = getCurrentUserAccountID();
@@ -71,7 +74,7 @@ function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvat
                     onErrorClose={() => clearAvatarErrors(report.reportID)}
                     style={[styles.w100, styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                     type={icon.type}
-                    editorMaskImage={Expensicons.ImageCropSquareMask}
+                    editorMaskImage={expensifyIcons.ImageCropSquareMask}
                     name={icon.name}
                 />
             );

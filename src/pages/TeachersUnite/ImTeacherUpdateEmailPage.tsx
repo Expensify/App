@@ -3,11 +3,11 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,6 +15,7 @@ import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 
 function ImTeacherUpdateEmailPage() {
+    const illustrations = useMemoizedLazyIllustrations(['EmailAddress'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
@@ -29,7 +30,7 @@ function ImTeacherUpdateEmailPage() {
             <BlockingView
                 linkTranslationKey="notFound.goBackHome"
                 shouldEmbedLinkWithSubtitle
-                icon={Illustrations.EmailAddress}
+                icon={illustrations.EmailAddress}
                 title={translate('teachersUnitePage.updateYourEmail')}
                 CustomSubtitle={
                     <Text style={[styles.textAlignCenter]}>

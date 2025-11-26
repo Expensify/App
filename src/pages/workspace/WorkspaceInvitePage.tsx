@@ -140,14 +140,14 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
-        selectedOptions.forEach((option) => {
+        for (const option of selectedOptions) {
             const login = option.login ?? '';
             const accountID = option.accountID ?? CONST.DEFAULT_NUMBER_ID;
             if (!login.toLowerCase().trim() || !accountID) {
-                return;
+                continue;
             }
             invitedEmailsToAccountIDs[login] = Number(accountID);
-        });
+        }
         setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
     }, [route.params.policyID, selectedOptions]);
@@ -165,8 +165,18 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
-        return getHeaderMessage(searchOptions.personalDetails.length !== 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
-    }, [searchTerm, availableOptions.userToInvite, excludedUsers, countryCode, searchOptions.personalDetails.length, translate, policyName]);
+        return getHeaderMessage(searchOptions.personalDetails.length + selectedOptions.length !== 0, !!searchOptions.userToInvite, searchValue, countryCode, false);
+    }, [
+        searchTerm,
+        availableOptions.userToInvite,
+        excludedUsers,
+        countryCode,
+        searchOptions.personalDetails.length,
+        searchOptions.userToInvite,
+        selectedOptions.length,
+        translate,
+        policyName,
+    ]);
 
     const footerContent = useMemo(
         () => (
