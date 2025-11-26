@@ -8944,10 +8944,10 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
 
         return (
             !isInvoiceReport(potentialReport) &&
-            ViolationsUtils.hasVisibleViolationsForUser(potentialReport, transactionViolations, currentUserEmail ?? '', policy, transactions) &&
-            (hasViolations(potentialReport.reportID, transactionViolations, true, transactions, currentUserEmail, potentialReport, policy) ||
-                hasWarningTypeViolations(potentialReport.reportID, transactionViolations, true, transactions, currentUserEmail, potentialReport, policy) ||
-                hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, true, transactions, currentUserEmail, potentialReport, policy))
+            ViolationsUtils.hasVisibleViolationsForUser(potentialReport, transactionViolations, currentUserEmail ?? '', currentUserAccountID ?? 0, policy, transactions) &&
+            (hasViolations(potentialReport.reportID, transactionViolations, true, transactions, currentUserEmail, currentUserAccountID, potentialReport, policy) ||
+                hasWarningTypeViolations(potentialReport.reportID, transactionViolations, true, transactions, currentUserEmail, currentUserAccountID, potentialReport, policy) ||
+                hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, true, transactions, currentUserEmail, currentUserAccountID, potentialReport, policy))
         );
     });
 }
@@ -8958,14 +8958,15 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
 function hasViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
+    currentUserAccountID: number,
+    currentUserEmailParam?: string,
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
-    currentUserEmailParam?: string,
     report?: OnyxEntry<Report>,
     policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasViolation(transaction, transactionViolations, currentUserEmailParam ?? '', report, policy, shouldShowInReview));
+    return transactions.some((transaction) => hasViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountID, report, policy, shouldShowInReview));
 }
 
 /**
@@ -8974,14 +8975,15 @@ function hasViolations(
 function hasWarningTypeViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
+    currentUserAccountID: number,
+    currentUserEmailParam: string,
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
-    currentUserEmailParam?: string,
     report?: OnyxEntry<Report>,
     policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasWarningTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', report, policy, shouldShowInReview));
+    return transactions.some((transaction) => hasWarningTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountID, report, policy, shouldShowInReview));
 }
 
 /**

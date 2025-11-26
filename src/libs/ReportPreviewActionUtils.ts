@@ -75,7 +75,7 @@ function canApprove(
     // We should consider only visible violations for the approver, invisible violations should not block approval
     const reportTransactions = transactions.length ? transactions : getReportTransactions(report?.reportID);
     const hasAnyVisibleViolations =
-        hasMissingSmartscanFields(report.reportID, reportTransactions) || ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, policy, reportTransactions);
+        hasMissingSmartscanFields(report.reportID, reportTransactions) || ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, currentUserID, policy, reportTransactions);
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
@@ -186,11 +186,12 @@ function canReview(
     violations: OnyxCollection<TransactionViolation[]>,
     isReportArchived: boolean,
     currentUserEmail: string,
+    currentUserAccountID: number,
     policy: Policy | undefined,
     transactions: Transaction[],
 ) {
     const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations);
-    const hasVisibleViolations = hasAnyViolations && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, policy, transactions);
+    const hasVisibleViolations = hasAnyViolations && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, currentUserAccountID, policy, transactions);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenExpenseReport(report);
     const isReimbursed = isSettled(report);
@@ -207,8 +208,8 @@ function canReview(
 
     // We handle RTER violations independently because those are not configured via policy workflows
     const isAdmin = isPolicyAdmin(policy);
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, currentUserEmail, report, policy);
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, report, policy, violations, currentUserEmail);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, currentUserEmail, currentUserAccountID, report, policy);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, report, policy, violations, currentUserEmail, currentUserAccountID);
 
     if (hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isAdmin || isSubmitter) && !isReportApproved({report}) && !isReportManuallyReimbursed(report))) {
         return true;
@@ -226,6 +227,7 @@ function getReportPreviewAction(
     violations: OnyxCollection<TransactionViolation[]>,
     isReportArchived: boolean,
     currentUserEmail: string,
+    currentUserAccountID: number,
     report: Report | undefined,
     policy: Policy | undefined,
     transactions: Transaction[],
@@ -254,7 +256,7 @@ function getReportPreviewAction(
 
     // When strict policy rules are enabled and there are violations, show REVIEW button instead of SUBMIT
     const shouldBlockSubmit = shouldBlockSubmitDueToStrictPolicyRules(report.reportID, violations, areStrictPolicyRulesEnabled ?? false, transactions);
-    if (shouldBlockSubmit && canReview(report, violations, isReportArchived, currentUserEmail, policy, transactions)) {
+    if (shouldBlockSubmit && canReview(report, violations, isReportArchived, currentUserEmail, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 
@@ -270,7 +272,7 @@ function getReportPreviewAction(
     if (canExport(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
-    if (canReview(report, violations, isReportArchived, currentUserEmail, policy, transactions)) {
+    if (canReview(report, violations, isReportArchived, currentUserEmail, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 

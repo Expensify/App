@@ -326,11 +326,11 @@ function MoneyReportHeader({
     // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
     // wrapped in useMemo to avoid unnecessary re-renders and for better performance (array operation inside of function)
     const hasAllPendingRTERViolations = useMemo(
-        () => allHavePendingRTERViolation(transactions, violations, email ?? '', moneyRequestReport, policy),
-        [transactions, violations, email, moneyRequestReport, policy],
+        () => allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, policy),
+        [transactions, violations, email, accountID, moneyRequestReport, policy],
     );
     // Check if user should see broken connection violation warning.
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '');
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '', accountID);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
@@ -419,7 +419,7 @@ function MoneyReportHeader({
 
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
 
-    const hasDuplicates = hasDuplicateTransactions(email ?? '', moneyRequestReport, policy);
+    const hasDuplicates = hasDuplicateTransactions(email ?? '', accountID, moneyRequestReport, policy);
     const shouldShowMarkAsResolved = isMarkAsResolvedAction(moneyRequestReport, transactionViolations);
     const shouldShowStatusBar =
         hasAllPendingRTERViolations ||
@@ -605,7 +605,7 @@ function MoneyReportHeader({
     };
 
     const getFirstDuplicateThreadID = (transactionsList: OnyxTypes.Transaction[], allReportActions: OnyxTypes.ReportAction[]) => {
-        const duplicateTransaction = transactionsList.find((reportTransaction) => isDuplicate(reportTransaction, email ?? '', moneyRequestReport, policy));
+        const duplicateTransaction = transactionsList.find((reportTransaction) => isDuplicate(reportTransaction, email ?? '',  accountID, moneyRequestReport, policy));
         if (!duplicateTransaction) {
             return null;
         }
@@ -641,6 +641,7 @@ function MoneyReportHeader({
     const primaryAction = useMemo(() => {
         return getReportPrimaryAction({
             currentUserEmail: currentUserLogin ?? '',
+            currentUserAccountID: accountID,
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
@@ -897,7 +898,7 @@ function MoneyReportHeader({
                 onPress={() => {
                     let threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
                     if (!threadID) {
-                        const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction, email ?? '', moneyRequestReport, policy));
+                        const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction, email ?? '', accountID, moneyRequestReport, policy));
                         const transactionID = duplicateTransaction?.transactionID;
                         const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
                         const createdTransactionThreadReport = createTransactionThreadReport(moneyRequestReport, iouAction);

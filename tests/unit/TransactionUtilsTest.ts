@@ -519,6 +519,7 @@ describe('TransactionUtils', () => {
                 policy,
                 transactionViolations,
                 CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
             );
 
             expect(showBrokenConnectionViolation).toBe(true);
@@ -810,7 +811,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When checking if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
 
                 // Then it should return true
                 expect(result).toBe(true);
@@ -824,7 +825,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When checking if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
 
                 // Then it should return false
                 expect(result).toBe(false);
@@ -844,7 +845,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When checking if violation is dismissed for current user
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
 
                 // Then it should return false since current user hasn't dismissed it
                 expect(result).toBe(false);
@@ -873,7 +874,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When current user (admin, not the owner) checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, iouReport, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
 
                 // Then it should return true because admin sees owner's perspective on open reports
                 expect(result).toBe(true);
@@ -900,7 +901,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When current user (admin, not the owner) checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, iouReport, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
 
                 // Then it should return false because on processing reports, admin must dismiss separately
                 expect(result).toBe(false);
@@ -927,7 +928,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When current user (the submitter) checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, iouReport, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
 
                 // Then it should return false (condition 2 doesn't apply to submitters)
                 expect(result).toBe(false);
@@ -956,7 +957,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
 
                 // When current user checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, policy);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
 
                 // Then it should return true because on instant submit, anyone's dismissal counts
                 expect(result).toBe(true);
@@ -983,7 +984,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
 
                 // When current user checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, policy);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
 
                 // Then it should return false because on non-instant submit, each person must dismiss separately
                 expect(result).toBe(false);
@@ -1010,7 +1011,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
 
                 // When current user checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, policy);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
 
                 // Then it should return false because condition 3 only applies to RTER violations
                 expect(result).toBe(false);
@@ -1038,7 +1039,7 @@ describe('TransactionUtils', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
 
                 // When current user checks if violation is dismissed
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, policy);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
 
                 // Then it should return true
                 expect(result).toBe(true);
@@ -1048,13 +1049,13 @@ describe('TransactionUtils', () => {
         describe('Edge cases and data validation', () => {
             it('should return false when transaction is null', () => {
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
-                const result = TransactionUtils.isViolationDismissed(undefined, violation, CURRENT_USER_EMAIL, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(undefined, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
                 expect(result).toBe(false);
             });
 
             it('should return false when violation is null', () => {
                 const transaction = generateTransaction({});
-                const result = TransactionUtils.isViolationDismissed(transaction, undefined, CURRENT_USER_EMAIL, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, undefined, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
                 expect(result).toBe(false);
             });
 
@@ -1069,7 +1070,7 @@ describe('TransactionUtils', () => {
                     },
                 });
                 const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
-                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, undefined);
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
                 expect(result).toBe(false);
             });
         });

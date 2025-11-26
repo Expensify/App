@@ -136,14 +136,6 @@ Onyx.connect({
     callback: (value) => (allTransactionViolations = value),
 });
 
-let deprecatedCurrentUserAccountID = -1;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        deprecatedCurrentUserAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
 function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction>): boolean {
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
@@ -1098,6 +1090,7 @@ function getTransactionViolations(
     transaction: OnyxEntry<Transaction | SearchTransaction>,
     transactionViolations: OnyxCollection<TransactionViolations>,
     currentUserEmail: string,
+    currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
 ): TransactionViolations | undefined {
@@ -1106,7 +1099,7 @@ function getTransactionViolations(
     }
 
     return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.filter(
-        (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, iouReport, policy),
+        (violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
     );
 }
 
@@ -1135,10 +1128,11 @@ function hasBrokenConnectionViolation(
     transaction: Transaction | SearchTransaction,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
+    currentUserAccountID: number,
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
 ): boolean {
-    const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, report, policy);
+    const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy);
     return !!violations?.find((violation) => isBrokenConnectionViolation(violation));
 }
 
@@ -1186,6 +1180,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
     policy: OnyxEntry<Policy>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentUserEmail: string,
+    currentUserAccountID: number,
 ): boolean {
     const brokenConnectionViolations = transactions.flatMap((transaction) => {
         const violations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
@@ -1199,7 +1194,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
                 return false;
             }
 
-            if (isViolationDismissed(transaction, violation, currentUserEmail, report, policy)) {
+            if (isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy)) {
                 return false;
             }
 
@@ -1274,6 +1269,7 @@ function allHavePendingRTERViolation(
     transactions: OnyxEntry<Transaction[] | SearchTransaction[]>,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
+    currentUserAccountID: number,
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
 ): boolean {
@@ -1283,7 +1279,7 @@ function allHavePendingRTERViolation(
 
     const transactionsWithRTERViolations = transactions.map((transaction) => {
         // Get violations not dismissed by current user
-        const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, report, policy)?.filter((violation) =>
+        const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy)?.filter((violation) =>
             // Further filter to only violations visible to the current user
             shouldShowViolation(report, policy, violation.name, currentUserEmail),
         );
@@ -1308,13 +1304,14 @@ function hasAnyTransactionWithoutRTERViolation(
     transactions: Transaction[] | SearchTransaction[],
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
+    currentUserAccountID: number,
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
 ): boolean {
     return (
         transactions.length > 0 &&
         transactions.some((transaction) => {
-            return !hasBrokenConnectionViolation(transaction, transactionViolations, currentUserEmail, report, policy);
+            return !hasBrokenConnectionViolation(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy);
         })
     );
 }
@@ -1404,7 +1401,7 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * Check if transaction has duplicatedTransaction violation.
  * @param transactionID - the transaction to check
  */
-function isDuplicate(transaction: OnyxEntry<Transaction>, currentUserEmail: string, iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function isDuplicate(transaction: OnyxEntry<Transaction>, currentUserEmail: string, currentUserAccountID: number, iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     if (!transaction) {
         return false;
     }
@@ -1412,7 +1409,7 @@ function isDuplicate(transaction: OnyxEntry<Transaction>, currentUserEmail: stri
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
     const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
-    const isDuplicatedTransactionViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, currentUserEmail, iouReport, policy);
+    const isDuplicatedTransactionViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, currentUserEmail, currentUserAccountID, iouReport, policy);
 
     return hasDuplicatedTransactionViolation && !isDuplicatedTransactionViolationDismissed;
 }
@@ -1435,6 +1432,7 @@ function isViolationDismissed(
     transaction: OnyxEntry<Transaction>,
     violation: TransactionViolation | undefined,
     currentUserEmail: string,
+    currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
 ): boolean {
@@ -1464,7 +1462,6 @@ function isViolationDismissed(
         return false;
     }
 
-    const currentUserAccountID = deprecatedCurrentUserAccountID;
     const isSubmitter = iouReport.ownerAccountID === currentUserAccountID;
     const shouldViewAsSubmitter = !isSubmitter && isOpenExpenseReport(iouReport);
 
@@ -1495,6 +1492,7 @@ function hasViolation(
     transaction: Transaction | undefined,
     transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]>,
     currentUserEmail: string,
+    currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     showInReview?: boolean,
@@ -1508,12 +1506,13 @@ function hasViolation(
         (violation) =>
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation, currentUserEmail, iouReport, policy),
+            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
     );
 }
 
 function hasDuplicateTransactions(
     currentUserEmail: string,
+    currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1522,7 +1521,7 @@ function hasDuplicateTransactions(
     const transactionsByIouReportID = getReportTransactions(iouReport?.reportID);
     const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
 
-    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail, iouReport, policy));
+    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail, currentUserAccountID, iouReport, policy));
 }
 
 /**
@@ -1532,6 +1531,7 @@ function hasNoticeTypeViolation(
     transaction: OnyxEntry<Transaction>,
     transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]>,
     currentUserEmail: string,
+    currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     showInReview?: boolean,
@@ -1545,7 +1545,7 @@ function hasNoticeTypeViolation(
         (violation: TransactionViolation) =>
             violation.type === CONST.VIOLATION_TYPES.NOTICE &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-            !isViolationDismissed(transaction, violation, currentUserEmail, iouReport, policy),
+            !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
     );
 }
 
@@ -1556,6 +1556,7 @@ function hasWarningTypeViolation(
     transaction: OnyxEntry<Transaction>,
     transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]>,
     currentUserEmail: string,
+    currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     showInReview?: boolean,
@@ -1570,7 +1571,7 @@ function hasWarningTypeViolation(
             (violation: TransactionViolation) =>
                 violation.type === CONST.VIOLATION_TYPES.WARNING &&
                 (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
-                !isViolationDismissed(transaction, violation, currentUserEmail, iouReport, policy),
+                !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, policy),
         ) ?? [];
 
     return warningTypeViolations.length > 0;

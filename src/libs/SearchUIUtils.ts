@@ -935,6 +935,7 @@ function getTransactionViolations(
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     transaction: SearchTransaction,
     currentUserEmail: string,
+    currentUserAccountID: number,
     report: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
 ): OnyxTypes.TransactionViolation[] {
@@ -942,7 +943,7 @@ function getTransactionViolations(
     if (!transactionViolations) {
         return [];
     }
-    return transactionViolations.filter((violation) => !isViolationDismissed(transaction, violation, currentUserEmail, report, policy));
+    return transactionViolations.filter((violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy));
 }
 
 /**
