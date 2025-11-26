@@ -144,6 +144,7 @@ function IOURequestStepScan({
         canBeMissing: true,
     });
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const transactions = useMemo(() => {
         const allTransactions = optimisticTransactions && optimisticTransactions.length > 1 ? optimisticTransactions : [initialTransaction];
         return allTransactions.filter((transaction): transaction is Transaction => !!transaction);
@@ -361,11 +362,24 @@ function IOURequestStepScan({
                         backToReport,
                         shouldGenerateTransactionThreadReport,
                         isASAPSubmitBetaEnabled,
+                        currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                        currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                        transactionViolations,
                     });
                 }
             });
         },
-        [transactions, iouType, report, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, backToReport, shouldGenerateTransactionThreadReport, isASAPSubmitBetaEnabled],
+        [
+            transactions,
+            iouType,
+            report,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            backToReport,
+            shouldGenerateTransactionThreadReport,
+            isASAPSubmitBetaEnabled,
+            transactionViolations,
+        ],
     );
 
     const navigateToConfirmationStep = useCallback(
