@@ -210,7 +210,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const continueDeleteWorkspace = useCallback(() => {
         setIsDeleteModalOpen(true);
     }, []);
-    const shouldActOnDeleteModalHideRef = useRef(false);
 
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
         usePayAndDowngrade(continueDeleteWorkspace);
