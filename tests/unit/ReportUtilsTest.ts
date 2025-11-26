@@ -1127,7 +1127,7 @@ describe('ReportUtils', () => {
             });
         });
 
-        it('should return "resolved the duplicate" for resolved duplicate system message', () => {
+        it('should return "resolved the duplicate" report name for resolved duplicate system message', () => {
             const chatReport = createRandomReport(123, undefined);
             const resolvedDuplicateAction: ReportAction = {
                 ...createRandomReportAction(Number(chatReport.reportID)),
