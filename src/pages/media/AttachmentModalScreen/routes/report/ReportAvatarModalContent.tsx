@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
 import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserAvatarUtils';
@@ -10,6 +11,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.REPORT_AVATAR>) {
+    const defaultAvatars = useDefaultAvatars();
+
     const {reportID, policyID} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
@@ -19,34 +22,34 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
     const attachment: AttachmentModalBaseContentProps = useMemo(() => {
         if (isGroupChat(report) && !isThread(report)) {
             return {
-                source: report?.avatarUrl ? getFullSizeAvatar({avatarSource: report.avatarUrl}) : getDefaultGroupAvatar(report?.reportID),
+                source: report?.avatarUrl ? getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}) : getDefaultGroupAvatar(report?.reportID),
                 headerTitle: getReportName(report),
                 isWorkspaceAvatar: false,
             };
         }
         if (isUserCreatedPolicyRoom(report) && report?.avatarUrl) {
             return {
-                source: getFullSizeAvatar({avatarSource: report.avatarUrl}),
+                source: getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}),
                 headerTitle: getReportName(report),
                 isWorkspaceAvatar: false,
             };
         }
         if (isUserCreatedPolicyRoom(report) && report?.avatarUrl) {
             return {
-                source: getFullSizeAvatar({avatarSource: report.avatarUrl}),
+                source: getFullSizeAvatar({avatarSource: report.avatarUrl, defaultAvatars}),
                 headerTitle: getReportName(report),
                 isWorkspaceAvatar: false,
             };
         }
 
         return {
-            source: getFullSizeAvatar({avatarSource: getWorkspaceIcon(report, policy).source}),
+            source: getFullSizeAvatar({avatarSource: getWorkspaceIcon(report, policy).source, defaultAvatars}),
             headerTitle: getPolicyName({report, policy}),
             // In the case of default workspace avatar, originalFileName prop takes policyID as value to get the color of the avatar
             originalFileName: policy?.originalFileName ?? policy?.id ?? report?.policyID,
             isWorkspaceAvatar: true,
         };
-    }, [policy, report]);
+    }, [policy, report, defaultAvatars]);
 
     const onDownloadAttachment = useDownloadAttachment();
 

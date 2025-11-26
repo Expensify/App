@@ -3,11 +3,11 @@ import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import SignInGradient from '@assets/images/home-fade-gradient--mobile.svg';
 import Hoverable from '@components/Hoverable';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
 import type {LinkProps, PressProps} from '@components/TextLink';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -148,6 +148,7 @@ function Footer({navigateFocus}: FooterProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyFooterLogo', 'ExpensifyFooterLogoVertical'] as const);
     const isVertical = shouldUseNarrowLayout;
     const imageDirection = isVertical ? styles.flexRow : styles.flexColumn;
     const imageStyle = isVertical ? styles.pr0 : styles.alignSelfCenter;
@@ -216,10 +217,10 @@ function Footer({navigateFocus}: FooterProps) {
                     </View>
                     <View style={[!isVertical && styles.footerBottomLogo]}>
                         {!isVertical ? (
-                            <ImageSVG src={Expensicons.ExpensifyFooterLogo} />
+                            <ImageSVG src={icons.ExpensifyFooterLogo} />
                         ) : (
                             <ImageSVG
-                                src={Expensicons.ExpensifyFooterLogoVertical}
+                                src={icons.ExpensifyFooterLogoVertical}
                                 height={variables.verticalLogoHeight}
                                 width={variables.verticalLogoWidth}
                             />
