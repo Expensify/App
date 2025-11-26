@@ -226,6 +226,7 @@ function MoneyReportHeader({
         'Info',
         'Export',
         'Document',
+        'Feed',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
@@ -1141,6 +1142,17 @@ function MoneyReportHeader({
                     return;
                 }
                 Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER.getRoute(moneyRequestReport.reportID, Navigation.getActiveRoute()));
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT]: {
+            text: translate('reportLayout.reportLayout'),
+            icon: expensifyIcons.Feed,
+            value: CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT,
+            onSelected: () => {
+                if (!moneyRequestReport) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.REPORT_SETTINGS_REPORT_LAYOUT.getRoute(moneyRequestReport.reportID));
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DELETE]: {
