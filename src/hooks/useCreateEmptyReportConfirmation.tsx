@@ -5,11 +5,11 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import ConfirmModal from '@components/ConfirmModal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useThemeStyles from './useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import useThemeStyles from './useThemeStyles';
 import useLocalize from './useLocalize';
 
 type UseCreateEmptyReportConfirmationParams = {
