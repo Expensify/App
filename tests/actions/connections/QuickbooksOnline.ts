@@ -2,12 +2,12 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-syntax
 import * as API from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
 // eslint-disable-next-line no-restricted-syntax
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import * as QuickbooksOnline from '@src/libs/actions/connections/QuickbooksOnline';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxData} from '@src/types/onyx/Request';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
