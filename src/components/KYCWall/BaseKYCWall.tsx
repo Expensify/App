@@ -10,6 +10,7 @@ import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actio
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 import {getBankAccountRoute, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
@@ -123,19 +124,27 @@ function KYCWall({
                     if (adminPolicy) {
                         const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport?.reportID, adminPolicy, formatPhoneNumber);
                         if (inviteResult?.policyExpenseChatReportID) {
-                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(inviteResult.policyExpenseChatReportID));
+                            setNavigationActionToMicrotaskQueue(() => {
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(inviteResult.policyExpenseChatReportID));
+                                if (adminPolicy?.achAccount) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(adminPolicy.id));
+                            });
                         } else {
                             const moveResult = moveIOUReportToPolicy(iouReport?.reportID, adminPolicy, true);
                             savePreferredPaymentMethod(iouReport.policyID, adminPolicy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[adminPolicy.id]);
+
                             if (moveResult?.policyExpenseChatReportID && !moveResult.useTemporaryOptimisticExpenseChatReportID) {
-                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(moveResult.policyExpenseChatReportID));
+                                setNavigationActionToMicrotaskQueue(() => {
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(moveResult.policyExpenseChatReportID));
+                                    if (adminPolicy?.achAccount) {
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(adminPolicy.id));
+                                });
                             }
                         }
-
-                        if (adminPolicy?.achAccount) {
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(adminPolicy.id));
                         return;
                     }
 
@@ -188,15 +197,14 @@ function KYCWall({
 
             const isExpenseReport = isExpenseReportReportUtils(iouReport);
             const paymentCardList = fundList ?? {};
+            const hasValidPaymentMethod = hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard);
+            const isFromWalletPage = source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET || source === CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE;
 
             // Check to see if user has a valid payment method on file and display the add payment popover if they don't
-            if (
-                (isExpenseReport && reimbursementAccount?.achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) ||
-                (!isExpenseReport && bankAccountList !== null && !hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard))
-            ) {
+            if ((isExpenseReport && reimbursementAccount?.achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) || (!isExpenseReport && bankAccountList !== null && !hasValidPaymentMethod)) {
                 Log.info('[KYC Wallet] User does not have valid payment method');
 
-                if (!shouldIncludeDebitCard) {
+                if (!shouldIncludeDebitCard || (isFromWalletPage && !hasValidPaymentMethod)) {
                     selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                     return;
                 }

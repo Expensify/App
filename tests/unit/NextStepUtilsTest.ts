@@ -1,9 +1,11 @@
 import Onyx from 'react-native-onyx';
-import {buildNextStep} from '@libs/NextStepUtils';
+// TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+import {buildNextStep, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -33,7 +35,7 @@ describe('libs/NextStepUtils', () => {
             isPolicyExpenseChatEnabled: true,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
         };
-        const optimisticNextStep: ReportNextStep = {
+        const optimisticNextStep: ReportNextStepDeprecated = {
             type: 'neutral',
             icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
             message: [],
@@ -104,7 +106,8 @@ describe('libs/NextStepUtils', () => {
                         text: ' %expenses.',
                     },
                 ];
-
+                // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStep(emptyReport, CONST.REPORT.STATUS_NUM.OPEN);
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -130,7 +133,8 @@ describe('libs/NextStepUtils', () => {
                         text: 'fix the issues',
                     },
                 ];
-
+                // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, true);
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -158,7 +162,8 @@ describe('libs/NextStepUtils', () => {
                         text: ' %expenses.',
                     },
                 ];
-
+                // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -200,6 +205,8 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
+                        // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
@@ -235,6 +242,8 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
+                        // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
@@ -270,6 +279,8 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
+                        // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
@@ -306,6 +317,8 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
+                        // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
@@ -342,6 +355,8 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
+                        // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
                         expect(result).toMatchObject(optimisticNextStep);
                     });
@@ -377,6 +392,8 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
+                        // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
@@ -412,6 +429,8 @@ describe('libs/NextStepUtils', () => {
                             enabled: true,
                         },
                     }).then(() => {
+                        // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
@@ -445,6 +464,8 @@ describe('libs/NextStepUtils', () => {
                             enabled: false,
                         },
                     }).then(() => {
+                        // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
                         expect(result).toMatchObject(optimisticNextStep);
@@ -457,25 +478,27 @@ describe('libs/NextStepUtils', () => {
             test('self review', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for an admin to set up a bank account
+                // Waiting for you to pay expense(s)
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
                     },
                     {
-                        text: `an admin`,
+                        text: `you`,
+                        type: 'strong',
                     },
                     {
                         text: ' to ',
                     },
                     {
-                        text: 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ];
-
+                // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -484,13 +507,14 @@ describe('libs/NextStepUtils', () => {
             test('self review with bank account setup', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for an admin to pay expense(s)
+                // Waiting for you to pay expense(s)
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
                     },
                     {
-                        text: `an admin`,
+                        text: `you`,
+                        type: 'strong',
                     },
                     {
                         text: ' to ',
@@ -508,6 +532,8 @@ describe('libs/NextStepUtils', () => {
                         accountNumber: '123456789',
                     },
                 }).then(() => {
+                    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -550,6 +576,8 @@ describe('libs/NextStepUtils', () => {
                         },
                     },
                 }).then(() => {
+                    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -587,7 +615,9 @@ describe('libs/NextStepUtils', () => {
                         },
                     },
                 }).then(() => {
-                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+                    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED, undefined, true, undefined);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -604,6 +634,8 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 }).then(() => {
+                    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.CLOSED);
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -636,6 +668,8 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 }).then(() => {
+                    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -668,6 +702,8 @@ describe('libs/NextStepUtils', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 }).then(() => {
+                    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -687,6 +723,8 @@ describe('libs/NextStepUtils', () => {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
                     role: 'user',
                 }).then(() => {
+                    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -696,29 +734,30 @@ describe('libs/NextStepUtils', () => {
             test('payer', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for an admin to set up a bank account
+                // Waiting for an admin (you) to pay expense(s)
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
                     },
                     {
-                        text: 'an admin',
+                        text: 'you',
                     },
                     {
                         text: ' to ',
                     },
                     {
-                        text: 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ];
                 // mock the report as approved
                 const originalState = {stateNum: report.stateNum, statusNum: report.statusNum};
                 report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
                 report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
-
+                // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                 expect(result).toMatchObject(optimisticNextStep);
@@ -731,13 +770,14 @@ describe('libs/NextStepUtils', () => {
             test('payer with bank account setup', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for an admin to pay expense(s)
+                // Waiting for you to pay expense(s)
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
                     },
                     {
-                        text: 'an admin',
+                        text: 'you',
+                        type: 'strong',
                     },
                     {
                         text: ' to ',
@@ -755,6 +795,8 @@ describe('libs/NextStepUtils', () => {
                         accountNumber: '123456789',
                     },
                 }).then(() => {
+                    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -769,11 +811,28 @@ describe('libs/NextStepUtils', () => {
                             text: 'No further action required!',
                         },
                     ];
-
+                    // TODO: Replace onyx.connect with useOnyx hook (https://github.com/Expensify/App/issues/66365)
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
+            });
+        });
+    });
+
+    describe('buildOptimisticNextStepForStrictPolicyRuleViolations', () => {
+        test('returns correct next step message for strict policy rule violations', () => {
+            const result = buildOptimisticNextStepForStrictPolicyRuleViolations();
+
+            expect(result).toEqual({
+                type: 'alert',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                message: [
+                    {
+                        text: 'Waiting for you to fix the issues. Your admins have restricted submission of expenses with violations.',
+                    },
+                ],
             });
         });
     });

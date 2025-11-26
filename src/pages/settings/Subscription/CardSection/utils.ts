@@ -1,7 +1,6 @@
 import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -29,14 +28,27 @@ type GetBillingStatusProps = {
     stripeCustomerId: OnyxEntry<StripeCustomerID>;
     accountData?: AccountData;
     purchase?: Purchase;
+    retryBillingSuccessful: OnyxEntry<boolean>;
+    billingDisputePending: number | undefined;
+    retryBillingFailed: boolean | undefined;
+    creditCardEyesIcon?: IconAsset;
 };
 
-function getBillingStatus({translate, stripeCustomerId, accountData, purchase}: GetBillingStatusProps): BillingStatusResult | undefined {
+function getBillingStatus({
+    translate,
+    stripeCustomerId,
+    accountData,
+    purchase,
+    retryBillingSuccessful,
+    billingDisputePending,
+    retryBillingFailed,
+    creditCardEyesIcon,
+}: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
 
     const amountOwed = getAmountOwed();
 
-    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId);
+    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed);
 
     const endDate = getOverdueGracePeriodDate();
 
@@ -129,7 +141,7 @@ function getBillingStatus({translate, stripeCustomerId, accountData, purchase}: 
                 title: translate('subscription.billingBanner.cardExpireSoon.title'),
                 subtitle: translate('subscription.billingBanner.cardExpireSoon.subtitle'),
                 isError: false,
-                icon: Illustrations.CreditCardEyes,
+                icon: creditCardEyesIcon,
             };
 
         case PAYMENT_STATUS.RETRY_BILLING_SUCCESS:

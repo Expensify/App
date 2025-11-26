@@ -4,13 +4,14 @@ import type {ReactElement} from 'react';
 import React, {useCallback, useEffect, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanupTravelProvisioningSession, requestTravelAccess} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession, requestTravelAccess, setTravelProvisioningNextStep} from '@libs/actions/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
@@ -23,7 +24,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
-import {RocketDude} from './Icon/Illustrations';
 import RenderHTML from './RenderHTML';
 
 type BookTravelButtonProps = {
@@ -49,6 +49,7 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
 function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, setShouldScrollToBottom}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['RocketDude'] as const);
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const phoneErrorMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute())}`;
@@ -128,6 +129,14 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         // - Public domains are not allowed; an error page is shown in that case.
         else if (adminDomains.length === 1) {
             const domain = adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+            // Always validate OTP first before proceeding to address details or terms acceptance
+            if (!isUserValidated) {
+                // Determine where to redirect after OTP validation
+                const nextStep = isEmptyObject(policy?.address) ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()) : ROUTES.TRAVEL_TCS.getRoute(domain);
+                setTravelProvisioningNextStep(nextStep);
+                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
+                return;
+            }
             if (isEmptyObject(policy?.address)) {
                 // Spotnana requires an address anytime an entity is created for a policy
                 Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()));
@@ -181,7 +190,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
                 titleContainerStyles={styles.mb2}
                 onConfirm={hidePreventionModal}
                 onCancel={hidePreventionModal}
-                image={RocketDude}
+                image={illustrations.RocketDude}
                 imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
                 isVisible={isPreventionModalVisible}
                 prompt={translate('travel.blockedFeatureModal.message')}
@@ -195,7 +204,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
                 titleContainerStyles={styles.mb2}
                 onConfirm={hideVerificationModal}
                 onCancel={hideVerificationModal}
-                image={RocketDude}
+                image={illustrations.RocketDude}
                 imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
                 isVisible={isVerificationModalVisible}
                 prompt={translate('travel.verifyCompany.message')}

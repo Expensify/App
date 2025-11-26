@@ -158,7 +158,7 @@ describe('TransactionItemRowRBR', () => {
             },
         ];
         const mockReport = {
-            ...createRandomReport(1),
+            ...createRandomReport(1, undefined),
             pendingAction: null,
             type: CONST.REPORT.TYPE.EXPENSE,
         };
@@ -182,7 +182,7 @@ describe('TransactionItemRowRBR', () => {
     it('should display RBR message for transaction with missing merchant error', async () => {
         // Given a transaction with a missing merchant error
         const mockReport = {
-            ...createRandomReport(1),
+            ...createRandomReport(1, undefined),
             pendingAction: null,
             type: CONST.REPORT.TYPE.EXPENSE,
         };
@@ -269,7 +269,7 @@ describe('TransactionItemRowRBR', () => {
             },
         ];
         const mockReport = {
-            ...createRandomReport(1),
+            ...createRandomReport(1, undefined),
             pendingAction: null,
             type: CONST.REPORT.TYPE.EXPENSE,
         };

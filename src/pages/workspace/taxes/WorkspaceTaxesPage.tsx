@@ -6,6 +6,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,7 +18,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -40,7 +41,7 @@ import {
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import StringUtils from '@libs/StringUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -81,6 +82,7 @@ function WorkspaceTaxesPage({
 
     const enabledRatesCount = selectedTaxesIDs.filter((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled).length;
     const disabledRatesCount = selectedTaxesIDs.length - enabledRatesCount;
+    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Coins'] as const);
 
     const fetchTaxes = useCallback(() => {
@@ -181,10 +183,8 @@ function WorkspaceTaxesPage({
     }, [policy, textForDefault, translate, updateWorkspaceTaxEnabled]);
 
     const filterTax = useCallback((tax: ListItem, searchInput: string) => {
-        const taxName = StringUtils.normalize(tax.text?.toLowerCase() ?? '');
-        const taxAlternateText = StringUtils.normalize(tax.alternateText?.toLowerCase() ?? '');
-        const normalizedSearchInput = StringUtils.normalize(searchInput.toLowerCase() ?? '');
-        return taxName.includes(normalizedSearchInput) || taxAlternateText.includes(normalizedSearchInput);
+        const results = tokenizedSearch([tax], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
+        return results.length > 0;
     }, []);
     const sortTaxes = useCallback(
         (taxes: ListItem[]) => {
@@ -314,13 +314,13 @@ function WorkspaceTaxesPage({
     const secondaryActions = useMemo(
         () => [
             {
-                icon: Expensicons.Gear,
+                icon: icons.Gear,
                 text: translate('common.settings'),
                 onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID)),
                 value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
             },
         ],
-        [policyID, translate],
+        [icons.Gear, policyID, translate],
     );
 
     const headerButtons = !shouldShowBulkActionsButton ? (

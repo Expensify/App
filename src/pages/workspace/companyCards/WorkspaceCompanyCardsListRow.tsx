@@ -7,7 +7,7 @@ import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getDefaultAvatarURL} from '@libs/UserUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 
@@ -20,9 +20,12 @@ type WorkspaceCompanyCardsListRowProps = {
 
     /** Cardholder personal details */
     cardholder?: PersonalDetails | null;
+
+    /** Whether the list item is hovered */
+    isHovered?: boolean;
 };
 
-function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber}: WorkspaceCompanyCardsListRowProps) {
+function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber, isHovered}: WorkspaceCompanyCardsListRowProps) {
     const styles = useThemeStyles();
     const cardholderName = useMemo(() => getDisplayNameOrDefault(cardholder), [cardholder]);
     const theme = useTheme();
@@ -30,7 +33,12 @@ function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber}: WorkspaceC
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.br3, styles.p4]}>
             <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex3]}>
                 <Avatar
-                    source={cardholder?.avatar ?? getDefaultAvatarURL(cardholder?.accountID)}
+                    source={
+                        cardholder?.avatar ??
+                        getDefaultAvatarURL({
+                            accountID: cardholder?.accountID,
+                        })
+                    }
                     avatarID={cardholder?.accountID}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -62,7 +70,7 @@ function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber}: WorkspaceC
                 <Icon
                     src={Expensicons.ArrowRight}
                     fill={theme.icon}
-                    additionalStyles={[styles.alignSelfCenter]}
+                    additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
                     medium
                     isButtonIcon
                 />

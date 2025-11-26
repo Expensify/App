@@ -21,6 +21,7 @@ import {
     isSelfDM,
     isTaskReport,
     isThread,
+    isUserCreatedPolicyRoom,
     isWorkspaceTaskReport,
     isWorkspaceThread,
 } from '@libs/ReportUtils';
@@ -213,6 +214,25 @@ describe('getIcons', () => {
         const icons = getIcons(report, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
         expect(icons).toHaveLength(1);
         expect(icons.at(0)?.name).toBe('Workspace-Test-001');
+    });
+
+    it('should return the correct icons for a user created policy room', () => {
+        const report: Report = {
+            ...LHNTestUtils.getFakeReport([], 0, true),
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            policyID: '1',
+            avatarUrl: 'https://example.com/avatar.png',
+        };
+        const policy = LHNTestUtils.getFakePolicy('1');
+
+        // Verify report type conditions
+        expect(isUserCreatedPolicyRoom(report)).toBe(true);
+        expect(isChatReport(report)).toBe(true);
+
+        const icons = getIcons(report, FAKE_PERSONAL_DETAILS, null, '', -1, policy);
+        expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
+        expect(icons.at(0)?.source).toBe('https://example.com/avatar.png');
     });
 
     it('should return the correct icons for a policy expense chat', () => {

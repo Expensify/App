@@ -159,6 +159,7 @@ function AccountValidatePage() {
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
             testID={AccountValidatePage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
@@ -196,7 +197,7 @@ function AccountValidatePage() {
                     validateError={validateCodeError}
                     hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeResent}
                     submitButtonText={translate('mergeAccountsPage.mergeAccount')}
-                    forwardedRef={validateCodeFormRef}
+                    ref={validateCodeFormRef}
                     isLoading={mergeWithValidateCode?.isLoading}
                 />
             </ScrollView>

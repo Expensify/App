@@ -52,6 +52,7 @@ const WRITE_COMMANDS = {
     CHRONOS_REMOVE_OOO_EVENT: 'Chronos_RemoveOOOEvent',
     MAKE_DEFAULT_PAYMENT_METHOD: 'MakeDefaultPaymentMethod',
     TOGGLE_WORKSPACE_UBER_AUTO_INVITE: 'ToggleWorkspaceUberAutoInvite',
+    SET_WORKSPACE_UBER_CENTRAL_BILL: 'SetWorkspaceUberCentralBill',
     TOGGLE_WORKSPACE_UBER_AUTO_REMOVE: 'ToggleWorkspaceUberAutoRemove',
     ADD_PAYMENT_CARD: 'AddPaymentCard',
     ADD_PAYMENT_CARD_SCA: 'AddPaymentCardSCA',
@@ -70,6 +71,7 @@ const WRITE_COMMANDS = {
     UPDATE_SELECTED_TIMEZONE: 'UpdateSelectedTimezone',
     UPDATE_USER_AVATAR: 'UpdateUserAvatar',
     UPDATE_GROUP_CHAT_AVATAR: 'UpdateGroupChatAvatar',
+    UPDATE_ROOM_AVATAR: 'UpdateRoomAvatar',
     DELETE_USER_AVATAR: 'DeleteUserAvatar',
     REFER_TEACHERS_UNITE_VOLUNTEER: 'ReferTeachersUniteVolunteer',
     ADD_SCHOOL_PRINCIPAL: 'AddSchoolPrincipal',
@@ -161,7 +163,8 @@ const WRITE_COMMANDS = {
     EXPORT_CATEGORIES_CSV: 'ExportCategoriesCSV',
     EXPORT_MEMBERS_CSV: 'ExportMembersCSV',
     EXPORT_TAGS_CSV: 'ExportSingleLevelTagsCSV',
-    EXPORT_MULTI_LEVEL_TAGS_CSV: 'ExportMultiLevelTagsCSV',
+    EXPORT_MULTI_LEVEL_INDEPENDENT_TAGS_CSV: 'ExportMultiLevelTagsCSV',
+    EXPORT_MULTI_LEVEL_DEPENDENT_TAGS_CSV: 'ExportDependentTags',
     EXPORT_PER_DIEM_CSV: 'ExportPerDiemCSV',
     EXPORT_REPORT_TO_CSV: 'ExportReportToCSV',
     MOVE_IOU_REPORT_TO_EXISTING_POLICY: 'MoveIOUReportToExistingPolicy',
@@ -215,6 +218,7 @@ const WRITE_COMMANDS = {
     SPLIT_BILL_AND_OPEN_REPORT: 'SplitBillAndOpenReport',
     UPDATE_SPLIT_TRANSACTION: 'UpdateSplitTransaction',
     SPLIT_TRANSACTION: 'Transaction_Split',
+    REVERT_SPLIT_TRANSACTION: 'RevertSplitTransaction',
     DELETE_MONEY_REQUEST: 'DeleteMoneyRequest',
     REJECT_MONEY_REQUEST: 'RejectMoneyRequest',
     MARK_TRANSACTION_VIOLATION_AS_RESOLVED: 'MarkTransactionViolationAsResolved',
@@ -513,6 +517,7 @@ const WRITE_COMMANDS = {
     ADD_REPORT_APPROVER: 'AddReportApprover',
     REQUEST_UNLOCK_ACCOUNT: 'RequestUnlockAccount',
     SEND_SCHEDULE_CALL_NUDGE: 'SendScheduleCallNudge',
+    VALIDATE_DOMAIN: 'ValidateDomain',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -543,6 +548,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CARD_DEACTIVATE]: Parameters.CardDeactivateParams;
     [WRITE_COMMANDS.MAKE_DEFAULT_PAYMENT_METHOD]: Parameters.MakeDefaultPaymentMethodParams;
     [WRITE_COMMANDS.TOGGLE_WORKSPACE_UBER_AUTO_INVITE]: Parameters.TogglePolicyUberAutoInvitePageParams;
+    [WRITE_COMMANDS.SET_WORKSPACE_UBER_CENTRAL_BILL]: Parameters.ChangePolicyUberBillingAccountPageParams;
     [WRITE_COMMANDS.TOGGLE_WORKSPACE_UBER_AUTO_REMOVE]: Parameters.TogglePolicyUberAutoRemovePageParams;
     [WRITE_COMMANDS.ADD_PAYMENT_CARD]: Parameters.AddPaymentCardParams;
     [WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA]: Parameters.AddPaymentCardParams;
@@ -629,6 +635,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.INVITE_TO_ROOM]: Parameters.InviteToRoomParams;
     [WRITE_COMMANDS.INVITE_TO_GROUP_CHAT]: Parameters.InviteToGroupChatParams;
     [WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR]: Parameters.UpdateGroupChatAvatarParams;
+    [WRITE_COMMANDS.UPDATE_ROOM_AVATAR]: Parameters.UpdateRoomAvatarParams;
     [WRITE_COMMANDS.PUSHER_PING]: Parameters.PusherPingParams;
     [WRITE_COMMANDS.LEAVE_GROUP_CHAT]: Parameters.LeaveGroupChatParams;
     [WRITE_COMMANDS.REMOVE_FROM_GROUP_CHAT]: Parameters.RemoveFromGroupChatParams;
@@ -664,7 +671,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.EXPORT_CATEGORIES_CSV]: Parameters.ExportCategoriesSpreadsheetParams;
     [WRITE_COMMANDS.EXPORT_MEMBERS_CSV]: Parameters.ExportMembersSpreadsheetParams;
     [WRITE_COMMANDS.EXPORT_TAGS_CSV]: Parameters.ExportTagsSpreadsheetParams;
-    [WRITE_COMMANDS.EXPORT_MULTI_LEVEL_TAGS_CSV]: Parameters.ExportMultiLevelTagsSpreadSheetParams;
+    [WRITE_COMMANDS.EXPORT_MULTI_LEVEL_INDEPENDENT_TAGS_CSV]: Parameters.ExportMultiLevelTagsSpreadSheetParams;
+    [WRITE_COMMANDS.EXPORT_MULTI_LEVEL_DEPENDENT_TAGS_CSV]: Parameters.ExportMultiLevelTagsSpreadSheetParams;
     [WRITE_COMMANDS.EXPORT_PER_DIEM_CSV]: Parameters.ExportPerDiemCSVParams;
     [WRITE_COMMANDS.EXPORT_REPORT_TO_PDF]: Parameters.ExportReportPDFParams;
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
@@ -714,6 +722,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SPLIT_BILL]: Parameters.SplitBillParams;
     [WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT]: Parameters.SplitBillParams;
     [WRITE_COMMANDS.SPLIT_TRANSACTION]: Parameters.SplitTransactionParams;
+    [WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION]: Parameters.RevertSplitTransactionParams;
     [WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION]: Parameters.SplitTransactionParams;
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST]: Parameters.DeleteMoneyRequestParams;
     [WRITE_COMMANDS.REJECT_MONEY_REQUEST]: Parameters.RejectMoneyRequestParams;
@@ -1045,6 +1054,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ASSIGN_REPORT_TO_ME]: Parameters.AssignReportToMeParams;
     [WRITE_COMMANDS.ADD_REPORT_APPROVER]: Parameters.AddReportApproverParams;
     [WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT]: Parameters.LockAccountParams;
+
+    // Domain API
+    [WRITE_COMMANDS.VALIDATE_DOMAIN]: Parameters.DomainParams;
 };
 
 const READ_COMMANDS = {
@@ -1094,6 +1106,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_TAGS_PAGE: 'OpenPolicyTagsPage',
     OPEN_POLICY_TAXES_PAGE: 'OpenPolicyTaxesPage',
     OPEN_POLICY_REPORT_FIELDS_PAGE: 'OpenPolicyReportFieldsPage',
+    OPEN_POLICY_RULES_PAGE: 'OpenPolicyRulesPage',
     OPEN_POLICY_EXPENSIFY_CARDS_PAGE: 'OpenPolicyExpensifyCardsPage',
     OPEN_POLICY_COMPANY_CARDS_FEED: 'OpenPolicyCompanyCardsFeed',
     OPEN_ASSIGN_FEED_CARD_PAGE: 'OpenAssignFeedCardPage',
@@ -1121,6 +1134,7 @@ const READ_COMMANDS = {
     OPEN_UNREPORTED_EXPENSES_PAGE: 'OpenUnreportedExpensesPage',
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
     GET_TRANSACTIONS_FOR_MERGING: 'GetTransactionsForMerging',
+    GET_DOMAIN_VALIDATE_CODE: 'GetDomainValidateCode',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -1172,6 +1186,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_TAGS_PAGE]: Parameters.OpenPolicyTagsPageParams;
     [READ_COMMANDS.OPEN_POLICY_TAXES_PAGE]: Parameters.OpenPolicyTaxesPageParams;
     [READ_COMMANDS.OPEN_POLICY_REPORT_FIELDS_PAGE]: Parameters.OpenPolicyReportFieldsPageParams;
+    [READ_COMMANDS.OPEN_POLICY_RULES_PAGE]: Parameters.OpenPolicyRulesPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_INVITE_PAGE]: Parameters.OpenWorkspaceInvitePageParams;
     [READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST]: Parameters.OpenDraftWorkspaceRequestParams;
     [READ_COMMANDS.OPEN_DRAFT_PER_DIEM_EXPENSE]: Parameters.OpenDraftPerDiemExpenseParams;
@@ -1199,6 +1214,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE]: Parameters.OpenUnreportedExpensesPageParams;
     [READ_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE]: Parameters.GetGuideCallAvailabilityScheduleParams;
     [READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING]: Parameters.GetTransactionsForMergingParams;
+    [READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE]: Parameters.DomainParams;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {
@@ -1208,6 +1224,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
     RECONNECT_APP: 'ReconnectApp',
     REVEAL_EXPENSIFY_CARD_DETAILS: 'RevealExpensifyCardDetails',
+    SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD: 'SetPersonalDetailsAndRevealExpensifyCard',
     TWO_FACTOR_AUTH_VALIDATE: 'TwoFactorAuth_Validate',
     CONNECT_AS_DELEGATE: 'ConnectAsDelegate',
     ACTIVATE_PHYSICAL_EXPENSIFY_CARD: 'ActivatePhysicalExpensifyCard',
@@ -1235,6 +1252,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER]: Parameters.AuthenticatePusherParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK]: Parameters.OpenOldDotLinkParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS]: Parameters.RevealExpensifyCardDetailsParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD]: Parameters.SetPersonalDetailsAndRevealExpensifyCardParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES]: Parameters.GetMissingOnyxMessagesParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN]: Parameters.GenerateSpotnanaTokenParams;

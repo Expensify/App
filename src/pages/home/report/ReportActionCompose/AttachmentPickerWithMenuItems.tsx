@@ -7,6 +7,7 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
@@ -14,8 +15,10 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -26,7 +29,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import {
     canCreateTaskInReport,
     getPayeeName,
@@ -39,7 +41,6 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
 import {close} from '@userActions/Modal';
 import {createNewReport, setIsComposerFullSize} from '@userActions/Report';
@@ -49,6 +50,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type MoneyRequestOptions = Record<
@@ -135,6 +137,7 @@ function AttachmentPickerWithMenuItems({
     raiseIsScrollLikelyLayoutTriggered,
     shouldDisableAttachmentItem,
 }: AttachmentPickerWithMenuItemsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Paperclip'] as const);
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -149,8 +152,8 @@ function AttachmentPickerWithMenuItems({
     const {setIsLoaderVisible} = useFullScreenLoader();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
     const [reportSummaries = getEmptyArray<ReturnType<typeof reportSummariesOnyxSelector>[number]>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
@@ -284,13 +287,13 @@ function AttachmentPickerWithMenuItems({
 
         return [
             {
-                icon: Expensicons.Document,
+                icon: icons.Document,
                 text: translate('report.newReport.createReport'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
                 onSelected: () => selectOption(() => handleCreateReport(), true),
             },
         ];
-    }, [handleCreateReport, report, selectOption, shouldUseNarrowLayout, translate]);
+    }, [icons.Document, handleCreateReport, report, selectOption, shouldUseNarrowLayout, translate]);
 
     /**
      * Determines if we can show the task option
@@ -305,10 +308,10 @@ function AttachmentPickerWithMenuItems({
                 icon: Expensicons.Task,
                 text: translate('newTaskPage.assignTask'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                onSelected: () => clearOutTaskInfoAndNavigate(reportID, report),
+                onSelected: () => clearOutTaskInfoAndNavigate(currentUserPersonalDetails.accountID, undefined, reportID, report),
             },
         ];
-    }, [report, reportID, translate, shouldUseNarrowLayout]);
+    }, [report, translate, shouldUseNarrowLayout, currentUserPersonalDetails.accountID, reportID]);
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
@@ -380,7 +383,7 @@ function AttachmentPickerWithMenuItems({
                     ...(!isTeachersUniteReport ? createReportOption : []),
                     ...taskOption,
                     {
-                        icon: Expensicons.Paperclip,
+                        icon: icons.Paperclip,
                         text: translate('reportActionCompose.addAttachment'),
                         disabled: shouldDisableAttachmentItem,
                     },

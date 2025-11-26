@@ -10,7 +10,8 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
@@ -24,13 +25,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -78,9 +78,8 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
-    const {isBetaEnabled} = usePermissions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
-
+    const {asset: MoneyIntoWallet} = useMemoizedLazyAsset(() => loadIllustration('MoneyIntoWallet' as IllustrationName));
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -164,14 +163,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                 formattedSelectedPaymentMethod = {
                     title: accountData?.addressName ?? '',
                     icon,
-                    description: description ?? getPaymentMethodDescription(accountType, accountData),
+                    description: description ?? getPaymentMethodDescription(accountType, accountData, translate),
                     type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 };
             } else if (accountType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 formattedSelectedPaymentMethod = {
                     title: accountData?.addressName ?? '',
                     icon,
-                    description: description ?? getPaymentMethodDescription(accountType, accountData),
+                    description: description ?? getPaymentMethodDescription(accountType, accountData, translate),
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
@@ -240,7 +239,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const makeDefaultPaymentMethod = useCallback(() => {
         const paymentCardList = fundList ?? {};
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles);
+        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles, translate);
 
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
@@ -250,13 +249,14 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             makeDefaultPaymentMethodPaymentMethods(0, paymentMethod.selectedPaymentMethod.fundID ?? CONST.DEFAULT_NUMBER_ID, previousPaymentMethod, currentPaymentMethod);
         }
     }, [
+        fundList,
+        bankAccountList,
+        styles,
+        translate,
+        paymentMethod.selectedPaymentMethodType,
         paymentMethod.methodID,
         paymentMethod.selectedPaymentMethod.bankAccountID,
         paymentMethod.selectedPaymentMethod.fundID,
-        paymentMethod.selectedPaymentMethodType,
-        bankAccountList,
-        fundList,
-        styles,
     ]);
 
     const deletePaymentMethod = useCallback(() => {
@@ -333,7 +333,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, bankAccountList, fundList, shouldShowDefaultDeleteMenu]);
     // Don't show "Make default payment method" button if it's the only payment method or if it's already the default
     const isCurrentPaymentMethodDefault = () => {
-        const hasMultiplePaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles).length > 1;
+        const hasMultiplePaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate).length > 1;
         if (hasMultiplePaymentMethods) {
             if (paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                 return paymentMethod.selectedPaymentMethod.bankAccountID === userWallet?.walletLinkedAccountID;
@@ -350,7 +350,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
     const shouldShowEnableGlobalReimbursementsButton =
-        isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) &&
         paymentMethod.selectedPaymentMethod?.additionalData?.currency === CONST.CURRENCY.USD &&
         paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
         !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm;
@@ -362,7 +361,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const headerWithBackButton = (
         <HeaderWithBackButton
             title={translate('common.wallet')}
-            icon={Illustrations.MoneyIntoWallet}
+            icon={MoneyIntoWallet}
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter

@@ -80,7 +80,7 @@ filterList
         "eq",
         "keyword",
         keywords
-          .map((filter) => filter.right.replace(/^(['"])(.*)\1$/, "$2"))
+          .map((filter) => filter.right.replaceAll(/^(['"])(.*)\1$/g, "$2"))
           .flat()
       );
       if (keywordFilter.right.length > 0) {
@@ -127,6 +127,12 @@ standardFilter
       return buildFilter(operator, key, values);
     }
 
+reportFieldDynamic
+  = ("report-field"i / "reportfield"i) "-" rest:$((!([ \t\r\n\xA0,:=<>!]) .)*) {
+      const suffix = rest.replaceAll(/^-+/g, "");
+      return "reportField-" + (suffix ? suffix : "");
+    }
+    
 key "key"
   = @(
       date
@@ -168,6 +174,7 @@ key "key"
       / is
       / purchaseCurrency
       / purchaseAmount
+      / reportFieldDynamic
     )
 
 filterKey

@@ -4,22 +4,6 @@ import type SCREENS from '@src/SCREENS';
 import type ModalType from '@src/types/utils/ModalType';
 import type {AttachmentModalBaseContentProps} from './AttachmentModalBaseContent/types';
 
-/**
- * Modal render prop component that exposes modal launching triggers that can be used
- * to display a full size image or PDF modally with optional confirmation button.
- */
-
-type ImagePickerResponse = {
-    height?: number;
-    name: string;
-    size?: number | null;
-    type: string;
-    uri: string;
-    width?: number;
-};
-
-type FileObject = Partial<File | ImagePickerResponse>;
-
 type AttachmentModalContainerModalProps = {
     /** The type of the modal */
     modalType?: ModalType;
@@ -44,10 +28,11 @@ type AttachmentModalScreenType =
     | typeof SCREENS.PROFILE_AVATAR
     | typeof SCREENS.WORKSPACE_AVATAR
     | typeof SCREENS.TRANSACTION_RECEIPT
-    | typeof SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW;
+    | typeof SCREENS.MONEY_REQUEST.RECEIPT_PREVIEW
+    | typeof SCREENS.SHARE.SHARE_DETAILS_ATTACHMENT;
 
 type AttachmentModalScreenBaseParams = AttachmentModalBaseContentProps & AttachmentModalContainerModalProps;
 
 type AttachmentModalScreenProps<Screen extends AttachmentModalScreenType> = PlatformStackScreenProps<RootNavigatorParamList, Screen>;
 
-export type {AttachmentModalScreenType, AttachmentModalScreenBaseParams, AttachmentModalContainerModalProps, AttachmentModalScreenProps, FileObject, ImagePickerResponse};
+export type {AttachmentModalScreenType, AttachmentModalScreenBaseParams, AttachmentModalContainerModalProps, AttachmentModalScreenProps};

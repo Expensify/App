@@ -568,6 +568,7 @@ function validateSecondaryLogin(
             ],
         );
 
+        // eslint-disable-next-line unicorn/no-array-for-each
         Object.values(allPolicies ?? {}).forEach((policy) => {
             if (!policy) {
                 return;
@@ -661,6 +662,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
 }
 
 function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
+    // eslint-disable-next-line unicorn/no-array-for-each
     onyxUpdates.forEach((update) => {
         if (!update.shouldNotify && !update.shouldShowPushNotification) {
             return;
@@ -669,6 +671,7 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
 
+        // eslint-disable-next-line unicorn/no-array-for-each
         reportActions.forEach((action) => action && showReportActionNotification(reportID, action));
     });
 }
@@ -1208,6 +1211,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneN
         },
     ];
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.values(allPolicies ?? {}).forEach((policy) => {
         if (!policy) {
             return;
@@ -1339,6 +1343,14 @@ function updateDraftCustomStatus(status: CustomStatusDraft) {
 }
 
 /**
+ * Sets a clear after date for the custom status
+ *
+ */
+function updateStatusDraftCustomClearAfterDate(date: string) {
+    Onyx.set(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE, date);
+}
+
+/**
  * Clear the custom draft status
  */
 function clearDraftCustomStatus() {
@@ -1364,13 +1376,14 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
-function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value']) {
+function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
     const parameters: SetNameValuePairParams = {
         name,
         value,
     };
 
     const optimisticData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: name,
@@ -1378,13 +1391,16 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: name,
-            value: revertedValue,
-        },
-    ];
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    const failureData: OnyxUpdate[] | undefined = shouldRevertValue
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: name,
+                  value: revertedValue,
+              },
+          ]
+        : undefined;
 
     API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
         optimisticData,
@@ -1406,10 +1422,6 @@ function requestRefund() {
 
 function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, isDebugModeEnabled);
-}
-
-function setShouldBlockTransactionThreadReportCreation(shouldBlockTransactionThreadReportCreation: boolean) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {shouldBlockTransactionThreadReportCreation});
 }
 
 function lockAccount() {
@@ -1494,6 +1506,7 @@ export {
     updateCustomStatus,
     clearCustomStatus,
     updateDraftCustomStatus,
+    updateStatusDraftCustomClearAfterDate,
     clearDraftCustomStatus,
     requestRefund,
     setNameValuePair,
@@ -1503,7 +1516,6 @@ export {
     addPendingContactMethod,
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
-    setShouldBlockTransactionThreadReportCreation,
     resetValidateActionCodeSent,
     lockAccount,
     requestUnlockAccount,

@@ -10,6 +10,7 @@ import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -123,13 +124,13 @@ function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<st
 function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxValues<TFormID>, requiredFields: Array<FormOnyxKeys<TFormID>>): FormInputErrors<TFormID> {
     const errors: FormInputErrors<TFormID> = {};
 
-    requiredFields.forEach((fieldKey) => {
+    for (const fieldKey of requiredFields) {
         if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
-            return;
+            continue;
         }
-
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[fieldKey] = translateLocal('common.error.fieldRequired');
-    });
+    }
 
     return errors;
 }
@@ -216,6 +217,7 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
     if (!isValid(testDate)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.dateInvalid');
     }
 
@@ -227,9 +229,10 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     }
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
     }
-
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
 }
 
@@ -242,6 +245,7 @@ function getDatePassedError(inputDate: string): string {
 
     // If input date is not valid, return an error
     if (!isValid(parsedDate)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.dateInvalid');
     }
 
@@ -249,6 +253,7 @@ function getDatePassedError(inputDate: string): string {
     currentDate.setHours(0, 0, 0, 0);
 
     if (parsedDate < currentDate) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.dateInvalid');
     }
 
@@ -273,12 +278,12 @@ function validateIdentity(identity: Record<string, string>): Record<string, bool
     const errors: Record<string, boolean> = {};
 
     // Check that all required fields are filled
-    requiredFields.forEach((fieldName) => {
+    for (const fieldName of requiredFields) {
         if (isRequiredFulfilled(identity[fieldName])) {
-            return;
+            continue;
         }
         errors[fieldName] = true;
-    });
+    }
 
     if (!isValidAddress(identity.street)) {
         errors.street = true;
@@ -567,13 +572,13 @@ function isValidOwnershipPercentage(value: string, totalOwnedPercentage: Record<
 
     let totalOwnedPercentageSum = 0;
     const totalOwnedPercentageKeys = Object.keys(totalOwnedPercentage);
-    totalOwnedPercentageKeys.forEach((key) => {
+    for (const key of totalOwnedPercentageKeys) {
         if (key === ownerBeingModifiedID) {
-            return;
+            continue;
         }
 
         totalOwnedPercentageSum += totalOwnedPercentage[key];
-    });
+    }
 
     const isTotalSumValid = totalOwnedPercentageSum + parsedValue <= 100;
 
