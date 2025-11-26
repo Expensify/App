@@ -29,6 +29,7 @@ function TextSelectorModal({
     shouldClearOnClose,
     maxLength = CONST.CATEGORY_NAME_LIMIT,
     required = false,
+    customValidate,
     ...rest
 }: TextSelectorModalProps) {
     const {translate} = useLocalize();
@@ -64,9 +65,14 @@ function TextSelectorModal({
                 errors[rest.inputID] = translate('common.error.characterLimitExceedCounter', {length: formValue.length, limit: maxLength});
             }
 
+            if (customValidate) {
+                const customErrors = customValidate(values);
+                errors = {...errors, ...customErrors};
+            }
+
             return errors;
         },
-        [maxLength, rest.inputID, required, translate],
+        [maxLength, rest.inputID, required, translate, customValidate],
     );
 
     // In TextPicker, when the modal is hidden, it is not completely unmounted, so when it is shown again, the currentValue is not updated with the value prop.

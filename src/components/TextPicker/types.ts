@@ -29,6 +29,9 @@ type TextSelectorModalProps = {
 
     /** Whether the field is required */
     required?: boolean;
+
+    /** Custom validation function */
+    customValidate?: (values: Record<string, string>) => Record<string, string>;
 } & Pick<MenuItemBaseProps, 'subtitle' | 'description'> &
     Omit<TextProps, 'ref'>;
 
@@ -62,6 +65,9 @@ type TextPickerProps = {
 
     /** Whether the field is required */
     required?: boolean;
+
+    /** Custom validation function */
+    customValidate?: (values: Record<string, string>) => Record<string, string>;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;

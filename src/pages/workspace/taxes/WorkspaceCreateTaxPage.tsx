@@ -15,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {hasAccountingConnections} from '@libs/PolicyUtils';
+import {isExistingTaxName} from '@libs/ValidationUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -35,6 +36,22 @@ function WorkspaceCreateTaxPage({
 }: WorkspaceCreateTaxPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const validateTaxNameInModal = useCallback(
+        (inputID: string) => {
+            return (values: Record<string, string>) => {
+                const errors: Record<string, string> = {};
+                const name = values[inputID];
+
+                if (name && policy?.taxRates?.taxes && isExistingTaxName(name, policy.taxRates.taxes)) {
+                    errors[inputID] = translate('workspace.taxes.error.taxRateAlreadyExists');
+                }
+
+                return errors;
+            };
+        },
+        [policy?.taxRates?.taxes, translate],
+    );
 
     const submitForm = useCallback(
         ({value, ...values}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
@@ -101,6 +118,7 @@ function WorkspaceCreateTaxPage({
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
                                     required
+                                    customValidate={validateTaxNameInModal(INPUT_IDS.NAME)}
                                 />
                                 <InputWrapper
                                     InputComponent={AmountPicker}
