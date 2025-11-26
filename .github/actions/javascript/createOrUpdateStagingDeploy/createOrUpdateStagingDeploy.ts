@@ -164,6 +164,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             });
 
             // Then make sure we include any demoted or closed blockers as well, and just check them off automatically
+            // eslint-disable-next-line unicorn/no-array-for-each
             currentChecklistData?.deployBlockers.forEach((deployBlocker) => {
                 const isResolved = deployBlockers.findIndex((openBlocker) => openBlocker.number === deployBlocker.number) < 0;
                 deployBlockers.push({
@@ -173,6 +174,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
             });
 
             // Include any existing Mobile-Expensify PRs from the current checklist that aren't in the new merged list
+            // eslint-disable-next-line unicorn/no-array-for-each
             currentChecklistData?.PRListMobileExpensify.forEach((existingPR) => {
                 const isAlreadyIncluded = PRListMobileExpensify.findIndex((pr) => pr.number === existingPR.number) >= 0;
                 if (!isAlreadyIncluded) {
