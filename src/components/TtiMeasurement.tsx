@@ -43,8 +43,6 @@ function TtiMeasurement() {
             for (const entry of list.getEntries()) {
                 const timestampBasedOnStartup = basedOnStartup(entry.startTime);
 
-                console.log('[PERFORMANCE_CHRIS] entry', entry.name, entry.startTime, timestampBasedOnStartup);
-
                 switch (entry.name) {
                     case CONST.PERFORMANCE.MARKERS.HERMES_YOUNG_GC_START:
                         setHermesYoungGcStartTimestamp(entry.startTime);
@@ -85,10 +83,10 @@ function TtiMeasurement() {
                     </View>
 
                     <View style={{borderWidth: 1, borderColor: 'black', padding: 10}}>
-                        <Text color="black">Startup timestamp: {ttiMeasurement.applicationStartup}ms</Text>
-                        <Text color="black">First draw timestamp: {ttiMeasurement.firstDraw}ms</Text>
-                        <Text color="black">Run JS bundle start timestamp: {runJsBundleStartTimestamp}ms</Text>
-                        <Text color="black">Hermes young GC start timestamp: {hermesYoungGcStartTimestamp}ms</Text>
+                        <Text color="black">Startup: {ttiMeasurement.applicationStartup}ms</Text>
+                        <Text color="black">First draw: {ttiMeasurement.firstDraw}ms</Text>
+                        <Text color="black">Run JS bundle: {runJsBundleStartTimestamp}ms</Text>
+                        <Text color="black">Hermes young GC: {hermesYoungGcStartTimestamp}ms</Text>
                     </View>
                 </View>
             )}
