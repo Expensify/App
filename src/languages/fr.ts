@@ -700,6 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domaines',
         reportName: 'Nom du rapport',
         viewReport: 'Voir le rapport',
+        showLess: 'Afficher moins',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -7613,6 +7614,17 @@ ${
                         return `En attente de l’approbation des dépenses par un administrateur.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> exportiez ce rapport.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attente que <strong>${actor}</strong> exporte ce rapport.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente de l’exportation de ce rapport par un administrateur.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7684,6 +7696,32 @@ ${
             onePasswordForAnything: 'Un seul mot de passe pour tout',
         },
         goToDomain: 'Accéder au domaine',
+        samlLogin: {
+            title: 'Connexion SAML',
+            subtitle: `<muted-text>Configurer la connexion des membres avec <a href="${CONST.SAML_HELP_URL}">l’authentification unique SAML (SSO).</a></muted-text>`,
+            enableSamlLogin: 'Activer la connexion SAML',
+            allowMembers: 'Autoriser les membres à se connecter avec SAML.',
+            requireSamlLogin: 'Exiger la connexion SAML',
+            anyMemberWillBeRequired: 'Tout membre connecté avec une autre méthode devra se réauthentifier via SAML.',
+            enableError: 'Impossible de mettre à jour le paramètre d’activation SAML',
+            requireError: 'Impossible de mettre à jour le paramètre d’exigence SAML',
+        },
+        samlConfigurationDetails: {
+            title: 'Détails de la configuration SAML',
+            subtitle: 'Utilisez ces informations pour configurer SAML.',
+            identityProviderMetaData: 'Métadonnées du fournisseur d’identité',
+            entityID: 'ID d’entité',
+            nameIDFormat: "Format d'identifiant de nom",
+            loginUrl: 'URL de connexion',
+            acsUrl: 'URL du service consommateur d’assertions (ACS)',
+            logoutUrl: 'URL de déconnexion',
+            sloUrl: 'URL de déconnexion unique (SLO)',
+            serviceProviderMetaData: 'Métadonnées du fournisseur de services',
+            oktaScimToken: "Jeton SCIM d'Okta",
+            revealToken: 'Afficher le jeton',
+            fetchError: 'Impossible de récupérer les détails de la configuration SAML',
+            setMetadataGenericError: 'Impossible de définir les métadonnées SAML',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

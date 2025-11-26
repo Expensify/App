@@ -694,6 +694,7 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: '域名',
         reportName: '报告名称',
         viewReport: '查看报告',
+        showLess: '显示更少',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -7400,6 +7401,17 @@ ${
                         return `正在等待管理员批准费用。`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `正在等待<strong>您</strong>导出此报告。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `正在等待<strong>${actor}</strong>导出此报告。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `正在等待管理员导出此报告。`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7470,6 +7482,32 @@ ${
             onePasswordForAnything: '一个密码搞定一切',
         },
         goToDomain: '前往域',
+        samlLogin: {
+            title: 'SAML 登录',
+            subtitle: `<muted-text>使用<a href="${CONST.SAML_HELP_URL}">SAML 单点登录（SSO）</a>配置成员登录。</muted-text>`,
+            enableSamlLogin: '启用 SAML 登录',
+            allowMembers: '允许成员通过 SAML 登录。',
+            requireSamlLogin: '强制使用 SAML 登录',
+            anyMemberWillBeRequired: '使用不同方式登录的任何成员将被要求使用 SAML 重新进行身份验证。',
+            enableError: '无法更新 SAML 启用设置',
+            requireError: '无法更新 SAML 要求设置',
+        },
+        samlConfigurationDetails: {
+            title: 'SAML 配置详细信息',
+            subtitle: '使用这些详细信息来设置 SAML。',
+            identityProviderMetaData: '身份提供者元数据',
+            entityID: '实体 ID',
+            nameIDFormat: '名称 ID 格式',
+            loginUrl: '登录网址',
+            acsUrl: 'ACS（断言消费者服务）URL',
+            logoutUrl: '注销 URL',
+            sloUrl: 'SLO (单点登出) URL',
+            serviceProviderMetaData: '服务提供商元数据',
+            oktaScimToken: 'Okta SCIM 令牌',
+            revealToken: '显示令牌',
+            fetchError: '无法获取 SAML 配置详细信息',
+            setMetadataGenericError: '无法设置 SAML 元数据',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
