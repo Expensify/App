@@ -163,7 +163,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const firstRenderRef = useRef(true);
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
-    const flatListRef = useRef<FlatList<unknown> | null>(null);
+    const flatListRef = useRef<FlatList>(null);
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -308,7 +308,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     // wrapping in useMemo because this is array operation and can cause performance issues
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
-
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`, {canBeMissing: true});
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);

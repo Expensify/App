@@ -103,8 +103,8 @@ function ReportActionsView({
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);
-    const reportActionIDFromRoute = route?.params?.reportActionID;
-    const prevReportActionIDFromRoute = usePrevious(reportActionIDFromRoute);
+    const reportActionID = route?.params?.reportActionID;
+    const prevReportActionID = usePrevious(reportActionID);
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report.chatReportID, report.reportID), [report.chatReportID, report.reportID]);
     const didLayout = useRef(false);
     const {isOffline} = useNetwork();
@@ -127,15 +127,15 @@ function ReportActionsView({
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
-        if (!reportActionIDFromRoute || !isOffline) {
+        if (!reportActionID || !isOffline) {
             return;
         }
         updateLoadingInitialReportAction(report.reportID);
-    }, [isOffline, report.reportID, reportActionIDFromRoute]);
+    }, [isOffline, report.reportID, reportActionID]);
 
     // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
-        if (!reportActionIDFromRoute && !prevReportActionIDFromRoute) {
+        if (!reportActionID && !prevReportActionID) {
             // Keep the old list ID since we're not in the Comment Linking flow
             return listOldID;
         }
@@ -145,7 +145,7 @@ function ReportActionsView({
 
         return newID;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [route, reportActionIDFromRoute]);
+    }, [route, reportActionID]);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
@@ -252,6 +252,7 @@ function ReportActionsView({
 
     const {loadOlderChats, loadNewerChats} = useLoadReportActions({
         reportID,
+        reportActionID,
         reportActions,
         allReportActionIDs,
         transactionThreadReport,
@@ -273,12 +274,12 @@ function ReportActionsView({
     }, [reportID]);
 
     // Check if the first report action in the list is the one we're currently linked to
-    const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionIDFromRoute;
+    const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;
 
     useEffect(() => {
         let timerID: NodeJS.Timeout;
 
-        if (!isTheFirstReportActionIsLinked && reportActionIDFromRoute) {
+        if (!isTheFirstReportActionIsLinked && reportActionID) {
             setNavigatingToLinkedMessage(true);
             // After navigating to the linked reportAction, apply this to correctly set
             // `autoscrollToTopThreshold` prop when linking to a specific reportAction.
@@ -297,7 +298,7 @@ function ReportActionsView({
             }
             clearTimeout(timerID);
         };
-    }, [isTheFirstReportActionIsLinked, reportActionIDFromRoute]);
+    }, [isTheFirstReportActionIsLinked, reportActionID]);
 
     // Show skeleton while loading initial report actions when data is incomplete/missing and online
     const shouldShowSkeletonForInitialLoad = isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline;
@@ -314,7 +315,7 @@ function ReportActionsView({
     }
 
     // AutoScroll is disabled when we do linking to a specific reportAction
-    const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionIDFromRoute || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
+    const shouldEnableAutoScroll = (hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage)) || (transactionThreadReport && !prevTransactionThreadReport);
     return (
         <>
             <ReportActionsList

@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
-import type {RefObject} from 'react';
 import {useCallback, useEffect, useRef, useState} from 'react';
+import type {RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {readNewestAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -65,24 +65,23 @@ export default function useReportUnreadMessageScrollTracking({
         if (event) {
             onTrackScrolling(event);
         }
-
         const hasUnreadMarkerReportAction = unreadMarkerReportActionIndex !== -1;
 
-        const isScrolledToEnd = currentVerticalScrollingOffsetRef.current <= CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD;
-
-        // When we have an unread message, display floating button if we're scrolled more than the offset
-        if (!isScrolledToEnd && !hasUnreadMarkerReportAction && !isFloatingMessageCounterVisible) {
+        // display floating button if we're scrolled more than the offset
+        if (
+            currentVerticalScrollingOffsetRef.current > CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
+            !isFloatingMessageCounterVisible &&
+            !hasUnreadMarkerReportAction
+        ) {
             setIsFloatingMessageCounterVisible(true);
         }
 
-        // Hide floating button if we're scrolled closer than the offset and mark message as read
-        if (isScrolledToEnd && !hasUnreadMarkerReportAction && isFloatingMessageCounterVisible && !hasNewerActions) {
-            if (readActionSkippedRef.current) {
-                // eslint-disable-next-line react-compiler/react-compiler,no-param-reassign
-                readActionSkippedRef.current = false;
-                readNewestAction(reportID);
-            }
-
+        // hide floating button if we're scrolled closer than the offset
+        if (
+            currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
+            isFloatingMessageCounterVisible &&
+            !hasUnreadMarkerReportAction &&
+        ) {
             setIsFloatingMessageCounterVisible(false);
         }
     };
