@@ -14,7 +14,6 @@ function PreTrialBillingBanner() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['TreasureChest'] as const);
-
     const navigateToChat = () => {
         const reportUsedForOnboarding = getChatUsedForOnboarding();
 

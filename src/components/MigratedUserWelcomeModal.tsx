@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -30,31 +30,34 @@ import * as Illustrations from './Icon/Illustrations';
 import LottieAnimations from './LottieAnimations';
 import RenderHTML from './RenderHTML';
 
-const ExpensifyFeatures: FeatureListItem[] = [
-    {
-        icon: 'ChatBubbles',
-        translationKey: 'migratedUserWelcomeModal.features.chat',
-    },
-    {
-        icon: Illustrations.Flash,
-        translationKey: 'migratedUserWelcomeModal.features.scanReceipt',
-    },
-    {
-        icon: Illustrations.ExpensifyMobileApp,
-        translationKey: 'migratedUserWelcomeModal.features.crossPlatform',
-    },
-];
-
 function MigratedUserWelcomeModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useMemoizedLazyIllustrations(['ChatBubbles'] as const);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {typeMenuSections} = useSearchTypeMenuSections();
     const [isModalDisabled, setIsModalDisabled] = useState(true);
     const route = useRoute<PlatformStackRouteProp<MigratedUserModalNavigatorParamList, typeof SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT>>();
     const shouldOpenSearch = route?.params?.shouldOpenSearch === 'true';
+    const illustrations = useMemoizedLazyIllustrations(['ExpensifyMobileApp', 'ChatBubbles'] as const);
+
+    const ExpensifyFeatures = useMemo<FeatureListItem[]>(
+        () => [
+            {
+                icon: illustrations.ChatBubbles,
+                translationKey: 'migratedUserWelcomeModal.features.chat',
+            },
+            {
+                icon: Illustrations.Flash,
+                translationKey: 'migratedUserWelcomeModal.features.scanReceipt',
+            },
+            {
+                icon: illustrations.ExpensifyMobileApp,
+                translationKey: 'migratedUserWelcomeModal.features.crossPlatform',
+            },
+        ],
+        [illustrations.ExpensifyMobileApp],
+    );
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
@@ -107,24 +110,21 @@ function MigratedUserWelcomeModal() {
                 style={[styles.gap3, styles.pt1, styles.pl1]}
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
-                {ExpensifyFeatures.map(({translationKey, icon}) => {
-                    const lazyIcon = typeof icon === 'string' ? illustrations[icon] : icon;
-                    return (
-                        <View
-                            key={translationKey}
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto]}
-                        >
-                            <Icon
-                                src={lazyIcon}
-                                height={variables.menuIconSize}
-                                width={variables.menuIconSize}
-                            />
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto, styles.flex1, styles.ml6]}>
-                                <RenderHTML html={`<comment>${convertToLTR(translate(translationKey))}</comment>`} />
-                            </View>
+                {ExpensifyFeatures.map(({translationKey, icon}) => (
+                    <View
+                        key={translationKey}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto]}
+                    >
+                        <Icon
+                            src={icon}
+                            height={variables.menuIconSize}
+                            width={variables.menuIconSize}
+                        />
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.wAuto, styles.flex1, styles.ml6]}>
+                            <RenderHTML html={`<comment>${convertToLTR(translate(translationKey))}</comment>`} />
                         </View>
-                    );
-                })}
+                    </View>
+                ))}
             </View>
         </FeatureTrainingModal>
     );

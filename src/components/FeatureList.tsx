@@ -14,7 +14,7 @@ import MenuItem from './MenuItem';
 import Section from './Section';
 
 type FeatureListItem = {
-    icon: IconAsset | Extract<IllustrationName, 'ChatBubbles'>;
+    icon: IconAsset;
     translationKey: TranslationPaths;
 };
 

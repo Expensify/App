@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -22,7 +21,7 @@ function Finish() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'ChatBubble'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow'] as const);
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -61,7 +60,7 @@ function Finish() {
                 </Section>
                 <Section
                     title={translate('finishStep.enable2FA')}
-                    icon={Illustrations.ShieldYellow}
+                    icon={illustrations.ShieldYellow}
                     titleStyles={[styles.mb4, styles.textHeadline]}
                     containerStyles={[styles.mh5]}
                     menuItems={[
