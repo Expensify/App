@@ -354,7 +354,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         onSelectRow={updateSelectedItems}
                         alternateNumberOfSupportedLines={2}
                         addBottomSafeAreaPadding
-                        confirmButtonConfig={confirmButtonConfig}
+                        confirmButtonOptions={confirmButtonConfig}
                     />
                 </View>
             </>
