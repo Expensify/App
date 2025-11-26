@@ -1767,19 +1767,35 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
     if (isMoneyRequestToManagerMcTest) {
         const date = new Date();
+        const id = NumberUtils.rand64();
         const isTestReceipt = transaction.receipt?.isTestReceipt ?? false;
         const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
-        const optimisticIOUReportAction = buildOptimisticIOUReportAction({
-            type: isScanRequest && !isTestReceipt ? CONST.IOU.REPORT_ACTION_TYPE.CREATE : CONST.IOU.REPORT_ACTION_TYPE.PAY,
-            amount: iou.report?.total ?? 0,
-            currency: iou.report?.currency ?? '',
-            comment: '',
-            participants: [managerMcTestParticipant],
-            paymentType: isScanRequest && !isTestReceipt ? undefined : CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-            iouReportID: iou.report.reportID,
-            transactionID: transaction.transactionID,
-            reportActionID: iou.action.reportActionID,
-        });
+        let optimisticIOUReportAction;
+        if (isScanRequest && !isTestReceipt) {
+            optimisticIOUReportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: iou.report?.total ?? 0,
+                currency: iou.report?.currency ?? '',
+                comment: '',
+                participants: [managerMcTestParticipant],
+                iouReportID: iou.report.reportID,
+                transactionID: transaction.transactionID,
+                reportActionID: iou.action.reportActionID,
+            });
+        } else {
+            optimisticIOUReportAction = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                amount: iou.report?.total ?? 0,
+                currency: iou.report?.currency ?? '',
+                comment: '',
+                participants: [managerMcTestParticipant],
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                iouReportID: iou.report.reportID,
+                transactionID: transaction.transactionID,
+                reportActionID: iou.action.reportActionID,
+                paidReportActionId: id,
+            });
+        }
 
         optimisticData.push(
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
@@ -1791,6 +1807,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 value: {
                     ...iou.report,
                     ...(!isScanRequest || isTestReceipt ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} : undefined),
@@ -1803,6 +1821,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
                 value: {
                     [iou.action.reportActionID]: {
+                        paidReportActionID: id,
                         ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
                     },
                 },

@@ -417,6 +417,7 @@ type BuildOptimisticIOUReportActionParams = {
     bankAccountID?: number | undefined;
     isPersonalTrackingExpense?: boolean;
     reportActionID?: string;
+    paidReportActionId?: string;
 };
 
 type OptimisticIOUReportAction = Pick<
@@ -6998,6 +6999,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         payAsBusiness,
         bankAccountID,
         reportActionID,
+        paidReportActionId,
     } = params;
 
     const IOUReportID = isPersonalTrackingExpense ? undefined : iouReportID || generateReportID();
@@ -7060,6 +7062,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         isAttachmentOnly: false,
         originalMessage,
         reportActionID: reportActionID ?? rand64(),
+        paidReportActionID: paidReportActionId ?? rand64(),
         shouldShow: true,
         created,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
