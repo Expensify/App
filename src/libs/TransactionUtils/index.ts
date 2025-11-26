@@ -83,8 +83,8 @@ import type {
 } from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SafeString from '@src/utils/SafeString';
-import getDistanceInMeters from './getDistanceInMeters';
 import Permissions from "@libs/Permissions";
+import getDistanceInMeters from './getDistanceInMeters';
 
 type TransactionParams = {
     amount: number;

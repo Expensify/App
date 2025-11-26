@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import usePermissions from "@hooks/usePermissions";
 
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
 
@@ -58,7 +59,11 @@ type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldSho
 };
 
 const nonZeroExpenses = new Set<ValueOf<typeof CONST.IOU.TYPE>>([CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.INVOICE, CONST.IOU.TYPE.SPLIT]);
-const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>, isP2P: boolean) => {
+const isAmountInvalid = (amount: string, iouType: ValueOf<typeof CONST.IOU.TYPE>, isP2P: boolean, isZeroAmountBetaEnabled: boolean) => {
+    if (!isZeroAmountBetaEnabled) {
+        return !amount.length || parseFloat(amount) < 0.01;
+    }
+
     if (!amount.length || parseFloat(amount) < 0) {
         return true;
     }
@@ -106,6 +111,8 @@ function MoneyRequestAmountForm({
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [isNegative, setIsNegative] = useState(false);
+
+    const {isBetaEnabled} = usePermissions();
 
     const [formError, setFormError] = useState<string>('');
 
@@ -162,7 +169,7 @@ function MoneyRequestAmountForm({
 
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInputRef.current?.getNumber() ?? '';
-            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType, isP2P))) {
+            if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount, iouType, isP2P, isBetaEnabled(CONST.BETAS.ZERO_EXPENSES)))) {
                 setFormError(translate('iou.error.invalidAmount'));
                 return;
             }
