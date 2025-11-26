@@ -241,11 +241,19 @@ function getForReportAction({
 
     const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
     if (hasModifiedComment) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        let descriptionLabel = translateLocal('common.description');
+
+        // Add attribution suffix based on AI-generated descriptions
+        if (reportActionOriginalMessage?.aiGenerated) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            descriptionLabel += ` ${translateLocal('iou.basedOnAI')}`;
+        }
+
         buildMessageFragmentForValue(
             Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
             Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('common.description'),
+            descriptionLabel,
             true,
             setFragments,
             removalFragments,
@@ -357,9 +365,13 @@ function getForReportAction({
 
     const hasModifiedBillable = isReportActionOriginalMessageAnObject && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;
     if (hasModifiedBillable) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const oldBillable = reportActionOriginalMessage?.oldBillable === 'billable' ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const newBillable = reportActionOriginalMessage?.billable === 'billable' ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.billable ?? '',
-            reportActionOriginalMessage?.oldBillable ?? '',
+            newBillable,
+            oldBillable,
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('iou.expense'),
             true,
@@ -371,9 +383,15 @@ function getForReportAction({
 
     const hasModifiedReimbursable = isReportActionOriginalMessageAnObject && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
     if (hasModifiedReimbursable) {
+        const oldReimbursable =
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            reportActionOriginalMessage?.oldReimbursable === 'reimbursable' ? translateLocal('iou.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
+        const newReimbursable =
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            reportActionOriginalMessage?.reimbursable === 'reimbursable' ? translateLocal('iou.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.reimbursable ?? '',
-            reportActionOriginalMessage?.oldReimbursable ?? '',
+            newReimbursable,
+            oldReimbursable,
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('iou.expense'),
             true,
@@ -398,6 +416,14 @@ function getForReportAction({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         getMessageLine(`\n${translateLocal('iou.removed')}`, removalFragments);
     if (message === '') {
+        // If we don't have enough structured information to build a detailed message but we
+        // know the change was AI-generated, fall back to an AI-attributed generic summary so
+        // users can still understand that Concierge updated the expense automatically.
+        if (reportActionOriginalMessage?.aiGenerated) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return `${translateLocal('iou.changedTheExpense')} ${translateLocal('iou.basedOnAI')}`;
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.changedTheExpense');
     }
@@ -463,11 +489,19 @@ function getForReportActionTemp({
 
     const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
     if (hasModifiedComment) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        let descriptionLabel = translateLocal('common.description');
+
+        // Add attribution suffix based on AI-generated descriptions
+        if (reportActionOriginalMessage?.aiGenerated) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            descriptionLabel += ` ${translateLocal('iou.basedOnAI')}`;
+        }
+
         buildMessageFragmentForValue(
             Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
             Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('common.description'),
+            descriptionLabel,
             true,
             setFragments,
             removalFragments,

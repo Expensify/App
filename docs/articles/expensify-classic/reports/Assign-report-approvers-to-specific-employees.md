@@ -62,5 +62,5 @@ Visit our [How Complex Approval Workflows Work](https://help.expensify.com/artic
 - **Approves to**: The person who must approve reports that you've already approved, creating an approval chain.
 
 ## Can I change the approver on a report after submitting it?  
-No, once a report has been submitted, you cannot change the approver while it is in the **processing state**. If you need to send the report to a different approver, you must reopen it first. To do this, retract the report from the current approver and then resubmit it to the correct person.
+No, once a report has been submitted, you cannot change the approver while it is in the **outstanding state**. If you need to send the report to a different approver, you must reopen it first. To do this, retract the report from the current approver and then resubmit it to the correct person.
 
