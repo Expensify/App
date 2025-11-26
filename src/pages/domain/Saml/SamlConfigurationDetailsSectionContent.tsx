@@ -71,7 +71,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                 autoGrowHeight
                 maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                 onValueCommitted={(metaIdentity) => {
-                    if (StringUtils.isEmptyString(metaIdentity) || metaIdentity === StringUtils.normalizeCRLF(samlMetadata.metaIdentity)) {
+                    if (metaIdentity === StringUtils.normalizeCRLF(samlMetadata.metaIdentity)) {
                         return;
                     }
                     setSamlIdentity(accountID, domainName, metaIdentity);
@@ -79,6 +79,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
                 errorText={getLatestErrorMessage({errors: samlMetadata.samlMetadataError})}
                 maxLength={Infinity}
                 enabledWhenOffline={false}
+                required
             />
 
             <MenuItemWithTopDescription
