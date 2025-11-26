@@ -6,6 +6,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 type BeneficialOwnerValues = {
     firstName: string;
     lastName: string;
+    nationality: string;
     ownershipPercentage: string;
     dob: string;
     ssnLast4: string;
@@ -25,6 +26,7 @@ function getValuesForOwner(beneficialOwnerBeingModifiedID: string, reimbursement
         return {
             firstName: '',
             lastName: '',
+            nationality: '',
             ownershipPercentage: '',
             dob: '',
             ssnLast4: '',
@@ -45,6 +47,7 @@ function getValuesForOwner(beneficialOwnerBeingModifiedID: string, reimbursement
     const INPUT_KEYS = {
         firstName: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.FIRST_NAME}`,
         lastName: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.LAST_NAME}`,
+        nationality: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.NATIONALITY}`,
         ownershipPercentage: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.OWNERSHIP_PERCENTAGE}`,
         dob: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.DOB}`,
         ssnLast4: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.SSN_LAST_4}`,
@@ -62,6 +65,7 @@ function getValuesForOwner(beneficialOwnerBeingModifiedID: string, reimbursement
     return {
         firstName: reimbursementAccountDraft[INPUT_KEYS.firstName] ?? '',
         lastName: reimbursementAccountDraft[INPUT_KEYS.lastName] ?? '',
+        nationality: reimbursementAccountDraft[INPUT_KEYS.nationality] ?? '',
         ownershipPercentage: reimbursementAccountDraft[INPUT_KEYS.ownershipPercentage] ?? '',
         dob: reimbursementAccountDraft[INPUT_KEYS.dob] ?? '',
         ssnLast4: reimbursementAccountDraft[INPUT_KEYS.ssnLast4] ?? '',

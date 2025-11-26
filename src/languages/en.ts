@@ -224,6 +224,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -582,6 +583,7 @@ const translations = {
         businessName: 'Business name',
         clear: 'Clear',
         type: 'Type',
+        reportName: 'Report name',
         action: 'Action',
         expenses: 'Expenses',
         totalSpend: 'Total spend',
@@ -1324,7 +1326,11 @@ const translations = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `moved expense from personal space to ${workspaceName ?? `chat with ${reportName}`}`,
         movedToPersonalSpace: 'moved expense to personal space',
-        tagSelection: 'Select a tag to better organize your spend.',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
+            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'an' : 'a';
+            const tag = policyTagListName ?? 'tag';
+            return `Select ${article} ${tag} to better organize your spend.`;
+        },
         categorySelection: 'Select a category to better organize your spend.',
         error: {
             invalidCategoryLength: 'The category name exceeds 255 characters. Please shorten it or choose a different category.',
@@ -1724,9 +1730,10 @@ const translations = {
         contactMethods: 'Contact methods',
         featureRequiresValidate: 'This feature requires you to validate your account.',
         validateAccount: 'Validate your account',
-        helpText: ({email}: {email: string}) => `Add more ways to send receipts. Forward them to <copy-text text="${email}"/> or text them to 47777 (US numbers only).`,
-        pleaseVerify: 'Please verify this contact method',
-        getInTouch: "Whenever we need to get in touch with you, we'll use this contact method.",
+        helpText: ({email}: {email: string}) =>
+            `Add more ways to log in and send receipts to Expensify.<br/><br/>Add an email address to forward receipts to <a href="mailto:${email}">${email}</a> or add a phone number to text receipts to 47777 (US numbers only).`,
+        pleaseVerify: 'Please verify this contact method.',
+        getInTouch: "We'll use this method to contact you.",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}. It should arrive within a minute or two.`,
         setAsDefault: 'Set as default',
         yourDefaultContactMethod: "This is your current default contact method. Before you can delete it, you'll need to choose another contact method and click “Set as default”.",
@@ -2190,6 +2197,10 @@ const translations = {
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
         makeOrTrackPaymentsTitle: 'Make or track payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to your <account-manager-link>Account Manager</account-manager-link> or <concierge-link>Concierge</concierge-link>.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         editor: {
             submissionFrequency: 'Choose how long Expensify should wait before sharing error-free spend.',
         },
@@ -3400,6 +3411,9 @@ const translations = {
         whatsYourAddress: "What's your address?",
         whatAreTheLast: "What are the last 4 digits of the owner's Social Security Number?",
         whatsYourLast: 'What are the last 4 digits of your Social Security Number?',
+        whatsYourNationality: 'What is your country of citizenship?',
+        whatsTheOwnersNationality: "What's the owner's country of citizenship?",
+        countryOfCitizenship: 'Country of citizenship',
         dontWorry: "Don't worry, we don't do any personal credit checks!",
         last4: 'Last 4 of SSN',
         whyDoWeAsk: 'Why do we ask for this?',
@@ -4729,7 +4743,7 @@ const translations = {
             companyCard: 'company card',
             chooseCardFeed: 'Choose card feed',
             ukRegulation:
-                'Expensify, Inc. is an agent of Plaid Financial Ltd., an authorised payment institution regulated by the Financial Conduct Authority under the Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid provides you with regulated account information services through Expensify Limited as its agent.',
+                'Expensify Limited is an agent of Plaid Financial Ltd., an authorised payment institution regulated by the Financial Conduct Authority under the Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid provides you with regulated account information services through Expensify Limited as its agent.',
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
@@ -6289,6 +6303,7 @@ const translations = {
             `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements for this workspace`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
@@ -6538,6 +6553,18 @@ const translations = {
         exportAll: {
             selectAllMatchingItems: 'Select all matching items',
             allMatchingItemsSelected: 'All matching items selected',
+        },
+    },
+    reportLayout: {
+        reportLayout: 'Report layout',
+        groupByLabel: 'Group by:',
+        selectGroupByOption: 'Select how to group report expenses',
+        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
+        groupHeaderHint: ({action}: {action: string}) => `${action} this group`,
+        selectGroup: ({groupName}: {groupName: string}) => `Select all expenses in ${groupName}`,
+        groupBy: {
+            category: 'Category',
+            tag: 'Tag',
         },
     },
     genericErrorPage: {
@@ -7489,13 +7516,12 @@ const translations = {
     },
     migratedUserWelcomeModal: {
         title: 'Welcome to New Expensify!',
-        subtitle: "It's got everything you love from our classic experience with a whole bunch of upgrades to make your life even easier:",
+        subtitle: 'New Expensify has the same great automation, but now with amazing collaboration:',
         confirmText: "Let's go!",
-        helpText: 'Try 2-min demo',
         features: {
-            search: 'More powerful search on mobile, web, and desktop',
-            concierge: 'Built-in Concierge AI to help automate your expenses',
-            chat: 'Chat on any expense to resolve questions quickly',
+            chat: '<strong>Chat directly on any expense</strong>, report, or workspace',
+            scanReceipt: '<strong>Scan receipts</strong> and get paid back',
+            crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
         },
     },
     productTrainingTooltip: {

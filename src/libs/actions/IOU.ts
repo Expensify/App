@@ -260,7 +260,7 @@ import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxD
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from './Policy/Tag';
 import type {GuidedSetupData} from './Report';
-import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, notifyNewAction, optimisticReportLastData} from './Report';
+import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, getCurrentUserEmail, notifyNewAction, optimisticReportLastData} from './Report';
 import {clearAllRelatedReportActionErrors} from './ReportActions';
 import {sanitizeRecentWaypoints} from './Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from './TransactionEdit';
@@ -1136,7 +1136,7 @@ function startMoneyRequest(
             [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
             [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
             [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-            [CONST.TELEMETRY.ATTRIBUTE_SOURCE_ROUTE]: sourceRoute || 'unknown',
+            [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: sourceRoute || 'unknown',
         },
     });
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactions);
@@ -6361,7 +6361,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
-    const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : receipt;
+    const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN, name: 'receipt-generic.png'} : receipt;
     const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
 
     const retryParams: CreateTrackExpenseParams = {
@@ -10225,10 +10225,11 @@ function canSubmitReport(
     isReportArchived: boolean,
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
+    const currentUserEmailValue = getCurrentUserEmail() ?? '';
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations);
-    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmail, report, policy);
+    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations, currentUserEmailValue, report, policy);
     const hasOnlyPendingCardOrScanFailTransactions = transactions.length > 0 && transactions.every((t) => isPendingCardOrScanningTransaction(t));
 
     return (
@@ -10279,7 +10280,7 @@ function approveMoneyRequest(
     const currentNextStepDeprecated = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
     let total = expenseReport.total ?? 0;
     const hasHeldExpenses = hasHeldExpensesReportUtils(expenseReport.reportID);
-    const hasDuplicates = hasDuplicateTransactions(expenseReport.reportID);
+    const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, expenseReport, policy);
     if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
     }
@@ -10453,7 +10454,7 @@ function approveMoneyRequest(
 
     // Remove duplicates violations if we approve the report
     if (hasDuplicates) {
-        const transactions = getReportTransactions(expenseReport.reportID).filter((transaction) => isDuplicate(transaction));
+        const transactions = getReportTransactions(expenseReport.reportID).filter((transaction) => isDuplicate(transaction, currentUserEmailParam, expenseReport, policy));
         if (!full) {
             transactions.filter((transaction) => !isOnHold(transaction));
         }
