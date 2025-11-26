@@ -7088,7 +7088,7 @@ ${
                 `Zakwestionowałeś opłatę w wysokości ${amountOwed} na karcie kończącej się na ${cardEnding}. Twoje konto zostanie zablokowane do czasu rozwiązania sporu z bankiem.`,
             preTrial: {
                 title: 'Rozpocznij darmowy okres próbny',
-                subtitle: 'Jako kolejny krok, <a href="#">ukończ listę kontrolną konfiguracji</a> aby Twój zespół mógł zacząć rozliczać wydatki.',
+                subtitle: 'Następnie <a href="#">uzupełnij listę kontrolną konfiguracji</a>, aby Twój zespół mógł zacząć rozliczać wydatki.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Okres próbny: ${numOfDays} ${numOfDays === 1 ? 'dzień' : 'dni'} pozostało!`,
