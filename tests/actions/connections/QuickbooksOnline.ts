@@ -1,7 +1,6 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import * as QuickbooksOnline from '@src/libs/actions/connections/QuickbooksOnline';
@@ -9,12 +8,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type {QBOConnectionConfig} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type { WriteCommand} from '@libs/API/types';
+import { WRITE_COMMANDS } from '@libs/API/types';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
 jest.mock('@libs/ErrorUtils');
 
-type APIWriteArgs = Parameters<typeof API.write>;
+const writeSpy = jest.spyOn(API, 'write');
 
 const MOCK_POLICY_ID = 'MOCK_POLICY_ID';
 const MOCK_ACCOUNT_ID = 'account-123';
@@ -35,7 +36,6 @@ describe('actions/connections/QuickbooksOnline', () => {
     });
 
     describe('updateQuickbooksOnlineCollectionAccountID', () => {
-        const writeSpy = jest.spyOn(API, 'write');
 
         beforeEach(() => {
             jest.clearAllMocks();
@@ -64,7 +64,7 @@ describe('actions/connections/QuickbooksOnline', () => {
             return config;
         }
 
-        function getFirstWriteCall(): {command: APIWriteArgs[0]; onyxData: OnyxData} {
+        function getFirstWriteCall(): {command: WriteCommand, onyxData: OnyxData} {
             const call = writeSpy.mock.calls.at(0);
             if (!call) {
                 throw new Error('API.write was not called');
