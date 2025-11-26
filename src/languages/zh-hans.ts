@@ -2639,12 +2639,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: '报销就像发送消息一样简单。让我们来看看基本知识。',
             onboardingPersonalSpendMessage: '以下是如何在几次点击中跟踪您的支出。',
-            onboardingManageTeamMessage: dedent(`
-                您的免费试用已开始！让我们为您完成设置。
-                👋 您好，我是您的 Expensify 设置专员。既然您已创建了一个工作区，请按照以下步骤操作，充分利用为期 30 天的免费试用！
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # 你的免费试用已开始！让我们帮你完成设置。
+                        👋 你好，我是你的 Expensify 设置专员。我已经创建了一个工作区，帮助你管理团队的收据和费用。为了充分利用你的 30 天免费试用，只需按照下方剩余的设置步骤进行操作即可！
+                    `)
+                    : dedent(`
+                        # 您的免费试用已开始！让我们为您完成设置。
+                        👋 您好，我是您的 Expensify 设置专员。现在您已创建了一个工作区，请按照以下步骤操作，充分利用您的 30 天免费试用！
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# 让我们来设置您的帐户\nð 我来帮忙了！为了帮助您开始，我已为个体经营者和类似企业量身定制了您的工作区设置。您可以通过点击下面的链接来调整您的工作区！\n\n以下是如何在几次点击中跟踪您的支出：',
+                '# 让我们开始为你进行设置\n👋 你好，我是你的 Expensify 设置专员。我已经创建了一个工作区，帮助你管理收据和费用。为充分利用你的 30 天免费试用，只需按照下面剩余的设置步骤操作！',
             onboardingChatSplitMessage: '与朋友分摊账单就像发送消息一样简单。以下是方法。',
             onboardingAdminMessage: '了解如何作为管理员管理团队的工作区并提交自己的支出。',
             onboardingLookingAroundMessage: 'Expensify 以其支出、差旅和公司卡管理而闻名，但我们所做的远不止于此。让我知道您对什么感兴趣，我会帮助您开始。',

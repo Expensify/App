@@ -2676,12 +2676,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
-            onboardingManageTeamMessage: dedent(`
-                # Je gratis proefperiode is gestart! Laten we je op weg helpen.
-                👋 Hoi, ik ben je Expensify-instelspecialist. Nu je een werkruimte hebt gemaakt, haal je het meeste uit je gratis proefperiode van 30 dagen door de onderstaande stappen te volgen!
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # Je gratis proefperiode is gestart! Laten we je instellen.
+                        👋 Hoi, ik ben je Expensify-instelspecialist. Ik heb al een werkruimte aangemaakt om de bonnetjes en uitgaven van je team te beheren. Om het meeste uit je gratis proefperiode van 30 dagen te halen, volg je gewoon de resterende instelstappen hieronder!
+                    `)
+                    : dedent(`
+                        # Je gratis proefperiode is begonnen! Laten we je instellen.
+                        👋 Hoi! Ik ben je Expensify-specialist voor het instellen. Nu je een werkruimte hebt aangemaakt, haal het meeste uit je gratis proefperiode van 30 dagen door de onderstaande stappen te volgen!
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
+                '# Laten we je instellen\n👋 Hoi, ik ben je Expensify-installatiespecialist. Ik heb al een werkruimte aangemaakt om te helpen bij het beheren van je bonnetjes en uitgaven. Om het meeste uit je gratis proefperiode van 30 dagen te halen, volg je gewoon de resterende instelstappen hieronder!',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
             onboardingAdminMessage: 'Leer hoe u de werkruimte van uw team als beheerder beheert en uw eigen uitgaven indient.',
             onboardingLookingAroundMessage:
