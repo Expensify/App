@@ -155,18 +155,8 @@ describe('actions/connections/QuickbooksOnline', () => {
             const {onyxData} = getFirstWriteCall();
             const optimisticUpdate = onyxData?.optimisticData?.at(0);
             const configUpdate = getRequiredQuickBooksConfig(optimisticUpdate);
-            expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBe('');
-            expect(configUpdate[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBe('');
-        });
-
-        it('treats undefined old values as empty strings', () => {
-            updateQuickbooksOnlineSyncReimbursedReports(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, undefined, undefined);
-
-            const {onyxData} = getFirstWriteCall();
-            const failureUpdate = onyxData?.failureData?.at(0);
-            const configUpdate = getRequiredQuickBooksConfig(failureUpdate);
-            expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBe('');
-            expect(configUpdate[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBe('');
+            expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
+            expect(configUpdate[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBeNull();
         });
     });
 });
