@@ -9,8 +9,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getBankName,
     getCardFeedIcon,
-    getCompanyFeeds,
     getCustomOrFormattedFeedName,
+    getOriginalCompanyFeeds,
     getPlaidInstitutionIconUrl,
     getPlaidInstitutionId,
     isCard,
@@ -437,7 +437,8 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
             continue;
         }
 
-        Object.keys(getCompanyFeeds(cardFeeds, true, true)).forEach((key) => {
+        // eslint-disable-next-line unicorn/no-array-for-each
+        Object.keys(getOriginalCompanyFeeds(cardFeeds)).forEach((key) => {
             const feed = key as CompanyCardFeed;
             const id = `${fundID}_${feed}`;
 
@@ -449,7 +450,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
                 id,
                 feed,
                 fundID,
-                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames, false) ?? feed,
+                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             };
         });
     }
@@ -491,7 +492,8 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
             continue;
         }
 
-        Object.entries(getCompanyFeeds(cardFeeds, true, true)).forEach(([key, feedData]) => {
+        // eslint-disable-next-line unicorn/no-array-for-each
+        Object.entries(getOriginalCompanyFeeds(cardFeeds)).forEach(([key, feedData]) => {
             const preferredPolicy = 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
             const feed = key as CompanyCardFeed;
             const id = `${fundID}_${feed}`;
@@ -500,7 +502,7 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
                 id,
                 feed,
                 fundID,
-                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames, false) ?? feed,
+                name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             });
         });
     }

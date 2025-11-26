@@ -24,17 +24,31 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import {getDefaultApprover, isUserPolicyAdmin} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import * as FormActions from '@userActions/FormActions';
+import {getRemoveApprovalWorkflowOnyxData, getUpdateApprovalWorkflowOnyxData} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {
+    ImportedSpreadsheetMemberData,
+    InvitedEmailsToAccountIDs,
+    PersonalDetails,
+    PersonalDetailsList,
+    Policy,
+    PolicyEmployee,
+    PolicyOwnershipChangeChecks,
+    Report,
+    ReportAction,
+    ReportActions,
+} from '@src/types/onyx';
+import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participant} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {createPolicyExpenseChats} from './Policy';
+import {createPolicyExpenseChats, getSetPolicyPreventSelfApprovalOnyxData} from './Policy';
 
 type OnyxDataReturnType = {
     optimisticData: OnyxUpdate[];
@@ -321,9 +335,8 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
     if (!adminLoginList.length) {
         return {optimisticData, successData, failureData};
     }
-
     for (const connection of connections) {
-        const exporter = policy?.connections?.[connection]?.config.export.exporter;
+        const exporter = policy?.connections?.[connection]?.config?.export?.exporter;
         if (!exporter || !adminLoginList.includes(exporter)) {
             continue;
         }
@@ -357,7 +370,7 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
                 connections: {
                     [connection]: {
                         config: {
-                            export: {exporter: policy?.connections?.[connection]?.config.export.exporter},
+                            export: {exporter},
                             pendingFields: {[pendingFieldKey]: null},
                         },
                     },
@@ -366,7 +379,7 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
         });
     }
 
-    const exporter = policy?.connections?.netsuite?.options.config.exporter;
+    const exporter = policy?.connections?.netsuite?.options?.config?.exporter;
     if (exporter && adminLoginList.includes(exporter)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -385,7 +398,7 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {connections: {netsuite: {options: {config: {exporter: policy?.connections?.netsuite?.options.config.exporter, pendingFields: {exporter: null}}}}}},
+            value: {connections: {netsuite: {options: {config: {exporter, pendingFields: {exporter: null}}}}}},
         });
     }
 
@@ -396,7 +409,13 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
  * Remove the passed members from the policy employeeList
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function removeMembers(policyID: string, selectedMemberEmails: string[], policyMemberEmailsToAccountIDs: Record<string, number>) {
+function removeMembers(
+    policyID: string,
+    selectedMemberEmails: string[],
+    policyMemberEmailsToAccountIDs: Record<string, number>,
+    approvalWorkflows: ApprovalWorkflow[],
+    allPersonalDetails: OnyxEntry<PersonalDetailsList>,
+) {
     if (selectedMemberEmails.length === 0) {
         return;
     }
@@ -407,6 +426,46 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
+
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    // Update approval workflows after member removal
+    // Check if any of the account IDs are approvers
+    const hasApprovers = selectedMemberEmails.some((selectedMemberEmail) => isApprover(policy, selectedMemberEmail));
+    const ownerDetails = allPersonalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
+
+    if (hasApprovers) {
+        const ownerEmail = ownerDetails.login;
+        // eslint-disable-next-line unicorn/no-array-for-each
+        accountIDs.forEach((accountID) => {
+            const removedApprover = allPersonalDetails?.[accountID];
+            if (!removedApprover?.login || !ownerEmail) {
+                return;
+            }
+            const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows,
+                removedApprover,
+                ownerDetails,
+            });
+            // eslint-disable-next-line unicorn/no-array-for-each
+            updatedWorkflows.forEach((workflow) => {
+                if (workflow?.removeApprovalWorkflow) {
+                    const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+                    const onyxDataForRemoveApprovalWorkflow = getRemoveApprovalWorkflowOnyxData(updatedWorkflow, policy);
+                    optimisticData.push(...(onyxDataForRemoveApprovalWorkflow.optimisticData ?? []));
+                    successData.push(...(onyxDataForRemoveApprovalWorkflow.successData ?? []));
+                    failureData.push(...(onyxDataForRemoveApprovalWorkflow.failureData ?? []));
+                } else {
+                    const onyxDataForUpdateApprovalWorkflow = getUpdateApprovalWorkflowOnyxData(workflow, [], [], policy);
+                    optimisticData.push(...(onyxDataForUpdateApprovalWorkflow.optimisticData ?? []));
+                    successData.push(...(onyxDataForUpdateApprovalWorkflow.successData ?? []));
+                    failureData.push(...(onyxDataForUpdateApprovalWorkflow.failureData ?? []));
+                }
+            });
+        });
+    }
 
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
     const optimisticClosedReportActions = workspaceChats.map(() =>
@@ -478,38 +537,32 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
     const approvalRules: ApprovalRule[] = policy?.rules?.approvalRules ?? [];
     const optimisticApprovalRules = approvalRules.filter((rule) => !selectedMemberEmails.includes(rule?.approver ?? ''));
 
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {
-                employeeList: optimisticMembersState,
-                approver: selectedMemberEmails.includes(policy?.approver ?? '') ? policy?.owner : policy?.approver,
-                rules: {
-                    ...(policy?.rules ?? {}),
-                    approvalRules: optimisticApprovalRules,
-                },
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: policyKey,
+        value: {
+            employeeList: optimisticMembersState,
+            approver: selectedMemberEmails.includes(policy?.approver ?? '') ? policy?.owner : policy?.approver,
+            rules: {
+                ...(policy?.rules ?? {}),
+                approvalRules: optimisticApprovalRules,
             },
         },
-    ];
+    });
     optimisticData.push(...announceRoomMembers.optimisticData, ...adminRoomMembers.optimisticData, ...preferredExporterOnyxData.optimisticData);
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {employeeList: successMembersState},
-        },
-    ];
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: policyKey,
+        value: {employeeList: successMembersState},
+    });
     successData.push(...announceRoomMembers.successData, ...adminRoomMembers.successData, ...preferredExporterOnyxData.successData);
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {employeeList: failureMembersState, approver: policy?.approver, rules: policy?.rules},
-        },
-    ];
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: policyKey,
+        value: {employeeList: failureMembersState, approver: policy?.approver, rules: policy?.rules},
+    });
     failureData.push(...announceRoomMembers.failureData, ...adminRoomMembers.failureData, ...preferredExporterOnyxData.failureData);
 
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -647,6 +700,16 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
         emailList: selectedMemberEmails.join(','),
         policyID,
     };
+
+    // Update "Prevent Self Approvals" after member removal
+    const previousEmployeesCount = Object.values(policy?.employeeList ?? {}).filter((employee) => employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const remainingEmployeeCount = previousEmployeesCount - accountIDs.length;
+    if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
+        const onyxDataForSetPolicyPreventSelfApproval = getSetPolicyPreventSelfApprovalOnyxData(policyID, false);
+        optimisticData.push(...(onyxDataForSetPolicyPreventSelfApproval.optimisticData ?? []));
+        successData.push(...(onyxDataForSetPolicyPreventSelfApproval.successData ?? []));
+        failureData.push(...(onyxDataForSetPolicyPreventSelfApproval.failureData ?? []));
+    }
 
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }

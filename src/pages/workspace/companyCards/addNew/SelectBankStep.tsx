@@ -1,13 +1,13 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
@@ -40,7 +40,7 @@ function SelectBankStep() {
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
 
-    const submit = () => {
+    const submit = useCallback(() => {
         if (!bankSelected) {
             setHasError(true);
         } else {
@@ -57,7 +57,7 @@ function SelectBankStep() {
                 isEditing: false,
             });
         }
-    };
+    }, [addNewCard?.data.selectedBank, bankSelected, isBetaEnabled, isOtherBankSelected]);
 
     useEffect(() => {
         setBankSelected(addNewCard?.data.selectedBank);
@@ -90,6 +90,17 @@ function SelectBankStep() {
         ),
     }));
 
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.next'),
+            onConfirm: submit,
+            isDisabled: isOffline,
+            style: !hasError && styles.mt5,
+        }),
+        [hasError, isOffline, styles.mt5, submit, translate],
+    );
+
     return (
         <ScreenWrapper
             testID={SelectBankStep.displayName}
@@ -103,20 +114,16 @@ function SelectBankStep() {
             />
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whoIsYourBankAccount')}</Text>
             <SelectionList
+                data={data}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => {
                     setBankSelected(value);
                     setHasError(false);
                 }}
-                sections={[{data}]}
+                initiallyFocusedItemKey={addNewCard?.data.selectedBank ?? undefined}
+                confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={addNewCard?.data.selectedBank}
                 shouldUpdateFocusedIndex
-                showConfirmButton
-                confirmButtonText={translate('common.next')}
-                onConfirm={submit}
-                isConfirmButtonDisabled={isOffline}
-                confirmButtonStyles={!hasError && styles.mt5}
                 addBottomSafeAreaPadding
             >
                 {hasError && (

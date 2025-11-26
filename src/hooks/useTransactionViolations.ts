@@ -27,7 +27,7 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
             mergeProhibitedViolations(
                 transactionViolations.filter(
                     (violation: TransactionViolation) =>
-                        !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '') &&
+                        !isViolationDismissed(transaction, violation, currentUserDetails.email ?? '', iouReport, policy) &&
                         shouldShowViolation(iouReport, policy, violation.name, currentUserDetails.email ?? '', shouldShowRterForSettledReport),
                 ),
             ),
