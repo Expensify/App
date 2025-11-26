@@ -45,14 +45,13 @@ function HybridAppHandler() {
                 return;
             }
 
-            startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, {
-                name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
-                op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
-                startTime: hybridAppSettings.hybridApp.transitionStartTimestamp ?? Date.now(),
-                attributes: {
-                    [CONST.TELEMETRY.ATTRIBUTE_TRY_NEW_EXPENSIFY]: hybridAppSettings.hybridApp.pressedTryNewExpensify,
-                },
-            });
+            if (hybridAppSettings.hybridApp.pressedTryNewExpensify) {
+                startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, {
+                    name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
+                    op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
+                    startTime: hybridAppSettings.hybridApp.transitionStartTimestamp ?? Date.now(),
+                });
+            }
 
             finalizeTransitionFromOldDot(hybridAppSettings);
         });
