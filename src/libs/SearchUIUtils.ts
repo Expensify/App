@@ -101,11 +101,13 @@ import {
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
+    isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
     isOpenExpenseReport,
     isOpenReport,
+    isProcessingReport,
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from './SearchQueryUtils';
@@ -1329,13 +1331,13 @@ function getActions(
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
 
-    if (report && policy && isPolicyAdmin(policy) && isMoneyRequestReport(report) && !isMoneyRequestReportPendingDeletion(report)) {
-        allActions.push(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
-    }
-
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
     if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived, currentUserEmail) && isAllowedToApproveExpenseReport) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+    }
+
+    if (report && policy && isPolicyAdmin(policy) && isExpenseReportUtil(report) && isProcessingReport(report) && !isMoneyRequestReportPendingDeletion(report)) {
+        allActions.push(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
     }
 
     if (reportNVP?.exportFailedTime) {
