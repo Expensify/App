@@ -934,6 +934,10 @@ const staticStyles = (theme: ThemeColors) =>
             ...visibility.hidden,
         },
 
+        visibilityVisible: {
+            ...visibility.visible,
+        },
+
         loadingVBAAnimation: {
             width: 140,
             height: 140,
@@ -1835,7 +1839,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         optionRowCompact: {
-            height: variables.optionRowHeightCompact,
             minHeight: variables.optionRowHeightCompact,
             paddingTop: 12,
             paddingBottom: 12,
@@ -4232,6 +4235,14 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        reportLayoutGroupHeader: {
+            paddingHorizontal: 12,
+            marginTop: 16,
+            marginBottom: 8,
+            backgroundColor: theme.appBG,
+            justifyContent: 'center',
+        },
+
         reportActionItemImageBorder: {
             borderRightWidth: 4,
             borderColor: theme.cardBG,
@@ -6010,6 +6021,9 @@ const plainStyles = (theme: ThemeColors) =>
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': theme.success, 'line-width': 7},
+        },
+        searchTopBarZIndexStyle: {
+            zIndex: variables.searchTopBarZIndex,
         },
     }) satisfies Styles;
 
