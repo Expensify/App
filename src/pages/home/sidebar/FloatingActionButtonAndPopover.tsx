@@ -117,7 +117,20 @@ const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => a
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref}: FloatingActionButtonAndPopoverProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Document', 'NewWorkspace', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'CalendarSolid',
+        'Document',
+        'NewWorkspace',
+        'NewWindow',
+        'InvoiceGeneric',
+        'ReceiptScan',
+        'ChatBubble',
+        'Coins',
+        'Receipt',
+        'Cash',
+        'Transfer',
+        'MoneyCircle',
+    ] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -381,7 +394,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const expenseMenuItems = useMemo((): PopoverMenuItem[] => {
         return [
             {
-                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
                 text: translate('iou.createExpense'),
                 testID: 'create-expense',
                 shouldCallAfterModalHide: shouldRedirectToExpensifyClassic || shouldUseNarrowLayout,
@@ -395,7 +408,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     }),
             },
         ];
-    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID]);
+    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID, icons]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
@@ -465,7 +478,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             return [
                 {
                     ...baseQuickAction,
-                    icon: Expensicons.ReceiptScan,
+                    icon: icons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
                     description: getReportName(policyChatForActivePolicy),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
@@ -575,7 +588,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
               ]
             : []),
         {
-            icon: Expensicons.ChatBubble,
+            icon: icons.ChatBubble,
             text: translate('sidebarScreen.fabNewChat'),
             shouldCallAfterModalHide: shouldUseNarrowLayout,
             onSelected: () => interceptAnonymousUser(startNewChat),
@@ -583,7 +596,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         ...(canSendInvoice
             ? [
                   {
-                      icon: Expensicons.InvoiceGeneric,
+                      icon: icons.InvoiceGeneric,
                       text: translate('workspace.invoices.sendInvoice'),
                       shouldCallAfterModalHide: shouldRedirectToExpensifyClassic || shouldUseNarrowLayout,
                       onSelected: () =>

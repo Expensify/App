@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
@@ -17,6 +18,7 @@ import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
@@ -161,6 +163,8 @@ function MoneyRequestReportTransactionList({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus'] as const);
+
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {markReportIDAsExpense} = useContext(WideRHPContext);
@@ -178,8 +182,8 @@ function MoneyRequestReportTransactionList({
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const addExpenseDropdownOptions = useMemo(
-        () => getAddExpenseDropdownOptions(report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [report?.reportID, policy, lastDistanceExpenseType],
+        () => getAddExpenseDropdownOptions(icons, report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
+        [report?.reportID, policy, lastDistanceExpenseType, icons],
     );
 
     const hasPendingAction = useMemo(() => {

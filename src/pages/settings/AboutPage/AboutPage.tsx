@@ -52,7 +52,7 @@ type MenuItem = {
 };
 
 function AboutPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'MoneyBag'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -84,7 +84,7 @@ function AboutPage() {
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
-                icon: Expensicons.MoneyBag,
+                icon: icons.MoneyBag,
                 iconRight: icons.NewWindow,
                 action: () => {
                     openExternalLink(CONST.UPWORK_URL);
@@ -119,7 +119,7 @@ function AboutPage() {
             shouldBlockSelection: !!link,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [icons.NewWindow, styles, translate, waitForNavigate]);
+    }, [icons.NewWindow, icons.MoneyBag, styles, translate, waitForNavigate]);
 
     const overlayContent = useCallback(
         () => (

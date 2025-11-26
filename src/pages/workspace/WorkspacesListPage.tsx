@@ -124,7 +124,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Transfer'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -414,7 +414,7 @@ function WorkspacesListPage() {
 
             if (isAdmin && !isOwner && shouldRenderTransferOwnerButton(fundList)) {
                 threeDotsMenuItems.push({
-                    icon: Expensicons.Transfer,
+                    icon: icons.Transfer,
                     text: translate('workspace.people.transferOwner'),
                     onSelected: () => startChangeOwnershipFlow(item.policyID),
                 });
@@ -465,6 +465,7 @@ function WorkspacesListPage() {
         },
         [
             icons.Building,
+            icons.Transfer,
             session?.email,
             session?.accountID,
             activePolicyID,

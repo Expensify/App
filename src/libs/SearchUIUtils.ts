@@ -1,6 +1,7 @@
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import DotLottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
@@ -267,7 +268,7 @@ type SearchTypeMenuItem = {
     key: SearchKey;
     translationPath: TranslationPaths;
     type: SearchDataTypes;
-    icon?: IconAsset;
+    icon?: IconAsset | Extract<ExpensifyIconName, 'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank'>;
     searchQuery: string;
     searchQueryJSON: SearchQueryJSON | undefined;
     hash: number;
@@ -330,7 +331,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
             translationPath: 'common.expenses',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Receipt,
+            icon: 'Receipt',
             searchQuery: buildCannedSearchQuery(),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
@@ -362,7 +363,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.CHATS,
             translationPath: 'common.chats',
             type: CONST.SEARCH.DATA_TYPES.CHAT,
-            icon: Expensicons.ChatBubbles,
+            icon: 'ChatBubbles',
             searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT}),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
@@ -418,7 +419,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.PAY,
             translationPath: 'search.bulkActions.pay',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: Expensicons.MoneyBag,
+            icon: 'MoneyBag',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.PAY,
@@ -460,7 +461,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
             translationPath: 'search.statements',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.CreditCard,
+            icon: 'CreditCard',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : [''],
@@ -481,7 +482,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
             translationPath: 'search.unapprovedCash',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.MoneyHourglass,
+            icon: 'MoneyHourglass',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
@@ -502,7 +503,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
             translationPath: 'search.unapprovedCard',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.CreditCardHourglass,
+            icon: 'CreditCardHourglass',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : [''],
@@ -523,7 +524,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
             translationPath: 'search.reconciliation',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Bank,
+            icon: 'Bank',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT,

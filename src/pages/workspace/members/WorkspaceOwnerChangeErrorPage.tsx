@@ -4,10 +4,10 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -24,6 +24,7 @@ type WorkspaceOwnerChangeSuccessPageProps = PlatformStackScreenProps<SettingsNav
 function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['MoneyWaving'] as const);
 
     const accountID = Number(route.params.accountID) ?? -1;
     const policyID = route.params.policyID;
@@ -54,7 +55,7 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
                 />
                 <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
                     <Icon
-                        src={Expensicons.MoneyWaving}
+                        src={icons.MoneyWaving}
                         width={187}
                         height={173}
                         fill=""

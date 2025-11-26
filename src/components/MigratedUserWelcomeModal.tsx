@@ -25,6 +25,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Illustrations from './Icon/Illustrations';
 import LottieAnimations from './LottieAnimations';
 import RenderHTML from './RenderHTML';
@@ -38,12 +39,12 @@ function MigratedUserWelcomeModal() {
     const [isModalDisabled, setIsModalDisabled] = useState(true);
     const route = useRoute<PlatformStackRouteProp<MigratedUserModalNavigatorParamList, typeof SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT>>();
     const shouldOpenSearch = route?.params?.shouldOpenSearch === 'true';
-    const illustrations = useMemoizedLazyIllustrations(['ExpensifyMobileApp'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ExpensifyMobileApp', 'ChatBubbles'] as const);
 
     const ExpensifyFeatures = useMemo<FeatureListItem[]>(
         () => [
             {
-                icon: Illustrations.ChatBubbles,
+                icon: illustrations.ChatBubbles,
                 translationKey: 'migratedUserWelcomeModal.features.chat',
             },
             {
@@ -55,7 +56,7 @@ function MigratedUserWelcomeModal() {
                 translationKey: 'migratedUserWelcomeModal.features.crossPlatform',
             },
         ],
-        [illustrations.ExpensifyMobileApp],
+        [illustrations.ExpensifyMobileApp, illustrations.ChatBubbles],
     );
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {

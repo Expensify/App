@@ -8,7 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -46,6 +46,7 @@ function CardSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bill', 'CreditCard'] as const);
     const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes'] as const);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
@@ -185,7 +186,7 @@ function CardSection() {
                     {!isEmptyObject(defaultCard?.accountData) && (
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                             <Icon
-                                src={Expensicons.CreditCard}
+                                src={expensifyIcons.CreditCard}
                                 additionalStyles={styles.subscriptionAddedCardIcon}
                                 fill={theme.icon}
                                 medium
@@ -241,7 +242,7 @@ function CardSection() {
                 {!!(subscriptionPlan && account?.isEligibleForRefund) && (
                     <MenuItem
                         shouldShowRightIcon
-                        icon={Expensicons.Bill}
+                        icon={expensifyIcons.Bill}
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         title={translate('subscription.cardSection.requestRefund')}
                         titleStyle={styles.textStrong}
