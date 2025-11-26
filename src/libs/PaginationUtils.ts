@@ -185,7 +185,7 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
     }
     const didFindItem = index !== -1;
 
-    // If we found an item, return it as the resource item
+    // Return the found resource item if it exists
     let resourceItem: ResourceItemResult<TResource> | undefined;
     if (didFindItem) {
         const item = sortedItems.at(index);
@@ -212,9 +212,10 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
         lastIndex: 0,
     };
 
-    // If we found an index or no resource item predicate was used for the search, we want link to the specific page with the item
+    // If we found an item with the resource id, we want link to the specific page with the item
     if (id) {
-        // If we are linking to an action that doesn't exist in Onyx, return an empty array
+        // If we are searching for an item with a specific resource id and
+        // we are linking to an action that doesn't exist in Onyx, return an empty array
         if (!didFindItem) {
             return {data: [], hasNextPage: false, hasPreviousPage: false, resourceItem};
         }
@@ -230,7 +231,7 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
             page = linkedPage;
         }
     } else {
-        // If we didn't find an item with the resourceItemPredicate or no id was provided, we want to link to the first page
+        // If we did not find an item with the resource id, we want to link to the first page
         const pageAtIndex0 = pagesWithIndexes.at(0);
         if (pageAtIndex0) {
             page = pageAtIndex0;
