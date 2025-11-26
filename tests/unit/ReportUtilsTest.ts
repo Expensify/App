@@ -9608,7 +9608,7 @@ describe('ReportUtils', () => {
         const chatReportID = '30001';
 
         // Given a workspace with an admin as approver
-        const policy: Policy = {
+        const policy1: Policy = {
             id: policyID1,
             name: 'Test Policy',
             role: CONST.POLICY.ROLE.ADMIN,
@@ -9644,7 +9644,7 @@ describe('ReportUtils', () => {
             total: 10000,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-            policyID1,
+            policyID: policyID1,
         };
 
         // The expense report chat (where GBR should appear)
@@ -9673,7 +9673,7 @@ describe('ReportUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
                 [submitAction.reportActionID]: submitAction,
             }),
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID1}`, policy),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID1}`, policy1),
         ]);
         await waitForBatchedUpdates();
 
@@ -9695,7 +9695,7 @@ describe('ReportUtils', () => {
 
         // When the admin is removed as approver
         const updatedPolicy: Policy = {
-            ...policy,
+            ...policy1,
             approver: '',
             employeeList: {
                 [employeeEmail]: {
