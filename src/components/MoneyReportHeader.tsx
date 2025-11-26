@@ -226,7 +226,7 @@ function MoneyReportHeader({
         'Info',
         'Export',
         'Document',
-        'Filters',
+        'Feed',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
@@ -1146,7 +1146,7 @@ function MoneyReportHeader({
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT]: {
             text: translate('reportLayout.reportLayout'),
-            icon: expensifyIcons.Filters,
+            icon: expensifyIcons.Feed,
             value: CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT,
             onSelected: () => {
                 if (!moneyRequestReport) {
