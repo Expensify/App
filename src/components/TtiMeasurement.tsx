@@ -75,7 +75,10 @@ function TtiMeasurement() {
         <>
             <TtiMeasurementView onMeasurementsReady={setTtiMeasurement} />
             {!!ttiMeasurement && (
-                <View style={{zIndex: 1000, position: 'absolute', left: 10, right: 10, bottom: 100, backgroundColor: 'cyan'}}>
+                <View
+                    pointerEvents="none"
+                    style={{zIndex: 1000, position: 'absolute', left: 10, right: 10, bottom: 100, backgroundColor: 'cyan', opacity: 0.5}}
+                >
                     <View style={{borderWidth: 1, borderColor: 'black', padding: 10, marginBottom: 20}}>
                         <Text color="black">First draw: {firstDrawTime}ms</Text>
                         <Text color="black">Bundle execution: {runJsBundleStart}ms</Text>
