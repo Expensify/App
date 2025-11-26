@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import AmountPicker from '@components/AmountPicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -37,7 +37,7 @@ function WorkspaceCreateTaxPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validateTaxNameInModal = useCallback(
+    const validateTaxNameCustom = useCallback(
         (inputID: string) => {
             return (values: Record<string, string>) => {
                 const errors: Record<string, string> = {};
@@ -52,6 +52,8 @@ function WorkspaceCreateTaxPage({
         },
         [policy?.taxRates?.taxes, translate],
     );
+
+    const customValidateForName = useMemo(() => validateTaxNameCustom(INPUT_IDS.NAME), [validateTaxNameCustom]);
 
     const submitForm = useCallback(
         ({value, ...values}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
@@ -118,7 +120,7 @@ function WorkspaceCreateTaxPage({
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
                                     required
-                                    customValidate={validateTaxNameInModal(INPUT_IDS.NAME)}
+                                    customValidate={customValidateForName}
                                 />
                                 <InputWrapper
                                     InputComponent={AmountPicker}
