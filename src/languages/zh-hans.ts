@@ -4557,7 +4557,7 @@ ${
             companyCard: '公司卡',
             chooseCardFeed: '选择卡片信息流',
             ukRegulation:
-                'Expensify, Inc. 是 Plaid Financial Ltd. 的代理商，Plaid Financial Ltd. 是一家授权支付机构，受金融行为监管局根据2017年支付服务条例的监管（公司参考编号：804718）。Plaid 通过 Expensify Limited 作为其代理商为您提供受监管的账户信息服务。',
+                'Expensify Limited 是 Plaid Financial Ltd. 的代理商，Plaid Financial Ltd. 是一家授权支付机构，受金融行为监管局根据2017年支付服务条例的监管（公司参考编号：804718）。Plaid 通过 Expensify Limited 作为其代理商为您提供受监管的账户信息服务。',
         },
         expensifyCard: {
             issueAndManageCards: '发行和管理您的Expensify卡片',
