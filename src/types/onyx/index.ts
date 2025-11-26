@@ -16,7 +16,7 @@ import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
-import type {AddNewCompanyCardFeed, CompanyCardFeed, FundID} from './CardFeeds';
+import type {AddNewCompanyCardFeed, CompanyCardFeed, CompanyCardFeedWithDomainID, FundID} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
@@ -90,6 +90,7 @@ import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
+import type {GroupedTransactions, ReportLayoutGroupBy} from './ReportLayout';
 import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type LastSearchParams from './ReportNavigation';
@@ -166,6 +167,7 @@ export type {
     IssueNewCard,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
+    CompanyCardFeedWithDomainID,
     LastExportMethod,
     Locale,
     LockAccountDetails,
@@ -287,4 +289,6 @@ export type {
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
+    ReportLayoutGroupBy,
+    GroupedTransactions,
 };
