@@ -88,6 +88,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     }}
                     textInputOptions={textInputOptions}
                     initiallyFocusedItemKey={currentYear.toString()}
+                    disableMaintainingScrollPosition
                     addBottomSafeAreaPadding
                     shouldStopPropagation
                     showScrollIndicator
