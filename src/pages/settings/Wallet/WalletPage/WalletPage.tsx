@@ -80,7 +80,6 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Transfer', 'Hourglass', 'Exclamation', 'Wallet', 'Star', 'UserPlus', 'Trashcan', 'Globe'] as const);
     const {asset: MoneyIntoWallet} = useMemoizedLazyAsset(() => loadIllustration('MoneyIntoWallet' as IllustrationName));
