@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -17,7 +17,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
-import MissingPersonalDetailsMagicCodeModal from './MissingPersonalDetailsMagicCodeModal';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -34,7 +33,7 @@ type MissingPersonalDetailsContentProps = {
     headerTitle?: string;
 
     /** Optional custom completion handler */
-    onComplete?: (values: PersonalDetailsForm, validateCode: string) => void;
+    onComplete?: () => void;
 };
 
 const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
@@ -42,7 +41,6 @@ const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
 function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
@@ -58,7 +56,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
             return;
         }
-        setIsValidateCodeActionModalVisible(true);
+        onComplete();
     }, [onComplete, values]);
 
     const {
@@ -89,16 +87,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         ref.current?.movePrevious();
         prevScreen();
     };
-
-    const handleSubmitForm = useCallback(
-        (validateCode: string) => {
-            if (!onComplete) {
-                return;
-            }
-            onComplete(values, validateCode);
-        },
-        [values, onComplete],
-    );
 
     const handleNextScreen = useCallback(() => {
         if (isEditing) {
@@ -141,11 +129,6 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 onMove={handleMoveTo}
                 screenIndex={screenIndex}
                 personalDetailsValues={values}
-            />
-            <MissingPersonalDetailsMagicCodeModal
-                onClose={() => setIsValidateCodeActionModalVisible(false)}
-                isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
-                handleSubmitForm={handleSubmitForm}
             />
         </ScreenWrapper>
     );
