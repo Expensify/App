@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
@@ -68,8 +68,14 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
     );
-    const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
+    const badgeProps = useMemo(
+        () => getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme),
+        [withdrawalIDItem.state, translate, theme],
+    );
     const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
+    const handleUnlockAccount = useCallback(() => {
+        Navigation.navigate(ROUTES.SETTINGS_WALLET);
+    }, []);
 
     return (
         <View>
@@ -141,7 +147,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                     <Text style={[styles.textLabelError, styles.flex1]}>
                         {translate('settlement.failedError')}{' '}
                         <TextLink
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET)}
+                            onPress={handleUnlockAccount}
                             style={[styles.textLabelError, styles.link]}
                         >
                             {translate('settlement.unlockYourAccount')}
