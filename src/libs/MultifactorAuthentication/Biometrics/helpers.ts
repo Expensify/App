@@ -275,9 +275,9 @@ function isChallengeSigned(challenge: MultifactorAuthenticationChallengeObject |
     return 'rawId' in challenge;
 }
 
-const toLowerCase = <T extends string>(str: T) => {
+function toLowerCase<T extends string>(str: T) {
     return str.toLowerCase() as Lowercase<T>;
-};
+}
 
 export {
     processMultifactorAuthenticationScenario as processScenario,

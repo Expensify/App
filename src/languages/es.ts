@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
-import type {TagSelectionParams, ViolationsRterParams, EnterMagicCodeParams} from './params';
+import type {EnterMagicCodeParams, TagSelectionParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
