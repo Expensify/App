@@ -61,7 +61,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                       },
                   ].filter((menuItem) => !!menuItem)
                 : undefined,
-        [isAdmin, icons, translate, action, isValidated, item.accountID],
+        [isAdmin, icons.Globe, translate, action, isValidated, item.accountID],
     );
 
     return (
