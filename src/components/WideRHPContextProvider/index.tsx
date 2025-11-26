@@ -100,7 +100,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
     // When closing Wide RHP, it is no longer the focused screen, this variable helps to determine the moment when Wide RHP is still visible on the screen but no longer focused
     const [isWideRHPClosing, setIsWideRHPClosing] = useState(false);
-
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
 
     const focusedRoute = useRootNavigationState((state) => (state ? findFocusedRoute(state) : undefined));
