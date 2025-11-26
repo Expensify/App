@@ -6869,8 +6869,7 @@ function getMovedTransactionMessage(action: ReportAction) {
         });
     }
     if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-        const selfDMReportID = findSelfDMReportID();
-        reportUrl = `${environmentURL}/r/${selfDMReportID}`;
+        reportUrl = `${environmentURL}/r/${findSelfDMReportID()}`;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.movedUnreportedTransaction', {
             reportUrl,
@@ -6894,8 +6893,7 @@ function getUnreportedTransactionMessage(action: ReportAction) {
     let reportUrl = `${environmentURL}/r/${fromReport?.reportID}`;
 
     if (fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-        const selfDMReportID = findSelfDMReportID();
-        reportUrl = `${environmentURL}/r/${selfDMReportID}`;
+        reportUrl = `${environmentURL}/r/${findSelfDMReportID()}`;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.unreportedTransaction', {
             reportUrl,
