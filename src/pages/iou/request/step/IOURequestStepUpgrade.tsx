@@ -158,6 +158,10 @@ function IOURequestStepUpgrade({
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
+    const handleConfirmUpgradeWarning = useCallback(() => {
+        setIsUpgradeWarningModalOpen(false);
+    }, []);
+
     const onWorkspaceConfirmationSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyData = Policy.createWorkspace({
             policyOwnerEmail: undefined,
@@ -222,7 +226,7 @@ function IOURequestStepUpgrade({
             <ConfirmModal
                 isVisible={isUpgradeWarningModalOpen}
                 shouldShowCancelButton={false}
-                onConfirm={() => setIsUpgradeWarningModalOpen(false)}
+                onConfirm={handleConfirmUpgradeWarning}
                 title={translate('common.upgradeWorkspaceWarning')}
                 prompt={translate('common.upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt')}
                 confirmText={translate('common.buttonConfirm')}
