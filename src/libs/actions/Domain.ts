@@ -157,7 +157,7 @@ function getSamlSettings(accountID: number, domainName: string) {
 }
 
 /**
- * Sets logging in through SAML as enabled/disabled for the emails belonging to the domain
+ * Sets whether logging in via SAML is enabled for the domain
  */
 function setSamlEnabled(enabled: boolean, accountID: number, domainName: string) {
     const optimisticData: OnyxUpdate[] = [
@@ -218,7 +218,7 @@ function resetSamlEnabledError(accountID: number) {
 }
 
 /**
- * Sets logging in through SAML as required or not for the emails belonging to the domain
+ * Sets whether logging in via SAML is required for the domain
  */
 function setSamlRequired(required: boolean, accountID: number, domainName: string) {
     const optimisticData: OnyxUpdate[] = [
