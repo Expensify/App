@@ -709,7 +709,7 @@ function MoneyRequestReportPreviewContent({
                                                 ) : (
                                                     (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
-                                                            {!!reportStatus && (
+                                                            {!!reportStatus && !!action?.childMoneyRequestCount && (
                                                                 <View
                                                                     style={[
                                                                         styles.reportStatusContainer,
