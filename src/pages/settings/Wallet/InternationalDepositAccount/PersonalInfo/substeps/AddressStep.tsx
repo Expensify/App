@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import CommonAddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,12 +25,15 @@ function AddressStep({onNext, onMove, isEditing}: SubStepProps) {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const currentAddress = getCurrentAddress(privatePersonalDetails);
 
-    const defaultValues = {
-        street: currentAddress?.street ?? '',
-        city: currentAddress?.city ?? '',
-        state: currentAddress?.state ?? '',
-        zipCode: currentAddress?.zip ?? '',
-    };
+    const defaultValues = useMemo(
+        () => ({
+            street: currentAddress?.street ?? '',
+            city: currentAddress?.city ?? '',
+            state: currentAddress?.state ?? '',
+            zipCode: currentAddress?.zip ?? '',
+        }),
+        [currentAddress?.city, currentAddress?.state, currentAddress?.street, currentAddress?.zip],
+    );
 
     const handleSubmit = usePersonalBankAccountDetailsFormSubmit({
         fieldIds: STEP_FIELDS,
