@@ -27,6 +27,7 @@ import {convertToDisplayString, getCurrencyKeyByCountryCode} from '@libs/Currenc
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
@@ -59,13 +60,7 @@ type LimitTypeTranslationKeys = {
  */
 function shouldShowMissingDetailsPage(card: OnyxEntry<Card>, privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>): boolean {
     const isUKOrEUCard = card?.nameValuePairs?.feedCountry === 'GB';
-    const hasMissingDetails =
-        !privatePersonalDetails?.legalFirstName ||
-        !privatePersonalDetails?.legalLastName ||
-        !privatePersonalDetails?.dob ||
-        !privatePersonalDetails?.phoneNumber ||
-        !privatePersonalDetails?.addresses ||
-        privatePersonalDetails.addresses.length === 0;
+    const hasMissingDetails = arePersonalDetailsMissing(privatePersonalDetails);
 
     return hasMissingDetails && isUKOrEUCard;
 }

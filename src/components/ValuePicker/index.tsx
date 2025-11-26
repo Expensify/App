@@ -1,5 +1,4 @@
-import React, {forwardRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Navigation from '@libs/Navigation/Navigation';
@@ -8,10 +7,7 @@ import type {ValuePickerItem, ValuePickerProps} from './types';
 import ValueSelectionList from './ValueSelectionList';
 import ValueSelectorModal from './ValueSelectorModal';
 
-function ValuePicker(
-    {value, label, items, placeholder = '', errorText = '', onInputChange, furtherDetails, shouldShowTooltips = true, shouldShowModal = true}: ValuePickerProps,
-    forwardedRef: ForwardedRef<View>,
-) {
+function ValuePicker({value, label, items, placeholder = '', errorText = '', onInputChange, furtherDetails, shouldShowTooltips = true, shouldShowModal = true, ref}: ValuePickerProps) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
@@ -36,7 +32,7 @@ function ValuePicker(
             {shouldShowModal ? (
                 <>
                     <MenuItemWithTopDescription
-                        ref={forwardedRef}
+                        ref={ref}
                         shouldShowRightIcon
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         title={selectedItem?.label || placeholder || ''}
@@ -72,4 +68,4 @@ function ValuePicker(
 
 ValuePicker.displayName = 'ValuePicker';
 
-export default forwardRef(ValuePicker);
+export default ValuePicker;

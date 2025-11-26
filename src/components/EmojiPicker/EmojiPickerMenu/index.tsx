@@ -341,7 +341,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                     }}
                     onBlur={() => setIsFocused(false)}
                     autoCorrect={false}
-                    submitBehavior={filteredEmojis.length > 0 ? 'blurAndSubmit' : 'submit'}
+                    blurOnSubmit={filteredEmojis.length > 0}
                 />
             </View>
             <BaseEmojiPickerMenu

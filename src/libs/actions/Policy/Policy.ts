@@ -258,10 +258,10 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedCurrencies = val ?? []),
 });
 
-let activePolicyID: OnyxEntry<string>;
+let deprecatedActivePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (value) => (activePolicyID = value),
+    callback: (value) => (deprecatedActivePolicyID = value),
 });
 
 let deprecatedIntroSelected: OnyxEntry<IntroSelected>;
@@ -288,11 +288,8 @@ function isCurrencySupportedForDirectReimbursement(currency: string) {
 /**
  * Checks if the currency is supported for global reimbursement
  */
-function isCurrencySupportedForGlobalReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, canUseGlobalReimbursementsOnND: boolean) {
-    if (canUseGlobalReimbursementsOnND) {
-        return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
-    }
-    return currency === CONST.CURRENCY.USD;
+function isCurrencySupportedForGlobalReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>) {
+    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
 }
 
 /**
@@ -314,11 +311,10 @@ function hasInvoicingDetails(policy: OnyxEntry<Policy>): boolean {
 /**
  * Returns a primary invoice workspace for the user
  */
-function getInvoicePrimaryWorkspace(currentUserLogin: string | undefined): Policy | undefined {
-    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicyID)) {
-        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
+function getInvoicePrimaryWorkspace(activePolicy: OnyxEntry<Policy>, activeAdminWorkspaces: Policy[]): Policy | undefined {
+    if (PolicyUtils.canSendInvoiceFromWorkspace(activePolicy?.id)) {
+        return activePolicy;
     }
-    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies, currentUserLogin);
     return activeAdminWorkspaces.find((policy) => PolicyUtils.canSendInvoiceFromWorkspace(policy.id));
 }
 
@@ -351,22 +347,28 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
     return true;
 }
 
+type DeleteWorkspaceActionParams = {
+    policyID: string;
+    activePolicyID: string | undefined;
+    policyName: string;
+    lastAccessedWorkspacePolicyID: string | undefined;
+    policyCardFeeds: CardFeeds | undefined;
+    reportsToArchive: Report[];
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined;
+    reimbursementAccountError: Errors | undefined;
+    lastUsedPaymentMethods?: LastPaymentMethod;
+};
+
 /**
  * Delete the workspace
  */
-function deleteWorkspace(
-    policyID: string,
-    policyName: string,
-    lastAccessedWorkspacePolicyID: string | undefined,
-    policyCardFeeds: CardFeeds | undefined,
-    reportsToArchive: Report[],
-    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
-    reimbursementAccountError: Errors | undefined,
-    lastUsedPaymentMethods?: LastPaymentMethod,
-) {
+function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     if (!allPolicies) {
         return;
     }
+
+    const {policyID, activePolicyID, policyName, lastAccessedWorkspacePolicyID, policyCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastUsedPaymentMethods} =
+        params;
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -444,6 +446,7 @@ function deleteWorkspace(
 
     const finallyData: OnyxUpdate[] = [];
     const currentTime = DateUtils.getDBTime();
+    // eslint-disable-next-line unicorn/no-array-for-each
     reportsToArchive.forEach((report) => {
         const {reportID, ownerAccountID, oldPolicyName} = report ?? {};
         const isInvoiceReceiverReport = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID;
@@ -535,6 +538,7 @@ function deleteWorkspace(
         }
     });
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.keys(lastUsedPaymentMethods ?? {})?.forEach((paymentMethodKey) => {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodKey];
 
@@ -575,9 +579,9 @@ function deleteWorkspace(
         }
     });
 
-    const params: DeleteWorkspaceParams = {policyID};
+    const apiParams: DeleteWorkspaceParams = {policyID};
 
-    API.write(WRITE_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, finallyData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_WORKSPACE, apiParams, {optimisticData, finallyData, failureData});
 
     // Reset the lastAccessedWorkspacePolicyID
     if (policyID === lastAccessedWorkspacePolicyID) {
@@ -1038,6 +1042,7 @@ function leaveWorkspace(policyID?: string) {
 
     const pendingChatMembers = ReportUtils.getPendingChatMembers([sessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     workspaceChats.forEach((report) => {
         const parentReport = ReportUtils.getRootParentReport({report});
         const reportToCheckOwner = isEmptyObject(parentReport) ? report : parentReport;
@@ -1236,6 +1241,7 @@ function createPolicyExpenseChats(
         reportCreationData: {},
     };
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.keys(invitedEmailsToAccountIDs).forEach((email) => {
         const accountID = invitedEmailsToAccountIDs[email];
         const cleanAccountID = Number(accountID);
@@ -1266,6 +1272,7 @@ function createPolicyExpenseChats(
             });
             const currentTime = DateUtils.getDBTime();
             const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChat.reportID}`] ?? {};
+            // eslint-disable-next-line unicorn/no-array-for-each
             Object.values(reportActions).forEach((action) => {
                 if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     return;
@@ -2058,7 +2065,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
         engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
         engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
-    const shouldSetCreatedPolicyAsActive = !activePolicyID || allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
+    const shouldSetCreatedPolicyAsActive = !deprecatedActivePolicyID || allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${deprecatedActivePolicyID}`]?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on selected features or user reported integration
     const isCorporateFeature = featuresMap?.some((feature) => !feature.enabledByDefault && feature.enabled && feature.requiresUpdate) ?? false;
@@ -2336,7 +2343,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: activePolicyID,
+            value: deprecatedActivePolicyID,
         });
     }
 
@@ -2355,6 +2362,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     if (getAdminPolicies().length === 0 && lastUsedPaymentMethod) {
         Object.values(allReports ?? {})
             .filter((iouReport) => iouReport?.type === CONST.REPORT.TYPE.IOU)
+            // eslint-disable-next-line unicorn/no-array-for-each
             .forEach((iouReport) => {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (lastUsedPaymentMethod?.iou?.name || !iouReport?.policyID) {
@@ -3696,6 +3704,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     // For performance reasons, we are going to compose a merge collection data for transactions
     const transactionsOptimisticData: Record<string, Transaction> = {};
     const transactionFailureData: Record<string, Transaction> = {};
+    // eslint-disable-next-line unicorn/no-array-for-each
     reportTransactions.forEach((transaction) => {
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
@@ -5260,8 +5269,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
     API.write(WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE, parameters, onyxData);
 }
 
-function getCashExpenseReimbursableMode(policyID: string): PolicyCashExpenseMode | undefined {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+function getCashExpenseReimbursableMode(policy: OnyxEntry<Policy>): PolicyCashExpenseMode | undefined {
     if (!policy) {
         return undefined;
     }
@@ -5672,18 +5680,13 @@ function setPolicyPreventMemberCreatedTitle(policyID: string, enforced: boolean)
     });
 }
 
-/**
- * Call the API to enable or disable self approvals for the reports
- * @param policyID - id of the policy to apply the naming pattern to
- * @param preventSelfApproval - flag whether to prevent workspace members from approving their own expense reports
- */
-function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boolean) {
+function getSetPolicyPreventSelfApprovalOnyxData(policyID: string, preventSelfApproval: boolean): OnyxData {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
 
     if (preventSelfApproval === policy?.preventSelfApproval) {
-        return;
+        return {};
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -5727,6 +5730,25 @@ function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boo
             },
         },
     ];
+
+    return {optimisticData, failureData, successData};
+}
+
+/**
+ * Call the API to enable or disable self approvals for the reports
+ * @param policyID - id of the policy to apply the naming pattern to
+ * @param preventSelfApproval - flag whether to prevent workspace members from approving their own expense reports
+ */
+function setPolicyPreventSelfApproval(policyID: string, preventSelfApproval: boolean) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const policy = getPolicy(policyID);
+
+    if (preventSelfApproval === policy?.preventSelfApproval) {
+        return;
+    }
+
+    const {optimisticData, failureData, successData} = getSetPolicyPreventSelfApprovalOnyxData(policyID, preventSelfApproval);
 
     const parameters: SetPolicyPreventSelfApprovalParams = {
         preventSelfApproval,
@@ -6122,6 +6144,7 @@ function clearAllPolicies() {
     if (!allPolicies) {
         return;
     }
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.keys(allPolicies).forEach((key) => delete allPolicies[key]);
 }
 
@@ -6527,4 +6550,5 @@ export {
     clearPolicyTitleFieldError,
     inviteWorkspaceEmployeesToUber,
     setWorkspaceConfirmationCurrency,
+    getSetPolicyPreventSelfApprovalOnyxData,
 };

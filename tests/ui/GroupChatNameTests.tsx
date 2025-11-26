@@ -174,13 +174,15 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
     render(<App />);
 
     const participants: Record<number, Participant> = {};
-    participantAccountIDs?.forEach((id) => {
-        participants[id] = {
-            notificationPreference: 'always',
-            hidden: false,
-            role: id === 1 ? CONST.REPORT.ROLE.ADMIN : CONST.REPORT.ROLE.MEMBER,
-        } as Participant;
-    });
+    if (participantAccountIDs) {
+        for (const id of participantAccountIDs) {
+            participants[id] = {
+                notificationPreference: 'always',
+                hidden: false,
+                role: id === 1 ? CONST.REPORT.ROLE.ADMIN : CONST.REPORT.ROLE.MEMBER,
+            } as Participant;
+        }
+    }
 
     return waitForBatchedUpdatesWithAct()
         .then(async () => {

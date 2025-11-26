@@ -1,6 +1,7 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
 import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
+import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
 import {InteractionManager} from 'react-native';
@@ -10,6 +11,7 @@ import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
+import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -154,7 +156,7 @@ function getReportRHPActiveRoute(): string {
  * @returns The cleaned route path.
  */
 function cleanRoutePath(routePath: string): string {
-    return routePath.replace(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : '')).replace(/\?.*/, '');
+    return routePath.replaceAll(CONST.REGEX.ROUTES.REDUNDANT_SLASHES, (match, p1) => (p1 ? '/' : '')).replaceAll(/\?.*/g, '');
 }
 
 /**
@@ -193,6 +195,29 @@ function navigate(route: Route, options?: LinkToOptions) {
             pendingNavigationCall = {route, options};
         }
         return;
+    }
+
+    // Start a Sentry span for report navigation
+    if (route.startsWith('r/') || route.startsWith('search/r/')) {
+        const routePath = Str.cutAfter(route, '?');
+        const reportIDMatch = routePath.match(/^(?:search\/)?r\/(\d+)(?:\/\d+)?$/);
+        const reportID = reportIDMatch?.at(1);
+        if (reportID) {
+            const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
+            let span = getSpan(spanId);
+            if (!span) {
+                const spanName = route.startsWith('r/') ? '/r/*' : '/search/r/*';
+                span = startSpan(spanId, {
+                    name: spanName,
+                    op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+                });
+            }
+            span.setAttributes({
+                [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: getActiveRouteWithoutParams(),
+                [CONST.TELEMETRY.ATTRIBUTE_ROUTE_TO]: Str.cutAfter(routePath, '?'),
+            });
+        }
     }
 
     linkTo(navigationRef.current, route, options);
@@ -374,7 +399,7 @@ function popToSidebar() {
 
     const currentRouteName = currentRoute?.name as keyof typeof SPLIT_TO_SIDEBAR;
     if (topRoute?.name !== SPLIT_TO_SIDEBAR[currentRouteName]) {
-        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
+        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || currentRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
 
         const sidebarName = SPLIT_TO_SIDEBAR[currentRouteName];
 
@@ -436,7 +461,7 @@ function setParams(params: Record<string, unknown>, routeKey = '') {
  * Returns the current active route without the URL params.
  */
 function getActiveRouteWithoutParams(): string {
-    return getActiveRoute().replace(/\?.*/, '');
+    return getActiveRoute().replaceAll(/\?.*/g, '');
 }
 
 /**
