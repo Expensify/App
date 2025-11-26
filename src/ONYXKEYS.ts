@@ -713,6 +713,9 @@ const ONYXKEYS = {
 
         /** Used for identifying user as admin of a domain */
         SHARED_NVP_PRIVATE_ADMIN_ACCESS: 'sharedNVP_private_admin_access_',
+
+        /** SAML login metadata for a domain */
+        SAML_METADATA: 'saml_metadata_',
     },
 
     /** List of Form ids */
@@ -1095,6 +1098,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS]: boolean;
+    [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
 };
 
 type OnyxValuesMapping = {
