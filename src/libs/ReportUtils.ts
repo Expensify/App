@@ -7062,7 +7062,7 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         isAttachmentOnly: false,
         originalMessage,
         reportActionID: reportActionID ?? rand64(),
-        paidReportActionID: paidReportActionId ?? rand64(),
+        paidReportActionID: paidReportActionId,
         shouldShow: true,
         created,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
