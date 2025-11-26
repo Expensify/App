@@ -354,9 +354,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                             showLockedAccountModal();
                                             return;
                                         }
-                                        if (
-                                            !isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType)
-                                        ) {
+                                        if (!isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType)) {
                                             setIsUpdateWorkspaceCurrencyModalOpen(true);
                                             return;
                                         }
