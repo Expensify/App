@@ -74,7 +74,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             return [];
         }
-        const columnsToShow = getColumnsToShow(accountID, transactionsSnapshot?.data, false, transactionsSnapshot?.search.type === CONST.SEARCH.DATA_TYPES.TASK);
+        const columnsToShow = getColumnsToShow(accountID, transactionsSnapshot?.data, false, transactionsSnapshot?.search.type);
 
         return (Object.keys(columnsToShow) as SearchColumnType[]).filter((col) => columnsToShow[col]);
     }, [accountID, columns, isExpenseReportType, transactionsSnapshot?.data, transactionsSnapshot?.search.type]);
@@ -190,7 +190,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         <TransactionItemRow
                             report={transaction.report}
                             transactionItem={transaction}
-                            violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '')}
+                            violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', transaction.report, transaction.policy)}
                             isSelected={!!transaction.isSelected}
                             dateColumnSize={dateColumnSize}
                             amountColumnSize={amountColumnSize}
