@@ -3,13 +3,13 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MissingPersonalDetailsContent from './MissingPersonalDetailsContent';
 
 function MissingPersonalDetails() {
-    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
+    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: false});
+    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT, {canBeMissing: false});
 
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, draftValuesMetadata);
 

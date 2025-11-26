@@ -1,8 +1,7 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {clearDraftValues} from '@libs/actions/FormActions';
 import {clearPersonalDetailsErrors, setPersonalDetailsAndRevealExpensifyCard} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {normalizeCountryCode} from '@libs/CountryUtils';
@@ -10,7 +9,6 @@ import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {arePersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getSubstepValues} from '@pages/MissingPersonalDetails/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,23 +38,12 @@ function ExpensifyCardMissingDetailsMagicCodePage({
     const primaryLogin = account?.primaryLogin ?? '';
     const {setIsCardDetailsLoading, setCardsDetails, setCardsDetailsErrors} = useExpensifyCardContext();
 
-    const missingDetails = arePersonalDetailsMissing(privatePersonalDetails);
-
-    useEffect(() => {
-        if (missingDetails || !!privateDetailsErrors) {
-            return;
-        }
-
-        clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_CARD_MISSING_DETAILS.getRoute(cardID));
-    }, [cardID, missingDetails, privateDetailsErrors]);
-
-    const clearError = () => {
+    const clearError = useCallback(() => {
         if (isEmptyObject(validateLoginError) && isEmptyObject(validateCodeAction?.errorFields)) {
             return;
         }
         clearPersonalDetailsErrors();
-    };
+    }, [validateCodeAction?.errorFields, validateLoginError]);
 
     const values = useMemo(() => normalizeCountryCode(getSubstepValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
@@ -74,7 +61,6 @@ function ExpensifyCardMissingDetailsMagicCodePage({
                         ...prevState,
                         [cardID]: '',
                     }));
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                     Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
                 })
                 .catch((error: string) => {
@@ -94,7 +80,7 @@ function ExpensifyCardMissingDetailsMagicCodePage({
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin ?? ''})}
+            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
             sendValidateCode={() => requestValidateCodeAction()}
             validateCodeActionErrorField="personalDetails"
             handleSubmitForm={handleSubmitForm}
