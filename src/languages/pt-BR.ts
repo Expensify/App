@@ -698,6 +698,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
         reportName: 'Nome do relatório',
+        showLess: 'Mostrar menos',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -4642,7 +4643,7 @@ ${
             companyCard: 'cartão corporativo',
             chooseCardFeed: 'Escolher feed de cartão',
             ukRegulation:
-                'A Expensify, Inc. é um agente da Plaid Financial Ltd., uma instituição de pagamento autorizada e regulada pela Financial Conduct Authority sob as Payment Services Regulations 2017 (Número de Referência da Empresa: 804718). A Plaid fornece a você serviços de informações de conta regulados através da Expensify Limited como seu agente.',
+                'A Expensify Limited é um agente da Plaid Financial Ltd., uma instituição de pagamento autorizada e regulada pela Financial Conduct Authority sob as Payment Services Regulations 2017 (Número de Referência da Empresa: 804718). A Plaid fornece a você serviços de informações de conta regulados através da Expensify Limited como seu agente.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emita e gerencie seus Cartões Expensify',
@@ -7570,6 +7571,17 @@ ${
                         return `Aguardando um administrador aprovar as despesas.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Aguardando <strong>você</strong> exportar este relatório.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Aguardando <strong>${actor}</strong> exportar este relatório.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Aguardando um administrador para exportar este relatório.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7641,6 +7653,32 @@ ${
             onePasswordForAnything: 'Uma senha para tudo',
         },
         goToDomain: 'Ir para o domínio',
+        samlLogin: {
+            title: 'Login SAML',
+            subtitle: `<muted-text>Configure o acesso dos membros com <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'Ativar login SAML',
+            allowMembers: 'Permitir que os membros façam login com SAML.',
+            requireSamlLogin: 'Exigir login via SAML',
+            anyMemberWillBeRequired: 'Qualquer membro que tiver feito login com um método diferente precisará se autenticar novamente usando SAML.',
+            enableError: 'Não foi possível atualizar a configuração de habilitação do SAML',
+            requireError: 'Não foi possível atualizar a configuração de obrigatoriedade do SAML',
+        },
+        samlConfigurationDetails: {
+            title: 'Detalhes da configuração do SAML',
+            subtitle: 'Use estes detalhes para configurar o SAML.',
+            identityProviderMetaData: 'Metadados do Provedor de Identidade',
+            entityID: 'ID da entidade',
+            nameIDFormat: 'Formato do ID do nome',
+            loginUrl: 'URL de login',
+            acsUrl: 'URL do ACS (Serviço de Consumo de Asserções)',
+            logoutUrl: 'URL de saída',
+            sloUrl: 'URL do SLO (Single Logout)',
+            serviceProviderMetaData: 'Metadados do Provedor de Serviço',
+            oktaScimToken: 'Token SCIM do Okta',
+            revealToken: 'Revelar token',
+            fetchError: 'Não foi possível obter os detalhes da configuração SAML',
+            setMetadataGenericError: 'Não foi possível definir os metadados SAML',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

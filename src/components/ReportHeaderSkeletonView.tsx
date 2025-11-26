@@ -1,13 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import {Circle, Rect} from 'react-native-svg';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
@@ -21,8 +21,6 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow'] as const);
-
     const height = styles.headerBarHeight.height;
     const radius = 20;
     const circleY = height / 2;
@@ -41,7 +39,7 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                     >
                         <Icon
                             fill={theme.icon}
-                            src={expensifyIcons.BackArrow}
+                            src={Expensicons.BackArrow}
                         />
                     </PressableWithFeedback>
                 )}

@@ -39,7 +39,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {openOldDotLink} from '@libs/actions/Link';
 import {close} from '@libs/actions/Modal';
 import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
@@ -122,6 +121,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar', 'Plus'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
@@ -365,7 +365,7 @@ function WorkspacesListPage() {
 
             if (isAdmin) {
                 threeDotsMenuItems.push({
-                    icon: expensifyIcons.Copy,
+                    icon: icons.Copy,
                     text: translate('workspace.common.duplicateWorkspace'),
                     onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
                 });
@@ -373,7 +373,7 @@ function WorkspacesListPage() {
 
             if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
                 threeDotsMenuItems.push({
-                    icon: expensifyIcons.Star,
+                    icon: icons.Star,
                     text: translate('workspace.common.setAsDefault'),
                     onSelected: () => {
                         if (!item.policyID || !activePolicyID) {
@@ -385,7 +385,7 @@ function WorkspacesListPage() {
             }
             if (isOwner) {
                 threeDotsMenuItems.push({
-                    icon: expensifyIcons.Trashcan,
+                    icon: icons.Trashcan,
                     text: translate('workspace.common.delete'),
                     shouldShowLoadingSpinnerIcon: loadingSpinnerIconIndex === index,
                     onSelected: () => {
@@ -412,7 +412,7 @@ function WorkspacesListPage() {
 
             if (isAdmin && !isOwner && shouldRenderTransferOwnerButton(fundList)) {
                 threeDotsMenuItems.push({
-                    icon: expensifyIcons.Transfer,
+                    icon: icons.Transfer,
                     text: translate('workspace.people.transferOwner'),
                     onSelected: () => startChangeOwnershipFlow(item.policyID),
                 });
@@ -481,12 +481,7 @@ function WorkspacesListPage() {
             isRestrictedToPreferredPolicy,
             policyIDToDelete,
             preferredPolicyID,
-            expensifyIcons.Exit,
-            expensifyIcons.Building,
-            expensifyIcons.Copy,
-            expensifyIcons.Star,
-            expensifyIcons.Trashcan,
-            expensifyIcons.Transfer,
+            icons,
         ],
     );
 
@@ -502,10 +497,7 @@ function WorkspacesListPage() {
         [shouldUseNarrowLayout],
     );
 
-    const navigateToDomain = useCallback(({accountID, isValidated}: {accountID: number; isValidated: boolean}) => {
-        if (isValidated) {
-            return openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
-        }
+    const navigateToDomain = useCallback((accountID: number) => {
         Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID));
     }, []);
 
@@ -535,7 +527,7 @@ function WorkspacesListPage() {
                         type: policyInfo.type,
                         iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                         iconFill: theme.textLight,
-                        fallbackIcon: expensifyIcons.FallbackWorkspaceAvatar,
+                        fallbackIcon: icons.FallbackWorkspaceAvatar,
                         policyID: id,
                         role: CONST.POLICY.ROLE.USER,
                         errors: undefined,
@@ -564,7 +556,7 @@ function WorkspacesListPage() {
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                     iconFill: theme.textLight,
-                    fallbackIcon: expensifyIcons.FallbackWorkspaceAvatar,
+                    fallbackIcon: icons.FallbackWorkspaceAvatar,
                     policyID: policy.id,
                     ownerAccountID: policy.ownerAccountID,
                     role: policy.role,
@@ -572,7 +564,7 @@ function WorkspacesListPage() {
                     employeeList: policy.employeeList,
                 };
             });
-    }, [reimbursementAccount?.errors, policies, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace, expensifyIcons]);
+    }, [reimbursementAccount?.errors, policies, session?.email, allConnectionSyncProgresses, theme.textLight, icons.FallbackWorkspaceAvatar, navigateToWorkspace]);
 
     const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), [localeCompare]);
@@ -593,7 +585,7 @@ function WorkspacesListPage() {
                 listItemType: 'domain',
                 accountID: domain.accountID,
                 title: Str.extractEmailDomain(domain.email),
-                action: () => navigateToDomain({accountID: domain.accountID, isValidated: domain.validated}),
+                action: () => navigateToDomain(domain.accountID),
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,
@@ -669,7 +661,7 @@ function WorkspacesListPage() {
                 accessibilityLabel={translate('workspace.new.newWorkspace')}
                 text={translate('workspace.new.newWorkspace')}
                 onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
-                icon={expensifyIcons.Plus}
+                icon={icons.Plus}
                 style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
             />
         );
