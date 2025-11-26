@@ -1209,6 +1209,17 @@ Onyx.connect({
     },
 });
 
+let selfDMReportID: string | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SELF_DM_REPORT_ID,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        selfDMReportID = value;
+    },
+});
+
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -1859,7 +1870,12 @@ function findSelfDMReportID(): string | undefined {
         return;
     }
 
+    if (selfDMReportID) {
+        return selfDMReportID;
+    }
+
     const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
+
     return selfDMReport?.reportID;
 }
 
@@ -2482,9 +2498,8 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
  */
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
-        const selfDMReportID = findSelfDMReportID();
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
-        return !isEmptyObject(parentReportAction) && selfDMReportID === report.parentReportID && isTrackExpenseAction(parentReportAction);
+        return !isEmptyObject(parentReportAction) && findSelfDMReportID() === report.parentReportID && isTrackExpenseAction(parentReportAction);
     }
     return false;
 }
@@ -2764,7 +2779,7 @@ function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean
     return isManager && isExpenseReport(report) && isProcessingReport(report);
 }
 
-function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry<Report> | string) {
+function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry<Report> | string, currentUserEmailParam: string) {
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2783,7 +2798,9 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
         const iouReport = typeof iouReportOrID !== 'string' && iouReportOrID?.reportID === iouReportID ? iouReportOrID : getReportOrDraftReport(iouReportID);
         const transactions = getReportTransactions(iouReportID);
         return (
-            canIOUBePaid(iouReport, chatReport, policy, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmitReport(iouReport, policy, transactions, undefined, false)
+            canIOUBePaid(iouReport, chatReport, policy, transactions) ||
+            canApproveIOU(iouReport, policy, transactions) ||
+            canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam)
         );
     });
 }
@@ -6469,7 +6486,7 @@ function buildOptimisticTaskCommentReportAction(
 
 function buildOptimisticSelfDMReport(created: string): Report {
     return {
-        reportID: generateReportID(),
+        reportID: findSelfDMReportID() ?? generateReportID(),
         participants: {
             [currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
@@ -6832,8 +6849,7 @@ function getMovedTransactionMessage(report: OnyxEntry<Report>) {
 }
 
 function getUnreportedTransactionMessage() {
-    const selfDMReportID = findSelfDMReportID();
-    const reportUrl = `${environmentURL}/r/${selfDMReportID}`;
+    const reportUrl = `${environmentURL}/r/${findSelfDMReportID()}`;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const message = translateLocal('iou.unreportedTransaction', {
         reportUrl,
@@ -11714,8 +11730,7 @@ function prepareOnboardingOnyxData(
 
     let selfDMParameters: SelfDMParameters = {};
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-        const selfDMReportID = findSelfDMReportID();
-        let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+        let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`];
         let createdAction: ReportAction;
         if (!selfDMReport) {
             const currentTime = DateUtils.getDBTime();
