@@ -8,6 +8,7 @@ import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {findSelfDMReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
@@ -16,7 +17,6 @@ import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import { findSelfDMReportID } from '@libs/ReportUtils';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const reportID = '1';
