@@ -17,7 +17,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSubmitPerDiemExpenseFromWorkspace, getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, getPersonalPolicy, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {
     canAddTransaction,
     getOutstandingReportsForUser,
@@ -35,6 +35,7 @@ import type {Route} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -79,6 +80,7 @@ function IOURequestEditReportCommon({
     const {options} = useOptionsList();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionIDs?.at(0))}`, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
     const resolvedReportOwnerAccountID = useMemo(() => {
@@ -94,7 +96,9 @@ function IOURequestEditReportCommon({
     }, [targetOwnerAccountID, selectedReport, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest);
+    const policiesWithPerDiem = Object.fromEntries(Object.entries(allPolicies ?? {}).filter(([, policy]) => policy?.arePerDiemRatesEnabled))
 
+    const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
@@ -164,6 +168,9 @@ function IOURequestEditReportCommon({
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .filter((report) => {
+                if (isPerDiemRequest && isUnreported && report?.policyID !== perDiemOriginalPolicy?.id) {
+                    return false;
+                }
                 if (isPerDiemRequest && report?.policyID && selectedReportID !== report?.reportID) {
                     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                     return canSubmitPerDiemExpenseFromWorkspace(policy);
