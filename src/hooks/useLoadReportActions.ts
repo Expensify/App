@@ -100,14 +100,14 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
             }
         },
         [
-            isOffline,
-            oldestReportAction,
-            hasOlderActions,
-            reportID,
             currentReportOldest?.reportActionID,
+            hasOlderActions,
+            isOffline,
             isTransactionThreadReport,
-            transactionThreadReport?.reportID,
+            oldestReportAction,
+            reportID,
             transactionThreadOldest?.reportActionID,
+            transactionThreadReport?.reportID,
         ],
     );
 
@@ -134,15 +134,15 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
             }
         },
         [
-            isFocused,
-            newestReportAction,
+            currentReportNewest?.reportActionID,
             hasNewerActions,
+            isFocused,
             isOffline,
             isTransactionThreadReport,
+            newestReportAction,
             reportID,
-            currentReportNewest?.reportActionID,
-            transactionThreadReport?.reportID,
             transactionThreadNewest?.reportActionID,
+            transactionThreadReport?.reportID,
         ],
     );
 
