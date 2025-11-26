@@ -321,7 +321,7 @@
     "eslint-plugin-storybook": "^0.12.0",
     "eslint-plugin-testing-library": "^7.11.0",
     "eslint-plugin-you-dont-need-lodash-underscore": "^6.14.0",
-    "glob": "^10.3.0",
+    "glob": "^10.4.5",
     "googleapis": "^144.0.0",
     "html-webpack-plugin": "^5.5.0",
     "http-server": "^14.1.1",
