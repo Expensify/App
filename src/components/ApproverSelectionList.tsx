@@ -111,7 +111,7 @@ function ApproverSelectionList({
         const isAlreadySelected = selectedMembers.some((selectedOption) => selectedOption.login === member.login);
         let newSelectedApprovers = [];
         if (!allowMultipleSelection) {
-            newSelectedApprovers = isAlreadySelected ? [] : [{...member, isSelected: true}];
+            newSelectedApprovers = [{...member, isSelected: !isAlreadySelected}];
         } else {
             newSelectedApprovers = isAlreadySelected
                 ? selectedMembers.filter((selectedOption) => selectedOption.login !== member.login)
