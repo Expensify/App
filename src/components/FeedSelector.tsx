@@ -57,7 +57,12 @@ function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, sup
             <View style={styles.flex1}>
                 <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
                     <CaretWrapper style={styles.flex1}>
-                        <Text style={[styles.textStrong, styles.flexShrink1]}>{feedName}</Text>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textStrong, styles.flexShrink1]}
+                        >
+                            {feedName}
+                        </Text>
                     </CaretWrapper>
                     {shouldShowRBR && (
                         <Icon
