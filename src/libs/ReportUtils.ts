@@ -5755,6 +5755,10 @@ function getReportName(
         return getWorkspaceTaxUpdateMessage(parentReportAction);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
+        return getDismissedViolationMessageText(getOriginalMessage(parentReportAction));
+    }
+
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
