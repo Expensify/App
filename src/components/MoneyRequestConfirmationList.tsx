@@ -31,7 +31,7 @@ import {
     setSplitShares,
 } from '@libs/actions/IOU';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
-import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import Log from '@libs/Log';
