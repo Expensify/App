@@ -276,6 +276,7 @@ const config = defineConfig([
                 'error',
                 {
                     stableObjectPatterns: [
+                        // cSpell:ignore tyles
                         '[Ss]tyles?$', // Excludes 'style', 'styles', 'themeStyles', etc.
                         '^theme', // Excludes 'theme', 'themeStyles', 'themeIllustrations', etc.
                         '[Ii]cons?$', // Excludes 'icon', 'icons', 'expensifyIcons', etc.
