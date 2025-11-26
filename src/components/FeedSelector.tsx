@@ -41,7 +41,7 @@ function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, sup
     return (
         <PressableWithFeedback
             onPress={onFeedSelect}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={!shouldChangeLayout && styles.flex1}
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldChangeLayout && styles.mb3]}
             accessibilityLabel={feedName ?? ''}
         >
