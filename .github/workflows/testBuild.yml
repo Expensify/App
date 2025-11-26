@@ -290,6 +290,7 @@ jobs:
         uses: callstackincubator/android@c04be7b6078d62620958c7420634a984a40f0bb5
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           IS_HYBRID_APP: true
         with:
           variant: 'Adhoc'
@@ -424,6 +425,7 @@ jobs:
         uses: callstackincubator/ios@7c072d8d6acaa7cc3b038f9f6c5a81bb54da10c7
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           IS_HYBRID_APP: true
         with:
           destination: device
