@@ -382,7 +382,7 @@ function TransactionPreviewContent({
                                                 styles.textMicroSupportingPadding,
                                                 styles.pre,
                                                 styles.flexShrink1,
-                                                {color: theme.danger},
+                                                styles.textDanger,
                                             ]}
                                         >
                                             {RBRMessage}
