@@ -153,7 +153,7 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
+    const Expensicons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
@@ -964,7 +964,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     onClose={dismissBanner}
                                     onButtonPress={chatWithAccountManager}
                                     shouldShowCloseButton
-                                    icon={expensifyIcons.Lightbulb}
+                                    icon={Expensicons.Lightbulb}
                                     shouldShowIcon
                                     shouldShowButton
                                 />
