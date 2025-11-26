@@ -35,7 +35,6 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
 
     for (const transaction of transactions) {
         const category = getCategory(transaction);
-        // Normalize missing categories to empty string for consistent grouping
         const categoryKey = isCategoryMissing(category) ? '' : category;
 
         if (!groups.has(categoryKey)) {
@@ -70,7 +69,6 @@ function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<R
 
     for (const transaction of transactions) {
         const tag = getTag(transaction);
-        // Normalize missing tags to empty string for consistent grouping
         const tagKey = isTagMissing(tag) ? '' : tag;
 
         if (!groups.has(tagKey)) {

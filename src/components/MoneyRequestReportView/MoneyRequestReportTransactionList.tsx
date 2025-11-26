@@ -182,8 +182,6 @@ function MoneyRequestReportTransactionList({
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
-
-    // Only show grouped transactions for workspace expense reports (not IOU/DM reports)
     const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
 
     const addExpenseDropdownOptions = useMemo(
@@ -239,30 +237,6 @@ function MoneyRequestReportTransactionList({
 
     const isTransactionSelected = useCallback((transactionID: string) => selectedTransactionIDs.includes(transactionID), [selectedTransactionIDs]);
 
-    // Toggle all transactions in a group by groupKey
-    const toggleGroupSelection = useCallback(
-        (groupKey: string) => {
-            const group = groupedTransactions.find((g) => g.groupKey === groupKey);
-            if (!group) {
-                return;
-            }
-            const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
-            const allSelected = groupTransactionIDs.every((id) => selectedTransactionIDs.includes(id));
-
-            let newSelectedTransactionIDs = selectedTransactionIDs;
-            if (allSelected) {
-                // Deselect all transactions in the group
-                newSelectedTransactionIDs = selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id));
-            } else {
-                // Select all transactions in the group
-                const idsToAdd = groupTransactionIDs.filter((id) => !selectedTransactionIDs.includes(id));
-                newSelectedTransactionIDs = [...selectedTransactionIDs, ...idsToAdd];
-            }
-            setSelectedTransactions(newSelectedTransactionIDs);
-        },
-        [groupedTransactions, selectedTransactionIDs, setSelectedTransactions],
-    );
-
     useFocusEffect(
         useCallback(() => {
             return () => {
@@ -295,11 +269,8 @@ function MoneyRequestReportTransactionList({
         return (Object.keys(columns) as SearchColumnType[]).filter((column) => columns[column]);
     }, [transactions, currentUserDetails?.accountID]);
 
-    // Get the current group-by preference
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
 
-    // Group transactions based on user preference (only for workspace expense reports)
-    // Note: grouping functions only use report for null check, so we use report?.reportID to avoid unnecessary re-renders
     const groupedTransactions = useMemo(() => {
         if (!shouldShowGroupedTransactions) {
             return [];
@@ -307,12 +278,10 @@ function MoneyRequestReportTransactionList({
         if (currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG) {
             return groupTransactionsByTag(sortedTransactions, report, localeCompare);
         }
-        // Default to grouping by category
         return groupTransactionsByCategory(sortedTransactions, report, localeCompare);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [sortedTransactions, currentGroupBy, report?.reportID, localeCompare, shouldShowGroupedTransactions]);
 
-    // Generate flattened transaction IDs from grouped transactions for arrow navigation
     const visualOrderTransactionIDs = useMemo(() => {
         if (!shouldShowGroupedTransactions || groupedTransactions.length === 0) {
             return sortedTransactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID);
@@ -320,7 +289,6 @@ function MoneyRequestReportTransactionList({
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldShowGroupedTransactions]);
 
-    // Create a Map for O(1) transaction lookups instead of O(n) find operations
     const sortedTransactionsMap = useMemo(() => {
         const map = new Map<string, OnyxTypes.Transaction>();
         sortedTransactions.forEach((transaction) => {
@@ -329,7 +297,6 @@ function MoneyRequestReportTransactionList({
         return map;
     }, [sortedTransactions]);
 
-    // Pre-compute selection state for each group to avoid expensive array operations in render
     const groupSelectionState = useMemo(() => {
         const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean}>();
 
@@ -350,6 +317,27 @@ function MoneyRequestReportTransactionList({
 
         return state;
     }, [groupedTransactions, selectedTransactionIDs]);
+
+    const toggleGroupSelection = useCallback(
+        (groupKey: string) => {
+            const group = groupedTransactions.find((g) => g.groupKey === groupKey);
+            if (!group) {
+                return;
+            }
+            const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
+            const allSelected = groupTransactionIDs.every((id) => selectedTransactionIDs.includes(id));
+
+            let newSelectedTransactionIDs = selectedTransactionIDs;
+            if (allSelected) {
+                newSelectedTransactionIDs = selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id));
+            } else {
+                const idsToAdd = groupTransactionIDs.filter((id) => !selectedTransactionIDs.includes(id));
+                newSelectedTransactionIDs = [...selectedTransactionIDs, ...idsToAdd];
+            }
+            setSelectedTransactions(newSelectedTransactionIDs);
+        },
+        [groupedTransactions, selectedTransactionIDs, setSelectedTransactions],
+    );
 
     /**
      * Navigate to the transaction thread for a transaction, creating one optimistically if it doesn't yet exist.

@@ -55,20 +55,16 @@ function MoneyRequestReportGroupHeader({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    // For tags: convert colon-separated multi-level tags to comma-separated display
     const cleanedGroupName = isGroupedByTag && group.groupName ? getCommaSeparatedTagNameWithSanitizedColons(group.groupName) : group.groupName;
     const displayName = cleanedGroupName || translate(isGroupedByTag ? 'reportLayout.noTag' : 'reportLayout.uncategorized');
 
-    // Desktop: always show checkbox, Mobile: only in selection mode
     const shouldShowCheckbox = isSelectionModeEnabled || !shouldUseNarrowLayout;
 
-    // Memoized conditional height based on platform and checkbox visibility
     const conditionalHeight = useMemo(
         () => (shouldUseNarrowLayout ? {height: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX} : {height: DESKTOP_HEIGHT, minHeight: DESKTOP_HEIGHT}),
         [shouldUseNarrowLayout, shouldShowCheckbox],
     );
 
-    // Memoized dynamic text style based on platform and checkbox state
     const textStyle = useMemo(
         () =>
             shouldUseNarrowLayout
@@ -77,7 +73,6 @@ function MoneyRequestReportGroupHeader({
         [shouldUseNarrowLayout, shouldShowCheckbox],
     );
 
-    // Memoized callback to avoid inline arrow function
     const handleToggleSelection = useCallback(() => {
         onToggleSelection?.(groupKey);
     }, [onToggleSelection, groupKey]);

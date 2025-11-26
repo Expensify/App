@@ -23,8 +23,6 @@ type ReportLayoutPageProps = WithReportOrNotFoundProps & PlatformStackScreenProp
 function ReportLayoutPage({report}: ReportLayoutPageProps) {
     const {translate} = useLocalize();
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
-
-    // Only show for expense reports that are not IOU reports (workspace expense reports)
     const shouldShowPage = isExpenseReport(report) && !isIOUReport(report);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
