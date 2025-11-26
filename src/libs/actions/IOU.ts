@@ -115,7 +115,7 @@ import {
     isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
-import type {Ancestor, OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
+import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticActionableTrackExpenseWhisper,
     buildOptimisticAddCommentReportAction,
@@ -158,7 +158,7 @@ import {
     getDisplayedReportID,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
-    getOptimisticDataForAncestors,
+    getOptimisticDataForParentReportAction,
     getOutstandingChildRequest,
     getParsedComment,
     getPersonalDetailsForAccountID,
@@ -1136,7 +1136,7 @@ function startMoneyRequest(
             [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
             [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
             [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-            [CONST.TELEMETRY.ATTRIBUTE_SOURCE_ROUTE]: sourceRoute || 'unknown',
+            [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: sourceRoute || 'unknown',
         },
     });
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation, draftTransactions);
@@ -6361,7 +6361,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
-    const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : receipt;
+    const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN, name: 'receipt-generic.png'} : receipt;
     const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
 
     const retryParams: CreateTrackExpenseParams = {
@@ -8810,7 +8810,7 @@ function deleteMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport, currentUserEmail),
             },
         });
     }
@@ -8829,7 +8829,7 @@ function deleteMoneyRequest(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
                 value: {
-                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID),
+                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail),
                     iouReportID: null,
                     ...optimisticLastReportData,
                 },
@@ -9806,7 +9806,7 @@ function getPayMoneyRequestParams({
     const optimisticChatReport = {
         ...chatReport,
         lastReadTime: DateUtils.getDBTime(),
-        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID),
+        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail),
         iouReportID: null,
         lastMessageText: getReportActionText(optimisticIOUReportAction),
         lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
@@ -10223,12 +10223,13 @@ function canSubmitReport(
     transactions: OnyxTypes.Transaction[] | SearchTransaction[],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
     isReportArchived: boolean,
+    currentUserEmailParam: string,
 ) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations);
-    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, allViolations, currentUserEmailParam, report, policy);
+    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactions, allViolations, currentUserEmailParam, report, policy);
     const hasOnlyPendingCardOrScanFailTransactions = transactions.length > 0 && transactions.every((t) => isPendingCardOrScanningTransaction(t));
 
     return (
@@ -10279,7 +10280,7 @@ function approveMoneyRequest(
     const currentNextStepDeprecated = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
     let total = expenseReport.total ?? 0;
     const hasHeldExpenses = hasHeldExpensesReportUtils(expenseReport.reportID);
-    const hasDuplicates = hasDuplicateTransactions(expenseReport.reportID);
+    const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, expenseReport, policy);
     if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
     }
@@ -10347,7 +10348,7 @@ function approveMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedExpenseReport),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedExpenseReport, currentUserEmail),
             },
         };
     }
@@ -10453,7 +10454,7 @@ function approveMoneyRequest(
 
     // Remove duplicates violations if we approve the report
     if (hasDuplicates) {
-        const transactions = getReportTransactions(expenseReport.reportID).filter((transaction) => isDuplicate(transaction));
+        const transactions = getReportTransactions(expenseReport.reportID).filter((transaction) => isDuplicate(transaction, currentUserEmailParam, expenseReport, policy));
         if (!full) {
             transactions.filter((transaction) => !isOnHold(transaction));
         }
@@ -11920,7 +11921,7 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, ancestors: Ancestor[] = []) {
+function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined) {
     const currentTime = DateUtils.getDBTime();
     const reportID = initialReportID ?? generateReportID();
     const createdReportAction = buildOptimisticHoldReportAction(currentTime);
@@ -11943,6 +11944,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     }
 
     const optimisticCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail);
+    const parentReportActionOptimistic = getOptimisticDataForParentReportAction(transactionThreadReport, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -11977,8 +11979,6 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         },
     ];
 
-    optimisticData.push(...getOptimisticDataForAncestors(ancestors, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD));
-
     if (iouReport && iouReport.currency === transaction?.currency) {
         const isExpenseReportLocal = isExpenseReport(iouReport);
         const coefficient = isExpenseReportLocal ? -1 : 1;
@@ -11991,6 +11991,13 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
                 unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) - transactionAmount : iouReport.unheldNonReimbursableTotal,
             },
         });
+    }
+
+    for (const parentActionData of parentReportActionOptimistic) {
+        if (!parentActionData) {
+            continue;
+        }
+        optimisticData.push(parentActionData);
     }
 
     const successData: OnyxUpdate[] = [
@@ -12124,10 +12131,10 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, userAccountID));
 }
 
-function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string, ancestors: Ancestor[] = []) {
+function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        putOnHold(transactionID, comment, childReportID, ancestors);
+        putOnHold(transactionID, comment, childReportID);
     }
 }
 
