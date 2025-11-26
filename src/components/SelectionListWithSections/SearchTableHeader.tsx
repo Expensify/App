@@ -167,9 +167,76 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     },
 ];
 
-function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy?: SearchGroupBy, profileIcon?: IconAsset) {
+const getTransactionGroupHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => {
+    switch (groupBy) {
+        case CONST.SEARCH.GROUP_BY.FROM:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
+                    translationKey: 'common.from',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
+                    translationKey: 'common.expenses',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+                    translationKey: 'common.total',
+                },
+            ];
+        case CONST.SEARCH.GROUP_BY.CARD:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.CARD,
+                    translationKey: 'common.card',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.FEED,
+                    translationKey: 'search.filters.feed',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
+                    translationKey: 'common.expenses',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+                    translationKey: 'common.total',
+                },
+            ];
+        case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT,
+                    translationKey: 'initialSettingsPage.account',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN,
+                    translationKey: 'search.filters.withdrawn',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+                    translationKey: 'common.withdrawalID',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
+                    translationKey: 'common.expenses',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+                    translationKey: 'common.total',
+                },
+            ];
+        default:
+            return [];
+    }
+};
+
+function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy?: SearchGroupBy, profileIcon?: IconAsset, isExpenseReportView?: boolean): SearchColumnConfig[] | null {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            if (!isExpenseReportView && groupBy) {
+                return getTransactionGroupHeaders(groupBy);
+            }
             return getExpenseHeaders(groupBy);
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return getExpenseHeaders(groupBy);
@@ -198,6 +265,9 @@ type SearchTableHeaderProps = {
     canSelectMultiple: boolean;
     areAllOptionalColumnsHidden: boolean;
     groupBy: SearchGroupBy | undefined;
+
+    /** True when we are inside an expense report view, false if we're in the Reports page. */
+    isExpenseReportView?: boolean;
 };
 
 function SearchTableHeader({
@@ -213,6 +283,7 @@ function SearchTableHeader({
     isTaxAmountColumnWide,
     areAllOptionalColumnsHidden,
     groupBy,
+    isExpenseReportView,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -229,7 +300,7 @@ function SearchTableHeader({
         [columns],
     );
 
-    const columnConfig = useMemo(() => getSearchColumns(type, groupBy, icons.Profile), [type, groupBy, icons.Profile]);
+    const columnConfig = useMemo(() => getSearchColumns(type, groupBy, icons.Profile, isExpenseReportView), [type, groupBy, icons.Profile, isExpenseReportView]);
 
     if (displayNarrowVersion) {
         return;

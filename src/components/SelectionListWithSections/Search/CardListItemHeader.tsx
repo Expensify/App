@@ -1,10 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithFeedback} from '@components/Pressable';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
@@ -15,6 +11,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+import CardCell from './CardCell';
+import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
+import ExpensesCell from './ExpensesCell';
 import TotalCell from './TotalCell';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
@@ -66,63 +65,79 @@ function CardListItemHeader<TItem extends ListItem>({
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
-    return (
-        <View>
+    const checkbox = useMemo(() => {
+        if (!canSelectMultiple) {
+            return null;
+        }
+        return (
+            <Checkbox
+                onPress={() => onCheckboxPress?.(cardItem as unknown as TItem)}
+                isChecked={isSelectAllChecked}
+                isIndeterminate={isIndeterminate}
+                disabled={!!isDisabled || cardItem.isDisabledCheckbox}
+                accessibilityLabel={translate('common.select')}
+                style={[styles.mr1]}
+            />
+        );
+    }, [canSelectMultiple, isSelectAllChecked, isIndeterminate, isDisabled, cardItem, translate, styles.mr1, onCheckboxPress]);
+
+    if (!isLargeScreenWidth) {
+        return (
             <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
-                    {!!canSelectMultiple && (
-                        <Checkbox
-                            onPress={() => onCheckboxPress?.(cardItem as unknown as TItem)}
-                            isChecked={isSelectAllChecked}
-                            isIndeterminate={isIndeterminate}
-                            disabled={!!isDisabled || cardItem.isDisabledCheckbox}
-                            accessibilityLabel={translate('common.select')}
-                        />
-                    )}
-                    <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                        <ReportActionAvatars
-                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
-                            subscriptAvatarBorderColor={backgroundColor}
-                            noRightMarginOnSubscriptContainer
-                            accountIDs={[cardItem.accountID]}
-                        />
-                        <View style={[styles.gapHalf, styles.flexShrink1]}>
-                            <TextWithTooltip
-                                text={formattedDisplayName}
-                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
-                            />
-                            <TextWithTooltip
-                                text={`${cardItem.cardName}${cardItem.lastFourPAN ? ` ${CONST.DOT_SEPARATOR} ` : ''}${cardItem.lastFourPAN}`}
-                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                            />
-                        </View>
-                    </View>
+                    {checkbox}
+                    <CardCell
+                        accountID={cardItem.accountID}
+                        bank={cardItem.bank as CompanyCardFeed}
+                        backgroundColor={backgroundColor}
+                        displayName={formattedDisplayName}
+                        cardName={cardItem.cardName}
+                        lastFourPAN={cardItem.lastFourPAN}
+                    />
                 </View>
                 <View style={[styles.flexShrink0, styles.mr3, styles.gap1]}>
                     <TotalCell
                         total={cardItem.total}
                         currency={cardItem.currency}
                     />
-                    {!isLargeScreenWidth && !!onDownArrowClick && (
-                        <View>
-                            <PressableWithFeedback
-                                onPress={onDownArrowClick}
-                                style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
-                            >
-                                {({hovered}) => (
-                                    <Icon
-                                        src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
-                                        fill={theme.icon}
-                                        additionalStyles={!hovered && styles.opacitySemiTransparent}
-                                        small
-                                    />
-                                )}
-                            </PressableWithFeedback>
-                        </View>
+                    {!!onDownArrowClick && (
+                        <ExpandCollapseArrowButton
+                            isExpanded={isExpanded ?? false}
+                            onPress={onDownArrowClick}
+                        />
                     )}
                 </View>
+            </View>
+        );
+    }
+
+    return (
+        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pl3]}>
+            {checkbox}
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}>
+                <CardCell
+                    accountID={cardItem.accountID}
+                    bank={cardItem.bank as CompanyCardFeed}
+                    backgroundColor={backgroundColor}
+                    displayName={formattedDisplayName}
+                    cardName={cardItem.cardName}
+                    lastFourPAN={cardItem.lastFourPAN}
+                />
+            </View>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FEED)]}>
+                <TextWithTooltip
+                    text={cardItem.formattedFeedName ?? ''}
+                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                />
+            </View>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)]}>
+                <ExpensesCell count={cardItem.count} />
+            </View>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+                <TotalCell
+                    total={cardItem.total}
+                    currency={cardItem.currency}
+                />
             </View>
         </View>
     );

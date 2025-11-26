@@ -407,11 +407,25 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         allActions?: SearchTransactionAction[];
     };
 
-type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails & SearchMemberGroup;
+type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails &
+    SearchMemberGroup & {
+        /** Final and formatted "from" value used for displaying and sorting */
+        formattedFrom?: string;
+    };
 
-type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails & SearchCardGroup;
+type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
+    SearchCardGroup & {
+        /** Final and formatted "feedName" value used for displaying and sorting */
+        formattedFeedName?: string;
+    };
 
-type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup;
+type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup & {
+        /** Final and formatted "withdrawalDate" value used for displaying and sorting */
+        formattedWithdrawalDate?: string;
+
+        /** Final and formatted "withdrawalID" value used for displaying and sorting */
+        formattedWithdrawalID?: string;
+    };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
