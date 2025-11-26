@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
@@ -10,9 +10,17 @@ import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import type {GroupedTransactions} from '@src/types/onyx';
 
+// Height constants
+const DESKTOP_HEIGHT = 28;
+const MOBILE_HEIGHT_WITH_CHECKBOX = 20;
+const MOBILE_HEIGHT_WITHOUT_CHECKBOX = 16;
+
 type MoneyRequestReportGroupHeaderProps = {
     /** The grouped transaction data */
     group: GroupedTransactions;
+
+    /** The group key for toggle callback */
+    groupKey: string;
 
     /** Whether grouping by tag (if false, grouping by category) */
     isGroupedByTag?: boolean;
@@ -26,8 +34,8 @@ type MoneyRequestReportGroupHeaderProps = {
     /** Whether some (but not all) transactions in this group are selected */
     isIndeterminate?: boolean;
 
-    /** Callback when group checkbox is toggled */
-    onToggleSelection?: () => void;
+    /** Callback when group checkbox is toggled - receives groupKey */
+    onToggleSelection?: (groupKey: string) => void;
 
     /** Additional styles to apply */
     style?: StyleProp<ViewStyle>;
@@ -35,6 +43,7 @@ type MoneyRequestReportGroupHeaderProps = {
 
 function MoneyRequestReportGroupHeader({
     group,
+    groupKey,
     isGroupedByTag = false,
     isSelectionModeEnabled = false,
     isSelected = false,
@@ -46,11 +55,6 @@ function MoneyRequestReportGroupHeader({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    // Height constants for cleaner code
-    const DESKTOP_HEIGHT = 28;
-    const MOBILE_HEIGHT_WITH_CHECKBOX = 20;
-    const MOBILE_HEIGHT_WITHOUT_CHECKBOX = 16;
-
     // For tags: convert colon-separated multi-level tags to comma-separated display
     const cleanedGroupName = isGroupedByTag && group.groupName ? getCommaSeparatedTagNameWithSanitizedColons(group.groupName) : group.groupName;
     const displayName = cleanedGroupName || translate(isGroupedByTag ? 'reportLayout.noTag' : 'reportLayout.uncategorized');
@@ -58,15 +62,25 @@ function MoneyRequestReportGroupHeader({
     // Desktop: always show checkbox, Mobile: only in selection mode
     const shouldShowCheckbox = isSelectionModeEnabled || !shouldUseNarrowLayout;
 
-    // Conditional height based on platform and checkbox visibility
-    const conditionalHeight = shouldUseNarrowLayout
-        ? {height: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX}
-        : {height: DESKTOP_HEIGHT, minHeight: DESKTOP_HEIGHT};
+    // Memoized conditional height based on platform and checkbox visibility
+    const conditionalHeight = useMemo(
+        () => (shouldUseNarrowLayout ? {height: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX} : {height: DESKTOP_HEIGHT, minHeight: DESKTOP_HEIGHT}),
+        [shouldUseNarrowLayout, shouldShowCheckbox],
+    );
 
-    // Dynamic text style based on platform and checkbox state
-    const textStyle = shouldUseNarrowLayout
-        ? {fontSize: variables.fontSizeLabel, lineHeight: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX}
-        : {fontSize: variables.fontSizeNormal, lineHeight: DESKTOP_HEIGHT};
+    // Memoized dynamic text style based on platform and checkbox state
+    const textStyle = useMemo(
+        () =>
+            shouldUseNarrowLayout
+                ? {fontSize: variables.fontSizeLabel, lineHeight: shouldShowCheckbox ? MOBILE_HEIGHT_WITH_CHECKBOX : MOBILE_HEIGHT_WITHOUT_CHECKBOX}
+                : {fontSize: variables.fontSizeNormal, lineHeight: DESKTOP_HEIGHT},
+        [shouldUseNarrowLayout, shouldShowCheckbox],
+    );
+
+    // Memoized callback to avoid inline arrow function
+    const handleToggleSelection = useCallback(() => {
+        onToggleSelection?.(groupKey);
+    }, [onToggleSelection, groupKey]);
 
     return (
         <View style={[styles.reportLayoutGroupHeader, conditionalHeight, style]}>
@@ -75,7 +89,7 @@ function MoneyRequestReportGroupHeader({
                     <Checkbox
                         isChecked={isSelected}
                         isIndeterminate={isIndeterminate}
-                        onPress={onToggleSelection ?? (() => {})}
+                        onPress={handleToggleSelection}
                         accessibilityLabel={translate('reportLayout.selectGroup', {groupName: displayName})}
                         style={styles.mr2}
                     />

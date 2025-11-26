@@ -1,11 +1,11 @@
-import React, {useCallback} from 'react';
-import useOnyx from '@hooks/useOnyx';
+import React, {useCallback, useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isExpenseReport, isIOUReport} from '@libs/ReportUtils';
@@ -29,20 +29,23 @@ function ReportLayoutPage({report}: ReportLayoutPageProps) {
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
 
-    const groupByOptions = [
-        {
-            value: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
-            text: translate('reportLayout.groupBy.category'),
-            keyForList: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
-            isSelected: currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
-        },
-        {
-            value: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
-            text: translate('reportLayout.groupBy.tag'),
-            keyForList: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
-            isSelected: currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG,
-        },
-    ];
+    const groupByOptions = useMemo(
+        () => [
+            {
+                value: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
+                text: translate('reportLayout.groupBy.category'),
+                keyForList: CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
+                isSelected: currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY,
+            },
+            {
+                value: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
+                text: translate('reportLayout.groupBy.tag'),
+                keyForList: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
+                isSelected: currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG,
+            },
+        ],
+        [currentGroupBy, translate],
+    );
 
     const updateGroupBy = useCallback(
         (value: ReportLayoutGroupBy) => {
