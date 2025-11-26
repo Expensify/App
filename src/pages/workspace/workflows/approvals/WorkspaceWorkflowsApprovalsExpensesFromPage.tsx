@@ -193,7 +193,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 return !isMember && !isAlreadyInList;
             });
 
-            searchResults.forEach((option) => {
+            for (const option of searchResults) {
                 members.push({
                     text: option.text ?? option.login ?? '',
                     alternateText: option.login ?? '',
@@ -202,7 +202,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     login: option.login ?? '',
                     icons: option.icons ?? [],
                 });
-            });
+            }
         }
 
         return members;
@@ -234,7 +234,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         const existingMembers: Member[] = [];
         const usersToInvite: Array<{email: string; accountID?: number}> = [];
 
-        selectedMembers.forEach((member) => {
+        for (const member of selectedMembers) {
             const isPolicyMember = policy?.employeeList?.[member.login];
             if (isPolicyMember) {
                 existingMembers.push({displayName: member.text, avatar: member.icons.at(0)?.source, email: member.login});
@@ -246,19 +246,19 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     accountID,
                 });
             }
-        });
+        }
 
         // If there are users to invite, navigate to invite flow
         if (usersToInvite.length > 0) {
             const invitedEmailsToAccountIDs: Record<string, number> = {};
-            usersToInvite.forEach((user) => {
+            for (const user of usersToInvite) {
                 if (user.email && user.accountID) {
                     invitedEmailsToAccountIDs[user.email] = user.accountID;
                 } else if (user.email) {
                     // If no accountID, use default (for new users)
                     invitedEmailsToAccountIDs[user.email] = CONST.DEFAULT_NUMBER_ID;
                 }
-            });
+            }
 
             setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
 
