@@ -743,8 +743,8 @@ function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: strin
     const transactionIDToRejectReportAction: Record<
         string,
         {
-            rejectedActionReportActionID: number;
-            rejectedCommentReportActionID: number;
+            rejectedActionReportActionID: string;
+            rejectedCommentReportActionID: string;
         }
     > = {};
     for (const transactionID of transactionIDs) {
@@ -754,8 +754,8 @@ function rejectMoneyRequestInBulk(hash: number, reportID: string, comment: strin
             successData.push(...data.successData);
             failureData.push(...data.failureData);
             transactionIDToRejectReportAction[transactionID] = {
-                rejectedActionReportActionID: Number(data.parameters.rejectedActionReportActionID),
-                rejectedCommentReportActionID: Number(data.parameters.rejectedCommentReportActionID),
+                rejectedActionReportActionID: data.parameters.rejectedActionReportActionID,
+                rejectedCommentReportActionID: data.parameters.rejectedCommentReportActionID,
             };
         }
     }
