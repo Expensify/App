@@ -6550,6 +6550,18 @@ ${
             message: 'Nie udało nam się sprawdzić aktualizacji. Spróbuj ponownie za chwilę.',
         },
     },
+    reportLayout: {
+        reportLayout: 'Układ raportu',
+        groupByLabel: 'Grupuj według:',
+        selectGroupByOption: 'Wybierz sposób grupowania wydatków w raporcie',
+        uncategorized: 'Bez kategorii',
+        noTag: 'Bez tagu',
+        selectGroup: ({groupName}: {groupName: string}) => `Wybierz wszystkie wydatki w ${groupName}`,
+        groupBy: {
+            category: 'Kategoria',
+            tag: 'Tag',
+        },
+    },
     report: {
         newReport: {
             createReport: 'Utwórz raport',

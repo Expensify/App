@@ -6316,6 +6316,18 @@ ${amount} para ${merchant} - ${date}`,
             message: 'No hemos podido comprobar si existe una actualización. ¡Inténtalo de nuevo más tarde!.',
         },
     },
+    reportLayout: {
+        reportLayout: 'Diseño del informe',
+        groupByLabel: 'Agrupar por:',
+        selectGroupByOption: 'Selecciona cómo agrupar los gastos del informe',
+        uncategorized: 'Sin categoría',
+        noTag: 'Sin etiqueta',
+        selectGroup: ({groupName}: {groupName: string}) => `Seleccionar todos los gastos en ${groupName}`,
+        groupBy: {
+            category: 'Categoría',
+            tag: 'Etiqueta',
+        },
+    },
     report: {
         newReport: {
             createReport: 'Crear informe',

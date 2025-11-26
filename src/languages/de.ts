@@ -6593,6 +6593,18 @@ ${
             message: 'Wir konnten nicht nach einem Update suchen. Bitte versuchen Sie es in Kürze erneut.',
         },
     },
+    reportLayout: {
+        reportLayout: 'Berichtslayout',
+        groupByLabel: 'Gruppieren nach:',
+        selectGroupByOption: 'Wählen Sie aus, wie die Berichtsausgaben gruppiert werden sollen',
+        uncategorized: 'Nicht kategorisiert',
+        noTag: 'Kein Tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Alle Ausgaben in ${groupName} auswählen`,
+        groupBy: {
+            category: 'Kategorie',
+            tag: 'Tag',
+        },
+    },
     report: {
         newReport: {
             createReport: 'Bericht erstellen',

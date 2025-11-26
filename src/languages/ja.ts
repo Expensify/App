@@ -6516,6 +6516,18 @@ ${
             message: '更新を確認できませんでした。しばらくしてからもう一度お試しください。',
         },
     },
+    reportLayout: {
+        reportLayout: 'レポートレイアウト',
+        groupByLabel: 'グループ化:',
+        selectGroupByOption: 'レポート経費のグループ化方法を選択',
+        uncategorized: '未分類',
+        noTag: 'タグなし',
+        selectGroup: ({groupName}: {groupName: string}) => `${groupName}のすべての経費を選択`,
+        groupBy: {
+            category: 'カテゴリ',
+            tag: 'タグ',
+        },
+    },
     report: {
         newReport: {
             createReport: 'レポートを作成',

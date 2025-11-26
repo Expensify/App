@@ -1133,6 +1133,7 @@ const CONST = {
             EXPORT: 'export',
             PAY: 'pay',
             MERGE: 'merge',
+            REPORT_LAYOUT: 'reportLayout',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1563,6 +1564,12 @@ const CONST = {
             DATE_TIME: 'dateTime',
         },
     },
+    REPORT_LAYOUT: {
+        GROUP_BY: {
+            CATEGORY: 'mcc',
+            TAG: 'tag',
+        },
+    } as const,
     UNREPORTED_EXPENSES_PAGE_SIZE: 50,
     COMPOSER: {
         NATIVE_ID: 'composer',
