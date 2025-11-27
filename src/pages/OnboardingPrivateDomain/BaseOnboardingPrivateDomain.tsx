@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
@@ -49,6 +50,21 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         resendValidateCode(email);
     }, [email]);
 
+    const handleBackButtonPress = useCallback(() => {
+        if (route.params?.backTo) {
+            Navigation.goBack(route.params?.backTo as Route);
+            return;
+        }
+
+        if (onboardingPersonalDetailsForm?.firstName || onboardingPersonalDetailsForm?.lastName) {
+            const routeToNavigate = ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
+            Navigation.goBack(routeToNavigate);
+            return;
+        }
+
+        updateOnboardingValuesAndNavigation(onboardingValues);
+    }, [route.params?.backTo, onboardingPersonalDetailsForm?.firstName, onboardingPersonalDetailsForm?.lastName, onboardingValues]);
+
     useEffect(() => {
         if (isValidated) {
             return;
@@ -74,20 +90,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={40}
-                onBackButtonPress={() => {
-                    if (route.params?.backTo) {
-                        Navigation.goBack(route.params?.backTo as Route);
-                        return;
-                    }
-
-                    if (onboardingPersonalDetailsForm?.firstName || onboardingPersonalDetailsForm?.lastName) {
-                        const routeToNavigate = ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
-                        Navigation.goBack(routeToNavigate);
-                        return;
-                    }
-
-                    Navigation.goBack();
-                }}
+                onBackButtonPress={handleBackButtonPress}
             />
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}
