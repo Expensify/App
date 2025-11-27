@@ -873,7 +873,8 @@ function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, cu
 }
 
 /**
- * Checks whether the current user has a policy with Xero accounting software integration
+ * Given a list of admin policies for the current user, checks whether any of them
+ * has a Xero accounting software integration configured.
  */
 function hasPolicyWithXeroConnection(adminPolicies: Policy[] | undefined) {
     return adminPolicies?.some((policy) => !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]) ?? false;
