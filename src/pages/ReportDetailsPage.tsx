@@ -663,7 +663,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         moneyRequestReport?.reportID,
     ]);
 
-    const canJoin = canJoinChat(report, parentReportAction, policy, !!reportNameValuePairs?.private_isArchived);
+    const canJoin = canJoinChat(report, parentReportAction, policy, !!reportNameValuePairs?.private_isArchived, parentReport);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
