@@ -315,8 +315,7 @@ function IOURequestStepDistanceManual({
                 setFormError(translate('iou.error.invalidDistance'));
                 return;
             }
-        }
-        if (!value.length || parseFloat(value) <= 0) {
+        } else if (!value.length || parseFloat(value) <= 0) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }
