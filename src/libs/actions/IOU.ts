@@ -81,6 +81,7 @@ import Performance from '@libs/Performance';
 import {getAccountIDsByLogins, getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
+    arePaymentsEnabled,
     getDistanceRateCustomUnit,
     getDistanceRateCustomUnitRate,
     getMemberAccountIDsForWorkspace,
@@ -4703,9 +4704,11 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const hasModifiedReimbursable = 'reimbursable' in transactionChanges;
     const hasModifiedTaxCode = 'taxCode' in transactionChanges;
     const hasModifiedDate = 'date' in transactionChanges;
+    const hasModifiedMerchant = 'merchant' in transactionChanges;
 
     const isInvoice = isInvoiceReportReportUtils(iouReport);
     if (
+        transactionID &&
         policy &&
         isPaidGroupPolicy(policy) &&
         !isInvoice &&
@@ -4713,6 +4716,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         (hasModifiedTag ||
             hasModifiedCategory ||
             hasModifiedComment ||
+            hasModifiedMerchant ||
             hasModifiedDistanceRate ||
             hasModifiedDate ||
             hasModifiedCurrency ||
@@ -4736,6 +4740,8 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasDependentTags(policy, policyTagList ?? {}),
             isInvoice,
             isSelfDM(iouReport),
+            iouReport,
+            isFromExpenseReport,
         );
         optimisticData.push(violationsOnyxData);
         failureData.push({
@@ -10308,7 +10314,8 @@ function canIOUBePaid(
         !isChatReportArchived &&
         !isAutoReimbursable &&
         (!shouldBeApproved || !shouldCheckApprovedState) &&
-        !isPayAtEndExpenseReport
+        !isPayAtEndExpenseReport &&
+        (!isExpenseReport(iouReport) || arePaymentsEnabled(policy as OnyxEntry<OnyxTypes.Policy>))
     );
 }
 
