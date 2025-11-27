@@ -153,7 +153,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const handleConnectManually = () => {
         if (!isAccountValidated) {
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(policyID, backTo));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(policyID, backTo), {forceReplace: true});
             return;
         }
 
@@ -173,7 +173,7 @@ function VerifiedBankAccountFlowEntryPoint({
 
         if (!isAccountValidated) {
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(policyID, backTo));
+            Navigation.navigate(ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(policyID, backTo), {forceReplace: true});
             return;
         }
 
