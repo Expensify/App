@@ -40,10 +40,10 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
     // Remove the previous provision session information if any is cached.
     cleanupTravelProvisioningSession();
     if (isUserValidated) {
-        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
+        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain, Navigation.getActiveRoute()));
         return;
     }
-    Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
+    Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, Navigation.getActiveRoute()));
 };
 
 function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, activePolicyID, setShouldScrollToBottom}: BookTravelButtonProps) {
@@ -130,9 +130,11 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, ac
             // Always validate OTP first before proceeding to address details or terms acceptance
             if (!isUserValidated) {
                 // Determine where to redirect after OTP validation
-                const nextStep = isEmptyObject(policy?.address) ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()) : ROUTES.TRAVEL_TCS.getRoute(domain);
+                const nextStep = isEmptyObject(policy?.address)
+                    ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute())
+                    : ROUTES.TRAVEL_TCS.getRoute(domain);
                 setTravelProvisioningNextStep(nextStep);
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
+                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, Navigation.getActiveRoute()));
                 return;
             }
             if (isEmptyObject(policy?.address)) {
