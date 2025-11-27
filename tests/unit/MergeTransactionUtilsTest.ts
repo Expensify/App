@@ -800,7 +800,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, translateLocal);
+            const result = getDisplayValue('reportID', transaction, undefined, translateLocal);
 
             // Then it should return translated "None"
             expect(result).toBe('common.none');
@@ -815,7 +815,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, translateLocal);
+            const result = getDisplayValue('reportID', transaction, undefined, translateLocal);
 
             // Then it should return the reportName
             expect(result).toBe('Test Report Name');
@@ -841,7 +841,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get display value for reportID
-            const result = getDisplayValue('reportID', transaction, translateLocal);
+            const result = getDisplayValue('reportID', transaction, undefined, translateLocal);
 
             // Then it should return the report's name from Onyx
             expect(result).toBe(report.reportName);
@@ -891,7 +891,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = '456';
 
             // When we get updated values for reportID field
-            const result = getMergeFieldUpdatedValues(transaction, 'reportID', fieldValue);
+            const result = getMergeFieldUpdatedValues({transaction, field: 'reportID', fieldValue});
 
             // Then it should include both reportID and reportName
             expect(result).toEqual({
