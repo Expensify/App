@@ -698,6 +698,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
         reportName: 'Rapportnaam',
+        showLess: 'Minder weergeven',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -2675,12 +2676,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
-            onboardingManageTeamMessage: dedent(`
-                # Je gratis proefperiode is gestart! Laten we je op weg helpen.
-                👋 Hoi, ik ben je Expensify-instelspecialist. Nu je een werkruimte hebt gemaakt, haal je het meeste uit je gratis proefperiode van 30 dagen door de onderstaande stappen te volgen!
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # Je gratis proefperiode is gestart! Laten we je instellen.
+                        👋 Hoi, ik ben je Expensify-instelspecialist. Ik heb al een werkruimte aangemaakt om de bonnetjes en uitgaven van je team te beheren. Om het meeste uit je gratis proefperiode van 30 dagen te halen, volg je gewoon de resterende instelstappen hieronder!
+                    `)
+                    : dedent(`
+                        # Je gratis proefperiode is begonnen! Laten we je instellen.
+                        👋 Hoi! Ik ben je Expensify-specialist voor het instellen. Nu je een werkruimte hebt aangemaakt, haal het meeste uit je gratis proefperiode van 30 dagen door de onderstaande stappen te volgen!
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
+                '# Laten we je instellen\n👋 Hoi, ik ben je Expensify-installatiespecialist. Ik heb al een werkruimte aangemaakt om te helpen bij het beheren van je bonnetjes en uitgaven. Om het meeste uit je gratis proefperiode van 30 dagen te halen, volg je gewoon de resterende instelstappen hieronder!',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
             onboardingAdminMessage: 'Leer hoe u de werkruimte van uw team als beheerder beheert en uw eigen uitgaven indient.',
             onboardingLookingAroundMessage:
@@ -6209,6 +6216,7 @@ ${
             `heeft de frequentie van automatisch rapporteren bijgewerkt naar "${newFrequency}" (voorheen "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `heeft de goedkeuringsmodus bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`,
         upgradedWorkspace: 'heeft deze werkruimte geüpgraded naar het Control-plan',
+        forcedCorporateUpgrade: `Deze werkruimte is geüpgraded naar het Control-abonnement. Klik <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">hier</a> voor meer informatie.`,
         downgradedWorkspace: 'heeft deze werkruimte gedowngraded naar het Collect-plan',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `heeft het percentage van rapporten dat willekeurig wordt doorgestuurd voor handmatige goedkeuring gewijzigd naar ${Math.round(newAuditRate * 100)}% (voorheen ${Math.round(oldAuditRate * 100)}%)`,
@@ -6557,6 +6565,18 @@ ${
         error: {
             title: 'Updatecontrole mislukt',
             message: 'We konden niet controleren op een update. Probeer het over een tijdje opnieuw.',
+        },
+    },
+    reportLayout: {
+        reportLayout: 'Rapportindeling',
+        groupByLabel: 'Groeperen op:',
+        selectGroupByOption: 'Selecteer hoe rapportkosten worden gegroepeerd',
+        uncategorized: 'Niet gecategoriseerd',
+        noTag: 'Geen tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Selecteer alle uitgaven in ${groupName}`,
+        groupBy: {
+            category: 'Categorie',
+            tag: 'Tag',
         },
     },
     report: {
@@ -7418,13 +7438,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Welkom bij New Expensify!',
-        subtitle: 'Nieuwe Expensify heeft dezelfde geweldige automatisering, maar nu met geweldige samenwerking:',
+        subtitle: 'Het heeft alles wat je leuk vindt aan onze klassieke ervaring, plus een heleboel upgrades om je leven nog makkelijker te maken:',
         confirmText: 'Laten we gaan!',
         features: {
-            chat: '<strong>Chat direct op elke uitgave</strong>, rapport of werkruimte',
-            scanReceipt: '<strong>Scan bonnetjes</strong> en krijg je geld terugbetaald',
-            crossPlatform: 'Doe <strong>alles</strong> vanaf je telefoon of browser',
+            chat: 'Chat bij elke uitgave om vragen snel op te lossen',
+            search: 'Krachtigere zoekfunctie op mobiel, web en desktop',
+            concierge: 'Ingebouwde Concierge AI om je onkosten te automatiseren',
         },
+        helpText: 'Probeer de 2-minuten-demo',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
@@ -7493,18 +7514,6 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} heeft je uitgenodigd om Expensify uit te proberen\nHey! Ik heb ons net *3 maanden gratis* gekregen om Expensify uit te proberen, de snelste manier om onkosten te beheren.\n\nHier is een *testbon* om je te laten zien hoe het werkt:`,
-    },
-    reportLayout: {
-        reportLayout: 'Rapportindeling',
-        groupByLabel: 'Groeperen op:',
-        selectGroupByOption: 'Selecteer hoe rapportuitgaven te groeperen',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `${action} deze groep`,
-        selectGroup: ({groupName}: {groupName: string}) => `Selecteer alle uitgaven in ${groupName}`,
-        groupBy: {
-            category: 'Categorie',
-            tag: 'Tag',
-        },
     },
     export: {
         basicExport: 'Basis export',
@@ -7582,6 +7591,17 @@ ${
                         return `Wachten tot een beheerder de uitgaven goedkeurt.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Wachten tot <strong>jij</strong> dit rapport exporteert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Wachten tot <strong>${actor}</strong> dit rapport exporteert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Wachten tot een beheerder dit rapport exporteert.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7653,6 +7673,32 @@ ${
             onePasswordForAnything: 'Eén wachtwoord voor alles',
         },
         goToDomain: 'Ga naar het domein',
+        samlLogin: {
+            title: 'SAML-aanmelding',
+            subtitle: `<muted-text>Configureer het inloggen voor leden met <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'SAML-aanmelding inschakelen',
+            allowMembers: 'Leden toestaan om met SAML in te loggen.',
+            requireSamlLogin: 'SAML-aanmelding vereisen',
+            anyMemberWillBeRequired: 'Elk lid dat met een andere methode is aangemeld, moet zich opnieuw authenticeren via SAML.',
+            enableError: 'Kon de instelling voor SAML-inschakeling niet bijwerken',
+            requireError: 'Kan SAML-vereiste-instelling niet bijwerken',
+        },
+        samlConfigurationDetails: {
+            title: 'SAML-configuratiedetails',
+            subtitle: 'Gebruik deze gegevens om SAML in te stellen.',
+            identityProviderMetaData: 'Metagegevens van identiteitsprovider',
+            entityID: 'Entiteit-ID',
+            nameIDFormat: 'Naam-ID-formaat',
+            loginUrl: 'Inlog-URL',
+            acsUrl: 'ACS-URL (Assertion Consumer Service)',
+            logoutUrl: 'URL voor afmelden',
+            sloUrl: 'SLO (Eenmalige afmelding) URL',
+            serviceProviderMetaData: 'Serviceprovider-metagegevens',
+            oktaScimToken: 'Okta SCIM-token',
+            revealToken: 'Token weergeven',
+            fetchError: 'Kon SAML-configuratiedetails niet ophalen',
+            setMetadataGenericError: 'Kon SAML-metadata niet instellen',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

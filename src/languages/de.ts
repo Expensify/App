@@ -699,6 +699,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet...',
         domains: 'Domänen',
         reportName: 'Berichtsname',
+        showLess: 'Weniger anzeigen',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -2688,12 +2689,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Erstattungen zu erhalten ist so einfach wie eine Nachricht zu senden. Lass uns die Grundlagen durchgehen.',
             onboardingPersonalSpendMessage: 'So verfolgst du deine Ausgaben mit nur wenigen Klicks.',
-            onboardingManageTeamMessage: dedent(`
-                # Deine kostenlose Testversion hat begonnen! Lass uns dich einrichten.
-                👋 Hallo! Ich bin dein Expensify-Einrichtungsspezialist. Da du einen Workspace erstellt hast, nutze deine 30-tägige kostenlose Testversion optimal, indem du die folgenden Schritte befolgst!
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # Deine kostenlose Testphase hat begonnen! Lass uns dich einrichten.
+                        👋 Hey, ich bin dein Expensify-Setup-Spezialist. Ich habe bereits einen Arbeitsbereich erstellt, um die Belege und Ausgaben deines Teams zu verwalten. Um das Beste aus deiner 30-tägigen kostenlosen Testphase herauszuholen, befolge einfach die restlichen Einrichtungsschritte unten!
+                    `)
+                    : dedent(`
+                        # Deine kostenlose Testphase hat begonnen! Lass uns dich einrichten.
+                        👋 Hey, ich bin dein Expensify-Einrichtungsspezialist. Da du jetzt einen Arbeitsbereich erstellt hast, nutze deine 30-tägige kostenlose Testphase bestmöglich, indem du die folgenden Schritte befolgst!
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Lass uns loslegen\n👋 Ich helfe dir! Ich habe deine Workspace-Einstellungen für Einzelunternehmer und ähnliche Unternehmen angepasst. Du kannst sie über den folgenden Link anpassen!\n\nSo verfolgst du deine Ausgaben mit nur wenigen Klicks:',
+                '# Legen wir mit der Einrichtung los\n👋 Hey! Ich bin dein Expensify-Einrichtungsspezialist. Ich habe bereits einen Workspace erstellt, um deine Belege und Ausgaben zu verwalten. Um das Beste aus deiner 30-tägigen kostenlosen Testversion herauszuholen, folge einfach den verbleibenden Einrichtungsschritten unten!',
             onboardingChatSplitMessage: 'Rechnungen mit Freunden zu teilen ist so einfach wie eine Nachricht zu senden. So funktioniert’s.',
             onboardingAdminMessage: 'Lerne, wie du den Workspace deines Teams als Admin verwaltest und eigene Ausgaben einreichst.',
             onboardingLookingAroundMessage:
@@ -6239,6 +6246,7 @@ ${
             `hat die automatische Berichterstattungshäufigkeit auf "${newFrequency}" aktualisiert (zuvor "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `hat den Genehmigungsmodus auf "${newValue}" aktualisiert (zuvor "${oldValue}")`,
         upgradedWorkspace: 'dieses Arbeitsbereich auf den Control-Plan hochgestuft',
+        forcedCorporateUpgrade: `Dieser Arbeitsbereich wurde auf den Control-Tarif hochgestuft. Klicken Sie <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">hier</a> für weitere Informationen.`,
         downgradedWorkspace: 'hat dieses Arbeitsbereich auf den Collect-Plan herabgestuft',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `änderte die Rate der Berichte, die zufällig zur manuellen Genehmigung weitergeleitet werden, auf ${Math.round(newAuditRate * 100)}% (zuvor ${Math.round(oldAuditRate * 100)}%)`,
@@ -6587,6 +6595,18 @@ ${
         error: {
             title: 'Aktualisierungsprüfung fehlgeschlagen',
             message: 'Wir konnten nicht nach einem Update suchen. Bitte versuchen Sie es in Kürze erneut.',
+        },
+    },
+    reportLayout: {
+        reportLayout: 'Berichtslayout',
+        groupByLabel: 'Gruppieren nach:',
+        selectGroupByOption: 'Wählen Sie aus, wie die Berichtsausgaben gruppiert werden sollen',
+        uncategorized: 'Nicht kategorisiert',
+        noTag: 'Kein Tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Alle Ausgaben in ${groupName} auswählen`,
+        groupBy: {
+            category: 'Kategorie',
+            tag: 'Tag',
         },
     },
     report: {
@@ -7455,13 +7475,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Willkommen bei New Expensify!',
-        subtitle: 'New Expensify hat die gleiche großartige Automatisierung, aber jetzt mit erstaunlicher Zusammenarbeit:',
+        subtitle: 'Es enthält alles, was du an unserem klassischen Erlebnis liebst, mit einer ganzen Reihe von Verbesserungen, die dein Leben noch einfacher machen:',
         confirmText: "Los geht's!",
         features: {
-            chat: '<strong>Chatten Sie direkt über jede Ausgabe</strong>, jeden Bericht oder Arbeitsbereich',
-            scanReceipt: '<strong>Belege scannen</strong> und Rückerstattung erhalten',
-            crossPlatform: 'Erledigen Sie <strong>alles</strong> von Ihrem Telefon oder Browser aus',
+            chat: 'Chatte zu jeder Ausgabe, um Fragen schnell zu klären',
+            search: 'Leistungsstärkere Suche auf Mobilgeräten, im Web und auf dem Desktop',
+            concierge: 'Integrierte Concierge-KI zur Automatisierung Ihrer Ausgaben',
         },
+        helpText: '2-Minuten-Demo ausprobieren',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
@@ -7531,18 +7552,6 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} hat dich eingeladen, Expensify auszuprobieren\nHey! Ich habe uns gerade *3 Monate kostenlos* gesichert, um Expensify auszuprobieren, den schnellsten Weg, um Ausgaben zu verwalten.\n\nHier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
-    },
-    reportLayout: {
-        reportLayout: 'Berichtslayout',
-        groupByLabel: 'Gruppieren nach:',
-        selectGroupByOption: 'Wählen Sie aus, wie Berichtsausgaben gruppiert werden sollen',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `${action} diese Gruppe`,
-        selectGroup: ({groupName}: {groupName: string}) => `Alle Ausgaben in ${groupName} auswählen`,
-        groupBy: {
-            category: 'Kategorie',
-            tag: 'Schlagwort',
-        },
     },
     export: {
         basicExport: 'Basis Export',
@@ -7626,6 +7635,17 @@ ${
                         return `Warten darauf, dass ein Admin die Ausgaben genehmigt.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Es wird darauf gewartet, dass <strong>Sie</strong> diesen Bericht exportieren.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Warten darauf, dass <strong>${actor}</strong> diesen Bericht exportiert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Warten darauf, dass ein Administrator diesen Bericht exportiert.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7697,6 +7717,32 @@ ${
             onePasswordForAnything: 'Ein Passwort für alles',
         },
         goToDomain: 'Zur Domain wechseln',
+        samlLogin: {
+            title: 'SAML-Anmeldung',
+            subtitle: `<muted-text>Konfigurieren Sie die Mitgliederanmeldung mit <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'SAML-Anmeldung aktivieren',
+            allowMembers: 'Mitgliedern die Anmeldung mit SAML erlauben.',
+            requireSamlLogin: 'SAML-Anmeldung erforderlich',
+            anyMemberWillBeRequired: 'Jedes Mitglied, das sich mit einer anderen Methode angemeldet hat, muss sich mithilfe von SAML erneut authentifizieren.',
+            enableError: 'Konnte die SAML-Aktivierungseinstellung nicht aktualisieren',
+            requireError: 'Die SAML-Anforderungseinstellung konnte nicht aktualisiert werden.',
+        },
+        samlConfigurationDetails: {
+            title: 'SAML-Konfigurationsdetails',
+            subtitle: 'Verwenden Sie diese Angaben, um SAML einzurichten.',
+            identityProviderMetaData: 'Metadaten des Identitätsanbieters',
+            entityID: 'Entitäts-ID',
+            nameIDFormat: 'Name-ID-Format',
+            loginUrl: 'Anmelde-URL',
+            acsUrl: 'ACS-URL (Assertion Consumer Service)',
+            logoutUrl: 'Abmelde-URL',
+            sloUrl: 'SLO (Single Logout)-URL',
+            serviceProviderMetaData: 'Metadaten des Dienstanbieters',
+            oktaScimToken: 'Okta SCIM-Token',
+            revealToken: 'Token anzeigen',
+            fetchError: 'SAML-Konfigurationsdetails konnten nicht abgerufen werden',
+            setMetadataGenericError: 'SAML-Metadaten konnten nicht gesetzt werden',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
