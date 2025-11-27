@@ -250,7 +250,8 @@ function IOURequestStartPage({
             }
             fetchPerDiemRates(perDiemPolicy.id);
         }
-    }, [isFromGlobalCreate, isOffline, perDiemCustomUnit?.rates, allPolicies, currentUserPersonalDetails.login, moreThanOnePerDiemExist]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isFromGlobalCreate, isOffline, perDiemCustomUnit?.rates, currentUserPersonalDetails.login, moreThanOnePerDiemExist]);
 
     return (
         <AccessOrNotFoundWrapper
