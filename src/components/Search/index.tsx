@@ -766,17 +766,7 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [
-            isMobileSelectionModeEnabled,
-            markReportIDAsExpense,
-            toggleTransaction,
-            hash,
-            queryJSON,
-            handleSearch,
-            searchKey,
-            markReportIDAsMultiTransactionExpense,
-            unmarkReportIDAsMultiTransactionExpense,
-        ],
+        [isMobileSelectionModeEnabled, markReportIDAsExpense, toggleTransaction, hash, queryJSON, handleSearch, searchKey],
     );
 
     const currentColumns = useMemo(() => {

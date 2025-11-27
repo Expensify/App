@@ -131,12 +131,12 @@ import ViolationsUtils from './Violations/ViolationsUtils';
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
 
-// List Item Sortings
+// List Item sorting
 type TransactionSorting = ColumnSortMapping<TransactionListItemType>;
 type TaskSorting = ColumnSortMapping<TaskListItemType>;
 type ExpenseReportSorting = ColumnSortMapping<ExpenseReportListItemType>;
 
-// Transaction Group Sortings
+// Transaction Group sorting
 type TransactionMemberGroupSorting = ColumnSortMapping<TransactionMemberGroupListItemType>;
 type TransactionCardGroupSorting = ColumnSortMapping<TransactionCardGroupListItemType>;
 type TransactionWithdrawalIDGroupSorting = ColumnSortMapping<TransactionWithdrawalIDGroupListItemType>;
