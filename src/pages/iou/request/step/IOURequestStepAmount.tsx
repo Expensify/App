@@ -267,6 +267,7 @@ function IOURequestStepAmount({
             iouType === CONST.IOU.TYPE.CREATE &&
             isPaidGroupPolicy(defaultExpensePolicy) &&
             defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
+            defaultExpensePolicy?.autoReporting &&
             !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
         ) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
