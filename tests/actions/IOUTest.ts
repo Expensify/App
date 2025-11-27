@@ -6030,7 +6030,18 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID});
 
             // When updating a money request category
-            updateMoneyRequestCategory(transactionID, transactionThreadReportID, category, fakePolicy, undefined, undefined, [], 123, 'existing@example.com', false);
+            updateMoneyRequestCategory({
+                transactionID,
+                transactionThreadReportID,
+                category,
+                policy: fakePolicy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                policyRecentlyUsedCategories: [],
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+            });
 
             await waitForBatchedUpdates();
 
@@ -6095,7 +6106,18 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When updating a money request category
-                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined, [], 123, 'existing@example.com', false);
+                updateMoneyRequestCategory({
+                    transactionID,
+                    transactionThreadReportID: '3',
+                    category,
+                    policy: fakePolicy,
+                    policyTagList: undefined,
+                    policyCategories: undefined,
+                    policyRecentlyUsedCategories: [],
+                    currentUserAccountIDParam: 123,
+                    currentUserEmailParam: 'existing@example.com',
+                    isASAPSubmitBetaEnabled: false,
+                });
 
                 await waitForBatchedUpdates();
 
@@ -6127,7 +6149,18 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When updating the money request category
-                updateMoneyRequestCategory(transactionID, '3', category, fakePolicy, undefined, undefined, [], 123, 'existing@example.com', false);
+                updateMoneyRequestCategory({
+                    transactionID,
+                    transactionThreadReportID: '3',
+                    category,
+                    policy: fakePolicy,
+                    policyTagList: undefined,
+                    policyCategories: undefined,
+                    policyRecentlyUsedCategories: [],
+                    currentUserAccountIDParam: 123,
+                    currentUserEmailParam: 'existing@example.com',
+                    isASAPSubmitBetaEnabled: false,
+                });
 
                 await waitForBatchedUpdates();
 

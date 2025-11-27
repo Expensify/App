@@ -5,7 +5,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useLocalize from '@hooks/useLocalize';
@@ -228,8 +227,8 @@ function IOURequestStepAmount({
                         backToReport,
                         shouldGenerateTransactionThreadReport,
                         isASAPSubmitBetaEnabled,
-                        currentUserAccountIDParam: currentUserAccountIDParam,
-                        currentUserEmailParam: currentUserEmailParam ?? '',
+                        currentUserAccountIDParam,
+                        currentUserEmailParam,
                         transactionViolations,
                     });
                     return;

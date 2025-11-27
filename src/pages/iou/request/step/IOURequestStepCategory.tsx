@@ -132,19 +132,19 @@ function IOURequestStepCategory({
             }
 
             if (isEditing && report) {
-                updateMoneyRequestCategory(
-                    transaction.transactionID,
-                    report.reportID,
-                    updatedCategory,
+                updateMoneyRequestCategory({
+                    transactionID: transaction.transactionID,
+                    transactionThreadReportID: report.reportID,
+                    category: updatedCategory,
                     policy,
-                    policyTags,
+                    policyTagList: policyTags,
                     policyCategories,
                     policyRecentlyUsedCategories,
                     currentUserAccountIDParam,
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
-                    currentSearchHash,
-                );
+                    hash: currentSearchHash,
+                });
                 navigateBack();
                 return;
             }
