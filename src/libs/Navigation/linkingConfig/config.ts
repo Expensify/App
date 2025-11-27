@@ -998,6 +998,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,
                         },
+                        [SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: {
+                            path: ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.route,
+                            exact: true,
+                        },
                         [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.route,
                         [SCREENS.KEYBOARD_SHORTCUTS]: {
                             path: ROUTES.KEYBOARD_SHORTCUTS.route,
@@ -1159,6 +1163,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
                             path: ROUTES.REPORT_SETTINGS_VISIBILITY.route,
+                        },
+                        [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: {
+                            path: ROUTES.REPORT_SETTINGS_REPORT_LAYOUT.route,
                         },
                     },
                 },
