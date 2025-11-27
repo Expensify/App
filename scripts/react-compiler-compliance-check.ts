@@ -7,11 +7,12 @@
  * It provides both CI and local development tools to enforce Rules of React compliance.
  */
 import {execSync} from 'child_process';
-import {writeFileSync} from 'fs';
+import {readFileSync, writeFileSync} from 'fs';
 import {join} from 'path';
 import type {TupleToUnion} from 'type-fest';
 import CLI from './utils/CLI';
 import Git from './utils/Git';
+import type {DiffResult} from './utils/Git';
 import {log, bold as logBold, error as logError, info as logInfo, note as logNote, success as logSuccess, warn as logWarn} from './utils/Logger';
 
 const TAB = '    ';
@@ -23,6 +24,28 @@ const SUPPRESSED_COMPILER_ERRORS = [
     // https://github.com/facebook/react/issues/29583
     '(BuildHIR::lowerExpression) Expected Identifier, got MemberExpression key in ObjectExpression',
 ] as const satisfies string[];
+
+type ManualMemoizationPattern = {
+    keyword: string;
+    regex: RegExp;
+};
+
+const MANUAL_MEMOIZATION_PATTERNS: ManualMemoizationPattern[] = [
+    {
+        keyword: 'memo',
+        regex: /\b(?:React\.)?memo\s*\(/g,
+    },
+    {
+        keyword: 'useMemo',
+        regex: /\b(?:React\.)?useMemo\s*\(/g,
+    },
+    {
+        keyword: 'useCallback',
+        regex: /\b(?:React\.)?useCallback\s*\(/g,
+    },
+];
+
+const NO_MANUAL_MEMO_DIRECTIVE_PATTERN = /["']use no memo["']\s*;?/;
 
 const ESLINT_DISABLE_PATTERNS = {
     FILE_KEYWORDS: ['// eslint-disable ', '/* eslint-disable '],
@@ -52,6 +75,12 @@ type CompilerFailure = {
     reason?: string;
 };
 
+type ManualMemoizationMatch = {
+    keyword: string;
+    line: number;
+    column: number;
+};
+
 type DiffFilteringCommits = {
     fromRef: string;
     toRef?: string;
@@ -67,6 +96,7 @@ type BaseCheckOptions = PrintResultsOptions & {
     reportFileName?: string;
     shouldGenerateReport?: boolean;
     shouldFilterByDiff?: boolean;
+    shouldEnforceNewComponents?: boolean;
 };
 
 type CheckOptions = BaseCheckOptions & {
@@ -81,6 +111,7 @@ async function check({
     remote,
     shouldPrintSuccesses = false,
     shouldPrintSuppressedErrors = false,
+    shouldEnforceNewComponents = false,
 }: CheckOptions): Promise<boolean> {
     if (files) {
         logInfo(`Running React Compiler check for ${files.length} files or glob patterns...`);
@@ -88,14 +119,25 @@ async function check({
         logInfo('Running React Compiler check for all files...');
     }
 
+    const shouldComputeDiff = shouldFilterByDiff || shouldEnforceNewComponents;
     const src = createFilesGlob(files);
     let results = runCompilerHealthcheck(src);
 
-    if (shouldFilterByDiff) {
+    if (shouldComputeDiff) {
         const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
         const diffFilteringCommits: DiffFilteringCommits = {fromRef: mainBaseCommitHash};
+        const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef);
 
-        results = await filterResultsByDiff(results, diffFilteringCommits, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
+        if (shouldFilterByDiff) {
+            results = await filterResultsByDiff(results, diffFilteringCommits, diffResult, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
+        }
+
+        if (shouldEnforceNewComponents) {
+            const newComponentFailures = enforceNewComponentGuard(results, diffResult, files);
+            for (const failure of newComponentFailures) {
+                addFailureIfDoesNotExist(results.failures, failure);
+            }
+        }
     }
 
     printResults(results, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
@@ -272,6 +314,139 @@ function createFilesGlob(files?: string[]): string | undefined {
     return `**/+(${files.join('|')})`;
 }
 
+function getNewComponentFiles(diffResult: DiffResult, filesToCheck?: string[]): Set<string> {
+    const newFiles = new Set<string>();
+    const fileFilter = filesToCheck ? new Set(filesToCheck) : undefined;
+
+    for (const file of diffResult.files) {
+        if (!Git.isAddedDiffFile(file)) {
+            continue;
+        }
+
+        if (fileFilter && !fileFilter.has(file.filePath)) {
+            continue;
+        }
+
+        newFiles.add(file.filePath);
+    }
+    return newFiles;
+}
+
+function enforceNewComponentGuard(results: CompilerResults, diffResult: DiffResult | undefined, filesToCheck?: string[]): CompilerFailure[] {
+    if (!diffResult) {
+        return [];
+    }
+
+    const newComponentFiles = getNewComponentFiles(diffResult, filesToCheck);
+    if (newComponentFiles.size === 0) {
+        return [];
+    }
+
+    const failures: CompilerFailure[] = [];
+
+    for (const filePath of newComponentFiles) {
+        const source = readSourceFile(filePath);
+        if (!source) {
+            continue;
+        }
+
+        if (hasManualMemoOptOutDirective(source)) {
+            continue;
+        }
+
+        const hasSuppressedFailure = hasFailureForFile(results.suppressedFailures, filePath);
+        const hasCompilerFailure = hasFailureForFile(results.failures, filePath);
+        const isCompilerSuccess = results.success.has(filePath);
+
+        if (!isCompilerSuccess && !hasSuppressedFailure) {
+            if (hasCompilerFailure) {
+                continue;
+            }
+
+            failures.push({
+                file: filePath,
+                reason: 'New components must compile with React Compiler or opt out using "use no memo"; on the first line.',
+            });
+            continue;
+        }
+
+        if (hasSuppressedFailure) {
+            continue;
+        }
+
+        const manualMemoMatches = findManualMemoizationMatches(source);
+        if (manualMemoMatches.length === 0) {
+            continue;
+        }
+
+        const firstMatch = manualMemoMatches.at(0);
+        if (!firstMatch) {
+            continue;
+        }
+
+        failures.push({
+            file: filePath,
+            line: firstMatch.line,
+            column: firstMatch.column,
+            reason: `Manual memoization (${firstMatch.keyword}) is not allowed in new components.`,
+        });
+    }
+
+    return failures;
+}
+
+function hasManualMemoOptOutDirective(source: string): boolean {
+    return NO_MANUAL_MEMO_DIRECTIVE_PATTERN.test(source);
+}
+
+function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] {
+    const matches: ManualMemoizationMatch[] = [];
+
+    for (const pattern of MANUAL_MEMOIZATION_PATTERNS) {
+        pattern.regex.lastIndex = 0;
+        let regexMatch: RegExpExecArray | null;
+        // eslint-disable-next-line no-cond-assign
+        while ((regexMatch = pattern.regex.exec(source)) !== null) {
+            const matchIndex = regexMatch.index;
+            const {line, column} = getLineAndColumnFromIndex(source, matchIndex);
+            matches.push({
+                keyword: pattern.keyword,
+                line,
+                column,
+            });
+        }
+    }
+
+    return matches;
+}
+
+function hasFailureForFile(failureMap: FailureMap, filePath: string): boolean {
+    for (const failure of failureMap.values()) {
+        if (failure.file === filePath) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function getLineAndColumnFromIndex(source: string, index: number): {line: number; column: number} {
+    const substring = source.slice(0, index);
+    const line = substring.split('\n').length;
+    const lastLineBreakIndex = substring.lastIndexOf('\n');
+    const column = lastLineBreakIndex === -1 ? index + 1 : index - lastLineBreakIndex;
+    return {line, column};
+}
+
+function readSourceFile(filePath: string): string | null {
+    try {
+        const absolutePath = join(process.cwd(), filePath);
+        return readFileSync(absolutePath, 'utf8');
+    } catch (error) {
+        logWarn(`Unable to read ${filePath} while enforcing new component rules.`, error);
+        return null;
+    }
+}
+
 /**
  * Filters compiler results to only include failures for lines that were changed in the git diff.
  * This helps focus on new issues introduced by the current changes rather than pre-existing issues.
@@ -287,12 +462,10 @@ function createFilesGlob(files?: string[]): string | undefined {
 async function filterResultsByDiff(
     results: CompilerResults,
     diffFilteringCommits: DiffFilteringCommits,
+    diffResult: DiffResult,
     {shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions,
 ): Promise<CompilerResults> {
     logInfo(`Filtering results by diff between ${diffFilteringCommits.fromRef} and ${diffFilteringCommits.toRef ?? 'the working tree'}...`);
-
-    // Get the diff between the base ref and the working tree
-    const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef);
 
     // If there are no changes, return empty results
     if (!diffResult.hasChanges) {
@@ -597,14 +770,32 @@ async function main() {
                 required: false,
                 default: false,
             },
+            enforceNewComponents: {
+                description: 'Ensure new components compile with React Compiler and avoid manual memoization',
+                required: false,
+                default: false,
+            },
         },
     });
 
     const {command, file} = cli.positionalArgs;
     const {remote, reportFileName} = cli.namedArgs;
-    const {report: shouldGenerateReport, filterByDiff: shouldFilterByDiff, printSuccesses: shouldPrintSuccesses, printSuppressedErrors: shouldPrintSuppressedErrors} = cli.flags;
+    const {
+        report: shouldGenerateReport,
+        filterByDiff: shouldFilterByDiff,
+        printSuccesses: shouldPrintSuccesses,
+        printSuppressedErrors: shouldPrintSuppressedErrors,
+        enforceNewComponents: shouldEnforceNewComponents,
+    } = cli.flags;
 
-    const commonOptions: BaseCheckOptions = {shouldGenerateReport, reportFileName, shouldFilterByDiff, shouldPrintSuccesses, shouldPrintSuppressedErrors};
+    const commonOptions: BaseCheckOptions = {
+        shouldGenerateReport,
+        reportFileName,
+        shouldFilterByDiff,
+        shouldPrintSuccesses,
+        shouldPrintSuppressedErrors,
+        shouldEnforceNewComponents,
+    };
 
     async function runCommand() {
         switch (command) {
