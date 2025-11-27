@@ -6109,6 +6109,35 @@ ${
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 与会者跟踪`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `已将默认审批人更改为${newApprover}（之前为${previousApprover}）` : `已将默认审批人更改为 ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `已将${members}的审批流程更改为向${approver}提交报告`;
+            if (wasDefaultApprover) {
+                text += '(之前的默认审批人)';
+            } else if (previousApprover) {
+                text += `(之前为 ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({members, previousApprover}: {members: string; previousApprover?: string}) =>
+            previousApprover ? `已将${members}的审批流程更改为向默认审批人提交报销单（此前为${previousApprover}）` : `已将${members}的审批流程更改为向默认审批人提交报销单`,
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `已将${approver}的审批流程更改为将已批准的报告转发给${forwardsTo}（之前转发给${previousForwardsTo}）`
+                : `已将${approver}的审批工作流程更改为将已批准的报告转发给${forwardsTo}（此前为最终批准的报告）`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo ? `已将${approver}的审批流程更改为不再转发已批准的报销单（之前转发给${previousForwardsTo}）` : `已更改 ${approver} 的审批流程，使其不再转发已批准的报告`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',

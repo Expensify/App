@@ -6244,6 +6244,39 @@ ${
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} bijhouden van aanwezigen`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `heeft de standaardgoedkeurder gewijzigd naar ${newApprover} (voorheen ${previousApprover})` : `heeft de standaardgoedkeurder gewijzigd naar ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `heeft de goedkeuringsworkflow voor ${members} gewijzigd zodat rapporten worden ingediend bij ${approver}`;
+            if (wasDefaultApprover) {
+                text += '(voorheen standaardgoedkeurder)';
+            } else if (previousApprover) {
+                text += `(voorheen ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({members, previousApprover}: {members: string; previousApprover?: string}) =>
+            previousApprover
+                ? `heeft de goedkeuringsworkflow voor ${members} gewijzigd zodat rapporten worden ingediend bij de standaardgoedkeurder (voorheen ${previousApprover})`
+                : `goedkeuringsworkflow voor ${members} gewijzigd zodat rapporten bij de standaardgoedkeurder worden ingediend`,
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `goedkeuringsworkflow voor ${approver} gewijzigd zodat goedgekeurde rapporten worden doorgestuurd naar ${forwardsTo} (voorheen doorgestuurd naar ${previousForwardsTo})`
+                : `heeft de goedkeuringsworkflow voor ${approver} gewijzigd om goedgekeurde rapporten door te sturen naar ${forwardsTo} (voorheen definitief goedgekeurde rapporten)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `heeft de goedkeuringsworkflow voor ${approver} gewijzigd zodat goedgekeurde rapporten niet meer worden doorgestuurd (voorheen doorgestuurd naar ${previousForwardsTo})`
+                : `heeft de goedkeuringsworkflow voor ${approver} gewijzigd zodat goedgekeurde rapporten niet meer worden doorgestuurd`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',

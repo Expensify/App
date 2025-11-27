@@ -6243,6 +6243,39 @@ ${
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} acompanhamento de participantes`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `alterou o aprovador padrão para ${newApprover} (anteriormente ${previousApprover})` : `alterou o aprovador padrão para ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `alterou o fluxo de aprovação para que ${members} enviem relatórios para ${approver}`;
+            if (wasDefaultApprover) {
+                text += '(aprovador padrão anterior)';
+            } else if (previousApprover) {
+                text += `(anteriormente ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({members, previousApprover}: {members: string; previousApprover?: string}) =>
+            previousApprover
+                ? `alterou o fluxo de aprovação para que ${members} enviem relatórios ao aprovador padrão (anteriormente ${previousApprover})`
+                : `alterou o fluxo de aprovação de ${members} para que os relatórios sejam enviados ao aprovador padrão`,
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `alterou o fluxo de aprovação de ${approver} para encaminhar relatórios aprovados para ${forwardsTo} (anteriormente encaminhados para ${previousForwardsTo})`
+                : `alterou o fluxo de aprovação de ${approver} para encaminhar relatórios aprovados para ${forwardsTo} (anteriormente, relatórios aprovados finais)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `alterou o fluxo de aprovação de ${approver} para deixar de encaminhar relatórios aprovados (antes encaminhados para ${previousForwardsTo})`
+                : `alterou o fluxo de aprovação de ${approver} para deixar de encaminhar relatórios aprovados`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',

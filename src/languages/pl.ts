@@ -6231,6 +6231,39 @@ ${
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'Wyłączone'} śledzenie uczestników`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `zmieniono domyślnego zatwierdzającego na ${newApprover} (wcześniej ${previousApprover})` : `zmieniono domyślnego zatwierdzającego na ${newApprover}`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `zmieniono przepływ zatwierdzania dla ${members}, tak aby składali raporty do ${approver}`;
+            if (wasDefaultApprover) {
+                text += '(wcześniej domyślny zatwierdzający)';
+            } else if (previousApprover) {
+                text += `(wcześniej ${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({members, previousApprover}: {members: string; previousApprover?: string}) =>
+            previousApprover
+                ? `zmieniono proces zatwierdzania dla ${members}, aby składali raporty do domyślnego zatwierdzającego (wcześniej ${previousApprover})`
+                : `Zmieniono przepływ zatwierdzania dla ${members}, aby składali raporty do domyślnego zatwierdzającego`,
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `zmieniono proces zatwierdzania dla ${approver}, aby przekazywał zatwierdzone raporty do ${forwardsTo} (wcześniej przekazywał do ${previousForwardsTo})`
+                : `zmieniono proces zatwierdzania dla ${approver}, aby przesyłać zatwierdzone raporty do ${forwardsTo} (wcześniej ostatecznie zatwierdzone raporty)`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `zmieniono przepływ zatwierdzania dla ${approver}, aby przestać przekazywać zatwierdzone raporty (wcześniej przekazywane do ${previousForwardsTo})`
+                : `zmieniono przepływ zatwierdzania dla ${approver}, aby przestać przekazywać zatwierdzone raporty`,
     },
     roomMembersPage: {
         memberNotFound: 'Nie znaleziono członka.',

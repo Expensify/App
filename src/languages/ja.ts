@@ -6197,6 +6197,39 @@ ${
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 参加者の追跡`,
+        changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
+            previousApprover ? `デフォルトの承認者を${newApprover}に変更しました（以前は${previousApprover}）` : `デフォルトの承認者を${newApprover}に変更しました`,
+        changedSubmitsToApprover: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = `${members} が ${approver} にレポートを提出するよう承認ワークフローを変更しました`;
+            if (wasDefaultApprover) {
+                text += '(以前のデフォルト承認者)';
+            } else if (previousApprover) {
+                text += `(以前は${previousApprover})`;
+            }
+            return text;
+        },
+        changedSubmitsToDefault: ({members, previousApprover}: {members: string; previousApprover?: string}) =>
+            previousApprover
+                ? `${members} の承認ワークフローを変更し、レポートをデフォルトの承認者（以前は ${previousApprover}）に提出するようにしました`
+                : `${members}の承認ワークフローを、レポートをデフォルトの承認者に提出するように変更しました`,
+        changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `${approver} の承認ワークフローを変更し、承認済みレポートを ${forwardsTo} に転送するようにしました（以前は ${previousForwardsTo} に転送）`
+                : `${approver} の承認ワークフローを変更し、承認済みレポートを ${forwardsTo} に転送するようにしました（以前は最終承認済みレポートを転送）`,
+        removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
+            previousForwardsTo
+                ? `${approver} の承認ワークフローを、承認済みレポートの転送を停止するように変更しました（以前は ${previousForwardsTo} に転送していました）`
+                : `${approver} の承認ワークフローを、承認済みレポートを転送しないように変更しました`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
