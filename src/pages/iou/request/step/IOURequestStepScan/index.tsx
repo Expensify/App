@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-imports */
 import {useIsFocused} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
