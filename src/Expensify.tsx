@@ -44,7 +44,7 @@ import './libs/Notification/PushNotification/subscribeToPushNotifications';
 import './libs/registerPaginationConfig';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
-import {endSpan} from './libs/telemetry/activeSpans';
+import {endSpan, startSpan} from './libs/telemetry/activeSpans';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/telemetry/TelemetrySynchronizer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -103,6 +103,7 @@ function Expensify() {
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate, preferredLocale} = useLocalize();
+    const startupSpanStarted = useRef(false);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
@@ -141,6 +142,14 @@ function Expensify() {
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
 
+    // End the app startup measurement when the app is fully initialized and ready for interaction
+    useEffect(() => {
+        if (!shouldInit) {
+            return;
+        }
+        endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
+    }, [shouldInit]);
+
     useEffect(() => {
         if (!shouldInit || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
             return;
@@ -174,10 +183,19 @@ function Expensify() {
 
     const onSplashHide = useCallback(() => {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
-        endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
     }, [setSplashScreenState]);
 
     useLayoutEffect(() => {
+        // Start measuring app startup time from when the main component mounts
+        // Only start the span once, and only if the app is in the foreground
+        if (!startupSpanStarted.current && AppState.currentState === 'active') {
+            startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {
+                name: CONST.TELEMETRY.SPAN_APP_STARTUP,
+                op: CONST.TELEMETRY.SPAN_APP_STARTUP,
+            });
+            startupSpanStarted.current = true;
+        }
+
         // Initialize this client as being an active client
         ActiveClientManager.init();
 
