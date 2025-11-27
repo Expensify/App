@@ -632,6 +632,10 @@ const ROUTES = {
         route: 'r/:reportID/change-approver/add',
         getRoute: (reportID: string) => `r/${reportID}/change-approver/add` as const,
     },
+    REPORT_SETTINGS_REPORT_LAYOUT: {
+        route: 'r/:reportID/settings/report-layout',
+        getRoute: (reportID: string) => `r/${reportID}/settings/report-layout` as const,
+    },
     SPLIT_BILL_DETAILS: {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string | undefined, reportActionID: string, backTo?: string) => {
