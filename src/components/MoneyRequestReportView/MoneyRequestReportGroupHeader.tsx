@@ -37,6 +37,9 @@ type MoneyRequestReportGroupHeaderProps = {
     /** Whether some (but not all) transactions in this group are selected */
     isIndeterminate?: boolean;
 
+    /** Whether the checkbox should be disabled (e.g., all transactions are pending delete) */
+    isDisabled?: boolean;
+
     /** Callback when group checkbox is toggled - receives groupKey */
     onToggleSelection?: (groupKey: string) => void;
 };
@@ -49,6 +52,7 @@ function MoneyRequestReportGroupHeader({
     isSelectionModeEnabled = false,
     isSelected = false,
     isIndeterminate = false,
+    isDisabled = false,
     onToggleSelection,
 }: MoneyRequestReportGroupHeaderProps) {
     const styles = useThemeStyles();
@@ -85,6 +89,7 @@ function MoneyRequestReportGroupHeader({
                     <Checkbox
                         isChecked={isSelected}
                         isIndeterminate={isIndeterminate}
+                        disabled={isDisabled}
                         onPress={handleToggleSelection}
                         accessibilityLabel={translate('reportLayout.selectGroup', {groupName: displayName})}
                         style={styles.mr2}
