@@ -68,7 +68,6 @@ function WorkspaceResetBankAccountModal({
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {
-            // Set the resetting flag BEFORE the reset to block the NonUSD flow from rendering
             if (setIsResettingBankAccount) {
                 setIsResettingBankAccount(true);
             }
@@ -87,11 +86,8 @@ function WorkspaceResetBankAccountModal({
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
             }
 
-            // Defer clearing the resetting flag to ensure the step change is rendered first
             requestAnimationFrame(() => {
-                if (setIsResettingBankAccount) {
-                    setIsResettingBankAccount(false);
-                }
+                setIsResettingBankAccount?.(false);
             });
         } else {
             resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod);
