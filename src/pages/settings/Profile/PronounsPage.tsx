@@ -28,22 +28,21 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const currentPronouns = currentUserPersonalDetails?.pronouns ?? '';
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
+    const [searchValue, setSearchValue] = useState('');
     const isOptionSelected = useRef(false);
     const currentUserAccountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const initialSearchValue = useMemo(() => {
+    useEffect(() => {
         if (isLoadingApp && !currentUserPersonalDetails.pronouns) {
-            return '';
+            return;
         }
         const currentPronounsText = CONST.PRONOUNS_LIST.find((value) => value === currentPronounsKey);
-        return currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '';
-    }, [isLoadingApp, currentPronounsKey, currentUserPersonalDetails.pronouns, translate]);
 
-    const [searchValue, setSearchValue] = useState(initialSearchValue);
+        setSearchValue(currentPronounsText ? translate(`pronouns.${currentPronounsText}`) : '');
 
-    useEffect(() => {
-        setSearchValue(initialSearchValue);
-    }, [initialSearchValue]);
+        // Only need to update search value when the first time the data is loaded
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isLoadingApp]);
 
     const filteredPronounsList = useMemo((): PronounEntry[] => {
         const pronouns = CONST.PRONOUNS_LIST.map((value) => {
@@ -104,9 +103,9 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
                         data={filteredPronounsList}
                         ListItem={RadioListItem}
                         onSelectRow={updatePronouns}
-                        shouldSingleExecuteRowSelect
                         textInputOptions={textInputOptions}
                         initiallyFocusedItemKey={currentPronounsKey}
+                        shouldSingleExecuteRowSelect
                     />
                 </>
             )}
