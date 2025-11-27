@@ -153,7 +153,7 @@ function canPay(
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, currentUserEmail:string, policy?: Policy) {
+function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, currentUserEmail: string, policy?: Policy) {
     const isExpense = isExpenseReport(report);
     const isExporter = policy ? isPreferredExporter(policy) : false;
     const isReimbursed = isSettled(report);
@@ -258,7 +258,14 @@ function getReportPreviewAction(
     }
 
     // When strict policy rules are enabled and there are violations, show REVIEW button instead of SUBMIT
-    const shouldBlockSubmit = shouldBlockSubmitDueToStrictPolicyRules(report.reportID, violations, areStrictPolicyRulesEnabled ?? false, currentUserAccountID, currentUserEmail, transactions);
+    const shouldBlockSubmit = shouldBlockSubmitDueToStrictPolicyRules(
+        report.reportID,
+        violations,
+        areStrictPolicyRulesEnabled ?? false,
+        currentUserAccountID,
+        currentUserEmail,
+        transactions,
+    );
     if (shouldBlockSubmit && canReview(report, violations, isReportArchived, currentUserEmail, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }

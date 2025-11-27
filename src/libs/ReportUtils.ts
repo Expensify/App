@@ -8960,7 +8960,16 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
                 policy,
                 transactions,
             ) &&
-            (hasViolations(potentialReport.reportID, transactionViolations, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', true, transactions, potentialReport, policy) ||
+            (hasViolations(
+                potentialReport.reportID,
+                transactionViolations,
+                currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                currentUserEmail ?? '',
+                true,
+                transactions,
+                potentialReport,
+                policy,
+            ) ||
                 hasWarningTypeViolations(
                     potentialReport.reportID,
                     transactionViolations,
