@@ -117,8 +117,8 @@ function IOURequestEditReportCommon({
         }
 
         return reportTransactions
-            .filter((transaction) => transactionIDs.includes(transaction.transactionID))
-            .some((transaction) => transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
+            .filter((reportTransaction) => transactionIDs.includes(reportTransaction.transactionID))
+            .some((reportTransaction) => reportTransaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
     }, [transactionIDs, selectedReport, reportTransactions]);
 
     const shouldShowRemoveFromReport =
@@ -211,7 +211,7 @@ function IOURequestEditReportCommon({
         allPolicies,
         isPerDiemRequest,
         currentUserPersonalDetails.accountID,
-        perDiemOriginalPolicy?.id
+        perDiemOriginalPolicy?.id,
     ]);
 
     const navigateBack = () => {
@@ -233,7 +233,7 @@ function IOURequestEditReportCommon({
                 icon={icons.Document}
             />
         );
-    }, [icons.Document, createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name, perDiemOriginalPolicy?.name]);
+    }, [icons.Document, createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name, perDiemOriginalPolicy?.name, isPerDiemRequest]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {

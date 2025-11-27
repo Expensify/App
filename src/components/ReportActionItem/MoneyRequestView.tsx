@@ -122,6 +122,8 @@ type MoneyRequestViewProps = {
     mergeTransactionID?: string;
 };
 
+const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.arePerDiemRatesEnabled));
+
 function MoneyRequestView({
     allReports,
     report,
@@ -162,8 +164,10 @@ function MoneyRequestView({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(updatedTransaction ?? transaction);
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+
     const [policiesWithPerDiem] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies) => Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.arePerDiemRatesEnabled)),
+        selector: perDiemPoliciesSelector,
+        canBeMissing: true,
     });
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
@@ -288,7 +292,7 @@ function MoneyRequestView({
             isEditable &&
             canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID) &&
             (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy)),
-        [isEditable, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID, isPerDiemRequest, policy],
+        [isEditable, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID, isPerDiemRequest, policy, isExpenseUnreported, perDiemOriginalPolicy],
     );
 
     // A flag for verifying that the current report is a sub-report of a expense chat

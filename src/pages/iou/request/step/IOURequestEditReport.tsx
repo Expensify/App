@@ -24,7 +24,6 @@ import type {Report} from '@src/types/onyx';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
-import {getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
