@@ -17,6 +17,7 @@ import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils'
 // eslint-disable-next-line import/no-cycle
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
+import { isCategoryMissing } from './CategoryUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
@@ -43,9 +44,10 @@ function buildMessageFragmentForValue(
     removalFragments: string[],
     changeFragments: string[],
     shouldConvertToLowercase = true,
+    noQuotesForOldValue = false,
 ) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
-    const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
+    const oldValueToDisplay = valueInQuotes && !noQuotesForOldValue ? `"${oldValue}"` : oldValue;
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isOldValuePartialMerchant = valueName === translateLocal('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -294,14 +296,19 @@ function getForReportAction({
             categoryLabel += ` ${translateLocal('iou.basedOnMCC')}`;
         }
 
+        const wasUncategorized = isCategoryMissing(reportActionOriginalMessage?.oldCategory ?? '');
+        const oldCategory = wasUncategorized ? reportActionOriginalMessage?.oldCategory?.toLowerCase() : reportActionOriginalMessage?.oldCategory;
+
         buildMessageFragmentForValue(
             getDecodedCategoryName(reportActionOriginalMessage?.category ?? ''),
-            getDecodedCategoryName(reportActionOriginalMessage?.oldCategory ?? ''),
+            getDecodedCategoryName(oldCategory ?? ''),
             categoryLabel,
             true,
             setFragments,
             removalFragments,
             changeFragments,
+            true,
+            true,
         );
     }
 
@@ -542,9 +549,14 @@ function getForReportActionTemp({
             categoryLabel += ` ${translateLocal('iou.basedOnMCC')}`;
         }
 
+        const wasUncategorized = isCategoryMissing(reportActionOriginalMessage?.oldCategory ?? '');
+
+        const oldCategory = wasUncategorized ? reportActionOriginalMessage?.oldCategory?.toLowerCase() : reportActionOriginalMessage?.oldCategory;
+
+
         buildMessageFragmentForValue(
             getDecodedCategoryName(reportActionOriginalMessage?.category ?? ''),
-            getDecodedCategoryName(reportActionOriginalMessage?.oldCategory ?? ''),
+            getDecodedCategoryName(oldCategory ?? ''),
             categoryLabel,
             true,
             setFragments,
