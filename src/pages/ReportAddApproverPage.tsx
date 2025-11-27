@@ -1,10 +1,10 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import ApproverSelectionList from '@components/ApproverSelectionList';
+import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import Badge from '@components/Badge';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
-import type {SelectionListApprover} from '@components/WorkspaceMembersSelectionList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -114,7 +114,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     }, [addApprover, selectedApproverEmail, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
 
     const toggleApprover = useCallback((approvers: SelectionListApprover[]) => {
-        setSelectedApproverEmail(approvers.length ? approvers.at(0)?.login : undefined);
+        setSelectedApproverEmail(approvers.at(0)?.login ?? undefined);
     }, []);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
