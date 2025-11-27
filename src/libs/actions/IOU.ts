@@ -8806,6 +8806,7 @@ function deleteMoneyRequest(
     isSingleTransactionView = false,
     transactionIDsPendingDeletion?: string[],
     selectedTransactionIDs?: string[],
+    hash?: number,
 ) {
     if (!transactionID) {
         return;
@@ -9082,6 +9083,23 @@ function deleteMoneyRequest(
             },
         });
     }
+
+    if (hash && shouldDeleteIOUReport) {
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`]: {
+                        pendingFields: {
+                            preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        },
+                    },
+                },
+            },
+        });
+    };
 
     const parameters: DeleteMoneyRequestParams = {
         transactionID,

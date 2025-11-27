@@ -155,6 +155,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     isSingleTransactionView,
                     deletedTransactionIDs,
                     transactionIDs,
+                    currentSearchHash,
                 );
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
