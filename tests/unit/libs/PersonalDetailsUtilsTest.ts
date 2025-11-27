@@ -112,6 +112,7 @@ describe('PersonalDetailsUtils', () => {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             '1': {
                                 accountID: 1,
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_15.png',
                                 displayName: '3322076524',
                                 isOptimisticPersonalDetail: true,
                                 login: '3322076524',
@@ -119,6 +120,7 @@ describe('PersonalDetailsUtils', () => {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             '2': {
                                 accountID: 2,
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_18.png',
                                 displayName: 'test2@test.com',
                                 isOptimisticPersonalDetail: true,
                                 login: 'test2@test.com',
@@ -126,6 +128,7 @@ describe('PersonalDetailsUtils', () => {
                             // eslint-disable-next-line @typescript-eslint/naming-convention
                             '3': {
                                 accountID: 3,
+                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_6.png',
                                 displayName: '(418) 543-8090',
                                 isOptimisticPersonalDetail: true,
                                 login: '+14185438090',

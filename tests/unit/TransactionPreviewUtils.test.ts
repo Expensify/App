@@ -43,6 +43,7 @@ const basicProps = {
     shouldShowRBR: false,
     isReportAPolicyExpenseChat: false,
     areThereDuplicates: false,
+    currentUserEmail: '',
 };
 
 describe('TransactionPreviewUtils', () => {

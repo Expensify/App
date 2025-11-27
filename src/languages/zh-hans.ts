@@ -693,6 +693,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: '这花的时间比预期更长...',
         domains: '域名',
         reportName: '报告名称',
+        showLess: '显示更少',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -2640,12 +2641,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: '报销就像发送消息一样简单。让我们来看看基本知识。',
             onboardingPersonalSpendMessage: '以下是如何在几次点击中跟踪您的支出。',
-            onboardingManageTeamMessage: dedent(`
-                您的免费试用已开始！让我们为您完成设置。
-                👋 您好，我是您的 Expensify 设置专员。既然您已创建了一个工作区，请按照以下步骤操作，充分利用为期 30 天的免费试用！
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # 你的免费试用已开始！让我们帮你完成设置。
+                        👋 你好，我是你的 Expensify 设置专员。我已经创建了一个工作区，帮助你管理团队的收据和费用。为了充分利用你的 30 天免费试用，只需按照下方剩余的设置步骤进行操作即可！
+                    `)
+                    : dedent(`
+                        # 您的免费试用已开始！让我们为您完成设置。
+                        👋 您好，我是您的 Expensify 设置专员。现在您已创建了一个工作区，请按照以下步骤操作，充分利用您的 30 天免费试用！
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# 让我们来设置您的帐户\nð 我来帮忙了！为了帮助您开始，我已为个体经营者和类似企业量身定制了您的工作区设置。您可以通过点击下面的链接来调整您的工作区！\n\n以下是如何在几次点击中跟踪您的支出：',
+                '# 让我们开始为你进行设置\n👋 你好，我是你的 Expensify 设置专员。我已经创建了一个工作区，帮助你管理收据和费用。为充分利用你的 30 天免费试用，只需按照下面剩余的设置步骤操作！',
             onboardingChatSplitMessage: '与朋友分摊账单就像发送消息一样简单。以下是方法。',
             onboardingAdminMessage: '了解如何作为管理员管理团队的工作区并提交自己的支出。',
             onboardingLookingAroundMessage: 'Expensify 以其支出、差旅和公司卡管理而闻名，但我们所做的远不止于此。让我知道您对什么感兴趣，我会帮助您开始。',
@@ -6071,8 +6078,9 @@ ${
         demotedFromWorkspace: ({policyName, oldRole}: DemotedFromWorkspaceParams) => `已将您在${policyName}中的角色从${oldRole}更新为用户。您已被移除出所有提交者费用聊天，除了您自己的。`,
         updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `将默认货币更新为${newCurrency}（之前为${oldCurrency}）`,
         updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) => `将自动报告频率更新为“${newFrequency}”（之前为“${oldFrequency}”）`,
-        updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `将审批模式更新为“${newValue}”（之前为“${oldValue}”）`,
+        updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `将审批模式更新为"${newValue}"（之前为"${oldValue}"）`,
         upgradedWorkspace: '将此工作区升级到Control计划',
+        forcedCorporateUpgrade: `此工作区已升级至 Control 方案。点击 <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">此处</a> 了解更多信息。`,
         downgradedWorkspace: '已将此工作区降级到 Collect 计划',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `将随机分配进行人工审批的报告比例更改为${Math.round(newAuditRate * 100)}％（之前为${Math.round(oldAuditRate * 100)}％）`,
@@ -6418,6 +6426,18 @@ ${
         error: {
             title: '更新检查失败',
             message: '我们无法检查更新。请稍后再试。',
+        },
+    },
+    reportLayout: {
+        reportLayout: '报告布局',
+        groupByLabel: '分组方式：',
+        selectGroupByOption: '选择如何对报告费用进行分组',
+        uncategorized: '未分类',
+        noTag: '无标签',
+        selectGroup: ({groupName}: {groupName: string}) => `选择 ${groupName} 中的所有费用`,
+        groupBy: {
+            category: '类别',
+            tag: '标签',
         },
     },
     report: {
@@ -7256,13 +7276,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: '欢迎使用 New Expensify！',
-        subtitle: '新Expensify拥有同样出色的自动化功能，但现在增加了令人惊叹的协作功能：',
+        subtitle: '它集成了你在我们经典体验中喜爱的所有内容，并带来一系列升级，让你的生活更加轻松：',
         confirmText: '我们走吧！',
         features: {
-            chat: '<strong>直接在任何费用</strong>、报告或工作区上聊天',
-            scanReceipt: '<strong>扫描收据</strong>并获得报销',
-            crossPlatform: '通过手机或浏览器完成<strong>所有操作</strong>',
+            chat: '就任何费用发起聊天，快速解决问题',
+            search: '更强大的搜索，适用于移动端、网页端和桌面端',
+            concierge: '内置 Concierge AI，帮助自动化处理您的报销',
         },
+        helpText: '试用 2 分钟演示',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
@@ -7330,18 +7351,6 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name}邀请你试用Expensify\n嘿！我刚为我们获得了*3个月免费*试用Expensify，这是处理费用的最快方式。\n\n这里有一个*测试收据*来向你展示它的工作原理：`,
-    },
-    reportLayout: {
-        reportLayout: '报告布局',
-        groupByLabel: '分组方式：',
-        selectGroupByOption: '选择如何对报告费用进行分组',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `${action}此组`,
-        selectGroup: ({groupName}: {groupName: string}) => `选择${groupName}中的所有费用`,
-        groupBy: {
-            category: '类别',
-            tag: '标签',
-        },
     },
     export: {
         basicExport: '基本导出',
@@ -7415,6 +7424,17 @@ ${
                         return `正在等待管理员批准费用。`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `正在等待<strong>您</strong>导出此报告。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `正在等待<strong>${actor}</strong>导出此报告。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `正在等待管理员导出此报告。`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7485,6 +7505,32 @@ ${
             onePasswordForAnything: '一个密码搞定一切',
         },
         goToDomain: '前往域',
+        samlLogin: {
+            title: 'SAML 登录',
+            subtitle: `<muted-text>使用<a href="${CONST.SAML_HELP_URL}">SAML 单点登录（SSO）</a>配置成员登录。</muted-text>`,
+            enableSamlLogin: '启用 SAML 登录',
+            allowMembers: '允许成员通过 SAML 登录。',
+            requireSamlLogin: '强制使用 SAML 登录',
+            anyMemberWillBeRequired: '使用不同方式登录的任何成员将被要求使用 SAML 重新进行身份验证。',
+            enableError: '无法更新 SAML 启用设置',
+            requireError: '无法更新 SAML 要求设置',
+        },
+        samlConfigurationDetails: {
+            title: 'SAML 配置详细信息',
+            subtitle: '使用这些详细信息来设置 SAML。',
+            identityProviderMetaData: '身份提供者元数据',
+            entityID: '实体 ID',
+            nameIDFormat: '名称 ID 格式',
+            loginUrl: '登录网址',
+            acsUrl: 'ACS（断言消费者服务）URL',
+            logoutUrl: '注销 URL',
+            sloUrl: 'SLO (单点登出) URL',
+            serviceProviderMetaData: '服务提供商元数据',
+            oktaScimToken: 'Okta SCIM 令牌',
+            revealToken: '显示令牌',
+            fetchError: '无法获取 SAML 配置详细信息',
+            setMetadataGenericError: '无法设置 SAML 元数据',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
