@@ -40,7 +40,10 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
         [loginList, contactMethod, formatPhoneNumber],
     );
 
-    const handleCloseFallback = useCallback(() => {
+    const handleCloseWithFallback = useCallback(() => {
+        if (handleClose) {
+            handleClose();
+        }
         Navigation.goBack(navigateBackTo);
     }, [navigateBackTo]);
 
@@ -51,12 +54,10 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
         }
         if (navigateForwardTo) {
             Navigation.navigate(navigateForwardTo, {forceReplace: true});
-        } else if (handleClose) {
-            handleClose();
         } else {
-            handleCloseFallback();
+            handleCloseWithFallback();
         }
-    }, [isUserValidated, navigateForwardTo, handleCloseFallback, handleClose]);
+    }, [isUserValidated, navigateForwardTo, handleCloseWithFallback, handleClose]);
 
     // Once user is validated or the modal is dismissed, we don't want to show empty content.
     if (isUserValidated) {
@@ -67,7 +68,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
             >
                 <HeaderWithBackButton
                     title={translate('contacts.validateAccount')}
-                    onBackButtonPress={handleClose}
+                    onBackButtonPress={handleCloseWithFallback}
                 />
                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             </ScreenWrapper>
@@ -85,7 +86,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
             handleSubmitForm={handleSubmitForm}
             validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
             clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-            onClose={handleCloseFallback}
+            onClose={handleCloseWithFallback}
         />
     );
 }
