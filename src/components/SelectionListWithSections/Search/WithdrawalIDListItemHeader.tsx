@@ -147,7 +147,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 </View>
             </View>
             {settlementStatus === CONST.SEARCH.SETTLEMENT_STATUS.FAILED && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pl4, styles.pb1]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph3, styles.pb1]}>
                     <Icon
                         src={expensifyIcons.DotIndicator}
                         fill={theme.danger}
