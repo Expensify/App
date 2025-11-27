@@ -296,13 +296,9 @@ function getForReportAction({
         }
 
         let oldCategory = reportActionOriginalMessage?.oldCategory ?? '';
+        const wasUncategorized = isCategoryMissing(oldCategory);
 
-        // If it was uncategorized, display as lowercase without quotes, otherwise use decoded name
-        if (isCategoryMissing(oldCategory)) {
-            oldCategory = oldCategory.toLowerCase();
-        } else {
-            oldCategory = getDecodedCategoryName(oldCategory);
-        }
+        oldCategory = wasUncategorized ? oldCategory.toLowerCase() : getDecodedCategoryName(oldCategory);
 
         buildMessageFragmentForValue(
             getDecodedCategoryName(reportActionOriginalMessage?.category ?? ''),
@@ -313,7 +309,7 @@ function getForReportAction({
             removalFragments,
             changeFragments,
             true,
-            true,
+            wasUncategorized,
         );
     }
 
@@ -555,13 +551,9 @@ function getForReportActionTemp({
         }
 
         let oldCategory = reportActionOriginalMessage?.oldCategory ?? '';
+        const wasUncategorized = isCategoryMissing(oldCategory);
 
-        // If it was uncategorized, display as lowercase without quotes, otherwise use decoded name
-        if (isCategoryMissing(oldCategory)) {
-            oldCategory = oldCategory.toLowerCase();
-        } else {
-            oldCategory = getDecodedCategoryName(oldCategory);
-        }
+        oldCategory = wasUncategorized ? oldCategory.toLowerCase() : getDecodedCategoryName(oldCategory);
 
         buildMessageFragmentForValue(
             getDecodedCategoryName(reportActionOriginalMessage?.category ?? ''),
@@ -572,7 +564,7 @@ function getForReportActionTemp({
             removalFragments,
             changeFragments,
             true,
-            true,
+            wasUncategorized,
         );
     }
 
