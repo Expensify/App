@@ -378,6 +378,13 @@ describe('ReportActionsUtils', () => {
             childReportID: 'existingChildReportID',
         };
 
+        const deletedLinkedActionWithChildReportID: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+            ...mockIOUAction,
+            message: [{deleted: '2025-11-27 09:06:16.568', type: 'COMMENT', text: ''}],
+            originalMessage: {...originalMessage, IOUTransactionID: '123'},
+            childReportID: 'existingChildReportID',
+        };
+
         const linkedActionWithoutChildReportID = {
             ...mockIOUAction,
             originalMessage: {...originalMessage, IOUTransactionID},
@@ -435,6 +442,11 @@ describe('ReportActionsUtils', () => {
         it('should return undefined when only PAY actions exist', () => {
             const result = ReportActionsUtils.getOneTransactionThreadReportAction(mockedReports[IOUReportID], mockedReports[mockChatReportID], [payAction], false, [IOUTransactionID]);
             expect(result).toBeUndefined();
+        });
+
+        it('should return action when single IOU action and deleted IOU action exist', () => {
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedActionWithChildReportID, deletedLinkedActionWithChildReportID], false);
+            expect(result).toEqual(linkedActionWithChildReportID);
         });
     });
 
