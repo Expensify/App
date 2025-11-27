@@ -89,6 +89,8 @@ function AccountValidatePage() {
         canBeMissing: true,
     });
 
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+
     const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -190,7 +192,7 @@ function AccountValidatePage() {
                         mergeWithValidateCodeAction(email, code);
                     }}
                     sendValidateCode={() => {
-                        requestValidationCodeForAccountMerge(email, true);
+                        requestValidationCodeForAccountMerge(email, true, countryCode);
                     }}
                     shouldSkipInitialValidation
                     clearError={() => clearMergeWithValidateCode()}

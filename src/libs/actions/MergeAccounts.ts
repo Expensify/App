@@ -1,11 +1,19 @@
+import {parsePhoneNumber} from 'awesome-phonenumber';
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GetValidateCodeForAccountMergeParams, MergeWithValidateCodeParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {appendCountryCode} from '@libs/LoginUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function requestValidationCodeForAccountMerge(email: string, validateCodeResent = false) {
+function requestValidationCodeForAccountMerge(email: string, validateCodeResent = false, countryCode: number = CONST.DEFAULT_COUNTRY_CODE) {
+    // Normalize the email/phone input similar to how it's done in filterOptions
+    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(email), countryCode));
+    const normalizedEmail = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : email.toLowerCase();
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -51,7 +59,7 @@ function requestValidationCodeForAccountMerge(email: string, validateCodeResent 
     ];
 
     const parameters: GetValidateCodeForAccountMergeParams = {
-        email,
+        email: normalizedEmail,
     };
 
     API.write(WRITE_COMMANDS.GET_VALIDATE_CODE_FOR_ACCOUNT_MERGE, parameters, {optimisticData, successData, failureData});
