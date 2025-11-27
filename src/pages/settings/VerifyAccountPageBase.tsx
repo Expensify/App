@@ -13,12 +13,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type VerifyAccountPageBaseProps = {navigateBackTo?: Route; navigateForwardTo?: Route};
+type VerifyAccountPageBaseProps = {navigateBackTo?: Route; navigateForwardTo?: Route; handleClose?: () => void};
 
 /**
  * This is a base page as RHP for account verification. The back & forward url logic should be handled on per case basis in higher component.
  */
-function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccountPageBaseProps) {
+function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}: VerifyAccountPageBaseProps) {
     const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
@@ -40,22 +40,25 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccoun
         [loginList, contactMethod, formatPhoneNumber],
     );
 
-    const handleClose = useCallback(() => {
+    const handleCloseWithFallback = useCallback(() => {
+        if (handleClose) {
+            handleClose();
+            return;
+        }
         Navigation.goBack(navigateBackTo);
-    }, [navigateBackTo]);
+    }, [handleClose, navigateBackTo]);
 
     // Handle navigation once the user is validated
     useEffect(() => {
         if (!isUserValidated) {
             return;
         }
-
         if (navigateForwardTo) {
             Navigation.navigate(navigateForwardTo, {forceReplace: true});
         } else {
-            handleClose();
+            handleCloseWithFallback();
         }
-    }, [isUserValidated, navigateForwardTo, handleClose]);
+    }, [isUserValidated, navigateForwardTo, handleCloseWithFallback, handleClose]);
 
     // Once user is validated or the modal is dismissed, we don't want to show empty content.
     if (isUserValidated) {
@@ -66,7 +69,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccoun
             >
                 <HeaderWithBackButton
                     title={translate('contacts.validateAccount')}
-                    onBackButtonPress={handleClose}
+                    onBackButtonPress={handleCloseWithFallback}
                 />
                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             </ScreenWrapper>
@@ -84,7 +87,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccoun
             handleSubmitForm={handleSubmitForm}
             validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
             clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-            onClose={handleClose}
+            onClose={handleCloseWithFallback}
         />
     );
 }

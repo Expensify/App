@@ -6426,6 +6426,18 @@ ${
             message: '我们无法检查更新。请稍后再试。',
         },
     },
+    reportLayout: {
+        reportLayout: '报告布局',
+        groupByLabel: '分组方式：',
+        selectGroupByOption: '选择如何对报告费用进行分组',
+        uncategorized: '未分类',
+        noTag: '无标签',
+        selectGroup: ({groupName}: {groupName: string}) => `选择 ${groupName} 中的所有费用`,
+        groupBy: {
+            category: '类别',
+            tag: '标签',
+        },
+    },
     report: {
         newReport: {
             createReport: '创建报告',
@@ -7262,13 +7274,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: '欢迎使用 New Expensify！',
-        subtitle: '新Expensify拥有同样出色的自动化功能，但现在增加了令人惊叹的协作功能：',
+        subtitle: '它集成了你在我们经典体验中喜爱的所有内容，并带来一系列升级，让你的生活更加轻松：',
         confirmText: '我们走吧！',
         features: {
-            chat: '<strong>直接在任何费用</strong>、报告或工作区上聊天',
-            scanReceipt: '<strong>扫描收据</strong>并获得报销',
-            crossPlatform: '通过手机或浏览器完成<strong>所有操作</strong>',
+            chat: '就任何费用发起聊天，快速解决问题',
+            search: '更强大的搜索，适用于移动端、网页端和桌面端',
+            concierge: '内置 Concierge AI，帮助自动化处理您的报销',
         },
+        helpText: '试用 2 分钟演示',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
