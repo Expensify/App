@@ -41,6 +41,7 @@ function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, sup
     return (
         <PressableWithFeedback
             onPress={onFeedSelect}
+            wrapperStyle={!shouldChangeLayout && styles.flex1}
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldChangeLayout && styles.mb3]}
             accessibilityLabel={feedName ?? ''}
         >
@@ -71,7 +72,12 @@ function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, sup
                         />
                     )}
                 </View>
-                <Text style={styles.textLabelSupporting}>{supportingText}</Text>
+                <Text
+                    numberOfLines={1}
+                    style={styles.textLabelSupporting}
+                >
+                    {supportingText}
+                </Text>
             </View>
         </PressableWithFeedback>
     );
