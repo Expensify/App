@@ -86,9 +86,15 @@ type DiffFilteringCommits = {
     toRef?: string;
 };
 
+type NewComponentEnforcementSummary = {
+    compilerFailures: CompilerFailure[];
+    manualMemoFailures: CompilerFailure[];
+};
+
 type PrintResultsOptions = {
     shouldPrintSuccesses: boolean;
     shouldPrintSuppressedErrors: boolean;
+    newComponentSummary?: NewComponentEnforcementSummary | null;
 };
 
 type BaseCheckOptions = PrintResultsOptions & {
@@ -113,6 +119,7 @@ async function check({
     shouldPrintSuppressedErrors = false,
     shouldEnforceNewComponents = false,
 }: CheckOptions): Promise<boolean> {
+    let newComponentSummary: NewComponentEnforcementSummary | undefined;
     if (files) {
         logInfo(`Running React Compiler check for ${files.length} files or glob patterns...`);
     } else {
@@ -133,14 +140,11 @@ async function check({
         }
 
         if (shouldEnforceNewComponents) {
-            const newComponentFailures = enforceNewComponentGuard(results, diffResult, files);
-            for (const failure of newComponentFailures) {
-                addFailureIfDoesNotExist(results.failures, failure);
-            }
+            newComponentSummary = enforceNewComponentGuard(results, diffResult, files);
         }
     }
 
-    printResults(results, {shouldPrintSuccesses, shouldPrintSuppressedErrors});
+    printResults(results, {shouldPrintSuccesses, shouldPrintSuppressedErrors, newComponentSummary});
 
     if (shouldGenerateReport) {
         generateReport(results, reportFileName);
@@ -332,17 +336,25 @@ function getNewComponentFiles(diffResult: DiffResult, filesToCheck?: string[]): 
     return newFiles;
 }
 
-function enforceNewComponentGuard(results: CompilerResults, diffResult: DiffResult | undefined, filesToCheck?: string[]): CompilerFailure[] {
+function enforceNewComponentGuard(results: CompilerResults, diffResult: DiffResult | undefined, filesToCheck?: string[]): NewComponentEnforcementSummary {
     if (!diffResult) {
-        return [];
+        return {
+            compilerFailures: [],
+            manualMemoFailures: [],
+        };
     }
 
     const newComponentFiles = getNewComponentFiles(diffResult, filesToCheck);
     if (newComponentFiles.size === 0) {
-        return [];
+        return {
+            compilerFailures: [],
+            manualMemoFailures: [],
+        };
     }
 
-    const failures: CompilerFailure[] = [];
+    const manualMemoFailures: CompilerFailure[] = [];
+    const compilerFailures: CompilerFailure[] = [];
+    collectCompilerFailuresForNewComponents(results.failures, newComponentFiles, compilerFailures);
 
     for (const filePath of newComponentFiles) {
         const source = readSourceFile(filePath);
@@ -355,21 +367,6 @@ function enforceNewComponentGuard(results: CompilerResults, diffResult: DiffResu
         }
 
         const hasSuppressedFailure = hasFailureForFile(results.suppressedFailures, filePath);
-        const hasCompilerFailure = hasFailureForFile(results.failures, filePath);
-        const isCompilerSuccess = results.success.has(filePath);
-
-        if (!isCompilerSuccess && !hasSuppressedFailure) {
-            if (hasCompilerFailure) {
-                continue;
-            }
-
-            failures.push({
-                file: filePath,
-                reason: 'New components must compile with React Compiler or opt out using "use no memo"; on the first line.',
-            });
-            continue;
-        }
-
         if (hasSuppressedFailure) {
             continue;
         }
@@ -384,15 +381,20 @@ function enforceNewComponentGuard(results: CompilerResults, diffResult: DiffResu
             continue;
         }
 
-        failures.push({
+        const failure: CompilerFailure = {
             file: filePath,
             line: firstMatch.line,
             column: firstMatch.column,
             reason: `Manual memoization (${firstMatch.keyword}) is not allowed in new components.`,
-        });
+        };
+        manualMemoFailures.push(failure);
+        addFailureIfDoesNotExist(results.failures, failure);
     }
 
-    return failures;
+    return {
+        compilerFailures,
+        manualMemoFailures,
+    };
 }
 
 function hasManualMemoOptOutDirective(source: string): boolean {
@@ -427,6 +429,47 @@ function hasFailureForFile(failureMap: FailureMap, filePath: string): boolean {
         }
     }
     return false;
+}
+
+function collectCompilerFailuresForNewComponents(failureMap: FailureMap, newComponentFiles: Set<string>, bucket: CompilerFailure[]): void {
+    for (const failure of failureMap.values()) {
+        if (!newComponentFiles.has(failure.file)) {
+            continue;
+        }
+        bucket.push(failure);
+    }
+}
+
+function printNewComponentFailuresSection({compilerFailures, manualMemoFailures}: NewComponentEnforcementSummary): void {
+    const hasCompilerIssues = compilerFailures.length > 0;
+    const hasManualMemoIssues = manualMemoFailures.length > 0;
+    if (!hasCompilerIssues && !hasManualMemoIssues) {
+        return;
+    }
+
+    log();
+    logWarn('Added files with enforced automatic memoization:');
+    log();
+
+    if (hasCompilerIssues) {
+        logBold('Compiler errors:');
+        for (const failure of compilerFailures) {
+            const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
+            logError(`${TAB}${failure.file}${location}`);
+            logNote(`${TAB}${TAB}${failure.reason ?? 'No reason provided'}`);
+        }
+        log();
+    }
+
+    if (hasManualMemoIssues) {
+        logBold('Manual memoization detected:');
+        for (const failure of manualMemoFailures) {
+            const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
+            logError(`${TAB}${failure.file}${location}`);
+            logNote(`${TAB}${TAB}${failure.reason ?? 'No reason provided'}`);
+        }
+        log();
+    }
 }
 
 function getLineAndColumnFromIndex(source: string, index: number): {line: number; column: number} {
@@ -609,7 +652,12 @@ async function filterResultsByDiff(
     };
 }
 
-function printResults({success, failures, suppressedFailures}: CompilerResults, {shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions): void {
+function printResults({success, failures, suppressedFailures}: CompilerResults, {shouldPrintSuccesses, shouldPrintSuppressedErrors, newComponentSummary}: PrintResultsOptions): void {
+    if (newComponentSummary) {
+        printNewComponentFailuresSection(newComponentSummary);
+    }
+    const newComponentFailureKeys = createNewComponentFailureKeySet(newComponentSummary);
+
     if (shouldPrintSuccesses && success.size > 0) {
         log();
         logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
@@ -652,7 +700,8 @@ function printResults({success, failures, suppressedFailures}: CompilerResults, 
         log();
     }
 
-    const isPassed = failures.size === 0;
+    const filteredFailures = filterOutNewComponentFailures(failures, newComponentFailureKeys);
+    const isPassed = filteredFailures.size === 0;
     if (isPassed) {
         logSuccess('All files pass React Compiler compliance check!');
         return;
@@ -669,7 +718,7 @@ function printResults({success, failures, suppressedFailures}: CompilerResults, 
     log();
 
     // eslint-disable-next-line unicorn/no-array-for-each
-    failures.forEach((failure) => {
+    filteredFailures.forEach((failure) => {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
         logBold(`${failure.file}${location}`);
         logNote(`${TAB}${failure.reason ?? 'No reason provided'}`);
