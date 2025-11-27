@@ -49,7 +49,6 @@ import HapticFeedback from '@libs/HapticFeedback';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import navigationRef from '@libs/Navigation/navigationRef';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
@@ -554,7 +553,14 @@ function IOURequestStepScan({
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
             const normalizedBackTo = backTo?.trim();
-            const fallbackRoute = (normalizedBackTo ? (normalizedBackTo as Route) : reportID ? (ROUTES.REPORT_WITH_ID.getRoute(reportID) as Route) : ROUTES.HOME) as Route;
+            let fallbackRoute: Route = ROUTES.HOME;
+
+            if (normalizedBackTo && backTo) {
+                fallbackRoute = backTo;
+            } else if (reportID) {
+                fallbackRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+            }
+
             Navigation.goBack(fallbackRoute);
             replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicyCategories: policyCategories});
         },
