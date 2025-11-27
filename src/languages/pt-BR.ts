@@ -7432,13 +7432,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Bem-vindo ao New Expensify!',
-        subtitle: 'O novo Expensify tem a mesma ótima automação, mas agora com uma colaboração incrível:',
+        subtitle: 'Tem tudo o que você ama da nossa experiência clássica, com várias atualizações para deixar sua vida ainda mais fácil:',
         confirmText: 'Vamos lá!',
         features: {
-            chat: '<strong>Converse diretamente em qualquer despesa</strong>, relatório ou espaço de trabalho',
-            scanReceipt: '<strong>Escaneie recibos</strong> e receba o reembolso',
-            crossPlatform: 'Faça <strong>tudo</strong> do seu telefone ou navegador',
+            chat: 'Converse sobre qualquer despesa para resolver dúvidas rapidamente',
+            search: 'Busca mais poderosa no celular, na web e no desktop',
+            concierge: 'IA Concierge integrada para ajudar a automatizar suas despesas',
         },
+        helpText: 'Experimente a demo de 2 min',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
