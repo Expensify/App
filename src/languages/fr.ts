@@ -2689,12 +2689,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Se faire rembourser est aussi simple que d’envoyer un message. Voici les bases.',
             onboardingPersonalSpendMessage: 'Voici comment suivre vos dépenses en quelques clics.',
-            onboardingManageTeamMessage: dedent(`
-                Votre essai gratuit a commencé ! Passons à la configuration.
-                👋 Salut ! Je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez au maximum de votre essai gratuit de 30 jours en suivant les étapes ci-dessous !
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # Votre essai gratuit a commencé ! Passons à la configuration.
+                        👋 Bonjour, je suis votre spécialiste de configuration Expensify. J’ai déjà créé un espace de travail pour aider à gérer les reçus et les dépenses de votre équipe. Pour tirer le meilleur parti de votre essai gratuit de 30 jours, suivez simplement les étapes de configuration restantes ci-dessous !
+                    `)
+                    : dedent(`
+                        # Votre période d’essai a commencé ! Passons à la configuration.
+                        👋 Bonjour, je suis votre spécialiste de configuration Expensify. Maintenant que vous avez créé un espace de travail, profitez au maximum de votre essai gratuit de 30 jours en suivant les étapes ci-dessous !
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Configurons votre espace\n👋 Je suis là pour vous aider ! J’ai personnalisé votre espace pour les entrepreneurs individuels et entreprises similaires. Vous pouvez le modifier via le lien ci-dessous.\n\nVoici comment suivre vos dépenses rapidement :',
+                "# Procédons à la configuration\n👋 Salut ! Je suis votre spécialiste de configuration Expensify. J'ai déjà créé un espace de travail pour vous aider à gérer vos reçus et vos dépenses. Pour tirer le meilleur parti de votre essai gratuit de 30 jours, suivez simplement les étapes de configuration restantes ci-dessous !",
             onboardingChatSplitMessage: 'Partager des dépenses entre amis est aussi simple qu’un message. Voici comment faire.',
             onboardingAdminMessage: 'Apprenez à gérer l’espace de votre équipe en tant qu’admin et soumettez vos propres dépenses.',
             onboardingLookingAroundMessage:
@@ -6244,6 +6250,7 @@ ${
             `a mis à jour la fréquence de rapport automatique à "${newFrequency}" (précédemment "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `a mis à jour le mode d'approbation en "${newValue}" (auparavant "${oldValue}")`,
         upgradedWorkspace: 'a mis à niveau cet espace de travail vers le plan Control',
+        forcedCorporateUpgrade: `Cet espace de travail a été mis à niveau vers l'offre Control. Cliquez <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">ici</a> pour plus d'informations.`,
         downgradedWorkspace: 'a rétrogradé cet espace de travail vers le plan Collect',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `a changé le taux de rapports acheminés aléatoirement pour approbation manuelle à ${Math.round(newAuditRate * 100)}% (précédemment ${Math.round(oldAuditRate * 100)}%)`,
@@ -6592,6 +6599,18 @@ ${
         error: {
             title: 'Échec de la vérification de mise à jour',
             message: "Nous n'avons pas pu vérifier la mise à jour. Veuillez réessayer dans un moment.",
+        },
+    },
+    reportLayout: {
+        reportLayout: 'Mise en page du rapport',
+        groupByLabel: 'Grouper par :',
+        selectGroupByOption: 'Sélectionnez comment grouper les dépenses du rapport',
+        uncategorized: 'Non catégorisé',
+        noTag: 'Pas de tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Sélectionner toutes les dépenses dans ${groupName}`,
+        groupBy: {
+            category: 'Catégorie',
+            tag: 'Tag',
         },
     },
     report: {
@@ -7457,13 +7476,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Bienvenue sur New Expensify !',
-        subtitle: 'New Expensify a la même excellente automatisation, mais maintenant avec une collaboration incroyable :',
+        subtitle: 'Il inclut tout ce que vous aimez de notre expérience classique, avec une foule d’améliorations pour vous faciliter encore plus la vie :',
         confirmText: 'Allons-y !',
         features: {
-            chat: "<strong>Discutez directement sur n'importe quelle dépense</strong>, rapport ou espace de travail",
-            scanReceipt: '<strong>Scannez les reçus</strong> et soyez remboursé',
-            crossPlatform: 'Faites <strong>tout</strong> depuis votre téléphone ou navigateur',
+            chat: 'Discutez de n’importe quelle dépense pour répondre rapidement aux questions',
+            search: 'Une recherche plus puissante sur mobile, web et ordinateur de bureau',
+            concierge: 'IA Concierge intégrée pour aider à automatiser vos dépenses',
         },
+        helpText: 'Essayer la démo de 2 min',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
@@ -7613,6 +7633,17 @@ ${
                         return `En attente de l’approbation des dépenses par <strong>${actor}</strong>.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `En attente de l’approbation des dépenses par un administrateur.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `En attente que <strong>vous</strong> exportiez ce rapport.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `En attente que <strong>${actor}</strong> exporte ce rapport.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `En attente de l’exportation de ce rapport par un administrateur.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
