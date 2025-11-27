@@ -738,15 +738,11 @@ function Search({
 
             if (isTransactionGroupListItemType(item)) {
                 const firstTransaction = item.transactions.at(0);
-                const expenseReportActionsOfFirstTransaction = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${firstTransaction?.reportID}`] ?? {};
-                const IOUReportActionOfFirstTransaction = firstTransaction?.transactionID
-                    ? getIOUActionForTransactionID(Object.values(expenseReportActionsOfFirstTransaction), firstTransaction?.transactionID)
-                    : undefined;
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
-                    if (!IOUReportActionOfFirstTransaction?.childReportID) {
-                        createAndOpenSearchTransactionThread(firstTransaction, backTo, IOUReportActionOfFirstTransaction?.childReportID, transactionPreviewData, false);
+                    if (!firstTransaction?.reportAction?.childReportID) {
+                        createAndOpenSearchTransactionThread(firstTransaction, backTo, firstTransaction?.reportAction?.childReportID, transactionPreviewData, false);
                     } else {
-                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, IOUReportActionOfFirstTransaction?.childReportID);
+                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
                     }
                 }
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
@@ -767,7 +763,7 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, markReportIDAsExpense, reportActions],
+        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
 
     const currentColumns = useMemo(() => {
