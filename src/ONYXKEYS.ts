@@ -1039,7 +1039,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: FormTypes.InternationalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
     [ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS]: FormTypes.EnableGlobalReimbursementsForm;
-    [ONYXKEYS.FORMS.CREATE_DOMAIN_FORM]: FormTypes.AddDomainForm;
+    [ONYXKEYS.FORMS.CREATE_DOMAIN_FORM]: FormTypes.CreateDomainForm;
 };
 
 type OnyxFormDraftValuesMapping = {

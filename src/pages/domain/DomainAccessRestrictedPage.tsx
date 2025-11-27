@@ -1,17 +1,16 @@
-import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import {Checkmark} from '@components/Icon/Expensicons';
+import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -23,11 +22,9 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Domain} from '@src/types/onyx';
+import {domainNameSelector} from '@src/selectors/Domain';
 
 type DomainAccessRestrictedPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED>;
-
-const domainNameSelector = (domain: OnyxEntry<Domain>) => (domain?.email ? Str.extractEmailDomain(domain.email) : undefined);
 
 const FEATURES: TranslationPaths[] = [
     'domain.accessRestricted.companyCardManagement',
@@ -37,6 +34,7 @@ const FEATURES: TranslationPaths[] = [
 ];
 
 function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
+    const {asset: Checkmark} = useMemoizedLazyAsset(() => loadExpensifyIcon('Checkmark'));
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -49,11 +47,7 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
     }
 
     return (
-        <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            shouldEnableMaxHeight
-            testID={DomainAccessRestrictedPage.displayName}
-        >
+        <ScreenWrapper testID={DomainAccessRestrictedPage.displayName}>
             <HeaderWithBackButton
                 title={translate('domain.accessRestricted.title')}
                 onBackButtonPress={() => Navigation.goBack()}
