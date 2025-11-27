@@ -17,6 +17,7 @@ import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
     adjustRemainingSplitShares,
     computePerDiemExpenseAmount,
+    isValidPerDiemExpenseAmount,
     resetSplitShares,
     setCustomUnitRateID,
     setIndividualShare,
@@ -913,6 +914,13 @@ function MoneyRequestConfirmationList({
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)) {
                     setFormError('common.error.invalidAmount');
                     return;
+                }
+
+                if (isPerDiemRequest) {
+                    if (!isValidPerDiemExpenseAmount(transaction.comment?.customUnit ?? {}, iouCurrencyCode)) {
+                        setFormError('iou.error.invalidQuantity');
+                        return;
+                    }
                 }
 
                 if (isEditingSplitBill && areRequiredFieldsEmpty(transaction)) {

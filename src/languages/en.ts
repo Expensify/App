@@ -7536,12 +7536,13 @@ const translations = {
     },
     migratedUserWelcomeModal: {
         title: 'Welcome to New Expensify!',
-        subtitle: 'New Expensify has the same great automation, but now with amazing collaboration:',
+        subtitle: "It's got everything you love from our classic experience with a whole bunch of upgrades to make your life even easier:",
         confirmText: "Let's go!",
+        helpText: 'Try 2-min demo',
         features: {
-            chat: '<strong>Chat directly on any expense</strong>, report, or workspace',
-            scanReceipt: '<strong>Scan receipts</strong> and get paid back',
-            crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
+            search: 'More powerful search on mobile, web, and desktop',
+            concierge: 'Built-in Concierge AI to help automate your expenses',
+            chat: 'Chat on any expense to resolve questions quickly',
         },
     },
     productTrainingTooltip: {
