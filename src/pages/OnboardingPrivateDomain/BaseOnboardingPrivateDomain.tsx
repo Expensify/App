@@ -27,6 +27,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {canBeMissing: true});
+    const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {canBeMissing: true});
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES, {canBeMissing: true});
     const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
@@ -74,8 +75,18 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 shouldShowBackButton
                 progressBarPercentage={40}
                 onBackButtonPress={() => {
-                    const routeToNavigate = (route.params?.backTo as Route) ?? ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
-                    Navigation.goBack(routeToNavigate);
+                    if (route.params?.backTo) {
+                        Navigation.goBack(route.params?.backTo as Route);
+                        return;
+                    }
+
+                    if (onboardingPersonalDetailsForm?.firstName || onboardingPersonalDetailsForm?.lastName) {
+                        const routeToNavigate = ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
+                        Navigation.goBack(routeToNavigate);
+                        return;
+                    }
+
+                    Navigation.goBack();
                 }}
             />
             <ScrollView
