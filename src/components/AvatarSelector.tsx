@@ -39,6 +39,8 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
     const StyleUtils = useStyleUtils();
     const {avatarList} = useLetterAvatars(name, size);
 
+    const spacers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
     return (
         <>
             {!!label && avatarList?.length > 0 && (
@@ -89,6 +91,12 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
                         </PressableWithFeedback>
                     );
                 })}
+                {spacers.map((index) => (
+                    <View
+                        key={`spacer-${index}`}
+                        style={styles.avatarSelectorWrapper}
+                    />
+                ))}
             </View>
         </>
     );
