@@ -81,6 +81,7 @@ import Performance from '@libs/Performance';
 import {getAccountIDsByLogins, getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
+    arePaymentsEnabled,
     getDistanceRateCustomUnit,
     getDistanceRateCustomUnitRate,
     getMemberAccountIDsForWorkspace,
@@ -10308,7 +10309,8 @@ function canIOUBePaid(
         !isChatReportArchived &&
         !isAutoReimbursable &&
         (!shouldBeApproved || !shouldCheckApprovedState) &&
-        !isPayAtEndExpenseReport
+        !isPayAtEndExpenseReport &&
+        (!isExpenseReport(iouReport) || arePaymentsEnabled(policy as OnyxEntry<OnyxTypes.Policy>))
     );
 }
 
