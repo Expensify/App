@@ -699,6 +699,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Sta richiedendo più tempo del previsto...',
         domains: 'Domini',
         reportName: 'Nome del report',
+        showLess: 'Mostra meno',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -2675,12 +2676,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Ricevere un rimborso è facile come inviare un messaggio. Vediamo le basi.',
             onboardingPersonalSpendMessage: 'Ecco come monitorare le tue spese in pochi clic.',
-            onboardingManageTeamMessage: dedent(`
-                # La tua prova gratuita è iniziata! Iniziamo con la configurazione.
-                👋 Ciao! Sono il tuo specialista per la configurazione di Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo la tua prova gratuita di 30 giorni seguendo i passaggi qui sotto!
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # La tua prova gratuita è iniziata! Iniziamo con la configurazione.
+                        👋 Ciao! Sono il tuo specialista di configurazione Expensify. Ho già creato uno spazio di lavoro per aiutarti a gestire le ricevute e le spese del tuo team. Per sfruttare al massimo la tua prova gratuita di 30 giorni, segui semplicemente i passaggi di configurazione rimanenti qui sotto!
+                    `)
+                    : dedent(`
+                        # La tua prova gratuita è iniziata! Procediamo con la configurazione.
+                        👋 Ciao! Sono il tuo specialista per la configurazione di Expensify. Ora che hai creato uno spazio di lavoro, sfrutta al massimo la tua prova gratuita di 30 giorni seguendo i passaggi qui sotto!
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Iniziamo\n👋 Sono qui per aiutarti! Per iniziare, ho personalizzato le impostazioni dello spazio di lavoro per ditte individuali e aziende simili. Puoi modificarle cliccando il link qui sotto!\n\nEcco come monitorare le tue spese in pochi clic:',
+                '# Iniziamo con la configurazione\n👋 Ciao, sono il tuo specialista della configurazione di Expensify. Ho già creato uno spazio di lavoro per aiutarti a gestire le tue ricevute e spese. Per sfruttare al meglio la tua prova gratuita di 30 giorni, segui semplicemente i passaggi di configurazione rimanenti qui sotto!',
             onboardingChatSplitMessage: 'Dividere le spese con gli amici è facile come inviare un messaggio. Ecco come.',
             onboardingAdminMessage: 'Scopri come gestire lo spazio di lavoro del tuo team come admin e inviare le tue spese.',
             onboardingLookingAroundMessage:
@@ -6223,6 +6230,7 @@ ${
             `aggiornata la frequenza di auto-reporting a "${newFrequency}" (precedentemente "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `aggiornata la modalità di approvazione a "${newValue}" (precedentemente "${oldValue}")`,
         upgradedWorkspace: 'ha aggiornato questo spazio di lavoro al piano Control',
+        forcedCorporateUpgrade: `Questo spazio di lavoro è stato aggiornato al piano Control. Fai clic <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">qui</a> per ulteriori informazioni.`,
         downgradedWorkspace: 'ha declassato questo spazio di lavoro al piano Collect',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `ha cambiato la percentuale di rapporti instradati casualmente per l'approvazione manuale a ${Math.round(newAuditRate * 100)}% (precedentemente ${Math.round(oldAuditRate * 100)}%)`,
@@ -6572,6 +6580,18 @@ ${
         error: {
             title: 'Aggiornamento del controllo fallito',
             message: "Non siamo riusciti a verificare la presenza di un aggiornamento. Riprova tra un po'.",
+        },
+    },
+    reportLayout: {
+        reportLayout: 'Layout del rapporto',
+        groupByLabel: 'Raggruppa per:',
+        selectGroupByOption: 'Seleziona come raggruppare le spese del rapporto',
+        uncategorized: 'Non categorizzato',
+        noTag: 'Nessun tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Seleziona tutte le spese in ${groupName}`,
+        groupBy: {
+            category: 'Categoria',
+            tag: 'Tag',
         },
     },
     report: {
@@ -7436,13 +7456,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Benvenuto in New Expensify!',
-        subtitle: 'Il nuovo Expensify ha la stessa fantastica automazione, ma ora con una collaborazione straordinaria:',
+        subtitle: 'Ha tutto ciò che ami della nostra esperienza classica, con un sacco di aggiornamenti per rendere la tua vita ancora più facile:',
         confirmText: 'Andiamo!',
         features: {
-            chat: '<strong>Chatta direttamente su qualsiasi spesa</strong>, report o spazio di lavoro',
-            scanReceipt: '<strong>Scansiona le ricevute</strong> e ricevi il rimborso',
-            crossPlatform: 'Fai <strong>tutto</strong> dal tuo telefono o browser',
+            chat: 'Chatta su qualsiasi spesa per rispondere rapidamente alle domande',
+            search: 'Ricerca più potente su dispositivi mobili, web e desktop',
+            concierge: 'Intelligenza artificiale Concierge integrata per aiutarti ad automatizzare le tue spese',
         },
+        helpText: 'Prova la demo di 2 minuti',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
@@ -7511,18 +7532,6 @@ ${
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) =>
             `# ${name} ti ha invitato a provare Expensify\nEhi! Ho appena ottenuto *3 mesi gratis* per provare Expensify, il modo più veloce per gestire le spese.\n\nEcco una *ricevuta di prova* per mostrarti come funziona:`,
-    },
-    reportLayout: {
-        reportLayout: 'Layout del report',
-        groupByLabel: 'Raggruppa per:',
-        selectGroupByOption: 'Seleziona come raggruppare le spese del report',
-        groupHeader: ({groupName}: {groupName: string}) => `${groupName}`,
-        groupHeaderHint: ({action}: {action: string}) => `${action} questo gruppo`,
-        selectGroup: ({groupName}: {groupName: string}) => `Seleziona tutte le spese in ${groupName}`,
-        groupBy: {
-            category: 'Categoria',
-            tag: 'Tag',
-        },
     },
     export: {
         basicExport: 'Esportazione basica',
@@ -7606,6 +7615,17 @@ ${
                         return `In attesa dell'approvazione delle spese da parte di un amministratore.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `In attesa che <strong>tu</strong> esporti questo report.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `In attesa che <strong>${actor}</strong> esporti questo report.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `In attesa che un amministratore esporti questo report.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7677,6 +7697,32 @@ ${
             onePasswordForAnything: 'Un’unica password per tutto',
         },
         goToDomain: 'Vai al dominio',
+        samlLogin: {
+            title: 'Accesso SAML',
+            subtitle: `<muted-text>Configura l'accesso dei membri con <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: "Abilita l'accesso SAML",
+            allowMembers: 'Consenti ai membri di accedere con SAML.',
+            requireSamlLogin: "Richiedi l'accesso tramite SAML",
+            anyMemberWillBeRequired: 'Qualsiasi membro che ha effettuato l’accesso con un metodo diverso dovrà autenticarsi nuovamente tramite SAML.',
+            enableError: "Impossibile aggiornare l'impostazione di abilitazione SAML",
+            requireError: "Impossibile aggiornare l'impostazione del requisito SAML",
+        },
+        samlConfigurationDetails: {
+            title: 'Dettagli della configurazione SAML',
+            subtitle: 'Usa questi dettagli per configurare SAML.',
+            identityProviderMetaData: 'Metadati del provider di identità',
+            entityID: 'ID entità',
+            nameIDFormat: 'Formato ID del nome',
+            loginUrl: 'URL di accesso',
+            acsUrl: "URL dell'ACS (Assertion Consumer Service)",
+            logoutUrl: 'URL di disconnessione',
+            sloUrl: 'URL SLO (Single Logout)',
+            serviceProviderMetaData: 'Metadati del fornitore di servizi',
+            oktaScimToken: 'Token SCIM di Okta',
+            revealToken: 'Mostra token',
+            fetchError: 'Impossibile recuperare i dettagli della configurazione SAML',
+            setMetadataGenericError: 'Impossibile impostare i metadati SAML',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
