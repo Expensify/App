@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
@@ -35,6 +37,7 @@ import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
+import overflowMoneyRequestView from './utils/overflowMoneyRequestView';
 import overflowXHidden from './utils/overflowXHidden';
 import pointerEventsAuto from './utils/pointerEventsAuto';
 import pointerEventsBoxNone from './utils/pointerEventsBoxNone';
@@ -133,6 +136,8 @@ const link = (theme: ThemeColors) =>
         textDecorationColor: theme.link,
         // We set fontFamily directly in order to avoid overriding fontWeight and fontStyle.
         fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+        // We do not want to have underline on links
+        textDecorationLine: 'none',
     }) satisfies ViewStyle & MixedStyleDeclaration;
 
 const emailLink = (theme: ThemeColors) =>
@@ -380,6 +385,14 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
+        reportLayoutGroupHeader: {
+            paddingHorizontal: 12,
+            marginTop: 16,
+            marginBottom: 8,
+            backgroundColor: theme.appBG,
+            justifyContent: 'center',
+        },
+
         fontSizeLabel: {
             fontSize: variables.fontSizeLabel,
         },
@@ -590,8 +603,13 @@ const staticStyles = (theme: ThemeColors) =>
         textBold: {
             fontWeight: FontUtils.fontWeight.bold,
         },
+
         textItalic: {
             ...FontUtils.fontFamily.platform.MONOSPACE_ITALIC,
+        },
+
+        textMono: {
+            ...FontUtils.fontFamily.platform.MONOSPACE,
         },
 
         textVersion: {
@@ -927,6 +945,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         visibilityHidden: {
             ...visibility.hidden,
+        },
+
+        visibilityVisible: {
+            ...visibility.visible,
         },
 
         loadingVBAAnimation: {
@@ -1830,7 +1852,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         optionRowCompact: {
-            height: variables.optionRowHeightCompact,
             minHeight: variables.optionRowHeightCompact,
             paddingTop: 12,
             paddingBottom: 12,
@@ -4549,10 +4570,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 30,
             width: '100%',
         },
+
         menuItemError: {
             marginTop: 4,
             marginBottom: 0,
         },
+
         formHelperMessage: {
             height: 32,
             marginTop: 0,
@@ -5006,6 +5029,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 220,
             ...flex.alignItemsCenter,
             ...flex.justifyContentCenter,
+        },
+
+        emptyStateSamlIllustration: {
+            width: 218,
+            height: 190,
         },
 
         emptyStateCardIllustration: {
@@ -5478,6 +5506,28 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
             padding: 10,
             borderRadius: 8,
+        },
+        copyableTextField: {
+            color: theme.textSupporting,
+            flex: 1,
+            ...FontUtils.fontFamily.platform.MONOSPACE,
+            ...wordBreak.breakWord,
+        },
+        copyableTextFieldButton: {
+            width: 28,
+            height: 28,
+            borderRadius: variables.buttonBorderRadius,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        moneyRequestView: {
+            position: 'relative',
+            paddingTop: 16,
+            marginTop: -16,
+            ...overflowMoneyRequestView,
+        },
+        wordBreakAll: {
+            ...wordBreak.breakAll,
         },
     }) satisfies StaticStyles;
 
@@ -5989,6 +6039,9 @@ const plainStyles = (theme: ThemeColors) =>
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': theme.success, 'line-width': 7},
+        },
+        searchTopBarZIndexStyle: {
+            zIndex: variables.searchTopBarZIndex,
         },
     }) satisfies Styles;
 

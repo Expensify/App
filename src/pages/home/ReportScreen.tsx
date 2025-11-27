@@ -12,7 +12,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
@@ -27,6 +26,7 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
@@ -70,6 +70,7 @@ import {
     getReportOfflinePendingActionAndErrors,
     getReportTransactions,
     isAdminRoom,
+    isAnnounceRoom,
     isChatThread,
     isConciergeChatReport,
     isGroupChat,
@@ -84,6 +85,7 @@ import {
     isTaskReport,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
+import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
@@ -150,6 +152,7 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
+    const Expensicons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
@@ -278,6 +281,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 permissions,
                 invoiceReceiver: reportOnyx.invoiceReceiver,
                 policyAvatar: reportOnyx.policyAvatar,
+                nextStep: reportOnyx.nextStep,
             },
         [reportOnyx, reportNameValuePairsOnyx, permissions],
     );
@@ -345,7 +349,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
     // We need to wait for both the selector to finish AND ensure we're not in a loading state where transactions could still populate
-    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
+    const shouldWaitForTransactions = !isOffline && shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
@@ -635,6 +639,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
         return () => {
             skipOpenReportListener.remove();
+
+            // We need to cancel telemetry span when user leaves the screen before full report data is loaded
+            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
         };
     }, [reportID]);
 
@@ -720,7 +727,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const prevOnyxReportID = prevReport?.reportID;
         const wasReportRemoved = !!prevOnyxReportID && prevOnyxReportID === reportIDFromRoute && !onyxReportID;
         const isRemovalExpectedForReportType =
-            isEmpty(report) && (isMoneyRequest(prevReport) || isMoneyRequestReport(prevReport) || isPolicyExpenseChat(prevReport) || isGroupChat(prevReport) || isAdminRoom(prevReport));
+            isEmpty(report) &&
+            (isMoneyRequest(prevReport) ||
+                isMoneyRequestReport(prevReport) ||
+                isPolicyExpenseChat(prevReport) ||
+                isGroupChat(prevReport) ||
+                isAdminRoom(prevReport) ||
+                isAnnounceRoom(prevReport));
         const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
         const isTopLevelPolicyRoomWithNoStatus = !report?.statusNum && !prevReport?.parentReportID && prevReport?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
         const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;

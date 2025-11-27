@@ -10,8 +10,9 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {findSelfDMReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 import CONST from '@src/CONST';
@@ -38,6 +39,7 @@ function SearchTransactionsChangeReport() {
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
+    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
 
     const firstTransactionKey = selectedTransactionsKeys.at(0);
     const firstTransactionReportID = firstTransactionKey ? selectedTransactions[firstTransactionKey]?.reportID : undefined;
@@ -73,17 +75,20 @@ function SearchTransactionsChangeReport() {
     const createReportForPolicy = () => {
         const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
-        changeTransactionsReport(
-            selectedTransactionsKeys,
-            isASAPSubmitBetaEnabled,
-            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            session?.email ?? '',
-            optimisticReport,
-            policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined,
-            reportNextStep,
-            undefined,
-        );
-        clearSelectedTransactions();
+        setNavigationActionToMicrotaskQueue(() => {
+            changeTransactionsReport(
+                selectedTransactionsKeys,
+                isASAPSubmitBetaEnabled,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                session?.email ?? '',
+                optimisticReport,
+                policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined,
+                reportNextStep,
+                undefined,
+                selfDMReportID,
+            );
+            clearSelectedTransactions();
+        });
         Navigation.goBack();
     };
 
@@ -91,6 +96,7 @@ function SearchTransactionsChangeReport() {
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
+        shouldBypassConfirmation: true,
     });
 
     const createReport = () => {
@@ -121,6 +127,7 @@ function SearchTransactionsChangeReport() {
             allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
             allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+            selfDMReportID,
         );
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
@@ -134,7 +141,17 @@ function SearchTransactionsChangeReport() {
         if (selectedTransactionsKeys.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionsKeys, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+        changeTransactionsReport(
+            selectedTransactionsKeys,
+            isASAPSubmitBetaEnabled,
+            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            session?.email ?? '',
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            selfDMReportID,
+        );
         clearSelectedTransactions();
         Navigation.goBack();
     };

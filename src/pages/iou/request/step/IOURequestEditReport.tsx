@@ -10,8 +10,9 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {findSelfDMReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 import {createNewReport} from '@userActions/Report';
@@ -57,6 +58,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
+    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
 
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (selectedTransactionIDs.length === 0 || item.value === reportID) {
@@ -66,18 +68,22 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
 
-        changeTransactionsReport(
-            selectedTransactionIDs,
-            isASAPSubmitBetaEnabled,
-            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-            session?.email ?? '',
-            newReport,
-            allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
-            reportNextStep,
-            allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-        );
-        turnOffMobileSelectionMode();
-        clearSelectedTransactions(true);
+        setNavigationActionToMicrotaskQueue(() => {
+            changeTransactionsReport(
+                selectedTransactionIDs,
+                isASAPSubmitBetaEnabled,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                session?.email ?? '',
+                newReport,
+                allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                reportNextStep,
+                allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+                selfDMReportID,
+            );
+            turnOffMobileSelectionMode();
+            clearSelectedTransactions(true);
+        });
+
         Navigation.dismissModal();
     };
 
@@ -85,7 +91,17 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (!selectedReport || selectedTransactionIDs.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionIDs, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+        changeTransactionsReport(
+            selectedTransactionIDs,
+            isASAPSubmitBetaEnabled,
+            session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            session?.email ?? '',
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            selfDMReportID,
+        );
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
@@ -99,13 +115,14 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         }
 
         const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
-        selectReport({value: optimisticReport.reportID});
+        selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 
     const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
+        shouldBypassConfirmation: true,
     });
 
     const createReport = () => {

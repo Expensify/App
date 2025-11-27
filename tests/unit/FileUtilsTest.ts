@@ -1,3 +1,4 @@
+import {Platform} from 'react-native';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
@@ -8,6 +9,8 @@ const createMockFile = (name: string, size: number) => ({
     name,
     size,
 });
+
+const createFileNameFromLength = ({length, extension}: {length: number; extension?: string | undefined}): string => `${'a'.repeat(length)}${extension ? `.${extension}` : ''}`;
 
 describe('FileUtils', () => {
     describe('splitExtensionFromFileName', () => {
@@ -34,13 +37,59 @@ describe('FileUtils', () => {
         it('should append current time to the end of the file name', () => {
             const actualFileName = FileUtils.appendTimeToFileName('image.jpg');
             const expectedFileName = `image-${DateUtils.getDBTime()}.jpg`;
-            expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
+            expect(actualFileName).toEqual(expectedFileName.replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
         });
 
         it('should append current time to the end of the file name without extension', () => {
             const actualFileName = FileUtils.appendTimeToFileName('image');
             const expectedFileName = `image-${DateUtils.getDBTime()}`;
-            expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
+            expect(actualFileName).toEqual(expectedFileName.replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
+        });
+
+        describe('on Android', () => {
+            let platformReplaceProperty: jest.ReplaceProperty<string>;
+
+            beforeEach(() => {
+                platformReplaceProperty = jest.replaceProperty(Platform, 'OS', 'android');
+            });
+
+            afterEach(() => {
+                platformReplaceProperty.restore();
+            });
+
+            it('should truncate the file name to safe length when length exceeds the safe length', () => {
+                const fileNameExceedingSafeLength = createFileNameFromLength({length: FileUtils.ANDROID_SAFE_FILE_NAME_LENGTH + 1, extension: 'doc'});
+
+                const actualFileName = FileUtils.appendTimeToFileName(fileNameExceedingSafeLength);
+                const expectedTruncatedFileName = `${createFileNameFromLength({length: FileUtils.ANDROID_SAFE_FILE_NAME_LENGTH - 24})}-${DateUtils.getDBTime()}.doc`;
+
+                expect(actualFileName).toEqual(expectedTruncatedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
+            });
+        });
+
+        describe('on Non-Android', () => {
+            const nonAndroidPlatforms = ['ios', 'macos', 'windows', 'web'] as const;
+
+            describe.each(nonAndroidPlatforms)('%s', (platform) => {
+                let platformReplaceProperty: jest.ReplaceProperty<string>;
+
+                beforeEach(() => {
+                    platformReplaceProperty = jest.replaceProperty(Platform, 'OS', platform);
+                });
+
+                afterEach(() => {
+                    platformReplaceProperty.restore();
+                });
+
+                it('should not truncate the file name even when length exceeds the Android safe length', () => {
+                    const fileNameExceedingAndroidSafeLength = createFileNameFromLength({length: FileUtils.ANDROID_SAFE_FILE_NAME_LENGTH + 1, extension: 'doc'});
+
+                    const actualFileName = FileUtils.appendTimeToFileName(fileNameExceedingAndroidSafeLength);
+                    const expectedFileName = `${createFileNameFromLength({length: FileUtils.ANDROID_SAFE_FILE_NAME_LENGTH + 1})}-${DateUtils.getDBTime()}.doc`;
+
+                    expect(actualFileName).toEqual(expectedFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_'));
+                });
+            });
         });
     });
 
