@@ -2,13 +2,18 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import type {ExpenseReportListItemType} from '@components/SelectionListWithSections/types';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isSettled} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -57,6 +62,7 @@ function ExpenseReportListItemRow({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {translate} = useLocalize();
 
     const {total, currency} = useMemo(() => {
         let reportTotal = item.total ?? 0;
@@ -79,6 +85,24 @@ function ExpenseReportListItemRow({
 
     // Calculate the correct border color for avatars based on hover and focus states
     const finalAvatarBorderColor = isHovered && !isFocused ? theme.border : avatarBorderColor;
+
+    const getDescription = useMemo(() => {
+        if (!item?.hasVisibleViolations || isSettled(item.reportID)) {
+            return;
+        }
+        return (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                <Icon
+                    src={Expensicons.DotIndicator}
+                    fill={theme.danger}
+                    additionalStyles={[styles.mr1]}
+                    width={12}
+                    height={12}
+                />
+                <Text style={[styles.textMicro, styles.textDanger]}>{translate('reportViolations.reportContainsExpensesWithViolations')}</Text>
+            </View>
+        );
+    }, [item?.hasVisibleViolations, item.reportID, styles.alignItemsCenter, styles.flexRow, styles.mr1, styles.mt2, styles.textDanger, styles.textMicro, theme.danger, translate]);
 
     if (!isLargeScreenWidth) {
         return (
@@ -125,85 +149,88 @@ function ExpenseReportListItemRow({
     }
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pr2]}>
-                {!!canSelectMultiple && (
-                    <Checkbox
-                        onPress={onCheckboxPress}
-                        isChecked={isSelectAllChecked}
-                        isIndeterminate={isIndeterminate}
-                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
-                        disabled={isDisabledCheckbox}
-                        accessibilityLabel={item.text ?? ''}
-                        shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
-                    />
-                )}
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), {alignItems: 'stretch'}]}>
-                    <ReportActionAvatars
-                        report={item}
-                        reportID={item.reportID}
-                        policy={policy}
-                        shouldShowTooltip={showTooltip}
-                        subscriptAvatarBorderColor={finalAvatarBorderColor}
-                    />
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
-                    <DateCell
-                        created={item.created ?? ''}
-                        showTooltip
-                        isLargeScreenWidth
-                    />
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
-                    <StatusCell
-                        stateNum={item.stateNum}
-                        statusNum={item.statusNum}
-                    />
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
-                    <TitleCell
-                        text={item.reportName ?? ''}
-                        isLargeScreenWidth={isLargeScreenWidth}
-                    />
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
-                    {!!item.from && (
-                        <UserInfoCell
-                            accountID={item.from.accountID}
-                            avatar={item.from.avatar}
-                            displayName={item.from.displayName ?? item.from.login ?? ''}
+        <View>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pr2]}>
+                    {!!canSelectMultiple && (
+                        <Checkbox
+                            onPress={onCheckboxPress}
+                            isChecked={isSelectAllChecked}
+                            isIndeterminate={isIndeterminate}
+                            containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+                            disabled={isDisabledCheckbox}
+                            accessibilityLabel={item.text ?? ''}
+                            shouldStopMouseDownPropagation
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
                         />
                     )}
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TO)]}>
-                    {!!item.to && (
-                        <UserInfoCell
-                            accountID={item.to.accountID}
-                            avatar={item.to.avatar}
-                            displayName={item.to.displayName ?? item.to.login ?? ''}
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), {alignItems: 'stretch'}]}>
+                        <ReportActionAvatars
+                            report={item}
+                            reportID={item.reportID}
+                            policy={policy}
+                            shouldShowTooltip={showTooltip}
+                            subscriptAvatarBorderColor={finalAvatarBorderColor}
                         />
-                    )}
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
-                    <TotalCell
-                        total={total}
-                        currency={currency}
-                    />
-                </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                    <ActionCell
-                        action={item.action}
-                        goToItem={onButtonPress}
-                        isSelected={item.isSelected}
-                        isLoading={isActionLoading}
-                        policyID={item.policyID}
-                        reportID={item.reportID}
-                        hash={item.hash}
-                        amount={item.total}
-                    />
+                    </View>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
+                        <DateCell
+                            created={item.created ?? ''}
+                            showTooltip
+                            isLargeScreenWidth
+                        />
+                    </View>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.STATUS)]}>
+                        <StatusCell
+                            stateNum={item.stateNum}
+                            statusNum={item.statusNum}
+                        />
+                    </View>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
+                        <TitleCell
+                            text={item.reportName ?? ''}
+                            isLargeScreenWidth={isLargeScreenWidth}
+                        />
+                    </View>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                        {!!item.from && (
+                            <UserInfoCell
+                                accountID={item.from.accountID}
+                                avatar={item.from.avatar}
+                                displayName={item.from.displayName ?? item.from.login ?? ''}
+                            />
+                        )}
+                    </View>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TO)]}>
+                        {!!item.to && (
+                            <UserInfoCell
+                                accountID={item.to.accountID}
+                                avatar={item.to.avatar}
+                                displayName={item.to.displayName ?? item.to.login ?? ''}
+                            />
+                        )}
+                    </View>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+                        <TotalCell
+                            total={total}
+                            currency={currency}
+                        />
+                    </View>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                        <ActionCell
+                            action={item.action}
+                            goToItem={onButtonPress}
+                            isSelected={item.isSelected}
+                            isLoading={isActionLoading}
+                            policyID={item.policyID}
+                            reportID={item.reportID}
+                            hash={item.hash}
+                            amount={item.total}
+                        />
+                    </View>
                 </View>
             </View>
+            {getDescription}
         </View>
     );
 }

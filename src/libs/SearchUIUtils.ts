@@ -94,6 +94,7 @@ import {
     getReportOrDraftReport,
     getReportStatusTranslation,
     getSearchReportName,
+    hasAnyViolations,
     hasHeldExpenses,
     hasInvoiceReports,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
@@ -122,6 +123,7 @@ import {
     isViolationDismissed,
 } from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
+import ViolationsUtils from './Violations/ViolationsUtils';
 
 type ColumnSortMapping<T> = Partial<Record<SearchColumnType, keyof T | null>>;
 type ColumnVisibility = Partial<Record<SearchColumnType, boolean>>;
@@ -1527,6 +1529,13 @@ function getReportSections(
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate: translateLocal});
 
+                const allReportTransactions = getTransactionsForReport(data, reportItem.reportID);
+                const policy = getPolicyFromKey(data, reportItem);
+
+                const hasAnyViolationsForReport = hasAnyViolations(reportItem.reportID, allViolations, allReportTransactions, currentUserEmail, reportItem, policy);
+                const hasVisibleViolationsForReport =
+                    hasAnyViolationsForReport && ViolationsUtils.hasVisibleViolationsForUser(reportItem, allViolations, currentUserEmail, policy, allReportTransactions);
+
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
                     action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
@@ -1541,6 +1550,7 @@ function getReportSections(
                     transactions,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
                     shouldShowYear: doesDataContainAPastYearReport,
+                    hasVisibleViolations: hasVisibleViolationsForReport,
                 };
 
                 if (isIOUReport) {
