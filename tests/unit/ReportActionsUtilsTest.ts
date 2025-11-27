@@ -445,7 +445,12 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return action when single IOU action and deleted IOU action exist', () => {
-            const result = ReportActionsUtils.getOneTransactionThreadReportAction(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedActionWithChildReportID, deletedLinkedActionWithChildReportID], false);
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(
+                mockedReports[IOUReportID],
+                mockedReports[mockChatReportID],
+                [linkedActionWithChildReportID, deletedLinkedActionWithChildReportID],
+                false,
+            );
             expect(result).toEqual(linkedActionWithChildReportID);
         });
     });
