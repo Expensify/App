@@ -4704,6 +4704,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const hasModifiedReimbursable = 'reimbursable' in transactionChanges;
     const hasModifiedTaxCode = 'taxCode' in transactionChanges;
     const hasModifiedDate = 'date' in transactionChanges;
+    const hasModifiedMerchant = 'merchant' in transactionChanges;
 
     const isInvoice = isInvoiceReportReportUtils(iouReport);
     if (
@@ -4715,6 +4716,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         (hasModifiedTag ||
             hasModifiedCategory ||
             hasModifiedComment ||
+            hasModifiedMerchant ||
             hasModifiedDistanceRate ||
             hasModifiedDate ||
             hasModifiedCurrency ||
