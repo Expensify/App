@@ -2,7 +2,6 @@
 import {format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
-import omit from 'lodash/omit';
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
 import {InteractionManager} from 'react-native';
@@ -3618,12 +3617,11 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
     }
 
-    // For split expenses, merge the existing transaction but omit amount-related fields.
-    // These fields should not be inherited from the original as they need to reflect the split values.
-    // Using fastMerge with all fields would copy convertedAmount, causing split totals to double (see issue #76078).
+    // For split expenses, merge the existing transaction but remove convertedAmount.
+    // Using fastMerge would copy convertedAmount from the original, causing split totals to double.
     if (isSplitExpense && existingTransaction) {
-        const existingTransactionWithoutAmounts = omit(existingTransaction, ['amount', 'modifiedAmount', 'convertedAmount', 'taxAmount', 'originalAmount']);
-        optimisticTransaction = fastMerge(existingTransactionWithoutAmounts, optimisticTransaction, false);
+        const {convertedAmount: _, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
+        optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
     }
 
     // STEP 4: Build optimistic reportActions. We need:
