@@ -136,12 +136,10 @@ Onyx.connect({
     callback: (value) => (allTransactionViolations = value),
 });
 
-let deprecatedCurrentUserEmail = '';
 let deprecatedCurrentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        deprecatedCurrentUserEmail = val?.email ?? '';
         deprecatedCurrentUserAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
@@ -899,7 +897,7 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
         const creatorAccountID = report?.ownerAccountID;
 
         if (creatorAccountID) {
-            const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID], currentUserAccountID: deprecatedCurrentUserAccountID});
+            const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID]});
             const creatorEmail = creatorDetails?.login ?? '';
             const creatorDisplayName = creatorDetails?.displayName ?? creatorEmail;
 
@@ -1456,7 +1454,7 @@ function isViolationDismissed(
     const dismissedByEmails = Object.keys(violationDismissals);
 
     // Current user dismissed it themselves
-    if (dismissedByEmails.includes(currentUserEmail || deprecatedCurrentUserEmail)) {
+    if (dismissedByEmails.includes(currentUserEmail)) {
         return true;
     }
 
@@ -2108,10 +2106,6 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
     });
 }
 
-function shouldShowRTERViolationMessage(transactions: Transaction[] | undefined, currentUserEmail: string, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
-    return transactions?.length === 1 && hasPendingUI(transactions?.at(0), getTransactionViolations(transactions?.at(0), allTransactionViolations, currentUserEmail, report, policy));
-}
-
 function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>): boolean {
     const {originalTransactionID, source, splits} = transaction?.comment ?? {};
 
@@ -2290,7 +2284,6 @@ export {
     isPerDiemRequest,
     isViolationDismissed,
     isBrokenConnectionViolation,
-    shouldShowRTERViolationMessage,
     isPartialTransaction,
     isPendingCardOrScanningTransaction,
     isScanning,
