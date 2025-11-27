@@ -1,4 +1,4 @@
-import {isValidPerDiemExpense} from '@libs/actions/IOU';
+import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU';
 import {handleNegativeAmountFlipping, validateAmount} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
@@ -79,15 +79,25 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('Per Diem Amount Validation', () => {
-        it('should reject per diem amount when it exceeds AMOUNT_MAX_LENGTH', () => {
+    describe('isValidPerDiemExpenseAmount', () => {
+        it('should return true when per diem amount is within AMOUNT_MAX_LENGTH', () => {
+            const customUnit: TransactionCustomUnit = {
+                subRates: [
+                    {id: 'rate1', name: 'Breakfast', quantity: 2, rate: 1500}, // 2 * $15.00 = $30.00
+                ],
+            };
+
+            expect(isValidPerDiemExpenseAmount(customUnit, CONST.CURRENCY.USD)).toBe(true);
+        });
+
+        it('should return false when when per diem amount exceeds AMOUNT_MAX_LENGTH', () => {
             const customUnit: TransactionCustomUnit = {
                 subRates: [
                     {id: 'rate1', name: 'Breakfast', quantity: 1000, rate: 12345678}, // 1000 * $123,456.78 = $123,456,780.00
                 ],
             };
 
-            expect(isValidPerDiemExpense(customUnit, CONST.CURRENCY.USD)).toBe(false);
+            expect(isValidPerDiemExpenseAmount(customUnit, CONST.CURRENCY.USD)).toBe(false);
         });
     });
 });

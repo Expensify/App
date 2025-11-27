@@ -17,7 +17,7 @@ import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
     adjustRemainingSplitShares,
     computePerDiemExpenseAmount,
-    isValidPerDiemExpense,
+    isValidPerDiemExpenseAmount,
     resetSplitShares,
     setCustomUnitRateID,
     setIndividualShare,
@@ -917,7 +917,7 @@ function MoneyRequestConfirmationList({
                 }
 
                 if (isPerDiemRequest) {
-                    if (!isValidPerDiemExpense(transaction.comment?.customUnit ?? {}, iouCurrencyCode)) {
+                    if (!isValidPerDiemExpenseAmount(transaction.comment?.customUnit ?? {}, iouCurrencyCode)) {
                         setFormError('iou.error.invalidQuantity');
                         return;
                     }

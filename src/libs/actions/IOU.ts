@@ -3722,7 +3722,7 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     return `${locationName}, ${formattedTime}`;
 }
 
-function isValidPerDiemExpense(customUnit: TransactionCustomUnit, iouCurrencyCode?: string) {
+function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, iouCurrencyCode?: string) {
     const perDiemAmountInCents = computePerDiemExpenseAmount(customUnit);
     const perDiemAmountString = convertToFrontendAmountAsString(perDiemAmountInCents, iouCurrencyCode);
     const decimals = getCurrencyDecimals(iouCurrencyCode);
@@ -14690,7 +14690,7 @@ export {
     markRejectViolationAsResolved,
     setMoneyRequestReimbursable,
     computePerDiemExpenseAmount,
-    isValidPerDiemExpense,
+    isValidPerDiemExpenseAmount,
     getIOUActionForTransactions,
     initSplitExpense,
     initSplitExpenseItemData,
