@@ -63,6 +63,7 @@ import type {
     Transaction,
     TransactionViolation,
     TransactionViolations,
+    UserMetadata,
     ViolationName,
 } from '@src/types/onyx';
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
@@ -141,6 +142,14 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         deprecatedCurrentUserAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    },
+});
+
+let userMetadata: OnyxEntry<UserMetadata> = {};
+Onyx.connect({
+    key: ONYXKEYS.USER_METADATA,
+    callback: (val) => {
+        userMetadata = val;
     },
 });
 
@@ -897,7 +906,8 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>): A
 
     // Get the creator of the transaction by looking at the owner of the report linked to the transaction
     const report = getReportOrDraftReport(transaction?.reportID);
-    const creatorAccountID = report?.ownerAccountID;
+    // For unreported expenses, the creator ID should belong to the current user because the transaction isn’t part of any report yet
+    const creatorAccountID = isExpenseUnreported(transaction) ? userMetadata?.accountID : report?.ownerAccountID;
 
     if (creatorAccountID) {
         const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID]});
@@ -939,7 +949,8 @@ function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>): Atten
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
     const attendees = transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
     const currentUserAsAttendee = getReportOwnerAsAttendee(transaction);
-    if (attendees.length === 0 && transaction?.reportID && currentUserAsAttendee !== undefined) {
+
+    if (attendees.length === 0 && currentUserAsAttendee !== undefined) {
         attendees.push(currentUserAsAttendee);
     }
     return attendees;
