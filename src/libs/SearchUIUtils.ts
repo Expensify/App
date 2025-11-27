@@ -2640,7 +2640,7 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
-              [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.ACTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
           };
 
