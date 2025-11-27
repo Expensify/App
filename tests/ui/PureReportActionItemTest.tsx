@@ -9,6 +9,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Parser from '@libs/Parser';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/home/report/PureReportActionItem';
 import CONST from '@src/CONST';
@@ -205,6 +206,17 @@ describe('PureReportActionItem', () => {
 
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
+        });
+    });
+
+    describe('Policy log actions', () => {
+        it('CORPORATE_FORCE_UPGRADE action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE, {automaticAction: false});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(Parser.htmlToText(translateLocal('workspaceActions.forcedCorporateUpgrade')))).toBeOnTheScreen();
         });
     });
 });
