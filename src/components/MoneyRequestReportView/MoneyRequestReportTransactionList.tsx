@@ -496,12 +496,13 @@ function MoneyRequestReportTransactionList({
                               >
                                   <MoneyRequestReportGroupHeader
                                       group={group}
+                                      groupKey={group.groupKey}
+                                      currency={report?.currency ?? ''}
                                       isGroupedByTag={currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG}
                                       isSelectionModeEnabled={isMobileSelectionModeEnabled}
                                       isSelected={selectionState.isSelected}
                                       isIndeterminate={selectionState.isIndeterminate}
                                       onToggleSelection={toggleGroupSelection}
-                                      groupKey={group.groupKey}
                                   />
                                   {group.transactions.map((transaction) => {
                                       const originalTransaction = sortedTransactionsMap.get(transaction.transactionID) ?? transaction;
