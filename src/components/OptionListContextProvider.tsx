@@ -204,9 +204,11 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 continue;
             }
 
-            for (const report of Object.values(reports ?? {}).filter(
+            const reportList = Object.values(reports ?? {}).filter(
                 (report) => accountID in (report?.participants ?? {}) || (isSelfDM(report) && report?.ownerAccountID === Number(accountID)),
-            )) {
+            );
+
+            for (const report of reportList) {
                 if (!report) {
                     continue;
                 }
