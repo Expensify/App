@@ -1207,6 +1207,17 @@ Onyx.connect({
     },
 });
 
+let selfDMReportID: string | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SELF_DM_REPORT_ID,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        selfDMReportID = value;
+    },
+});
+
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -1857,7 +1868,12 @@ function findSelfDMReportID(): string | undefined {
         return;
     }
 
+    if (selfDMReportID) {
+        return selfDMReportID;
+    }
+
     const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
+
     return selfDMReport?.reportID;
 }
 
@@ -1917,9 +1933,11 @@ function isSelfDMOrSelfDMThread(report: OnyxEntry<Report>): boolean {
 /**
  * Returns true if the report is an expense report, a group policy, a self-DM, or the iouType is create, and the iouType is not split or invoice.
  */
-function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string) {
+function shouldEnableNegative(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, iouType?: string, participants?: Participant[]) {
     const isSelfDMReport = isSelfDMOrSelfDMThread(report);
-    const isFirstTimeCreatingReport = !report && !policy && iouType === CONST.IOU.TYPE.SUBMIT;
+
+    const isUserInRecipients = participants?.some((participant) => !participant.isSender && !participant.isPolicyExpenseChat && participant.accountID);
+    const isFirstTimeCreatingReport = !report && !policy && iouType === CONST.IOU.TYPE.SUBMIT && !isUserInRecipients;
 
     const isExpenseReportType = isExpenseReport(report);
     const isGroupPolicyType = isGroupPolicy(policy?.type ?? '');
@@ -2250,7 +2268,7 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
 /**
  * Whether the provided report has expenses
  */
-function hasExpenses(reportID?: string, transactions?: Transaction[] | Array<OnyxEntry<Transaction>>): boolean {
+function hasExpenses(reportID?: string, transactions?: Array<OnyxEntry<Transaction>>): boolean {
     if (transactions) {
         return !!transactions?.find((transaction) => transaction?.reportID === reportID);
     }
@@ -2260,7 +2278,7 @@ function hasExpenses(reportID?: string, transactions?: Transaction[] | Array<Ony
 /**
  * Whether the provided report is a closed expense report with no expenses
  */
-function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: Transaction[] | Array<OnyxEntry<Transaction>>): boolean {
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: Array<OnyxEntry<Transaction>>): boolean {
     if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
         return false;
     }
@@ -2478,9 +2496,8 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
  */
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
-        const selfDMReportID = findSelfDMReportID();
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
-        return !isEmptyObject(parentReportAction) && selfDMReportID === report.parentReportID && isTrackExpenseAction(parentReportAction);
+        return !isEmptyObject(parentReportAction) && findSelfDMReportID() === report.parentReportID && isTrackExpenseAction(parentReportAction);
     }
     return false;
 }
@@ -2760,7 +2777,7 @@ function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean
     return isManager && isExpenseReport(report) && isProcessingReport(report);
 }
 
-function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry<Report> | string) {
+function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry<Report> | string, currentUserEmailParam: string) {
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2779,7 +2796,9 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
         const iouReport = typeof iouReportOrID !== 'string' && iouReportOrID?.reportID === iouReportID ? iouReportOrID : getReportOrDraftReport(iouReportID);
         const transactions = getReportTransactions(iouReportID);
         return (
-            canIOUBePaid(iouReport, chatReport, policy, transactions) || canApproveIOU(iouReport, policy, transactions) || canSubmitReport(iouReport, policy, transactions, undefined, false)
+            canIOUBePaid(iouReport, chatReport, policy, transactions) ||
+            canApproveIOU(iouReport, policy, transactions) ||
+            canSubmitReport(iouReport, policy, transactions, undefined, false, currentUserEmailParam)
         );
     });
 }
@@ -4483,7 +4502,7 @@ function canEditMoneyRequest(
     isChatReportArchived = false,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
-    linkedTransaction?: OnyxEntry<Transaction> | Transaction,
+    linkedTransaction?: OnyxEntry<Transaction>,
 ): boolean {
     const isDeleted = isDeletedAction(reportAction);
 
@@ -4625,7 +4644,7 @@ function canEditFieldOfMoneyRequest(
     isDeleteAction?: boolean,
     isChatReportArchived = false,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    linkedTransaction?: OnyxEntry<Transaction> | Transaction,
+    linkedTransaction?: OnyxEntry<Transaction>,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
 ): boolean {
@@ -4783,6 +4802,21 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>): bool
     );
 }
 
+function canModifyHoldStatus(report: Report, reportAction: ReportAction): boolean {
+    if (!isMoneyRequestReport(report) || isTrackExpenseReport(report)) {
+        return false;
+    }
+    const isAdmin = isPolicyAdmin(report.policyID, allPolicies);
+    const isActionOwner = isActionCreator(reportAction);
+    const isManager = isMoneyRequestReport(report) && report?.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;
+
+    if (isIOUReport(report)) {
+        return isActionOwner || isManager;
+    }
+
+    return isAdmin || isActionOwner || isManager;
+}
+
 function canHoldUnholdReportAction(
     report: OnyxEntry<Report>,
     reportAction: OnyxEntry<ReportAction>,
@@ -4806,11 +4840,12 @@ function canHoldUnholdReportAction(
     const isClosed = isClosedReport(report);
     const isSubmitted = isProcessingReport(report);
 
-    const canModifyStatus = !isTrackExpenseMoneyReport && (isAdmin || isActionOwner || isApprover);
+    const canModifyStatus = canModifyHoldStatus(report, reportAction);
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isClosed && !isDeletedParentAction(reportAction);
-    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestIOU || canModifyStatus) && !isScanning(transaction) && (isSubmitted || isActionOwner);
+    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && canModifyStatus && !isScanning(transaction) && (isSubmitted || isActionOwner);
+
     const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
 
     return {canHoldRequest, canUnholdRequest};
@@ -4907,7 +4942,7 @@ function areAllRequestsBeingSmartScanned(iouReportID: string | undefined, report
  *
  * NOTE: This method is only meant to be used inside this action file. Do not export and use it elsewhere. Use useOnyx instead.
  */
-function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions?: Transaction[]): OnyxEntry<Transaction> | Transaction {
+function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions?: Transaction[]): OnyxEntry<Transaction> {
     let transactionID: string | undefined;
 
     if (isMoneyRequestAction(reportAction)) {
@@ -5653,6 +5688,9 @@ function getReportName(
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         return getDowngradeWorkspaceMessage();
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
+        return getForcedCorporateUpgradeMessage();
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
         return getWorkspaceCurrencyUpdateMessage(parentReportAction);
@@ -6449,7 +6487,7 @@ function buildOptimisticTaskCommentReportAction(
 
 function buildOptimisticSelfDMReport(created: string): Report {
     return {
-        reportID: generateReportID(),
+        reportID: findSelfDMReportID() ?? generateReportID(),
         participants: {
             [currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
@@ -6779,6 +6817,11 @@ function getUpgradeWorkspaceMessage() {
     return translateLocal('workspaceActions.upgradedWorkspace');
 }
 
+function getForcedCorporateUpgradeMessage() {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.forcedCorporateUpgrade');
+}
+
 function getDowngradeWorkspaceMessage() {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('workspaceActions.downgradedWorkspace');
@@ -6812,8 +6855,7 @@ function getMovedTransactionMessage(report: OnyxEntry<Report>) {
 }
 
 function getUnreportedTransactionMessage() {
-    const selfDMReportID = findSelfDMReportID();
-    const reportUrl = `${environmentURL}/r/${selfDMReportID}`;
+    const reportUrl = `${environmentURL}/r/${findSelfDMReportID()}`;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const message = translateLocal('iou.unreportedTransaction', {
         reportUrl,
@@ -7644,6 +7686,7 @@ type BuildOptimisticChatReportParams = {
     avatarUrl?: string;
     optimisticReportID?: string;
     isPinned?: boolean;
+    chatReportID?: string;
 };
 
 function buildOptimisticChatReport({
@@ -7663,6 +7706,7 @@ function buildOptimisticChatReport({
     avatarUrl = '',
     optimisticReportID = '',
     isPinned = false,
+    chatReportID = undefined,
 }: BuildOptimisticChatReportParams): OptimisticChatReport {
     const isWorkspaceChatType = chatType && isWorkspaceChat(chatType);
     const participants = participantList.reduce((reportParticipants: Participants, accountID: number) => {
@@ -7699,6 +7743,7 @@ function buildOptimisticChatReport({
         description,
         writeCapability,
         avatarUrl,
+        chatReportID,
     };
 
     if (chatType === CONST.REPORT.CHAT_TYPE.INVOICE) {
@@ -8529,6 +8574,7 @@ function buildTransactionThread(
             ...existingTransactionThreadReport,
             parentReportActionID: reportAction?.reportActionID,
             parentReportID: moneyRequestReport?.reportID,
+            chatReportID: moneyRequestReport?.reportID,
             reportName: getTransactionReportName({reportAction}),
             policyID: moneyRequestReport?.policyID,
         };
@@ -8543,6 +8589,7 @@ function buildTransactionThread(
         parentReportActionID: reportAction?.reportActionID,
         parentReportID: moneyRequestReport?.reportID,
         optimisticReportID: optimisticTransactionThreadReportID,
+        chatReportID: moneyRequestReport?.reportID,
     });
 }
 
@@ -8899,12 +8946,16 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
         const transactions = getReportTransactions(potentialReport.reportID);
 
+        if (!isOpenReport(potentialReport)) {
+            return false;
+        }
+
         return (
             !isInvoiceReport(potentialReport) &&
             ViolationsUtils.hasVisibleViolationsForUser(potentialReport, transactionViolations, currentUserEmail ?? '', policy, transactions) &&
-            (hasViolations(potentialReport.reportID, transactionViolations, true) ||
-                hasWarningTypeViolations(potentialReport.reportID, transactionViolations, true) ||
-                hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, true))
+            (hasViolations(potentialReport.reportID, transactionViolations, true, transactions, currentUserEmail, potentialReport, policy) ||
+                hasWarningTypeViolations(potentialReport.reportID, transactionViolations, true, transactions, currentUserEmail, potentialReport, policy) ||
+                hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, true, transactions, currentUserEmail, potentialReport, policy))
         );
     });
 }
@@ -8917,9 +8968,12 @@ function hasViolations(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
+    currentUserEmailParam?: string,
+    report?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasViolation(transaction, transactionViolations, shouldShowInReview));
+    return transactions.some((transaction) => hasViolation(transaction, transactionViolations, currentUserEmailParam ?? '', report, policy, shouldShowInReview));
 }
 
 /**
@@ -8930,9 +8984,12 @@ function hasWarningTypeViolations(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
+    currentUserEmailParam?: string,
+    report?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasWarningTypeViolation(transaction, transactionViolations, shouldShowInReview));
+    return transactions.some((transaction) => hasWarningTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', report, policy, shouldShowInReview));
 }
 
 /**
@@ -8963,19 +9020,29 @@ function hasNoticeTypeViolations(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
+    currentUserEmailParam?: string,
+    report?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasNoticeTypeViolation(transaction, transactionViolations, shouldShowInReview));
+    return transactions.some((transaction) => hasNoticeTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', report, policy, shouldShowInReview));
 }
 
 /**
  * Checks to see if a report contains any type of violation
  */
-function hasAnyViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, reportTransactions?: Transaction[]) {
+function hasAnyViolations(
+    reportID: string | undefined,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    reportTransactions?: Transaction[],
+    currentUserEmailParam?: string,
+    report?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
+) {
     return (
-        hasViolations(reportID, transactionViolations, undefined, reportTransactions) ||
-        hasNoticeTypeViolations(reportID, transactionViolations, true, reportTransactions) ||
-        hasWarningTypeViolations(reportID, transactionViolations, true, reportTransactions)
+        hasViolations(reportID, transactionViolations, undefined, reportTransactions, currentUserEmailParam, report, policy) ||
+        hasNoticeTypeViolations(reportID, transactionViolations, true, reportTransactions, currentUserEmailParam, report, policy) ||
+        hasWarningTypeViolations(reportID, transactionViolations, true, reportTransactions, currentUserEmailParam, report, policy)
     );
 }
 
@@ -11506,16 +11573,13 @@ function prepareOnboardingOnyxData(
         },
     );
 
-    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [textCommentAction.reportActionID]: textCommentAction as ReportAction,
-            },
-        });
-    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [textCommentAction.reportActionID]: textCommentAction as ReportAction,
+        },
+    });
 
     if (!wasInvited) {
         optimisticData.push({
@@ -11527,16 +11591,13 @@ function prepareOnboardingOnyxData(
 
     const successData: OnyxUpdate[] = [...tasksForSuccessData];
 
-    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [textCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
-            },
-        });
-    }
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [textCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
+        },
+    });
 
     let failureReport: Partial<Report> = {
         lastMessageText: '',
@@ -11574,18 +11635,16 @@ function prepareOnboardingOnyxData(
             },
         },
     );
-    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [textCommentAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
-            },
-        });
-    }
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [textCommentAction.reportActionID]: {
+                errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+            } as ReportAction,
+        },
+    });
 
     if (!wasInvited) {
         failureData.push({
@@ -11639,14 +11698,11 @@ function prepareOnboardingOnyxData(
     // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
     const guidedSetupData: GuidedSetupData = [];
 
-    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
-        guidedSetupData.push({type: 'message', ...textMessage});
-    }
+    guidedSetupData.push({type: 'message', ...textMessage});
 
     let selfDMParameters: SelfDMParameters = {};
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-        const selfDMReportID = findSelfDMReportID();
-        let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+        let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`];
         let createdAction: ReportAction;
         if (!selfDMReport) {
             const currentTime = DateUtils.getDBTime();
@@ -12256,7 +12312,7 @@ function generateReportAttributes({
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
     const isReportSettled = isSettled(report);
     const isCurrentUserReportOwner = isReportOwner(report);
-    const doesReportHasViolations = hasReportViolations(report?.reportID);
+    const doesReportHasViolations = isDraftReport(report?.reportID) && hasReportViolations(report?.reportID);
     const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
     const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN || (!isReportSettled && isCurrentUserReportOwner && doesReportHasViolations);
     const reportErrors = getAllReportErrors(report, reportActionsList, isReportArchived);
@@ -12713,6 +12769,7 @@ export {
     getWorkspaceNameUpdatedMessage,
     getDeletedTransactionMessage,
     getUpgradeWorkspaceMessage,
+    getForcedCorporateUpgradeMessage,
     getDowngradeWorkspaceMessage,
     getIcons,
     sortIconsByName,
