@@ -2047,7 +2047,7 @@ function getSortedCardData(data: TransactionCardGroupListItemType[], localeCompa
         data,
         localeCompare,
         transactionCardGroupColumnNamesToSortingProperty,
-        (a, b) => localeCompare(a.displayName ?? a.login ?? '', b.displayName ?? b.login ?? ''),
+        (a, b) => localeCompare(a.formattedFeedName ?? '', b.formattedFeedName ?? ''),
         sortBy,
         sortOrder,
     );
