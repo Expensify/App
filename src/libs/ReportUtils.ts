@@ -8960,7 +8960,7 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
                 policy,
                 transactions,
             ) &&
-            (hasViolations(potentialReport.reportID, transactionViolations, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail, true, transactions, potentialReport, policy) ||
+            (hasViolations(potentialReport.reportID, transactionViolations, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail ?? '', true, transactions, potentialReport, policy) ||
                 hasWarningTypeViolations(
                     potentialReport.reportID,
                     transactionViolations,
@@ -8992,7 +8992,7 @@ function hasViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentUserAccountIDParam: number,
-    currentUserEmailParam?: string,
+    currentUserEmailParam: string,
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
     report?: OnyxEntry<Report>,
@@ -9067,8 +9067,8 @@ function hasAnyViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
     reportTransactions?: Transaction[],
-    currentUserEmailParam?: string,
     report?: OnyxEntry<Report>,
     policy?: OnyxEntry<Policy>,
 ) {
@@ -9096,12 +9096,13 @@ function shouldBlockSubmitDueToStrictPolicyRules(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     areStrictPolicyRulesEnabled: boolean,
     currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
     reportTransactions?: Transaction[],
 ) {
     if (!areStrictPolicyRulesEnabled) {
         return false;
     }
-    return hasAnyViolations(reportID, transactionViolations, currentUserAccountIDParam, reportTransactions);
+    return hasAnyViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, reportTransactions);
 }
 
 type ReportErrorsAndReportActionThatRequiresAttention = {

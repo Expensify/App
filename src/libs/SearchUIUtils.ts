@@ -1279,7 +1279,7 @@ function getActions(
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
     const isChatReportArchived = isArchivedReport(chatReportRNVP);
 
-    const hasAnyViolationsForReport = hasAnyViolations(report.reportID, allViolations, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, allReportTransactions, currentUserEmail, report, policy);
+    const hasAnyViolationsForReport = hasAnyViolations(report.reportID, allViolations, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail, allReportTransactions, report, policy);
     const hasVisibleViolationsForReport =
         hasAnyViolationsForReport &&
         ViolationsUtils.hasVisibleViolationsForUser(report, allViolations, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, policy, allReportTransactions);

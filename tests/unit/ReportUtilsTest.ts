@@ -8559,7 +8559,7 @@ describe('ReportUtils', () => {
                 ],
             };
 
-            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, false, CONST.DEFAULT_NUMBER_ID);
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, false, CONST.DEFAULT_NUMBER_ID, '');
 
             expect(result).toBe(false);
         });
@@ -8567,7 +8567,7 @@ describe('ReportUtils', () => {
         it('should return false when areStrictPolicyRulesEnabled is true but no violations exist', () => {
             const transactionViolations = {};
 
-            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, 0);
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, 0, '');
 
             expect(result).toBe(false);
         });
@@ -8583,7 +8583,7 @@ describe('ReportUtils', () => {
                 ],
             };
 
-            const result = shouldBlockSubmitDueToStrictPolicyRules(undefined, transactionViolations, true, 0);
+            const result = shouldBlockSubmitDueToStrictPolicyRules(undefined, transactionViolations, true, 0, '');
 
             expect(result).toBe(false);
         });
@@ -8612,7 +8612,7 @@ describe('ReportUtils', () => {
                 ],
             };
 
-            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, false, 0, transactions);
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, false, 0, '', transactions);
 
             expect(result).toBe(false);
         });
@@ -8641,7 +8641,7 @@ describe('ReportUtils', () => {
                 ],
             };
 
-            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, 0, transactions);
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, 0, '', transactions);
 
             expect(result).toBe(true);
         });

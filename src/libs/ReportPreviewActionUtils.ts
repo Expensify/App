@@ -29,7 +29,7 @@ import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
 
-function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
+function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, currentUserEmail: string, policy?: Policy, transactions?: Transaction[]) {
     if (isReportArchived) {
         return false;
     }
@@ -45,7 +45,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     }
 
     const currentUserID = getCurrentUserAccountID();
-    const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations, currentUserID);
+    const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations, currentUserID, currentUserEmail);
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
@@ -102,6 +102,7 @@ function canPay(
     report: Report,
     violations: OnyxCollection<TransactionViolation[]>,
     isReportArchived: boolean,
+    currentUserEmail: string,
     policy?: Policy,
     invoiceReceiverPolicy?: Policy,
     shouldConsiderViolations = true,
@@ -122,7 +123,7 @@ function canPay(
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isReimbursed = isSettled(report);
 
-    const hasAnyViolations = hasAnyViolationsUtil(report.reportID, violations, getCurrentUserAccountID());
+    const hasAnyViolations = hasAnyViolationsUtil(report.reportID, violations, getCurrentUserAccountID(), currentUserEmail);
 
     if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && (!hasAnyViolations || !shouldConsiderViolations) && reimbursableSpend !== 0) {
         return true;
@@ -152,7 +153,7 @@ function canPay(
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, currentUserEmail:string, policy?: Policy) {
     const isExpense = isExpenseReport(report);
     const isExporter = policy ? isPreferredExporter(policy) : false;
     const isReimbursed = isSettled(report);
@@ -160,7 +161,7 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
     const isApproved = isReportApproved({report});
     const connectedIntegration = getValidConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const hasAnyViolations = hasAnyViolationsUtil(report.reportID, violations, getCurrentUserAccountID());
+    const hasAnyViolations = hasAnyViolationsUtil(report.reportID, violations, getCurrentUserAccountID(), currentUserEmail);
 
     if (!connectedIntegration || !isExpense || !isExporter) {
         return false;
@@ -192,7 +193,7 @@ function canReview(
     policy: Policy | undefined,
     transactions: Transaction[],
 ) {
-    const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations, currentUserAccountID);
+    const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations, currentUserAccountID, currentUserEmail);
     const hasVisibleViolations = hasAnyViolations && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, currentUserAccountID, policy, transactions);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenExpenseReport(report);
@@ -203,7 +204,7 @@ function canReview(
         isReimbursed ||
         (!(isSubmitter && isOpen && policy?.areWorkflowsEnabled) &&
             !canApprove(report, violations, currentUserEmail, policy, transactions, false) &&
-            !canPay(report, violations, isReportArchived, policy, policy, false))
+            !canPay(report, violations, isReportArchived, currentUserEmail, policy, policy, false))
     ) {
         return false;
     }
@@ -257,21 +258,21 @@ function getReportPreviewAction(
     }
 
     // When strict policy rules are enabled and there are violations, show REVIEW button instead of SUBMIT
-    const shouldBlockSubmit = shouldBlockSubmitDueToStrictPolicyRules(report.reportID, violations, areStrictPolicyRulesEnabled ?? false, currentUserAccountID, transactions);
+    const shouldBlockSubmit = shouldBlockSubmitDueToStrictPolicyRules(report.reportID, violations, areStrictPolicyRulesEnabled ?? false, currentUserAccountID, currentUserEmail, transactions);
     if (shouldBlockSubmit && canReview(report, violations, isReportArchived, currentUserEmail, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 
-    if (canSubmit(report, violations, isReportArchived, policy, transactions)) {
+    if (canSubmit(report, violations, isReportArchived, currentUserEmail, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, violations, currentUserEmail, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, violations, isReportArchived, policy, invoiceReceiverPolicy)) {
+    if (canPay(report, violations, isReportArchived, currentUserEmail, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, violations, policy)) {
+    if (canExport(report, violations, currentUserEmail, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
     if (canReview(report, violations, isReportArchived, currentUserEmail, currentUserAccountID, policy, transactions)) {
