@@ -7693,6 +7693,11 @@ const translations = {
             description: "Next, you'll need to verify ownership of the domain and adjust your security settings.",
             configure: 'Configure',
         },
+        enhancedSecurity: {
+            title: 'Enhanced security',
+            subtitle: 'Require members on your domain to log in via single sign-on, restrict workspace creation, and more.',
+            enable: 'Enable',
+        },
     },
 };
 

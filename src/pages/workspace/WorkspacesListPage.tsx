@@ -9,6 +9,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import type {DomainItem} from '@components/Domain/DomainMenuItem';
 import DomainMenuItem from '@components/Domain/DomainMenuItem';
+import DomainsEmptyStateComponent from '@components/DomainsEmptyStateComponent';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {MenuItemProps} from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
@@ -89,7 +90,7 @@ type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
         isJoinRequestPending?: boolean;
     };
 
-type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'domains-header' | 'workspaces-empty-state'};
+type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'domains-header' | 'workspaces-empty-state' | 'domains-empty-state'};
 
 type GetWorkspaceMenuItem = {item: WorkspaceItem; index: number};
 
@@ -700,8 +701,8 @@ function WorkspacesListPage() {
 
     useHandleBackButton(onBackButtonPress);
 
-    const data = useMemo(() => {
-        const shouldShowDomainsSection = !inputValue.trim().length && domains.length;
+    const data: WorkspaceOrDomainListItem[] = useMemo(() => {
+        const shouldShowDomainsSection = !inputValue.trim().length;
 
         return [
             // workspaces empty state
@@ -710,6 +711,8 @@ function WorkspacesListPage() {
             filteredWorkspaces,
             // domains header and domains
             shouldShowDomainsSection ? [{listItemType: 'domains-header' as const}, ...domains] : [],
+            // domains empty state
+            shouldShowDomainsSection && !domains.length ? [{listItemType: 'domains-empty-state' as const}] : [],
         ].flat();
     }, [domains, filteredWorkspaces, workspaces.length, inputValue]);
 
@@ -720,7 +723,6 @@ function WorkspacesListPage() {
                 case 'workspace': {
                     return getWorkspaceMenuItem({item, index});
                 }
-
                 case 'domain': {
                     return (
                         <DomainMenuItem
@@ -729,7 +731,6 @@ function WorkspacesListPage() {
                         />
                     );
                 }
-
                 case 'domains-header': {
                     return (
                         <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5, styles.pv3, styles.mt0, styles.mb0]}>
@@ -737,11 +738,12 @@ function WorkspacesListPage() {
                         </View>
                     );
                 }
-
                 case 'workspaces-empty-state': {
                     return <WorkspacesEmptyStateComponent />;
                 }
-
+                case 'domains-empty-state': {
+                    return <DomainsEmptyStateComponent />;
+                }
                 default:
                     return null;
             }
