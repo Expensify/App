@@ -1207,6 +1207,17 @@ Onyx.connect({
     },
 });
 
+let selfDMReportID: string | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SELF_DM_REPORT_ID,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        selfDMReportID = value;
+    },
+});
+
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -1857,7 +1868,12 @@ function findSelfDMReportID(): string | undefined {
         return;
     }
 
+    if (selfDMReportID) {
+        return selfDMReportID;
+    }
+
     const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
+
     return selfDMReport?.reportID;
 }
 
@@ -2480,9 +2496,8 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
  */
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
-        const selfDMReportID = findSelfDMReportID();
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
-        return !isEmptyObject(parentReportAction) && selfDMReportID === report.parentReportID && isTrackExpenseAction(parentReportAction);
+        return !isEmptyObject(parentReportAction) && findSelfDMReportID() === report.parentReportID && isTrackExpenseAction(parentReportAction);
     }
     return false;
 }
@@ -5674,6 +5689,9 @@ function getReportName(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         return getDowngradeWorkspaceMessage();
     }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
+        return getForcedCorporateUpgradeMessage();
+    }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
         return getWorkspaceCurrencyUpdateMessage(parentReportAction);
     }
@@ -6469,7 +6487,7 @@ function buildOptimisticTaskCommentReportAction(
 
 function buildOptimisticSelfDMReport(created: string): Report {
     return {
-        reportID: generateReportID(),
+        reportID: findSelfDMReportID() ?? generateReportID(),
         participants: {
             [currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
@@ -6799,6 +6817,11 @@ function getUpgradeWorkspaceMessage() {
     return translateLocal('workspaceActions.upgradedWorkspace');
 }
 
+function getForcedCorporateUpgradeMessage() {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.forcedCorporateUpgrade');
+}
+
 function getDowngradeWorkspaceMessage() {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('workspaceActions.downgradedWorkspace');
@@ -6832,8 +6855,7 @@ function getMovedTransactionMessage(report: OnyxEntry<Report>) {
 }
 
 function getUnreportedTransactionMessage() {
-    const selfDMReportID = findSelfDMReportID();
-    const reportUrl = `${environmentURL}/r/${selfDMReportID}`;
+    const reportUrl = `${environmentURL}/r/${findSelfDMReportID()}`;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const message = translateLocal('iou.unreportedTransaction', {
         reportUrl,
@@ -11551,16 +11573,13 @@ function prepareOnboardingOnyxData(
         },
     );
 
-    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [textCommentAction.reportActionID]: textCommentAction as ReportAction,
-            },
-        });
-    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [textCommentAction.reportActionID]: textCommentAction as ReportAction,
+        },
+    });
 
     if (!wasInvited) {
         optimisticData.push({
@@ -11572,16 +11591,13 @@ function prepareOnboardingOnyxData(
 
     const successData: OnyxUpdate[] = [...tasksForSuccessData];
 
-    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [textCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
-            },
-        });
-    }
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [textCommentAction.reportActionID]: {pendingAction: null, isOptimisticAction: null},
+        },
+    });
 
     let failureReport: Partial<Report> = {
         lastMessageText: '',
@@ -11619,18 +11635,16 @@ function prepareOnboardingOnyxData(
             },
         },
     );
-    // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
-    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [textCommentAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
-            },
-        });
-    }
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [textCommentAction.reportActionID]: {
+                errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericAddCommentFailureMessage'),
+            } as ReportAction,
+        },
+    });
 
     if (!wasInvited) {
         failureData.push({
@@ -11684,14 +11698,11 @@ function prepareOnboardingOnyxData(
     // If we post tasks in the #admins room and introSelected?.choice does not exist, it means that a guide is assigned and all messages except tasks are handled by the backend
     const guidedSetupData: GuidedSetupData = [];
 
-    if (!shouldPostTasksInAdminsRoom || !!introSelected?.choice) {
-        guidedSetupData.push({type: 'message', ...textMessage});
-    }
+    guidedSetupData.push({type: 'message', ...textMessage});
 
     let selfDMParameters: SelfDMParameters = {};
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-        const selfDMReportID = findSelfDMReportID();
-        let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+        let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`];
         let createdAction: ReportAction;
         if (!selfDMReport) {
             const currentTime = DateUtils.getDBTime();
@@ -12762,6 +12773,7 @@ export {
     getWorkspaceNameUpdatedMessage,
     getDeletedTransactionMessage,
     getUpgradeWorkspaceMessage,
+    getForcedCorporateUpgradeMessage,
     getDowngradeWorkspaceMessage,
     getIcons,
     sortIconsByName,
