@@ -24,6 +24,7 @@ import type {Report} from '@src/types/onyx';
 import IOURequestEditReportCommon from './IOURequestEditReportCommon';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+import {getPolicyByCustomUnitID} from '@libs/PolicyUtils';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -110,11 +111,12 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     const createReportForPolicy = () => {
-        if (!policyForMovingExpensesID) {
+        if (!hasPerDiemTransactions && !policyForMovingExpensesID) {
             return;
         }
 
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
+        const policyForNewReport = hasPerDiemTransactions ? selectedReport?.policyID : policyForMovingExpensesID;
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport);
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 
@@ -126,7 +128,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
-        if (!policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (hasPerDiemTransactions) {
+            handleCreateReport();
+            return;
+        }
+        if (!hasPerDiemTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {
