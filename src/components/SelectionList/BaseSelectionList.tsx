@@ -400,14 +400,16 @@ function BaseSelectionList<TItem extends ListItem>({
         const currentSearchValue = textInputOptions?.value;
         const searchChanged = prevSearchValue !== currentSearchValue;
         const selectedOptionsChanged = dataDetails.selectedOptions.length !== prevSelectedOptionsLength;
-        // Focus shouldn't be changed if: input value is the same or data length is 0
-        // shouldUpdateFocusedIndex is true => other function handles the focus
+        // Do not change focus if:
+        // 1. Input value is the same or
+        // 2. Data length is 0 or
+        // 3. shouldUpdateFocusedIndex is true => other function handles the focus
         if ((!searchChanged && !selectedOptionsChanged) || data.length === 0 || shouldUpdateFocusedIndex) {
             return;
         }
 
-        // Clearing search
-        if (prevSearchValue && !currentSearchValue) {
+        const hasSearchBeenCleared = prevSearchValue && !currentSearchValue;
+        if (hasSearchBeenCleared) {
             const foundSelectedItemIndex = data.findIndex(isItemSelected);
 
             if (foundSelectedItemIndex !== -1 && !canSelectMultiple) {
@@ -417,7 +419,9 @@ function BaseSelectionList<TItem extends ListItem>({
             }
         }
 
-        // Remove focus (-1) if the search is idle or if the user is just toggling options without changing the list content
+        // Remove focus (set focused index to -1) if:
+        // 1. If the search is idle or
+        // 2. If the user is just toggling options without changing the list content
         // Otherwise (e.g. when filtering/typing), focus on the first item (0)
         const isSearchIdle = !prevSearchValue && !currentSearchValue;
         const newSelectedIndex = isSearchIdle || (selectedOptionsChanged && prevAllOptionsLength === data.length) ? -1 : 0;
