@@ -385,6 +385,14 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
+        reportLayoutGroupHeader: {
+            paddingHorizontal: 12,
+            marginTop: 16,
+            marginBottom: 8,
+            backgroundColor: theme.appBG,
+            justifyContent: 'center',
+        },
+
         fontSizeLabel: {
             fontSize: variables.fontSizeLabel,
         },
@@ -595,8 +603,13 @@ const staticStyles = (theme: ThemeColors) =>
         textBold: {
             fontWeight: FontUtils.fontWeight.bold,
         },
+
         textItalic: {
             ...FontUtils.fontFamily.platform.MONOSPACE_ITALIC,
+        },
+
+        textMono: {
+            ...FontUtils.fontFamily.platform.MONOSPACE,
         },
 
         textVersion: {
@@ -932,6 +945,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         visibilityHidden: {
             ...visibility.hidden,
+        },
+
+        visibilityVisible: {
+            ...visibility.visible,
         },
 
         loadingVBAAnimation: {
@@ -1835,7 +1852,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         optionRowCompact: {
-            height: variables.optionRowHeightCompact,
             minHeight: variables.optionRowHeightCompact,
             paddingTop: 12,
             paddingBottom: 12,
@@ -4554,10 +4570,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 30,
             width: '100%',
         },
+
         menuItemError: {
             marginTop: 4,
             marginBottom: 0,
         },
+
         formHelperMessage: {
             height: 32,
             marginTop: 0,
@@ -5492,13 +5510,24 @@ const staticStyles = (theme: ThemeColors) =>
         copyableTextField: {
             color: theme.textSupporting,
             flex: 1,
+            ...FontUtils.fontFamily.platform.MONOSPACE,
             ...wordBreak.breakWord,
+        },
+        copyableTextFieldButton: {
+            width: 28,
+            height: 28,
+            borderRadius: variables.buttonBorderRadius,
+            justifyContent: 'center',
+            alignItems: 'center',
         },
         moneyRequestView: {
             position: 'relative',
             paddingTop: 16,
             marginTop: -16,
             ...overflowMoneyRequestView,
+        },
+        wordBreakAll: {
+            ...wordBreak.breakAll,
         },
     }) satisfies StaticStyles;
 
