@@ -6563,6 +6563,18 @@ ${
             message: 'We konden niet controleren op een update. Probeer het over een tijdje opnieuw.',
         },
     },
+    reportLayout: {
+        reportLayout: 'Rapportindeling',
+        groupByLabel: 'Groeperen op:',
+        selectGroupByOption: 'Selecteer hoe rapportkosten worden gegroepeerd',
+        uncategorized: 'Niet gecategoriseerd',
+        noTag: 'Geen tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Selecteer alle uitgaven in ${groupName}`,
+        groupBy: {
+            category: 'Categorie',
+            tag: 'Tag',
+        },
+    },
     report: {
         newReport: {
             createReport: 'Rapport maken',
@@ -7422,13 +7434,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Welkom bij New Expensify!',
-        subtitle: 'Nieuwe Expensify heeft dezelfde geweldige automatisering, maar nu met geweldige samenwerking:',
+        subtitle: 'Het heeft alles wat je leuk vindt aan onze klassieke ervaring, plus een heleboel upgrades om je leven nog makkelijker te maken:',
         confirmText: 'Laten we gaan!',
         features: {
-            chat: '<strong>Chat direct op elke uitgave</strong>, rapport of werkruimte',
-            scanReceipt: '<strong>Scan bonnetjes</strong> en krijg je geld terugbetaald',
-            crossPlatform: 'Doe <strong>alles</strong> vanaf je telefoon of browser',
+            chat: 'Chat bij elke uitgave om vragen snel op te lossen',
+            search: 'Krachtigere zoekfunctie op mobiel, web en desktop',
+            concierge: 'Ingebouwde Concierge AI om je onkosten te automatiseren',
         },
+        helpText: 'Probeer de 2-minuten-demo',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room

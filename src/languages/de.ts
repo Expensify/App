@@ -6593,6 +6593,18 @@ ${
             message: 'Wir konnten nicht nach einem Update suchen. Bitte versuchen Sie es in Kürze erneut.',
         },
     },
+    reportLayout: {
+        reportLayout: 'Berichtslayout',
+        groupByLabel: 'Gruppieren nach:',
+        selectGroupByOption: 'Wählen Sie aus, wie die Berichtsausgaben gruppiert werden sollen',
+        uncategorized: 'Nicht kategorisiert',
+        noTag: 'Kein Tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Alle Ausgaben in ${groupName} auswählen`,
+        groupBy: {
+            category: 'Kategorie',
+            tag: 'Tag',
+        },
+    },
     report: {
         newReport: {
             createReport: 'Bericht erstellen',
@@ -7459,13 +7471,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Willkommen bei New Expensify!',
-        subtitle: 'New Expensify hat die gleiche großartige Automatisierung, aber jetzt mit erstaunlicher Zusammenarbeit:',
+        subtitle: 'Es enthält alles, was du an unserem klassischen Erlebnis liebst, mit einer ganzen Reihe von Verbesserungen, die dein Leben noch einfacher machen:',
         confirmText: "Los geht's!",
         features: {
-            chat: '<strong>Chatten Sie direkt über jede Ausgabe</strong>, jeden Bericht oder Arbeitsbereich',
-            scanReceipt: '<strong>Belege scannen</strong> und Rückerstattung erhalten',
-            crossPlatform: 'Erledigen Sie <strong>alles</strong> von Ihrem Telefon oder Browser aus',
+            chat: 'Chatte zu jeder Ausgabe, um Fragen schnell zu klären',
+            search: 'Leistungsstärkere Suche auf Mobilgeräten, im Web und auf dem Desktop',
+            concierge: 'Integrierte Concierge-KI zur Automatisierung Ihrer Ausgaben',
         },
+        helpText: '2-Minuten-Demo ausprobieren',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room

@@ -6601,6 +6601,18 @@ ${
             message: "Nous n'avons pas pu vérifier la mise à jour. Veuillez réessayer dans un moment.",
         },
     },
+    reportLayout: {
+        reportLayout: 'Mise en page du rapport',
+        groupByLabel: 'Grouper par :',
+        selectGroupByOption: 'Sélectionnez comment grouper les dépenses du rapport',
+        uncategorized: 'Non catégorisé',
+        noTag: 'Pas de tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Sélectionner toutes les dépenses dans ${groupName}`,
+        groupBy: {
+            category: 'Catégorie',
+            tag: 'Tag',
+        },
+    },
     report: {
         newReport: {
             createReport: 'Créer un rapport',
@@ -7464,13 +7476,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Bienvenue sur New Expensify !',
-        subtitle: 'New Expensify a la même excellente automatisation, mais maintenant avec une collaboration incroyable :',
+        subtitle: 'Il inclut tout ce que vous aimez de notre expérience classique, avec une foule d’améliorations pour vous faciliter encore plus la vie :',
         confirmText: 'Allons-y !',
         features: {
-            chat: "<strong>Discutez directement sur n'importe quelle dépense</strong>, rapport ou espace de travail",
-            scanReceipt: '<strong>Scannez les reçus</strong> et soyez remboursé',
-            crossPlatform: 'Faites <strong>tout</strong> depuis votre téléphone ou navigateur',
+            chat: 'Discutez de n’importe quelle dépense pour répondre rapidement aux questions',
+            search: 'Une recherche plus puissante sur mobile, web et ordinateur de bureau',
+            concierge: 'IA Concierge intégrée pour aider à automatiser vos dépenses',
         },
+        helpText: 'Essayer la démo de 2 min',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
