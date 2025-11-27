@@ -2796,7 +2796,7 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
 
         const iouReport = typeof iouReportOrID !== 'string' && iouReportOrID?.reportID === iouReportID ? iouReportOrID : getReportOrDraftReport(iouReportID);
         const transactions = getReportTransactions(iouReportID);
-        
+
         const hasAutoRejectedTransactionsForManager =
             !!iouReport &&
             iouReport.managerID === currentUserAccountID &&
