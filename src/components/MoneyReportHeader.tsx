@@ -858,7 +858,9 @@ function MoneyReportHeader({
                     const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions, transactions, policy);
 
                     if (IOUActions.length) {
-                        IOUActions.forEach(changeMoneyRequestHoldStatus);
+                        for (const action of IOUActions) {
+                            changeMoneyRequestHoldStatus(action);
+                        }
                         return;
                     }
 
