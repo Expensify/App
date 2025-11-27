@@ -49,7 +49,7 @@ import type {
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertAmountToDisplayString, convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertAmountToDisplayString, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -67,6 +67,7 @@ import isFileUploadable from '@libs/isFileUploadable';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
+import {validateAmount} from '@libs/MoneyRequestUtils';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -3766,6 +3767,13 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     }
     const formattedTime = DateUtils.getFormattedDateRangeForPerDiem(new Date(startDate), new Date(endDate));
     return `${locationName}, ${formattedTime}`;
+}
+
+function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, iouCurrencyCode?: string) {
+    const perDiemAmountInCents = computePerDiemExpenseAmount(customUnit);
+    const perDiemAmountString = convertToFrontendAmountAsString(perDiemAmountInCents, iouCurrencyCode);
+    const decimals = getCurrencyDecimals(iouCurrencyCode);
+    return validateAmount(perDiemAmountString, decimals);
 }
 
 function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, currency: string) {
@@ -14802,6 +14810,7 @@ export {
     markRejectViolationAsResolved,
     setMoneyRequestReimbursable,
     computePerDiemExpenseAmount,
+    isValidPerDiemExpenseAmount,
     getIOUActionForTransactions,
     initSplitExpense,
     initSplitExpenseItemData,
