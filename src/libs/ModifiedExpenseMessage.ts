@@ -5,8 +5,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
-import {getDecodedCategoryName} from './CategoryUtils';
-import {isCategoryMissing} from './CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
