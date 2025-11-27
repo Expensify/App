@@ -90,7 +90,6 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const changedReportsEntries = useMemo(() => {
         const result: OnyxCollection<OnyxEntry<Report> | null> = {};
 
-        // eslint-disable-next-line unicorn/no-array-for-each
         Object.keys(changedReports ?? {}).forEach((key) => {
             let report: Report | null = reports?.[key] ?? null;
             result[key] = report;
@@ -116,7 +115,6 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             }
 
             const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
-            // eslint-disable-next-line unicorn/no-array-for-each
             changedReportKeys.forEach((reportKey) => {
                 const report = changedReportsEntries[reportKey];
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
@@ -148,7 +146,6 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             }
 
             const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
-            // eslint-disable-next-line unicorn/no-array-for-each
             changedReportActionsEntries.forEach(([key, reportAction]) => {
                 if (!reportAction) {
                     return;
@@ -199,7 +196,6 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             newReportOption: SearchOption<Report>;
         }> = [];
 
-        // eslint-disable-next-line unicorn/no-array-for-each
         Object.keys(personalDetails).forEach((accountID) => {
             const prevPersonalDetail = prevPersonalDetails?.[accountID];
             const personalDetail = personalDetails[accountID];
@@ -210,7 +206,6 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 
             Object.values(reports ?? {})
                 .filter((report) => accountID in (report?.participants ?? {}) || (isSelfDM(report) && report?.ownerAccountID === Number(accountID)))
-                // eslint-disable-next-line unicorn/no-array-for-each
                 .forEach((report) => {
                     if (!report) {
                         return;
@@ -230,7 +225,6 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
             newOptions.personalDetails = newPersonalDetailsOptions;
-            // eslint-disable-next-line unicorn/no-array-for-each
             newReportOptions.forEach((newReportOption) => (newOptions.reports[newReportOption.replaceIndex] = newReportOption.newReportOption));
             return newOptions;
         });
