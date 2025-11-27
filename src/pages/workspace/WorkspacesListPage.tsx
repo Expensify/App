@@ -5,6 +5,7 @@ import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import type {DomainItem} from '@components/Domain/DomainMenuItem';
 import DomainMenuItem from '@components/Domain/DomainMenuItem';
@@ -121,7 +122,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar', 'Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar', 'Plus', 'Globe'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -496,7 +497,10 @@ function WorkspacesListPage() {
         [shouldUseNarrowLayout],
     );
 
-    const navigateToDomain = useCallback((accountID: number) => {
+    const navigateToDomain = useCallback(({accountID, isAdmin}: {accountID: number; isAdmin: boolean}) => {
+        if (!isAdmin) {
+            return Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.getRoute(accountID));
+        }
         Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID));
     }, []);
 
@@ -584,7 +588,7 @@ function WorkspacesListPage() {
                 listItemType: 'domain',
                 accountID: domain.accountID,
                 title: Str.extractEmailDomain(domain.email),
-                action: () => navigateToDomain(domain.accountID),
+                action: () => navigateToDomain({accountID: domain.accountID, isAdmin}),
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,
@@ -655,13 +659,37 @@ function WorkspacesListPage() {
         if (isRestrictedPolicyCreation || workspaces.length === 0) {
             return null;
         }
-        return (
+
+        return !domains.length ? (
             <Button
                 accessibilityLabel={translate('workspace.new.newWorkspace')}
                 text={translate('workspace.new.newWorkspace')}
                 onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
                 icon={icons.Plus}
                 style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
+            />
+        ) : (
+            <ButtonWithDropdownMenu
+                success={false}
+                onPress={() => {}}
+                shouldAlwaysShowDropdownMenu
+                customText={translate('common.new')}
+                options={[
+                    {
+                        value: 'workspace',
+                        text: translate('workspace.new.newWorkspace'),
+                        icon: icons.Building,
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
+                    },
+                    {
+                        value: 'domain',
+                        text: 'New domain',
+                        icon: icons.Globe,
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN)),
+                    },
+                ]}
+                isSplitButton={false}
+                wrapperStyle={styles.flexGrow1}
             />
         );
     };

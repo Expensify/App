@@ -49,7 +49,7 @@ function validateDomain(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {isValidationPending: true, domainValidationError: null},
+            value: {isValidationPending: true, domainValidationError: null, hasValidationSucceeded: null},
         },
     ];
 
@@ -57,7 +57,7 @@ function validateDomain(accountID: number, domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`,
-            value: {isValidationPending: null},
+            value: {isValidationPending: null, hasValidationSucceeded: true},
         },
     ];
 
@@ -304,6 +304,26 @@ async function getScimToken(domainName: string): Promise<ScimTokenWithState> {
     }
 }
 
+/** Sends request for claiming a domain */
+function createDomain(domainName: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
+            value: {hasCreationSucceeded: null},
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
+            value: {hasCreationSucceeded: true},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.CREATE_DOMAIN, {domainName}, {optimisticData, successData});
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -316,4 +336,5 @@ export {
     resetSamlRequiredError,
     setSamlIdentity,
     getScimToken,
+    createDomain,
 };

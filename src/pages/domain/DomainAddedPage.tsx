@@ -1,0 +1,37 @@
+import React from 'react';
+import ConfirmationPage from '@components/ConfirmationPage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import ScreenWrapper from '@components/ScreenWrapper';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+
+type DomainAddedPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_DOMAIN_ADDED>;
+
+function DomainAddedPage({route}: DomainAddedPageProps) {
+    const {asset: Encryption} = useMemoizedLazyAsset(() => loadIllustration('Encryption'));
+    const {translate} = useLocalize();
+    const accountID = route.params.accountID;
+
+    return (
+        <ScreenWrapper testID={DomainAddedPage.displayName}>
+            <HeaderWithBackButton title={translate('domain.domainAdded.title')} />
+            <ConfirmationPage
+                illustration={Encryption}
+                heading={translate('domain.domainAdded.title')}
+                description={translate('domain.domainAdded.description')}
+                buttonText={translate('domain.domainAdded.configure')}
+                shouldShowButton
+                onButtonPress={() => Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID))}
+            />
+        </ScreenWrapper>
+    );
+}
+
+DomainAddedPage.displayName = 'DomainAddedPage';
+export default DomainAddedPage;
