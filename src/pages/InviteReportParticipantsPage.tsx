@@ -111,7 +111,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
         }
 
         return sectionsArray;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.recentReports.length, availableOptions.personalDetails.length, availableOptions.userToInvite, translate]);
+    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
