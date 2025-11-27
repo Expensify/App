@@ -1376,6 +1376,9 @@ function changeTransactionsReport(
         transactionList: transactionIDs.join(','),
         reportID,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
+        ...(!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID
+            ? {selfDMReportID: selfDMReport?.reportID, selfDMCreatedReportActionID: selfDMCreatedReportAction?.reportActionID}
+            : {}),
     };
 
     API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {
