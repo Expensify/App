@@ -1,15 +1,15 @@
-import React, {useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetails from '@userActions/PersonalDetails';
+import {updateSelectedTimezone} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import TIMEZONES from '@src/TIMEZONES';
@@ -39,23 +39,36 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 
     const saveSelectedTimezone = ({text}: {text: string}) => {
-        PersonalDetails.updateSelectedTimezone(text as SelectedTimezone, currentUserPersonalDetails.accountID);
+        updateSelectedTimezone(text as SelectedTimezone, currentUserPersonalDetails.accountID);
     };
 
-    const filterShownTimezones = (searchText: string) => {
-        setTimezoneInputText(searchText);
-        const searchWords = searchText.toLowerCase().match(/[a-z0-9]+/g) ?? [];
-        setTimezoneOptions(
-            allTimezones.filter((tz) =>
-                searchWords.every((word) =>
-                    tz.text
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]/g, ' ')
-                        .includes(word),
+    const filterShownTimezones = useCallback(
+        (searchText: string) => {
+            setTimezoneInputText(searchText);
+            const searchWords = searchText.toLowerCase().match(/[a-z0-9]+/g) ?? [];
+            setTimezoneOptions(
+                allTimezones.filter((tz) =>
+                    searchWords.every((word) =>
+                        tz.text
+                            .toLowerCase()
+                            .replaceAll(/[^a-z0-9]/g, ' ')
+                            .includes(word),
+                    ),
                 ),
-            ),
-        );
-    };
+            );
+        },
+        [allTimezones],
+    );
+
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage: timezoneInputText.trim() && !timezoneOptions.length ? translate('common.noResultsFound') : '',
+            value: timezoneInputText,
+            label: translate('timezonePage.timezone'),
+            onChangeText: filterShownTimezones,
+        }),
+        [filterShownTimezones, timezoneInputText, timezoneOptions.length, translate],
+    );
 
     return (
         <ScreenWrapper
@@ -67,18 +80,14 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
             />
             <SelectionList
-                headerMessage={timezoneInputText.trim() && !timezoneOptions.length ? translate('common.noResultsFound') : ''}
-                textInputLabel={translate('timezonePage.timezone')}
-                textInputValue={timezoneInputText}
-                onChangeText={filterShownTimezones}
+                data={timezoneOptions}
+                textInputOptions={textInputOptions}
                 onSelectRow={saveSelectedTimezone}
                 shouldSingleExecuteRowSelect
-                sections={[{data: timezoneOptions, isDisabled: timezone.automatic}]}
-                initiallyFocusedOptionKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
+                initiallyFocusedItemKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
                 showScrollIndicator
                 shouldShowTooltips={false}
                 ListItem={RadioListItem}
-                shouldPreventActiveCellVirtualization
             />
         </ScreenWrapper>
     );

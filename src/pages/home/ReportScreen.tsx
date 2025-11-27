@@ -12,7 +12,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
@@ -27,6 +26,7 @@ import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
@@ -70,6 +70,7 @@ import {
     getReportOfflinePendingActionAndErrors,
     getReportTransactions,
     isAdminRoom,
+    isAnnounceRoom,
     isChatThread,
     isConciergeChatReport,
     isGroupChat,
@@ -84,6 +85,7 @@ import {
     isTaskReport,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
+import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
@@ -150,6 +152,7 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
+    const Expensicons = useMemoizedLazyExpensifyIcons(['Lightbulb'] as const);
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
@@ -322,7 +325,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {transactions: allReportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportIDFromRoute);
     const hasPendingDeletionTransaction = Object.values(allReportTransactions ?? {}).some((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-    const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true), [allReportTransactions, reportActions, isOffline]);
+    const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline), [allReportTransactions, reportActions, isOffline]);
     // wrapping in useMemo because this is array operation and can cause performance issues
     const visibleTransactions = useMemo(
         () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
@@ -507,7 +510,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-        createTransactionThreadReport(report, iouAction, currentReportTransaction.at(0));
+        createTransactionThreadReport(report, iouAction);
     }, [report, reportID]);
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
@@ -523,7 +526,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         // If there is one transaction thread that has not yet been created, we should create it.
-        if ((transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) || (visibleTransactions.length === 1 && !transactionThreadReportID)) {
+        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
             createOneTransactionThreadReport();
             return;
         }
@@ -549,7 +552,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         isOffline,
         transactionThreadReportID,
         transactionThreadReport,
-        visibleTransactions.length,
         reportIDFromRoute,
         reportActionIDFromRoute,
         createOneTransactionThreadReport,
@@ -601,6 +603,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
         return () => {
             skipOpenReportListener.remove();
+
+            // We need to cancel telemetry span when user leaves the screen before full report data is loaded
+            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
         };
     }, [reportID]);
 
@@ -686,7 +691,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const prevOnyxReportID = prevReport?.reportID;
         const wasReportRemoved = !!prevOnyxReportID && prevOnyxReportID === reportIDFromRoute && !onyxReportID;
         const isRemovalExpectedForReportType =
-            isEmpty(report) && (isMoneyRequest(prevReport) || isMoneyRequestReport(prevReport) || isPolicyExpenseChat(prevReport) || isGroupChat(prevReport) || isAdminRoom(prevReport));
+            isEmpty(report) &&
+            (isMoneyRequest(prevReport) ||
+                isMoneyRequestReport(prevReport) ||
+                isPolicyExpenseChat(prevReport) ||
+                isGroupChat(prevReport) ||
+                isAdminRoom(prevReport) ||
+                isAnnounceRoom(prevReport));
         const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
         const isTopLevelPolicyRoomWithNoStatus = !report?.statusNum && !prevReport?.parentReportID && prevReport?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
         const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;

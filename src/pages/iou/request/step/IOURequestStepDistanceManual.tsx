@@ -65,7 +65,7 @@ function IOURequestStepDistanceManual({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceManualProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
 
@@ -86,6 +86,7 @@ function IOURequestStepDistanceManual({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
@@ -226,12 +227,13 @@ function IOURequestStepDistanceManual({
                             currency: transaction?.currency ?? 'USD',
                             merchant: translate('iou.fieldPending'),
                             billable: !!policy?.defaultBillable,
-                            customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates, localeCompare}),
+                            customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
                             splitShares: transaction?.splitShares,
                             attendees: transaction?.comment?.attendees,
                         },
                         backToReport,
                         isASAPSubmitBetaEnabled,
+                        transactionViolations,
                     });
                     return;
                 }
@@ -257,7 +259,6 @@ function IOURequestStepDistanceManual({
                     isPolicyExpenseChat: true,
                     policy: defaultExpensePolicy,
                     lastSelectedDistanceRates,
-                    localeCompare,
                 });
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setCustomUnitRateID(transactionID, rateID);
@@ -295,12 +296,12 @@ function IOURequestStepDistanceManual({
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
             lastSelectedDistanceRates,
-            localeCompare,
             backToReport,
             isASAPSubmitBetaEnabled,
             customUnitRateID,
             navigateToConfirmationPage,
             personalPolicy?.autoReporting,
+            transactionViolations,
         ],
     );
 

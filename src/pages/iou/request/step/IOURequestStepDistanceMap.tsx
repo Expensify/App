@@ -82,7 +82,7 @@ function IOURequestStepDistanceMap({
 }: IOURequestStepDistanceMapProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -94,6 +94,7 @@ function IOURequestStepDistanceMap({
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: false});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const waypoints = useMemo(
         () =>
@@ -371,12 +372,13 @@ function IOURequestStepDistanceMap({
                         billable: !!policy?.defaultBillable,
                         reimbursable: !!policy?.defaultReimbursable,
                         validWaypoints: getValidWaypoints(waypoints, true),
-                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates, localeCompare}),
+                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
                         splitShares: transaction?.splitShares,
                         attendees: transaction?.comment?.attendees,
                     },
                     backToReport,
                     isASAPSubmitBetaEnabled,
+                    transactionViolations,
                 });
                 return;
             }
@@ -402,7 +404,6 @@ function IOURequestStepDistanceMap({
                 isPolicyExpenseChat: true,
                 policy: defaultExpensePolicy,
                 lastSelectedDistanceRates,
-                localeCompare,
             });
             setTransactionReport(transactionID, {reportID: transactionReportID}, true);
             setCustomUnitRateID(transactionID, rateID);
@@ -437,13 +438,13 @@ function IOURequestStepDistanceMap({
         policy,
         waypoints,
         lastSelectedDistanceRates,
-        localeCompare,
         backToReport,
         isASAPSubmitBetaEnabled,
         customUnitRateID,
         navigateToConfirmationPage,
         personalPolicy?.autoReporting,
         reportID,
+        transactionViolations,
     ]);
 
     const getError = () => {
@@ -472,13 +473,13 @@ function IOURequestStepDistanceMap({
 
             const newWaypoints: WaypointCollection = {};
             let emptyWaypointIndex = -1;
-            data.forEach((waypoint, index) => {
+            for (const [index, waypoint] of data.entries()) {
                 newWaypoints[`waypoint${index}`] = waypoints[waypoint] ?? {};
                 // Find waypoint that BECOMES empty after dragging
                 if (isWaypointEmpty(newWaypoints[`waypoint${index}`]) && !isWaypointEmpty(waypoints[`waypoint${index}`])) {
                     emptyWaypointIndex = index;
                 }
-            });
+            }
 
             setOptimisticWaypoints(newWaypoints);
             Promise.all([
