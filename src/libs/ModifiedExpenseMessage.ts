@@ -297,7 +297,7 @@ function getForReportAction({
         }
 
         let oldCategory = reportActionOriginalMessage?.oldCategory ?? '';
-        
+
         // If it was uncategorized, display as lowercase without quotes, otherwise use decoded name
         if (isCategoryMissing(oldCategory)) {
             oldCategory = oldCategory.toLowerCase();
