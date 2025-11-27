@@ -484,9 +484,9 @@ function isPartialMerchant(merchant: string): boolean {
 
 function isAmountMissing(transaction: OnyxEntry<Transaction>) {
     if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
-        return !transaction?.amount && (!transaction?.modifiedAmount || transaction?.modifiedAmount === '');
+        return transaction?.amount === undefined && (!transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
     }
-    return (transaction?.amount === 0 || !transaction?.amount) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
+    return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
 }
 
 function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
