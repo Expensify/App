@@ -17,6 +17,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -27,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {getIsUserSubmittedExpenseOrScannedReceipt} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -235,6 +236,21 @@ function IOURequestStartPage({
     };
 
     useHandleBackButton(onBackButtonPress);
+
+    // Fetch per diem rates for policies with per diem enabled, especially to make per diem tab visible after clearing cache
+    useEffect(() => {
+        if (!isFromGlobalCreate || isOffline) {
+            return;
+        }
+
+        const policiesWithPerDiemEnabled = getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserPersonalDetails.login);
+        policiesWithPerDiemEnabled.forEach((perDiemPolicy) => {
+            if (!isEmptyObject(perDiemCustomUnit?.rates)) {
+                return;
+            }
+            fetchPerDiemRates(perDiemPolicy.id);
+        });
+    }, [isFromGlobalCreate, isOffline, perDiemCustomUnit?.rates, allPolicies, currentUserPersonalDetails.login]);
 
     return (
         <AccessOrNotFoundWrapper
