@@ -255,7 +255,8 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         // We allow user to select unreported report
         if (field === 'reportID') {
             if (targetValue === sourceValue) {
-                mergeableData[field] = targetValue;
+                const updatedValues = getMergeFieldUpdatedValues(targetTransaction, field, SafeString(targetValue));
+                Object.assign(mergeableData, updatedValues);
             } else {
                 conflictFields.push(field);
             }
@@ -360,6 +361,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
         reportID: mergeTransaction.reportID,
+        reportName: mergeTransaction.reportName,
         routes: mergeTransaction.routes,
         taxValue: mergeTransaction.taxValue,
         taxAmount: mergeTransaction.taxAmount,
@@ -414,7 +416,11 @@ function getDisplayValue(field: MergeFieldKey, transaction: Transaction, policy:
         return getCommaSeparatedTagNameWithSanitizedColons(SafeString(fieldValue));
     }
     if (field === 'reportID') {
-        return fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID ? translate('common.none') : getReportName(getReportOrDraftReport(SafeString(fieldValue)));
+        if (fieldValue === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            return translate('common.none');
+        }
+
+        return transaction?.reportName ?? getReportName(getReportOrDraftReport(SafeString(fieldValue)));
     }
     if (field === 'attendees') {
         return Array.isArray(fieldValue) ? getAttendeesListDisplayString(fieldValue) : '';
@@ -495,6 +501,10 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(params: GetMergeFie
         if (mergeTransaction?.taxValue && transaction?.amount) {
             updatedValues.taxAmount = convertToBackendAmount(calculateTaxAmount(mergeTransaction?.taxValue, transaction.amount, getCurrency(transaction)));
         }
+    }
+
+    if (field === 'reportID') {
+        updatedValues.reportName = transaction?.reportName ?? getReportName(getReportOrDraftReport(getReportIDForExpense(transaction)));
     }
 
     if (field === 'merchant' && isDistanceRequest(transaction)) {
