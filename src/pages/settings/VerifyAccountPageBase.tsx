@@ -43,9 +43,10 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
     const handleCloseWithFallback = useCallback(() => {
         if (handleClose) {
             handleClose();
+            return;
         }
         Navigation.goBack(navigateBackTo);
-    }, [navigateBackTo]);
+    }, [handleClose, navigateBackTo]);
 
     // Handle navigation once the user is validated
     useEffect(() => {
