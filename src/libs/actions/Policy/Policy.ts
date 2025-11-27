@@ -132,7 +132,8 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate, UberReceiptPartner} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
-import type {NotificationPreference, ReportNextStep} from '@src/types/onyx/Report';
+import type {NotificationPreference} from '@src/types/onyx/Report';
+import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDeprecated';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories, buildOptimisticPolicyWithExistingCategories} from './Category';
@@ -207,7 +208,7 @@ type SetWorkspaceReimbursementActionParams = {
 };
 
 type SetWorkspaceApprovalModeAdditionalData = {
-    reportNextSteps?: OnyxCollection<ReportNextStep>;
+    reportNextSteps?: OnyxCollection<ReportNextStepDeprecated>;
     transactionViolations?: OnyxCollection<TransactionViolations>;
     betas?: Beta[];
 };
@@ -781,7 +782,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
     const nextStepFailureData: OnyxUpdate[] = [];
     const {reportNextSteps, transactionViolations, betas} = additionalData;
     const resolvedTransactionViolations: OnyxCollection<TransactionViolations> = transactionViolations ?? {};
-    const resolvedReportNextSteps: NonNullable<OnyxCollection<ReportNextStep>> = reportNextSteps ?? {};
+    const resolvedReportNextSteps: NonNullable<OnyxCollection<ReportNextStepDeprecated>> = reportNextSteps ?? {};
     const resolvedBetas: Beta[] = betas ?? [];
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, resolvedBetas);
     const affectedReports = ReportUtils.getAllPolicyReports(policyID).filter(
@@ -796,7 +797,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         }
 
         const nextStepKey: `${typeof ONYXKEYS.COLLECTION.NEXT_STEP}${string}` = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`;
-        const currentNextStep: OnyxEntry<ReportNextStep> | null = resolvedReportNextSteps[nextStepKey] ?? null;
+        const currentNextStep: OnyxEntry<ReportNextStepDeprecated> | null = resolvedReportNextSteps[nextStepKey] ?? null;
         const hasViolations = ReportUtils.hasViolations(reportID, resolvedTransactionViolations);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStep = buildNextStepNew({
