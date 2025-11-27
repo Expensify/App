@@ -1523,7 +1523,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Wählen Sie einen zusätzlichen Genehmiger für diesen Bericht, bevor wir ihn durch den Rest des Genehmigungs-Workflows leiten.',
+                bulkSubtitle: 'Wählen Sie einen zusätzlichen Genehmiger für diese Berichte, bevor wir sie durch den restlichen Genehmigungsworkflow leiten.',
             },
+            bulkSubtitle: 'Wählen Sie eine Option, um den Genehmiger für diese Berichte zu ändern.',
         },
         chooseWorkspace: 'Wählen Sie einen Arbeitsbereich aus',
     },
@@ -2154,6 +2156,7 @@ ${amount} für ${merchant} - ${date}`,
             title: 'Keine Mitglieder zum Anzeigen',
             expensesFromSubtitle: 'Alle Arbeitsbereichsmitglieder gehören bereits zu einem bestehenden Genehmigungsworkflow.',
             approverSubtitle: 'Alle Genehmigenden gehören zu einem bestehenden Workflow.',
+            bulkApproverSubtitle: 'Keine Genehmiger entsprechen den Kriterien für die ausgewählten Berichte.',
         },
     },
     workflowsDelayedSubmissionPage: {

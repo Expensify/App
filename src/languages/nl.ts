@@ -1519,7 +1519,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Kies een extra goedkeurder voor dit rapport voordat we het via de rest van de goedkeuringsworkflow sturen.',
+                bulkSubtitle: 'Kies een extra goedkeurder voor deze rapporten voordat we ze door de rest van de goedkeuringsworkflow sturen.',
             },
+            bulkSubtitle: 'Kies een optie om de goedkeurder voor deze rapporten te wijzigen.',
         },
         chooseWorkspace: 'Kies een werkruimte',
     },
@@ -2145,6 +2147,7 @@ ${amount} voor ${merchant} - ${date}`,
             title: 'Geen leden om weer te geven',
             expensesFromSubtitle: 'Alle werkruimteleden maken al deel uit van een bestaand goedkeuringsproces.',
             approverSubtitle: 'Alle goedkeurders behoren tot een bestaand werkstroom.',
+            bulkApproverSubtitle: 'Geen goedkeurders voldoen aan de criteria voor de geselecteerde rapporten.',
         },
     },
     workflowsDelayedSubmissionPage: {

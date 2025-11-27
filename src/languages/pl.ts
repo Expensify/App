@@ -1517,7 +1517,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Wybierz dodatkowego zatwierdzającego dla tego raportu, zanim poprowadzimy go przez resztę przepływu pracy zatwierdzania.',
+                bulkSubtitle: 'Wybierz dodatkową osobę zatwierdzającą dla tych raportów, zanim prześlemy je dalej w ramach pozostałej części procesu zatwierdzania.',
             },
+            bulkSubtitle: 'Wybierz opcję, aby zmienić osobę zatwierdzającą dla tych raportów.',
         },
         chooseWorkspace: 'Wybierz przestrzeń roboczą',
     },
@@ -2142,6 +2144,7 @@ ${amount} dla ${merchant} - ${date}`,
             title: 'Brak członków do wyświetlenia',
             expensesFromSubtitle: 'Wszyscy członkowie przestrzeni roboczej już należą do istniejącego procesu zatwierdzania.',
             approverSubtitle: 'Wszyscy zatwierdzający należą do istniejącego przepływu pracy.',
+            bulkApproverSubtitle: 'Żadni zatwierdzający nie spełniają kryteriów dla wybranych raportów.',
         },
     },
     workflowsDelayedSubmissionPage: {

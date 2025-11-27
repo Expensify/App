@@ -1519,7 +1519,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: '承認ワークフローの残りの部分を経由する前に、このレポートの追加の承認者を選択してください。',
+                bulkSubtitle: '承認ワークフローの残りの工程に進める前に、これらのレポートの追加承認者を選択してください。',
             },
+            bulkSubtitle: 'これらのレポートの承認者を変更するオプションを選択してください。',
         },
         chooseWorkspace: 'ワークスペースを選択',
     },
@@ -2138,6 +2140,7 @@ ${date} - ${merchant}に${amount}`,
             title: '表示するメンバーがいません',
             expensesFromSubtitle: 'すべてのワークスペースメンバーは既存の承認ワークフローにすでに属しています。',
             approverSubtitle: 'すべての承認者は既存のワークフローに属しています。',
+            bulkApproverSubtitle: '選択したレポートの条件に一致する承認者がいません。',
         },
     },
     workflowsDelayedSubmissionPage: {
