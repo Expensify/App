@@ -3465,8 +3465,10 @@ function getUpdatedIndividualBudgetNotificationMessage(reportAction: OnyxEntry<R
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('workspaceActions.updatedIndividualBudgetNotification', {
         budgetAmount,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         budgetFrequency: translateLocal(`workspace.common.budgetFrequencyUnit.${budgetFrequency}` as TranslationPaths),
         budgetName,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         budgetTypeForNotificationMessage: translateLocal(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}` as TranslationPaths),
         summaryLink,
         thresholdPercentage,
@@ -3512,8 +3514,10 @@ function getUpdatedSharedBudgetNotificationMessage(reportAction: OnyxEntry<Repor
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('workspaceActions.updatedSharedBudgetNotification', {
         budgetAmount,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         budgetFrequency: translateLocal(`workspace.common.budgetFrequencyUnit.${budgetFrequency}` as TranslationPaths),
         budgetName,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         budgetTypeForNotificationMessage: translateLocal(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}` as TranslationPaths),
         summaryLink,
         thresholdPercentage,

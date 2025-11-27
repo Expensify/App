@@ -74,8 +74,8 @@ import {
     getUpdatedTimeEnabledMessage,
     getUpdatedTimeRateMessage,
     getUpdateRoomDescriptionMessage,
-    getWorkspaceCategoriesUpdatedMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
+    getWorkspaceCategoriesUpdatedMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
@@ -625,11 +625,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES) {
                     Clipboard.setString(getWorkspaceCategoriesUpdatedMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS) {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    Clipboard.setString(translateLocal('workspaceActions.importTags'));
+                    Clipboard.setString(translate('workspaceActions.importTags'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_ALL_TAGS) {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    Clipboard.setString(translateLocal('workspaceActions.deletedAllTags'));
+                    Clipboard.setString(translate('workspaceActions.deletedAllTags'));
                 } else if (
                     reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX ||
                     reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX ||
