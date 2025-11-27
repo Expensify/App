@@ -13,12 +13,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type VerifyAccountPageBaseProps = {navigateBackTo?: Route; navigateForwardTo?: Route};
+type VerifyAccountPageBaseProps = {navigateBackTo?: Route; navigateForwardTo?: Route; handleClose?: () => void};
 
 /**
  * This is a base page as RHP for account verification. The back & forward url logic should be handled on per case basis in higher component.
  */
-function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccountPageBaseProps) {
+function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}: VerifyAccountPageBaseProps) {
     const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
@@ -40,7 +40,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccoun
         [loginList, contactMethod, formatPhoneNumber],
     );
 
-    const handleClose = useCallback(() => {
+    const handleCloseFallback = useCallback(() => {
         Navigation.goBack(navigateBackTo);
     }, [navigateBackTo]);
 
@@ -49,13 +49,14 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccoun
         if (!isUserValidated) {
             return;
         }
-
         if (navigateForwardTo) {
             Navigation.navigate(navigateForwardTo, {forceReplace: true});
-        } else {
+        } else if (handleClose) {
             handleClose();
+        } else {
+            handleCloseFallback();
         }
-    }, [isUserValidated, navigateForwardTo, handleClose]);
+    }, [isUserValidated, navigateForwardTo, handleCloseFallback, handleClose]);
 
     // Once user is validated or the modal is dismissed, we don't want to show empty content.
     if (isUserValidated) {
@@ -84,7 +85,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccoun
             handleSubmitForm={handleSubmitForm}
             validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
             clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-            onClose={handleClose}
+            onClose={handleCloseFallback}
         />
     );
 }
