@@ -279,6 +279,44 @@ class Git {
     }
 
     /**
+     * Check if a file from a Git diff is added.
+     *
+     * @param file - The file to check
+     * @returns true if the file is added, false otherwise
+     */
+    static isAddedDiffFile(file: FileDiff): boolean {
+        const hasAddedLines = file.addedLines.size > 0;
+        const hasModifiedLines = file.modifiedLines.size > 0;
+        const hasRemovedLines = file.removedLines.size > 0;
+
+        if (!hasAddedLines) {
+            return false;
+        }
+
+        const hasOnlyAdditions = !hasModifiedLines && !hasRemovedLines;
+        return hasOnlyAdditions;
+    }
+
+    /**
+     * Check if a file from a Git diff is removed.
+     *
+     * @param file - The file to check
+     * @returns true if the file is removed, false otherwise
+     */
+    static isRemovedDiffFile(file: FileDiff): boolean {
+        const hasRemovedLines = file.removedLines.size > 0;
+        const hasModifiedLines = file.modifiedLines.size > 0;
+        const hasAddedLines = file.addedLines.size > 0;
+
+        if (!hasRemovedLines) {
+            return false;
+        }
+
+        const hasOnlyRemovals = !hasModifiedLines && !hasAddedLines;
+        return hasOnlyRemovals;
+    }
+
+    /**
      * Calculate the line number for a diff line based on the hunk and line type.
      */
     private static calculateLineNumber(hunk: DiffHunk, lineType: 'added' | 'removed'): number {
