@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 import {getDecodedCategoryName} from './CategoryUtils';
+import {isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -17,7 +18,6 @@ import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils'
 // eslint-disable-next-line import/no-cycle
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
-import { isCategoryMissing } from './CategoryUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
@@ -296,12 +296,18 @@ function getForReportAction({
             categoryLabel += ` ${translateLocal('iou.basedOnMCC')}`;
         }
 
-        const wasUncategorized = isCategoryMissing(reportActionOriginalMessage?.oldCategory ?? '');
-        const oldCategory = wasUncategorized ? reportActionOriginalMessage?.oldCategory?.toLowerCase() : reportActionOriginalMessage?.oldCategory;
+        let oldCategory = reportActionOriginalMessage?.oldCategory ?? '';
+        
+        // If it was uncategorized, display as lowercase without quotes, otherwise use decoded name
+        if (isCategoryMissing(oldCategory)) {
+            oldCategory = oldCategory.toLowerCase();
+        } else {
+            oldCategory = getDecodedCategoryName(oldCategory);
+        }
 
         buildMessageFragmentForValue(
             getDecodedCategoryName(reportActionOriginalMessage?.category ?? ''),
-            getDecodedCategoryName(oldCategory ?? ''),
+            oldCategory,
             categoryLabel,
             true,
             setFragments,
@@ -549,19 +555,25 @@ function getForReportActionTemp({
             categoryLabel += ` ${translateLocal('iou.basedOnMCC')}`;
         }
 
-        const wasUncategorized = isCategoryMissing(reportActionOriginalMessage?.oldCategory ?? '');
+        let oldCategory = reportActionOriginalMessage?.oldCategory ?? '';
 
-        const oldCategory = wasUncategorized ? reportActionOriginalMessage?.oldCategory?.toLowerCase() : reportActionOriginalMessage?.oldCategory;
-
+        // If it was uncategorized, display as lowercase without quotes, otherwise use decoded name
+        if (isCategoryMissing(oldCategory)) {
+            oldCategory = oldCategory.toLowerCase();
+        } else {
+            oldCategory = getDecodedCategoryName(oldCategory);
+        }
 
         buildMessageFragmentForValue(
             getDecodedCategoryName(reportActionOriginalMessage?.category ?? ''),
-            getDecodedCategoryName(oldCategory ?? ''),
+            oldCategory,
             categoryLabel,
             true,
             setFragments,
             removalFragments,
             changeFragments,
+            true,
+            true,
         );
     }
 
