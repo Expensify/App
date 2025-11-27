@@ -255,7 +255,7 @@ function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transact
         // We allow user to select unreported report
         if (field === 'reportID') {
             if (targetValue === sourceValue) {
-                const updatedValues = getMergeFieldUpdatedValues(targetTransaction, field, SafeString(targetValue));
+                const updatedValues = getMergeFieldUpdatedValues({transaction: targetTransaction, field, fieldValue: SafeString(targetValue)});
                 Object.assign(mergeableData, updatedValues);
             } else {
                 conflictFields.push(field);
