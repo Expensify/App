@@ -170,6 +170,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                   activePolicyIDParam: activePolicyID,
                   currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                   currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                  shouldAddGuideWelcomeMessage: false,
               })
             : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 

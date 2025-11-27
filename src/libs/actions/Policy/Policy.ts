@@ -190,6 +190,7 @@ type BuildPolicyDataOptions = {
     // Note: Mark this param as required after migrating completely
     currentUserEmailParam?: string;
     allReportsParam?: OnyxCollection<Report>;
+    shouldAddGuideWelcomeMessage?: boolean;
 };
 
 type DuplicatePolicyDataOptions = {
@@ -288,11 +289,8 @@ function isCurrencySupportedForDirectReimbursement(currency: string) {
 /**
  * Checks if the currency is supported for global reimbursement
  */
-function isCurrencySupportedForGlobalReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, canUseGlobalReimbursementsOnND: boolean) {
-    if (canUseGlobalReimbursementsOnND) {
-        return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
-    }
-    return currency === CONST.CURRENCY.USD;
+function isCurrencySupportedForGlobalReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>) {
+    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency);
 }
 
 /**
@@ -449,6 +447,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
 
     const finallyData: OnyxUpdate[] = [];
     const currentTime = DateUtils.getDBTime();
+    // eslint-disable-next-line unicorn/no-array-for-each
     reportsToArchive.forEach((report) => {
         const {reportID, ownerAccountID, oldPolicyName} = report ?? {};
         const isInvoiceReceiverReport = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID;
@@ -540,6 +539,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         }
     });
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.keys(lastUsedPaymentMethods ?? {})?.forEach((paymentMethodKey) => {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodKey];
 
@@ -708,7 +708,10 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
     API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
+function setWorkspaceAutoReportingMonthlyOffset(policyID: string | undefined, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
+    if (!policyID) {
+        return;
+    }
     const value = JSON.stringify({autoReportingOffset});
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1043,6 +1046,7 @@ function leaveWorkspace(policyID?: string) {
 
     const pendingChatMembers = ReportUtils.getPendingChatMembers([sessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     workspaceChats.forEach((report) => {
         const parentReport = ReportUtils.getRootParentReport({report});
         const reportToCheckOwner = isEmptyObject(parentReport) ? report : parentReport;
@@ -1241,6 +1245,7 @@ function createPolicyExpenseChats(
         reportCreationData: {},
     };
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.keys(invitedEmailsToAccountIDs).forEach((email) => {
         const accountID = invitedEmailsToAccountIDs[email];
         const cleanAccountID = Number(accountID);
@@ -1271,6 +1276,7 @@ function createPolicyExpenseChats(
             });
             const currentTime = DateUtils.getDBTime();
             const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChat.reportID}`] ?? {};
+            // eslint-disable-next-line unicorn/no-array-for-each
             Object.values(reportActions).forEach((action) => {
                 if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     return;
@@ -2042,6 +2048,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam,
+        shouldAddGuideWelcomeMessage = true,
     } = options;
     const introSelected = introSelectedParam ?? deprecatedIntroSelected;
     const activePolicyID = activePolicyIDParam ?? deprecatedActivePolicyID;
@@ -2370,6 +2377,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
     if (getAdminPolicies().length === 0 && lastUsedPaymentMethod) {
         Object.values(allReportsParam ?? {})
             .filter((iouReport) => iouReport?.type === CONST.REPORT.TYPE.IOU)
+            // eslint-disable-next-line unicorn/no-array-for-each
             .forEach((iouReport) => {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (lastUsedPaymentMethod?.iou?.name || !iouReport?.policyID) {
@@ -2419,6 +2427,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
         companySize,
         userReportedIntegration: userReportedIntegration ?? undefined,
         features: features ? JSON.stringify(features) : undefined,
+        shouldAddGuideWelcomeMessage,
         areDistanceRatesEnabled,
     };
 
@@ -3711,6 +3720,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     // For performance reasons, we are going to compose a merge collection data for transactions
     const transactionsOptimisticData: Record<string, Transaction> = {};
     const transactionFailureData: Record<string, Transaction> = {};
+    // eslint-disable-next-line unicorn/no-array-for-each
     reportTransactions.forEach((transaction) => {
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
@@ -5275,8 +5285,7 @@ function setPolicyBillableMode(policyID: string, defaultBillable: boolean) {
     API.write(WRITE_COMMANDS.SET_POLICY_BILLABLE_MODE, parameters, onyxData);
 }
 
-function getCashExpenseReimbursableMode(policyID: string): PolicyCashExpenseMode | undefined {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+function getCashExpenseReimbursableMode(policy: OnyxEntry<Policy>): PolicyCashExpenseMode | undefined {
     if (!policy) {
         return undefined;
     }
@@ -6137,6 +6146,7 @@ function clearAllPolicies() {
     if (!allPolicies) {
         return;
     }
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.keys(allPolicies).forEach((key) => delete allPolicies[key]);
 }
 

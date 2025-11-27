@@ -78,6 +78,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
                       activePolicyIDParam: activePolicyID,
                       currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                       currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                      shouldAddGuideWelcomeMessage: false,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
