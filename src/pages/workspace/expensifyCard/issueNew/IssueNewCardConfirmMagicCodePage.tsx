@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useInitial from '@hooks/useInitial';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -29,18 +30,20 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
     const isSuccessful = issueNewCard?.isSuccessful;
     const defaultFundID = useDefaultFundID(policyID);
     const {isBetaEnabled} = usePermissions();
+    const firstAssigneeEmail = useInitial(issueNewCard?.data?.assigneeEmail);
+    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === issueNewCard?.data?.assigneeEmail;
 
     useEffect(() => {
         if (!isSuccessful) {
             return;
         }
-        if (backTo) {
+        if (backTo && shouldUseBackToParam) {
             Navigation.goBack(backTo);
         } else {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID), {forceReplace: true});
         }
         clearIssueNewCardFlow(policyID);
-    }, [backTo, isSuccessful, policyID]);
+    }, [backTo, isSuccessful, policyID, shouldUseBackToParam]);
 
     const handleSubmit = (validateCode: string) => {
         // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
