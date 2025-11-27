@@ -241,7 +241,6 @@ const SCREENS = {
         ROOM_MEMBER_DETAILS: 'RoomMembers_Details',
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
-        PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
         TRANSACTION_DUPLICATE: 'TransactionDuplicate',
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
@@ -387,6 +386,7 @@ const SCREENS = {
         NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',
+        REPORT_LAYOUT: 'Report_Settings_Report_Layout',
     },
 
     NEW_TASK: {
@@ -767,11 +767,11 @@ const SCREENS = {
     ENABLE_PAYMENTS_ROOT: 'EnablePayments_Root',
     ADD_PERSONAL_BANK_ACCOUNT_ROOT: 'AddPersonalBankAccount_Root',
     REIMBURSEMENT_ACCOUNT_ROOT: 'Reimbursement_Account_Root',
+    REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT: 'Reimbursement_Account_Verify_Account',
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
-    PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
     AUTO_SUBMIT_ROOT: 'AutoSubmit_Modal_Root',
     CHANGE_POLICY_EDUCATIONAL_ROOT: 'ChangePolicyEducational_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
@@ -827,6 +827,12 @@ const SCREENS = {
     },
     WORKSPACES_VERIFY_DOMAIN: 'Workspaces_Verify_Domain',
     WORKSPACES_DOMAIN_VERIFIED: 'Workspaces_Domain_Verified',
+    DOMAIN: {
+        VERIFY: 'Domain_Verify',
+        VERIFIED: 'Domain_Verified',
+        INITIAL: 'Domain_Initial',
+        SAML: 'Domain_SAML',
+    },
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

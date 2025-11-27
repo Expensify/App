@@ -1,11 +1,14 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import {Folder, Tag} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import Text from '@components/Text';
-import useStyleUtils from '@hooks/useStyleUtils';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -29,9 +32,10 @@ function SplitListItem<TItem extends ListItem>({
     onInputFocus,
     onInputBlur,
 }: SplitListItemProps<TItem>) {
+    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
 
     const splitItem = item as unknown as SplitListItemType;
 
@@ -40,6 +44,18 @@ function SplitListItem<TItem extends ListItem>({
     const onSplitExpenseAmountChange = (amount: string) => {
         splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
     };
+
+    const inputRef = useRef<BaseTextInputRef | null>(null);
+
+    // Animated highlight style for selected item
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: variables.componentBorderRadius,
+        shouldHighlight: splitItem.isSelected ?? false,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: splitItem.isSelected ? theme.activeComponentBG : theme.highlightBG,
+        skipInitialFade: true,
+        itemEnterDelay: 0,
+    });
 
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
 
@@ -57,25 +73,38 @@ function SplitListItem<TItem extends ListItem>({
         onInputFocus(index);
     }, [onInputFocus, index]);
 
+    // Auto-focus input when item is selected and screen transition ends
+    useLayoutEffect(() => {
+        if (!splitItem.isSelected || !splitItem.isEditable || !didScreenTransitionEnd || !inputRef.current) {
+            return;
+        }
+
+        inputRef.current.focus();
+    }, [splitItem.isSelected, splitItem.isEditable, didScreenTransitionEnd]);
+
+    const inputCallbackRef = (ref: BaseTextInputRef | null) => {
+        inputRef.current = ref;
+    };
+
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.p3, styles.br3]}
             isFocused={isFocused}
-            containerStyle={[styles.mh4, styles.mv1, styles.reportPreviewBoxHoverBorder, styles.br2, splitItem.isSelected && StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG)]}
-            hoverStyle={[styles.br2]}
-            pressableStyle={[styles.br2]}
+            pressableWrapperStyle={[styles.mh4, styles.mv1, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.br3, animatedHighlightStyle]}
+            hoverStyle={[styles.br2, {borderColor: theme.hoverComponentBG}]}
+            pressableStyle={[styles.br2, styles.bgTransparent]}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             onSelectRow={onSelectRow}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
             shouldUseDefaultRightHandSideCheckmark={false}
+            shouldHighlightSelectedItem={false}
             keyForList={item.keyForList}
             onFocus={onFocus}
             pendingAction={item.pendingAction}
         >
-            <View style={[styles.flexRow, styles.containerWithSpaceBetween]}>
+            <View style={[styles.flexRow, styles.containerWithSpaceBetween, styles.p3]}>
                 <View style={[styles.flex1]}>
                     <View style={[styles.containerWithSpaceBetween, !isBottomVisible && styles.justifyContentCenter]}>
                         <View style={[styles.minHeight5, styles.justifyContentCenter]}>
@@ -103,7 +132,7 @@ function SplitListItem<TItem extends ListItem>({
                             {!!splitItem.category && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pr1, styles.flexShrink1, !!splitItem.tags?.at(0) && styles.mw50]}>
                                     <Icon
-                                        src={Folder}
+                                        src={icons.Folder}
                                         height={variables.iconSizeExtraSmall}
                                         width={variables.iconSizeExtraSmall}
                                         fill={theme.icon}
@@ -119,7 +148,7 @@ function SplitListItem<TItem extends ListItem>({
                             {!!splitItem.tags?.at(0) && (
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pl1, !!splitItem.category && styles.mw50]}>
                                     <Icon
-                                        src={Tag}
+                                        src={icons.Tag}
                                         height={variables.iconSizeExtraSmall}
                                         width={variables.iconSizeExtraSmall}
                                         fill={theme.icon}
@@ -159,6 +188,7 @@ function SplitListItem<TItem extends ListItem>({
                             </View>
                         ) : (
                             <MoneyRequestAmountInput
+                                ref={inputCallbackRef}
                                 autoGrow={false}
                                 amount={splitItem.amount}
                                 currency={splitItem.currency}
