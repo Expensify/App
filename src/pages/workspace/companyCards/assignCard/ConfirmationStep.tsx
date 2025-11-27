@@ -14,34 +14,29 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyCardFeed, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
+import {useAssignCardNavigation} from '@pages/workspace/companyCards/utils';
 import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
 import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ConfirmationStepProps = {
-    /** Current policy id */
-    policyID: string | undefined;
+type ConfirmationStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION>;
 
-    /** Route to go back to */
-    backTo?: Route;
-
-    /** Selected feed */
-    feed: CompanyCardFeedWithDomainID;
-};
-
-function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
+function ConfirmationStep({route}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
+    const policyID = route.params?.policyID;
+    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeedWithDomainID;
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
@@ -52,7 +47,9 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     const data = assignCard?.data;
     const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
-    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
+    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((_route) => isFullScreenName(_route.name)));
+
+    useAssignCardNavigation(policyID, feed);
 
     useEffect(() => {
         if (!assignCard?.isAssigned) {
@@ -60,14 +57,14 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
         }
 
         const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
-        if (backTo ?? lastRoute?.name === SCREENS.WORKSPACE.COMPANY_CARDS) {
-            Navigation.goBack(backTo);
+        if (lastRoute?.name === SCREENS.WORKSPACE.COMPANY_CARDS) {
+            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
-    }, [assignCard, backTo, policyID, currentFullScreenRoute?.state?.routes]);
+    }, [assignCard, policyID, currentFullScreenRoute?.state?.routes]);
 
     const submit = () => {
         if (!policyID) {
@@ -90,6 +87,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
             return;
         }
         assignWorkspaceCompanyCard(policyID, {...data, bankName});
+        Navigation.dismissModal();
     };
 
     const editStep = (step: AssignCardStep) => {

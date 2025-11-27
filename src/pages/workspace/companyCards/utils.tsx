@@ -1,11 +1,41 @@
+import {useEffect, useRef} from 'react';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
+import useInitial from '@hooks/useInitial';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import Navigation from '@libs/Navigation/Navigation';
 import {findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect, getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, Policy} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, Policy} from '@src/types/onyx';
 import type {Account, PolicyConnectionName} from '@src/types/onyx/Policy';
+
+type AssignCardRoute =
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute>;
+
+type AddNewCardRoute =
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_BANK.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_FEED_TYPE.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_TYPE.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_INSTRUCTIONS.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_NAME.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_DETAILS.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_STATEMENT_CLOSE_DATE.getRoute>
+    | ReturnType<typeof ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_DIRECT_STATEMENT_CLOSE_DATE.getRoute>;
 
 type ExportIntegration = {
     title?: string;
@@ -357,5 +387,89 @@ function getExportMenuItem(
     }
 }
 
+function useAssignCardNavigation(policyID: string | undefined, feed: CompanyCardFeed | CompanyCardFeedWithDomainID | undefined, isStartStep = false) {
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
+    const currentStep = assignCard?.currentStep;
+    const previousStepRef = useRef(currentStep);
+    const firstAssigneeEmail = useInitial(assignCard?.data?.email);
+    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === assignCard?.data?.email;
+
+    useEffect(() => {
+        if (!policyID || !currentStep || !feed) {
+            return;
+        }
+
+        if (currentStep === previousStepRef.current && !isStartStep) {
+            return;
+        }
+
+        previousStepRef.current = currentStep;
+
+        const stepRoutes: Record<string, AssignCardRoute> = {
+            [CONST.COMPANY_CARD.STEP.ASSIGNEE]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(policyID, feed),
+            [CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER.getRoute(policyID, feed),
+            [CONST.COMPANY_CARD.STEP.BANK_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(
+                policyID,
+                feed,
+                ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute(policyID, feed),
+            ),
+            [CONST.COMPANY_CARD.STEP.PLAID_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION.getRoute(policyID, feed),
+            [CONST.COMPANY_CARD.STEP.CARD]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_SELECT.getRoute(policyID, feed),
+            [CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP.getRoute(policyID, feed),
+            [CONST.COMPANY_CARD.STEP.CARD_NAME]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_NAME.getRoute(policyID, feed),
+            [CONST.COMPANY_CARD.STEP.CONFIRMATION]: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(policyID, feed),
+        };
+
+        const targetRoute: AssignCardRoute = stepRoutes[currentStep];
+        if (targetRoute) {
+            Navigation.navigate(targetRoute);
+        }
+    }, [currentStep, policyID, feed, isStartStep, shouldUseBackToParam]);
+}
+
+function useAddNewCardNavigation(policyID: string | undefined, isStartStep = false) {
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
+    const currentStep = addNewCard?.currentStep;
+    const previousStepRef = useRef(currentStep);
+    const {isBetaEnabled} = usePermissions();
+    const defaultStep = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY : CONST.COMPANY_CARDS.STEP.SELECT_BANK;
+
+    useEffect(() => {
+        if (!policyID) {
+            return;
+        }
+
+        if (currentStep === previousStepRef.current && !isStartStep) {
+            return;
+        }
+
+        previousStepRef.current = currentStep;
+
+        const stepRoutes: Record<string, AddNewCardRoute> = {
+            [CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.SELECT_BANK]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_BANK.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_FEED_TYPE.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.CARD_TYPE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_TYPE.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.BANK_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(
+                policyID,
+                addNewCard?.data?.selectedBank ?? '',
+                ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID),
+            ),
+            [CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_INSTRUCTIONS.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.CARD_NAME]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_NAME.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.CARD_DETAILS]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_CARD_DETAILS.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION]: ROUTES.WORKSPACE_COMPANY_CARDS_PLAID_CONNECTION.getRoute(policyID, addNewCard?.data?.selectedBank ?? ''),
+            [CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_STATEMENT_CLOSE_DATE.getRoute(policyID),
+            [CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE]: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW_SELECT_DIRECT_STATEMENT_CLOSE_DATE.getRoute(policyID),
+        };
+
+        const targetRoute: AddNewCardRoute = currentStep ? stepRoutes[currentStep] : stepRoutes[defaultStep];
+        if (targetRoute) {
+            Navigation.navigate(targetRoute);
+        }
+    }, [currentStep, policyID, isStartStep, addNewCard?.data?.selectedBank, defaultStep]);
+}
+
 // eslint-disable-next-line import/prefer-default-export
-export {getExportMenuItem};
+export {getExportMenuItem, useAssignCardNavigation, useAddNewCardNavigation};

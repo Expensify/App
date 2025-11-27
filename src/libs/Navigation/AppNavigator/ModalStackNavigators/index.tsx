@@ -695,9 +695,31 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicingDetailsWebsite').default,
     [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicesVerifyAccountPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/AssignCardFeedPage').default,
+
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/AssigneeStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/InviteNewMemberStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_SELECT]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/CardSelectionStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE_STEP]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/TransactionStartDateStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/CardNameStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/ConfirmationStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_PLAID_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/PlaidConnectionStep').default,
+
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/BankConnection').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/AddNewCardPage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_COUNTRY]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/SelectCountryStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_BANK]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/SelectBankStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_FEED_TYPE]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/SelectFeedType').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_TYPE]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/CardTypeStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_INSTRUCTIONS]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/CardInstructionsStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/CardNameStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/DetailsStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_AMEX_CUSTOM_FEED]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/AmexCustomFeed').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_STATEMENT_CLOSE_DATE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/StatementCloseDateStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW_SELECT_DIRECT_STATEMENT_CLOSE_DATE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/DirectStatementCloseDatePage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardDetailsPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardEditCardNamePage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardAccountSelectCardPage').default,
