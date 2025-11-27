@@ -93,11 +93,14 @@ function IOURequestStepDistanceManual({
 
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
 
-    const shouldUseDefaultExpensePolicy =
-        iouType === CONST.IOU.TYPE.CREATE &&
-        isPaidGroupPolicy(defaultExpensePolicy) &&
-        defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(defaultExpensePolicy.id);
+    const shouldUseDefaultExpensePolicy = useMemo(
+        () =>
+            iouType === CONST.IOU.TYPE.CREATE &&
+            isPaidGroupPolicy(defaultExpensePolicy) &&
+            defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
+            !shouldRestrictUserBillableActions(defaultExpensePolicy.id),
+        [iouType, defaultExpensePolicy],
+    );
 
     const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
@@ -301,7 +304,8 @@ function IOURequestStepDistanceManual({
             isASAPSubmitBetaEnabled,
             customUnitRateID,
             navigateToConfirmationPage,
-            defaultExpensePolicy,
+            defaultExpensePolicy?.id,
+            defaultExpensePolicy?.autoReporting,
             personalPolicy?.autoReporting,
             transactionViolations,
         ],

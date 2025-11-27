@@ -17,5 +17,5 @@ export default function useDefaultExpensePolicy() {
         return groupPolicies.at(0);
     }
 
-    return null;
+    return undefined;
 }
