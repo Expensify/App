@@ -1,0 +1,70 @@
+import React, {useEffect, useState} from 'react';
+import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+import useDefaultFundID from '@hooks/useDefaultFundID';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {clearIssueNewCardFlow, issueExpensifyCard} from '@libs/actions/Card';
+import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+type IssueNewCardConfirmMagicCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE>;
+
+function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodePageProps) {
+    const {translate} = useLocalize();
+    const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
+    const [validateError, setValidateError] = useState<Errors>({});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const primaryLogin = account?.primaryLogin ?? '';
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
+    const data = issueNewCard?.data;
+    const isSuccessful = issueNewCard?.isSuccessful;
+    const defaultFundID = useDefaultFundID(policyID);
+    const {isBetaEnabled} = usePermissions();
+
+    useEffect(() => {
+        if (!isSuccessful) {
+            return;
+        }
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        }
+        clearIssueNewCardFlow(policyID);
+    }, [backTo, isSuccessful, policyID]);
+
+    const handleSubmit = (validateCode: string) => {
+        // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
+        issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, data);
+    };
+
+    return (
+        <ValidateCodeActionContent
+            isLoading={issueNewCard?.isLoading}
+            title={translate('cardPage.validateCardTitle')}
+            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
+            sendValidateCode={() => requestValidateCodeAction()}
+            validateCodeActionErrorField={data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard'}
+            handleSubmitForm={handleSubmit}
+            validateError={validateError}
+            clearError={() => setValidateError({})}
+            onClose={() => {
+                resetValidateActionCodeSent();
+                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, backTo));
+            }}
+        />
+    );
+}
+
+IssueNewCardConfirmMagicCodePage.displayName = 'ExpensifyCardVerifyAccountPage';
+
+export default IssueNewCardConfirmMagicCodePage;
