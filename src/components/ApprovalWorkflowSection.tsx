@@ -29,7 +29,6 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     const approverTitle = useCallback(
         (index: number) =>
@@ -108,7 +107,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                 ))}
             </View>
             <Icon
-                src={expensifyIcons.ArrowRight}
+                src={Expensicons.ArrowRight}
                 fill={theme.icon}
                 additionalStyles={[styles.alignSelfCenter]}
             />

@@ -18,6 +18,7 @@ import {
     getUnitRateValue,
     hasDynamicExternalWorkflow,
     hasOnlyPersonalPolicies,
+    hasOtherControlWorkspaces,
     isCurrentUserMemberOfAnyPolicy,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
@@ -1303,6 +1304,33 @@ describe('PolicyUtils', () => {
                 '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
             };
             const result = hasOnlyPersonalPolicies(policies);
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('hasOtherControlWorkspaces', () => {
+        it('should return false when policies is empty', () => {
+            const result = hasOtherControlWorkspaces([], '1');
+            expect(result).toBe(false);
+        });
+
+        it('should return false when there are no control workspaces other than the current one', () => {
+            const policies = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            ];
+            const result = hasOtherControlWorkspaces(policies, '1');
+            expect(result).toBe(false);
+        });
+
+        it('should return true when there are other control workspaces', () => {
+            const policies = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                {...createRandomPolicy(3, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+            ];
+            const result = hasOtherControlWorkspaces(policies, '1');
             expect(result).toBe(true);
         });
     });

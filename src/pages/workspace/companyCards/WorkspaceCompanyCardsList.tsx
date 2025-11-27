@@ -11,13 +11,13 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {filterCardsByPersonalDetails, getCardsByCardholderName, getDefaultCardName, sortCardsByCardholderName} from '@libs/CardUtils';
+import {filterCardsByPersonalDetails, getCardsByCardholderName, getCompanyCardFeedWithDomainID, getDefaultCardName, sortCardsByCardholderName} from '@libs/CardUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, WorkspaceCardsList} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, WorkspaceCardsList} from '@src/types/onyx';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from './WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsListRow from './WorkspaceCompanyCardsListRow';
 
@@ -72,10 +72,10 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
                         hoverStyle={styles.hoveredComponentBG}
                         disabled={isCardDeleted}
                         onPress={() => {
-                            if (!cardID || !item?.accountID) {
+                            if (!cardID || !item?.accountID || !item.fundID) {
                                 return;
                             }
-                            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, item.bank));
+                            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, cardID, getCompanyCardFeedWithDomainID(item.bank as CompanyCardFeed, item.fundID)));
                         }}
                     >
                         {({hovered}) => (

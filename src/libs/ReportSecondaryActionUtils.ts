@@ -606,12 +606,15 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
 
 /**
  * Checks if the report should show the "Report layout" option
- * Only shows for expense reports with 2 or more transactions
+ * Only shows for expense reports (not IOU reports) with 2 or more transactions
  */
 function isReportLayoutAction(report: Report, reportTransactions: Transaction[]): boolean {
-    const isExpenseReport = isExpenseReportUtils(report);
+    if (!isExpenseReportUtils(report)) {
+        return false;
+    }
 
-    if (!isExpenseReport) {
+    // Exclude IOU reports - only show for workspace expense reports
+    if (isIOUReportUtils(report)) {
         return false;
     }
 
@@ -794,4 +797,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, getSecondaryExportReportActions, isSplitAction, isReportLayoutAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, getSecondaryExportReportActions, isSplitAction};
