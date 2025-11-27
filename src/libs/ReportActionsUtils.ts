@@ -1373,9 +1373,7 @@ function getOneTransactionThreadReportAction(
             actionType &&
             iouRequestTypesSet.has(actionType) &&
             !!originalMessage?.IOUTransactionID &&
-            // Include deleted IOU reportActions if:
-            // - they have an associated IOU transaction ID or
-            // - the action is pending deletion and the user is offline
+            // Include deleted IOU reportActions if the action is pending deletion and the user is offline
             (!isDeletedAction(action) || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline)))
         ) {
             if (iouRequestAction !== null) {
