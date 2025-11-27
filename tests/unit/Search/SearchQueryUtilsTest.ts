@@ -335,6 +335,33 @@ describe('SearchQueryUtils', () => {
                 action: undefined,
             });
         });
+
+        test('parses negative backend amounts into filter form values', () => {
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            const queryString = 'sortBy:date sortOrder:desc type:expense amount<-12345 amount>-67890 amount:-54321';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                amountLessThan: '-12345',
+                amountGreaterThan: '-67890',
+                amountEqualTo: '-54321',
+            });
+        });
     });
 
     describe('shouldHighlight', () => {
@@ -580,12 +607,12 @@ describe('SearchQueryUtils', () => {
                 CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
             ];
 
-            filterKeys.forEach((filterKey) => {
+            for (const filterKey of filterKeys) {
                 const result = getFilterDisplayValue(filterKey, '55555', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID);
 
                 expect(result).toBe('+15553334444');
                 expect(result).not.toContain('@expensify.sms');
-            });
+            }
         });
     });
 });

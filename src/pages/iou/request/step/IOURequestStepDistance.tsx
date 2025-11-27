@@ -144,6 +144,7 @@ function IOURequestStepDistance({
     const transactionWasSaved = useRef(false);
     const isCreatingNewRequest = !(backTo || isEditing);
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const iouRequestType = getRequestType(transaction);
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -376,6 +377,7 @@ function IOURequestStepDistance({
                     },
                     backToReport,
                     isASAPSubmitBetaEnabled,
+                    transactionViolations,
                 });
                 return;
             }
@@ -441,6 +443,7 @@ function IOURequestStepDistance({
         navigateToConfirmationPage,
         personalPolicy?.autoReporting,
         reportID,
+        transactionViolations,
     ]);
 
     const getError = () => {
@@ -469,13 +472,13 @@ function IOURequestStepDistance({
 
             const newWaypoints: WaypointCollection = {};
             let emptyWaypointIndex = -1;
-            data.forEach((waypoint, index) => {
+            for (const [index, waypoint] of data.entries()) {
                 newWaypoints[`waypoint${index}`] = waypoints[waypoint] ?? {};
                 // Find waypoint that BECOMES empty after dragging
                 if (isWaypointEmpty(newWaypoints[`waypoint${index}`]) && !isWaypointEmpty(waypoints[`waypoint${index}`])) {
                     emptyWaypointIndex = index;
                 }
-            });
+            }
 
             setOptimisticWaypoints(newWaypoints);
             Promise.all([
