@@ -244,12 +244,12 @@ function IOURequestStartPage({
         }
 
         const policiesWithPerDiemEnabled = getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserPersonalDetails.login);
-        policiesWithPerDiemEnabled.forEach((perDiemPolicy) => {
+        for (const perDiemPolicy of policiesWithPerDiemEnabled) {
             if (!isEmptyObject(perDiemCustomUnit?.rates)) {
-                return;
+                break;
             }
             fetchPerDiemRates(perDiemPolicy.id);
-        });
+        }
     }, [isFromGlobalCreate, isOffline, perDiemCustomUnit?.rates, allPolicies, currentUserPersonalDetails.login, moreThanOnePerDiemExist]);
 
     return (
