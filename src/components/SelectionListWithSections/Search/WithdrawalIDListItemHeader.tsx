@@ -71,10 +71,15 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
     );
     const badgeProps = useMemo(() => getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme), [withdrawalIDItem.state, translate, theme]);
-    const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
+    const settlementStatus = useMemo(() => getSettlementStatus(withdrawalIDItem.state), [withdrawalIDItem.state]);
     const withdrawalInfoText = translate('settlement.withdrawalInfo', {date: formattedWithdrawalDate, withdrawalID: withdrawalIDItem.entryID});
-    const walletLink = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
-    const failedErrorHTML = translate('settlement.failedError', {link: walletLink});
+    const failedErrorHTML = useMemo(() => {
+        if (settlementStatus !== CONST.SEARCH.SETTLEMENT_STATUS.FAILED) {
+            return '';
+        }
+        const walletLink = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
+        return translate('settlement.failedError', {link: walletLink});
+    }, [settlementStatus, environmentURL, translate]);
 
     return (
         <View>
@@ -142,14 +147,14 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 </View>
             </View>
             {settlementStatus === CONST.SEARCH.SETTLEMENT_STATUS.FAILED && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mt2, styles.ml9, styles.mr3]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.pl4, styles.pb1]}>
                     <Icon
                         src={expensifyIcons.DotIndicator}
                         fill={theme.danger}
                         height={variables.iconSizeExtraSmall}
                         width={variables.iconSizeExtraSmall}
                     />
-                    <View style={[styles.pre, styles.flexShrink1, {color: theme.danger}]}>
+                    <View style={[styles.pre, styles.flexShrink1]}>
                         <RenderHTML html={`<rbr shouldShowEllipsis="1" issmall >${failedErrorHTML}</rbr>`} />
                     </View>
                 </View>
