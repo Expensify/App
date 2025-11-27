@@ -20,6 +20,7 @@ function createInverseRelation<T extends string, K extends string>(relations: Pa
 
     for (const [key, values] of Object.entries(relations)) {
         const valuesWithType = (Array.isArray(values) ? values : [values]) as K[];
+        // eslint-disable-next-line unicorn/no-array-for-each
         valuesWithType.forEach((value: K) => {
             reversedRelations[value] = key as T;
         });
