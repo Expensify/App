@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {clearErrorField, setFeedStatementPeriodEndDay} from '@libs/actions/CompanyCards';
-import {getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -27,6 +27,7 @@ function DirectStatementCloseDateStep({route}: DirectStatementCloseDateStepProps
     useAddNewCardNavigation(policyID);
     const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
@@ -56,22 +57,22 @@ function DirectStatementCloseDateStep({route}: DirectStatementCloseDateStepProps
                 return;
             }
             const isChangedValue = (newStatementPeriodEndDay ?? newStatementPeriodEnd) !== statementPeriodEndDay;
-            if (selectedFeed && isChangedValue) {
-                setFeedStatementPeriodEndDay(policyID, selectedFeed, domainOrWorkspaceAccountID, newStatementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
+            if (feed && isChangedValue) {
+                setFeedStatementPeriodEndDay(policyID, feed, domainOrWorkspaceAccountID, newStatementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
             }
 
             goBack();
         },
-        [policyID, statementPeriodEndDay, selectedFeed, goBack, domainOrWorkspaceAccountID],
+        [policyID, statementPeriodEndDay, goBack, feed, domainOrWorkspaceAccountID],
     );
 
     const clearError = useCallback(() => {
-        if (!selectedFeed) {
+        if (!feed) {
             return;
         }
 
-        clearErrorField(selectedFeed, domainOrWorkspaceAccountID, 'statementPeriodEndDay');
-    }, [selectedFeed, domainOrWorkspaceAccountID]);
+        clearErrorField(feed, domainOrWorkspaceAccountID, 'statementPeriodEndDay');
+    }, [feed, domainOrWorkspaceAccountID]);
 
     if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
         return <FullScreenLoadingIndicator />;

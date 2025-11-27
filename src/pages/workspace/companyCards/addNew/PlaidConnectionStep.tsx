@@ -50,7 +50,6 @@ function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
     const domain = getDomainNameForPolicy(policyID);
     const [isExitModalVisible, setIsExitModalVisible] = useState(false);
 
-    // Use the appropriate navigation hook based on whether we're in the assign card flow or add new card flow
     useAssignCardNavigation(policyID, feed);
     useAddNewCardNavigation(policyID);
 
