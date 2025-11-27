@@ -329,8 +329,8 @@ function SearchPage({route}: SearchPageProps) {
 
         return (
             selectedTransactionReportIDs.length > 0 &&
-            selectedTransactionReportIDs.some((id) => {
-                return !isCurrentUserSubmitter(getReportOrDraftReport(id));
+            selectedTransactionReportIDs.every((id) => {
+                return isCurrentUserSubmitter(getReportOrDraftReport(id));
             })
         );
     }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID]);
