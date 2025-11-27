@@ -996,7 +996,6 @@ function Search({
                                     shouldShowSorting
                                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                                     groupBy={validGroupBy}
-                                    isExpenseReportView
                                 />
                             </View>
                         )
