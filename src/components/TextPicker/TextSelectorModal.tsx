@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -30,10 +31,12 @@ function TextSelectorModal({
     maxLength = CONST.CATEGORY_NAME_LIMIT,
     required = false,
     customValidate,
+    enabledWhenOffline = true,
     ...rest
 }: TextSelectorModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [currentValue, setValue] = useState(value);
 
@@ -145,12 +148,17 @@ function TextSelectorModal({
                     onSubmit={handleSubmit}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
-                    enabledWhenOffline
+                    enabledWhenOffline={enabledWhenOffline}
+                    addOfflineIndicatorBottomSafeAreaPadding={shouldUseNarrowLayout ? undefined : false}
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                     enterKeyEventListenerPriority={0}
                 >
-                    <View style={styles.pb4}>{!!subtitle && <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>}</View>
+                    {!!subtitle && (
+                        <View style={styles.pb4}>
+                            <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>
+                        </View>
+                    )}
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}

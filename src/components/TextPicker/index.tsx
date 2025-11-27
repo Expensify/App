@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import KeyboardUtils from '@src/utils/keyboard';
 import TextSelectorModal from './TextSelectorModal';
 import type {TextPickerProps} from './types';
 
@@ -19,6 +20,10 @@ function TextPicker({
     interactive = true,
     required = false,
     customValidate,
+    wrapperStyle,
+    numberOfLinesTitle,
+    titleStyle,
+    descriptionTextStyle,
     ref,
     ...rest
 }: TextPickerProps) {
@@ -33,7 +38,10 @@ function TextPicker({
     };
 
     const hidePickerModal = () => {
-        setIsPickerVisible(false);
+        // Fixes the issue where the keyboard would open and close again after dismissing the modal on Android
+        KeyboardUtils.dismissKeyboardAndExecute(() => {
+            setIsPickerVisible(false);
+        });
     };
 
     const updateInput = (updatedValue: string) => {
@@ -58,6 +66,10 @@ function TextPicker({
                 errorText={errorText}
                 style={[styles.moneyRequestMenuItem]}
                 interactive={interactive}
+                wrapperStyle={wrapperStyle}
+                numberOfLinesTitle={numberOfLinesTitle}
+                titleStyle={titleStyle}
+                descriptionTextStyle={descriptionTextStyle}
             />
             <TextSelectorModal
                 value={value}
