@@ -25,7 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
-import {findSelfDMReportID, getDefaultWorkspaceAvatar, getPolicyIDsWithEmptyReportsForAccount, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, getPolicyIDsWithEmptyReportsForAccount, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
@@ -71,8 +71,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
-    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
 
     const policiesWithEmptyReportsSelector = useCallback(
         (reports: OnyxCollection<OnyxTypes.Report>) => {
@@ -126,7 +124,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                         policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                         reportNextStep,
                         undefined,
-                        selfDMReportID,
                     );
 
                     // eslint-disable-next-line rulesdir/no-default-id-values
