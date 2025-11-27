@@ -14,6 +14,7 @@ type HoverableProps = {
     /** Whether to disable the hover action */
     isDisabled?: boolean;
 
+    /** Whether the screen containing the element is focused */
     isFocused?: boolean;
 
     /** Function that executes when the mouse moves over the children. */

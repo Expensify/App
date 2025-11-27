@@ -385,6 +385,7 @@ type MenuItemBaseProps = {
     /** Whether the menu item contains nested submenu items. */
     hasSubMenuItems?: boolean;
 
+    /** Whether the screen containing the item is focused */
     isFocused?: boolean;
 };
 
