@@ -135,13 +135,22 @@ function process(): Promise<void> {
 
     const persistedRequests = getAllPersistedRequests();
     
-    // Log TRACK_EXPENSE in queue
+    // Log TRACK_EXPENSE and REQUEST_MONEY in queue
     const trackExpenseInQueue = persistedRequests.find((req) => req.command === WRITE_COMMANDS.TRACK_EXPENSE);
+    const requestMoneyInQueue = persistedRequests.find((req) => req.command === WRITE_COMMANDS.REQUEST_MONEY);
     if (trackExpenseInQueue) {
         Log.info('[API_DEBUG] SequentialQueue.process - TRACK_EXPENSE found in queue', false, {
             queueLength: persistedRequests.length,
             trackExpenseIndex: persistedRequests.findIndex((req) => req.command === WRITE_COMMANDS.TRACK_EXPENSE),
             transactionID: trackExpenseInQueue?.data?.transactionID,
+        });
+    }
+    if (requestMoneyInQueue) {
+        Log.info('[API_DEBUG] SequentialQueue.process - RequestMoney found in queue', false, {
+            queueLength: persistedRequests.length,
+            requestMoneyIndex: persistedRequests.findIndex((req) => req.command === WRITE_COMMANDS.REQUEST_MONEY),
+            transactionID: requestMoneyInQueue?.data?.transactionID,
+            receiptState: requestMoneyInQueue?.data?.receiptState,
         });
     }
     
@@ -169,6 +178,8 @@ function process(): Promise<void> {
         transactionID: requestToProcess?.data?.transactionID,
         requestID: requestToProcess?.requestID,
         isTrackExpense: requestToProcess.command === WRITE_COMMANDS.TRACK_EXPENSE,
+        isRequestMoney: requestToProcess.command === WRITE_COMMANDS.REQUEST_MONEY,
+        receiptState: requestToProcess?.data?.receiptState,
     });
 
     // Log if TRACK_EXPENSE is still in queue but not being processed
@@ -181,10 +192,11 @@ function process(): Promise<void> {
         });
     }
 
-    // Log if TRACK_EXPENSE is being processed
-    if (requestToProcess.command === WRITE_COMMANDS.TRACK_EXPENSE) {
-        Log.info('[API_DEBUG] SequentialQueue.process - About to process TRACK_EXPENSE', false, {
+    // Log if TRACK_EXPENSE or REQUEST_MONEY is being processed
+    if (requestToProcess.command === WRITE_COMMANDS.TRACK_EXPENSE || requestToProcess.command === WRITE_COMMANDS.REQUEST_MONEY) {
+        Log.info(`[API_DEBUG] SequentialQueue.process - About to process ${requestToProcess.command}`, false, {
             transactionID: requestToProcess?.data?.transactionID,
+            receiptState: requestToProcess?.data?.receiptState,
             requestID: requestToProcess?.requestID,
         });
     }
@@ -197,11 +209,12 @@ function process(): Promise<void> {
         requestID: requestToProcess?.requestID,
     });
 
-    // Log specifically for TRACK_EXPENSE
-    if (requestToProcess.command === WRITE_COMMANDS.TRACK_EXPENSE) {
-        Log.info('[API_DEBUG] SequentialQueue - Processing TRACK_EXPENSE', false, {
+    // Log specifically for TRACK_EXPENSE and REQUEST_MONEY
+    if (requestToProcess.command === WRITE_COMMANDS.TRACK_EXPENSE || requestToProcess.command === WRITE_COMMANDS.REQUEST_MONEY) {
+        Log.info(`[API_DEBUG] SequentialQueue - Processing ${requestToProcess.command}`, false, {
             command: requestToProcess.command,
             transactionID: requestToProcess?.data?.transactionID,
+            receiptState: requestToProcess?.data?.receiptState,
             requestID: requestToProcess?.requestID,
             apiRequestType: requestToProcess?.data?.apiRequestType,
         });
@@ -253,14 +266,16 @@ function process(): Promise<void> {
             const apiRequestType = requestToProcess?.data?.apiRequestType;
             const isWriteRequest = apiRequestType === CONST.API_REQUEST_TYPE.WRITE;
             const isTrackExpense = requestToProcess.command === WRITE_COMMANDS.TRACK_EXPENSE;
+            const isRequestMoney = requestToProcess.command === WRITE_COMMANDS.REQUEST_MONEY;
 
             // Log for debugging
-            if (isTrackExpense) {
-                Log.info('[API_DEBUG] SequentialQueue - TRACK_EXPENSE response received', false, {
+            if (isTrackExpense || isRequestMoney) {
+                Log.info(`[API_DEBUG] SequentialQueue - ${requestToProcess.command} response received`, false, {
                     command: requestToProcess.command,
                     apiRequestType,
                     isWriteRequest,
                     transactionID: requestToProcess?.data?.transactionID,
+                    receiptState: requestToProcess?.data?.receiptState,
                     jsonCode: response?.jsonCode,
                 });
             }
@@ -428,13 +443,23 @@ function process(): Promise<void> {
  * so some cases (e.g., unpausing) require skipping the reset to maintain proper behavior.
  */
 function flush(shouldResetPromise = true) {
-    // Log TRACK_EXPENSE in queue when flush is called
+    // Log TRACK_EXPENSE and REQUEST_MONEY in queue when flush is called
     const persistedRequests = getAllPersistedRequests();
     const trackExpenseInQueue = persistedRequests.find((req) => req.command === WRITE_COMMANDS.TRACK_EXPENSE);
+    const requestMoneyInQueue = persistedRequests.find((req) => req.command === WRITE_COMMANDS.REQUEST_MONEY);
     if (trackExpenseInQueue) {
         Log.info('[API_DEBUG] SequentialQueue.flush - TRACK_EXPENSE in queue when flush called', false, {
             queueLength: persistedRequests.length,
             transactionID: trackExpenseInQueue?.data?.transactionID,
+            isQueuePaused,
+            isSequentialQueueRunning,
+        });
+    }
+    if (requestMoneyInQueue) {
+        Log.info('[API_DEBUG] SequentialQueue.flush - RequestMoney in queue when flush called', false, {
+            queueLength: persistedRequests.length,
+            transactionID: requestMoneyInQueue?.data?.transactionID,
+            receiptState: requestMoneyInQueue?.data?.receiptState,
             isQueuePaused,
             isSequentialQueueRunning,
         });
@@ -462,20 +487,35 @@ function flush(shouldResetPromise = true) {
     const isLeader = isClientTheLeader();
     if (!isLeader) {
         Log.info('[SequentialQueue] Unable to flush. Client is not the leader.');
-        // Log TRACK_EXPENSE if not leader
+        // Log TRACK_EXPENSE and REQUEST_MONEY if not leader
         if (trackExpenseInQueue) {
             Log.info('[API_DEBUG] SequentialQueue.flush - TRACK_EXPENSE in queue but client not leader', false, {
                 transactionID: trackExpenseInQueue?.data?.transactionID,
                 queueLength: allRequests.length,
             });
         }
+        if (requestMoneyInQueue) {
+            Log.info('[API_DEBUG] SequentialQueue.flush - RequestMoney in queue but client not leader', false, {
+                transactionID: requestMoneyInQueue?.data?.transactionID,
+                receiptState: requestMoneyInQueue?.data?.receiptState,
+                queueLength: allRequests.length,
+            });
+        }
         return;
     }
 
-    // Log TRACK_EXPENSE before setting isSequentialQueueRunning
+    // Log TRACK_EXPENSE and REQUEST_MONEY before setting isSequentialQueueRunning
     if (trackExpenseInQueue) {
         Log.info('[API_DEBUG] SequentialQueue.flush - About to call process() for TRACK_EXPENSE', false, {
             transactionID: trackExpenseInQueue?.data?.transactionID,
+            queueLength: allRequests.length,
+            shouldResetPromise,
+        });
+    }
+    if (requestMoneyInQueue) {
+        Log.info('[API_DEBUG] SequentialQueue.flush - About to call process() for RequestMoney', false, {
+            transactionID: requestMoneyInQueue?.data?.transactionID,
+            receiptState: requestMoneyInQueue?.data?.receiptState,
             queueLength: allRequests.length,
             shouldResetPromise,
         });
@@ -605,11 +645,12 @@ function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxReq
 function push(newRequest: OnyxRequest) {
     const {checkAndFixConflictingRequest} = newRequest;
 
-    // Log TRACK_EXPENSE when it's added to the queue
-    if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE) {
-        Log.info('[API_DEBUG] SequentialQueue.push - TRACK_EXPENSE added to queue', false, {
+    // Log TRACK_EXPENSE and REQUEST_MONEY when added to the queue
+    if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE || newRequest.command === WRITE_COMMANDS.REQUEST_MONEY) {
+        Log.info(`[API_DEBUG] SequentialQueue.push - ${newRequest.command} added to queue`, false, {
             command: newRequest.command,
             transactionID: newRequest?.data?.transactionID,
+            receiptState: newRequest?.data?.receiptState,
             apiRequestType: newRequest?.data?.apiRequestType,
             hasConflictResolver: !!checkAndFixConflictingRequest,
         });
@@ -620,11 +661,12 @@ function push(newRequest: OnyxRequest) {
         const {conflictAction} = checkAndFixConflictingRequest(requests);
         Log.info(`[SequentialQueue] Conflict action for command ${newRequest.command} - ${conflictAction.type}:`);
 
-        // Log TRACK_EXPENSE conflict action
-        if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE) {
-            Log.info('[API_DEBUG] SequentialQueue.push - TRACK_EXPENSE conflict action', false, {
+        // Log TRACK_EXPENSE and REQUEST_MONEY conflict action
+        if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE || newRequest.command === WRITE_COMMANDS.REQUEST_MONEY) {
+            Log.info(`[API_DEBUG] SequentialQueue.push - ${newRequest.command} conflict action`, false, {
                 conflictActionType: conflictAction.type,
                 transactionID: newRequest?.data?.transactionID,
+                receiptState: newRequest?.data?.receiptState,
             });
         }
 
@@ -637,27 +679,31 @@ function push(newRequest: OnyxRequest) {
         savePersistedRequest(newRequest);
     }
 
-    // Log TRACK_EXPENSE after save
-    if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+    // Log TRACK_EXPENSE and REQUEST_MONEY after save
+    if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE || newRequest.command === WRITE_COMMANDS.REQUEST_MONEY) {
         const allRequests = getAllPersistedRequests();
         const trackExpenseInQueue = allRequests.find((req) => req.command === WRITE_COMMANDS.TRACK_EXPENSE);
-        Log.info('[API_DEBUG] SequentialQueue.push - After savePersistedRequest, checking queue state', false, {
+        const requestMoneyInQueue = allRequests.find((req) => req.command === WRITE_COMMANDS.REQUEST_MONEY);
+        Log.info(`[API_DEBUG] SequentialQueue.push - After savePersistedRequest, checking queue state`, false, {
             command: newRequest.command,
             transactionID: newRequest?.data?.transactionID,
+            receiptState: newRequest?.data?.receiptState,
             isOffline: isOffline(),
             isSequentialQueueRunning,
             isQueuePaused,
             queueLength: allRequests.length,
             trackExpenseInQueue: !!trackExpenseInQueue,
+            requestMoneyInQueue: !!requestMoneyInQueue,
             willCallFlush: !isOffline() && (!isSequentialQueueRunning || true), // Always log
         });
     }
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (isOffline()) {
-        if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE) {
-            Log.info('[API_DEBUG] SequentialQueue.push - TRACK_EXPENSE added but offline, will process when online', false, {
+        if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE || newRequest.command === WRITE_COMMANDS.REQUEST_MONEY) {
+            Log.info(`[API_DEBUG] SequentialQueue.push - ${newRequest.command} added but offline, will process when online`, false, {
                 transactionID: newRequest?.data?.transactionID,
+                receiptState: newRequest?.data?.receiptState,
             });
         }
         return;
@@ -665,15 +711,17 @@ function push(newRequest: OnyxRequest) {
 
     // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
-        if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE) {
-            Log.info('[API_DEBUG] SequentialQueue.push - TRACK_EXPENSE added but queue running, will flush when ready', false, {
+        if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE || newRequest.command === WRITE_COMMANDS.REQUEST_MONEY) {
+            Log.info(`[API_DEBUG] SequentialQueue.push - ${newRequest.command} added but queue running, will flush when ready`, false, {
                 transactionID: newRequest?.data?.transactionID,
+                receiptState: newRequest?.data?.receiptState,
             });
         }
         isReadyPromise.then(() => {
-            if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE) {
-                Log.info('[API_DEBUG] SequentialQueue.push - Queue ready, calling flush for TRACK_EXPENSE', false, {
+            if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE || newRequest.command === WRITE_COMMANDS.REQUEST_MONEY) {
+                Log.info(`[API_DEBUG] SequentialQueue.push - Queue ready, calling flush for ${newRequest.command}`, false, {
                     transactionID: newRequest?.data?.transactionID,
+                    receiptState: newRequest?.data?.receiptState,
                 });
             }
             flush(true);
@@ -681,9 +729,10 @@ function push(newRequest: OnyxRequest) {
         return;
     }
 
-    if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE) {
-        Log.info('[API_DEBUG] SequentialQueue.push - Calling flush immediately for TRACK_EXPENSE', false, {
+    if (newRequest.command === WRITE_COMMANDS.TRACK_EXPENSE || newRequest.command === WRITE_COMMANDS.REQUEST_MONEY) {
+        Log.info(`[API_DEBUG] SequentialQueue.push - Calling flush immediately for ${newRequest.command}`, false, {
             transactionID: newRequest?.data?.transactionID,
+            receiptState: newRequest?.data?.receiptState,
         });
     }
     flush(true);

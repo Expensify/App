@@ -35,8 +35,8 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
             });
         }
 
-        // Log receipt state updates for TrackExpense responses
-        if (request.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+        // Log receipt state updates for TrackExpense and RequestMoney responses
+        if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
             const transactionID = request?.data?.transactionID;
             const receiptStateInRequest = request?.data?.receiptState;
             
@@ -52,7 +52,8 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
                 return false;
             }) ?? [];
             
-            Log.info('[SCAN_DEBUG] SaveResponseInOnyx - TrackExpense response received', false, {
+            Log.info(`[SCAN_DEBUG] SaveResponseInOnyx - ${request.command} response received`, false, {
+                command: request.command,
                 transactionID,
                 jsonCode: response?.jsonCode,
                 receiptStateInRequest,
@@ -85,10 +86,12 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
             response: response ?? {},
         };
 
-        // Log before calling OnyxUpdates.apply for TRACK_EXPENSE
-        if (request.command === WRITE_COMMANDS.TRACK_EXPENSE) {
-            Log.info('[API_DEBUG] SaveResponseInOnyx - About to call OnyxUpdates.apply for TRACK_EXPENSE', false, {
+        // Log before calling OnyxUpdates.apply for TRACK_EXPENSE and REQUEST_MONEY
+        if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
+            Log.info(`[API_DEBUG] SaveResponseInOnyx - About to call OnyxUpdates.apply for ${request.command}`, false, {
+                command: request.command,
                 transactionID: request?.data?.transactionID,
+                receiptState: request?.data?.receiptState,
                 jsonCode: response?.jsonCode,
                 lastUpdateID: responseToApply.lastUpdateID,
                 previousUpdateID: responseToApply.previousUpdateID,
@@ -99,10 +102,12 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
         }
         
         if (requestsToIgnoreLastUpdateID.has(request.command) || !OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(response?.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID)})) {
-            // Log after calling OnyxUpdates.apply for TRACK_EXPENSE
-            if (request.command === WRITE_COMMANDS.TRACK_EXPENSE) {
-                Log.info('[API_DEBUG] SaveResponseInOnyx - Calling OnyxUpdates.apply for TRACK_EXPENSE', false, {
+            // Log after calling OnyxUpdates.apply for TRACK_EXPENSE and REQUEST_MONEY
+            if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
+                Log.info(`[API_DEBUG] SaveResponseInOnyx - Calling OnyxUpdates.apply for ${request.command}`, false, {
+                    command: request.command,
                     transactionID: request?.data?.transactionID,
+                    receiptState: request?.data?.receiptState,
                 });
             }
             

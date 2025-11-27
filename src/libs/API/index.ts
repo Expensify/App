@@ -146,12 +146,13 @@ function prepareRequest<TCommand extends ApiCommand>(
  * Process a prepared request according to its type.
  */
 function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<void | Response> {
-    // Log TRACK_EXPENSE in processRequest
-    if (request.command === WRITE_COMMANDS.TRACK_EXPENSE) {
-        Log.info('[API_DEBUG] API.processRequest - TRACK_EXPENSE received', false, {
+    // Log TRACK_EXPENSE and REQUEST_MONEY in processRequest
+    if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
+        Log.info(`[API_DEBUG] API.processRequest - ${request.command} received`, false, {
             command: request.command,
             type,
             transactionID: request?.data?.transactionID,
+            receiptState: request?.data?.receiptState,
             apiRequestType: request?.data?.apiRequestType,
             willPushToSequentialQueue: type === CONST.API_REQUEST_TYPE.WRITE,
         });
@@ -159,11 +160,12 @@ function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<voi
 
     // Write commands can be saved and retried, so push it to the SequentialQueue
     if (type === CONST.API_REQUEST_TYPE.WRITE) {
-        // Log TRACK_EXPENSE before pushing to SequentialQueue
-        if (request.command === WRITE_COMMANDS.TRACK_EXPENSE) {
-            Log.info('[API_DEBUG] API.processRequest - About to push TRACK_EXPENSE to SequentialQueue', false, {
+        // Log TRACK_EXPENSE and REQUEST_MONEY before pushing to SequentialQueue
+        if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
+            Log.info(`[API_DEBUG] API.processRequest - About to push ${request.command} to SequentialQueue`, false, {
                 command: request.command,
                 transactionID: request?.data?.transactionID,
+                receiptState: request?.data?.receiptState,
             });
         }
         pushToSequentialQueue(request);
@@ -193,13 +195,16 @@ function write<TCommand extends WriteCommand>(
 ): Promise<void | Response> {
     Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
 
-    // Log TRACK_EXPENSE specifically
-    if (command === WRITE_COMMANDS.TRACK_EXPENSE) {
+    // Log TRACK_EXPENSE and REQUEST_MONEY specifically
+    if (command === WRITE_COMMANDS.TRACK_EXPENSE || command === WRITE_COMMANDS.REQUEST_MONEY) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
         const transactionID: string | undefined = (apiCommandParameters as any)?.transactionID;
-        Log.info('[API_DEBUG] API.write - TRACK_EXPENSE called', false, {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+        const receiptState: string | undefined = (apiCommandParameters as any)?.receiptState;
+        Log.info(`[API_DEBUG] API.write - ${command} called`, false, {
             command,
             transactionID,
+            receiptState,
             hasOnyxData: !!onyxData,
             hasOptimisticData: !!onyxData.optimisticData,
             hasSuccessData: !!onyxData.successData,
@@ -209,11 +214,12 @@ function write<TCommand extends WriteCommand>(
 
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxData, conflictResolver);
 
-    // Log TRACK_EXPENSE after prepareRequest
-    if (command === WRITE_COMMANDS.TRACK_EXPENSE) {
-        Log.info('[API_DEBUG] API.write - TRACK_EXPENSE request prepared, about to processRequest', false, {
+    // Log TRACK_EXPENSE and REQUEST_MONEY after prepareRequest
+    if (command === WRITE_COMMANDS.TRACK_EXPENSE || command === WRITE_COMMANDS.REQUEST_MONEY) {
+        Log.info(`[API_DEBUG] API.write - ${command} request prepared, about to processRequest`, false, {
             command: request.command,
             transactionID: request?.data?.transactionID,
+            receiptState: request?.data?.receiptState,
             apiRequestType: request?.data?.apiRequestType,
         });
     }

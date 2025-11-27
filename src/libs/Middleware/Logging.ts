@@ -79,13 +79,16 @@ function logRequestDetails(message: string, request: Request, response?: Respons
 const Logging: Middleware = (response, request) => {
     const startTime = Date.now();
     
-    // Log TRACK_EXPENSE specifically
-    if (request.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+    // Log TRACK_EXPENSE and REQUEST_MONEY specifically
+    if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
         const transactionID: string | undefined = (request.data as any)?.transactionID;
-        Log.info('[API_DEBUG] Logging middleware - TRACK_EXPENSE request starting', false, {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+        const receiptState: string | undefined = (request.data as any)?.receiptState;
+        Log.info(`[API_DEBUG] Logging middleware - ${request.command} request starting`, false, {
             command: request.command,
             transactionID,
+            receiptState,
             requestID: request.requestID,
         });
     }
@@ -93,13 +96,16 @@ const Logging: Middleware = (response, request) => {
     logRequestDetails('[Network] Making API request', request);
     return response
         .then((data) => {
-            // Log TRACK_EXPENSE response
-            if (request.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+            // Log TRACK_EXPENSE and REQUEST_MONEY response
+            if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
                 const transactionID: string | undefined = (request.data as any)?.transactionID;
-                Log.info('[API_DEBUG] Logging middleware - TRACK_EXPENSE request completed', false, {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                const receiptState: string | undefined = (request.data as any)?.receiptState;
+                Log.info(`[API_DEBUG] Logging middleware - ${request.command} request completed`, false, {
                     command: request.command,
                     transactionID,
+                    receiptState,
                     requestID: request.requestID,
                     responseRequestID: data?.requestID,
                     jsonCode: data?.jsonCode,
@@ -113,13 +119,16 @@ const Logging: Middleware = (response, request) => {
             return data;
         })
         .catch((error: HttpsError) => {
-            // Log TRACK_EXPENSE errors
-            if (request.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+            // Log TRACK_EXPENSE and REQUEST_MONEY errors
+            if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
                 const transactionID: string | undefined = (request.data as any)?.transactionID;
-                Log.warn('[API_DEBUG] Logging middleware - TRACK_EXPENSE request failed', {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                const receiptState: string | undefined = (request.data as any)?.receiptState;
+                Log.warn(`[API_DEBUG] Logging middleware - ${request.command} request failed`, {
                     command: request.command,
                     transactionID,
+                    receiptState,
                     requestID: request.requestID,
                     errorName: error.name,
                     errorMessage: error.message,

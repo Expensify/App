@@ -6151,6 +6151,22 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 guidedSetupData: guidedSetupData ? JSON.stringify(guidedSetupData) : undefined,
                 testDriveCommentReportActionID,
             };
+            
+            // Log RequestMoney API call
+            Log.info('[SCAN_DEBUG] RequestMoney function called - preparing API request', false, {
+                transactionID: transaction.transactionID,
+                receiptState: receipt?.state,
+                hasReceipt: !!receipt,
+                receiptSource: receipt?.source,
+                receiptFilename: receipt?.name,
+                iouReportID: iouReport.reportID,
+                chatReportID: chatReport.reportID,
+                hasOnyxData: !!onyxData,
+                optimisticDataCount: onyxData?.optimisticData?.length ?? 0,
+                successDataCount: onyxData?.successData?.length ?? 0,
+                failureDataCount: onyxData?.failureData?.length ?? 0,
+            });
+            
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
         }
@@ -8343,11 +8359,10 @@ function updateMoneyRequestAmountAndCurrency({
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
     const {params, onyxData} = data;
-    
+
     // Log before making the API call
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionDraft = allTransactionDrafts?.[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
-    
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     Log.info('[API_DEBUG] updateMoneyRequestAmountAndCurrency - Making API call', false, {
         command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY,
@@ -8361,7 +8376,7 @@ function updateMoneyRequestAmountAndCurrency({
         transactionExists: !!transaction,
         draftExists: !!transactionDraft,
     });
-    
+
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 
