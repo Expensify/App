@@ -239,7 +239,7 @@ function IOURequestStartPage({
 
     // Fetch per diem rates for policies with per diem enabled, especially to make per diem tab visible after clearing cache
     useEffect(() => {
-        if (!isFromGlobalCreate || isOffline) {
+        if (!isFromGlobalCreate || isOffline || moreThanOnePerDiemExist) {
             return;
         }
 
@@ -250,7 +250,7 @@ function IOURequestStartPage({
             }
             fetchPerDiemRates(perDiemPolicy.id);
         });
-    }, [isFromGlobalCreate, isOffline, perDiemCustomUnit?.rates, allPolicies, currentUserPersonalDetails.login]);
+    }, [isFromGlobalCreate, isOffline, perDiemCustomUnit?.rates, allPolicies, currentUserPersonalDetails.login, moreThanOnePerDiemExist]);
 
     return (
         <AccessOrNotFoundWrapper
