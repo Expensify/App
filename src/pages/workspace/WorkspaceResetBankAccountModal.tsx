@@ -29,6 +29,9 @@ type WorkspaceResetBankAccountModalProps = {
 
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;
+
+    /** Method to set the state of isResettingBankAccount */
+    setIsResettingBankAccount?: (isResetting: boolean) => void;
 };
 
 function WorkspaceResetBankAccountModal({
@@ -38,6 +41,7 @@ function WorkspaceResetBankAccountModal({
     setNonUSDBankAccountStep,
     isNonUSDWorkspace,
     setShouldShowContinueSetupButton,
+    setIsResettingBankAccount,
 }: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -64,6 +68,11 @@ function WorkspaceResetBankAccountModal({
 
     const handleConfirm = () => {
         if (isNonUSDWorkspace) {
+            // Set the resetting flag BEFORE the reset to block the NonUSD flow from rendering
+            if (setIsResettingBankAccount) {
+                setIsResettingBankAccount(true);
+            }
+
             resetNonUSDBankAccount(policyID, policy?.achAccount, !achData?.bankAccountID);
 
             if (setShouldShowConnectedVerifiedBankAccount) {
@@ -77,6 +86,13 @@ function WorkspaceResetBankAccountModal({
             if (setNonUSDBankAccountStep) {
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
             }
+
+            // Defer clearing the resetting flag to ensure the step change is rendered first
+            requestAnimationFrame(() => {
+                if (setIsResettingBankAccount) {
+                    setIsResettingBankAccount(false);
+                }
+            });
         } else {
             resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod);
 
