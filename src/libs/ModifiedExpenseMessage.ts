@@ -49,7 +49,7 @@ function buildMessageFragmentForValue(
     // If the valueName is category and the old value was Uncategorized, show it in lowercase without quotes
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const oldValueToDisplay = valueName.includes(translateLocal('common.category')) && isCategoryMissing(oldValue) ? oldValue.toLowerCase() : valueInQuotes ? `"${oldValue}"` : oldValue;
-    
+
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isOldValuePartialMerchant = valueName === translateLocal('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -306,7 +306,6 @@ function getForReportAction({
             setFragments,
             removalFragments,
             changeFragments,
-            true,
         );
     }
 
@@ -555,7 +554,6 @@ function getForReportActionTemp({
             setFragments,
             removalFragments,
             changeFragments,
-            true,
         );
     }
 
