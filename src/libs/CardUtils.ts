@@ -733,7 +733,8 @@ function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: Priv
     return (
         card?.bank === CONST.EXPENSIFY_CARD.BANK &&
         !card.nameValuePairs?.isVirtual &&
-        (isCardPendingIssue(card) || isCardPendingActivate(card) || isCardPendingReplace(card) || arePersonalDetailsMissing(privatePersonalDetails))
+        (isCardPendingIssue(card) || isCardPendingActivate(card) || isCardPendingReplace(card) || arePersonalDetailsMissing(privatePersonalDetails)) &&
+        (!card.lastScrapeResult || CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult))
     );
 }
 
