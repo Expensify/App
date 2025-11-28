@@ -6256,6 +6256,7 @@ ${
             delete: '删除',
             hold: '保持',
             unhold: '移除保留',
+            reject: '拒绝',
             noOptionsAvailable: '所选费用组没有可用选项。',
         },
         filtersHeader: '筛选器',

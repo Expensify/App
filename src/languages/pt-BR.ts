@@ -6390,6 +6390,7 @@ ${
             delete: 'Excluir',
             hold: 'Manter',
             unhold: 'Remover retenção',
+            reject: 'Rejeitar',
             noOptionsAvailable: 'Nenhuma opção disponível para o grupo de despesas selecionado.',
         },
         filtersHeader: 'Filtros',

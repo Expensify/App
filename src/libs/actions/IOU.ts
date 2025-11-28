@@ -319,6 +319,14 @@ type MoneyRequestInformation = {
     reimbursable?: boolean;
 };
 
+type RejectMoneyRequestData = {
+    optimisticData: OnyxUpdate[];
+    successData: OnyxUpdate[];
+    failureData: OnyxUpdate[];
+    parameters: RejectMoneyRequestParams;
+    urlToNavigateBack: Route | undefined;
+};
+
 type TrackExpenseInformation = {
     createdWorkspaceParams?: CreateWorkspaceParams;
     iouReport?: OnyxTypes.Report;
@@ -13035,13 +13043,21 @@ function dismissRejectUseExplanation() {
 }
 
 /**
- * Reject a money request
+ * Retrieve the reject money request data
  * @param transactionID - The ID of the transaction to reject
  * @param reportID - The ID of the expense report to reject
  * @param comment - The comment to add to the reject action
- * @returns The route to navigate back to
+ * @param options
+ *   - sharedRejectedToReportID: When rejecting multiple expenses sequentially, pass a single shared destination reportID so all rejections land in the same new report.
+ * @returns optimisticData, successData, failureData, parameters, urlToNavigateBack
  */
-function rejectMoneyRequest(transactionID: string, reportID: string, comment: string): Route | undefined {
+function prepareRejectMoneyRequestData(
+    transactionID: string,
+    reportID: string,
+    comment: string,
+    options?: {sharedRejectedToReportID?: string},
+    shouldUseBulkAction?: boolean,
+): RejectMoneyRequestData | undefined {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionAmount = getAmount(transaction);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -13063,7 +13079,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
 
     let movedToReport;
-    let rejectedToReportID;
+    let rejectedToReportID = options?.sharedRejectedToReportID;
     let urlToNavigateBack;
     let reportPreviewAction: OnyxTypes.ReportAction | undefined;
     let createdIOUReportActionID;
@@ -13086,7 +13102,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    if (!isPolicyDelayedSubmissionEnabled || isIOU) {
+    if ((!isPolicyDelayedSubmissionEnabled || isIOU) && !shouldUseBulkAction) {
         if (hasMultipleExpenses) {
             // For reports with multiple expenses: Update report total
             optimisticData.push(
@@ -13225,7 +13241,7 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
             }
         }
-    } else if (hasMultipleExpenses) {
+    } else if (hasMultipleExpenses && !shouldUseBulkAction) {
         if (isUserOnSearchPage || isUserOnSearchMoneyRequestReport) {
             // Navigate to the existing Reports > Expense view.
             urlToNavigateBack = undefined;
@@ -13321,8 +13337,10 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
                 },
             );
         } else {
-            // Create optimistic report for the rejected transaction
-            rejectedToReportID = generateReportID();
+            // When no existing open report is found, use the sharedRejectedToReportID
+            // so multiple sequential rejections land in the same destination report
+            // Fallback to generating a fresh ID if not provided
+            rejectedToReportID = rejectedToReportID ?? generateReportID();
             const newExpenseReport = buildOptimisticExpenseReport(
                 report.chatReportID,
                 report?.policyID,
@@ -13709,10 +13727,19 @@ function rejectMoneyRequest(transactionID: string, reportID: string, comment: st
         expenseCreatedReportActionID,
     };
 
+    return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
+}
+
+function rejectMoneyRequest(transactionID: string, reportID: string, comment: string, options?: {sharedRejectedToReportID?: string}): Route | undefined {
+    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, options);
+    if (!data) {
+        return;
+    }
+    const {urlToNavigateBack, optimisticData, successData, failureData, parameters} = data;
     // Make API call
     API.write(WRITE_COMMANDS.REJECT_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 
-    return urlToNavigateBack as Route;
+    return urlToNavigateBack;
 }
 
 function markRejectViolationAsResolved(transactionID: string, reportID?: string) {
@@ -14807,6 +14834,7 @@ export {
     calculateDiffAmount,
     dismissRejectUseExplanation,
     rejectMoneyRequest,
+    prepareRejectMoneyRequestData,
     markRejectViolationAsResolved,
     setMoneyRequestReimbursable,
     computePerDiemExpenseAmount,
