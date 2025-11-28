@@ -1,6 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -40,10 +41,11 @@ function IOURequestStepAttendees({
     policyTags,
     policyCategories,
 }: IOURequestStepAttendeesProps) {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
-    const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction));
+    const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, currentUserPersonalDetails));
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);

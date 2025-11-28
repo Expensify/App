@@ -63,11 +63,11 @@ import type {
     Transaction,
     TransactionViolation,
     TransactionViolations,
-    UserMetadata,
     ViolationName,
 } from '@src/types/onyx';
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -142,14 +142,6 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         deprecatedCurrentUserAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
-let userMetadata: OnyxEntry<UserMetadata> = {};
-Onyx.connect({
-    key: ONYXKEYS.USER_METADATA,
-    callback: (val) => {
-        userMetadata = val;
     },
 });
 
@@ -898,8 +890,9 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
 /**
  * Return report owner as default attendee
  * @param transaction
+ * @param currentUserPersonalDetails - personal details of current user
  */
-function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>): Attendee | undefined {
+function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails?: CurrentUserPersonalDetails): Attendee | undefined {
     if (transaction?.reportID === undefined) {
         return;
     }
@@ -907,7 +900,7 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>): A
     // Get the creator of the transaction by looking at the owner of the report linked to the transaction
     const report = getReportOrDraftReport(transaction?.reportID);
     // For unreported expenses, the creator ID should belong to the current user because the transaction isn’t part of any report yet
-    const creatorAccountID = isExpenseUnreported(transaction) ? userMetadata?.accountID : report?.ownerAccountID;
+    const creatorAccountID = isExpenseUnreported(transaction) ? currentUserPersonalDetails?.accountID : report?.ownerAccountID;
 
     if (creatorAccountID) {
         const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID]});
@@ -932,12 +925,13 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>): A
 /**
  * Return the list of attendees present on the transaction, if it's empty return report owner as default attendee
  * @param transaction
+ * @param currentUserPersonalDetails - personal details of current user
  */
-function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
+function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails?: CurrentUserPersonalDetails): Attendee[] {
     const attendees = transaction?.comment?.attendees ?? [];
-    const currentUserAsAttendee = getReportOwnerAsAttendee(transaction);
-    if (attendees.length === 0 && transaction?.reportID && currentUserAsAttendee !== undefined) {
-        attendees.push(currentUserAsAttendee);
+    const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
+    if (attendees.length === 0 && transaction?.reportID && reportOwnerAsAttendee !== undefined) {
+        attendees.push(reportOwnerAsAttendee);
     }
     return attendees;
 }
@@ -945,13 +939,14 @@ function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>): Atten
 /**
  * Return the list of modified attendees if present otherwise list of attendees
  * @param transaction
+ * @param currentUserPersonalDetails - personal details of current user
  */
-function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
+function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails?: CurrentUserPersonalDetails): Attendee[] {
     const attendees = transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
-    const currentUserAsAttendee = getReportOwnerAsAttendee(transaction);
+    const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
 
-    if (attendees.length === 0 && currentUserAsAttendee !== undefined) {
-        attendees.push(currentUserAsAttendee);
+    if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
+        attendees.push(reportOwnerAsAttendee);
     }
     return attendees;
 }

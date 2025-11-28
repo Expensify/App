@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -125,6 +126,7 @@ function MoneyRequestView({
     isFromReviewDuplicates = false,
     mergeTransactionID,
 }: MoneyRequestViewProps) {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -204,7 +206,10 @@ function MoneyRequestView({
         originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
-    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount) ?? {}, [allowNegativeAmount, transaction]);
+    } = useMemo<Partial<TransactionDetails>>(
+        () => getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails) ?? {},
+        [allowNegativeAmount, transaction],
+    );
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);

@@ -1312,7 +1312,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={transaction?.amount ?? 0}
-                        iouAttendees={getOriginalAttendees(transaction)}
+                        iouAttendees={getOriginalAttendees(transaction, currentUserPersonalDetails)}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}

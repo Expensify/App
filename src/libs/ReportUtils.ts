@@ -69,7 +69,7 @@ import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotA
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type {Status, Timezone} from '@src/types/onyx/PersonalDetails';
+import type {CurrentUserPersonalDetails, Status, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {AllConnectionName, ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, OldDotReportAction, ReportActions} from '@src/types/onyx/ReportAction';
@@ -4441,6 +4441,7 @@ function getTransactionDetails(
     policy: OnyxEntry<Policy> = undefined,
     allowNegativeAmount = false,
     disableOppositeConversion = false,
+    currentUserPersonalDetails?: CurrentUserPersonalDetails,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
@@ -4453,7 +4454,7 @@ function getTransactionDetails(
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
         amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
-        attendees: getAttendees(transaction),
+        attendees: getAttendees(transaction, currentUserPersonalDetails),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),
         taxCode: getTaxCode(transaction),
         currency: getCurrency(transaction),
