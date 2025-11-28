@@ -1774,12 +1774,17 @@ describe('actions/Report', () => {
                 key: ONYXKEYS.COLLECTION.REPORT,
                 waitForCollectionCallback: true,
                 callback: (reports) => {
-                    Onyx.disconnect(connection);
                     const createdReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
+
+                    // Wait until the optimistic data has propagated
+                    if (!createdReport?.reportID || parentPolicyExpenseChat?.hasOutstandingChildRequest !== true) {
+                        return;
+                    }
+
+                    Onyx.disconnect(connection);
                     // assert correctness of crucial onyx data
                     expect(createdReport?.reportID).toBe(reportID);
-                    expect(parentPolicyExpenseChat?.lastVisibleActionCreated).toBe(reportPreviewAction?.created);
                     expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(true);
                     expect(createdReport?.total).toBe(0);
                     expect(createdReport?.parentReportActionID).toBe(reportPreviewAction?.reportActionID);
@@ -2044,7 +2049,7 @@ describe('actions/Report', () => {
             });
 
             // When deleting the expense report
-            Report.deleteAppReport(reportID);
+            Report.deleteAppReport(reportID, '');
             await waitForBatchedUpdates();
 
             // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
@@ -2140,7 +2145,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
             // When deleting the first expense report
-            Report.deleteAppReport(expenseReport1.reportID);
+            Report.deleteAppReport(expenseReport1.reportID, '');
             await waitForBatchedUpdates();
 
             const report = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {

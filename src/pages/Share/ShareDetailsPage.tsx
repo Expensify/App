@@ -7,6 +7,8 @@ import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -15,7 +17,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,7 +48,6 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
@@ -74,10 +74,10 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             source: fileSource,
             headerTitle: validateFileName,
             originalFileName: validateFileName,
-            fallbackSource: expensifyIcons.FallbackAvatar,
+            fallbackSource: FallbackAvatar,
         });
         Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
-    }, [reportAttachmentsContext, fileSource, validateFileName, expensifyIcons.FallbackAvatar]);
+    }, [reportAttachmentsContext, fileSource, validateFileName]);
 
     useEffect(() => {
         if (!currentAttachment?.content || errorTitle) {
@@ -94,7 +94,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 setErrorMessage(translate('attachmentPicker.sizeNotMet'));
             }
         });
-    }, [currentAttachment, errorTitle, translate]);
+    }, [currentAttachment?.content, errorTitle, translate]);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {

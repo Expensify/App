@@ -89,7 +89,7 @@ function AvatarWithImagePicker({
     onErrorClose = () => {},
     source = '',
     avatarID,
-    fallbackIcon,
+    fallbackIcon = Expensicons.FallbackAvatar,
     size = CONST.AVATAR_SIZE.DEFAULT,
     type = CONST.ICON_TYPE_AVATAR,
     isUsingDefaultAvatar = false,
@@ -118,7 +118,6 @@ function AvatarWithImagePicker({
     const {calculatePopoverPosition} = usePopoverPosition();
     const anchorRef = useRef<View>(null);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -264,7 +263,7 @@ function AvatarWithImagePicker({
                                         onPress={() => onPressAvatar(openPicker)}
                                         avatarStyle={avatarStyle}
                                         pendingAction={pendingAction}
-                                        fallbackIcon={fallbackIcon ?? expensifyIcons.FallbackAvatar}
+                                        fallbackIcon={fallbackIcon}
                                         anchorRef={anchorRef}
                                         DefaultAvatar={DefaultAvatar}
                                         editIcon={editIcon}

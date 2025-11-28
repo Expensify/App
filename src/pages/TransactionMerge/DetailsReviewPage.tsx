@@ -166,7 +166,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                 } as Partial<Record<MergeFieldKey, string>>,
             });
         },
-        [mergeTransaction, transactionID],
+        [mergeTransaction?.selectedTransactionByField, transactionID],
     );
 
     // Handle continue

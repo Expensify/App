@@ -2678,6 +2678,22 @@ describe('OptionsListUtils', () => {
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
             });
         });
+        describe('POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE action', () => {
+            it('should return forced corporate upgrade message', async () => {
+                const report: Report = createRandomReport(0, undefined);
+                const corporateForceUpgradeAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {},
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [corporateForceUpgradeAction.reportActionID]: corporateForceUpgradeAction,
+                });
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+                expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
+            });
+        });
         it('TAKE_CONTROL action', async () => {
             const report: Report = createRandomReport(0, undefined);
             const takeControlAction: ReportAction = {

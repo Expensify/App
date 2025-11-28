@@ -52,7 +52,7 @@ function ScheduleCallConfirmationPage() {
             currentUserPersonalDetails,
             userTimezone,
         );
-    }, [currentUserPersonalDetails, scheduleCallDraft, userTimezone]);
+    }, [currentUserPersonalDetails, scheduleCallDraft?.timeSlot, scheduleCallDraft?.date, scheduleCallDraft?.guide, scheduleCallDraft?.reportID, userTimezone]);
 
     const guideDetails: PersonalDetails | null = useMemo(
         () =>

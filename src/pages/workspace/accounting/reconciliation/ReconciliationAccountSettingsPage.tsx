@@ -45,7 +45,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
 
     const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID?.toString() ?? ''], [paymentBankAccountID, bankAccountList]);
-    const bankAccountNumber = useMemo(() => selectedBankAccount?.accountData?.accountNumber ?? '', [selectedBankAccount]);
+    const bankAccountNumber = useMemo(() => selectedBankAccount?.accountData?.accountNumber ?? '', [selectedBankAccount?.accountData?.accountNumber]);
     const settlementAccountEnding = getLastFourDigits(bankAccountNumber);
     const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
     const {environmentURL} = useEnvironment();
@@ -61,8 +61,11 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             value: bankAccount.accountData?.bankAccountID,
             keyForList: bankAccount.accountData?.bankAccountID?.toString() ?? `${bankAccount.title}-${index}`,
             isSelected: bankAccount.accountData?.bankAccountID === paymentBankAccountID,
+            alternateText:
+                bankAccount.description ??
+                (bankAccount.accountData?.accountNumber ? `${translate('bankAccount.accountEnding')} ${getLastFourDigits(bankAccount.accountData.accountNumber)}` : ''),
         }));
-    }, [bankAccountList, paymentBankAccountID]);
+    }, [bankAccountList, paymentBankAccountID, translate]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backTo ?? ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection));

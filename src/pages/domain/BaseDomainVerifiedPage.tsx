@@ -22,12 +22,9 @@ type BaseDomainVerifiedPageProps = {
 
     /** Route to redirect to when trying to access the page for an unverified domain */
     redirectTo: Route;
-
-    /** Function to run after clicking the confirmation button */
-    navigateAfterConfirmation: () => void;
 };
 
-function BaseDomainVerifiedPage({accountID, redirectTo, navigateAfterConfirmation}: BaseDomainVerifiedPageProps) {
+function BaseDomainVerifiedPage({accountID, redirectTo}: BaseDomainVerifiedPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -67,7 +64,7 @@ function BaseDomainVerifiedPage({accountID, redirectTo, navigateAfterConfirmatio
                 innerContainerStyle={styles.p10}
                 buttonText={translate('common.buttonConfirm')}
                 shouldShowButton
-                onButtonPress={navigateAfterConfirmation}
+                onButtonPress={() => Navigation.dismissModal()}
             />
         </ScreenWrapper>
     );

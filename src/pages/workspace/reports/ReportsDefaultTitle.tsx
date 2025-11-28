@@ -128,7 +128,6 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                             autoFocus
                             onChangeText={setReportTitle}
                             autoGrowHeight
-                            type="markdown"
                             ref={(el: BaseTextInputRef | null): void => {
                                 if (!isInputInitializedRef.current) {
                                     updateMultilineInputRange(el);

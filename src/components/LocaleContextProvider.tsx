@@ -131,7 +131,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         setCurrentLocale(locale);
     }, [areTranslationsLoading]);
 
-    const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails]);
+    const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails?.timezone?.selected]);
 
     const collator = useMemo(() => new Intl.Collator(currentLocale, COLLATOR_OPTIONS), [currentLocale]);
 

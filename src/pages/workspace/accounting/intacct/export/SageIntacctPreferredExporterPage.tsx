@@ -73,7 +73,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
             });
             return options;
         }, []);
-    }, [exportConfiguration, exporters, policyOwner, currentUserLogin]);
+    }, [exportConfiguration?.exporter, exporters, policyOwner, currentUserLogin]);
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
@@ -82,7 +82,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
             }
             goBack();
         },
-        [policyID, exportConfiguration, goBack],
+        [policyID, exportConfiguration?.exporter, goBack],
     );
 
     const headerContent = useMemo(

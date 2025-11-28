@@ -62,7 +62,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 ],
             },
         ],
-        [exportConfig, policyID, translate],
+        [exportConfig?.exporter, exportConfig?.exportDate, exportConfig?.reimbursable, exportConfig?.nonReimbursable, policyID, translate],
     );
 
     return (
