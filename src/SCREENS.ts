@@ -161,6 +161,7 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_MAGIC_CODE: 'Settings_Wallet_ReportVirtualCardFraud_ConfirmMagicCode',
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION: 'Settings_Wallet_ReportVirtualCardFraudConfirmation',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
+            UNSHARE_BANK_ACCOUNT: 'Settings_Wallet_Unshare_Bank_Account',
             ENABLE_GLOBAL_REIMBURSEMENTS: 'Settings_Wallet_Enable_Global_Reimbursements',
         },
 

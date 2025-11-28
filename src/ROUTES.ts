@@ -322,6 +322,10 @@ const ROUTES = {
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
     SETTINGS_ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: `settings/wallet/add-bank-account/select-country/${VERIFY_ACCOUNT}`,
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
+    SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT: {
+        route: 'settings/wallet/:bankAccountID/unshare-bank-account',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/unshare-bank-account` as const,
+    },
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/enable-global-reimbursements` as const,

@@ -251,6 +251,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS]: {
                             path: ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.route,
                             exact: true,

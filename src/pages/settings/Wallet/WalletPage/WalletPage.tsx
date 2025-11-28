@@ -78,7 +78,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'UserMinus'] as const);
     const {asset: MoneyIntoWallet} = useMemoizedLazyAsset(() => loadIllustration('MoneyIntoWallet' as IllustrationName));
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -98,6 +98,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
         anchorPositionRight: 0,
     });
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
+    const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
 
     const hasWallet = !isEmpty(userWallet);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
@@ -174,6 +175,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
+            // if (accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !!accountData?.sharees?.length) {
+            if (accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
+                setShouldShowUnshareButton(accountData?.state !== CONST.BANK_ACCOUNT.STATE.PENDING);
+            }
             setPaymentMethod({
                 isSelectedPaymentMethodDefault: !!isDefault,
                 selectedPaymentMethod: accountData ?? {},
@@ -230,6 +235,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const hideDefaultDeleteMenu = useCallback(() => {
         setShouldShowDefaultDeleteMenu(false);
         setShowConfirmDeleteModal(false);
+        setShouldShowUnshareButton(false);
     }, [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteModal]);
 
     const hideCardMenu = useCallback(() => {
@@ -636,6 +642,20 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                             }}
                             wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                         />
+                        {shouldShowUnshareButton && (
+                            <MenuItem
+                                title={translate('common.unshare')}
+                                icon={expensifyIcons.UserMinus}
+                                onPress={() => {
+                                    if (isAccountLocked) {
+                                        closeModal(() => showLockedAccountModal());
+                                        return;
+                                    }
+                                    closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                                }}
+                                wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                            />
+                        )}
                         {shouldShowEnableGlobalReimbursementsButton && (
                             <MenuItem
                                 title={translate('common.enableGlobalReimbursements')}

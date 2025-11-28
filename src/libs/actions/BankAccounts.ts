@@ -14,6 +14,7 @@ import type {
     OpenReimbursementAccountPageParams,
     SaveCorpayOnboardingBeneficialOwnerParams,
     SendReminderForCorpaySignerInformationParams,
+    UnshareBankAccountParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -1222,6 +1223,58 @@ function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdra
     );
 }
 
+function clearUnshareBankAccount() {
+    Onyx.set(ONYXKEYS.UNSHARE_BANK_ACCOUNT, null);
+}
+
+function clearUnshareBankAccountErrors() {
+    Onyx.merge(ONYXKEYS.UNSHARE_BANK_ACCOUNT, {errors: null});
+}
+
+function unshareBankAccount(bankAccountID: number, email: string) {
+    const parameters: UnshareBankAccountParams = {
+        bankAccountID,
+        email,
+    };
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.UNSHARE_BANK_ACCOUNT,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.UNSHARE_BANK_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: null,
+                    admins: null,
+                    shouldShowSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.UNSHARE_BANK_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.UNSHARE_BANK_ACCOUNT, parameters, onyxData);
+}
+
 function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm, classification: string, destinationCountry: string, preferredMethod: string) {
     const inputData = {
         ...data,
@@ -1323,6 +1376,9 @@ export {
     createCorpayBankAccountForWalletFlow,
     getCorpayOnboardingFields,
     saveCorpayOnboardingCompanyDetails,
+    unshareBankAccount,
+    clearUnshareBankAccountErrors,
+    clearUnshareBankAccount,
     clearReimbursementAccountSaveCorpayOnboardingCompanyDetails,
     saveCorpayOnboardingBeneficialOwners,
     saveCorpayOnboardingDirectorInformation,
