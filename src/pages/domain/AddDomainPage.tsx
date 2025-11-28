@@ -19,6 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isUserValidatedSelector} from '@src/selectors/Account';
 import type {CreateDomainForm} from '@src/types/form/CreateDomainForm';
 import INPUT_IDS from '@src/types/form/CreateDomainForm';
 
@@ -31,6 +32,7 @@ function AddDomainPage() {
 
     const [hasCreationSucceeded] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {canBeMissing: true, selector: hasCreationSucceededSelector});
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: isUserValidatedSelector});
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>) => {
         return getFieldRequiredErrors(values, [INPUT_IDS.DOMAIN_NAME]);
@@ -74,6 +76,9 @@ function AddDomainPage() {
                     style={[styles.flexGrow1, styles.ph5]}
                     scrollContextEnabled
                     onSubmit={({domainName}) => {
+                        if (!isUserValidated) {
+                            return Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT);
+                        }
                         domainNameSubmitted.current = domainName;
                         createDomain(domainName);
                     }}
