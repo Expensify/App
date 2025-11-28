@@ -31,10 +31,13 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const currentUserLogin = currentUserPersonalDetails.login ?? '';
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     /**
      * Delete transactions by IDs
@@ -127,6 +130,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     firstIOU: originalTransactionIouActions.at(0),
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     currentUserPersonalDetails,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserLogin,
+                    transactionViolations,
                 });
             }
 
@@ -171,6 +177,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             archivedReportsIdSet,
             isBetaEnabled,
             currentUserPersonalDetails,
+            currentUserAccountID,
+            currentUserLogin,
+            transactionViolations,
         ],
     );
 

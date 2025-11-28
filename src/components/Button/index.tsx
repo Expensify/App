@@ -66,7 +66,7 @@ type ButtonProps = Partial<ChildrenProps> & {
     onLayout?: (event: LayoutChangeEvent) => void;
 
     /** A function that is called when the button is clicked on */
-    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
     /** A function that is called when the button is long pressed */
     onLongPress?: (event?: GestureResponderEvent) => void;
