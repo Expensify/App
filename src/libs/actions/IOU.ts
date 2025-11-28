@@ -14578,6 +14578,36 @@ function addReportApprover(
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
 }
 
+function updateMultipleMoneyRequests(
+    transactionIDs: string[],
+    transactionChanges: TransactionChanges,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+) {
+    transactionIDs.forEach((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction) {
+            return;
+        }
+
+        // Use the transaction's report ID as the thread ID if it's a regular expense
+        const transactionThreadReportID = transaction.reportID;
+
+        const data = getUpdateMoneyRequestParams({
+            transactionID,
+            transactionThreadReportID,
+            transactionChanges,
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+        });
+
+        const {params, onyxData} = data;
+        API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST, params, onyxData);
+    });
+}
+
 export {
     adjustRemainingSplitShares,
     approveMoneyRequest,
@@ -14704,6 +14734,7 @@ export {
     getUpdateMoneyRequestParams,
     getUpdateTrackExpenseParams,
     getReportPreviewAction,
+    updateMultipleMoneyRequests,
 };
 export type {
     GPSPoint as GpsPoint,

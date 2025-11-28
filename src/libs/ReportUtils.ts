@@ -4617,6 +4617,39 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
 }
 
 /**
+ * Checks if the user can edit multiple transactions
+ */
+function canEditMultipleTransactions(selectedTransactions: Transaction[]): boolean {
+    if (selectedTransactions.length < 2) {
+        return false;
+    }
+
+    // Iterate through selected transactions and check if at least one field is editable for at least one transaction
+    for (const transaction of selectedTransactions) {
+        const reportAction = getIOUActionForTransactionID(Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {}), transaction.transactionID);
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+
+        const fieldsToCheck = [
+            CONST.EDIT_REQUEST_FIELD.AMOUNT,
+            CONST.EDIT_REQUEST_FIELD.MERCHANT,
+            CONST.EDIT_REQUEST_FIELD.CATEGORY,
+            CONST.EDIT_REQUEST_FIELD.TAG,
+            CONST.EDIT_REQUEST_FIELD.DESCRIPTION,
+            CONST.EDIT_REQUEST_FIELD.DATE,
+        ];
+
+        for (const field of fieldsToCheck) {
+            if (canEditFieldOfMoneyRequest(reportAction, field, undefined, undefined, undefined, transaction, report, policy)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/**
  * Checks if the current user can edit the provided property of an expense
  *
  */
@@ -12682,6 +12715,7 @@ export {
     canHoldUnholdReportAction,
     canEditReportPolicy,
     canEditFieldOfMoneyRequest,
+    canEditMultipleTransactions,
     canEditMoneyRequest,
     canEditReportAction,
     canEditReportDescription,

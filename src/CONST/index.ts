@@ -6611,6 +6611,7 @@ const CONST = {
             TAG: 'tag',
         },
         BULK_ACTION_TYPES: {
+            EDIT: 'edit',
             EXPORT: 'export',
             APPROVE: 'approve',
             PAY: 'pay',

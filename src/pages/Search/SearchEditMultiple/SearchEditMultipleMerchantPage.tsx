@@ -1,0 +1,71 @@
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormOnyxValues} from '@components/Form/types';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
+
+function SearchEditMultipleMerchantPage() {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {inputCallbackRef} = useAutoFocusInput();
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: true});
+
+    const currentMerchant = draftTransaction?.merchant ?? '';
+
+    const saveMerchant = useCallback((value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
+        const newMerchant = value.moneyRequestMerchant.trim();
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+            merchant: newMerchant,
+        });
+        Navigation.goBack();
+    }, []);
+
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+            testID={SearchEditMultipleMerchantPage.displayName}
+        >
+            <HeaderWithBackButton
+                title={translate('common.merchant')}
+                onBackButtonPress={Navigation.goBack}
+            />
+            <FormProvider
+                style={[styles.flexGrow1, styles.ph5]}
+                formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
+                onSubmit={saveMerchant}
+                submitButtonText={translate('common.save')}
+                enabledWhenOffline
+            >
+                <View style={styles.mb4}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.MONEY_REQUEST_MERCHANT}
+                        name={INPUT_IDS.MONEY_REQUEST_MERCHANT}
+                        defaultValue={currentMerchant}
+                        label={translate('common.merchant')}
+                        accessibilityLabel={translate('common.merchant')}
+                        role={CONST.ROLE.PRESENTATION}
+                        ref={inputCallbackRef}
+                    />
+                </View>
+            </FormProvider>
+        </ScreenWrapper>
+    );
+}
+
+SearchEditMultipleMerchantPage.displayName = 'SearchEditMultipleMerchantPage';
+
+export default SearchEditMultipleMerchantPage;
