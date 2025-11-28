@@ -10,6 +10,7 @@ function RCAutoMemoComponent() {
         return 'someValue';
     }, []);
 
+    // eslint-disable-next-line react-native-a11y/has-valid-accessibility-descriptors
     return <Pressable onPress={someCallback}>{someValue}</Pressable>;
 }
 
