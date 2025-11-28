@@ -40,7 +40,6 @@ function useLazyAsset<T>(importFn: () => {default: T} | Promise<{default: T}>, f
             setIsLoading(true);
             setHasError(false);
 
-            
             importFnResult
                 .then((module) => {
                     // Check if this is still the latest request and component is mounted
