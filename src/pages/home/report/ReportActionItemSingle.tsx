@@ -187,6 +187,7 @@ function ReportActionItemSingle({
                             isHovered ? StyleUtils.getBackgroundAndBorderStyle(theme.hoverComponentBG) : undefined,
                         ]}
                         reportID={iouReportID}
+                        chatReportID={source.iouReport?.chatReportID ?? reportID}
                         action={action}
                     />
                 </OfflineWithFeedback>

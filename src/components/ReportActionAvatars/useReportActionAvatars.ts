@@ -37,6 +37,7 @@ function useReportActionAvatars({
     fallbackDisplayName = '',
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
+    chatReportID: passedChatReportID,
 }: {
     report: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
@@ -48,6 +49,7 @@ function useReportActionAvatars({
     fallbackDisplayName?: string;
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
     shouldUseCustomFallbackAvatar?: boolean;
+    chatReportID?: string;
 }) {
     /* Get avatar type */
     const allPersonalDetails = usePersonalDetails();
@@ -60,7 +62,8 @@ function useReportActionAvatars({
 
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 
-    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
+    const chatReportID = report?.chatReportID ?? passedChatReportID;
+    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
 
     const chatReport = isReportAChatReport ? report : reportChatReport;
     const iouReport = isReportAChatReport ? undefined : report;
