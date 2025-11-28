@@ -99,7 +99,7 @@ import {
     cancelPayment,
     canIOUBePaid as canIOUBePaidAction,
     dismissRejectUseExplanation,
-    duplicateTransaction as duplicateTransactionAction,
+    duplicateExpenseTransaction as duplicateTransactionAction,
     getNavigationUrlOnMoneyRequestDelete,
     initSplitExpense,
     markRejectViolationAsResolved,
@@ -560,7 +560,7 @@ function MoneyReportHeader({
     }, [iouTransactionID, requestParentReportAction, transactionThreadReport?.reportID]);
 
     const duplicateExpenseTransaction = useCallback(
-        (transactionList: Array<OnyxEntry<OnyxTypes.Transaction>>) => {
+        (transactionList: Array<OnyxTypes.Transaction>) => {
             if (!transactionList.length) {
                 return;
             }
@@ -568,9 +568,9 @@ function MoneyReportHeader({
             const optimisticChatReportID = generateReportID();
             const optimisticIOUReportID = generateReportID();
 
-            transactionList.forEach((item) => {
-                duplicateTransactionAction(item, defaultExpensePolicy, activePolicyExpenseChat, optimisticChatReportID, optimisticIOUReportID);
-            });
+            for (const item of transactionList) {
+                duplicateTransactionAction(item, optimisticChatReportID, optimisticIOUReportID, isASAPSubmitBetaEnabled, defaultExpensePolicy ?? undefined, activePolicyExpenseChat);
+            }
         },
         [activePolicyExpenseChat, defaultExpensePolicy],
     );
@@ -1152,7 +1152,7 @@ function MoneyReportHeader({
             icon: isDuplicateActive ? expensifyIcons.ReceiptMultiple : expensifyIcons.CheckmarkCircle,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE,
             onSelected: () => {
-                if (!isDuplicateActive) {
+                if (!isDuplicateActive || !transaction) {
                     return;
                 }
 

@@ -12,6 +12,7 @@ import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAct
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -51,7 +52,7 @@ import {
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {dismissRejectUseExplanation, duplicateTransaction as duplicateTransactionAction} from '@userActions/IOU';
+import {dismissRejectUseExplanation, duplicateExpenseTransaction as duplicateTransactionAction} from '@userActions/IOU';
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -135,6 +136,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const {deleteTransactions} = useDeleteTransactions({report: parentReport, reportActions: parentReportAction ? [parentReportAction] : [], policy});
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
@@ -160,7 +163,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     }, [reportID, transaction?.transactionID]);
 
     const duplicateTransaction = useCallback(
-        (transactions: Array<OnyxEntry<Transaction>>) => {
+        (transactions: Array<Transaction>) => {
             if (!transactions.length) {
                 return;
             }
@@ -168,9 +171,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             const optimisticChatReportID = generateReportID();
             const optimisticIOUReportID = generateReportID();
 
-            transactions.forEach((item) => {
-                duplicateTransactionAction(item, defaultExpensePolicy, activePolicyExpenseChat, optimisticChatReportID, optimisticIOUReportID);
-            });
+            for (const item of transactions) {
+                duplicateTransactionAction(item, optimisticChatReportID, optimisticIOUReportID, isASAPSubmitBetaEnabled, defaultExpensePolicy ?? undefined, activePolicyExpenseChat);
+            }
         },
         [activePolicyExpenseChat, defaultExpensePolicy],
     );
@@ -385,7 +388,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: isDuplicateActive ? Expensicons.ReceiptMultiple : Expensicons.CheckmarkCircle,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE,
             onSelected: () => {
-                if (!isDuplicateActive) {
+                if (!isDuplicateActive || !transaction) {
                     return;
                 }
 
