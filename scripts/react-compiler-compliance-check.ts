@@ -198,6 +198,11 @@ function addFailureIfDoesNotExist(failureMap: FailureMap, newFailure: CompilerFa
     return true;
 }
 
+/**
+ * Parses the output of the react-compiler-healthcheck command and returns the compiler results.
+ * @param output - The output of the react-compiler-healthcheck command
+ * @returns The compiler results
+ */
 function parseHealthcheckOutput(output: string): CompilerResults {
     const lines = output.split('\n');
 
@@ -284,6 +289,11 @@ function parseHealthcheckOutput(output: string): CompilerResults {
     return results;
 }
 
+/**
+ * Checks if a compiler error should be suppressed based on the error reason.
+ * @param reason - The reason for the compiler error
+ * @returns True if the error should be suppressed, false otherwise
+ */
 function shouldSuppressCompilerError(reason: string | undefined): boolean {
     if (!reason) {
         return false;
@@ -293,6 +303,11 @@ function shouldSuppressCompilerError(reason: string | undefined): boolean {
     return SUPPRESSED_COMPILER_ERRORS.some((suppressedError) => reason.includes(suppressedError));
 }
 
+/**
+ * Creates a unique key for a compiler failure by combining the file path, line number, and column number.
+ * @param failure - The compiler failure to create a unique key for
+ * @returns A unique key for the compiler failure
+ */
 function getUniqueFileKey({file, line, column}: CompilerFailure): string {
     const isLineSet = line !== undefined;
     const isLineAndColumnSet = isLineSet && column !== undefined;
@@ -300,6 +315,11 @@ function getUniqueFileKey({file, line, column}: CompilerFailure): string {
     return file + (isLineSet ? `:${line}` : '') + (isLineAndColumnSet ? `:${column}` : '');
 }
 
+/**
+ * Creates a glob pattern from an array of file paths.
+ * @param files - The file paths to create a glob pattern from
+ * @returns A glob pattern string
+ */
 function createFilesGlob(files?: string[]): string | undefined {
     if (!files || files.length === 0) {
         return undefined;
@@ -392,7 +412,11 @@ async function filterResultsByDiff(
         }
     }
 
-    // Filter failures to only include those on changed lines and files/chunks for which an eslint-disable comment is was removed
+    /**
+     * Filter failures to only include those on changed lines and files/chunks for which an eslint-disable comment is was removed
+     * @param failures - The unfiltered compiler failures
+     * @returns The filtered compiler failures
+     */
     function filterFailuresByChangedLines(failures: Map<string, CompilerFailure>) {
         // Filter failures to only include those on changed lines
         const filteredFailures = new Map<string, CompilerFailure>();
@@ -474,6 +498,12 @@ async function filterResultsByDiff(
     };
 }
 
+/**
+ * Enforces the new component guard by checking for manual memoization keywords in added files and attaching React compiler failures.
+ * @param failures - The compiler results to enforce the new component guard on
+ * @param diffResult - The diff result to check for added files
+ * @returns The enforced compiler results
+ */
 function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffResult) {
     const addedDiffFiles = new Set<string>();
     for (const file of diffResult.files) {
@@ -515,6 +545,8 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
         }
     }
 
+    // Check all added files for manual memoization keywords and attach React compiler failures.
+    // If no manual memoization keywords are found add the failures back to the regular failures.
     const addedComponentFailures: EnforcedAddedComponentFailureMap = new Map();
     for (const addedFilePath of addedDiffFiles) {
         const source = readSourceFile(addedFilePath);
@@ -543,6 +575,11 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
     };
 }
 
+/**
+ * Finds all manual memoization keywords matches in source file and returns their line and column numbers.
+ * @param source - The source code to search for manual memoization matches
+ * @returns An array of manual memoization matches
+ */
 function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] {
     const matches: ManualMemoizationMatch[] = [];
 
@@ -579,6 +616,11 @@ function readSourceFile(filePath: string): string | null {
     }
 }
 
+/**
+ * Prints the results of the React Compiler compliance check.
+ * @param results - The compiler results to print
+ * @param options - The options for printing the results
+ */
 function printResults(
     {success, failures, suppressedFailures, enforcedAddedComponentFailures}: CompilerResults,
     {shouldPrintSuccesses, shouldPrintSuppressedErrors}: PrintResultsOptions,
@@ -679,6 +721,11 @@ function printFailures(failuresToPrint: FailureMap, level = 0) {
     }
 }
 
+/**
+ * Generates a report of the React Compiler compliance check.
+ * @param results - The compiler results to generate a report for
+ * @param outputFileName - The file name to save the report to
+ */
 function generateReport(results: CompilerResults, outputFileName = DEFAULT_REPORT_FILENAME): void {
     log('\n');
     logInfo('Creating React Compiler Compliance Check report:');
