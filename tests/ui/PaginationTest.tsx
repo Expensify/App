@@ -4,9 +4,9 @@ import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {setSidebarLoaded} from '@libs/actions/App';
+import {subscribeToUserEvents} from '@libs/actions/User';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
-import {setSidebarLoaded} from '@userActions/App';
-import {subscribeToUserEvents} from '@userActions/User';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -135,7 +135,7 @@ function buildReportComments(count: number, initialID: string, reverse = false) 
 }
 
 function mockOpenReport(messageCount: number, initialID: string) {
-    fetchMock.mockAPICommand('OpenReport', ({reportID}) => {
+    fetchMock.mockAPICommand('OpenReport', ({reportID, reportActionID}) => {
         const comments = buildReportComments(messageCount, initialID);
         return {
             onyxData:
@@ -149,7 +149,8 @@ function mockOpenReport(messageCount: number, initialID: string) {
                       ]
                     : [],
             hasOlderActions: !comments['1'],
-            hasNewerActions: !!reportID,
+            hasNewerActions: !!reportActionID,
+            oldestUnreadReportActionID: null,
         };
     });
 }
@@ -237,6 +238,7 @@ async function signInAndGetApp(): Promise<void> {
                 reportID: REPORT_ID,
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 lastMessageText: 'Test',
+                lastReadTime: format(new Date(), CONST.DATE.FNS_DB_FORMAT_STRING),
                 participants: {
                     [USER_B_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                     [USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
@@ -253,6 +255,7 @@ async function signInAndGetApp(): Promise<void> {
                 reportID: COMMENT_LINKING_REPORT_ID,
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 lastMessageText: 'Test',
+                lastReadTime: format(new Date(), CONST.DATE.FNS_DB_FORMAT_STRING),
                 participants: {[USER_A_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
                 lastActorAccountID: USER_A_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
@@ -376,6 +379,9 @@ describe('Pagination', () => {
         expect(getReportActions()).toHaveLength(10);
 
         // There is 1 extra call here because of the comment linking report.
+
+        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
+        mockGetNewerActions(0);
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
@@ -387,26 +393,24 @@ describe('Pagination', () => {
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
-
         // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);
 
-        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
-        mockGetNewerActions(0);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
 
         scrollToOffset(500);
         await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
+        // When there are no newer actions, we don't want to trigger GetNewerActions again.
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
 
-        // We still have 15 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
+        // We still have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);
     });
 });

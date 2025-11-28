@@ -110,6 +110,9 @@ type ReportActionsListProps = {
     /** Function to load newer chats */
     loadNewerChats: (force?: boolean) => void;
 
+    /** Whether the report has newer actions to load */
+    hasNewerActions: boolean;
+
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
 
@@ -154,6 +157,7 @@ function ReportActionsList({
     mostRecentIOUReportActionID = '',
     loadNewerChats,
     loadOlderChats,
+    hasNewerActions,
     onLayout,
     isComposerFullSize,
     listID,
@@ -363,6 +367,7 @@ function ReportActionsList({
         reportID: report.reportID,
         currentVerticalScrollingOffsetRef: scrollingVerticalOffset,
         readActionSkippedRef: readActionSkipped,
+        hasNewerActions,
         unreadMarkerReportActionIndex,
         isInverted: true,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -401,6 +406,36 @@ function ReportActionsList({
         prevReportID = report.reportID;
     }, [report.reportID]);
 
+    const initialScrollKey = useMemo(() => {
+        return linkedReportActionID ?? unreadMarkerReportActionID;
+    }, [linkedReportActionID, unreadMarkerReportActionID]);
+
+    const [isListInitiallyLoaded, setIsListInitiallyLoaded] = useState(false);
+    const handleListInitiallyLoaded = useCallback(() => {
+        setIsListInitiallyLoaded(true);
+    }, []);
+
+    const isReportUnread = useMemo(
+        () => isUnread(report, transactionThreadReport, isReportArchived) || (lastAction && isCurrentActionUnread(report, lastAction)),
+        [report, transactionThreadReport, isReportArchived, lastAction],
+    );
+
+    // Mark the report as read when the user initially opens the report and there are unread messages
+    const didMarkReportAsReadInitially = useRef(false);
+    useEffect(() => {
+        if (!isListInitiallyLoaded) {
+            return;
+        }
+
+        if (!isReportUnread || didMarkReportAsReadInitially.current) {
+            didMarkReportAsReadInitially.current = true;
+            return;
+        }
+
+        didMarkReportAsReadInitially.current = true;
+        readNewestAction(report.reportID);
+    }, [isListInitiallyLoaded, isReportUnread, report.reportID]);
+
     const handleReportChangeMarkAsRead = useCallback(() => {
         if (report.reportID !== prevReportID) {
             return;
@@ -411,26 +446,39 @@ function ReportActionsList({
             return;
         }
 
-        if (isUnread(report, transactionThreadReport, isReportArchived) || (lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions))) {
-            // On desktop, when the notification center is displayed, isVisible will return false.
-            // Currently, there's no programmatic way to dismiss the notification center panel.
-            // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
-            const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((isVisible || isFromNotification) && scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
-                readNewestAction(report.reportID);
-                if (isFromNotification) {
-                    Navigation.setParams({referrer: undefined});
-                }
-                return true;
-            }
-
-            readActionSkipped.current = true;
+        const isLastActionUnread = lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions);
+        if (!isUnread(report, transactionThreadReport, isReportArchived) && !isLastActionUnread) {
+            return;
         }
+        // On desktop, when the notification center is displayed, isVisible will return false.
+        // Currently, there's no programmatic way to dismiss the notification center panel.
+        // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
+        const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
+        const isScrolledToEnd = scrollingVerticalOffset.current <= CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD;
+
+        if ((isVisible || isFromNotification) && !hasNewerActions && isScrolledToEnd) {
+            readNewestAction(report.reportID);
+            if (isFromNotification) {
+                Navigation.setParams({referrer: undefined});
+            }
+            return true;
+        }
+
+        readActionSkipped.current = true;
+
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, reportMetadata?.hasOnceLoadedReportActions]);
+    }, [
+        report.lastVisibleActionCreated,
+        transactionThreadReport?.lastVisibleActionCreated,
+        report.reportID,
+        isVisible,
+        reportMetadata?.hasOnceLoadedReportActions,
+        isListInitiallyLoaded,
+        hasNewerActions,
+    ]);
 
     const handleAppVisibilityMarkAsRead = useCallback(() => {
-        if (report.reportID !== prevReportID) {
+        if (report.reportID !== prevReportID || !isListInitiallyLoaded) {
             return;
         }
 
@@ -468,7 +516,7 @@ function ReportActionsList({
         // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
         // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isFocused, isVisible]);
+    }, [isFocused, isVisible, isListInitiallyLoaded]);
 
     const prevHandleReportChangeMarkAsRead = useRef<() => void>(null);
     const prevHandleAppVisibilityMarkAsRead = useRef<() => void>(null);
@@ -488,7 +536,7 @@ function ReportActionsList({
     }, [handleReportChangeMarkAsRead, handleAppVisibilityMarkAsRead]);
 
     useEffect(() => {
-        if (linkedReportActionID) {
+        if (!!linkedReportActionID || !!unreadMarkerReportActionID) {
             return;
         }
 
@@ -648,14 +696,14 @@ function ReportActionsList({
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
      * the height of the smallest report action possible.
      */
-    const initialNumToRender = useMemo((): number | undefined => {
+    const initialNumToRender = useMemo((): number => {
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
         if (linkedReportActionID) {
             return getInitialNumToRender(numToRender);
         }
-        return numToRender || undefined;
+        return numToRender;
     }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID]);
 
     /**
@@ -833,7 +881,7 @@ function ReportActionsList({
         );
     }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions, styles]);
 
-    const onStartReached = useCallback(() => {
+    const handleStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
             return;
@@ -878,11 +926,12 @@ function ReportActionsList({
                     initialNumToRender={initialNumToRender}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
-                    onStartReached={onStartReached}
+                    onStartReached={handleStartReached}
                     onStartReachedThreshold={0.75}
                     ListHeaderComponent={listHeaderComponent}
                     ListFooterComponent={listFooterComponent}
                     keyboardShouldPersistTaps="handled"
+                    onInitiallyLoaded={handleListInitiallyLoaded}
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     onViewableItemsChanged={onViewableItemsChanged}
@@ -890,7 +939,7 @@ function ReportActionsList({
                     extraData={extraData}
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
-                    initialScrollKey={reportActionID}
+                    initialScrollKey={initialScrollKey}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}

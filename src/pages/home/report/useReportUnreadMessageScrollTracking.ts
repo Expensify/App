@@ -21,6 +21,9 @@ type Args = {
     /** The index of the unread report action */
     unreadMarkerReportActionIndex: number;
 
+    /** Whether the report has newer actions to load */
+    hasNewerActions: boolean;
+
     /** Callback to call on every scroll event */
     onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
@@ -28,6 +31,7 @@ type Args = {
 export default function useReportUnreadMessageScrollTracking({
     reportID,
     currentVerticalScrollingOffsetRef,
+    hasNewerActions,
     readActionSkippedRef,
     onTrackScrolling,
     unreadMarkerReportActionIndex,
@@ -76,7 +80,8 @@ export default function useReportUnreadMessageScrollTracking({
         if (
             currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
             isFloatingMessageCounterVisible &&
-            !hasUnreadMarkerReportAction
+            !hasUnreadMarkerReportAction &&
+            !hasNewerActions
         ) {
             setIsFloatingMessageCounterVisible(false);
         }
