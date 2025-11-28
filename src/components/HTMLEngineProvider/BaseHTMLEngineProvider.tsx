@@ -223,6 +223,30 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 // eslint-disable-next-line no-param-reassign
                 onText: (text) => (text.data = convertToLTR(text.data)),
             }}
+            ignoreDomNode={(node) => {
+                if (node.type !== 'text') {
+                    return false;
+                }
+
+                // Check if node has data property (text nodes should have it)
+                if (!('data' in node) || typeof node.data !== 'string') {
+                    return false;
+                }
+
+                // Whitespace-only?
+                if (node.data.trim().length !== 0) {
+                    return false;
+                }
+
+                // Parent is ol/ul => this is that "\n" between <li> tags
+                const parent = node.parent;
+                if (!parent || parent.type !== 'tag' || !('name' in parent)) {
+                    return false;
+                }
+
+                const parentName = parent.name;
+                return parentName === 'ol' || parentName === 'ul';
+            }}
         >
             <RenderHTMLConfigProvider
                 defaultTextProps={defaultTextProps}
