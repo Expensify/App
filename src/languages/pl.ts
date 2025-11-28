@@ -6369,6 +6369,7 @@ ${
             delete: 'Usuń',
             hold: 'Trzymaj',
             unhold: 'Usuń blokadę',
+            reject: 'Odrzuć',
             noOptionsAvailable: 'Brak dostępnych opcji dla wybranej grupy wydatków.',
         },
         filtersHeader: 'Filtry',
@@ -6548,6 +6549,18 @@ ${
         error: {
             title: 'Aktualizacja nie powiodła się',
             message: 'Nie udało nam się sprawdzić aktualizacji. Spróbuj ponownie za chwilę.',
+        },
+    },
+    reportLayout: {
+        reportLayout: 'Układ raportu',
+        groupByLabel: 'Grupuj według:',
+        selectGroupByOption: 'Wybierz sposób grupowania wydatków w raporcie',
+        uncategorized: 'Bez kategorii',
+        noTag: 'Bez tagu',
+        selectGroup: ({groupName}: {groupName: string}) => `Wybierz wszystkie wydatki w ${groupName}`,
+        groupBy: {
+            category: 'Kategoria',
+            tag: 'Tag',
         },
     },
     report: {
@@ -7410,13 +7423,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Witamy w New Expensify!',
-        subtitle: 'Nowy Expensify ma tę samą świetną automatyzację, ale teraz z niesamowitą współpracą:',
+        subtitle: 'Ma wszystko, co kochasz w naszej klasycznej wersji, wraz z całą masą ulepszeń, które jeszcze bardziej ułatwią Ci życie:',
         confirmText: 'Zaczynajmy!',
         features: {
-            chat: '<strong>Czatuj bezpośrednio na dowolnym wydatku</strong>, raporcie lub przestrzeni roboczej',
-            scanReceipt: '<strong>Skanuj paragony</strong> i otrzymuj zwrot pieniędzy',
-            crossPlatform: 'Rób <strong>wszystko</strong> z telefonu lub przeglądarki',
+            chat: 'Czatuj przy każdym wydatku, aby szybko wyjaśnić wątpliwości',
+            search: 'Bardziej zaawansowane wyszukiwanie na urządzeniach mobilnych, w przeglądarce i na komputerach',
+            concierge: 'Wbudowana Concierge AI do automatyzacji Twoich wydatków',
         },
+        helpText: 'Wypróbuj 2-minutowe demo',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
