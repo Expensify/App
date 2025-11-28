@@ -1,7 +1,8 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderGap from '@components/HeaderGap';
 import ScrollView from '@components/ScrollView';
 import getHelpContent from '@components/SidePanel/getHelpContent';
@@ -126,8 +127,10 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
                 shouldShowBackButton={!isExtraLargeScreenWidth}
                 shouldShowCloseButton={isExtraLargeScreenWidth}
             />
-            {currentState === undefined ? (
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            {true ? ( // TEMPORARY: Force loading state for testing - change back to: currentState === undefined
+                <View style={[styles.flex1, styles.pRelative, styles.fullScreenLoading, styles.w100]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
             ) : (
                 <ScrollView
                     style={[styles.ph5, styles.pb5]}
