@@ -2,13 +2,12 @@ import {isRHPVisibleSelector} from '@selectors/Modal';
 import React, {useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
-// @ts-expect-error This is a workaround to display HelpPane on top of everything,
+// @ts-expect-error This is a workaround to display SidePanel on top of everything,
 // Modal from react-native can't be used here, as it would block interactions with the rest of the app
 import ModalPortal from 'react-native-web/dist/exports/Modal/ModalPortal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
-import HelpContent from '@components/SidePanel/HelpComponents/HelpContent';
-import HelpOverlay from '@components/SidePanel/HelpComponents/HelpOverlay';
+import SidePanelOverlay from '@components/SidePanel/SidePanelOverlay';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -17,9 +16,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type HelpProps from './types';
+import type SidePanelModalProps from './types';
 
-function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}: HelpProps) {
+function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}: SidePanelModalProps) {
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom} = useSafeAreaPaddings();
@@ -60,7 +59,7 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
                 <View style={styles.sidePanelContainer}>
                     <View>
                         {!shouldHideSidePanelBackdrop && (
-                            <HelpOverlay
+                            <SidePanelOverlay
                                 onBackdropPress={closeSidePanel}
                                 isRHPVisible={isRHPVisible}
                             />
@@ -75,7 +74,7 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
                                 {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom},
                             ]}
                         >
-                            <HelpContent closeSidePanel={closeSidePanel} />
+                            {children}
                         </Animated.View>
                     </ColorSchemeWrapper>
                 </View>
@@ -84,6 +83,6 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
     );
 }
 
-Help.displayName = 'Help';
+SidePanelModal.displayName = 'SidePanelModal';
 
-export default Help;
+export default SidePanelModal;
