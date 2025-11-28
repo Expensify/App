@@ -431,7 +431,7 @@ platform :ios do
           "com.expensify.expensifylite.adhoc.SmartScanExtension" => "(OldApp) AdHoc: Share Extension",
           "com.expensify.expensifylite.adhoc.NotificationServiceExtension" => "(OldApp) AdHoc: Notification Service",
         }
-      }
+      },
       disable_xcpretty: true,
       xcodebuild_formatter: "none",
     )
