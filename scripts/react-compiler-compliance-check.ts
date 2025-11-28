@@ -483,6 +483,9 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
         }
     }
 
+    console.log(addedDiffFiles);
+    console.log(diffResult);
+
     // Partition failures into non-auto memo enforced failures and added file failures
     const nonAutoMemoEnforcedFailures: FailureMap = new Map();
     const addedFileFailures = new Map<string, FailureMap>();
@@ -525,6 +528,8 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
         }
 
         const manualMemoizationMatches = findManualMemoizationMatches(source);
+
+        console.log(manualMemoizationMatches);
 
         if (manualMemoizationMatches.length === 0) {
             addNonAutoMemoEnforcedFailures(addedFilePath);
