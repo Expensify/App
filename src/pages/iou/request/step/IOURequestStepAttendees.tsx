@@ -42,6 +42,7 @@ function IOURequestStepAttendees({
     policyTags,
     policyCategories,
 }: IOURequestStepAttendeesProps) {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
@@ -50,7 +51,6 @@ function IOURequestStepAttendees({
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
