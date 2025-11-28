@@ -47,8 +47,8 @@ function buildMessageFragmentForValue(
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
 
     // If the valueName is category and the old value was Uncategorized, show it in lowercase without quotes
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     let oldValueToDisplay;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (valueName.includes(translateLocal('common.category')) && isCategoryMissing(oldValue)) {
         oldValueToDisplay = oldValue.toLowerCase();
     } else if (valueInQuotes) {
