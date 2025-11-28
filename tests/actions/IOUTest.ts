@@ -3000,8 +3000,6 @@ describe('actions/IOU', () => {
                 firstIOU: iouAction,
                 isASAPSubmitBetaEnabled: false,
                 currentUserPersonalDetails,
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
             });
 
@@ -3106,8 +3104,6 @@ describe('actions/IOU', () => {
                 firstIOU: undefined,
                 isASAPSubmitBetaEnabled: false,
                 currentUserPersonalDetails,
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
             });
 
@@ -3225,8 +3221,6 @@ describe('actions/IOU', () => {
                 firstIOU: undefined,
                 isASAPSubmitBetaEnabled: false,
                 currentUserPersonalDetails,
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
             });
 
@@ -8186,8 +8180,6 @@ describe('actions/IOU', () => {
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
                     currentUserPersonalDetails,
-                    currentUserAccountIDParam: 123,
-                    currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                 });
                 await waitForBatchedUpdates();
@@ -8336,8 +8328,6 @@ describe('actions/IOU', () => {
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
                     currentUserPersonalDetails,
-                    currentUserAccountIDParam: 123,
-                    currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                 });
                 await waitForBatchedUpdates();
@@ -8500,8 +8490,6 @@ describe('actions/IOU', () => {
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
                     currentUserPersonalDetails,
-                    currentUserAccountIDParam: 123,
-                    currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
                 });
                 await waitForBatchedUpdates();

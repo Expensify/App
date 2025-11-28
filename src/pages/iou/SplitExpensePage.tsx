@@ -101,8 +101,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const currentUserLogin = currentUserPersonalDetails.login ?? '';
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const {isBetaEnabled} = usePermissions();
@@ -194,8 +192,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             firstIOU: iouActions.at(0),
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
             currentUserPersonalDetails,
-            currentUserAccountIDParam: currentUserAccountID,
-            currentUserEmailParam: currentUserLogin,
             transactionViolations,
         });
     }, [
@@ -226,8 +222,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transactionDetails?.currency,
         isBetaEnabled,
         transactionViolations,
-        currentUserAccountID,
-        currentUserLogin,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
