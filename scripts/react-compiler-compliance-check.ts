@@ -83,6 +83,7 @@ type EnforcedAddedComponentFailureMap = Map<string, ManualMemoFailure>;
 
 type ManualMemoFailure = {
     message: string;
+    manualMemoizationMatches: ManualMemoizationMatch[];
     compilerFailures: FailureMap | undefined;
 };
 
@@ -536,17 +537,18 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
             continue;
         }
 
-        const manualMemoMatches = findManualMemoizationMatches(source);
+        const manualMemoizationMatches = findManualMemoizationMatches(source);
 
         console.log('manualMemoMatches', manualMemoMatches);
 
-        if (manualMemoMatches.length === 0) {
+        if (manualMemoizationMatches.length === 0) {
             addNonAutoMemoEnforcedFailures(addedFilePath);
             continue;
         }
 
         const manualMemoFailure: ManualMemoFailure = {
             message: MANUAL_MEMOIZATION_FAILURE_MESSAGE,
+            manualMemoizationMatches,
             compilerFailures: addedFileFailures.get(addedFilePath),
         };
         addedComponentFailures.set(addedFilePath, manualMemoFailure);
