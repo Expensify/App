@@ -5,7 +5,7 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import {accountIDSelector} from '@selectors/Session';
 import {tierNameSelector} from '@selectors/UserWallet';
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -20,7 +20,6 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -166,10 +165,7 @@ function MoneyRequestReportActionsList({
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout: shouldUseNarrowLayoutByDefault, isSmallScreenWidth} = useResponsiveLayout();
-    const {superWideRHPRouteKeys} = useContext(WideRHPContext);
-    const shouldUseNarrowLayout = shouldUseNarrowLayoutByDefault && (superWideRHPRouteKeys.length === 0 || isSmallScreenWidth);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
@@ -197,7 +193,7 @@ function MoneyRequestReportActionsList({
                 policyID: policy?.id,
             });
         },
-        [report, policy],
+        [report, policy?.id],
     );
 
     const {
@@ -446,7 +442,7 @@ function MoneyRequestReportActionsList({
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = visibleReportActions.length;
         hasNewestReportActionRef.current = hasNewestReportAction;
-    }, [lastActionIndex, reportActions, reportScrollManager, hasNewestReportAction, visibleReportActions.length, setIsFloatingMessageCounterVisible]);
+    }, [lastActionIndex, reportActions.length, reportScrollManager, hasNewestReportAction, visibleReportActions.length, setIsFloatingMessageCounterVisible]);
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime

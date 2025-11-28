@@ -1,29 +1,31 @@
-import React, {forwardRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import KeyboardUtils from '@src/utils/keyboard';
 import TextSelectorModal from './TextSelectorModal';
 import type {TextPickerProps} from './types';
 
-function TextPicker(
-    {
-        value,
-        description,
-        placeholder = '',
-        errorText = '',
-        onInputChange,
-        onValueCommitted,
-        furtherDetails,
-        rightLabel,
-        disabled = false,
-        interactive = true,
-        required = false,
-        ...rest
-    }: TextPickerProps,
-    forwardedRef: ForwardedRef<View>,
-) {
+function TextPicker({
+    value,
+    description,
+    placeholder = '',
+    errorText = '',
+    onInputChange,
+    onValueCommitted,
+    furtherDetails,
+    rightLabel,
+    disabled = false,
+    interactive = true,
+    required = false,
+    wrapperStyle,
+    numberOfLinesTitle,
+    titleStyle,
+    descriptionTextStyle,
+    ref,
+    ...rest
+}: TextPickerProps) {
     const styles = useThemeStyles();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -35,7 +37,10 @@ function TextPicker(
     };
 
     const hidePickerModal = () => {
-        setIsPickerVisible(false);
+        // Fixes the issue where the keyboard would open and close again after dismissing the modal on Android
+        KeyboardUtils.dismissKeyboardAndExecute(() => {
+            setIsPickerVisible(false);
+        });
     };
 
     const updateInput = (updatedValue: string) => {
@@ -49,7 +54,7 @@ function TextPicker(
     return (
         <View>
             <MenuItemWithTopDescription
-                ref={forwardedRef}
+                ref={ref}
                 shouldShowRightIcon={!disabled}
                 title={value ?? placeholder ?? ''}
                 description={description}
@@ -60,6 +65,10 @@ function TextPicker(
                 errorText={errorText}
                 style={[styles.moneyRequestMenuItem]}
                 interactive={interactive}
+                wrapperStyle={wrapperStyle}
+                numberOfLinesTitle={numberOfLinesTitle}
+                titleStyle={titleStyle}
+                descriptionTextStyle={descriptionTextStyle}
             />
             <TextSelectorModal
                 value={value}
@@ -78,4 +87,4 @@ function TextPicker(
 
 TextPicker.displayName = 'TextPicker';
 
-export default forwardRef(TextPicker);
+export default TextPicker;
