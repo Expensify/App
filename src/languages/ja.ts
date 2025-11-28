@@ -699,6 +699,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: '予想より時間がかかっています...',
         domains: 'ドメイン',
         reportName: 'レポート名',
+        showLess: '表示を減らす',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -2665,12 +2666,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: '支払いを受け取るのは、メッセージを送るのと同じくらい簡単です。基本を確認しましょう。',
             onboardingPersonalSpendMessage: '数回クリックするだけであなたの支出を追跡する方法は次のとおりです。',
-            onboardingManageTeamMessage: dedent(`
-                # 無料トライアルが開始されました！セットアップを始めましょう。
-                👋 こんにちは。私はあなたのExpensifyのセットアップ担当です。ワークスペースを作成したので、以下の手順に従って30日間の無料トライアルを最大限に活用しましょう！
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        無料トライアルが開始されました！セットアップを進めましょう。
+                        👋 こんにちは、私はあなたの Expensify セットアップスペシャリストです。すでに、チームの領収書と経費を管理するためのワークスペースを作成しました。30日間の無料トライアルを最大限に活用するために、以下の残りの設定手順に従ってください！
+                    `)
+                    : dedent(`
+                        # 無料トライアルが始まりました！セットアップを始めましょう。
+                        👋 こんにちは、私はExpensifyのセットアップスペシャリストです。ワークスペースを作成したので、以下の手順に従って30日間の無料トライアルを最大限に活用しましょう！
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# セットアップしましょう\nって、お手伝いします！開始にあたって、あなたのワークスペース設定を個人事業主や類似の企業に合わせて調整しました。以下のリンクをクリックすると、ワークスペースを調整できます！\n\n数回クリックするだけであなたの支出を追跡する方法は次のとおりです。',
+                '# さあ、セットアップを始めましょう\n👋 こんにちは、私はあなたのExpensifyセットアップスペシャリストです。領収書と経費を管理できるよう、すでにワークスペースを作成しました。30日間の無料トライアルを最大限に活用するために、以下の残りのセットアップ手順に従ってください！',
             onboardingChatSplitMessage: '友達との請求書の分割は、メッセージを送るのと同じくらい簡単です。方法は次のとおりです。',
             onboardingAdminMessage: '管理者としてチームのワークスペースを管理し、自分の経費を提出する方法を学びましょう。',
             onboardingLookingAroundMessage:
@@ -4616,7 +4623,7 @@ ${
             companyCard: '会社カード',
             chooseCardFeed: 'カードフィードを選択',
             ukRegulation:
-                'Expensify, Inc.は、Plaid Financial Ltd.の代理店であり、支払いサービス規則2017に基づいて金融行動監視機構によって規制されている認可支払い機関です（会社参照番号: 804718）。Plaidは、Expensify Limitedをその代理店として通じて、規制されたアカウント情報サービスを提供します。',
+                'Expensify Limitedは、Plaid Financial Ltd.の代理店であり、支払いサービス規則2017に基づいて金融行動監視機構によって規制されている認可支払い機関です（会社参照番号: 804718）。Plaidは、Expensify Limitedをその代理店として通じて、規制されたアカウント情報サービスを提供します。',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensifyカードを発行および管理する',
@@ -6159,6 +6166,7 @@ ${
             `自動レポートの頻度を「${newFrequency}」（以前は「${oldFrequency}」）に更新しました。`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `承認モードを"${oldValue}"から"${newValue}"に更新しました。`,
         upgradedWorkspace: 'このワークスペースをコントロールプランにアップグレードしました',
+        forcedCorporateUpgrade: `このワークスペースは Control プランにアップグレードされました。詳しくは<a href="${CONST.COLLECT_UPGRADE_HELP_URL}">こちら</a>をご覧ください。`,
         downgradedWorkspace: 'このワークスペースをCollectプランにダウングレードしました。',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `レポートが手動承認のためにランダムにルーティングされる割合を${Math.round(newAuditRate * 100)}%（以前は${Math.round(oldAuditRate * 100)}%）に変更しました。`,
@@ -7523,6 +7531,17 @@ ${
                         return `管理者が経費を承認するのを待っています。`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `このレポートを<strong>あなた</strong>がエクスポートするのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong> がこのレポートをエクスポートするのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者がこのレポートをエクスポートするのを待っています。`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7593,6 +7612,32 @@ ${
             onePasswordForAnything: 'すべてを1つのパスワードで',
         },
         goToDomain: 'ドメインに移動',
+        samlLogin: {
+            title: 'SAMLログイン',
+            subtitle: `<muted-text><a href="${CONST.SAML_HELP_URL}">SAML シングルサインオン（SSO）</a>でメンバーのサインインを設定します。</muted-text>`,
+            enableSamlLogin: 'SAML ログインを有効にする',
+            allowMembers: 'メンバーが SAML でログインできるようにする。',
+            requireSamlLogin: 'SAML ログインを必須にする',
+            anyMemberWillBeRequired: '別の方法でサインインしたメンバーは、SAMLを使用して再認証する必要があります。',
+            enableError: 'SAMLの有効化設定を更新できませんでした',
+            requireError: 'SAML の要件設定を更新できませんでした',
+        },
+        samlConfigurationDetails: {
+            title: 'SAML 設定の詳細',
+            subtitle: 'これらの詳細を使用して SAML をセットアップしてください。',
+            identityProviderMetaData: 'アイデンティティプロバイダーのメタデータ',
+            entityID: 'エンティティ ID',
+            nameIDFormat: 'Name ID 形式',
+            loginUrl: 'ログインURL',
+            acsUrl: 'ACS（アサーションコンシューマサービス）URL',
+            logoutUrl: 'ログアウトURL',
+            sloUrl: 'SLO（シングルログアウト）URL',
+            serviceProviderMetaData: 'サービスプロバイダーのメタデータ',
+            oktaScimToken: 'Okta SCIM トークン',
+            revealToken: 'トークンを表示',
+            fetchError: 'SAML 構成の詳細を取得できませんでした',
+            setMetadataGenericError: 'SAML メタデータを設定できませんでした',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

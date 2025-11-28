@@ -699,6 +699,7 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'To trwa dłużej niż oczekiwano...',
         domains: 'Domeny',
         reportName: 'Nazwa raportu',
+        showLess: 'Pokaż mniej',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -2670,12 +2671,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Terugbetaald krijgen is net zo eenvoudig als een bericht sturen. Laten we de basis doornemen.',
             onboardingPersonalSpendMessage: 'Zo volgt u uw uitgaven in een paar klikken.',
-            onboardingManageTeamMessage: dedent(`
-                # Twój bezpłatny okres próbny właśnie się rozpoczął! Zajmijmy się konfiguracją.
-                👋 Cześć, jestem twoim specjalistą ds. konfiguracji Expensify. Po utworzeniu obszaru roboczego wykorzystaj w pełni 30‑dniowy bezpłatny okres próbny, wykonując poniższe kroki!
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # Twój bezpłatny okres próbny się rozpoczął! Zacznijmy konfigurację.
+                        👋 Cześć, jestem Twoim specjalistą ds. konfiguracji Expensify. Utworzyłem już obszar roboczy, aby pomóc w zarządzaniu paragonami i wydatkami Twojego zespołu. Aby jak najlepiej wykorzystać 30-dniowy bezpłatny okres próbny, po prostu wykonaj pozostałe kroki konfiguracji poniżej!
+                    `)
+                    : dedent(`
+                        # Rozpoczęła się Twoja bezpłatna wersja próbna! Zacznijmy konfigurację.
+                        👋 Cześć! Jestem Twoim specjalistą ds. konfiguracji Expensify. Teraz, gdy masz już utworzony obszar roboczy, wykorzystaj w pełni 30-dniową bezpłatną wersję próbną, wykonując poniższe kroki!
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Laten we u instellen\n👋 Ik ben hier om te helpen! Om u op weg te helpen, heb ik uw werkruimte-instellingen afgestemd op eenmanszaken en soortgelijke bedrijven. U kunt uw werkruimte aanpassen door op de onderstaande link te klikken!\n\nZo volgt u uw uitgaven in een paar klikken:',
+                '# Zacznijmy konfigurację\n👋 Cześć! Jestem Twoim specjalistą ds. konfiguracji Expensify. Utworzyłem już przestrzeń roboczą, aby pomóc Ci zarządzać paragonami i wydatkami. Aby jak najlepiej wykorzystać 30‑dniowy bezpłatny okres próbny, wykonaj pozostałe kroki konfiguracji poniżej!',
             onboardingChatSplitMessage: 'Rekeningen splitsen met vrienden is net zo eenvoudig als een bericht sturen. Zo doet u dat.',
             onboardingAdminMessage: 'Leer hoe u de werkruimte van uw team als beheerder beheert en uw eigen uitgaven indient.',
             onboardingLookingAroundMessage:
@@ -4638,7 +4645,7 @@ ${
             companyCard: 'karta firmowa',
             chooseCardFeed: 'Wybierz kanał kart',
             ukRegulation:
-                'Expensify, Inc. jest agentem Plaid Financial Ltd., autoryzowanej instytucji płatniczej regulowanej przez Financial Conduct Authority zgodnie z Payment Services Regulations 2017 (Numer referencyjny firmy: 804718). Plaid dostarcza Ci regulowane usługi informacyjne o rachunkach za pośrednictwem Expensify Limited jako swojego agenta.',
+                'Expensify Limited jest agentem Plaid Financial Ltd., autoryzowanej instytucji płatniczej regulowanej przez Financial Conduct Authority zgodnie z Payment Services Regulations 2017 (Numer referencyjny firmy: 804718). Plaid dostarcza Ci regulowane usługi informacyjne o rachunkach za pośrednictwem Expensify Limited jako swojego agenta.',
         },
         expensifyCard: {
             issueAndManageCards: 'Wydawaj i zarządzaj swoimi kartami Expensify',
@@ -6192,6 +6199,7 @@ ${
             `zaktualizowano częstotliwość automatycznego raportowania na "${newFrequency}" (wcześniej "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `zaktualizowano tryb zatwierdzania na "${newValue}" (wcześniej "${oldValue}")`,
         upgradedWorkspace: 'zaktualizowano tę przestrzeń roboczą do planu Control',
+        forcedCorporateUpgrade: `Ten obszar roboczy został uaktualniony do planu Control. Kliknij <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">tutaj</a>, aby uzyskać więcej informacji.`,
         downgradedWorkspace: 'obniżono ten przestrzeń roboczą do planu Collect',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `zmieniono wskaźnik raportów losowo kierowanych do ręcznej akceptacji na ${Math.round(newAuditRate * 100)}% (wcześniej ${Math.round(oldAuditRate * 100)}%)`,
@@ -7554,6 +7562,17 @@ ${
                         return `Oczekiwanie na zatwierdzenie wydatków przez administratora.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Czekamy, aż <strong>ty</strong> wyeksportujesz ten raport.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Oczekiwanie na <strong>${actor}</strong> w celu wyeksportowania tego raportu.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Oczekiwanie na eksport tego raportu przez administratora.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7625,6 +7644,32 @@ ${
             onePasswordForAnything: 'Jedno hasło do wszystkiego',
         },
         goToDomain: 'Przejdź do domeny',
+        samlLogin: {
+            title: 'Logowanie SAML',
+            subtitle: `<muted-text>Skonfiguruj logowanie członków przy użyciu <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'Włącz logowanie SAML',
+            allowMembers: 'Zezwól członkom logować się za pomocą SAML.',
+            requireSamlLogin: 'Wymagaj logowania za pomocą SAML',
+            anyMemberWillBeRequired: 'Każdy członek, który zalogował się inną metodą, będzie musiał ponownie się uwierzytelnić za pomocą SAML.',
+            enableError: 'Nie udało się zaktualizować ustawienia włączenia SAML',
+            requireError: 'Nie udało się zaktualizować ustawienia wymogu SAML',
+        },
+        samlConfigurationDetails: {
+            title: 'Szczegóły konfiguracji SAML',
+            subtitle: 'Skorzystaj z tych informacji, aby skonfigurować SAML.',
+            identityProviderMetaData: 'Metadane dostawcy tożsamości',
+            entityID: 'Identyfikator podmiotu',
+            nameIDFormat: 'Format identyfikatora nazwy',
+            loginUrl: 'Adres URL logowania',
+            acsUrl: 'Adres URL usługi ACS (Assertion Consumer Service)',
+            logoutUrl: 'Adres URL wylogowania',
+            sloUrl: 'Adres URL SLO (Single Logout)',
+            serviceProviderMetaData: 'Metadane dostawcy usług',
+            oktaScimToken: 'Token SCIM Okta',
+            revealToken: 'Pokaż token',
+            fetchError: 'Nie udało się pobrać szczegółów konfiguracji SAML',
+            setMetadataGenericError: 'Nie można ustawić metadanych SAML',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
