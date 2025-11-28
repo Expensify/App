@@ -479,7 +479,12 @@ function AddressSearch({
                     </GooglePlacesAutocomplete>
                 </View>
             </ScrollView>
-            {isFetchingCurrentLocation && <ActivityIndicator size="large" />}
+            {isFetchingCurrentLocation && (
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={[styles.h100]}
+                />
+            )}
         </>
     );
 }
