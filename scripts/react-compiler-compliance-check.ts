@@ -525,8 +525,6 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
 
         const manualMemoizationMatches = findManualMemoizationMatches(source);
 
-        console.log(manualMemoizationMatches);
-
         if (manualMemoizationMatches.length === 0) {
             addNonAutoMemoEnforcedFailures(addedFilePath);
             continue;
