@@ -2436,10 +2436,18 @@ ${amount} para ${merchant} - ${date}`,
         messages: {
             onboardingEmployerOrSubmitMessage: 'Que te reembolsen es tan fácil como enviar un mensaje. Repasemos lo básico.',
             onboardingPersonalSpendMessage: 'Aquí tienes cómo organizar tus gastos en unos pocos clics.',
-            onboardingManageTeamMessage:
-                '# ¡Tu prueba gratuita ha comenzado! Vamos a poner todo a punto.\n👋 Hola, soy tu especialista de configuración de Expensify. Ahora que has creado un espacio de trabajo, aprovecha al máximo tus 30 días de prueba gratuita siguiendo los pasos que aparecen a continuación.',
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # ¡Tu prueba gratuita ha comenzado! Vamos a configurarte.
+                        👋 Hola, soy tu **especialista asignado** de configuración de Expensify. Ya he creado un espacio de trabajo para ayudarte a gestionar los recibos y gastos de tu equipo. Para aprovechar al máximo tu prueba gratuita de 30 días, ¡solo sigue los pasos de configuración restantes que aparecen a continuación!
+                    `)
+                    : dedent(`
+                        # ¡Tu prueba gratuita ha comenzado! Vamos a configurarte.
+                        👋 Hola, soy tu **especialista asignado** de configuración de Expensify. Ahora que ya has creado un espacio de trabajo, aprovecha al máximo tu prueba gratuita de 30 días siguiendo los pasos que aparecen a continuación.
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Vamos a configurarte\n👋 ¡Estoy aquí para ayudarte! Para comenzar, he personalizado la configuración de tu espacio de trabajo para propietarios únicos y negocios similares. Puedes ajustar tu espacio de trabajo haciendo clic en el enlace de abajo.\n\nAsí es como puedes organizar tus gastos en unos pocos clics:',
+                '# Vamos a configurarte\n👋 Hola, soy tu **especialista asignado** de configuración de Expensify. Ya he creado un espacio de trabajo para ayudarte a gestionar tus recibos y gastos. Para aprovechar al máximo tu prueba gratuita de 30 días, ¡solo sigue los pasos de configuración restantes que aparecen a continuación!',
             onboardingChatSplitMessage: 'Dividir cuentas con amigos es tan fácil como enviar un mensaje. Así se hace.',
             onboardingAdminMessage: 'Aprende a gestionar el espacio de tu equipo como administrador y enviar tus propios gastos.',
             onboardingLookingAroundMessage:
@@ -5964,6 +5972,7 @@ ${amount} para ${merchant} - ${date}`,
         updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}) => `actualizó la frecuencia de generación automática de informes a "${newFrequency}" (previamente "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}) => `actualizó el modo de aprobación a "${newValue}" (previamente "${oldValue}")`,
         upgradedWorkspace: 'mejoró este espacio de trabajo al plan Controlar',
+        forcedCorporateUpgrade: `Este espacio de trabajo ha sido actualizado al plan Control. Haz clic <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">aquí</a> para obtener más información.`,
         downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
         updatedAuditRate: ({oldAuditRate, newAuditRate}) =>
             `cambió la tasa de informes enviados aleatoriamente para aprobación manual a ${Math.round(newAuditRate * 100)}% (previamente ${Math.round(oldAuditRate * 100)}%)`,
@@ -6129,6 +6138,7 @@ ${amount} para ${merchant} - ${date}`,
             delete: 'Eliminar',
             hold: 'Retener',
             unhold: 'Desbloquear',
+            reject: 'Rechazar',
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
         filtersHeader: 'Filtros',
@@ -6307,6 +6317,18 @@ ${amount} para ${merchant} - ${date}`,
         error: {
             title: 'Comprobación fallida',
             message: 'No hemos podido comprobar si existe una actualización. ¡Inténtalo de nuevo más tarde!.',
+        },
+    },
+    reportLayout: {
+        reportLayout: 'Diseño del informe',
+        groupByLabel: 'Agrupar por:',
+        selectGroupByOption: 'Selecciona cómo agrupar los gastos del informe',
+        uncategorized: 'Sin categoría',
+        noTag: 'Sin etiqueta',
+        selectGroup: ({groupName}: {groupName: string}) => `Seleccionar todos los gastos en ${groupName}`,
+        groupBy: {
+            category: 'Categoría',
+            tag: 'Etiqueta',
         },
     },
     report: {
@@ -7628,12 +7650,13 @@ ${amount} para ${merchant} - ${date}`,
     },
     migratedUserWelcomeModal: {
         title: '¡Bienvenido a New Expensify!',
-        subtitle: 'New Expensify tiene la misma excelente automatización, pero ahora con una colaboración increíble:',
-        confirmText: 'Vamos!',
+        subtitle: 'Tiene todo lo que te encanta de nuestra experiencia clásica con un montón de mejoras para hacerte la vida aún más fácil:',
+        confirmText: '¡Vamos!',
+        helpText: 'Prueba la demo de 2 minutos',
         features: {
-            chat: '<strong>Chatea directamente en cualquier gasto</strong>, informe o espacio de trabajo',
-            scanReceipt: '<strong>Escanea recibos</strong> y obtén reembolsos',
-            crossPlatform: 'Haz <strong>todo</strong> desde tu teléfono o navegador',
+            search: 'Búsqueda más potente en móviles, web y ordenadores',
+            concierge: 'Concierge AI integrada para ayudarte a automatizar tus gastos',
+            chat: 'Chatea en tus gastos para resolver cualquier duda rápidamente.',
         },
     },
     productTrainingTooltip: {

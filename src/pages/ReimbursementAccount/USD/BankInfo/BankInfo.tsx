@@ -104,7 +104,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && values.bankName !== '' && !redirectedFromPlaidToManual) {
             setRedirectedFromPlaidToManual(true);
         }
-    }, [redirectedFromPlaidToManual, setupType, values]);
+    }, [redirectedFromPlaidToManual, setupType, values.bankName]);
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {

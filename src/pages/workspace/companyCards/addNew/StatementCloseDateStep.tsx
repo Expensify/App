@@ -41,7 +41,7 @@ function StatementCloseDateStep({policyID}: StatementCloseDateStepProps) {
                 Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
             }
         },
-        [policyID, addNewCard, cardFeeds, lastSelectedFeed, isPlaid],
+        [policyID, addNewCard?.data.feedType, addNewCard?.data.feedDetails, cardFeeds, lastSelectedFeed, isPlaid],
     );
 
     const goBack = useCallback(() => {
