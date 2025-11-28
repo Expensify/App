@@ -65,7 +65,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, updateQueryJSONWithDefaultSort} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
@@ -113,7 +113,24 @@ function SearchPage({route}: SearchPageProps) {
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
-    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
+
+    // Track previous query to detect groupBy changes
+    const previousQueryRef = useRef<string | undefined>(undefined);
+    const queryJSON = useMemo(() => {
+        const previousQueryJSON = previousQueryRef.current ? buildSearchQueryJSON(previousQueryRef.current) : undefined;
+        const currentQueryJSON = buildSearchQueryJSON(route.params.q);
+        const updatedQueryJSON = updateQueryJSONWithDefaultSort(currentQueryJSON, previousQueryJSON);
+
+        // If sortBy was updated due to groupBy change, navigate to the new query
+        if (updatedQueryJSON && updatedQueryJSON.sortBy !== currentQueryJSON?.sortBy) {
+            const updatedQuery = buildSearchQueryString(updatedQueryJSON);
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+        }
+
+        previousQueryRef.current = route.params.q;
+        return updatedQueryJSON;
+    }, [route.params.q]);
+
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
