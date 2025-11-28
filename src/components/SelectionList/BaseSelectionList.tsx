@@ -43,6 +43,7 @@ function BaseSelectionList<TItem extends ListItem>({
     onSelectAll,
     onCheckboxPress,
     onScrollBeginDrag,
+    onDismissError,
     onEndReached,
     onEndReachedThreshold,
     confirmButtonOptions,
@@ -329,6 +330,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     isFocused={isItemFocused}
                     isDisabled={isItemDisabled}
                     canSelectMultiple={canSelectMultiple}
+                    onDismissError={onDismissError}
                     shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     rightHandSideComponent={rightHandSideComponent}
