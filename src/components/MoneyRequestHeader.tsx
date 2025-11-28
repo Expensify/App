@@ -163,7 +163,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     }, [reportID, transaction?.transactionID]);
 
     const duplicateTransaction = useCallback(
-        (transactions: Array<Transaction>) => {
+        (transactions: Transaction[]) => {
             if (!transactions.length) {
                 return;
             }
@@ -175,7 +175,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 duplicateTransactionAction(item, optimisticChatReportID, optimisticIOUReportID, isASAPSubmitBetaEnabled, defaultExpensePolicy ?? undefined, activePolicyExpenseChat);
             }
         },
-        [activePolicyExpenseChat, defaultExpensePolicy],
+        [activePolicyExpenseChat, defaultExpensePolicy, isASAPSubmitBetaEnabled],
     );
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (

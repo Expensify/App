@@ -6662,17 +6662,13 @@ function duplicateExpenseTransaction(
         transactionParams: {
             ...transaction,
             ...transactionDetails,
-            /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-            //amount: (transaction?.modifiedAmount || transaction?.amount) * -1,
             attendees: transactionDetails?.attendees as Attendee[] | undefined,
             created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             customUnitRateID: transaction?.comment?.customUnit?.customUnitRateID,
             isTestDrive: transaction?.receipt?.isTestDriveReceipt,
             merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
-            /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
             originalTransactionID: transaction?.comment?.originalTransactionID,
             source: transaction?.comment?.source,
-            //taxAmount: transaction?.taxAmount ? transaction?.taxAmount * -1 : 0,
             waypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
         },
         shouldHandleNavigation: false,
@@ -6711,7 +6707,7 @@ function duplicateExpenseTransaction(
     const transactionType = getTransactionType(transaction);
 
     switch (transactionType) {
-        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
             const distanceParams: CreateDistanceRequestInformation = {
                 ...params,
                 participants,
@@ -6722,7 +6718,8 @@ function duplicateExpenseTransaction(
                 },
             };
             return createDistanceRequest(distanceParams);
-        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM:
+        }
+        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
             const perDiemParams: PerDiemExpenseInformation = {
                 ...params,
                 transactionParams: {
@@ -6731,6 +6728,7 @@ function duplicateExpenseTransaction(
                 },
             };
             return submitPerDiemExpense(perDiemParams);
+        }
         default:
             return requestMoney(params);
     }

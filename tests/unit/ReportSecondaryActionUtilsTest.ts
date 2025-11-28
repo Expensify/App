@@ -1598,6 +1598,7 @@ describe('getSecondaryAction', () => {
             report,
             chatReport,
             reportTransactions: [transaction1],
+            originalTransaction: {} as Transaction,
             violations: {},
             policy,
             reportActions,
@@ -1621,7 +1622,15 @@ describe('getSecondaryAction', () => {
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const result = getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, report, chatReport, reportTransactions: [], violations: {}, policy});
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [],
+            violations: {},
+            originalTransaction: {} as Transaction,
+            policy,
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
     });
 
@@ -1675,6 +1684,7 @@ describe('getSecondaryAction', () => {
             report,
             chatReport,
             reportTransactions: [transaction1, transaction2],
+            originalTransaction: {} as Transaction,
             violations: {},
             policy,
             reportActions,
@@ -1708,7 +1718,15 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
 
-        const result = getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, report, chatReport, reportTransactions: [transaction], violations: {}, policy});
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            policy,
+        });
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(false);
     });
 
@@ -1747,6 +1765,7 @@ describe('getSecondaryAction', () => {
             report,
             chatReport,
             reportTransactions: [transaction1],
+            originalTransaction: {} as Transaction,
             violations: {},
             policy,
             reportActions,
