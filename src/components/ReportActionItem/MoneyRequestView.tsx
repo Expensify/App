@@ -381,7 +381,7 @@ function MoneyRequestView({
                 isASAPSubmitBetaEnabled,
             );
         },
-        [transaction, report, policy, policyTagList, policyCategories, currentUserAccountIDParam, currentUserEmailParam, isASAPSubmitBetaEnabled],
+        [transaction, report?.reportID, policy, policyTagList, policyCategories, currentUserAccountIDParam, currentUserEmailParam, isASAPSubmitBetaEnabled],
     );
 
     if (isCardTransaction) {
