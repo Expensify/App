@@ -43,15 +43,13 @@ function buildMessageFragmentForValue(
     removalFragments: string[],
     changeFragments: string[],
     shouldConvertToLowercase = true,
-    // wasUncategorized = false,
 ) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
-    // Check if the value is a category
-    const isCategory = valueName.includes(translateLocal('common.category'));
-    // Check if the old value is Uncategorized
-    const wasUncategorized = isCategoryMissing(oldValue);
-    // If the value is a category, and the old value was Uncategorized, show it in lowercase without quotes
-    const oldValueToDisplay = isCategory && wasUncategorized ? oldValue.toLowerCase() : valueInQuotes ? `"${oldValue}"` : oldValue;
+
+    // If the valueName is category and the old value was Uncategorized, show it in lowercase without quotes
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const oldValueToDisplay = valueName.includes(translateLocal('common.category')) && isCategoryMissing(oldValue) ? oldValue.toLowerCase() : valueInQuotes ? `"${oldValue}"` : oldValue;
+    
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isOldValuePartialMerchant = valueName === translateLocal('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -299,11 +297,6 @@ function getForReportAction({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             categoryLabel += ` ${translateLocal('iou.basedOnMCC')}`;
         }
-
-        // let oldCategory = reportActionOriginalMessage?.oldCategory ?? '';
-        // const wasUncategorized = isCategoryMissing(oldCategory);
-
-        // oldCategory = wasUncategorized ? oldCategory.toLowerCase() : getDecodedCategoryName(oldCategory);
 
         buildMessageFragmentForValue(
             getDecodedCategoryName(reportActionOriginalMessage?.category ?? ''),
@@ -553,11 +546,6 @@ function getForReportActionTemp({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             categoryLabel += ` ${translateLocal('iou.basedOnMCC')}`;
         }
-
-        // let oldCategory = reportActionOriginalMessage?.oldCategory ?? '';
-        // const wasUncategorized = isCategoryMissing(oldCategory);
-
-        // oldCategory = wasUncategorized ? oldCategory.toLowerCase() : getDecodedCategoryName(oldCategory);
 
         buildMessageFragmentForValue(
             getDecodedCategoryName(reportActionOriginalMessage?.category ?? ''),
