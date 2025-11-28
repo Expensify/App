@@ -1882,7 +1882,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.contentHeaderHeight,
             justifyContent: 'center',
             paddingRight: 10,
-            paddingLeft: 20,
         },
 
         chatContentScrollView: {
