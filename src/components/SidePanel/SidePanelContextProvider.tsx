@@ -3,6 +3,7 @@ import React, {createContext, useCallback, useEffect, useMemo, useRef, useState}
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
+import Onyx from 'react-native-onyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -11,6 +12,7 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SidePanel} from '@src/types/onyx';
 
 type SidePanelContextProps = {
@@ -100,9 +102,11 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             shouldHideToolTip,
             sidePanelOffset,
             sidePanelTranslateX,
-            // Help panel is currently disabled. To open it manually, run:
-            // Onyx.set('nvp_sidePanel', { open: true }) in the console.
-            openSidePanel: () => {},
+            //  in the console.
+            openSidePanel: () => {
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true, openNarrowScreen: true});
+            },
             closeSidePanel,
             sidePanelNVP,
         }),
