@@ -71,8 +71,6 @@ function IOURequestStepTaxAmountPage({
     const transactionDetails = getTransactionDetails(currentTransaction);
     const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : transactionDetails?.currency;
 
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);

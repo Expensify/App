@@ -14438,8 +14438,8 @@ function updateSplitTransactions({
                     policyCategories: policyCategories ?? null,
                     newTransactionReportID: splitExpense?.reportID,
                     policyRecentlyUsedCategories,
-                    currentUserAccountIDParam,
-                    currentUserEmailParam,
+                    currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
                     isASAPSubmitBetaEnabled,
                 });
                 if (currentSplit) {
