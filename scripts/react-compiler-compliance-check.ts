@@ -118,8 +118,6 @@ async function check({
         logInfo('Running React Compiler check for all files...');
     }
 
-    console.log(shouldEnforceNewComponents);
-
     const src = createFilesGlob(files);
     let results = runCompilerHealthcheck(src);
 
@@ -483,9 +481,6 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
             addedDiffFiles.add(file.filePath);
         }
     }
-
-    console.log(addedDiffFiles);
-    console.log(diffResult);
 
     // Partition failures into non-auto memo enforced failures and added file failures
     const nonAutoMemoEnforcedFailures: FailureMap = new Map();
