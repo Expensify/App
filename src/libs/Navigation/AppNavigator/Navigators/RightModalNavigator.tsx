@@ -51,7 +51,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 });
             },
         }),
-        [navigation, route],
+        [navigation, route.params?.screen],
     );
 
     const handleOverlayPress = useCallback(() => {
