@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {GroupedTransactions} from '@src/types/onyx';
 
 // Height constants
@@ -101,7 +102,7 @@ function MoneyRequestReportGroupHeader({
                 >
                     {displayName}
                 </Text>
-                <Text style={[styles.textBold, textStyle, styles.mh1]}>•</Text>
+                <Text style={[styles.textBold, textStyle, styles.mh1]}>{CONST.DOT_SEPARATOR}</Text>
                 <Text style={[styles.textBold, textStyle]}>{formattedAmount}</Text>
             </View>
         </View>
