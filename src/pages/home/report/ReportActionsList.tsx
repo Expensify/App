@@ -22,6 +22,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
@@ -31,6 +32,7 @@ import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopm
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getUniqueTransactionThreadReportID, resolveOriginalReportID} from '@libs/OriginalReportIDUtils';
 import {
     getFirstVisibleReportActionID,
     getOriginalMessage,
@@ -49,7 +51,6 @@ import {
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction,
     chatIncludesChronosWithID,
-    getOriginalReportID,
     getReportLastVisibleActionCreated,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
@@ -194,6 +195,24 @@ function ReportActionsList({
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {canBeMissing: true});
+
+    const [listReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canBeMissing: true});
+    const [chatReportForOriginalID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
+    const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(report.reportID);
+
+    const uniqueTransactionThreadReportID = useMemo(() => {
+        return getUniqueTransactionThreadReportID({
+            reportID: report.reportID,
+            report,
+            chatReport: chatReportForOriginalID,
+            reportActions: listReportActions,
+            isOffline,
+            allReportTransactions,
+        });
+    }, [report, chatReportForOriginalID, listReportActions, isOffline, allReportTransactions]);
+
+    const [uniqueTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${uniqueTransactionThreadReportID}`, {canBeMissing: true});
+    const [reportNameValuePairsCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const backTo = route?.params?.backTo as string;
     // Display the new message indicator when comment linking and not close to the newest message.
@@ -689,7 +708,14 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            const originalReportID = getOriginalReportID(report.reportID, reportAction);
+            const originalReportID = resolveOriginalReportID({
+                reportID: report.reportID,
+                reportAction,
+                reportActions: listReportActions,
+                report,
+                uniqueTransactionThreadReportID,
+                uniqueTransactionThreadReportActions,
+            });
             const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
             const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
             const matchingDraftMessageString = matchingDraftMessage?.message;
@@ -733,6 +759,8 @@ function ReportActionsList({
                     linkedTransactionRouteError={actionLinkedTransactionRouteError}
                     userBillingFundID={userBillingFundID}
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                    originalReportID={originalReportID}
+                    reportNameValuePairsCollection={reportNameValuePairsCollection}
                 />
             );
         },
@@ -760,6 +788,10 @@ function ReportActionsList({
             userBillingFundID,
             isTryNewDotNVPDismissed,
             isReportArchived,
+            listReportActions,
+            uniqueTransactionThreadReportID,
+            uniqueTransactionThreadReportActions,
+            reportNameValuePairsCollection,
         ],
     );
 
