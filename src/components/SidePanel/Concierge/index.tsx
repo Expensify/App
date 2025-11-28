@@ -19,6 +19,7 @@ function Concierge({navigation}: Pick<ExtraContentProps, 'navigation'>) {
             <ReportScreen
                 route={route}
                 navigation={navigation as unknown as PlatformStackNavigationProp<ReportsSplitNavigatorParamList, 'Report'>}
+                isInSidePanel
             />
         </NavigationRouteContext.Provider>
     );
