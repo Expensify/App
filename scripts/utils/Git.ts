@@ -289,31 +289,15 @@ class Git {
         const hasModifiedLines = file.modifiedLines.size > 0;
         const hasRemovedLines = file.removedLines.size > 0;
 
-        if (!hasAddedLines) {
+        if (!hasAddedLines || hasModifiedLines || hasRemovedLines) {
             return false;
         }
 
-        const hasOnlyAdditions = !hasModifiedLines && !hasRemovedLines;
-        return hasOnlyAdditions;
-    }
-
-    /**
-     * Check if a file from a Git diff is removed.
-     *
-     * @param file - The file to check
-     * @returns true if the file is removed, false otherwise
-     */
-    static isRemovedDiffFile(file: FileDiff): boolean {
-        const hasRemovedLines = file.removedLines.size > 0;
-        const hasModifiedLines = file.modifiedLines.size > 0;
-        const hasAddedLines = file.addedLines.size > 0;
-
-        if (!hasRemovedLines) {
-            return false;
+        if (file.hunks.length === 1 && file.hunks.at(0)!.oldStart === 0) {
+            return true;
         }
 
-        const hasOnlyRemovals = !hasModifiedLines && !hasAddedLines;
-        return hasOnlyRemovals;
+        return false;
     }
 
     /**
