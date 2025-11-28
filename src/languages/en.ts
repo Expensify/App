@@ -540,6 +540,7 @@ const translations = {
         letsDoThis: `Let's do this!`,
         letsStart: `Let's start`,
         showMore: 'Show more',
+        showLess: 'Show less',
         merchant: 'Merchant',
         category: 'Category',
         report: 'Report',
@@ -1644,6 +1645,18 @@ const translations = {
                         return `Waiting for <strong>${actor}</strong> to approve expenses.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Waiting for an admin to approve expenses.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Waiting for <strong>you</strong> to export this report.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Waiting for <strong>${actor}</strong> to export this report.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Waiting for an admin to export this report.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
@@ -2787,12 +2800,18 @@ const translations = {
         messages: {
             onboardingEmployerOrSubmitMessage: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             onboardingPersonalSpendMessage: 'Here’s how to track your spend in a few clicks.',
-            onboardingManageTeamMessage: dedent(`
-                # Your free trial has started! Let's get you set up.
-                👋 Hey there, I'm your Expensify setup specialist. Now that you've created a workspace, make the most of your 30-day free trial by following the steps below!
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # Your free trial has started! Let's get you set up.
+                        👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your team's receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!
+                    `)
+                    : dedent(`
+                        # Your free trial has started! Let's get you set up.
+                        👋 Hey there, I'm your Expensify setup specialist. Now that you've created a workspace, make the most of your 30-day free trial by following the steps below!
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Let’s get you set up\n👋 I’m here to help! To get you started, I’ve tailored your workspace settings for sole proprietors and similar businesses. You can adjust your workspace by clicking the link below!\n\nHere’s how to track your spend in a few clicks:',
+                "# Let’s get you set up\n👋 Hey there, I'm your Expensify setup specialist. I've already created a workspace to help manage your receipts and expenses. To make the most of your 30-day free trial, just follow the remaining setup steps below!",
             onboardingChatSplitMessage: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             onboardingAdminMessage: "Learn how to manage your team's workspace as an admin and submit your own expenses.",
             onboardingLookingAroundMessage:
@@ -6298,6 +6317,7 @@ const translations = {
             `updated the auto-reporting frequency to "${newFrequency}" (previously "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `updated the approval mode to "${newValue}" (previously "${oldValue}")`,
         upgradedWorkspace: 'upgraded this workspace to the Control plan',
+        forcedCorporateUpgrade: `This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.`,
         downgradedWorkspace: 'downgraded this workspace to the Collect plan',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
@@ -6467,6 +6487,7 @@ const translations = {
             delete: 'Delete',
             hold: 'Hold',
             unhold: 'Remove hold',
+            reject: 'Reject',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
@@ -6645,6 +6666,18 @@ const translations = {
         error: {
             title: 'Update check failed',
             message: "We couldn't check for an update. Please try again in a bit.",
+        },
+    },
+    reportLayout: {
+        reportLayout: 'Report layout',
+        groupByLabel: 'Group by:',
+        selectGroupByOption: 'Select how to group report expenses',
+        uncategorized: 'Uncategorized',
+        noTag: 'No tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Select all expenses in ${groupName}`,
+        groupBy: {
+            category: 'Category',
+            tag: 'Tag',
         },
     },
     report: {
@@ -7504,12 +7537,13 @@ const translations = {
     },
     migratedUserWelcomeModal: {
         title: 'Welcome to New Expensify!',
-        subtitle: 'New Expensify has the same great automation, but now with amazing collaboration:',
+        subtitle: "It's got everything you love from our classic experience with a whole bunch of upgrades to make your life even easier:",
         confirmText: "Let's go!",
+        helpText: 'Try 2-min demo',
         features: {
-            chat: '<strong>Chat directly on any expense</strong>, report, or workspace',
-            scanReceipt: '<strong>Scan receipts</strong> and get paid back',
-            crossPlatform: 'Do <strong>everything</strong> from your phone or browser',
+            search: 'More powerful search on mobile, web, and desktop',
+            concierge: 'Built-in Concierge AI to help automate your expenses',
+            chat: 'Chat on any expense to resolve questions quickly',
         },
     },
     productTrainingTooltip: {
@@ -7616,6 +7650,32 @@ const translations = {
             onePasswordForAnything: 'One password for everything',
         },
         goToDomain: 'Go to domain',
+        samlLogin: {
+            title: 'SAML login',
+            subtitle: `<muted-text>Configure member sign-in with <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'Enable SAML login',
+            allowMembers: 'Allow members to log in with SAML.',
+            requireSamlLogin: 'Require SAML login',
+            anyMemberWillBeRequired: 'Any member signed in with a different method will be required to re-authenticate using SAML.',
+            enableError: "Couldn't update SAML enablement setting",
+            requireError: "Couldn't update SAML requirement setting",
+        },
+        samlConfigurationDetails: {
+            title: 'SAML configuration details',
+            subtitle: 'Use these details to get SAML set up.',
+            identityProviderMetaData: 'Identity Provider MetaData',
+            entityID: 'Entity ID',
+            nameIDFormat: 'Name ID Format',
+            loginUrl: 'Login URL',
+            acsUrl: 'ACS (Assertion Consumer Service) URL',
+            logoutUrl: 'Logout URL',
+            sloUrl: 'SLO (Single Logout) URL',
+            serviceProviderMetaData: 'Service Provider MetaData',
+            oktaScimToken: 'Okta SCIM Token',
+            revealToken: 'Reveal token',
+            fetchError: "Couldn't fetch SAML configuration details",
+            setMetadataGenericError: "Couldn't set SAML MetaData",
+        },
     },
 };
 
