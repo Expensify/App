@@ -30,10 +30,11 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     const styles = useThemeStyles();
     const theme = useTheme();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails.login ?? '';
     const messageContent = useMemo(() => {
         const messageArray = nextStep?.message;
-        return parseMessage(messageArray, currentUserPersonalDetails.login ?? '');
-    }, [nextStep?.message]);
+        return parseMessage(messageArray, currentUserEmail);
+    }, [nextStep?.message, currentUserEmail]);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
