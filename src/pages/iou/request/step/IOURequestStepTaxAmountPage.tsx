@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
@@ -63,6 +64,8 @@ function IOURequestStepTaxAmountPage({
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionDetails = getTransactionDetails(currentTransaction);
     const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : transactionDetails?.currency;
+
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     useFocusEffect(
         useCallback(() => {
@@ -131,7 +134,7 @@ function IOURequestStepTaxAmountPage({
         // to the confirm step.
         if (report?.reportID) {
             // TODO: Is this really needed at all?
-            setMoneyRequestParticipantsFromReport(transactionID, report);
+            setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID);
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             return;
         }
