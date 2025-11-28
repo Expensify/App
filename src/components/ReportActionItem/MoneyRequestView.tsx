@@ -354,7 +354,7 @@ function MoneyRequestView({
             }
             updateMoneyRequestReimbursable(transaction.transactionID, report?.reportID, newReimbursable, policy, policyTagList, policyCategories);
         },
-        [transaction, report, policy, policyTagList, policyCategories],
+        [transaction, report?.reportID, policy, policyTagList, policyCategories],
     );
 
     if (isCardTransaction) {
