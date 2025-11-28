@@ -3,7 +3,6 @@ import lodashMapValues from 'lodash/mapValues';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -11,6 +10,7 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -81,6 +81,8 @@ function SuggestionMention({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
 
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Megaphone', 'FallbackAvatar'] as const);
+
     const currentReportID = useCurrentReportID();
     const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID?.currentReportID}`];
     // Smaller weight means higher order in suggestion list
@@ -109,7 +111,7 @@ function SuggestionMention({
                   }
                 : null,
         );
-    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails]);
+    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails.accountID]);
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
@@ -270,7 +272,7 @@ function SuggestionMention({
                     alternateText: translate('mentionSuggestions.hereAlternateText'),
                     icons: [
                         {
-                            source: Expensicons.Megaphone,
+                            source: expensifyIcons.Megaphone,
                             type: CONST.ICON_TYPE_AVATAR,
                         },
                     ],
@@ -313,6 +315,7 @@ function SuggestionMention({
             // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
             const sortedPersonalDetails = getSortedPersonalDetails(filteredPersonalDetails, localeCompare);
 
+            // eslint-disable-next-line unicorn/no-array-for-each
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
                     text: formatLoginPrivateDomain(getDisplayNameOrDefault(detail), detail?.login),
@@ -321,7 +324,7 @@ function SuggestionMention({
                     icons: [
                         {
                             name: detail?.login,
-                            source: detail?.avatar ?? Expensicons.FallbackAvatar,
+                            source: detail?.avatar ?? expensifyIcons.FallbackAvatar,
                             type: CONST.ICON_TYPE_AVATAR,
                             fallbackIcon: detail?.fallbackIcon,
                             id: detail?.accountID,
@@ -332,12 +335,13 @@ function SuggestionMention({
 
             return suggestions;
         },
-        [translate, formatPhoneNumber, formatLoginPrivateDomain, localeCompare],
+        [localeCompare, translate, expensifyIcons.Megaphone, expensifyIcons.FallbackAvatar, formatPhoneNumber, formatLoginPrivateDomain],
     );
 
     const getRoomMentionOptions = useCallback(
         (searchTerm: string, reportBatch: OnyxCollection<Report>): Mention[] => {
             const filteredRoomMentions: Mention[] = [];
+            // eslint-disable-next-line unicorn/no-array-for-each
             Object.values(reportBatch ?? {}).forEach((report) => {
                 if (!canReportBeMentionedWithinPolicy(report, policyID)) {
                     return;
@@ -429,9 +433,19 @@ function SuggestionMention({
         [isComposerFocused, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, weightedPersonalDetails, getRoomMentionOptions, reports],
     );
 
+    const debouncedCalculateMentionSuggestion = useDebounce(
+        useCallback(
+            (newValue: string, selectionStart?: number, selectionEnd?: number) => {
+                calculateMentionSuggestion(newValue, selectionStart, selectionEnd);
+            },
+            [calculateMentionSuggestion],
+        ),
+        CONST.TIMING.SUGGESTION_DEBOUNCE_TIME,
+    );
+
     useEffect(() => {
-        calculateMentionSuggestion(value, selection.start, selection.end);
-    }, [value, selection, calculateMentionSuggestion]);
+        debouncedCalculateMentionSuggestion(value, selection.start, selection.end);
+    }, [value, selection.start, selection.end, debouncedCalculateMentionSuggestion]);
 
     useEffect(() => {
         debouncedSearchInServer();
@@ -453,7 +467,7 @@ function SuggestionMention({
         [shouldBlockCalc],
     );
 
-    const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
+    const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues.suggestedMentions]);
     const getIsSuggestionsMenuVisible = useCallback(() => isMentionSuggestionsMenuVisible, [isMentionSuggestionsMenuVisible]);
 
     useImperativeHandle(

@@ -128,7 +128,9 @@ const runTests = async (): Promise<void> => {
     const clearTestResults = (test: TestConfig) => {
         skippedTests.push(test.name);
 
+        // eslint-disable-next-line unicorn/no-array-for-each
         Object.keys(results).forEach((branch: string) => {
+            // eslint-disable-next-line unicorn/no-array-for-each
             Object.keys(results[branch]).forEach((metric: string) => {
                 if (!metric.startsWith(test.name)) {
                     return;

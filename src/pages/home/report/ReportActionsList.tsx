@@ -386,7 +386,7 @@ function ReportActionsList({
         }
         previousLastIndex.current = lastActionIndex;
         reportActionSize.current = sortedVisibleReportActions.length;
-    }, [lastActionIndex, sortedVisibleReportActions, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
+    }, [lastActionIndex, sortedVisibleReportActions.length, reportScrollManager, hasNewestReportAction, linkedReportActionID, setIsFloatingMessageCounterVisible]);
 
     useEffect(() => {
         const shouldTriggerScroll = shouldFocusToTopOnMount && prevHasCreatedActionAdded && !hasCreatedActionAdded;
@@ -516,7 +516,7 @@ function ReportActionsList({
                 reportScrollManager.scrollToBottom();
             });
         }
-    }, [lastAction, prevSortedVisibleReportActionsObjects, reportScrollManager]);
+    }, [lastAction?.reportActionID, lastAction?.actionName, prevSortedVisibleReportActionsObjects, reportScrollManager]);
 
     useEffect(() => {
         sortedVisibleReportActionsRef.current = sortedVisibleReportActions;
@@ -869,7 +869,7 @@ function ReportActionsList({
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={[
                         styles.chatContentScrollView,
-                        shouldScrollToEndAfterLayout ? styles.opacity0 : styles.opacity1,
+                        shouldScrollToEndAfterLayout ? styles.visibilityHidden : styles.visibilityVisible,
                         shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined,
                     ]}
                     shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
