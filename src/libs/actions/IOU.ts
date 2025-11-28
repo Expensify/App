@@ -6776,6 +6776,9 @@ function duplicateExpenseTransaction(
         shouldHandleNavigation: false,
         shouldGenerateTransactionThreadReport: true,
         isASAPSubmitBetaEnabled,
+        currentUserAccountIDParam: userAccountID,
+        currentUserEmailParam: currentUserEmail,
+        transactionViolations: {},
     };
 
     // If no workspace is provided the expense should be unreported
@@ -6828,6 +6831,7 @@ function duplicateExpenseTransaction(
                     ...(params.transactionParams ?? {}),
                     customUnit: transaction?.comment?.customUnit ?? {},
                 },
+                hasViolations: false,
             };
             return submitPerDiemExpense(perDiemParams);
         }
