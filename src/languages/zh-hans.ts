@@ -7529,6 +7529,17 @@ ${
             fetchError: '无法获取 SAML 配置详细信息',
             setMetadataGenericError: '无法设置 SAML 元数据',
         },
+        accessRestricted: {
+            title: '访问受限',
+            subtitle: ({domainName}: {domainName: string}) => `如果您需要对以下内容进行控制，请验证您是 <strong>${domainName}</strong> 的授权公司管理员：`,
+            companyCardManagement: '公司卡管理',
+            accountCreationAndDeletion: '账户创建与删除',
+            workspaceCreation: '工作区创建',
+            samlSSO: 'SAML 单点登录',
+        },
+        addDomain: {title: '添加域', subtitle: '请输入您要访问的私有域名（例如 expensify.com）。', domainName: '域名'},
+        domainAdded: {title: '域名已添加', description: '接下来，您需要验证域名所有权并调整您的安全设置。', configure: '配置'},
+        enhancedSecurity: {title: '增强的安全性', subtitle: '要求您域内的成员通过单点登录进行登录，限制工作区创建等。', enable: '启用'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

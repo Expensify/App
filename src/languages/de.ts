@@ -7739,6 +7739,26 @@ ${
             fetchError: 'SAML-Konfigurationsdetails konnten nicht abgerufen werden',
             setMetadataGenericError: 'SAML-Metadaten konnten nicht gesetzt werden',
         },
+        accessRestricted: {
+            title: 'Zugriff eingeschränkt',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `Bitte verifizieren Sie sich als autorisierte/r Unternehmensadministrator/in für <strong>${domainName}</strong>, wenn Sie Kontrolle über Folgendes benötigen:`,
+            companyCardManagement: 'Firmenkartenverwaltung',
+            accountCreationAndDeletion: 'Kontoerstellung und -löschung',
+            workspaceCreation: 'Erstellung eines Arbeitsbereichs',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {title: 'Domain hinzufügen', subtitle: 'Geben Sie den Namen der privaten Domain ein, auf die Sie zugreifen möchten (z. B. expensify.com).', domainName: 'Domainname'},
+        domainAdded: {
+            title: 'Domain hinzugefügt',
+            description: 'Als Nächstes müssen Sie die Inhaberschaft der Domain verifizieren und Ihre Sicherheitseinstellungen anpassen.',
+            configure: 'Konfigurieren',
+        },
+        enhancedSecurity: {
+            title: 'Verbesserte Sicherheit',
+            subtitle: 'Erzwingen Sie, dass sich Mitglieder Ihrer Domain über Single Sign-On anmelden, beschränken Sie die Erstellung von Workspaces und mehr.',
+            enable: 'Aktivieren',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -7695,6 +7695,21 @@ ${
             fetchError: 'Kon SAML-configuratiedetails niet ophalen',
             setMetadataGenericError: 'Kon SAML-metadata niet instellen',
         },
+        accessRestricted: {
+            title: 'Toegang beperkt',
+            subtitle: ({domainName}: {domainName: string}) => `Bevestig dat u een bevoegde bedrijfsbeheerder bent voor <strong>${domainName}</strong> als u controle nodig heeft over:`,
+            companyCardManagement: 'Bedrijfskaartbeheer',
+            accountCreationAndDeletion: 'Aanmaken en verwijderen van accounts',
+            workspaceCreation: 'Werkruimte aanmaken',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {title: 'Domein toevoegen', subtitle: 'Voer de naam in van het privédomein waartoe je toegang wilt krijgen (bijv. expensify.com).', domainName: 'Domeinnaam'},
+        domainAdded: {title: 'Domein toegevoegd', description: 'Vervolgens moet je de domeineigendom verifiëren en je beveiligingsinstellingen aanpassen.', configure: 'Configureren'},
+        enhancedSecurity: {
+            title: 'Verbeterde beveiliging',
+            subtitle: 'Vereis dat leden op je domein via single sign-on inloggen, beperk het aanmaken van werkruimtes en meer.',
+            enable: 'Inschakelen',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

@@ -7683,6 +7683,22 @@ ${
             fetchError: 'Nie udało się pobrać szczegółów konfiguracji SAML',
             setMetadataGenericError: 'Nie można ustawić metadanych SAML',
         },
+        accessRestricted: {
+            title: 'Dostęp ograniczony',
+            subtitle: ({domainName}: {domainName: string}) =>
+                `Proszę zweryfikować się jako upoważniony administrator firmy dla <strong>${domainName}</strong>, jeśli potrzebujesz kontroli nad:`,
+            companyCardManagement: 'Zarządzanie kartami firmowymi',
+            accountCreationAndDeletion: 'Tworzenie i usuwanie konta',
+            workspaceCreation: 'Tworzenie obszaru roboczego',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {title: 'Dodaj domenę', subtitle: 'Wprowadź nazwę prywatnej domeny, do której chcesz uzyskać dostęp (np. expensify.com).', domainName: 'Nazwa domeny'},
+        domainAdded: {title: 'Dodano domenę', description: 'Następnie musisz zweryfikować własność domeny i dostosować ustawienia zabezpieczeń.', configure: 'Skonfiguruj'},
+        enhancedSecurity: {
+            title: 'Zwiększone bezpieczeństwo',
+            subtitle: 'Wymagaj, aby członkowie w Twojej domenie logowali się za pomocą logowania jednokrotnego (SSO), ograniczaj tworzenie obszarów roboczych i nie tylko.',
+            enable: 'Włącz',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

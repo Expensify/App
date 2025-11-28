@@ -7651,6 +7651,21 @@ ${
             fetchError: 'SAML 構成の詳細を取得できませんでした',
             setMetadataGenericError: 'SAML メタデータを設定できませんでした',
         },
+        accessRestricted: {
+            title: 'アクセスが制限されています',
+            subtitle: ({domainName}: {domainName: string}) => `以下の管理が必要な場合は、<strong>${domainName}</strong> の権限を持つ会社管理者であることを確認してください:`,
+            companyCardManagement: '会社カードの管理',
+            accountCreationAndDeletion: 'アカウントの作成と削除',
+            workspaceCreation: 'ワークスペースの作成',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {title: 'ドメインを追加', subtitle: 'アクセスしたいプライベートドメインの名前を入力してください（例：expensify.com）。', domainName: 'ドメイン名'},
+        domainAdded: {title: 'ドメインが追加されました', description: '次に、ドメインの所有権を確認し、セキュリティ設定を調整する必要があります。', configure: '設定'},
+        enhancedSecurity: {
+            title: '強化されたセキュリティ',
+            subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須にし、ワークスペースの作成を制限するなど。',
+            enable: '有効にする',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
