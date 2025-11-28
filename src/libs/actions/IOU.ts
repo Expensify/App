@@ -6627,70 +6627,110 @@ function trackExpense(params: CreateTrackExpenseParams) {
     notifyNewAction(activeReportID, payeeAccountID);
 }
 
-function duplicateTransaction(
+function duplicateExpenseTransaction(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
-    targetPolicy: OnyxEntry<OnyxTypes.Policy>,
-    targetReport: OnyxTypes.Report,
     optimisticChatReportID: string,
     optimisticIOUReportID: string,
+    isASAPSubmitBetaEnabled: boolean,
+    targetPolicy?: OnyxEntry<OnyxTypes.Policy>,
+    targetReport?: OnyxTypes.Report,
 ) {
-    const participants = getMoneyRequestParticipantsFromReport(targetReport);
-    const waypoints = Object.keys(transaction.comment?.waypoints ?? {}).length ? transaction.comment?.waypoints : undefined;
+    if (!transaction) {
+        return;
+    }
 
-    const params = {
+    const participants = getMoneyRequestParticipantsFromReport(targetReport);
+    const transactionDetails = getTransactionDetails(transaction);
+
+    if (!transactionDetails?.amount) {
+        return;
+    }
+
+    const params: RequestMoneyInformation = {
         report: targetReport,
         optimisticChatReportID,
         optimisticCreatedReportActionID: NumberUtils.rand64(),
         optimisticIOUReportID,
         optimisticReportPreviewActionID: NumberUtils.rand64(),
         participantParams: {
-            participant: participants,
+            payeeAccountID: userAccountID,
+            payeeEmail: currentUserEmail,
+            participant: participants.at(0) ?? {},
         },
-        policyParams: {
-            policy: targetPolicy,
-        },
-        gpsPoint: null,
+        gpsPoint: undefined,
         action: CONST.IOU.ACTION.CREATE,
         transactionParams: {
             ...transaction,
+            ...transactionDetails,
             /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-            amount: (transaction.modifiedAmount || transaction.amount) * -1,
-            attendees: transaction.comment?.attendees,
-            comment: transaction.comment?.comment?.trim() ?? '',
+            //amount: (transaction?.modifiedAmount || transaction?.amount) * -1,
+            attendees: transactionDetails?.attendees as Attendee[] | undefined,
             created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-            currency: transaction.modifiedCurrency || transaction.currency,
-            customUnitRateID: transaction.comment?.customUnit?.customUnitRateID,
-            isTestDrive: transaction.receipt?.isTestDriveReceipt,
-            mcc: transaction.modifiedMCC || transaction.mcc,
-            merchant: transaction.modifiedMerchant || transaction.merchant,
+            customUnitRateID: transaction?.comment?.customUnit?.customUnitRateID,
+            isTestDrive: transaction?.receipt?.isTestDriveReceipt,
+            merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
             /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
-            originalTransactionID: transaction.comment?.originalTransactionID,
-            source: transaction.comment?.source,
-            taxAmount: transaction.taxAmount ? transaction.taxAmount * -1 : 0,
-            validWaypoints: waypoints,
-            waypoints,
+            originalTransactionID: transaction?.comment?.originalTransactionID,
+            source: transaction?.comment?.source,
+            //taxAmount: transaction?.taxAmount ? transaction?.taxAmount * -1 : 0,
+            waypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
         },
         shouldHandleNavigation: false,
         shouldGenerateTransactionThreadReport: true,
-        backToReport: false,
+        isASAPSubmitBetaEnabled,
     };
 
     // If no workspace is provided the expense should be unreported
     if (!targetPolicy) {
-        params.report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`] ?? null;
-        params.policyParams = {};
-        return trackExpense(params);
+        const selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`];
+
+        if (!selfDMReport) {
+            return;
+        }
+
+        const trackExpenseParams: CreateTrackExpenseParams = {
+            ...params,
+            participantParams: {
+                ...(params.participantParams ?? {}),
+                participant: {accountID: userAccountID, selected: true},
+            },
+            transactionParams: {
+                ...(params.transactionParams ?? {}),
+                validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+            },
+            report: selfDMReport,
+            isDraftPolicy: false,
+        };
+        return trackExpense(trackExpenseParams);
     }
+
+    params.policyParams = {
+        policy: targetPolicy,
+    };
 
     const transactionType = getTransactionType(transaction);
 
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
-            params.participants = participants;
-            return createDistanceRequest(params);
+            const distanceParams: CreateDistanceRequestInformation = {
+                ...params,
+                participants,
+                transactionParams: {
+                    ...(params.transactionParams ?? {}),
+                    comment: transactionDetails.comment ?? '',
+                    validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+                },
+            };
+            return createDistanceRequest(distanceParams);
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM:
-            params.customUnit = transaction.comment?.customUnit;
-            return submitPerDiemExpense(params);
+            const perDiemParams: PerDiemExpenseInformation = {
+                ...params,
+                transactionParams: {
+                    ...(params.transactionParams ?? {}),
+                    customUnit: transaction?.comment?.customUnit ?? {},
+                },
+            };
+            return submitPerDiemExpense(perDiemParams);
         default:
             return requestMoney(params);
     }
@@ -14665,7 +14705,7 @@ export {
     deleteMoneyRequest,
     deleteTrackExpense,
     detachReceipt,
-    duplicateTransaction,
+    duplicateExpenseTransaction,
     getIOURequestPolicyID,
     getReceiverType,
     initMoneyRequest,
