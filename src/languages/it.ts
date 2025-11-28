@@ -6469,7 +6469,10 @@ ${
         },
         has: 'Ha',
         groupBy: 'Gruppo per',
-        moneyRequestReport: {emptyStateTitle: 'Questo report non ha spese.', accessPlaceHolder: 'Apri per i dettagli'},
+        moneyRequestReport: {
+            emptyStateTitle: 'Questo report non ha spese.',
+            accessPlaceHolder: 'Apri per i dettagli',
+        },
         noCategory: 'Nessuna categoria',
         noTag: 'Nessun tag',
         expenseType: 'Tipo di spesa',

@@ -6489,7 +6489,10 @@ ${
         },
         has: 'A',
         groupBy: 'Groupe par',
-        moneyRequestReport: {emptyStateTitle: "Ce rapport n'a pas de dépenses.", accessPlaceHolder: 'Ouvrir pour plus de détails'},
+        moneyRequestReport: {
+            emptyStateTitle: "Ce rapport n'a pas de dépenses.",
+            accessPlaceHolder: 'Ouvrir pour plus de détails',
+        },
         noCategory: 'Aucune catégorie',
         noTag: 'Aucun tag',
         expenseType: 'Type de dépense',

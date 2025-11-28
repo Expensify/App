@@ -6450,7 +6450,10 @@ ${
         },
         has: 'Tem',
         groupBy: 'Agrupar por',
-        moneyRequestReport: {emptyStateTitle: 'Este relatório não possui despesas.', accessPlaceHolder: 'Abra para ver detalhes'},
+        moneyRequestReport: {
+            emptyStateTitle: 'Este relatório não possui despesas.',
+            accessPlaceHolder: 'Abra para ver detalhes',
+        },
         noCategory: 'Sem categoria',
         noTag: 'Sem etiqueta',
         expenseType: 'Tipo de despesa',

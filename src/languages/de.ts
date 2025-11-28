@@ -6481,7 +6481,10 @@ ${
         },
         has: 'Hat',
         groupBy: 'Gruppe nach',
-        moneyRequestReport: {emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.', accessPlaceHolder: 'Für Details öffnen'},
+        moneyRequestReport: {
+            emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',
+            accessPlaceHolder: 'Für Details öffnen',
+        },
         noCategory: 'Keine Kategorie',
         noTag: 'Kein Tag',
         expenseType: 'Ausgabentyp',

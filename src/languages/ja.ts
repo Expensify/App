@@ -6404,7 +6404,10 @@ ${
         },
         has: '含む',
         groupBy: 'グループ',
-        moneyRequestReport: {emptyStateTitle: 'このレポートには経費がありません。', accessPlaceHolder: '詳細を開く'},
+        moneyRequestReport: {
+            emptyStateTitle: 'このレポートには経費がありません。',
+            accessPlaceHolder: '詳細を開く',
+        },
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',
         expenseType: '経費タイプ',

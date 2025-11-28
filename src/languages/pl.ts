@@ -6438,7 +6438,10 @@ ${
         },
         has: 'Ma',
         groupBy: 'Grupa według',
-        moneyRequestReport: {emptyStateTitle: 'Ten raport nie zawiera wydatków.', accessPlaceHolder: 'Otwórz, aby zobaczyć szczegóły'},
+        moneyRequestReport: {
+            emptyStateTitle: 'Ten raport nie zawiera wydatków.',
+            accessPlaceHolder: 'Otwórz, aby zobaczyć szczegóły',
+        },
         noCategory: 'Brak kategorii',
         noTag: 'Brak tagu',
         expenseType: 'Typ wydatku',

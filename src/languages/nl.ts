@@ -6451,7 +6451,10 @@ ${
         },
         has: 'Heeft',
         groupBy: 'Groep per',
-        moneyRequestReport: {emptyStateTitle: 'Dit rapport heeft geen uitgaven.', accessPlaceHolder: 'Open voor details'},
+        moneyRequestReport: {
+            emptyStateTitle: 'Dit rapport heeft geen uitgaven.',
+            accessPlaceHolder: 'Open voor details',
+        },
         noCategory: 'Geen categorie',
         noTag: 'Geen tag',
         expenseType: 'Uitgavetype',
