@@ -1,14 +1,15 @@
 import React from 'react';
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type { ColorValue, StyleProp, ViewStyle } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
+import type { ValueOf } from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed, InvitedEmailsToAccountIDs, Policy, Report, ReportAction} from '@src/types/onyx';
-import type {HorizontalStacking} from './ReportActionAvatar';
+import type { CompanyCardFeed, InvitedEmailsToAccountIDs, Policy, Report, ReportAction } from '@src/types/onyx';
+import type { HorizontalStacking } from './ReportActionAvatar';
 import ReportActionAvatar from './ReportActionAvatar';
 import useReportActionAvatars from './useReportActionAvatars';
+
 
 type ReportActionAvatarsProps = {
     horizontalStacking?: HorizontalStacking | boolean;
@@ -70,6 +71,7 @@ type ReportActionAvatarsProps = {
     /** Whether to use custom fallback avatar */
     shouldUseCustomFallbackAvatar?: boolean;
 
+    /** chatReportID needed for the avatars logic. When provided, this will be used as a fallback if the snapshot is undefined */
     chatReportID?: string;
 };
 
