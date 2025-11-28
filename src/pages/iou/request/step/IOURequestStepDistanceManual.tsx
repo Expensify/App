@@ -92,6 +92,8 @@ function IOURequestStepDistanceManual({
     const isCreatingNewRequest = !(backTo || isEditing);
 
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
     const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy}).unit;
@@ -161,6 +163,9 @@ function IOURequestStepDistanceManual({
                         // Not required for manual distance request
                         transactionBackup: undefined,
                         policy,
+                        currentUserAccountIDParam,
+                        currentUserEmailParam,
+                        isASAPSubmitBetaEnabled,
                     });
                 }
                 Navigation.goBack(backTo);
@@ -187,8 +192,8 @@ function IOURequestStepDistanceManual({
                             report,
                             isDraftPolicy: false,
                             participantParams: {
-                                payeeEmail: currentUserPersonalDetails.login,
-                                payeeAccountID: currentUserPersonalDetails.accountID,
+                                payeeEmail: currentUserEmailParam,
+                                payeeAccountID: currentUserAccountIDParam,
                                 participant,
                             },
                             policyParams: {
@@ -215,8 +220,8 @@ function IOURequestStepDistanceManual({
                     createDistanceRequest({
                         report,
                         participants,
-                        currentUserLogin: currentUserPersonalDetails.login,
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        currentUserLogin: currentUserEmailParam,
+                        currentUserAccountID: currentUserAccountIDParam,
                         iouType,
                         existingTransaction: transaction,
                         transactionParams: {
@@ -251,7 +256,7 @@ function IOURequestStepDistanceManual({
                 defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
                 !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
             ) {
-                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
+                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
                 const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
                 const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({
@@ -293,8 +298,8 @@ function IOURequestStepDistanceManual({
             personalDetails,
             reportAttributesDerived,
             translate,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
+            currentUserEmailParam,
+            currentUserAccountIDParam,
             lastSelectedDistanceRates,
             backToReport,
             isASAPSubmitBetaEnabled,
