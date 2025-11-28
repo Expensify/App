@@ -10923,6 +10923,17 @@ function getReportActionActorAccountID(
             return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
         }
 
+        case CONST.REPORT.ACTIONS.TYPE.APPROVED:
+        case CONST.REPORT.ACTIONS.TYPE.FORWARDED: {
+            // For automatic approvals/forwards via workspace rules, show Concierge as the actor
+            const originalMessage = getOriginalMessage(reportAction);
+            const wasAutomatic = originalMessage && 'automaticAction' in originalMessage ? originalMessage.automaticAction : false;
+            if (wasAutomatic) {
+                return CONST.ACCOUNT_ID.CONCIERGE;
+            }
+            return reportAction?.actorAccountID;
+        }
+
         default:
             return reportAction?.actorAccountID;
     }
