@@ -415,6 +415,9 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
 
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
     SearchCardGroup & {
+        /** Final and formatted "cardName" value used for displaying and sorting */
+        formattedCardName?: string;
+
         /** Final and formatted "feedName" value used for displaying and sorting */
         formattedFeedName?: string;
     };

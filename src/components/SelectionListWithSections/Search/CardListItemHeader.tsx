@@ -1,8 +1,10 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -11,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
-import CardCell from './CardCell';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import ExpensesCell from './ExpensesCell';
 import TotalCell from './TotalCell';
@@ -86,14 +87,24 @@ function CardListItemHeader<TItem extends ListItem>({
             <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {checkbox}
-                    <CardCell
-                        accountID={cardItem.accountID}
-                        bank={cardItem.bank as CompanyCardFeed}
-                        backgroundColor={backgroundColor}
-                        displayName={formattedDisplayName}
-                        cardName={cardItem.cardName}
-                        lastFourPAN={cardItem.lastFourPAN}
-                    />
+                    <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
+                        <ReportActionAvatars
+                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                            subscriptAvatarBorderColor={backgroundColor}
+                            noRightMarginOnSubscriptContainer
+                            accountIDs={[cardItem.accountID]}
+                        />
+                        <View style={[styles.gapHalf, styles.flexShrink1]}>
+                            <TextWithTooltip
+                                text={formattedDisplayName}
+                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                            />
+                            <TextWithTooltip
+                                text={cardItem.formattedCardName ?? ''}
+                                style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                            />
+                        </View>
+                    </View>
                 </View>
                 <View style={[styles.flexShrink0, styles.mr3, styles.gap1]}>
                     <TotalCell
@@ -114,15 +125,22 @@ function CardListItemHeader<TItem extends ListItem>({
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pl3]}>
             {checkbox}
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)]}>
+                <UserDetailsTooltip accountID={cardItem.accountID}>
+                    <View>
+                        <ReportActionAvatars
+                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                            subscriptAvatarBorderColor={backgroundColor}
+                            noRightMarginOnSubscriptContainer
+                            accountIDs={[cardItem.accountID]}
+                        />
+                    </View>
+                </UserDetailsTooltip>
+            </View>
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}>
-                <CardCell
-                    accountID={cardItem.accountID}
-                    bank={cardItem.bank as CompanyCardFeed}
-                    backgroundColor={backgroundColor}
-                    displayName={formattedDisplayName}
-                    cardName={cardItem.cardName}
-                    lastFourPAN={cardItem.lastFourPAN}
-                />
+                <View style={[styles.gapHalf, styles.flexShrink1]}>
+                    <TextWithTooltip text={cardItem.formattedCardName ?? ''} />
+                </View>
             </View>
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FEED)]}>
                 <TextWithTooltip

@@ -123,28 +123,28 @@ function MemberListItemHeader<TItem extends ListItem>({
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pl3]}>
             {checkbox}
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
-                <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                    <UserDetailsTooltip accountID={memberItem.accountID}>
-                        <View>
-                            <Avatar
-                                source={memberItem.avatar}
-                                type={CONST.ICON_TYPE_AVATAR}
-                                name={formattedDisplayName}
-                                avatarID={memberItem.accountID}
-                            />
-                        </View>
-                    </UserDetailsTooltip>
-                    <View style={[styles.gap1, styles.flexShrink1]}>
-                        <TextWithTooltip
-                            text={formattedDisplayName}
-                            style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
-                        />
-                        <TextWithTooltip
-                            text={formattedLogin || formattedDisplayName}
-                            style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)]}>
+                <UserDetailsTooltip accountID={memberItem.accountID}>
+                    <View>
+                        <Avatar
+                            source={memberItem.avatar}
+                            type={CONST.ICON_TYPE_AVATAR}
+                            name={formattedDisplayName}
+                            avatarID={memberItem.accountID}
                         />
                     </View>
+                </UserDetailsTooltip>
+            </View>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                <View style={[styles.gap1, styles.flexShrink1]}>
+                    <TextWithTooltip
+                        text={formattedDisplayName}
+                        style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                    />
+                    <TextWithTooltip
+                        text={formattedLogin || formattedDisplayName}
+                        style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                    />
                 </View>
             </View>
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)]}>

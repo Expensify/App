@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -110,12 +111,18 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
         <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
             {checkbox}
             <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.gap3]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)]}>
+                    <Icon
+                        src={icon}
+                        width={iconSize}
+                        height={iconSize}
+                        additionalStyles={iconStyles}
+                    />
+                </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT)]}>
-                    <BankAccountCell
-                        icon={icon}
-                        iconSize={iconSize}
-                        iconStyles={iconStyles}
-                        title={accountLabel}
+                    <TextWithTooltip
+                        text={accountLabel}
+                        style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN)]}>

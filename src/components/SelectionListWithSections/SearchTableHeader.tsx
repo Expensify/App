@@ -19,6 +19,12 @@ type SearchColumnConfig = {
     canBeMissing?: boolean;
 };
 
+type SearchHeaderIcons = {
+    Profile?: IconAsset;
+    CreditCard?: IconAsset;
+    Bank?: IconAsset;
+};
+
 const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
@@ -129,11 +135,11 @@ const taskHeaders: SearchColumnConfig[] = [
     },
 ];
 
-const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] => [
+const getExpenseReportHeaders = (icons: SearchHeaderIcons): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
         translationKey: undefined,
-        icon: profileIcon,
+        icon: icons.Profile,
         isColumnSortable: false,
     },
     {
@@ -167,10 +173,16 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     },
 ];
 
-const getTransactionGroupHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => {
+const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderIcons): SearchColumnConfig[] => {
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
             return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    translationKey: undefined,
+                    icon: icons.Profile,
+                    isColumnSortable: false,
+                },
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
                     translationKey: 'common.from',
@@ -186,6 +198,12 @@ const getTransactionGroupHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig
             ];
         case CONST.SEARCH.GROUP_BY.CARD:
             return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    translationKey: undefined,
+                    icon: icons.CreditCard,
+                    isColumnSortable: false,
+                },
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.CARD,
                     translationKey: 'common.card',
@@ -206,8 +224,14 @@ const getTransactionGroupHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig
         case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
             return [
                 {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    translationKey: undefined,
+                    icon: icons.Bank,
+                    isColumnSortable: false,
+                },
+                {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT,
-                    translationKey: 'initialSettingsPage.account',
+                    translationKey: 'common.bankAccount',
                 },
                 {
                     columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN,
@@ -231,11 +255,11 @@ const getTransactionGroupHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig
     }
 };
 
-function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy?: SearchGroupBy, profileIcon?: IconAsset, isExpenseReportView?: boolean): SearchColumnConfig[] | null {
+function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, icons: SearchHeaderIcons, groupBy?: SearchGroupBy, isExpenseReportView?: boolean): SearchColumnConfig[] | null {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             if (!isExpenseReportView && groupBy) {
-                return getTransactionGroupHeaders(groupBy);
+                return getTransactionGroupHeaders(groupBy, icons);
             }
             return getExpenseHeaders(groupBy);
         case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -245,7 +269,7 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy
         case CONST.SEARCH.DATA_TYPES.TASK:
             return taskHeaders;
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-            return getExpenseReportHeaders(profileIcon);
+            return getExpenseReportHeaders(icons);
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
             return null;
@@ -290,8 +314,10 @@ function SearchTableHeader({
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
-    // Only load Profile icon when it's needed for EXPENSE_REPORT type
-    const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? (['Profile'] as const) : ([] as const));
+    // Only load Profile icon when it's needed for EXPENSE_REPORT type or grouped transactions
+    const icons = useMemoizedLazyExpensifyIcons(
+        type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || !!groupBy ? (['Profile', 'Bank', 'CreditCard'] as const) : ([] as const),
+    ) satisfies SearchHeaderIcons;
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
@@ -300,7 +326,7 @@ function SearchTableHeader({
         [columns],
     );
 
-    const columnConfig = useMemo(() => getSearchColumns(type, groupBy, icons.Profile, isExpenseReportView), [type, groupBy, icons.Profile, isExpenseReportView]);
+    const columnConfig = useMemo(() => getSearchColumns(type, icons, groupBy, isExpenseReportView), [type, groupBy, icons, isExpenseReportView]);
 
     if (displayNarrowVersion) {
         return;

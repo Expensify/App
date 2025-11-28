@@ -66,7 +66,7 @@ import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
-import {getCustomOrFormattedFeedName} from './CardUtils';
+import {getCardDescription, getCustomOrFormattedFeedName} from './CardUtils';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
@@ -177,19 +177,22 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
 };
 
 const transactionMemberGroupColumnNamesToSortingProperty: TransactionMemberGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
     [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: 'count' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
 };
 
 const transactionCardGroupColumnNamesToSortingProperty: TransactionCardGroupSorting = {
-    [CONST.SEARCH.TABLE_COLUMNS.CARD]: 'formattedFeedName' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.FEED]: 'bank' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.CARD]: 'formattedCardName' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.FEED]: 'formattedFeedName' as const,
     [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: 'count' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
 };
 
 const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithdrawalIDGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
     [CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT]: 'bankName' as const,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: 'formattedWithdrawalDate' as const,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
@@ -1743,7 +1746,13 @@ function getCardSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 transactionsQueryJSON,
                 ...personalDetails,
                 ...cardGroup,
-                formattedFeedName: getCustomOrFormattedFeedName(cardGroup.bank as OnyxTypes.CompanyCardFeed, undefined, false) ?? '',
+                formattedCardName: getCardDescription({
+                    cardID: cardGroup.cardID,
+                    bank: cardGroup.bank,
+                    cardName: cardGroup.cardName,
+                    lastFourPAN: cardGroup.lastFourPAN,
+                } as OnyxTypes.Card),
+                formattedFeedName: getCustomOrFormattedFeedName(cardGroup.bank as OnyxTypes.CompanyCardFeed) ?? '',
             };
         }
     }
@@ -2592,12 +2601,14 @@ function getColumnsToShow(
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.FROM:
                 return {
+                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
                     [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
                     [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
                     [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
                 };
             case CONST.SEARCH.GROUP_BY.CARD:
                 return {
+                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
                     [CONST.SEARCH.TABLE_COLUMNS.CARD]: true,
                     [CONST.SEARCH.TABLE_COLUMNS.FEED]: true,
                     [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
@@ -2605,6 +2616,7 @@ function getColumnsToShow(
                 };
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return {
+                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
                     [CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT]: true,
                     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: true,
                     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: true,
