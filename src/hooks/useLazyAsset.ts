@@ -16,7 +16,7 @@ type LazyAssetResult<T> = {
 /**
  * Hook for lazy loading any type of asset
  */
-function useLazyAsset<T>(importFn: () => Promise<{default: T}>, fallback?: T): LazyAssetResult<T> {
+function useLazyAsset<T>(importFn: () => {default: T} | Promise<{default: T}>, fallback?: T): LazyAssetResult<T> {
     const assetRef = useRef<T | undefined>(undefined);
     const versionRef = useRef(0);
 
@@ -34,30 +34,42 @@ function useLazyAsset<T>(importFn: () => Promise<{default: T}>, fallback?: T): L
             setIsLoading(true);
             setHasError(false);
 
-            memoizedImportFn()
-                .then((module) => {
-                    // Check if this is still the latest request and component is mounted
-                    if (!isMounted || currentVersion !== versionRef.current) {
-                        return;
-                    }
-                    assetRef.current = module.default;
-                    setIsLoaded(true);
-                    setIsLoading(false);
-                })
-                .catch(() => {
-                    // Check if this is still the latest request and component is mounted
-                    if (!isMounted || currentVersion !== versionRef.current) {
-                        return;
-                    }
-                    setHasError(true);
-                    setIsLoading(false);
+            // Call import function - it might return sync or async
+            const result = memoizedImportFn();
 
-                    // Use fallback if available
-                    if (fallback) {
-                        assetRef.current = fallback;
+            // Check if result is a Promise or plain value
+            if (result instanceof Promise) {
+                // Async path
+                result
+                    .then((module) => {
+                        // Check if this is still the latest request and component is mounted
+                        if (!isMounted || currentVersion !== versionRef.current) {
+                            return;
+                        }
+                        assetRef.current = module.default;
                         setIsLoaded(true);
-                    }
-                });
+                        setIsLoading(false);
+                    })
+                    .catch(() => {
+                        // Check if this is still the latest request and component is mounted
+                        if (!isMounted || currentVersion !== versionRef.current) {
+                            return;
+                        }
+                        setHasError(true);
+                        setIsLoading(false);
+
+                        // Use fallback if available
+                        if (fallback) {
+                            assetRef.current = fallback;
+                            setIsLoaded(true);
+                        }
+                    });
+            } else {
+                // Synchronous path - asset available immediately!
+                assetRef.current = result.default;
+                setIsLoaded(true);
+                setIsLoading(false);
+            }
         };
 
         loadAsset();
@@ -79,8 +91,9 @@ function useLazyAsset<T>(importFn: () => Promise<{default: T}>, fallback?: T): L
  * Hook that automatically memoizes the import function
  * This prevents the need for callers to manually use useCallback
  * Returns guaranteed non-null assets for existing components compatibility
+ * Supports both synchronous and async return values for optimal performance
  */
-function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => Promise<{default: T}>, fallback?: T): {asset: T} {
+function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => {default: T} | Promise<{default: T}>, fallback?: T): {asset: T} {
     const stableImportFn = useCallback(() => importFn(), [importFn]);
     const {asset, isLoaded} = useLazyAsset(stableImportFn, fallback);
 
