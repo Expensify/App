@@ -3,10 +3,12 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import type {ComponentType, ReactNode} from 'react';
 import type {TText} from 'react-native-render-html';
+import createOnyxContext from '@components/createOnyxContext';
 import MentionUserRenderer from '@components/HTMLEngineProvider/HTMLRenderers/MentionUserRenderer';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import Navigation from '@libs/Navigation/Navigation';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails} from '@src/types/onyx';
 
@@ -86,22 +88,26 @@ jest.mock('@libs/Log', () => ({
     info: jest.fn(),
 }));
 
+const [PersonalDetailsProvider] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
 function withProvider(children: ReactNode) {
     return (
-        <ShowContextMenuContext.Provider
-            value={{
-                onShowContextMenu: (fn: () => void) => fn(),
-                anchor: null,
-                report: undefined,
-                isReportArchived: false,
-                action: undefined,
-                checkIfContextMenuActive: () => false,
-                isDisabled: true,
-                shouldDisplayContextMenu: false,
-            }}
-        >
-            {children}
-        </ShowContextMenuContext.Provider>
+        <PersonalDetailsProvider>
+            <ShowContextMenuContext.Provider
+                value={{
+                    onShowContextMenu: (fn: () => void) => fn(),
+                    anchor: null,
+                    report: undefined,
+                    isReportArchived: false,
+                    action: undefined,
+                    checkIfContextMenuActive: () => false,
+                    isDisabled: true,
+                    shouldDisplayContextMenu: false,
+                }}
+            >
+                {children}
+            </ShowContextMenuContext.Provider>
+        </PersonalDetailsProvider>
     );
 }
 
