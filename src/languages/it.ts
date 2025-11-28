@@ -6400,6 +6400,7 @@ ${
             delete: 'Elimina',
             hold: 'Attendere',
             unhold: 'Rimuovi blocco',
+            reject: 'Rifiuta',
             noOptionsAvailable: 'Nessuna opzione disponibile per il gruppo di spese selezionato.',
         },
         filtersHeader: 'Filtri',
@@ -6579,6 +6580,18 @@ ${
         error: {
             title: 'Aggiornamento del controllo fallito',
             message: "Non siamo riusciti a verificare la presenza di un aggiornamento. Riprova tra un po'.",
+        },
+    },
+    reportLayout: {
+        reportLayout: 'Layout del rapporto',
+        groupByLabel: 'Raggruppa per:',
+        selectGroupByOption: 'Seleziona come raggruppare le spese del rapporto',
+        uncategorized: 'Non categorizzato',
+        noTag: 'Nessun tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Seleziona tutte le spese in ${groupName}`,
+        groupBy: {
+            category: 'Categoria',
+            tag: 'Tag',
         },
     },
     report: {
@@ -7443,13 +7456,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Benvenuto in New Expensify!',
-        subtitle: 'Il nuovo Expensify ha la stessa fantastica automazione, ma ora con una collaborazione straordinaria:',
+        subtitle: 'Ha tutto ciò che ami della nostra esperienza classica, con un sacco di aggiornamenti per rendere la tua vita ancora più facile:',
         confirmText: 'Andiamo!',
         features: {
-            chat: '<strong>Chatta direttamente su qualsiasi spesa</strong>, report o spazio di lavoro',
-            scanReceipt: '<strong>Scansiona le ricevute</strong> e ricevi il rimborso',
-            crossPlatform: 'Fai <strong>tutto</strong> dal tuo telefono o browser',
+            chat: 'Chatta su qualsiasi spesa per rispondere rapidamente alle domande',
+            search: 'Ricerca più potente su dispositivi mobili, web e desktop',
+            concierge: 'Intelligenza artificiale Concierge integrata per aiutarti ad automatizzare le tue spese',
         },
+        helpText: 'Prova la demo di 2 minuti',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
