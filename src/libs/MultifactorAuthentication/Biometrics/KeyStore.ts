@@ -13,12 +13,13 @@ import VALUES from './VALUES';
 const options = (key: string): SecureStoreOptions => {
     const isPrivateKey = key.endsWith(VALUES.KEY_ALIASES.PRIVATE_KEY);
     return {
-        failOnDuplicate: isPrivateKey,
+        failOnUpdate: isPrivateKey,
         requireAuthentication: isPrivateKey,
-        askForAuthOnSave: isPrivateKey,
+        forceAuthenticationOnSave: isPrivateKey,
+        forceReadAuthenticationOnSimulators: isPrivateKey,
         keychainService: VALUES.KEYCHAIN_SERVICE,
         keychainAccessible: SECURE_STORE_VALUES.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
-        enableCredentialsAlternative: true,
+        enableDeviceFallback: true,
         authenticationPrompt: 'Approve the transaction',
     };
 };
