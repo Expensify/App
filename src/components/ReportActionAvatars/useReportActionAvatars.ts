@@ -213,8 +213,8 @@ function useReportActionAvatars({
     const isChatReportOnlyProp = !iouReport && chatReport?.reportID;
     const isWorkspaceChatWithoutChatReport = !chatReport?.reportID && isAWorkspaceChat;
     const isAccessPlaceholderReportPreview = isAReportPreviewAction && isAWorkspaceChat && !iouReport;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const usePersonalDetailsAvatars =
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isATripPreview && !isAnInvoiceRoom && !isAccessPlaceholderReportPreview;
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
