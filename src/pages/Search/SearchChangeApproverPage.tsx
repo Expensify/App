@@ -1,6 +1,8 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -16,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {assignReportToMe} from '@libs/actions/IOU';
+import {openReport} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
@@ -24,7 +27,7 @@ import type {ApproverType} from '@pages/ReportChangeApproverPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 
 function SearchChangeApproverPage() {
     const {translate} = useLocalize();
@@ -37,8 +40,50 @@ function SearchChangeApproverPage() {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const {selectedReports} = useSearchContext();
+    const {clearSelectedTransactions, selectedReports} = useSearchContext();
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
+    const isSavingRef = useRef(false);
+
+    const getOnyxReports = useCallback(
+        (allReports: OnyxCollection<Report>) => {
+            const reports = new Map<string, Report>();
+            for (const selectedReport of selectedReports) {
+                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
+                if (!report?.reportID) {
+                    continue;
+                }
+                reports.set(selectedReport.reportID, report);
+            }
+            return reports;
+        },
+        [selectedReports],
+    );
+
+    const [onyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getOnyxReports, canBeMissing: true});
+    const isLoadingOnyxReports = useRef(false);
+
+    useEffect(() => {
+        if (!hasLoadedApp || !selectedReports.length) {
+            return;
+        }
+
+        if (onyxReports?.size === selectedReports.length) {
+            isLoadingOnyxReports.current = false;
+            return;
+        }
+
+        if (isLoadingOnyxReports.current) {
+            return;
+        }
+
+        isLoadingOnyxReports.current = true;
+        for (const selectedReport of selectedReports) {
+            if (onyxReports?.has(selectedReport.reportID)) {
+                continue;
+            }
+            openReport(selectedReport.reportID);
+        }
+    }, [hasLoadedApp, onyxReports, selectedReports]);
 
     const selectedPolicies = useMemo(() => {
         const policies = new Map<string, Policy>();
@@ -75,11 +120,11 @@ function SearchChangeApproverPage() {
             return;
         }
 
+        isSavingRef.current = true;
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
-
-            if (!report || !policy) {
+            const report = onyxReports?.get(selectedReport.reportID);
+            if (!policy || !report) {
                 continue;
             }
 
@@ -89,17 +134,18 @@ function SearchChangeApproverPage() {
             }
         }
 
-        Navigation.closeRHPFlow();
+        clearSelectedTransactions();
     }, [
+        allPolicies,
+        clearSelectedTransactions,
+        currentUserDetails.accountID,
+        currentUserDetails.email,
+        isASAPSubmitBetaEnabled,
+        onyxReports,
         selectedApproverType,
         selectedPolicies,
         selectedReports,
-        allPolicies,
-        allReports,
-        currentUserDetails.accountID,
-        currentUserDetails.email,
         transactionViolations,
-        isASAPSubmitBetaEnabled,
     ]);
 
     const sections = useMemo(() => {
@@ -114,9 +160,8 @@ function SearchChangeApproverPage() {
 
         const shouldShowBypassApproversOption = selectedReports.some((selectedReport) => {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
-            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
-
-            if (!report || !policy) {
+            const report = onyxReports?.get(selectedReport.reportID);
+            if (!policy || !report) {
                 return false;
             }
 
@@ -134,15 +179,21 @@ function SearchChangeApproverPage() {
         }
 
         return [{data}];
-    }, [selectedReports, allPolicies, allReports, currentUserDetails.accountID, selectedApproverType, translate]);
+    }, [allPolicies, currentUserDetails.accountID, onyxReports, selectedApproverType, selectedReports, translate]);
 
     useEffect(() => {
         if (selectedReports.length && sections.at(0)?.data.length) {
             return;
         }
 
-        Navigation.closeRHPFlow();
-    }, [selectedReports, sections]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.closeRHPFlow();
+        });
+    }, [sections, selectedReports.length]);
+
+    if (onyxReports?.size !== selectedReports.length || isSavingRef.current) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper

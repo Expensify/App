@@ -1,9 +1,10 @@
 import lodashIntersection from 'lodash/intersection';
 import lodashPick from 'lodash/pick';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import Badge from '@components/Badge';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import type {SelectionListApprover} from '@components/WorkspaceMembersSelectionList';
@@ -31,7 +32,8 @@ function SearchAddApproverPage() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const {selectedReports} = useSearchContext();
+    const {clearSelectedTransactions, selectedReports} = useSearchContext();
+    const isSavingRef = useRef(false);
 
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -104,7 +106,7 @@ function SearchAddApproverPage() {
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [selectedReports, allPolicies, allReports, personalDetails, selectedApproverEmail, translate]);
+    }, [allPolicies, allReports, icons.FallbackAvatar, personalDetails, selectedApproverEmail, selectedReports, translate]);
 
     const addApprover = useCallback(() => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;
@@ -112,6 +114,7 @@ function SearchAddApproverPage() {
             return;
         }
 
+        isSavingRef.current = true;
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
@@ -133,17 +136,18 @@ function SearchAddApproverPage() {
             );
         }
 
-        Navigation.closeRHPFlow();
+        clearSelectedTransactions();
     }, [
         allApprovers,
-        selectedApproverEmail,
-        selectedReports,
         allPolicies,
         allReports,
-        transactionViolations,
+        clearSelectedTransactions,
         currentUserDetails.accountID,
         currentUserDetails.email,
         isASAPSubmitBetaEnabled,
+        selectedApproverEmail,
+        selectedReports,
+        transactionViolations,
     ]);
 
     const button = useMemo(() => {
@@ -168,8 +172,14 @@ function SearchAddApproverPage() {
             return;
         }
 
-        Navigation.closeRHPFlow();
-    }, [selectedReports]);
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.closeRHPFlow();
+        });
+    }, [selectedReports.length]);
+
+    if (isSavingRef.current) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ApproverSelectionList
@@ -178,7 +188,7 @@ function SearchAddApproverPage() {
             onBackButtonPress={Navigation.goBack}
             subtitle={
                 <Text style={[styles.ph5, styles.pb3]}>
-                    {selectedReports.length === 1 ? translate('iou.changeApprover.addApprover.subtitle') : translate('iou.changeApprover.addApprover.bulkSubtitle')}
+                    {translate(selectedReports.length === 1 ? 'iou.changeApprover.addApprover.subtitle' : 'iou.changeApprover.addApprover.bulkSubtitle')}
                 </Text>
             }
             isLoadingReportData={false}
@@ -187,7 +197,7 @@ function SearchAddApproverPage() {
             shouldShowNotFoundViewLink={false}
             shouldShowNotFoundView={false}
             allApprovers={allApprovers}
-            listEmptyContentSubtitle={translate('workflowsPage.emptyContent.bulkApproverSubtitle')}
+            listEmptyContentSubtitle={translate(selectedReports.length === 1 ? 'workflowsPage.emptyContent.approverSubtitle' : 'workflowsPage.emptyContent.bulkApproverSubtitle')}
             allowMultipleSelection={false}
             onSelectApprover={toggleApprover}
             footerContent={button}
