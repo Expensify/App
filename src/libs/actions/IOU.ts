@@ -772,8 +772,6 @@ type UpdateSplitTransactionsParams = {
     firstIOU: OnyxEntry<OnyxTypes.ReportAction> | undefined;
     isASAPSubmitBetaEnabled: boolean;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
 };
 
@@ -14067,8 +14065,6 @@ function updateSplitTransactions({
     firstIOU,
     isASAPSubmitBetaEnabled,
     currentUserPersonalDetails,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
     transactionViolations,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
@@ -14183,9 +14179,8 @@ function updateSplitTransactions({
             parentChatReport: getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
             existingTransaction: originalTransaction,
             isASAPSubmitBetaEnabled,
-            currentUserPersonalDetails,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
+            currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
+            currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
             transactionViolations,
         } as MoneyRequestInformationParams;
 
@@ -14221,8 +14216,8 @@ function updateSplitTransactions({
             isSplitExpense: true,
             currentReportActionID: currentReportAction?.reportActionID,
             isASAPSubmitBetaEnabled,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
+            currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
+            currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
             transactionViolations,
         });
 
