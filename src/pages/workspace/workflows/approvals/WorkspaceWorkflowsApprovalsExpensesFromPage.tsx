@@ -3,9 +3,9 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +34,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const {translate} = useLocalize();
     const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
@@ -63,7 +64,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     keyForList: member.email,
                     isSelected: true,
                     login: member.email,
-                    icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
+                    icons: [{source: member.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
                     rightElement: (
                         <MemberRightIcon
                             role={policy?.employeeList?.[member.email]?.role}
@@ -95,7 +96,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     keyForList: member.email,
                     isSelected: false,
                     login: member.email,
-                    icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
+                    icons: [{source: member.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
                     rightElement: (
                         <MemberRightIcon
                             role={policy?.employeeList?.[member.email]?.role}
