@@ -946,13 +946,15 @@ function MenuItem({
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
                                                             hasSubMenuItems && styles.opacitySemiTransparent,
                                                             hasSubMenuItems && styles.pl6,
+                                                            !isHovered && styles.opacitySemiTransparent,
+                                                            isHovered && styles.opacity1,
                                                         ]}
                                                     >
                                                         <Icon
                                                             src={iconRight}
                                                             fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
-                                                            width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
-                                                            height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
+                                                            width={variables.iconSizeSmall}
+                                                            height={variables.iconSizeSmall}
                                                         />
                                                     </View>
                                                 )}
