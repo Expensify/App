@@ -45,7 +45,8 @@ const MANUAL_MEMOIZATION_PATTERNS: ManualMemoizationPattern[] = [
     },
 ];
 
-const MANUAL_MEMOIZATION_FAILURE_MESSAGE = `Manual memoization is not allowed in new React component files. Please remove any manual memoization functions (\`useMemo\`, \`useCallback\`, \`memo\`) or use the \`"use no memo"\` directive at the beginning of the component.`;
+const MANUAL_MEMOIZATION_FAILURE_MESSAGE =
+    'Manual memoization is not allowed in new React component files. Please remove any manual memoization functions (`useMemo`, `useCallback`, `memo`) or use the `"use no memo"` directive at the beginning of the component.';
 
 const NO_MANUAL_MEMO_DIRECTIVE_PATTERN = /["']use no memo["']\s*;?/;
 
@@ -324,115 +325,6 @@ function createFilesGlob(files?: string[]): string | undefined {
     return `**/+(${files.join('|')})`;
 }
 
-function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffResult) {
-    const addedDiffFiles = new Set<string>();
-    for (const file of diffResult.files) {
-        if (Git.isAddedDiffFile(file)) {
-            addedDiffFiles.add(file.filePath);
-        }
-    }
-
-    const nonAutoMemoEnforcedFailures: FailureMap = new Map();
-    const addedFileFailures = new Map<string, FailureMap>();
-    for (const [failureKey, failure] of failures) {
-        const addedFilePath = failure.file;
-
-        if (!addedDiffFiles.has(addedFilePath)) {
-            nonAutoMemoEnforcedFailures.set(failureKey, failure);
-            continue;
-        }
-
-        if (addedFileFailures.has(addedFilePath)) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const existingAddedFileFailuresMap = addedFileFailures.get(addedFilePath)!;
-            existingAddedFileFailuresMap.set(failureKey, failure);
-        }
-
-        addedFileFailures.set(addedFilePath, new Map<string, CompilerFailure>([[failureKey, failure]]));
-    }
-
-    function addNonAutoMemoEnforcedFailures(addedFilePath: string): void {
-        const addedFileFailuresMap = addedFileFailures.get(addedFilePath);
-
-        if (!addedFileFailuresMap) {
-            return;
-        }
-
-        for (const [failureKey, failure] of failures) {
-            nonAutoMemoEnforcedFailures.set(failureKey, failure);
-        }
-    }
-
-    const addedComponentFailures: EnforcedAddedComponentFailureMap = new Map();
-    for (const addedFilePath of addedDiffFiles) {
-        const source = readSourceFile(addedFilePath);
-        if (!source || hasManualMemoOptOutDirective(source)) {
-            addNonAutoMemoEnforcedFailures(addedFilePath);
-            continue;
-        }
-
-        const manualMemoMatches = findManualMemoizationMatches(source);
-        if (manualMemoMatches.length === 0) {
-            addNonAutoMemoEnforcedFailures(addedFilePath);
-            continue;
-        }
-
-        const manualMemoFailure: ManualMemoFailure = {
-            message: MANUAL_MEMOIZATION_FAILURE_MESSAGE,
-            compilerFailures: addedFileFailures.get(addedFilePath),
-        };
-        addedComponentFailures.set(addedFilePath, manualMemoFailure);
-    }
-
-    return {
-        nonAutoMemoEnforcedFailures,
-        addedComponentFailures,
-    };
-}
-
-function hasManualMemoOptOutDirective(source: string): boolean {
-    return NO_MANUAL_MEMO_DIRECTIVE_PATTERN.test(source);
-}
-
-function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] {
-    const matches: ManualMemoizationMatch[] = [];
-
-    for (const pattern of MANUAL_MEMOIZATION_PATTERNS) {
-        pattern.regex.lastIndex = 0;
-        let regexMatch: RegExpExecArray | null;
-        // eslint-disable-next-line no-cond-assign
-        while ((regexMatch = pattern.regex.exec(source)) !== null) {
-            const matchIndex = regexMatch.index;
-            const {line, column} = getLineAndColumnFromIndex(source, matchIndex);
-            matches.push({
-                keyword: pattern.keyword,
-                line,
-                column,
-            });
-        }
-    }
-
-    return matches;
-}
-
-function getLineAndColumnFromIndex(source: string, index: number): {line: number; column: number} {
-    const substring = source.slice(0, index);
-    const line = substring.split('\n').length;
-    const lastLineBreakIndex = substring.lastIndexOf('\n');
-    const column = lastLineBreakIndex === -1 ? index + 1 : index - lastLineBreakIndex;
-    return {line, column};
-}
-
-function readSourceFile(filePath: string): string | null {
-    try {
-        const absolutePath = join(process.cwd(), filePath);
-        return readFileSync(absolutePath, 'utf8');
-    } catch (error) {
-        logWarn(`Unable to read ${filePath} while enforcing new component rules.`, error);
-        return null;
-    }
-}
-
 /**
  * Filters compiler results to only include failures for lines that were changed in the git diff.
  * This helps focus on new issues introduced by the current changes rather than pre-existing issues.
@@ -593,6 +485,120 @@ async function filterResultsByDiff(
         failures: filteredFailures,
         suppressedFailures: filteredSuppressedFailures,
     };
+}
+
+function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffResult) {
+    const addedDiffFiles = new Set<string>();
+    for (const file of diffResult.files) {
+        if (Git.isAddedDiffFile(file)) {
+            addedDiffFiles.add(file.filePath);
+        }
+    }
+
+    // Partition failures into non-auto memo enforced failures and added file failures
+    const nonAutoMemoEnforcedFailures: FailureMap = new Map();
+    const addedFileFailures = new Map<string, FailureMap>();
+    for (const [failureKey, failure] of failures) {
+        const addedFilePath = failure.file;
+
+        if (!addedDiffFiles.has(addedFilePath)) {
+            nonAutoMemoEnforcedFailures.set(failureKey, failure);
+            continue;
+        }
+
+        if (addedFileFailures.has(addedFilePath)) {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const existingAddedFileFailuresMap = addedFileFailures.get(addedFilePath)!;
+            existingAddedFileFailuresMap.set(failureKey, failure);
+        }
+
+        addedFileFailures.set(addedFilePath, new Map<string, CompilerFailure>([[failureKey, failure]]));
+    }
+
+    // Used as fallback to add back the failures from added files that didn't have manual memoization
+    function addNonAutoMemoEnforcedFailures(addedFilePath: string): void {
+        const addedFileFailuresMap = addedFileFailures.get(addedFilePath);
+
+        if (!addedFileFailuresMap) {
+            return;
+        }
+
+        for (const [failureKey, failure] of failures) {
+            nonAutoMemoEnforcedFailures.set(failureKey, failure);
+        }
+    }
+
+    const addedComponentFailures: EnforcedAddedComponentFailureMap = new Map();
+    for (const addedFilePath of addedDiffFiles) {
+        const source = readSourceFile(addedFilePath);
+        if (!source || hasManualMemoOptOutDirective(source)) {
+            addNonAutoMemoEnforcedFailures(addedFilePath);
+            continue;
+        }
+
+        const manualMemoMatches = findManualMemoizationMatches(source);
+
+        console.log('manualMemoMatches', manualMemoMatches);
+
+        if (manualMemoMatches.length === 0) {
+            addNonAutoMemoEnforcedFailures(addedFilePath);
+            continue;
+        }
+
+        const manualMemoFailure: ManualMemoFailure = {
+            message: MANUAL_MEMOIZATION_FAILURE_MESSAGE,
+            compilerFailures: addedFileFailures.get(addedFilePath),
+        };
+        addedComponentFailures.set(addedFilePath, manualMemoFailure);
+    }
+
+    return {
+        nonAutoMemoEnforcedFailures,
+        addedComponentFailures,
+    };
+}
+
+function hasManualMemoOptOutDirective(source: string): boolean {
+    return NO_MANUAL_MEMO_DIRECTIVE_PATTERN.test(source);
+}
+
+function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] {
+    const matches: ManualMemoizationMatch[] = [];
+
+    for (const pattern of MANUAL_MEMOIZATION_PATTERNS) {
+        pattern.regex.lastIndex = 0;
+        let regexMatch: RegExpExecArray | null;
+        // eslint-disable-next-line no-cond-assign
+        while ((regexMatch = pattern.regex.exec(source)) !== null) {
+            const matchIndex = regexMatch.index;
+            const {line, column} = getLineAndColumnFromIndex(source, matchIndex);
+            matches.push({
+                keyword: pattern.keyword,
+                line,
+                column,
+            });
+        }
+    }
+
+    return matches;
+}
+
+function getLineAndColumnFromIndex(source: string, index: number): {line: number; column: number} {
+    const substring = source.slice(0, index);
+    const line = substring.split('\n').length;
+    const lastLineBreakIndex = substring.lastIndexOf('\n');
+    const column = lastLineBreakIndex === -1 ? index + 1 : index - lastLineBreakIndex;
+    return {line, column};
+}
+
+function readSourceFile(filePath: string): string | null {
+    try {
+        const absolutePath = join(process.cwd(), filePath);
+        return readFileSync(absolutePath, 'utf8');
+    } catch (error) {
+        logWarn(`Unable to read ${filePath} while enforcing new component rules.`, error);
+        return null;
+    }
 }
 
 function printResults(
