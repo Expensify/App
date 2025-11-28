@@ -257,7 +257,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
         return titleKey ? translate(titleKey) : '';
-    }, [quickAction, translate, quickActionAvatars, quickActionReport]);
+    }, [quickAction?.action, translate, quickActionAvatars, quickActionReport]);
 
     const hideQABSubtitle = useMemo(() => {
         if (!isValidReport) {
@@ -518,7 +518,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             return;
         }
         Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
-    }, [activePolicy, isTravelEnabled]);
+    }, [activePolicy?.id, isTravelEnabled]);
 
     const menuItems = [
         ...expenseMenuItems,

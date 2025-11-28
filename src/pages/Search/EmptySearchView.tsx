@@ -488,7 +488,7 @@ function EmptySearchViewContent({
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,
-        groupPoliciesWithChatEnabled,
+        groupPoliciesWithChatEnabled.length,
         tripViewChildren,
         hasTransactions,
         shouldRedirectToExpensifyClassic,
