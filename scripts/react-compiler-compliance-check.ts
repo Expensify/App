@@ -25,28 +25,16 @@ const SUPPRESSED_COMPILER_ERRORS = [
     '(BuildHIR::lowerExpression) Expected Identifier, got MemberExpression key in ObjectExpression',
 ] as const satisfies string[];
 
-type ManualMemoizationPattern = {
-    keyword: string;
-    regex: RegExp;
-};
+const MANUAL_MEMOIZATION_PATTERNS = {
+    memo: /\b(?:React\.)?memo\s*\(/g,
+    useMemo: /\b(?:React\.)?useMemo\s*\(/g,
+    useCallback: /\b(?:React\.)?useCallback\s*\(/g,
+} as const satisfies Record<string, RegExp>;
 
-const MANUAL_MEMOIZATION_PATTERNS: ManualMemoizationPattern[] = [
-    {
-        keyword: 'memo',
-        regex: /\b(?:React\.)?memo\s*\(/g,
-    },
-    {
-        keyword: 'useMemo',
-        regex: /\b(?:React\.)?useMemo\s*\(/g,
-    },
-    {
-        keyword: 'useCallback',
-        regex: /\b(?:React\.)?useCallback\s*\(/g,
-    },
-];
+type ManualMemoizationKeyword = keyof typeof MANUAL_MEMOIZATION_PATTERNS;
 
-const MANUAL_MEMOIZATION_FAILURE_MESSAGE =
-    'Manual memoization is not allowed in new React component files. Please remove any manual memoization functions (`useMemo`, `useCallback`, `memo`) or use the `"use no memo";` directive at the beginning of the component.';
+const MANUAL_MEMOIZATION_FAILURE_MESSAGE = (manualMemoizationKeyword: ManualMemoizationKeyword) =>
+    `Found a manual memoization usage of ${manualMemoizationKeyword}. Newly added React component files must not contain any manual memoization and instead be auto-memoized by React Compiler. Remove ${manualMemoizationKeyword} or disable automatic memoization by adding the \`"use no memo";\` directive at the beginning of the component and give a reason why automatic memoization is not applicable.`;
 
 const NO_MANUAL_MEMO_DIRECTIVE_PATTERN = /["']use no memo["']\s*;?/;
 
@@ -87,7 +75,7 @@ type ManualMemoFailure = {
 };
 
 type ManualMemoizationMatch = {
-    keyword: string;
+    keyword: ManualMemoizationKeyword;
     line: number;
     column: number;
 };
@@ -560,13 +548,14 @@ function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] 
     const matches: ManualMemoizationMatch[] = [];
 
     let regexMatch: RegExpExecArray | null;
-    for (const pattern of MANUAL_MEMOIZATION_PATTERNS) {
-        pattern.regex.lastIndex = 0;
-        regexMatch = pattern.regex.exec(source);
+    for (const keyword of Object.keys(MANUAL_MEMOIZATION_PATTERNS) as ManualMemoizationKeyword[]) {
+        const regex = MANUAL_MEMOIZATION_PATTERNS[keyword];
+        regex.lastIndex = 0;
+        regexMatch = regex.exec(source);
         if (regexMatch) {
             const matchIndex = regexMatch.index;
             const {line, column} = getLineAndColumnFromIndex(source, matchIndex);
-            matches.push({keyword: pattern.keyword, line, column});
+            matches.push({keyword, line, column});
         }
     }
 
@@ -645,14 +634,6 @@ function printResults(
         return;
     }
 
-    function printFailures(failuresToPrint: FailureMap, level = 0) {
-        for (const failure of failuresToPrint.values()) {
-            const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
-            logBold(`${TAB.repeat(level)}${failure.file}${location}`);
-            logNote(`${TAB.repeat(level + 1)}${failure.reason ?? 'No reason provided'}`);
-        }
-    }
-
     const distinctFileNames = new Set<string>();
     // eslint-disable-next-line unicorn/no-array-for-each
     for (const failure of failures.values()) {
@@ -676,7 +657,7 @@ function printResults(
             for (const manualMemoizationMatch of manualMemoizationMatches) {
                 const location = manualMemoizationMatch.line && manualMemoizationMatch.column ? `:${manualMemoizationMatch.line}:${manualMemoizationMatch.column}` : '';
                 logBold(`${filePath}${location}`);
-                logNote(`${TAB}${MANUAL_MEMOIZATION_FAILURE_MESSAGE}`);
+                logNote(`${TAB}${MANUAL_MEMOIZATION_FAILURE_MESSAGE(manualMemoizationMatch.keyword)}`);
             }
 
             if (compilerFailures) {
@@ -689,6 +670,14 @@ function printResults(
 
     log();
     logError('The files above failed to compile with React Compiler, probably because of Rules of React violations. Please fix the issues and run the check again.');
+}
+
+function printFailures(failuresToPrint: FailureMap, level = 0) {
+    for (const failure of failuresToPrint.values()) {
+        const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
+        logBold(`${TAB.repeat(level)}${failure.file}${location}`);
+        logNote(`${TAB.repeat(level + 1)}${failure.reason ?? 'No reason provided'}`);
+    }
 }
 
 function generateReport(results: CompilerResults, outputFileName = DEFAULT_REPORT_FILENAME): void {
