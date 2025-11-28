@@ -1,7 +1,7 @@
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderGap from '@components/HeaderGap';
 import ScrollView from '@components/ScrollView';
