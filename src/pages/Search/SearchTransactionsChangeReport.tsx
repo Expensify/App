@@ -32,13 +32,19 @@ function SearchTransactionsChangeReport() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const hasPerDiemTransactions = useMemo(() => {
-        return selectedTransactionsKeys.some((transactionID) => {
-            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            return transaction && isPerDiemRequest(transaction);
-        });
-    }, [selectedTransactionsKeys]);
+    const [hasPerDiemTransactions] = useOnyx(
+        ONYXKEYS.COLLECTION.TRANSACTION,
+        {
+            selector: (transactions) =>
+                selectedTransactionsKeys.some((transactionID) => {
+                    const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                    return transaction && isPerDiemRequest(transaction);
+                }),
+            canBeMissing: true,
+        },
+        [selectedTransactionsKeys],
+    );
+
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
@@ -163,7 +169,7 @@ function SearchTransactionsChangeReport() {
                 isEditing
                 isUnreported={areAllTransactionsUnreported}
                 targetOwnerAccountID={targetOwnerAccountID}
-                isPerDiemRequest={hasPerDiemTransactions}
+                isPerDiemRequest={!!hasPerDiemTransactions}
             />
         </>
     );
