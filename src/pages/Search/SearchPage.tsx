@@ -534,7 +534,7 @@ function SearchPage({route}: SearchPageProps) {
                     }
 
                     Navigation.navigate(ROUTES.CHANGE_APPROVER_SEARCH_RHP);
-                    },
+                },
             });
         }
 
