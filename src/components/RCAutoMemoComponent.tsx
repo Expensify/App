@@ -1,11 +1,16 @@
-import {useMemo} from 'react';
+import {useCallback, useMemo} from 'react';
+import {Pressable} from 'react-native';
 
 function RCAutoMemoComponent() {
     const someValue = useMemo(() => {
         return 'someValue';
     }, []);
 
-    return <div>{someValue}</div>;
+    const someCallback = useCallback(() => {
+        return 'someValue';
+    }, []);
+
+    return <Pressable onPress={someCallback}>{someValue}</Pressable>;
 }
 
 export default RCAutoMemoComponent;
