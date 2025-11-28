@@ -94,6 +94,7 @@ function IOURequestStepDistanceMap({
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: false});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const waypoints = useMemo(
         () =>
@@ -102,7 +103,7 @@ function IOURequestStepDistanceMap({
                 waypoint0: {keyForList: 'start_waypoint'},
                 waypoint1: {keyForList: 'stop_waypoint'},
             },
-        [optimisticWaypoints, transaction],
+        [optimisticWaypoints, transaction?.comment?.waypoints],
     );
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
@@ -199,7 +200,7 @@ function IOURequestStepDistanceMap({
             !isArchivedReport(reportNameValuePairs) &&
             !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)))
         );
-    }, [report, skipConfirmation, policy, reportNameValuePairs, iouType]);
+    }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, reportNameValuePairs, iouType]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -314,7 +315,7 @@ function IOURequestStepDistanceMap({
         // to the confirm step.
         // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
         if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
-            const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
+            const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
@@ -377,10 +378,11 @@ function IOURequestStepDistanceMap({
                     },
                     backToReport,
                     isASAPSubmitBetaEnabled,
+                    transactionViolations,
                 });
                 return;
             }
-            setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
+            setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
                 navigateToConfirmationPage();
             });
             return;
@@ -405,7 +407,7 @@ function IOURequestStepDistanceMap({
             });
             setTransactionReport(transactionID, {reportID: transactionReportID}, true);
             setCustomUnitRateID(transactionID, rateID);
-            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat, currentUserPersonalDetails.accountID).then(() => {
                 Navigation.navigate(
                     ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                         CONST.IOU.ACTION.CREATE,
@@ -442,6 +444,7 @@ function IOURequestStepDistanceMap({
         navigateToConfirmationPage,
         personalPolicy?.autoReporting,
         reportID,
+        transactionViolations,
     ]);
 
     const getError = () => {
