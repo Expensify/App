@@ -111,7 +111,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
         }
 
         return sectionsArray;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions, translate]);
+    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
@@ -120,7 +120,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
         [toggleSelection],
     );
 
-    const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions]);
+    const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions.length]);
 
     const reportID = report.reportID;
     const reportName = useMemo(() => getGroupChatName(undefined, true, report), [report]);
@@ -167,7 +167,17 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
             countryCode,
             false,
         );
-    }, [searchTerm, availableOptions, selectedOptionsForDisplay, excludedUsers, translate, reportName, countryCode]);
+    }, [
+        searchTerm,
+        availableOptions.userToInvite,
+        availableOptions.recentReports.length,
+        availableOptions.personalDetails.length,
+        selectedOptionsForDisplay.length,
+        excludedUsers,
+        translate,
+        reportName,
+        countryCode,
+    ]);
 
     const footerContent = useMemo(
         () => (
