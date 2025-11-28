@@ -118,7 +118,7 @@ function ApproverSelectionList({
                 contentFitImage="contain"
             />
         ),
-        [translate, listEmptyContentSubtitle, styles.textSupporting, styles.pb10, lazyIllustrations],
+        [translate, listEmptyContentSubtitle, styles.textSupporting, styles.pb10, lazyIllustrations.TurtleInShell],
     );
 
     const textInputOptions = useMemo(
