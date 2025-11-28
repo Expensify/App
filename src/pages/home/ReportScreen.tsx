@@ -83,6 +83,7 @@ import {
     isPolicyExpenseChat,
     isReportTransactionThread,
     isTaskReport,
+    isUnread,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
@@ -162,7 +163,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const firstRenderRef = useRef(true);
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
-    const flatListRef = useRef<FlatList>(null);
+    const flatListRef = useRef<FlatList<unknown> | null>(null);
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -295,9 +296,19 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
-    const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+
+    const {
+        reportActions: unfilteredReportActions,
+        linkedAction,
+        sortedAllReportActions,
+        oldestUnreadReportAction,
+        hasNewerActions,
+        hasOlderActions,
+    } = usePaginatedReportActions(reportID, reportActionIDFromRoute, {shouldLinkToOldestUnreadReportAction: true});
+
     // wrapping in useMemo because this is array operation and can cause performance issues
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
+
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`, {canBeMissing: true});
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -885,6 +896,29 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     useShowWideRHPVersion(shouldShowWideRHP);
 
+    const isReportUnread = isUnread(report, transactionThreadReport, isReportArchived);
+    const isReportUnreadInitially = useRef(isReportUnread);
+
+    // When we first open a report with a linked report action,
+    // we need to wait for the results from the OpenReport api call,
+    // if the linked report action is not stored in Onyx.
+    const isLinkedMessagePageLoadingInitially = !!reportActionIDFromRoute && !linkedAction;
+
+    // Same for unread messages, we need to wait for the results from the OpenReport api call,
+    // if the oldest unread report action is not stored in Onyx.
+    const isUnreadMessagePageLoadingInitially = !reportActionIDFromRoute && isReportUnreadInitially.current && !oldestUnreadReportAction;
+
+    const shouldWaitForOpenReportResultInitially = isLinkedMessagePageLoadingInitially || isUnreadMessagePageLoadingInitially;
+
+    // console.log({isLinkedMessageLoading: isLinkedMessagePageLoading, isUnreadMessageLoading: isUnreadMessagePageLoading, shouldWaitForOpenReportResult});
+
+    // When opening an unread report, it is very likely that the message we will open to is not the latest,
+    // which is the only one we will have in cache.
+    const isInitiallyLoadingReport = isReportUnread && !!reportMetadata.isLoadingInitialReportActions && (isOffline || reportActions.length <= 1);
+
+    // Once all the above conditions are met, we can consider the report ready.
+    const isReportReady = !isInitiallyLoadingReport && !shouldWaitForOpenReportResultInitially;
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
@@ -952,8 +986,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                     testID="report-actions-view-wrapper"
                                 >
-                                    {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
-                                    {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                    {(!report || !isReportReady || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
+                                    {!!report && isReportReady && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
                                         <ReportActionsView
                                             report={report}
                                             reportActions={reportActions}
@@ -965,7 +999,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             isReportTransactionThread={isTransactionThreadView}
                                         />
                                     ) : null}
-                                    {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                    {!!report && isReportReady && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
                                         <MoneyRequestReportActionsList
                                             report={report}
                                             hasPendingDeletionTransaction={hasPendingDeletionTransaction}

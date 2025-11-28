@@ -1,7 +1,12 @@
+import * as NativeNavigation from '@react-navigation/native';
+import {fireEvent, screen, waitFor, within} from '@testing-library/react-native';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
+import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import createRandomReportAction from './collections/reportActions';
+import * as TestHelper from './TestHelper';
+import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
 const actionNames: ReportActionName[] = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.CLOSED];
 
@@ -71,4 +76,68 @@ const getMockedReportActionsMap = (length = 100): ReportActions => {
     return Object.assign({}, ...mockReports) as ReportActions;
 };
 
-export {getFakeReportAction, getMockedSortedReportActions, getMockedReportActionsMap};
+const REPORT_ID = '1';
+const LIST_SIZE = {
+    width: 300,
+    height: 400,
+};
+const LIST_CONTENT_SIZE = {
+    width: 300,
+    height: 600,
+};
+
+function getReportScreen(reportID = REPORT_ID) {
+    return screen.getByTestId(`report-screen-${reportID}`);
+}
+
+function scrollToOffset(offset: number) {
+    const hintText = TestHelper.translateLocal('sidebarScreen.listOfChatMessages');
+    fireEvent.scroll(within(getReportScreen()).getByLabelText(hintText), {
+        nativeEvent: {
+            contentOffset: {
+                y: offset,
+            },
+            contentSize: LIST_CONTENT_SIZE,
+            layoutMeasurement: LIST_SIZE,
+        },
+    });
+}
+
+function triggerListLayout(reportID?: string) {
+    const report = getReportScreen(reportID);
+    fireEvent(within(report).getByTestId('report-actions-view-wrapper'), 'onLayout', {
+        nativeEvent: {
+            layout: {
+                x: 0,
+                y: 0,
+                ...LIST_SIZE,
+            },
+        },
+        persist: () => {},
+    });
+
+    fireEvent(within(report).getByTestId('report-actions-list'), 'onContentSizeChange', LIST_CONTENT_SIZE.width, LIST_CONTENT_SIZE.height);
+}
+
+async function navigateToSidebarOption(reportID: string): Promise<void> {
+    const optionRow = screen.getByTestId(reportID);
+    fireEvent(optionRow, 'press');
+    await waitFor(() => {
+        (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+    });
+    // ReportScreen relies on the onLayout event to receive updates from onyx.
+    triggerListLayout(reportID);
+    await waitForBatchedUpdatesWithAct();
+}
+
+export {
+    getFakeReportAction,
+    getMockedSortedReportActions,
+    getMockedReportActionsMap,
+    REPORT_ID,
+    LIST_CONTENT_SIZE,
+    getReportScreen,
+    scrollToOffset,
+    triggerListLayout,
+    navigateToSidebarOption,
+};

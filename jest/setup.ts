@@ -9,6 +9,7 @@ import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
+import type {RenderInfo} from '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 import setupMockReactNativeWorklets from './setupMockReactNativeWorklets';
@@ -226,13 +227,15 @@ jest.mock(
     '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
-            private handler: (info: unknown) => void = () => {};
+            private handler: ((info: unknown) => void) | undefined = undefined;
 
-            add(info: unknown) {
-                this.handler(info);
+            add(info: RenderInfo) {
+                this.handler?.(info);
             }
 
-            setHandler(handler: () => void) {
+            start() {}
+
+            setHandler(handler: (info: unknown) => void) {
                 this.handler = handler;
             }
 
