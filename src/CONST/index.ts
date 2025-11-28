@@ -6634,6 +6634,7 @@ const CONST = {
             HOLD: 'hold',
             UNHOLD: 'unhold',
             DELETE: 'delete',
+            REJECT: 'reject',
             CHANGE_REPORT: 'changeReport',
         },
         TRANSACTION_TYPE: {
