@@ -9035,15 +9035,15 @@ function deleteMoneyRequest(
 
     const originalReportActionsUpdate = {} as Record<string, Partial<OnyxTypes.ReportAction>>;
     if (shouldDeleteIOUReport) {
-        Object.values(iouReportActions ?? {}).forEach((action) => {
+        for (const action of Object.values(iouReportActions ?? {})) {
             if (action.reportActionID === reportAction.reportActionID) {
-                return;
+                continue;
             }
             originalReportActionsUpdate[action.reportActionID] = {
                 pendingAction: action.pendingAction ?? null,
                 message: action.message,
             };
-        });
+        }
     }
     failureData.push(
         {
