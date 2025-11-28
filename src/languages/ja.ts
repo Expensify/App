@@ -5172,8 +5172,8 @@ ${
                 other: '管理者にする',
             }),
             makeAuditor: () => ({
-                one: '監査人を作成',
-                other: '監査人を作成',
+                one: '監査人にする',
+                other: '監査担当者にする',
             }),
             selectAll: 'すべて選択',
             error: {

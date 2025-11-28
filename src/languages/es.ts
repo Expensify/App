@@ -4961,16 +4961,16 @@ ${amount} para ${merchant} - ${date}`,
             removeMemberTitle: 'Eliminar miembro',
             transferOwner: 'Transferir la propiedad',
             makeMember: () => ({
-                one: 'Hacer miembro',
-                other: 'Hacer miembros',
+                one: 'Convertir en miembro',
+                other: 'Convertir en miembros',
             }),
             makeAdmin: () => ({
                 one: 'Hacer administrador',
-                other: 'Hacer administradores',
+                other: 'Convertir en administradores',
             }),
             makeAuditor: () => ({
-                one: 'Hacer auditor',
-                other: 'Hacer auditores',
+                one: 'Convertir en auditor',
+                other: 'Convertir en auditores',
             }),
             selectAll: 'Seleccionar todo',
             error: {

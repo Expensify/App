@@ -5200,8 +5200,8 @@ ${
                 other: 'Tornar administradores',
             }),
             makeAuditor: () => ({
-                one: 'Criar auditor',
-                other: 'Criar auditores',
+                one: 'Tornar auditor',
+                other: 'Tornar auditores',
             }),
             selectAll: 'Selecionar tudo',
             error: {

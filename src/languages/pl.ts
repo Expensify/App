@@ -5193,12 +5193,12 @@ ${
                 other: 'Uczyń członkami',
             }),
             makeAdmin: () => ({
-                one: 'Ustaw jako administratora',
-                other: 'Ustaw jako administratorów',
+                one: 'Uczyń administratorem',
+                other: 'Uczyń administratorami',
             }),
             makeAuditor: () => ({
-                one: 'Utwórz audytora',
-                other: 'Utwórz audytorów',
+                one: 'Ustaw jako audytora',
+                other: 'Uczyń audytorami',
             }),
             selectAll: 'Zaznacz wszystko',
             error: {

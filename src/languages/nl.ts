@@ -5199,16 +5199,16 @@ ${
             removeMemberTitle: 'Lid verwijderen',
             transferOwner: 'Eigenaar overdragen',
             makeMember: () => ({
-                one: 'Lid maken',
-                other: 'Leden maken',
+                one: 'Maak lid',
+                other: 'Maak leden',
             }),
             makeAdmin: () => ({
-                one: 'Beheerder maken',
+                one: 'Als beheerder aanwijzen',
                 other: 'Beheerders maken',
             }),
             makeAuditor: () => ({
-                one: 'Maak controleur',
-                other: 'Maak controleurs',
+                one: 'Maak auditor',
+                other: 'Auditors aanstellen',
             }),
             selectAll: 'Alles selecteren',
             error: {

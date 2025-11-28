@@ -5098,16 +5098,16 @@ ${
             removeMemberTitle: '移除成员',
             transferOwner: '转移所有者',
             makeMember: () => ({
-                one: '成为成员',
-                other: '成为成员',
+                one: '设为成员',
+                other: '设为成员',
             }),
             makeAdmin: () => ({
                 one: '设为管理员',
                 other: '设为管理员',
             }),
             makeAuditor: () => ({
-                one: '创建审计员',
-                other: '创建审计员',
+                one: '设为审计员',
+                other: '设为审计员',
             }),
             selectAll: '全选',
             error: {

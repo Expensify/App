@@ -5212,11 +5212,11 @@ ${
             }),
             makeAdmin: () => ({
                 one: 'Rendi amministratore',
-                other: 'Rendi amministratori',
+                other: 'Nomina amministratori',
             }),
             makeAuditor: () => ({
-                one: 'Crea revisore contabile',
-                other: 'Crea revisori contabili',
+                one: 'Rendi revisore',
+                other: 'Rendi revisori',
             }),
             selectAll: 'Seleziona tutto',
             error: {
