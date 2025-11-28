@@ -1,16 +1,26 @@
-import React from 'react';
+import {NavigationRouteContext} from '@react-navigation/native';
+import React, {useMemo} from 'react';
+import useOnyx from '@hooks/useOnyx';
 import type {ExtraContentProps, PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import ReportScreen from '@pages/home/ReportScreen';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function Concierge({navigation}: Pick<ExtraContentProps, 'navigation'>) {
-    const route = {name: 'Report', params: {reportID: '3150338668101492'}, key: 'Report-Concierge-Key'} as const;
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const route = useMemo(() => ({name: 'Report', params: {reportID: conciergeReportID ?? ''}, key: 'Report-Concierge-Key'}) as const, [conciergeReportID]);
+
+    if (!conciergeReportID) {
+        return null;
+    }
 
     return (
-        <ReportScreen
-            route={route}
-            navigation={navigation as unknown as PlatformStackNavigationProp<ReportsSplitNavigatorParamList, 'Report'>}
-        />
+        <NavigationRouteContext.Provider value={route}>
+            <ReportScreen
+                route={route}
+                navigation={navigation as unknown as PlatformStackNavigationProp<ReportsSplitNavigatorParamList, 'Report'>}
+            />
+        </NavigationRouteContext.Provider>
     );
 }
 
