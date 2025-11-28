@@ -2666,12 +2666,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: '支払いを受け取るのは、メッセージを送るのと同じくらい簡単です。基本を確認しましょう。',
             onboardingPersonalSpendMessage: '数回クリックするだけであなたの支出を追跡する方法は次のとおりです。',
-            onboardingManageTeamMessage: dedent(`
-                # 無料トライアルが開始されました！セットアップを始めましょう。
-                👋 こんにちは。私はあなたのExpensifyのセットアップ担当です。ワークスペースを作成したので、以下の手順に従って30日間の無料トライアルを最大限に活用しましょう！
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        無料トライアルが開始されました！セットアップを進めましょう。
+                        👋 こんにちは、私はあなたの Expensify セットアップスペシャリストです。すでに、チームの領収書と経費を管理するためのワークスペースを作成しました。30日間の無料トライアルを最大限に活用するために、以下の残りの設定手順に従ってください！
+                    `)
+                    : dedent(`
+                        # 無料トライアルが始まりました！セットアップを始めましょう。
+                        👋 こんにちは、私はExpensifyのセットアップスペシャリストです。ワークスペースを作成したので、以下の手順に従って30日間の無料トライアルを最大限に活用しましょう！
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# セットアップしましょう\nって、お手伝いします！開始にあたって、あなたのワークスペース設定を個人事業主や類似の企業に合わせて調整しました。以下のリンクをクリックすると、ワークスペースを調整できます！\n\n数回クリックするだけであなたの支出を追跡する方法は次のとおりです。',
+                '# さあ、セットアップを始めましょう\n👋 こんにちは、私はあなたのExpensifyセットアップスペシャリストです。領収書と経費を管理できるよう、すでにワークスペースを作成しました。30日間の無料トライアルを最大限に活用するために、以下の残りのセットアップ手順に従ってください！',
             onboardingChatSplitMessage: '友達との請求書の分割は、メッセージを送るのと同じくらい簡単です。方法は次のとおりです。',
             onboardingAdminMessage: '管理者としてチームのワークスペースを管理し、自分の経費を提出する方法を学びましょう。',
             onboardingLookingAroundMessage:
@@ -6519,6 +6525,18 @@ ${
             message: '更新を確認できませんでした。しばらくしてからもう一度お試しください。',
         },
     },
+    reportLayout: {
+        reportLayout: 'レポートレイアウト',
+        groupByLabel: 'グループ化:',
+        selectGroupByOption: 'レポート経費のグループ化方法を選択',
+        uncategorized: '未分類',
+        noTag: 'タグなし',
+        selectGroup: ({groupName}: {groupName: string}) => `${groupName}のすべての経費を選択`,
+        groupBy: {
+            category: 'カテゴリ',
+            tag: 'タグ',
+        },
+    },
     report: {
         newReport: {
             createReport: 'レポートを作成',
@@ -7377,13 +7395,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'New Expensifyへようこそ！',
-        subtitle: '新しいExpensifyは、素晴らしい自動化機能に加えて、驚くべきコラボレーション機能を備えています。',
+        subtitle: '従来のエクスペリエンスでお好きだった要素はすべてそのままに、毎日をさらに簡単にする数多くのアップグレードを搭載しています：',
         confirmText: '行きましょう！',
         features: {
-            chat: '<strong>任意の経費</strong>、レポート、またはワークスペースで直接チャット',
-            scanReceipt: '<strong>領収書をスキャン</strong>して払い戻しを受ける',
-            crossPlatform: '<strong>すべて</strong>を携帯電話やブラウザから行う',
+            chat: 'どの経費でもチャットして、疑問を素早く解決しましょう',
+            search: 'モバイル、Web、デスクトップで、より強力な検索',
+            concierge: '内蔵の Concierge AI が経費の自動化を支援します',
         },
+        helpText: '2分のデモを試す',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room

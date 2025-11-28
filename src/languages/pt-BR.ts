@@ -2671,12 +2671,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Ser reembolsado é tão fácil quanto enviar uma mensagem. Vamos ver o básico.',
             onboardingPersonalSpendMessage: 'Veja como rastrear seus gastos em poucos cliques.',
-            onboardingManageTeamMessage: dedent(`
-                Seu teste gratuito começou! Vamos deixar tudo pronto.
-                👋 Olá! Sou seu especialista de configuração da Expensify. Agora que você criou um espaço de trabalho, aproveite ao máximo seu teste gratuito de 30 dias seguindo as etapas abaixo!
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # Sua avaliação gratuita foi iniciada! Vamos configurar tudo.
+                        👋 Oi! Sou seu especialista de configuração da Expensify. Já criei um espaço de trabalho para ajudar a gerenciar os recibos e as despesas da sua equipe. Para aproveitar ao máximo seus 30 dias de avaliação gratuita, basta seguir as etapas de configuração restantes abaixo!
+                    `)
+                    : dedent(`
+                        # Seu teste gratuito começou! Vamos configurar tudo.
+                        👋 Olá! Sou seu especialista de configuração da Expensify. Agora que você criou um espaço de trabalho, aproveite ao máximo seu teste gratuito de 30 dias seguindo as etapas abaixo!
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Vamos configurar você\n👋 Estou aqui para ajudar! Para você começar, adaptei as configurações do seu espaço de trabalho para microempreendedores individuais e empresas semelhantes. Você pode ajustar seu espaço de trabalho clicando no link abaixo!\n\nVeja como rastrear seus gastos em poucos cliques:',
+                '# Vamos configurar tudo\n👋 Olá! Sou seu especialista em configuração da Expensify. Já criei um espaço de trabalho para ajudar a gerenciar seus recibos e despesas. Para aproveitar ao máximo sua avaliação gratuita de 30 dias, basta seguir as etapas de configuração restantes abaixo!',
             onboardingChatSplitMessage: 'Dividir contas com amigos é tão fácil quanto enviar uma mensagem. Veja como.',
             onboardingAdminMessage: 'Aprenda a gerenciar o espaço de trabalho da sua equipe como administrador e enviar suas próprias despesas.',
             onboardingLookingAroundMessage:
@@ -6565,6 +6571,18 @@ ${
             message: 'Não conseguimos verificar uma atualização. Por favor, tente novamente em breve.',
         },
     },
+    reportLayout: {
+        reportLayout: 'Layout do relatório',
+        groupByLabel: 'Agrupar por:',
+        selectGroupByOption: 'Selecione como agrupar as despesas do relatório',
+        uncategorized: 'Sem categoria',
+        noTag: 'Sem tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Selecionar todas as despesas em ${groupName}`,
+        groupBy: {
+            category: 'Categoria',
+            tag: 'Tag',
+        },
+    },
     report: {
         newReport: {
             createReport: 'Criar relatório',
@@ -7423,13 +7441,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Bem-vindo ao New Expensify!',
-        subtitle: 'O novo Expensify tem a mesma ótima automação, mas agora com uma colaboração incrível:',
+        subtitle: 'Tem tudo o que você ama da nossa experiência clássica, com várias atualizações para deixar sua vida ainda mais fácil:',
         confirmText: 'Vamos lá!',
         features: {
-            chat: '<strong>Converse diretamente em qualquer despesa</strong>, relatório ou espaço de trabalho',
-            scanReceipt: '<strong>Escaneie recibos</strong> e receba o reembolso',
-            crossPlatform: 'Faça <strong>tudo</strong> do seu telefone ou navegador',
+            chat: 'Converse sobre qualquer despesa para resolver dúvidas rapidamente',
+            search: 'Busca mais poderosa no celular, na web e no desktop',
+            concierge: 'IA Concierge integrada para ajudar a automatizar suas despesas',
         },
+        helpText: 'Experimente a demo de 2 min',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room

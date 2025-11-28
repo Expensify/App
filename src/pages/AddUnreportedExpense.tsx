@@ -24,7 +24,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {findSelfDMReportID, getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
+import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {createUnreportedExpenseSections, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -62,7 +62,6 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const selfDMReportID = useMemo(() => findSelfDMReportID(), []);
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     const getUnreportedTransactions = useCallback(
@@ -190,12 +189,11 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     policy,
                     reportNextStep,
                     policyCategories,
-                    selfDMReportID,
                 );
             }
         });
         setErrorMessage('');
-    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, reportToConfirm, policy, reportNextStep, policyCategories, transactionViolations]);
+    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, transactionViolations, reportToConfirm, policy, reportNextStep, policyCategories]);
 
     const footerContent = useMemo(() => {
         return (
@@ -225,7 +223,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             return translate('common.noResultsFound');
         }
         return '';
-    }, [debouncedSearchValue, unreportedExpenses, translate]);
+    }, [debouncedSearchValue, unreportedExpenses?.length, translate]);
 
     const textInputOptions = useMemo(
         () => ({
