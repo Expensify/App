@@ -236,6 +236,12 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Whether to disable the hover style of the item */
+    shouldDisableHoverStyle?: boolean;
+
+    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
+    shouldStopMouseLeavePropagation?: boolean;
 };
 
 type ValidListItem =
@@ -268,6 +274,12 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldShowRightCaret?: boolean;
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Whether to disable the hover style of the item */
+    shouldDisableHoverStyle?: boolean;
+
+    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
+    shouldStopMouseLeavePropagation?: boolean;
 };
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -285,6 +297,13 @@ type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem
     index?: number;
     sectionIndex?: number;
 };
+
+type WorkspaceListItemType = {
+    text: string;
+    policyID?: string;
+    isPolicyAdmin?: boolean;
+    brickRoadIndicator?: BrickRoad;
+} & ListItem;
 
 type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
     TItem & {
@@ -310,4 +329,5 @@ export type {
     SpendCategorySelectorListItemProps,
     UserListItemProps,
     InviteMemberListItemProps,
+    WorkspaceListItemType,
 };

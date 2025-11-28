@@ -23,7 +23,6 @@ import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
@@ -1085,9 +1084,7 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
     };
-    [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
-    [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
-        [EXIT_SURVEY_REASON_FORM_INPUT_IDS.REASON]: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>;
+    [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
     };
@@ -1429,6 +1426,9 @@ type ReportSettingsNavigatorParamList = {
         reportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+    };
+    [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: {
+        reportID: string;
     };
 };
 
@@ -1929,6 +1929,14 @@ type ReimbursementAccountNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
         policyID?: string;
+        subStep?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
+    };
+    [SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: {
+        // TODO this backTo comes from drilling it through bank account form screens
+        // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+        policyID?: string;
     };
 };
 
@@ -2149,7 +2157,10 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: {
         domain: string;
     };
-    [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: undefined;
+    [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: {
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
     [SCREENS.TRAVEL.WORKSPACE_ADDRESS]: {
         domain: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
