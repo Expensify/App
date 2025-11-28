@@ -46,7 +46,7 @@ const MANUAL_MEMOIZATION_PATTERNS: ManualMemoizationPattern[] = [
 ];
 
 const MANUAL_MEMOIZATION_FAILURE_MESSAGE =
-    'Manual memoization is not allowed in new React component files. Please remove any manual memoization functions (`useMemo`, `useCallback`, `memo`) or use the `"use no memo"` directive at the beginning of the component.';
+    'Manual memoization is not allowed in new React component files. Please remove any manual memoization functions (`useMemo`, `useCallback`, `memo`) or use the `"use no memo";` directive at the beginning of the component.';
 
 const NO_MANUAL_MEMO_DIRECTIVE_PATTERN = /["']use no memo["']\s*;?/;
 
