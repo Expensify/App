@@ -3620,7 +3620,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // For split expenses, merge the existing transaction but remove convertedAmount.
     // Using fastMerge would copy convertedAmount from the original, causing split totals to double.
     if (isSplitExpense && existingTransaction) {
-        const {convertedAmount: _, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
+        const {convertedAmount: omittedConvertedAmount, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
         optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
     }
 
