@@ -36,22 +36,13 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         canBeMissing: true,
         selector: personalDetailsByEmailSelector,
     });
-    const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
-
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
     const defaultApprover = getDefaultApprover(policy);
     const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
     const rhpRoutes = useNavigationState((state) => state.routes);
-
-    useEffect(() => {
-        const currentApprover = approvalWorkflow?.approvers[approverIndex];
-        if (!currentApprover) {
-            return;
-        }
-
-        setSelectedApproverEmail(currentApprover.email);
-    }, [approvalWorkflow?.approvers, approverIndex]);
+    const currentApprover = approvalWorkflow?.approvers[approverIndex];
+    const selectedApproverEmail = currentApprover?.email;
 
     const employeeList = policy?.employeeList;
     const approversFromWorkflow = approvalWorkflow?.approvers;
