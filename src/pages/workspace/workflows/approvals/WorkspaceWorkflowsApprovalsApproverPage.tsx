@@ -138,7 +138,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const toggleApprover = useCallback(
         (approvers: SelectionListApprover[]) => {
             const approver = approvers.at(0);
-            if (selectedApproverEmail === approver?.login) {
+            if (!approver?.login) {
                 clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow});
             } else {
                 const newSelectedEmail = approver?.login ?? '';
