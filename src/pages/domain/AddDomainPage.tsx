@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -53,28 +52,22 @@ function AddDomainPage() {
     }, [hasCreationSucceeded, allDomains]);
 
     return (
-        <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            shouldEnableMaxHeight
-            testID={AddDomainPage.displayName}
-        >
+        <ScreenWrapper testID={AddDomainPage.displayName}>
             <HeaderWithBackButton
                 title={translate('domain.addDomain.title')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACES_LIST.getRoute())}
             />
             <ScrollView
-                contentContainerStyle={styles.flexGrow1}
+                contentContainerStyle={[styles.ph5, styles.pt3, styles.flexGrow1, styles.gap5]}
                 keyboardShouldPersistTaps="always"
             >
-                <View style={[styles.ph5, styles.pv3]}>
-                    <Text style={[styles.mb3, styles.webViewStyles.baseFontStyle]}>{translate('domain.addDomain.subtitle')}</Text>
-                </View>
+                <Text>{translate('domain.addDomain.subtitle')}</Text>
+
                 <FormProvider
                     formID={ONYXKEYS.FORMS.CREATE_DOMAIN_FORM}
                     validate={validate}
+                    style={styles.flexGrow1}
                     submitButtonText={translate('common.continue')}
-                    style={[styles.flexGrow1, styles.ph5]}
-                    scrollContextEnabled
                     onSubmit={({domainName}) => {
                         if (!isUserValidated) {
                             return Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT);
@@ -82,21 +75,17 @@ function AddDomainPage() {
                         domainNameSubmitted.current = domainName;
                         createDomain(domainName);
                     }}
-                    addBottomSafeAreaPadding
-                    shouldRenderFooterAboveSubmit
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.DOMAIN_NAME}
-                            label={translate('domain.addDomain.title')}
-                            accessibilityLabel={translate('domain.addDomain.title')}
-                            spellCheck={false}
-                            ref={inputCallbackRef}
-                            shouldSaveDraft
-                            shouldSubmitForm
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.DOMAIN_NAME}
+                        label={translate('domain.addDomain.domainName')}
+                        accessibilityLabel={translate('domain.addDomain.domainName')}
+                        spellCheck={false}
+                        ref={inputCallbackRef}
+                        shouldSaveDraft
+                        shouldSubmitForm
+                    />
                 </FormProvider>
             </ScrollView>
         </ScreenWrapper>

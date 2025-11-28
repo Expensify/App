@@ -5,6 +5,7 @@ import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
@@ -16,6 +17,7 @@ type DomainAddedPageProps = PlatformStackScreenProps<WorkspacesDomainModalNaviga
 function DomainAddedPage({route}: DomainAddedPageProps) {
     const {asset: Encryption} = useMemoizedLazyAsset(() => loadIllustration('Encryption'));
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const accountID = route.params.accountID;
 
     return (
@@ -24,7 +26,9 @@ function DomainAddedPage({route}: DomainAddedPageProps) {
             <ConfirmationPage
                 illustration={Encryption}
                 heading={translate('domain.domainAdded.title')}
+                innerContainerStyle={styles.p10}
                 description={translate('domain.domainAdded.description')}
+                descriptionStyle={styles.textSupporting}
                 buttonText={translate('domain.domainAdded.configure')}
                 shouldShowButton
                 onButtonPress={() => Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID))}

@@ -50,32 +50,30 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
         <ScreenWrapper testID={DomainAccessRestrictedPage.displayName}>
             <HeaderWithBackButton
                 title={translate('domain.accessRestricted.title')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={Navigation.goBack}
             />
             <ScrollView
-                contentContainerStyle={styles.flexGrow1}
+                contentContainerStyle={[styles.flexGrow1, styles.pt3, styles.ph5, styles.gap5]}
                 keyboardShouldPersistTaps="always"
             >
-                <View style={[styles.pt3, styles.ph5, styles.gap5]}>
-                    <Text style={[styles.webViewStyles.baseFontStyle]}>
-                        <RenderHTML html={translate('domain.accessRestricted.subtitle', {domainName})} />
-                    </Text>
+                <View style={styles.flexRow}>
+                    <RenderHTML html={translate('domain.accessRestricted.subtitle', {domainName})} />
+                </View>
 
-                    <View style={styles.gap2}>
-                        {FEATURES.map((featureTranslationPath) => (
-                            <Text
-                                style={[styles.dFlex, styles.alignItemsCenter]}
-                                key={featureTranslationPath}
-                            >
-                                <Icon
-                                    src={Checkmark}
-                                    additionalStyles={[styles.mr3]}
-                                    fill={theme.iconSuccessFill}
-                                />
-                                {translate(featureTranslationPath)}
-                            </Text>
-                        ))}
-                    </View>
+                <View style={styles.gap2}>
+                    {FEATURES.map((featureTranslationPath) => (
+                        <Text
+                            style={[styles.dFlex, styles.alignItemsCenter]}
+                            key={featureTranslationPath}
+                        >
+                            <Icon
+                                src={Checkmark}
+                                additionalStyles={[styles.mr2]}
+                                fill={theme.iconSuccessFill}
+                            />
+                            {translate(featureTranslationPath)}
+                        </Text>
+                    ))}
                 </View>
             </ScrollView>
             <FixedFooter>
