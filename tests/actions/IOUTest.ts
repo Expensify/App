@@ -7088,6 +7088,9 @@ describe('actions/IOU', () => {
                 policyCategories: {},
                 transactions: {},
                 transactionViolations: {},
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
             });
 
             await waitForBatchedUpdates();
