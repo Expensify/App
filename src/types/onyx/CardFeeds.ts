@@ -136,7 +136,22 @@ type CompanyFeeds = Partial<Record<CompanyCardFeed, CardFeedData>>;
 /** Custom feed names */
 type CompanyCardNicknames = Partial<Record<CompanyCardFeed, string>>;
 
-/** Card feeds model */
+/** Domain settings model */
+type DomainSettings = {
+    /** Domain settings */
+    settings: {
+        /** Whether logging in with SAML is enabled for the domain */
+        samlEnabled?: boolean;
+
+        /** Whether logging in with SAML is required for the domain */
+        samlRequired?: boolean;
+
+        /** Encrypted SCIM token, exists only when Okta is enabled for the domain by support */
+        oktaSCIM?: string;
+    };
+};
+
+/** Card feeds model, including domain settings */
 type CardFeeds = {
     /** Feed settings */
     settings: {
@@ -152,7 +167,7 @@ type CardFeeds = {
 
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
-};
+} & DomainSettings;
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
@@ -235,4 +250,5 @@ export type {
     FundID,
     StatementPeriodEnd,
     StatementPeriodEndDay,
+    DomainSettings,
 };

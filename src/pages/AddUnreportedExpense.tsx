@@ -61,6 +61,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     const getUnreportedTransactions = useCallback(
@@ -170,7 +171,14 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (report && isIOUReport(report)) {
-                convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID, isASAPSubmitBetaEnabled);
+                convertBulkTrackedExpensesToIOU(
+                    [...selectedIds],
+                    report.reportID,
+                    isASAPSubmitBetaEnabled,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    session?.email ?? '',
+                    transactionViolations,
+                );
             } else {
                 changeTransactionsReport(
                     [...selectedIds],
@@ -185,7 +193,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             }
         });
         setErrorMessage('');
-    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, reportToConfirm, policy, reportNextStep, policyCategories]);
+    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, transactionViolations, reportToConfirm, policy, reportNextStep, policyCategories]);
 
     const footerContent = useMemo(() => {
         return (
@@ -215,7 +223,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             return translate('common.noResultsFound');
         }
         return '';
-    }, [debouncedSearchValue, unreportedExpenses, translate]);
+    }, [debouncedSearchValue, unreportedExpenses?.length, translate]);
 
     const textInputOptions = useMemo(
         () => ({
