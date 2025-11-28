@@ -1127,6 +1127,22 @@ describe('ReportUtils', () => {
             });
         });
 
+        it('should return "resolved the duplicate" report name for resolved duplicate system message', () => {
+            const chatReport = createRandomReport(123, undefined);
+            const resolvedDuplicateAction: ReportAction = {
+                ...createRandomReportAction(Number(chatReport.reportID)),
+                actionName: CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
+                originalMessage: {
+                    violationName: 'duplicatedTransaction',
+                    reason: 'manual',
+                    lastModified: '2025-11-26 11:24:19.347',
+                },
+            };
+
+            const reportName = getReportName(chatReport, undefined, resolvedDuplicateAction);
+            expect(reportName).toBe('resolved the duplicate');
+        });
+
         describe('Unreported transaction thread', () => {
             test('HTML is stripped from unreported transaction message', async () => {
                 const fromReport = {

@@ -6371,6 +6371,7 @@ ${
             delete: 'Usuń',
             hold: 'Trzymaj',
             unhold: 'Usuń blokadę',
+            reject: 'Odrzuć',
             noOptionsAvailable: 'Brak dostępnych opcji dla wybranej grupy wydatków.',
         },
         filtersHeader: 'Filtry',

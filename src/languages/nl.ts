@@ -6384,6 +6384,7 @@ ${
             delete: 'Verwijderen',
             hold: 'Vasthouden',
             unhold: 'Verwijder blokkering',
+            reject: 'Afwijzen',
             noOptionsAvailable: 'Geen opties beschikbaar voor de geselecteerde groep uitgaven.',
         },
         filtersHeader: 'Filters',

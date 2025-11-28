@@ -2999,8 +2999,7 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 firstIOU: iouAction,
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
+                currentUserPersonalDetails,
                 transactionViolations: {},
             });
 
@@ -3104,8 +3103,7 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 firstIOU: undefined,
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
+                currentUserPersonalDetails,
                 transactionViolations: {},
             });
 
@@ -3222,8 +3220,7 @@ describe('actions/IOU', () => {
                 iouReport: expenseReport,
                 firstIOU: undefined,
                 isASAPSubmitBetaEnabled: false,
-                currentUserAccountIDParam: 123,
-                currentUserEmailParam: 'existing@example.com',
+                currentUserPersonalDetails,
                 transactionViolations: {},
             });
 
@@ -8182,8 +8179,7 @@ describe('actions/IOU', () => {
                     iouReport: expenseReport,
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: 123,
-                    currentUserEmailParam: 'existing@example.com',
+                    currentUserPersonalDetails,
                     transactionViolations: {},
                 });
                 await waitForBatchedUpdates();
@@ -8331,8 +8327,7 @@ describe('actions/IOU', () => {
                     iouReport: expenseReport,
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: 123,
-                    currentUserEmailParam: 'existing@example.com',
+                    currentUserPersonalDetails,
                     transactionViolations: {},
                 });
                 await waitForBatchedUpdates();
@@ -8494,8 +8489,7 @@ describe('actions/IOU', () => {
                     iouReport: expenseReport,
                     firstIOU: undefined,
                     isASAPSubmitBetaEnabled: false,
-                    currentUserAccountIDParam: 123,
-                    currentUserEmailParam: 'existing@example.com',
+                    currentUserPersonalDetails,
                     transactionViolations: {},
                 });
                 await waitForBatchedUpdates();
