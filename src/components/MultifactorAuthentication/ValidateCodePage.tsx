@@ -113,7 +113,7 @@ function MultifactorAuthenticationValidateCodePage({
             return;
         }
         inputRef.current.clear();
-    }, [inputCode]);
+    }, [inputCode.length]);
 
     // Handle needToClearError
     useEffect(() => {
@@ -199,7 +199,7 @@ function MultifactorAuthenticationValidateCodePage({
 
         // Call the submit callback (from context)
         onSubmit(inputCode);
-    }, [account?.isLoading, account?.errors, inputCode, errorMessages, onSubmit, isVerifying]);
+    }, [account?.isLoading, account?.errors, inputCode, errorMessages.empty, errorMessages.invalid, onSubmit, isVerifying]);
 
     const onGoBackPress = useCallback(() => {
         trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE);

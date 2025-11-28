@@ -285,7 +285,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
             return setStatus(convertResultIntoMultifactorAuthenticationStatus(cancelStatus, scenario, scenarioType, false));
         },
-        [NativeBiometrics, MultifactorAuthorizationFallback, mergedStatus.value, setStatus],
+        [NativeBiometrics.cancel, NativeBiometrics.setup, MultifactorAuthorizationFallback.cancel, mergedStatus.value, setStatus],
     );
 
     const process = useCallback(
