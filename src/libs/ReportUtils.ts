@@ -10913,8 +10913,15 @@ function getReportActionActorAccountID(
         }
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
-        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED:
+        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED: {
+            // For harvesting (delayed/scheduled submission), show Concierge as the actor
+            const originalMessage = getOriginalMessage(reportAction);
+            const wasSubmittedViaHarvesting = originalMessage && 'harvesting' in originalMessage ? originalMessage.harvesting : false;
+            if (wasSubmittedViaHarvesting) {
+                return CONST.ACCOUNT_ID.CONCIERGE;
+            }
             return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
+        }
 
         default:
             return reportAction?.actorAccountID;
