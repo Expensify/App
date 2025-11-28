@@ -1,4 +1,5 @@
 import type {MarkdownRange, MarkdownStyle} from '@expensify/react-native-live-markdown';
+import type {NavigationProp, NavigationState} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 import type {MaskedTextInputOwnProps} from 'react-native-advanced-input-mask/lib/typescript/src/types';
@@ -194,6 +195,10 @@ type CustomBaseTextInputProps = ForwardedFSClassProps & {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
+
+    navigation?: Omit<NavigationProp<ReactNavigation.RootParamList>, 'getState'> & {
+        getState(): NavigationState | undefined;
+    };
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
