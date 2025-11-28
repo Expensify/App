@@ -3617,11 +3617,19 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
     }
 
-    // For split expenses, merge the existing transaction but remove convertedAmount.
-    // Using fastMerge would copy convertedAmount from the original, causing split totals to double.
+    // For split expenses, only copy card-related fields from the existing transaction.
+    // Using fastMerge would copy all fields, causing issues like duplicated hold messages (#76005)
+    // and incorrect amounts (#76078). We only need to preserve card data for offline splits.
     if (isSplitExpense && existingTransaction) {
-        const {convertedAmount: omittedConvertedAmount, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
-        optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
+        optimisticTransaction = {
+            ...optimisticTransaction,
+            managedCard: existingTransaction.managedCard,
+            bank: existingTransaction.bank,
+            cardName: existingTransaction.cardName,
+            cardNumber: existingTransaction.cardNumber,
+            cardID: existingTransaction.cardID,
+            posted: existingTransaction.posted,
+        };
     }
 
     // STEP 4: Build optimistic reportActions. We need:
