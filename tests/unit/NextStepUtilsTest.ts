@@ -230,22 +230,22 @@ describe('libs/NextStepUtils', () => {
 
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     const result = buildNextStepNew({
-                            report,
-                            policy: {
-                                ...policy,
-                                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                                harvesting: {
-                                    enabled: true,
-                                },
+                        report,
+                        policy: {
+                            ...policy,
+                            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+                            harvesting: {
+                                enabled: true,
                             },
-                            currentUserAccountIDParam: currentUserAccountID,
-                            currentUserEmailParam: currentUserEmail,
-                            hasViolations: false,
-                            isASAPSubmitBetaEnabled: false,
-                            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-                            shouldFixViolations: false,
-                            isUnapprove: false,
-                            isReopen: false,
+                        },
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                        shouldFixViolations: false,
+                        isUnapprove: false,
+                        isReopen: false,
                     });
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -273,28 +273,27 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-               
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const result = buildNextStepNew({
-                            report,
-                            policy: {
-                                ...policy,
-                                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
-                                harvesting: {
-                                    enabled: true,
-                                },
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    const result = buildNextStepNew({
+                        report,
+                        policy: {
+                            ...policy,
+                            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+                            harvesting: {
+                                enabled: true,
                             },
-                            currentUserAccountIDParam: currentUserAccountID,
-                            currentUserEmailParam: currentUserEmail,
-                            hasViolations: false,
-                            isASAPSubmitBetaEnabled: false,
-                            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-                            shouldFixViolations: false,
-                            isUnapprove: false,
-                            isReopen: false,
-                        });
+                        },
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                        shouldFixViolations: false,
+                        isUnapprove: false,
+                        isReopen: false,
+                    });
 
-                        expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
                 });
 
                 test('twice a month', () => {
@@ -320,28 +319,27 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                  
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const result = buildNextStepNew({
-                            report,
-                            policy: {
-                                ...policy,
-                                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
-                                harvesting: {
-                                    enabled: true,
-                                },
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    const result = buildNextStepNew({
+                        report,
+                        policy: {
+                            ...policy,
+                            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY,
+                            harvesting: {
+                                enabled: true,
                             },
-                            currentUserAccountIDParam: currentUserAccountID,
-                            currentUserEmailParam: currentUserEmail,
-                            hasViolations: false,
-                            isASAPSubmitBetaEnabled: false,
-                            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-                            shouldFixViolations: false,
-                            isUnapprove: false,
-                            isReopen: false,
-                        });
+                        },
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                        shouldFixViolations: false,
+                        isUnapprove: false,
+                        isReopen: false,
+                    });
 
-                        expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
                 });
 
                 test('monthly on the 2nd', () => {
@@ -367,29 +365,28 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                  
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const result = buildNextStepNew({
-                            report,
-                            policy: {
-                                ...policy,
-                                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
-                                autoReportingOffset: 2,
-                                harvesting: {
-                                    enabled: true,
-                                },
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    const result = buildNextStepNew({
+                        report,
+                        policy: {
+                            ...policy,
+                            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                            autoReportingOffset: 2,
+                            harvesting: {
+                                enabled: true,
                             },
-                            currentUserAccountIDParam: currentUserAccountID,
-                            currentUserEmailParam: currentUserEmail,
-                            hasViolations: false,
-                            isASAPSubmitBetaEnabled: false,
-                            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-                            shouldFixViolations: false,
-                            isUnapprove: false,
-                            isReopen: false,
-                        });
+                        },
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                        shouldFixViolations: false,
+                        isUnapprove: false,
+                        isReopen: false,
+                    });
 
-                        expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
                 });
 
                 test('monthly on the last day', () => {
@@ -415,28 +412,27 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                   
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const result = buildNextStepNew({
-                            report,
-                            policy: {
-                                ...policy,
-                                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
-                                autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
-                                harvesting: {
-                                    enabled: true,
-                                },
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    const result = buildNextStepNew({
+                        report,
+                        policy: {
+                            ...policy,
+                            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                            autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
+                            harvesting: {
+                                enabled: true,
                             },
-                            currentUserAccountIDParam: currentUserAccountID,
-                            currentUserEmailParam: currentUserEmail,
-                            hasViolations: false,
-                            isASAPSubmitBetaEnabled: false,
-                            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-                            shouldFixViolations: false,
-                            isUnapprove: false,
-                            isReopen: false,
-                        });
-                        expect(result).toMatchObject(optimisticNextStep);
+                        },
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                        shouldFixViolations: false,
+                        isUnapprove: false,
+                        isReopen: false,
+                    });
+                    expect(result).toMatchObject(optimisticNextStep);
                 });
 
                 test('monthly on the last business day', () => {
@@ -462,29 +458,28 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                  
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const result = buildNextStepNew({
-                            report,
-                            policy: {
-                                ...policy,
-                                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
-                                autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH,
-                                harvesting: {
-                                    enabled: true,
-                                },
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    const result = buildNextStepNew({
+                        report,
+                        policy: {
+                            ...policy,
+                            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+                            autoReportingOffset: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH,
+                            harvesting: {
+                                enabled: true,
                             },
-                            currentUserAccountIDParam: currentUserAccountID,
-                            currentUserEmailParam: currentUserEmail,
-                            hasViolations: false,
-                            isASAPSubmitBetaEnabled: false,
-                            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-                            shouldFixViolations: false,
-                            isUnapprove: false,
-                            isReopen: false,
-                        });
+                        },
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                        shouldFixViolations: false,
+                        isUnapprove: false,
+                        isReopen: false,
+                    });
 
-                        expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
                 });
 
                 test('trip', () => {
@@ -510,28 +505,27 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                  
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const result = buildNextStepNew({
-                            report,
-                            policy: {
-                                ...policy,
-                                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
-                                harvesting: {
-                                    enabled: true,
-                                },
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    const result = buildNextStepNew({
+                        report,
+                        policy: {
+                            ...policy,
+                            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+                            harvesting: {
+                                enabled: true,
                             },
-                            currentUserAccountIDParam: currentUserAccountID,
-                            currentUserEmailParam: currentUserEmail,
-                            hasViolations: false,
-                            isASAPSubmitBetaEnabled: false,
-                            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-                            shouldFixViolations: false,
-                            isUnapprove: false,
-                            isReopen: false,
-                        });
+                        },
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                        shouldFixViolations: false,
+                        isUnapprove: false,
+                        isReopen: false,
+                    });
 
-                        expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
                 });
 
                 test('manual', () => {
@@ -555,28 +549,27 @@ describe('libs/NextStepUtils', () => {
                         },
                     ];
 
-                   
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        const result = buildNextStepNew({
-                            report,
-                            policy: {
-                                ...policy,
-                                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
-                                harvesting: {
-                                    enabled: false,
-                                },
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    const result = buildNextStepNew({
+                        report,
+                        policy: {
+                            ...policy,
+                            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+                            harvesting: {
+                                enabled: false,
                             },
-                            currentUserAccountIDParam: currentUserAccountID,
-                            currentUserEmailParam: currentUserEmail,
-                            hasViolations: false,
-                            isASAPSubmitBetaEnabled: false,
-                            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
-                            shouldFixViolations: false,
-                            isUnapprove: false,
-                            isReopen: false,
-                        });
+                        },
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
+                        shouldFixViolations: false,
+                        isUnapprove: false,
+                        isReopen: false,
+                    });
 
-                        expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
                 });
             });
         });
