@@ -61,7 +61,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         getTransactionsForMerging({isOffline, targetTransaction, transactions, policy, report, currentUserLogin});
-    }, [transactions, isOffline, mergeTransaction, policy, report, currentUserLogin, targetTransaction]);
+    }, [transactions, isOffline, mergeTransaction?.eligibleTransactions, policy, report, currentUserLogin, targetTransaction]);
 
     const sections = useMemo(() => {
         return [
@@ -77,7 +77,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                 shouldShow: true,
             },
         ];
-    }, [eligibleTransactions, mergeTransaction, localeCompare]);
+    }, [eligibleTransactions, mergeTransaction?.sourceTransactionID, localeCompare]);
 
     const handleSelectRow = useCallback(
         (item: MergeTransactionListItemType) => {
@@ -88,7 +88,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                 eligibleTransactions: mergeTransaction?.eligibleTransactions,
             });
         },
-        [mergeTransaction, transactionID],
+        [mergeTransaction?.eligibleTransactions, transactionID],
     );
 
     const headerContent = useMemo(
