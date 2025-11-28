@@ -6415,6 +6415,7 @@ ${
             delete: 'Löschen',
             hold: 'Halten',
             unhold: 'Halten entfernen',
+            reject: 'Ablehnen',
             noOptionsAvailable: 'Keine Optionen verfügbar für die ausgewählte Gruppe von Ausgaben.',
         },
         filtersHeader: 'Filter',

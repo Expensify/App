@@ -2629,7 +2629,11 @@ type SearchReportParamList = {
         /** Selected transactions' report ID  */
         reportID: string;
     };
-    [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: undefined;
+    [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: Record<string, never>;
+    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: {
+        /** Selected transactions' report ID  */
+        reportID: string;
+    };
     [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: undefined;
     [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: undefined;
 };
