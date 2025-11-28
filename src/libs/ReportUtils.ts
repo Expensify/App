@@ -2491,9 +2491,8 @@ function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
  * A Track Expense Report is a thread where the parent the parentReportAction is a transaction, and
  * parentReportAction has type of track.
  */
-function isTrackExpenseReportNew(report: OnyxInputOrEntry<Report>, parentReport: OnyxInputOrEntry<Report>): boolean {
+function isTrackExpenseReportNew(report: OnyxInputOrEntry<Report>, parentReport: OnyxInputOrEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>): boolean {
     if (isThread(report)) {
-        const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         return !isEmptyObject(parentReportAction) && isSelfDM(parentReport) && isTrackExpenseAction(parentReportAction);
     }
     return false;
@@ -10847,7 +10846,7 @@ function canJoinChat(
         return false;
     }
 
-    const isExpenseChat = isMoneyRequestReport(report) || isMoneyRequest(report) || isInvoiceReport(report) || isTrackExpenseReportNew(report, parentReport);
+    const isExpenseChat = isMoneyRequestReport(report) || isMoneyRequest(report) || isInvoiceReport(report) || isTrackExpenseReportNew(report, parentReport, parentReportAction);
     // Anyone viewing these chat types is already a participant and therefore cannot join
     if (isRootGroupChat(report, isReportArchived) || isSelfDM(report) || isInvoiceRoom(report) || isSystemChat(report) || isExpenseChat) {
         return false;
