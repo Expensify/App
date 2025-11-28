@@ -1,12 +1,14 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -38,7 +40,6 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [isInvitationSent, setIsInvitationSent] = useState(false);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const policyID = route.params?.policyID;
     const policy = usePolicy(policyID);
@@ -77,7 +78,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                     accountID: personalDetail?.accountID,
                     icons: [
                         {
-                            source: personalDetail?.avatar ?? expensifyIcons.FallbackAvatar,
+                            source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
                             name: formatPhoneNumber(email),
                             type: CONST.ICON_TYPE_AVATAR,
                             id: personalDetail?.accountID,
@@ -95,7 +96,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, policy?.receiptPartners?.uber?.employees, localeCompare, expensifyIcons.FallbackAvatar]);
+    }, [isOffline, policy?.employeeList, policy?.receiptPartners?.uber?.employees, localeCompare]);
 
     const sections = useMemo(() => {
         if (workspaceMembers.length === 0) {
