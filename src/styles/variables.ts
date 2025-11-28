@@ -103,6 +103,7 @@ export default {
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
     receiptPaneRHPMaxWidth: 465,
+    superWideRHPMaxWidth: 1260,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,

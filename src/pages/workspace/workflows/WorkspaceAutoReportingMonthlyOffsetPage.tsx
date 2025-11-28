@@ -76,7 +76,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
             onChangeText: setSearchText,
             headerMessage: searchText.trim() && !filteredDaysOfMonth.length ? translate('common.noResultsFound') : '',
         }),
-        [searchText, filteredDaysOfMonth, setSearchText, translate],
+        [searchText, filteredDaysOfMonth.length, setSearchText, translate],
     );
 
     return (

@@ -116,7 +116,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions, translate]);
+    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails.length, availableOptions.userToInvite, translate]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
@@ -152,7 +152,10 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
     }, [route.params.policyID, selectedOptions]);
 
-    const [policyName, shouldShowAlertPrompt] = useMemo(() => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage], [policy]);
+    const [policyName, shouldShowAlertPrompt] = useMemo(
+        () => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage],
+        [policy?.name, policy?.errors, policy?.alertMessage],
+    );
 
     const headerMessage = useMemo(() => {
         const searchValue = searchTerm.trim().toLowerCase();

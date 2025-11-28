@@ -111,14 +111,14 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             return;
         }
         inputValidateCodeRef.current.clear();
-    }, [validateCode]);
+    }, [validateCode.length]);
 
     useEffect(() => {
         if (!input2FARef.current || twoFactorAuthCode.length > 0) {
             return;
         }
         input2FARef.current.clear();
-    }, [twoFactorAuthCode]);
+    }, [twoFactorAuthCode.length]);
 
     /**
      * Handle text input and clear formError upon text change

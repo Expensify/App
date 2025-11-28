@@ -51,7 +51,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const {currentSearchHash} = useSearchContext();
     const transactionsSnapshotMetadata = useMemo(() => {
         return transactionsSnapshot?.search;
-    }, [transactionsSnapshot]);
+    }, [transactionsSnapshot?.search]);
 
     const visibleTransactions = useMemo(() => {
         if (isExpenseReportType) {
@@ -64,7 +64,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         (index: number) => {
             return index === visibleTransactions.length - 1;
         },
-        [visibleTransactions],
+        [visibleTransactions.length],
     );
 
     const currentColumns = useMemo(() => {

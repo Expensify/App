@@ -111,7 +111,7 @@ function SuggestionMention({
                   }
                 : null,
         );
-    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails]);
+    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails.accountID]);
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
@@ -440,7 +440,7 @@ function SuggestionMention({
             },
             [calculateMentionSuggestion],
         ),
-        CONST.TIMING.MENTION_SUGGESTION_DEBOUNCE_TIME,
+        CONST.TIMING.SUGGESTION_DEBOUNCE_TIME,
     );
 
     useEffect(() => {
@@ -467,7 +467,7 @@ function SuggestionMention({
         [shouldBlockCalc],
     );
 
-    const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
+    const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues.suggestedMentions]);
     const getIsSuggestionsMenuVisible = useCallback(() => isMentionSuggestionsMenuVisible, [isMentionSuggestionsMenuVisible]);
 
     useImperativeHandle(
