@@ -10924,24 +10924,25 @@ function getReportActionActorAccountID(
         }
 
         case CONST.REPORT.ACTIONS.TYPE.APPROVED:
-        case CONST.REPORT.ACTIONS.TYPE.FORWARDED: {
-            // For automatic approvals/forwards via workspace rules, show Concierge as the actor
-            const originalMessage = getOriginalMessage(reportAction);
-            const wasAutomatic = originalMessage && 'automaticAction' in originalMessage ? originalMessage.automaticAction : false;
-            if (wasAutomatic) {
-                return CONST.ACCOUNT_ID.CONCIERGE;
-            }
-            return reportAction?.actorAccountID;
-        }
-
+        case CONST.REPORT.ACTIONS.TYPE.FORWARDED:
         case CONST.REPORT.ACTIONS.TYPE.IOU: {
-            // For automatic payments via workspace rules, show Concierge as the actor
+            // For automatic actions via workspace rules, show Concierge as the actor
             const originalMessage = getOriginalMessage(reportAction);
-            const isPayment = originalMessage && 'type' in originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
             const wasAutomatic = originalMessage && 'automaticAction' in originalMessage ? originalMessage.automaticAction : false;
-            if (isPayment && wasAutomatic) {
-                return CONST.ACCOUNT_ID.CONCIERGE;
+
+            if (wasAutomatic) {
+                // For IOU actions, only show Concierge for payment types
+                if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
+                    const isPayment = originalMessage && 'type' in originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+                    if (isPayment) {
+                        return CONST.ACCOUNT_ID.CONCIERGE;
+                    }
+                } else {
+                    // For APPROVED/FORWARDED, always show Concierge when automatic
+                    return CONST.ACCOUNT_ID.CONCIERGE;
+                }
             }
+
             return reportAction?.actorAccountID;
         }
 
