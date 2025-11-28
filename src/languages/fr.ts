@@ -5231,8 +5231,8 @@ ${
             removeMemberTitle: 'Supprimer le membre',
             transferOwner: 'Transférer le propriétaire',
             makeMember: () => ({
-                one: 'Définir comme membre',
-                other: 'Définir comme membres',
+                one: 'Rendre membre',
+                other: 'En faire des membres',
             }),
             makeAdmin: () => ({
                 one: 'Nommer administrateur',
@@ -5240,7 +5240,7 @@ ${
             }),
             makeAuditor: () => ({
                 one: 'Nommer auditeur',
-                other: 'Nommer auditeurs',
+                other: 'Nommer des auditeurs',
             }),
             selectAll: 'Tout sélectionner',
             error: {

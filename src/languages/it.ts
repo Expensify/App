@@ -5212,7 +5212,7 @@ ${
             }),
             makeAdmin: () => ({
                 one: 'Rendi amministratore',
-                other: 'Nomina amministratori',
+                other: 'Rendi amministratori',
             }),
             makeAuditor: () => ({
                 one: 'Rendi revisore',

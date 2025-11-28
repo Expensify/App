@@ -5197,7 +5197,7 @@ ${
                 other: 'Uczyń administratorami',
             }),
             makeAuditor: () => ({
-                one: 'Ustaw jako audytora',
+                one: 'Uczyń audytorem',
                 other: 'Uczyń audytorami',
             }),
             selectAll: 'Zaznacz wszystko',
