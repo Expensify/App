@@ -438,7 +438,7 @@ function removeMembers(
 
     if (hasApprovers) {
         const ownerEmail = ownerDetails.login;
-        accountIDs.forEach((accountID) => {
+        for (const accountID of accountIDs) {
             const removedApprover = allPersonalDetails?.[accountID];
             if (!removedApprover?.login || !ownerEmail) {
                 return;
@@ -448,7 +448,7 @@ function removeMembers(
                 removedApprover,
                 ownerDetails,
             });
-            updatedWorkflows.forEach((workflow) => {
+            for (const workflow of updatedWorkflows) {
                 if (workflow?.removeApprovalWorkflow) {
                     const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
                     const onyxDataForRemoveApprovalWorkflow = getRemoveApprovalWorkflowOnyxData(updatedWorkflow, policy);
@@ -461,8 +461,8 @@ function removeMembers(
                     successData.push(...(onyxDataForUpdateApprovalWorkflow.successData ?? []));
                     failureData.push(...(onyxDataForUpdateApprovalWorkflow.failureData ?? []));
                 }
-            });
-        });
+            }
+        }
     }
 
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
