@@ -655,16 +655,6 @@ function printResults(
         return;
     }
 
-    const distinctFileNames = new Set<string>();
-    // eslint-disable-next-line unicorn/no-array-for-each
-    for (const failure of failures.values()) {
-        distinctFileNames.add(failure.file);
-    }
-
-    log();
-    logError(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
-    log();
-
     function printFailures(failuresToPrint: FailureMap, level = 0) {
         for (const failure of failuresToPrint.values()) {
             const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
@@ -673,13 +663,25 @@ function printResults(
         }
     }
 
-    printFailures(failures);
+    const distinctFileNames = new Set<string>();
+    // eslint-disable-next-line unicorn/no-array-for-each
+    for (const failure of failures.values()) {
+        distinctFileNames.add(failure.file);
+    }
 
-    log();
-    logError(`These newly added component files were enforced to be automatically memoized with React Compiler:`);
-    log();
+    if (distinctFileNames.size > 0) {
+        log();
+        logError(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
+        log();
+
+        printFailures(failures);
+    }
 
     if (hasEnforcedAddedComponentFailures) {
+        log();
+        logError(`These newly added component files were enforced to be automatically memoized with React Compiler:`);
+        log();
+
         for (const [filePath, {message, compilerFailures}] of enforcedAddedComponentFailures.entries()) {
             logBold(`${filePath}:`);
             logNote(`${TAB}${message}`);
