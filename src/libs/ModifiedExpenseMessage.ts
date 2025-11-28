@@ -43,10 +43,15 @@ function buildMessageFragmentForValue(
     removalFragments: string[],
     changeFragments: string[],
     shouldConvertToLowercase = true,
-    noQuotesForOldValue = false,
+    // wasUncategorized = false,
 ) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
-    const oldValueToDisplay = valueInQuotes && !noQuotesForOldValue ? `"${oldValue}"` : oldValue;
+    // Check if the value is a category
+    const isCategory = valueName.includes(translateLocal('common.category'));
+    // Check if the old value is Uncategorized
+    const wasUncategorized = isCategoryMissing(oldValue);
+    // If the value is a category, and the old value was Uncategorized, show it in lowercase without quotes
+    const oldValueToDisplay = isCategory && wasUncategorized ? oldValue.toLowerCase() : valueInQuotes ? `"${oldValue}"` : oldValue;
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isOldValuePartialMerchant = valueName === translateLocal('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -295,21 +300,20 @@ function getForReportAction({
             categoryLabel += ` ${translateLocal('iou.basedOnMCC')}`;
         }
 
-        let oldCategory = reportActionOriginalMessage?.oldCategory ?? '';
-        const wasUncategorized = isCategoryMissing(oldCategory);
+        // let oldCategory = reportActionOriginalMessage?.oldCategory ?? '';
+        // const wasUncategorized = isCategoryMissing(oldCategory);
 
-        oldCategory = wasUncategorized ? oldCategory.toLowerCase() : getDecodedCategoryName(oldCategory);
+        // oldCategory = wasUncategorized ? oldCategory.toLowerCase() : getDecodedCategoryName(oldCategory);
 
         buildMessageFragmentForValue(
             getDecodedCategoryName(reportActionOriginalMessage?.category ?? ''),
-            oldCategory,
+            getDecodedCategoryName(reportActionOriginalMessage?.oldCategory ?? ''),
             categoryLabel,
             true,
             setFragments,
             removalFragments,
             changeFragments,
             true,
-            wasUncategorized,
         );
     }
 
@@ -550,21 +554,20 @@ function getForReportActionTemp({
             categoryLabel += ` ${translateLocal('iou.basedOnMCC')}`;
         }
 
-        let oldCategory = reportActionOriginalMessage?.oldCategory ?? '';
-        const wasUncategorized = isCategoryMissing(oldCategory);
+        // let oldCategory = reportActionOriginalMessage?.oldCategory ?? '';
+        // const wasUncategorized = isCategoryMissing(oldCategory);
 
-        oldCategory = wasUncategorized ? oldCategory.toLowerCase() : getDecodedCategoryName(oldCategory);
+        // oldCategory = wasUncategorized ? oldCategory.toLowerCase() : getDecodedCategoryName(oldCategory);
 
         buildMessageFragmentForValue(
             getDecodedCategoryName(reportActionOriginalMessage?.category ?? ''),
-            oldCategory,
+            getDecodedCategoryName(reportActionOriginalMessage?.oldCategory ?? ''),
             categoryLabel,
             true,
             setFragments,
             removalFragments,
             changeFragments,
             true,
-            wasUncategorized,
         );
     }
 
