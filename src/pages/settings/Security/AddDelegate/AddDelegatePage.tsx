@@ -54,7 +54,7 @@ function AddDelegatePage() {
             debouncedSearchTerm,
             countryCode,
         );
-    }, [availableOptions, debouncedSearchTerm, countryCode]);
+    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, debouncedSearchTerm, countryCode]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -91,7 +91,7 @@ function AddDelegatePage() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [availableOptions, translate]);
+    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, translate]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);
