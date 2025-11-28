@@ -565,18 +565,14 @@ function hasManualMemoOptOutDirective(source: string): boolean {
 function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] {
     const matches: ManualMemoizationMatch[] = [];
 
+    let regexMatch: RegExpExecArray | null;
     for (const pattern of MANUAL_MEMOIZATION_PATTERNS) {
         pattern.regex.lastIndex = 0;
-        let regexMatch: RegExpExecArray | null;
-        // eslint-disable-next-line no-cond-assign
-        while ((regexMatch = pattern.regex.exec(source)) !== null) {
+        regexMatch = pattern.regex.exec(source);
+        if (regexMatch) {
             const matchIndex = regexMatch.index;
             const {line, column} = getLineAndColumnFromIndex(source, matchIndex);
-            matches.push({
-                keyword: pattern.keyword,
-                line,
-                column,
-            });
+            matches.push({keyword: pattern.keyword, line, column});
         }
     }
 
