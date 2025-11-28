@@ -82,7 +82,6 @@ type CompilerFailure = {
 type EnforcedAddedComponentFailureMap = Map<string, ManualMemoFailure>;
 
 type ManualMemoFailure = {
-    message: string;
     manualMemoizationMatches: ManualMemoizationMatch[];
     compilerFailures: FailureMap | undefined;
 };
@@ -532,14 +531,12 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
     const addedComponentFailures: EnforcedAddedComponentFailureMap = new Map();
     for (const addedFilePath of addedDiffFiles) {
         const source = readSourceFile(addedFilePath);
-        if (!source || hasManualMemoOptOutDirective(source)) {
+        if (!source || NO_MANUAL_MEMO_DIRECTIVE_PATTERN.test(source)) {
             addNonAutoMemoEnforcedFailures(addedFilePath);
             continue;
         }
 
         const manualMemoizationMatches = findManualMemoizationMatches(source);
-
-        console.log('manualMemoMatches', manualMemoMatches);
 
         if (manualMemoizationMatches.length === 0) {
             addNonAutoMemoEnforcedFailures(addedFilePath);
@@ -547,7 +544,6 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
         }
 
         const manualMemoFailure: ManualMemoFailure = {
-            message: MANUAL_MEMOIZATION_FAILURE_MESSAGE,
             manualMemoizationMatches,
             compilerFailures: addedFileFailures.get(addedFilePath),
         };
@@ -558,10 +554,6 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
         nonAutoMemoEnforcedFailures,
         addedComponentFailures,
     };
-}
-
-function hasManualMemoOptOutDirective(source: string): boolean {
-    return NO_MANUAL_MEMO_DIRECTIVE_PATTERN.test(source);
 }
 
 function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] {
@@ -680,12 +672,16 @@ function printResults(
         logError(`These newly added component files were enforced to be automatically memoized with React Compiler:`);
         log();
 
-        for (const [filePath, {message, compilerFailures}] of enforcedAddedComponentFailures.entries()) {
-            logBold(`${filePath}:`);
-            logNote(`${TAB}${message}`);
+        for (const [filePath, {manualMemoizationMatches, compilerFailures}] of enforcedAddedComponentFailures.entries()) {
+            for (const manualMemoizationMatch of manualMemoizationMatches) {
+                const location = manualMemoizationMatch.line && manualMemoizationMatch.column ? `:${manualMemoizationMatch.line}:${manualMemoizationMatch.column}` : '';
+                logBold(`${filePath}${location}`);
+                logNote(`${TAB}${MANUAL_MEMOIZATION_FAILURE_MESSAGE}`);
+            }
 
             if (compilerFailures) {
-                logNote(`${TAB}Additional failures:`);
+                log();
+                logBold(`${TAB}Additional React Compiler errors:`);
                 printFailures(compilerFailures, 1);
             }
         }
