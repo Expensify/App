@@ -118,11 +118,12 @@ async function check({
         logInfo('Running React Compiler check for all files...');
     }
 
-    const shouldComputeDiff = shouldFilterByDiff || shouldEnforceNewComponents;
+    console.log(shouldEnforceNewComponents);
+
     const src = createFilesGlob(files);
     let results = runCompilerHealthcheck(src);
 
-    if (shouldComputeDiff) {
+    if (shouldFilterByDiff || shouldEnforceNewComponents) {
         const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
         const diffFilteringCommits: DiffFilteringCommits = {fromRef: mainBaseCommitHash};
         const diffResult = Git.diff(diffFilteringCommits.fromRef, diffFilteringCommits.toRef);
