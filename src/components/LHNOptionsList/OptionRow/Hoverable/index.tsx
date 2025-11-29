@@ -10,16 +10,14 @@ import usePressableInteractions from './hooks/usePressableInteractions';
 import { OptionRowContext } from '../Provider';
 
 type OptionRowLHNDataHoverableProps = {
-    reportID: string;
     reportName: string;
     isUnread: boolean;
     alternateText: string;
     children: React.ReactNode;
-    onSelectRow: (reportID: string) => void;
 };
 
-function OptionRowLHNDataHoverable({reportID, reportName, isUnread, alternateText, onSelectRow, children}: OptionRowLHNDataHoverableProps) {
-    const {state: {isFocused}} = use(OptionRowContext);
+function OptionRowLHNDataHoverable({reportName, isUnread, alternateText, children}: OptionRowLHNDataHoverableProps) {
+    const {state: {isFocused}, actions: {onPress}} = use(OptionRowContext);
     const {translate} = useLocalize();
     const {onMouseDown, onSecondaryInteraction} = usePressableInteractions();
     const styles = useThemeStyles();
@@ -31,7 +29,7 @@ function OptionRowLHNDataHoverable({reportID, reportName, isUnread, alternateTex
             {(hovered) => (
                 <PressableWithSecondaryInteraction
                     role={CONST.ROLE.BUTTON}
-                    onPress={() => onSelectRow(reportID)}
+                    onPress={onPress}
                     withoutFocusOnSecondaryInteraction
                     onMouseDown={onMouseDown}
                     onSecondaryInteraction={onSecondaryInteraction}
