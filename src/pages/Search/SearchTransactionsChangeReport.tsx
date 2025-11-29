@@ -27,6 +27,7 @@ type TransactionGroupListItem = ListItem & {
 function SearchTransactionsChangeReport() {
     const {selectedTransactions, clearSelectedTransactions} = useSearchContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
+    const transactions = useMemo(() => Object.values(selectedTransactions).map((t) => t.transaction), [selectedTransactions]);
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -77,7 +78,7 @@ function SearchTransactionsChangeReport() {
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport(
-                selectedTransactionsKeys,
+                transactions,
                 isASAPSubmitBetaEnabled,
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 session?.email ?? '',
@@ -118,7 +119,7 @@ function SearchTransactionsChangeReport() {
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.value}`];
         const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
         changeTransactionsReport(
-            selectedTransactionsKeys,
+            transactions,
             isASAPSubmitBetaEnabled,
             session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             session?.email ?? '',
@@ -139,7 +140,7 @@ function SearchTransactionsChangeReport() {
         if (selectedTransactionsKeys.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionsKeys, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+        changeTransactionsReport(transactions, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
         clearSelectedTransactions();
         Navigation.goBack();
     };
