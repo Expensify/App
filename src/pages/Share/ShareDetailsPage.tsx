@@ -67,10 +67,15 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const shouldShowAttachment = !isTextShared;
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
 
-    let validateFileName = '';
-    if (shouldShowAttachment) {
-        validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
-    }
+    // Only get file name for actual files to avoid URI decoding errors on text content
+    const validateFileName = useMemo(() => {
+        if (!shouldShowAttachment) {
+            return '';
+        }
+        return shouldUsePreValidatedFile
+            ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME)
+            : getFileName(currentAttachment?.content ?? '');
+    }, [shouldShowAttachment, shouldUsePreValidatedFile, validatedFile?.uri, currentAttachment?.content]);
 
     const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? CONST.SHARE_FILE_MIMETYPE.JPEG) : (currentAttachment?.mimeType ?? '');
 
