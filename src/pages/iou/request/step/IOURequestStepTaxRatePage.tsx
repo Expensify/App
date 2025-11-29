@@ -1,8 +1,10 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import TaxPicker from '@components/TaxPicker';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -49,6 +51,11 @@ function IOURequestStepTaxRatePage({
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const taxRates = policy?.taxRates;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -83,6 +90,9 @@ function IOURequestStepTaxRatePage({
                 policy,
                 policyTagList: policyTags,
                 policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
             });
             navigateBack();
             return;
