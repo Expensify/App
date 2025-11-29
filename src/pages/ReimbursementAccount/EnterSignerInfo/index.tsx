@@ -68,7 +68,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         return () => {
             clearEnterSignerInformationFormSave();
         };
-    }, [enterSignerInfoForm]);
+    }, [enterSignerInfoForm?.errors, enterSignerInfoForm?.isSavingSignerInformation, enterSignerInfoForm?.isSuccess]);
 
     useEffect(() => {
         return clearErrors(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
