@@ -3,7 +3,7 @@ import {Circle} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
-import {useSkeletonSpan} from '@libs/telemetry/useSkeletonSpan';
+import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 

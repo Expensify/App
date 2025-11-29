@@ -1,9 +1,9 @@
 /**
  * This file contains logic related to tracking skeleton across the application.
  */
-import {useEffect, useId, useMemo} from 'react';
-import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {useEffect, useId} from 'react';
 import CONST from '@src/CONST';
+import {endSpan, startSpan} from './activeSpans';
 
 function useSkeletonSpan(component: string) {
     const reactId = useId();
@@ -16,7 +16,7 @@ function useSkeletonSpan(component: string) {
         });
 
         return () => endSpan(spanId);
-    }, []);
+    }, [component, reactId]);
 }
 
-export {useSkeletonSpan};
+export default useSkeletonSpan;
