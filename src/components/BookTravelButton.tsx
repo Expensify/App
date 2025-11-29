@@ -4,6 +4,7 @@ import type {ReactElement} from 'react';
 import React, {useCallback, useEffect, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -23,7 +24,6 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
-import {RocketDude} from './Icon/Illustrations';
 import RenderHTML from './RenderHTML';
 
 type BookTravelButtonProps = {
@@ -49,6 +49,7 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
 function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, setShouldScrollToBottom}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['RocketDude'] as const);
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const phoneErrorMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute())}`;
@@ -189,7 +190,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
                 titleContainerStyles={styles.mb2}
                 onConfirm={hidePreventionModal}
                 onCancel={hidePreventionModal}
-                image={RocketDude}
+                image={illustrations.RocketDude}
                 imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
                 isVisible={isPreventionModalVisible}
                 prompt={translate('travel.blockedFeatureModal.message')}
@@ -203,7 +204,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
                 titleContainerStyles={styles.mb2}
                 onConfirm={hideVerificationModal}
                 onCancel={hideVerificationModal}
-                image={RocketDude}
+                image={illustrations.RocketDude}
                 imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
                 isVisible={isVerificationModalVisible}
                 prompt={translate('travel.verifyCompany.message')}
