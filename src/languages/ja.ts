@@ -1341,7 +1341,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `${translatedChangedField}を${newMerchant}に変更しました（以前は${oldMerchant}）、これにより金額が${newAmountToDisplay}に更新されました（以前は${oldAmountToDisplay}）。`,
         basedOnAI: '過去のアクティビティに基づく',
-        basedOnMCC: 'ワークスペースルールに基づく',
+        basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `<a href="${rulesLink}">ワークスペースのルール</a>に基づいて` : 'ワークスペースのルールに基づく'),
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `${comment}用` : '経費'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `請求書レポート #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 送信済み${comment ? `${comment} のために` : ''}`,
@@ -6338,6 +6338,7 @@ ${
             delete: '削除',
             hold: '保留',
             unhold: '保留を解除',
+            reject: '却下',
             noOptionsAvailable: '選択した経費グループには利用可能なオプションがありません。',
         },
         filtersHeader: 'フィルター',
@@ -6517,6 +6518,18 @@ ${
         error: {
             title: '更新の確認に失敗しました',
             message: '更新を確認できませんでした。しばらくしてからもう一度お試しください。',
+        },
+    },
+    reportLayout: {
+        reportLayout: 'レポートレイアウト',
+        groupByLabel: 'グループ化:',
+        selectGroupByOption: 'レポート経費のグループ化方法を選択',
+        uncategorized: '未分類',
+        noTag: 'タグなし',
+        selectGroup: ({groupName}: {groupName: string}) => `${groupName}のすべての経費を選択`,
+        groupBy: {
+            category: 'カテゴリ',
+            tag: 'タグ',
         },
     },
     report: {
@@ -7378,13 +7391,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'New Expensifyへようこそ！',
-        subtitle: '新しいExpensifyは、素晴らしい自動化機能に加えて、驚くべきコラボレーション機能を備えています。',
+        subtitle: '従来のエクスペリエンスでお好きだった要素はすべてそのままに、毎日をさらに簡単にする数多くのアップグレードを搭載しています：',
         confirmText: '行きましょう！',
         features: {
-            chat: '<strong>任意の経費</strong>、レポート、またはワークスペースで直接チャット',
-            scanReceipt: '<strong>領収書をスキャン</strong>して払い戻しを受ける',
-            crossPlatform: '<strong>すべて</strong>を携帯電話やブラウザから行う',
+            chat: 'どの経費でもチャットして、疑問を素早く解決しましょう',
+            search: 'モバイル、Web、デスクトップで、より強力な検索',
+            concierge: '内蔵の Concierge AI が経費の自動化を支援します',
         },
+        helpText: '2分のデモを試す',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room

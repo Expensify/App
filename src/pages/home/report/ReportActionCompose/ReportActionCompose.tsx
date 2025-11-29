@@ -389,7 +389,7 @@ function ReportActionCompose({
     );
 
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to mention other reports they are members of, so we only check if the policyID in the report is from a workspace
-    const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report]);
+    const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report?.policyID]);
     const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && isFocused;
@@ -464,7 +464,13 @@ function ReportActionCompose({
         const reportActionComposeHeight = emojiPositionValues.composeBoxMinHeight + chatItemComposeSecondaryRowHeight;
         const emojiOffsetWithComposeBox = (emojiPositionValues.composeBoxMinHeight - emojiPositionValues.emojiButtonHeight) / 2;
         return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
-    }, [emojiPositionValues]);
+    }, [
+        emojiPositionValues.secondaryRowHeight,
+        emojiPositionValues.secondaryRowMarginTop,
+        emojiPositionValues.secondaryRowMarginBottom,
+        emojiPositionValues.composeBoxMinHeight,
+        emojiPositionValues.emojiButtonHeight,
+    ]);
 
     const onValueChange = useCallback(
         (value: string) => {

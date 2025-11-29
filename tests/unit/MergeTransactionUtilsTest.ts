@@ -366,7 +366,7 @@ describe('MergeTransactionUtils', () => {
                 created: '2025-01-02T00:00:00.000Z',
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
 
             // Only the different values are in the conflict fields
             expect(result.conflictFields).toEqual(['amount', 'created', 'description', 'reimbursable', 'reportID']);
@@ -393,7 +393,7 @@ describe('MergeTransactionUtils', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -415,12 +415,66 @@ describe('MergeTransactionUtils', () => {
                 managedCard: false,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
                 amount: 1000, // Card transactions also return positive values when unreported
                 currency: CONST.CURRENCY.USD,
+            });
+        });
+
+        it('should keep card expense when merging split and card expenses', () => {
+            const targetTransaction = {
+                ...createRandomTransaction(1),
+                amount: 2000,
+                currency: CONST.CURRENCY.AUD,
+                managedCard: true,
+            };
+            const sourceTransaction = {
+                ...createRandomTransaction(2),
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    ...createRandomTransaction(1).comment,
+                    originalTransactionID: 'original-split-transaction-123',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            };
+
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+
+            expect(result.conflictFields).not.toContain('amount');
+            expect(result.mergeableData).toMatchObject({
+                amount: targetTransaction.amount,
+                currency: targetTransaction.currency,
+            });
+        });
+
+        it('should keep split expense when merging split and cash expenses', () => {
+            const targetTransaction = {
+                ...createRandomTransaction(1),
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    ...createRandomTransaction(1).comment,
+                    originalTransactionID: 'original-split-transaction-123',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            };
+            const sourceTransaction = {
+                ...createRandomTransaction(2),
+                amount: 2000,
+                currency: CONST.CURRENCY.AUD,
+            };
+
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+
+            expect(result.conflictFields).not.toContain('amount');
+            expect(result.mergeableData).toMatchObject({
+                amount: targetTransaction.amount,
+                currency: targetTransaction.currency,
+                originalTransactionID: targetTransaction.comment?.originalTransactionID,
             });
         });
 
@@ -439,7 +493,7 @@ describe('MergeTransactionUtils', () => {
                     {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
                 ];
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
 
                 expect(result.conflictFields).not.toContain('attendees');
                 expect(result.mergeableData).toMatchObject({
@@ -464,7 +518,7 @@ describe('MergeTransactionUtils', () => {
                     {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
                 ];
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
 
                 expect(result.conflictFields).not.toContain('attendees');
                 expect(result.mergeableData).toMatchObject({
@@ -489,7 +543,7 @@ describe('MergeTransactionUtils', () => {
                     {email: 'test3@example.com', displayName: 'Test User 3', avatarUrl: '', login: 'test3'},
                 ];
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
 
                 expect(result.conflictFields).toContain('attendees');
             });
@@ -507,7 +561,7 @@ describe('MergeTransactionUtils', () => {
                 reportID: sharedReportID,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('reportID');
             expect(result.mergeableData).toMatchObject({
@@ -648,6 +702,54 @@ describe('MergeTransactionUtils', () => {
             expect(result).toEqual({
                 targetTransaction: cashTransaction1,
                 sourceTransaction: cashTransaction2,
+            });
+        });
+
+        it('should keep split expense when merging split and cash expenses', () => {
+            const cashTransaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'cash1',
+                managedCard: undefined,
+            };
+            const splitExpenseTransaction = {
+                ...createRandomTransaction(0),
+                transactionID: 'split1',
+                comment: {
+                    ...createRandomTransaction(0).comment,
+                    originalTransactionID: 'original-split-transaction',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            };
+
+            const result = selectTargetAndSourceTransactionsForMerge(cashTransaction, splitExpenseTransaction);
+
+            expect(result).toEqual({
+                targetTransaction: splitExpenseTransaction,
+                sourceTransaction: cashTransaction,
+            });
+        });
+
+        it('should keep card expense when merging split and card expenses', () => {
+            const cardTransaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'card1',
+                managedCard: true,
+            };
+            const splitExpenseTransaction = {
+                ...createRandomTransaction(0),
+                transactionID: 'split1',
+                comment: {
+                    ...createRandomTransaction(0).comment,
+                    originalTransactionID: 'original-split-transaction',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            };
+
+            const result = selectTargetAndSourceTransactionsForMerge(splitExpenseTransaction, cardTransaction);
+
+            expect(result).toEqual({
+                targetTransaction: cardTransaction,
+                sourceTransaction: splitExpenseTransaction,
             });
         });
     });

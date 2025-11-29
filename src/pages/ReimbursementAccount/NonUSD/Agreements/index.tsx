@@ -72,7 +72,7 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Ag
         return () => {
             clearReimbursementAccountFinishCorpayBankAccountOnboarding();
         };
-    }, [reimbursementAccount, onSubmit, policyCurrency, isDocusignStepRequired]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isFinishingCorpayBankAccountOnboarding, reimbursementAccount?.isSuccess, onSubmit, policyCurrency, isDocusignStepRequired]);
 
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);

@@ -52,7 +52,7 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
 
             return errors;
         },
-        [customUnit, currentRateName, translate],
+        [customUnit?.rates, currentRateName, translate],
     );
 
     const submit = useCallback(

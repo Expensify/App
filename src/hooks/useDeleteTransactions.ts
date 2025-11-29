@@ -32,8 +32,6 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const currentUserLogin = currentUserPersonalDetails.login ?? '';
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const {isBetaEnabled} = usePermissions();
@@ -129,8 +127,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     iouReport,
                     firstIOU: originalTransactionIouActions.at(0),
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-                    currentUserAccountIDParam: currentUserAccountID,
-                    currentUserEmailParam: currentUserLogin,
+                    currentUserPersonalDetails,
                     transactionViolations,
                 });
             }
@@ -175,8 +172,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             policy,
             archivedReportsIdSet,
             isBetaEnabled,
-            currentUserAccountID,
-            currentUserLogin,
+            currentUserPersonalDetails,
             transactionViolations,
         ],
     );
