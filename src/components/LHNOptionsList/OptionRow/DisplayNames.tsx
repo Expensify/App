@@ -17,13 +17,9 @@ import {OptionRowContext} from './Provider';
 
 const notificationPreferenceSelector = (report: OnyxEntry<Report>) => getReportNotificationPreference(report);
 
-type Props = {
-    reportID: string;
-};
-
-function OptionRowLHNDisplayNames({reportID}: Props) {
+function OptionRowLHNDisplayNames() {
     const {
-        state: {isFocused},
+        state: {reportID, isFocused},
     } = use(OptionRowContext);
     const {translate} = useLocalize();
     const styles = useThemeStyles();

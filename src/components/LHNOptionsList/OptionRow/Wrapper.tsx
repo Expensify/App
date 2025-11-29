@@ -1,15 +1,18 @@
 import React from 'react';
-import {View} from 'react-native';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 
-function OptionRowLHNWrapper({children, reportID, onSelectRow}: {children: React.ReactNode; reportID: string; onSelectRow: (reportID: string) => void}) {
+function OptionRowLHNWrapper({children}: {children: React.ReactNode}) {
+    // We can access context for Actions/State
+    // const {
+    //     actions: {onPress},
+    // } = use(OptionRowContext);
+
     return (
-        <OfflineWithFeedback>
-            <EducationalTooltip onTooltipPress={() => onSelectRow(reportID)}>
-                <View>{children}</View>
-            </EducationalTooltip>
-        </OfflineWithFeedback>
+      <>
+        {/* This component can wrap the children item with eg. offline feedback capabilities */}
+        {/* <OfflineWithFeedback> */}
+        {children}
+        {/* </OfflineWithFeedback> */}
+      </>
     );
 }
 
