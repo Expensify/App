@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {useSkeletonSpan} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -21,6 +22,7 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useSkeletonSpan('ReportHeaderSkeletonView');
     const height = styles.headerBarHeight.height;
     const radius = 20;
     const circleY = height / 2;

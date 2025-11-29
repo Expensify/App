@@ -2,6 +2,7 @@ import React, {useCallback, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {Rect} from 'react-native-svg';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {useSkeletonSpan} from '@libs/telemetry/useSkeletonSpan';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
 const barHeight = 7;
@@ -18,6 +19,7 @@ function MergeExpensesSkeleton({fixedNumItems, speed}: MergeExpensesSkeletonProp
     const containerRef = useRef<View>(null);
     const styles = useThemeStyles();
     const [pageWidth, setPageWidth] = React.useState(0);
+    useSkeletonSpan('MergeExpensesSkeleton');
     useLayoutEffect(() => {
         containerRef.current?.measure((x, y, width) => {
             setPageWidth(width - 24);

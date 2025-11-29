@@ -3,6 +3,7 @@ import {Circle, Rect} from 'react-native-svg';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {useSkeletonSpan} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
@@ -25,6 +26,7 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useSkeletonSpan('CardRowSkeleton');
 
     return (
         <ItemListSkeletonView

@@ -2,6 +2,7 @@ import React, {useCallback, useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {Rect} from 'react-native-svg';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {useSkeletonSpan} from '@libs/telemetry/useSkeletonSpan';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
 function getMessageSkeletonWidth(index: number) {
@@ -34,6 +35,7 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
     const containerRef = useRef<View>(null);
     const styles = useThemeStyles();
     const [pageWidth, setPageWidth] = React.useState(0);
+    useSkeletonSpan('UnreportedExpensesSkeleton');
     useLayoutEffect(() => {
         containerRef.current?.measure((x, y, width) => {
             setPageWidth(width - 40);

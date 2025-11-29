@@ -1,6 +1,7 @@
 import React from 'react';
 import {Circle, Rect} from 'react-native-svg';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {useSkeletonSpan} from '@libs/telemetry/useSkeletonSpan';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
 type TableListItemSkeletonProps = {
@@ -15,6 +16,7 @@ const longBarWidth = '124';
 
 function TableListItemSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false}: TableListItemSkeletonProps) {
     const styles = useThemeStyles();
+    useSkeletonSpan('TableRowSkeleton');
 
     return (
         <ItemListSkeletonView

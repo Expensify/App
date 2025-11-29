@@ -6,6 +6,7 @@ import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {useSkeletonSpan} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 
 type AccountSwitcherSkeletonViewProps = {
@@ -20,6 +21,7 @@ function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.A
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    useSkeletonSpan('AccountSwitcherSkeletonView');
     const avatarPlaceholderSize = StyleUtils.getAvatarSize(avatarSize);
     const avatarPlaceholderRadius = avatarPlaceholderSize / 2;
     const startPositionX = avatarPlaceholderRadius;
