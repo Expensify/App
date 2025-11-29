@@ -12,6 +12,7 @@ jest.mock('@libs/Parser', () => ({
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         translate: jest.fn((key: string) => key),
@@ -291,12 +292,15 @@ describe('ReportDetailsPage HTML Parsing', () => {
         it('should call Parser.htmlToText for non-group chat when building reportNameForMenus', () => {
             const isGroupChat = false;
             const rawReportName = '<strong>Regular Chat</strong>';
+            const expectedParsedName = 'Regular Chat';
+            mockHtmlToText.mockReturnValue(expectedParsedName);
 
             // Simulating the logic from ReportDetailsPage.tsx lines 337-338
             const reportNameForMenus = isGroupChat ? rawReportName : Parser.htmlToText(rawReportName);
 
             expect(mockHtmlToText).toHaveBeenCalledWith(rawReportName);
             expect(mockHtmlToText).toHaveBeenCalledTimes(1);
+            expect(reportNameForMenus).toBe(expectedParsedName);
         });
 
         it('should preserve HTML for group chat menu items', () => {
