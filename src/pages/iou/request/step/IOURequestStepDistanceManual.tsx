@@ -169,6 +169,7 @@ function IOURequestStepDistanceManual({
                 isASAPSubmitBetaEnabled,
                 transactionViolations,
                 lastSelectedDistanceRates,
+                translate,
             });
         },
         [

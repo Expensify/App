@@ -245,6 +245,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -898,6 +899,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     setDistanceRequestData?: (participants: Participant[]) => void;
+    translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -14985,7 +14987,7 @@ function createTransaction({
     billable,
     reimbursable = true,
 }: CreateTransactionParams) {
-    files.forEach((receiptFile, index) => {
+    for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
         const receipt: Receipt = receiptFile.file ?? {};
         receipt.source = receiptFile.source;
@@ -15041,7 +15043,7 @@ function createTransaction({
                 transactionViolations,
             });
         }
-    });
+    }
 }
 
 function handleMoneyRequestStepScanParticipants({
@@ -15275,6 +15277,7 @@ function handleMoneyRequestStepDistanceNavigation({
     transactionViolations,
     lastSelectedDistanceRates,
     setDistanceRequestData,
+    translate,
 }: MoneyRequestStepDistanceNavigationParams) {
     if (transaction?.splitShares && !manualDistance) {
         resetSplitShares(transaction);
@@ -15298,9 +15301,8 @@ function handleMoneyRequestStepDistanceNavigation({
         });
         setDistanceRequestData?.(participants);
         if (shouldSkipConfirmation) {
-            const fieldPendingText = Localize.translateLocal('iou.fieldPending');
             setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
-            setMoneyRequestMerchant(transactionID, fieldPendingText, false);
+            setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
             const participant = participants.at(0);
             if (iouType === CONST.IOU.TYPE.TRACK && participant) {
                 trackExpense({
@@ -15319,7 +15321,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         distance: manualDistance,
                         currency: transaction?.currency ?? 'USD',
                         created: transaction?.created ?? '',
-                        merchant: fieldPendingText,
+                        merchant: translate('iou.fieldPending'),
                         receipt: {},
                         billable: false,
                         reimbursable: manualDistance ? undefined : true,
@@ -15346,7 +15348,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     comment: '',
                     created: transaction?.created ?? '',
                     currency: transaction?.currency ?? 'USD',
-                    merchant: fieldPendingText,
+                    merchant: translate('iou.fieldPending'),
                     billable: !!policy?.defaultBillable,
                     reimbursable: manualDistance ? undefined : !!policy?.defaultReimbursable,
                     validWaypoints: manualDistance ? undefined : getValidWaypoints(waypoints, true),
