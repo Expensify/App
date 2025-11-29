@@ -688,8 +688,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 <>
                     <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
                         <DisplayNames
-                            fullTitle={reportName}
+                            fullTitle={rawReportName}
                             displayNamesWithTooltips={displayNamesWithTooltips}
+                            shouldParseHtml={!isGroupChat}
                             tooltipEnabled
                             numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
                             textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
@@ -748,7 +749,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!shouldDisableRename}
                     interactive={!shouldDisableRename}
-                    title={StringUtils.lineBreaksToSpaces(reportName)}
+                    title={StringUtils.lineBreaksToSpaces(reportNameForMenus)}
                     titleStyle={styles.newKansasLarge}
                     titleContainerStyle={shouldDisableRename && styles.alignItemsCenter}
                     shouldCheckActionAllowedOnPress={false}
@@ -795,7 +796,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!isFieldDisabled}
                     interactive={!isFieldDisabled}
-                    title={reportName}
+                    title={reportNameForMenus}
                     titleStyle={styles.newKansasLarge}
                     shouldCheckActionAllowedOnPress={false}
                     description={Str.UCFirst(titleField.name)}

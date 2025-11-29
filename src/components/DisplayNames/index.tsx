@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
@@ -16,10 +16,13 @@ function DisplayNames({
     displayNamesWithTooltips,
     renderAdditionalText,
     forwardedFSClass,
+    shouldParseHtml = true,
 }: DisplayNamesProps) {
     const {translate} = useLocalize();
-    const title = StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden');
-
+    const title = useMemo(() => {
+        const processedTitle = shouldParseHtml ? Parser.htmlToText(fullTitle) : fullTitle;
+        return StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
+    }, [fullTitle, shouldParseHtml, translate]);
     if (!tooltipEnabled) {
         return (
             <DisplayNamesWithoutTooltip
