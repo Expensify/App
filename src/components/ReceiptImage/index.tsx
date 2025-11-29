@@ -123,6 +123,9 @@ type ReceiptImageProps = (
 
     /** Callback to be called when the image loads */
     onLoad?: (event?: {nativeEvent: {width: number; height: number}}) => void;
+
+    /** Callback to be called when the image fails to load */
+    onLoadFailure?: () => void;
 };
 
 function ReceiptImage({
@@ -150,6 +153,7 @@ function ReceiptImage({
     loadingIndicatorStyles,
     thumbnailContainerStyles,
     onLoad,
+    onLoadFailure,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
     const [receiptImageWidth, setReceiptImageWidth] = useState<number | undefined>(undefined);
@@ -217,6 +221,7 @@ function ReceiptImage({
                 fallbackIconBackground={fallbackIconBackground}
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
                 onLoad={onLoad}
+                onLoadFailure={onLoadFailure}
             />
         );
     }
@@ -239,6 +244,7 @@ function ReceiptImage({
             onLoad={onLoad}
             shouldCalculateAspectRatioForWideImage={shouldUseFullHeight}
             imageWidthToCalculateHeight={receiptImageWidth}
+            onError={onLoadFailure}
         />
     );
 }

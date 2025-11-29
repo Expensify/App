@@ -7,6 +7,7 @@ import {
     getMergeFieldTranslationKey,
     getMergeFieldUpdatedValues,
     getMergeFieldValue,
+    getRateFromMerchant,
     getReceiptFileName,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
@@ -18,7 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
 import {createRandomReport} from '../utils/collections/reports';
-import createRandomTransaction from '../utils/collections/transaction';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -111,6 +112,23 @@ describe('MergeTransactionUtils', () => {
             // Then it should return true because all transactions have valid receipts
             expect(result).toBe(true);
         });
+
+        it('should return false when both transactions are distance requests', () => {
+            // Given two distance request transactions (with or without receipts)
+            const distanceTransaction1 = createRandomDistanceRequestTransaction(0);
+            const distanceTransaction2 = createRandomDistanceRequestTransaction(1);
+
+            distanceTransaction1.receipt = {receiptID: 333};
+            distanceTransaction2.receipt = {receiptID: 444};
+
+            const transactions = [distanceTransaction1, distanceTransaction2];
+
+            // When we check if should navigate to receipt review
+            const result = shouldNavigateToReceiptReview(transactions);
+
+            // Then it should return false because distance requests skip receipt review
+            expect(result).toBe(false);
+        });
     });
 
     describe('getMergeFieldValue', () => {
@@ -149,18 +167,6 @@ describe('MergeTransactionUtils', () => {
 
             // Then it should return the category value from the transaction
             expect(result).toBe('Food');
-        });
-
-        it('should return currency value from transaction', () => {
-            // Given a transaction with a currency value
-            const transaction = createRandomTransaction(0);
-            transaction.currency = CONST.CURRENCY.EUR;
-
-            // When we get the currency field value
-            const result = getMergeFieldValue(getTransactionDetails(transaction), transaction, 'currency');
-
-            // Then it should return the currency value from the transaction
-            expect(result).toBe(CONST.CURRENCY.EUR);
         });
 
         it('should handle amount field for unreported expense correctly', () => {
@@ -360,7 +366,7 @@ describe('MergeTransactionUtils', () => {
                 created: '2025-01-02T00:00:00.000Z',
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
 
             // Only the different values are in the conflict fields
             expect(result.conflictFields).toEqual(['amount', 'created', 'description', 'reimbursable', 'reportID']);
@@ -387,7 +393,7 @@ describe('MergeTransactionUtils', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -409,12 +415,66 @@ describe('MergeTransactionUtils', () => {
                 managedCard: false,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
                 amount: 1000, // Card transactions also return positive values when unreported
                 currency: CONST.CURRENCY.USD,
+            });
+        });
+
+        it('should keep card expense when merging split and card expenses', () => {
+            const targetTransaction = {
+                ...createRandomTransaction(1),
+                amount: 2000,
+                currency: CONST.CURRENCY.AUD,
+                managedCard: true,
+            };
+            const sourceTransaction = {
+                ...createRandomTransaction(2),
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    ...createRandomTransaction(1).comment,
+                    originalTransactionID: 'original-split-transaction-123',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            };
+
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+
+            expect(result.conflictFields).not.toContain('amount');
+            expect(result.mergeableData).toMatchObject({
+                amount: targetTransaction.amount,
+                currency: targetTransaction.currency,
+            });
+        });
+
+        it('should keep split expense when merging split and cash expenses', () => {
+            const targetTransaction = {
+                ...createRandomTransaction(1),
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    ...createRandomTransaction(1).comment,
+                    originalTransactionID: 'original-split-transaction-123',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            };
+            const sourceTransaction = {
+                ...createRandomTransaction(2),
+                amount: 2000,
+                currency: CONST.CURRENCY.AUD,
+            };
+
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+
+            expect(result.conflictFields).not.toContain('amount');
+            expect(result.mergeableData).toMatchObject({
+                amount: targetTransaction.amount,
+                currency: targetTransaction.currency,
+                originalTransactionID: targetTransaction.comment?.originalTransactionID,
             });
         });
 
@@ -433,7 +493,7 @@ describe('MergeTransactionUtils', () => {
                     {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
                 ];
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
 
                 expect(result.conflictFields).not.toContain('attendees');
                 expect(result.mergeableData).toMatchObject({
@@ -458,7 +518,7 @@ describe('MergeTransactionUtils', () => {
                     {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
                 ];
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
 
                 expect(result.conflictFields).not.toContain('attendees');
                 expect(result.mergeableData).toMatchObject({
@@ -483,9 +543,30 @@ describe('MergeTransactionUtils', () => {
                     {email: 'test3@example.com', displayName: 'Test User 3', avatarUrl: '', login: 'test3'},
                 ];
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
 
                 expect(result.conflictFields).toContain('attendees');
+            });
+        });
+
+        it('auto-merges reportID and populates reportName when reportIDs match', () => {
+            const sharedReportID = 'R123';
+            const targetTransaction = {
+                ...createRandomTransaction(10),
+                reportID: sharedReportID,
+                reportName: 'Shared Report Name',
+            };
+            const sourceTransaction = {
+                ...createRandomTransaction(11),
+                reportID: sharedReportID,
+            };
+
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+
+            expect(result.conflictFields).not.toContain('reportID');
+            expect(result.mergeableData).toMatchObject({
+                reportID: sharedReportID,
+                reportName: 'Shared Report Name',
             });
         });
     });
@@ -520,6 +601,8 @@ describe('MergeTransactionUtils', () => {
                 created: '2025-01-02T00:00:00.000Z',
                 reportID: '1',
                 reportName: 'Test Report',
+                waypoints: {waypoint0: {name: 'Selected waypoint'}},
+                customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitID: 'distance1', quantity: 100},
             };
 
             const result = buildMergedTransactionData(targetTransaction, mergeTransaction);
@@ -537,6 +620,8 @@ describe('MergeTransactionUtils', () => {
                 comment: {
                     ...targetTransaction.comment,
                     comment: 'Merged description',
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitID: 'distance1', quantity: 100},
+                    waypoints: {waypoint0: {name: 'Selected waypoint'}},
                 },
                 reimbursable: false,
                 billable: true,
@@ -617,6 +702,54 @@ describe('MergeTransactionUtils', () => {
             expect(result).toEqual({
                 targetTransaction: cashTransaction1,
                 sourceTransaction: cashTransaction2,
+            });
+        });
+
+        it('should keep split expense when merging split and cash expenses', () => {
+            const cashTransaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'cash1',
+                managedCard: undefined,
+            };
+            const splitExpenseTransaction = {
+                ...createRandomTransaction(0),
+                transactionID: 'split1',
+                comment: {
+                    ...createRandomTransaction(0).comment,
+                    originalTransactionID: 'original-split-transaction',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            };
+
+            const result = selectTargetAndSourceTransactionsForMerge(cashTransaction, splitExpenseTransaction);
+
+            expect(result).toEqual({
+                targetTransaction: splitExpenseTransaction,
+                sourceTransaction: cashTransaction,
+            });
+        });
+
+        it('should keep card expense when merging split and card expenses', () => {
+            const cardTransaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'card1',
+                managedCard: true,
+            };
+            const splitExpenseTransaction = {
+                ...createRandomTransaction(0),
+                transactionID: 'split1',
+                comment: {
+                    ...createRandomTransaction(0).comment,
+                    originalTransactionID: 'original-split-transaction',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            };
+
+            const result = selectTargetAndSourceTransactionsForMerge(splitExpenseTransaction, cardTransaction);
+
+            expect(result).toEqual({
+                targetTransaction: cardTransaction,
+                sourceTransaction: splitExpenseTransaction,
             });
         });
     });
@@ -860,6 +993,50 @@ describe('MergeTransactionUtils', () => {
                 reportName: 'Test Report',
             });
         });
+
+        it('should include additional fields when merchant field is selected for distance request', () => {
+            // Given a distance request transaction
+            const transaction = {
+                ...createRandomDistanceRequestTransaction(0),
+                currency: CONST.CURRENCY.USD,
+                amount: 2500,
+                receipt: {receiptID: 123, source: 'receipt.jpg'},
+                comment: {
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'unit123',
+                        quantity: 25.5,
+                    },
+                    waypoints: {
+                        waypoint0: {name: 'Start Location', address: '123 Start St'},
+                        waypoint1: {name: 'End Location', address: '456 End Ave'},
+                    },
+                },
+            };
+            const fieldValue = 'New Distance Merchant';
+
+            // When we get updated values for merchant field
+            const result = getMergeFieldUpdatedValues(transaction, 'merchant', fieldValue);
+
+            // Then it should include merchant plus all distance-specific fields
+            expect(result).toEqual({
+                merchant: 'New Distance Merchant',
+                amount: -2500,
+                currency: CONST.CURRENCY.USD,
+                receipt: {receiptID: 123, source: 'receipt.jpg'},
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID: 'unit123',
+                    quantity: 25.5,
+                },
+                waypoints: {
+                    waypoint0: {name: 'Start Location', address: '123 Start St'},
+                    waypoint1: {name: 'End Location', address: '456 End Ave'},
+                },
+                routes: null,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            });
+        });
     });
 
     describe('getMergeFieldErrorText', () => {
@@ -891,6 +1068,30 @@ describe('MergeTransactionUtils', () => {
 
             // Then it should return the generic error message with lowercase field name
             expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectError', {field: 'merchant'}));
+        });
+    });
+
+    describe('getRateFromMerchant', () => {
+        it('should return empty string for undefined merchant', () => {
+            // Given an undefined merchant
+            const merchant = undefined;
+
+            // When we get rate from merchant
+            const result = getRateFromMerchant(merchant);
+
+            // Then it should return empty string
+            expect(result).toBe('');
+        });
+
+        it('should extract rate from distance merchant string', () => {
+            // Given a distance merchant string with rate
+            const merchant = '5.2 mi @ $0.50 / mi';
+
+            // When we get rate from merchant
+            const result = getRateFromMerchant(merchant);
+
+            // Then it should return the rate portion
+            expect(result).toBe('$0.50 / mi');
         });
     });
 });

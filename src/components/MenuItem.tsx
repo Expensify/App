@@ -15,7 +15,7 @@ import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
@@ -93,7 +93,7 @@ type MenuItemBaseProps = {
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Used to apply styles specifically to the title */
-    titleStyle?: ViewStyle;
+    titleStyle?: StyleProp<TextStyle>;
 
     /** Any additional styles to apply on the badge element */
     badgeStyle?: ViewStyle;
@@ -521,7 +521,7 @@ function MenuItem({
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
 
-    const combinedTitleTextStyle = StyleUtils.combineStyles(
+    const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
             styles.flexShrink1,
             styles.popoverMenuText,
@@ -535,7 +535,7 @@ function MenuItem({
             shouldBreakWord ? styles.breakWord : {},
             styles.mw100,
         ],
-        titleStyle ?? {},
+        (titleStyle ?? {}) as TextStyle,
     );
 
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
