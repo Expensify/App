@@ -74,6 +74,9 @@ type PaymentMethodListProps = {
     /** Whether the right icon should be shown in PaymentMethodItem */
     shouldShowRightIcon?: boolean;
 
+    /** Whether the we should skip default account validation when adding bank account */
+    shouldSkipDefaultAccountValidation?: boolean;
+
     /** What to do when a menu item is pressed */
     onPress: PaymentMethodPressHandler | CardPressHandler;
 
@@ -174,6 +177,7 @@ function PaymentMethodList({
     shouldShowSelectedState = false,
     shouldShowAddBankAccount = true,
     shouldShowAssignedCards = false,
+    shouldSkipDefaultAccountValidation = false,
     selectedMethodID = '',
     onListContentSizeChange = () => {},
     style = {},
@@ -379,7 +383,7 @@ function PaymentMethodList({
     ]);
 
     const onPressItem = useCallback(() => {
-        if (!isUserValidated) {
+        if (!isUserValidated && !shouldSkipDefaultAccountValidation) {
             const path = Navigation.getActiveRoute();
             if (path.includes(ROUTES.WORKSPACES_LIST.route) && policyID) {
                 Navigation.navigate(ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.getRoute(policyID));
@@ -389,7 +393,7 @@ function PaymentMethodList({
             return;
         }
         onAddBankAccountPress();
-    }, [isUserValidated, onAddBankAccountPress, policyID]);
+    }, [isUserValidated, onAddBankAccountPress, policyID, shouldSkipDefaultAccountValidation]);
 
     const renderListFooterComponent = useCallback(
         () => (
