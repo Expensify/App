@@ -128,7 +128,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
                 shouldShowCloseButton={isExtraLargeScreenWidth}
             />
             {currentState === undefined ? (
-                <View style={[styles.flex1, styles.pRelative, styles.fullScreenLoading, styles.w100]}>
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             ) : (
