@@ -99,6 +99,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
     return [
         item.keyForList,
         {
+            transaction: item,
             isSelected: true,
             canDelete: item.canDelete,
             canHold: canHoldRequest,
@@ -181,6 +182,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     return {
         ...selectedTransactions,
         [item.keyForList]: {
+            transaction: item,
             isSelected: true,
             canDelete: item.canDelete,
             canHold: canHoldRequest,
@@ -491,6 +493,7 @@ function Search({
                     );
 
                     newTransactionList[transactionItem.transactionID] = {
+                        transaction: transactionItem,
                         action: transactionItem.action,
                         canHold: canHoldRequest,
                         isHeld: isOnHold(transactionItem),
@@ -536,6 +539,7 @@ function Search({
                 );
 
                 newTransactionList[transactionItem.transactionID] = {
+                    transaction: transactionItem,
                     action: transactionItem.action,
                     canHold: canHoldRequest,
                     isHeld: isOnHold(transactionItem),
