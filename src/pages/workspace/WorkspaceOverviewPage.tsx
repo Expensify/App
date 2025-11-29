@@ -68,7 +68,7 @@ type WorkspaceOverviewPageProps = WithPolicyProps & PlatformStackScreenProps<Wor
 
 function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: WorkspaceOverviewPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const illustrations = useThemeIllustrations();
@@ -235,6 +235,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             transactionViolations,
             reimbursementAccountError,
             lastUsedPaymentMethods: lastPaymentMethod,
+            localeCompare,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
@@ -249,6 +250,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         transactionViolations,
         reimbursementAccountError,
         lastPaymentMethod,
+        localeCompare,
         isOffline,
         activePolicyID,
     ]);

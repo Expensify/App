@@ -213,6 +213,7 @@ function WorkspacesListPage() {
             transactionViolations,
             reimbursementAccountError,
             lastUsedPaymentMethods: lastPaymentMethod,
+            localeCompare,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
