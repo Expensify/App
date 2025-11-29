@@ -1319,7 +1319,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `将${translatedChangedField}更改为${newMerchant}（之前为${oldMerchant}），这更新了金额为${newAmountToDisplay}（之前为${oldAmountToDisplay}）`,
         basedOnAI: '基于过去的活动',
-        basedOnMCC: '基于工作空间规则',
+        basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `基于 <a href="${rulesLink}">工作区规则</a>` : '基于工作区规则'),
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `为${comment}` : '费用'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `发票报告 #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 已发送${comment ? `对于${comment}` : ''}`,
@@ -6250,6 +6250,7 @@ ${
             delete: '删除',
             hold: '保持',
             unhold: '移除保留',
+            reject: '拒绝',
             noOptionsAvailable: '所选费用组没有可用选项。',
         },
         filtersHeader: '筛选器',
@@ -6427,6 +6428,18 @@ ${
         error: {
             title: '更新检查失败',
             message: '我们无法检查更新。请稍后再试。',
+        },
+    },
+    reportLayout: {
+        reportLayout: '报告布局',
+        groupByLabel: '分组方式：',
+        selectGroupByOption: '选择如何对报告费用进行分组',
+        uncategorized: '未分类',
+        noTag: '无标签',
+        selectGroup: ({groupName}: {groupName: string}) => `选择 ${groupName} 中的所有费用`,
+        groupBy: {
+            category: '类别',
+            tag: '标签',
         },
     },
     report: {
@@ -7266,13 +7279,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: '欢迎使用 New Expensify！',
-        subtitle: '新Expensify拥有同样出色的自动化功能，但现在增加了令人惊叹的协作功能：',
+        subtitle: '它集成了你在我们经典体验中喜爱的所有内容，并带来一系列升级，让你的生活更加轻松：',
         confirmText: '我们走吧！',
         features: {
-            chat: '<strong>直接在任何费用</strong>、报告或工作区上聊天',
-            scanReceipt: '<strong>扫描收据</strong>并获得报销',
-            crossPlatform: '通过手机或浏览器完成<strong>所有操作</strong>',
+            chat: '就任何费用发起聊天，快速解决问题',
+            search: '更强大的搜索，适用于移动端、网页端和桌面端',
+            concierge: '内置 Concierge AI，帮助自动化处理您的报销',
         },
+        helpText: '试用 2 分钟演示',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
