@@ -1,0 +1,38 @@
+import React from 'react';
+import ConfirmModal from '@components/ConfirmModal';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {closeReactNativeApp} from '@libs/actions/HybridApp';
+import {setIsOpenConfirmNavigateExpensifyClassicModalOpen} from '@libs/actions/isOpenConfirmNavigateExpensifyClassicModal';
+import {openOldDotLink} from '@libs/actions/Link';
+import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+function BaseConfirmNavigateExpensifyClassicModal() {
+    const [isOpenAppConfirmNavigateExpensifyClassicModalOpen = false] = useOnyx(ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN, {canBeMissing: true});
+    const {translate} = useLocalize();
+
+    return (
+        <ConfirmModal
+            prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
+            isVisible={isOpenAppConfirmNavigateExpensifyClassicModalOpen}
+            onConfirm={() => {
+                setIsOpenConfirmNavigateExpensifyClassicModalOpen(false);
+                if (CONFIG.IS_HYBRID_APP) {
+                    closeReactNativeApp({shouldSetNVP: true});
+                    return;
+                }
+                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+            }}
+            onCancel={() => setIsOpenConfirmNavigateExpensifyClassicModalOpen(false)}
+            title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
+            confirmText={translate('exitSurvey.goToExpensifyClassic')}
+            cancelText={translate('common.cancel')}
+        />
+    );
+}
+
+BaseConfirmNavigateExpensifyClassicModal.displayName = 'BaseConfirmNavigateExpensifyClassicModal';
+
+export default BaseConfirmNavigateExpensifyClassicModal;

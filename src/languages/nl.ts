@@ -6578,6 +6578,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Uitgave aanmaken',
             createReport: 'Rapport maken',
             chooseWorkspace: 'Kies een werkruimte voor dit rapport.',
             emptyReportConfirmationTitle: 'Je hebt al een leeg rapport',
