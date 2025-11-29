@@ -3581,6 +3581,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.sectionIllustrationHeight,
         },
 
+        cardSectionIllustrationContainer: {
+            height: variables.sectionIllustrationHeight,
+        },
+
         twoFAIllustration: {
             width: 'auto',
             height: 140,
@@ -4643,7 +4647,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         walletIllustration: {
-            height: 180,
+            height: 152,
         },
 
         walletCardLimit: {
@@ -5534,6 +5538,21 @@ const staticStyles = (theme: ThemeColors) =>
         },
         wordBreakAll: {
             ...wordBreak.breakAll,
+        },
+        preferencesIllustration: {
+            height: 180,
+        },
+        securitySettingsIllustration: {
+            height: 160,
+        },
+        aboutIllustration: {
+            height: 106,
+        },
+        troubleshootIllustration: {
+            height: 160,
+        },
+        saveTheWorldIllustration: {
+            height: 180,
         },
     }) satisfies StaticStyles;
 

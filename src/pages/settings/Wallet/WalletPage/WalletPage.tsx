@@ -10,13 +10,10 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -25,7 +22,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -79,7 +76,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
-    const {asset: MoneyIntoWallet} = useMemoizedLazyAsset(() => loadIllustration('MoneyIntoWallet' as IllustrationName));
+    const illustrations = useMemoizedLazyIllustrations(['BigVault', 'MoneyIntoWallet'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -361,7 +358,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const headerWithBackButton = (
         <HeaderWithBackButton
             title={translate('common.wallet')}
-            icon={MoneyIntoWallet}
+            icon={illustrations.MoneyIntoWallet}
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
@@ -404,9 +401,9 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                             isCentralPane
                             subtitleMuted
                             titleStyles={styles.accountSettingsSectionTitle}
-                            illustration={LottieAnimations.BankVault}
+                            illustration={illustrations.BigVault}
                             illustrationStyle={styles.walletIllustration}
-                            illustrationContainerStyle={{height: 220}}
+                            illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                             illustrationBackgroundColor="#411103"
                         >
                             <PaymentMethodList

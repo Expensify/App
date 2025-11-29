@@ -11,7 +11,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 // eslint-disable-next-line no-restricted-imports
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
@@ -38,6 +37,7 @@ import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import type {AnchorPosition} from '@styles/index';
+import colors from '@styles/theme/colors';
 import {close as modalClose} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -58,7 +58,7 @@ type BaseMenuItemType = {
 
 function SecuritySettingsPage() {
     const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserPlus'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosed', 'Safe'] as const);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
@@ -362,7 +362,10 @@ function SecuritySettingsPage() {
                                 subtitle={translate('securityPage.subtitle')}
                                 isCentralPane
                                 subtitleMuted
-                                illustration={LottieAnimations.Safe}
+                                illustration={illustrations.Safe}
+                                illustrationStyle={styles.securitySettingsIllustration}
+                                illustrationContainerStyle={styles.cardSectionIllustrationContainer}
+                                illustrationBackgroundColor={colors.ice500}
                                 titleStyles={styles.accountSettingsSectionTitle}
                                 childrenStyles={styles.pt5}
                             >

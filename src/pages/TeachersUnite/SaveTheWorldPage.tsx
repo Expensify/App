@@ -1,14 +1,11 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -25,7 +22,7 @@ function SaveTheWorldPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-    const {asset: TeachersUnite} = useMemoizedLazyAsset(() => loadIllustration('TeachersUnite' as IllustrationName));
+    const illustrations = useMemoizedLazyIllustrations(['TeachersUnite', 'SaveTheWorldScale'] as const);
     const menuItems = useMemo(() => {
         const baseMenuItems = [
             {
@@ -60,7 +57,7 @@ function SaveTheWorldPage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 onBackButtonPress={Navigation.popToSidebar}
-                icon={TeachersUnite}
+                icon={illustrations.TeachersUnite}
                 shouldUseHeadlineHeader
             />
             <ScrollView contentContainerStyle={styles.pt3}>
@@ -70,7 +67,9 @@ function SaveTheWorldPage() {
                         subtitle={translate('teachersUnitePage.joinExpensifyOrg')}
                         isCentralPane
                         subtitleMuted
-                        illustration={LottieAnimations.SaveTheWorld}
+                        illustration={illustrations.SaveTheWorldScale}
+                        illustrationStyle={styles.saveTheWorldIllustration}
+                        illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                         illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT].backgroundColor}
                         titleStyles={styles.accountSettingsSectionTitle}
                         childrenStyles={styles.pt5}
