@@ -71,7 +71,7 @@ function SearchTransactionsChangeReport() {
         const report = getReportOrDraftReport(reportIDWithOwner);
         return report?.ownerAccountID;
     }, [selectedTransactions, selectedTransactionsKeys]);
-    const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
+    const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
 
     const createReportForPolicy = () => {
         const optimisticReport = createNewReport(targetOwnerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);

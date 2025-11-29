@@ -45,7 +45,10 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
-    const ownerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID) as PersonalDetails, [personalDetails, selectedReport]);
+    const ownerPersonalDetails = useMemo(
+        () => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails,
+        [personalDetails, selectedReport?.ownerAccountID],
+    );
 
     const hasPerDiemTransactions = useMemo(() => {
         return selectedTransactionIDs.some((transactionID) => {
