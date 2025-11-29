@@ -346,6 +346,18 @@ function IOURequestStepAmount({
         navigateBack();
     };
 
+    const handleHidePickerModal = useCallback(() => {
+        setIsCurrencyPickerVisible(false);
+    }, []);
+
+    const handleCurrencyChange = useCallback((value: string) => {
+        setSelectedCurrency(value);
+    }, []);
+
+    const handleCurrencyButtonPress = useCallback(() => {
+        setIsCurrencyPickerVisible(true);
+    }, []);
+
     return (
         <StepScreenWrapper
             headerTitle={translate('iou.amount')}
@@ -357,10 +369,10 @@ function IOURequestStepAmount({
         >
             <IOURequestStepCurrencyModal
                 isPickerVisible={isCurrencyPickerVisible}
-                hidePickerModal={() => setIsCurrencyPickerVisible(false)}
+                hidePickerModal={handleHidePickerModal}
                 headerText={translate('common.selectCurrency')}
                 value={selectedCurrency}
-                onInputChange={(value) => setSelectedCurrency(value)}
+                onInputChange={handleCurrencyChange}
             />
             <MoneyRequestAmountForm
                 isEditing={!!backTo || isEditing}
@@ -373,7 +385,7 @@ function IOURequestStepAmount({
                     textInput.current = e;
                 }}
                 shouldKeepUserInput={transaction?.shouldShowOriginalAmount}
-                onCurrencyButtonPress={() => setIsCurrencyPickerVisible(true)}
+                onCurrencyButtonPress={handleCurrencyButtonPress}
                 onSubmitButtonPress={saveAmountAndCurrency}
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
