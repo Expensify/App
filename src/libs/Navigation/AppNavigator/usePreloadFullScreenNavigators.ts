@@ -100,7 +100,7 @@ function usePreloadFullScreenNavigators() {
     const route = useRoute();
     const state = navigation.getState();
     // The fallback is used to prevent crashing from the UI test
-    const preloadedRoutes = useMemo(() => state.preloadedRoutes ?? [], [state]);
+    const preloadedRoutes = useMemo(() => state.preloadedRoutes ?? [], [state.preloadedRoutes]);
     const subscriptionPlan = useSubscriptionPlan();
     const isAuthenticated = useIsAuthenticated();
     const hasPreloadedRef = useRef(false);
