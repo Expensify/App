@@ -65,7 +65,7 @@ type IOURequestStepAmountProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID = '-1', backTo, pageIndex, action, backToReport, reportActionID},
+        params: {iouType, reportID, transactionID = '-1', backTo, action, backToReport, reportActionID},
     },
     transaction,
     shouldKeepUserInput = false,
