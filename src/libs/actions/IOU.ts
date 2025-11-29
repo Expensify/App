@@ -3800,6 +3800,7 @@ function mergePolicyRecentlyUsedCategories(category: string | undefined, policyR
     return category ? Array.from(new Set([category, ...(Array.isArray(policyRecentlyUsedCategories) ? policyRecentlyUsedCategories : [])])) : (policyRecentlyUsedCategories ?? []);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyRecentlyUsedCurrencies: string[]) {
     return (currency ? Array.from(new Set([currency, ...policyRecentlyUsedCurrencies])) : policyRecentlyUsedCurrencies).slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
 }
