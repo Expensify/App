@@ -53,7 +53,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
         }
 
         setLastSearchType(currentSearchResults.type);
-    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
+    }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults?.type]);
 
     const shouldShowLoadingState = route?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT ? false : !isOffline && !!currentSearchResults?.isLoading;
 

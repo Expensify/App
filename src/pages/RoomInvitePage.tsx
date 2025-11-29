@@ -183,7 +183,7 @@ function RoomInvitePage({
         [selectedOptions],
     );
 
-    const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions]);
+    const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions.length]);
 
     // Non policy members should not be able to view the participants of a room
     const reportID = report?.reportID;

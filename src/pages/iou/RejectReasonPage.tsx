@@ -4,7 +4,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MoneyRequestNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
+import type {MoneyRequestNavigatorParamList, SearchReportActionsParamList} from '@libs/Navigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {clearErrorFields, clearErrors} from '@userActions/FormActions';
 import {rejectMoneyRequest} from '@userActions/IOU';
@@ -15,7 +15,7 @@ import RejectReasonFormView from './RejectReasonFormView';
 
 type RejectReasonPageProps =
     | PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.REJECT>
-    | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
+    | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
 
 function RejectReasonPage({route}: RejectReasonPageProps) {
     const {translate} = useLocalize();

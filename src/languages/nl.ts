@@ -1337,7 +1337,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `veranderde de ${translatedChangedField} naar ${newMerchant} (voorheen ${oldMerchant}), wat het bedrag bijwerkte naar ${newAmountToDisplay} (voorheen ${oldAmountToDisplay})`,
         basedOnAI: 'op basis van eerdere activiteit',
-        basedOnMCC: 'op basis van werkruimteregel',
+        basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `op basis van <a href="${rulesLink}">werkruimteregels</a>` : 'gebaseerd op werkruimteregel'),
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `voor ${comment}` : 'uitgave'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Factuurrapport #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} verzonden${comment ? `voor ${comment}` : ''}`,
@@ -6382,6 +6382,7 @@ ${
             delete: 'Verwijderen',
             hold: 'Vasthouden',
             unhold: 'Verwijder blokkering',
+            reject: 'Afwijzen',
             noOptionsAvailable: 'Geen opties beschikbaar voor de geselecteerde groep uitgaven.',
         },
         filtersHeader: 'Filters',

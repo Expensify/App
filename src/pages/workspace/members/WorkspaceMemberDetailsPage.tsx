@@ -225,7 +225,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             return;
         }
         navigateAfterInteraction(() => Navigation.goBack());
-    }, [member, prevMember]);
+    }, [member?.pendingAction, prevMember]);
 
     const askForConfirmationToRemove = () => {
         if (isReimburser) {
