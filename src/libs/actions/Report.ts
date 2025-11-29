@@ -2998,13 +2998,13 @@ function createNewReport(
     API.write(
         WRITE_COMMANDS.CREATE_APP_REPORT,
         {
-            accountID: creatorPersonalDetails.accountID,
             reportName: optimisticReportName,
             type: CONST.REPORT.TYPE.EXPENSE,
             policyID,
             reportID: optimisticReportID,
             reportActionID,
             reportPreviewReportActionID,
+            reportCreatorEmail: creatorPersonalDetails.login,
         },
         {optimisticData, successData, failureData},
     );
