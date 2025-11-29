@@ -1747,15 +1747,15 @@ describe('SearchUIUtils', () => {
 
     describe('Test getSections', () => {
         it('should return getReportActionsSections result when type is CHAT', () => {
-            expect(
-                SearchUIUtils.getSections({
-                    type: CONST.SEARCH.DATA_TYPES.CHAT,
-                    data: searchResults.data,
-                    currentAccountID: 2074551,
-                    currentUserEmail: '',
-                    formatPhoneNumber,
-                }),
-            ).toStrictEqual(reportActionListItems);
+            const [filteredReportActions, allReportActionsLength] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.CHAT,
+                data: searchResults.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                formatPhoneNumber,
+            });
+            expect(filteredReportActions).toStrictEqual(reportActionListItems);
+            expect(allReportActionsLength).toBe(6);
         });
 
         it('should return getTransactionsSections result when groupBy is undefined', () => {
@@ -1766,7 +1766,7 @@ describe('SearchUIUtils', () => {
                     currentAccountID: 20745,
                     currentUserEmail: '',
                     formatPhoneNumber,
-                }),
+                })[0],
             ).toEqual(transactionsListItems);
         });
 
@@ -1790,7 +1790,7 @@ describe('SearchUIUtils', () => {
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            }) as TransactionListItemType[];
+            })[0] as TransactionListItemType[];
 
             const distanceTransaction = result.find((item) => item.transactionID === distanceTransactionID);
 
@@ -1821,7 +1821,7 @@ describe('SearchUIUtils', () => {
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            }) as TransactionGroupListItemType[];
+            })[0] as TransactionGroupListItemType[];
 
             const reportGroup = result.find((group) => group.transactions?.some((transaction) => transaction.transactionID === distanceTransactionID));
 
@@ -1842,7 +1842,7 @@ describe('SearchUIUtils', () => {
                     currentAccountID: 2074551,
                     currentUserEmail: '',
                     formatPhoneNumber,
-                }),
+                })[0],
             ).toStrictEqual(transactionReportGroupListItems);
         });
 
@@ -1881,14 +1881,14 @@ describe('SearchUIUtils', () => {
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            });
+            })[0];
             const resultReportFirst = SearchUIUtils.getSections({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 data: testDataReportFirst,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            });
+            })[0];
 
             expect(resultTransactionFirst).toBeDefined();
             expect(Array.isArray(resultTransactionFirst)).toBe(true);
@@ -1909,7 +1909,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                }),
+                })[0],
             ).toStrictEqual(transactionMemberGroupListItems);
         });
 
@@ -1922,7 +1922,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
-                }),
+                })[0],
             ).toStrictEqual(transactionCardGroupListItems);
         });
 
@@ -1935,7 +1935,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
-                }),
+                })[0],
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
         });
     });
