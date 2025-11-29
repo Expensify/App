@@ -10929,18 +10929,11 @@ function getReportActionActorAccountID(
             // For automatic actions via workspace rules, show Concierge as the actor
             const originalMessage = getOriginalMessage(reportAction);
             const wasAutomatic = originalMessage && 'automaticAction' in originalMessage ? originalMessage.automaticAction : false;
+            const isPayment = originalMessage && 'type' in originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
 
-            if (wasAutomatic) {
-                // For IOU actions, only show Concierge for payment types
-                if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-                    const isPayment = originalMessage && 'type' in originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
-                    if (isPayment) {
-                        return CONST.ACCOUNT_ID.CONCIERGE;
-                    }
-                } else {
-                    // For APPROVED/FORWARDED, always show Concierge when automatic
-                    return CONST.ACCOUNT_ID.CONCIERGE;
-                }
+            // Show Concierge for: automatic approvals, automatic forwards, or automatic payments
+            if (wasAutomatic && (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU || isPayment)) {
+                return CONST.ACCOUNT_ID.CONCIERGE;
             }
 
             return reportAction?.actorAccountID;
