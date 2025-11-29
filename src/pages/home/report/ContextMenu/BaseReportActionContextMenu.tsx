@@ -189,7 +189,7 @@ function BaseReportActionContextMenu({
     const requestParentReportAction = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
             if (transactionThreadReportID === CONST.FAKE_REPORT_ID) {
-                return Object.values(childReportActions ?? {}).find((action) => !isDeletedAction(action) && action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                return Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isDeletedAction(action));
             }
             if (!paginatedReportActions || !transactionThreadReport?.parentReportActionID) {
                 return undefined;
