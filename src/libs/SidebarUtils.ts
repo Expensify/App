@@ -1089,6 +1089,7 @@ function getWelcomeMessage(
     }
 
     welcomeMessage.messageHtml = messageHtml;
+    welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
     return welcomeMessage;
 }
 
