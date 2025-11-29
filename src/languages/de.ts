@@ -1340,7 +1340,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `änderte das ${translatedChangedField} zu ${newMerchant} (zuvor ${oldMerchant}), wodurch der Betrag auf ${newAmountToDisplay} aktualisiert wurde (zuvor ${oldAmountToDisplay})`,
         basedOnAI: 'basierend auf früheren Aktivitäten',
-        basedOnMCC: 'basierend auf Arbeitsbereichsregel',
+        basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `gemäß den <a href="${rulesLink}">Regeln des Arbeitsbereichs</a>` : 'gemäß der Arbeitsbereichsregel'),
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `für ${comment}` : 'Ausgabe'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Rechnungsbericht Nr. ${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} gesendet${comment ? `für ${comment}` : ''}`,
@@ -6413,6 +6413,7 @@ ${
             delete: 'Löschen',
             hold: 'Halten',
             unhold: 'Halten entfernen',
+            reject: 'Ablehnen',
             noOptionsAvailable: 'Keine Optionen verfügbar für die ausgewählte Gruppe von Ausgaben.',
         },
         filtersHeader: 'Filter',
