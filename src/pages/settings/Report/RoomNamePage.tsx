@@ -72,7 +72,7 @@ function RoomNamePage({report}: RoomNamePageProps) {
 
             return errors;
         },
-        [report, reports, translate],
+        [report?.reportName, report?.policyID, reports, translate],
     );
 
     const updatePolicyRoomName = useCallback(
