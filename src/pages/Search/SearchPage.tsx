@@ -580,7 +580,7 @@ function SearchPage({route}: SearchPageProps) {
                     if (dismissedRejectUseExplanation) {
                         Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
                     } else {
-                        setIsRejectEducationalModalVisible(true);
+                        setRejectModalAction(null);
                     }
                 },
             });
@@ -1025,8 +1025,7 @@ function SearchPage({route}: SearchPageProps) {
             }
         } else {
             dismissRejectUseExplanation();
-            // For reject action, we would navigate to reject flow if needed
-            // Reject is being fixed in PR#75007
+            Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
         }
         setRejectModalAction(null);
     }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
