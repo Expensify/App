@@ -127,13 +127,13 @@ function usePreloadFullScreenNavigators() {
             }
             hasPreloadedRef.current = true;
             setTimeout(() => {
-                TABS_TO_PRELOAD.filter((tabName) => {
+                for (const tabName of TABS_TO_PRELOAD.filter((tabName) => {
                     const isCurrentTab = TAB_TO_FULLSCREEN[tabName].includes(route.name as FullScreenName);
                     const isRouteAlreadyPreloaded = preloadedRoutes.some((preloadedRoute) => TAB_TO_FULLSCREEN[tabName].includes(preloadedRoute.name as FullScreenName));
                     return !isCurrentTab && !isRouteAlreadyPreloaded;
-                }).forEach((tabName) => {
+                })) {
                     preloadTab(tabName, navigation, subscriptionPlan);
-                });
+                }
             }, TIMING_TO_CALL_PRELOAD);
         }, [isAuthenticated, isSingleNewDotEntry, route.name, preloadedRoutes, navigation, subscriptionPlan]),
     );

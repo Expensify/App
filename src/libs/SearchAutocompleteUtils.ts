@@ -28,10 +28,9 @@ function parseForAutocomplete(text: string) {
 function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>) {
     const uniqueTagNames = new Set<string>();
     const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item);
-    tagListsUnpacked
-        .map(getTagNamesFromTagsLists)
-        .flat()
-        .forEach((tag) => uniqueTagNames.add(tag));
+    for (const tag of tagListsUnpacked.map(getTagNamesFromTagsLists).flat()) {
+        uniqueTagNames.add(tag);
+    }
     return Array.from(uniqueTagNames);
 }
 
@@ -40,10 +39,11 @@ function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
  */
 function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTags>) {
     const uniqueTagNames = new Set<string>();
-    Object.values(allRecentTags ?? {})
+    for (const tag of Object.values(allRecentTags ?? {})
         .map((recentTag) => Object.values(recentTag ?? {}))
-        .flat(2)
-        .forEach((tag) => uniqueTagNames.add(tag));
+        .flat(2)) {
+        uniqueTagNames.add(tag);
+    }
     return Array.from(uniqueTagNames);
 }
 
