@@ -65,7 +65,6 @@ const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
 
     // Map SYNTAX_FILTER_KEYS values to their user-friendly names
-    // eslint-disable-next-line unicorn/no-array-for-each
     Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS).forEach(([keyName, keyValue]) => {
         if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
             return;
@@ -74,7 +73,6 @@ const createKeyToUserFriendlyMap = () => {
     });
 
     // Map SYNTAX_ROOT_KEYS values to their user-friendly names
-    // eslint-disable-next-line unicorn/no-array-for-each
     Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS).forEach(([keyName, keyValue]) => {
         if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
             return;
@@ -193,7 +191,6 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
     const allowedOps = new Set<string>([CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]);
 
     let filterValueString = '';
-    // eslint-disable-next-line unicorn/no-array-for-each
     queryFilters.forEach((queryFilter, index) => {
         const previousValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index - 1)?.operator === queryFilter.operator;
         const nextValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index + 1)?.operator === queryFilter.operator;
@@ -252,7 +249,6 @@ function getFilters(queryJSON: SearchQueryJSON) {
                 value: node.right as string | number,
             });
         } else {
-            // eslint-disable-next-line unicorn/no-array-for-each
             node.right.forEach((element) => {
                 filterArray.push({
                     operator: node.operator,
@@ -359,7 +355,6 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
             return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
         })
         .sort((a, b) => customCollator.compare(a.filterString, b.filterString))
-        // eslint-disable-next-line unicorn/no-array-for-each
         .forEach(({filterString, filterKey}) => {
             if (!similarSearchIgnoredFilters.has(filterKey)) {
                 filterSet.add(filterKey);
@@ -555,7 +550,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     // When switching types/setting the type, ensure we aren't polluting our query with filters that are
     // only available for the previous type. Remove all filters that are not allowed for the new type
     const providedFilterKeys = Object.keys(supportedFilterValues) as SearchAdvancedFiltersKey[];
-    // eslint-disable-next-line unicorn/no-array-for-each
     providedFilterKeys.forEach((filter) => {
         if (isFilterSupported(filter, supportedFilterValues.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE)) {
             return;
@@ -701,13 +695,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     filtersString.push(...mappedFilters);
 
-    // eslint-disable-next-line unicorn/no-array-for-each
     DATE_FILTER_KEYS.forEach((dateKey) => {
         const dateFilter = buildDateFilterQuery(supportedFilterValues, dateKey);
         filtersString.push(dateFilter);
     });
 
-    // eslint-disable-next-line unicorn/no-array-for-each
     AMOUNT_FILTER_KEYS.forEach((filterKey) => {
         const amountFilter = buildAmountFilterQuery(filterKey, supportedFilterValues);
         filtersString.push(amountFilter);
