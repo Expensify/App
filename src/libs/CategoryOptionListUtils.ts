@@ -55,7 +55,9 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
             continue;
         }
 
-        option.name.split(CONST.PARENT_CHILD_SEPARATOR).forEach((optionName, index, array) => {
+        const array = option.name.split(CONST.PARENT_CHILD_SEPARATOR);
+
+        for (const [index, optionName] of array.entries()) {
             const indents = times(index, () => CONST.INDENTS).join('');
             const isChild = array.length - 1 === index;
             const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
@@ -63,7 +65,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
             const isParentOptionDisabled = !selectedParentOption || !selectedParentOption.enabled || selectedParentOption.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             if (optionCollection.has(searchText)) {
-                return;
+                continue;
             }
 
             const decodedCategoryName = getDecodedCategoryName(optionName);
@@ -76,7 +78,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 isSelected: isChild ? !!option.isSelected : !!selectedParentOption,
                 pendingAction: option.pendingAction,
             });
-        });
+        }
     }
 
     return Array.from(optionCollection.values());
