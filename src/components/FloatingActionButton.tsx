@@ -66,7 +66,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                 easing: Easing.inOut(Easing.ease),
             }),
         );
-    }, [isActive, sharedValue]);
+    }, [isActive, sharedValue, styles]);
 
     const animatedStyle = useAnimatedStyle(() => {
         const backgroundColor = isHovered.get() && !sharedValue.get() ? buttonHoveredBG : interpolateColor(sharedValue.get(), [0, 1], [buttonDefaultBG, buttonHoveredBG]);
