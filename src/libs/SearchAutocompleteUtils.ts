@@ -133,6 +133,7 @@ function filterOutRangesWithCorrectValue(
     currencyList: SharedValue<string[]>,
     categoryList: SharedValue<string[]>,
     tagList: SharedValue<string[]>,
+    currentType: string,
 ) {
     'worklet';
 
@@ -185,6 +186,9 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
             return tagList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
+            if (currentType !== CONST.SEARCH.DATA_TYPES.EXPENSE && currentType !== CONST.SEARCH.DATA_TYPES.INVOICE) {
+                return false;
+            }
             return groupByList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
@@ -235,8 +239,11 @@ function parseForLiveMarkdown(
 
     const parsedAutocomplete = parse(input) as SearchAutocompleteResult;
     const ranges = parsedAutocomplete.ranges;
+    const typeRange = ranges.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+    const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+
     return ranges
-        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList))
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, currentType))
         .map((range) => {
             const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';
