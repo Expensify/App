@@ -52,7 +52,12 @@ function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTag
  */
 function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCategories>) {
     const uniqueCategoryNames = new Set<string>();
-    Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
+    const categories = Object.values(allPolicyCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
+
+    for (const category of categories) {
+        uniqueCategoryNames.add(category.name);
+    }
+
     return Array.from(uniqueCategoryNames);
 }
 
@@ -61,7 +66,12 @@ function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCat
  */
 function getAutocompleteRecentCategories(allRecentCategories: OnyxCollection<RecentlyUsedCategories>) {
     const uniqueCategoryNames = new Set<string>();
-    Object.values(allRecentCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category)));
+    const categories = Object.values(allRecentCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
+
+    for (const category of categories) {
+        uniqueCategoryNames.add(category);
+    }
+
     return Array.from(uniqueCategoryNames);
 }
 
