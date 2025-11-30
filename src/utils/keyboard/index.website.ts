@@ -5,6 +5,16 @@ import CONST from '@src/CONST';
 let isVisible = false;
 const initialViewportHeight = window?.visualViewport?.height;
 
+const keyboardVisibilityChangeListenersSet = new Set<(isVisible: boolean) => void>();
+
+const subscribeKeyboardVisibilityChange = (cb: (isVisible: boolean) => void) => {
+    keyboardVisibilityChangeListenersSet.add(cb);
+
+    return () => {
+        keyboardVisibilityChangeListenersSet.delete(cb);
+    };
+};
+
 const handleResize = () => {
     const viewportHeight = window?.visualViewport?.height;
 
@@ -16,6 +26,10 @@ const handleResize = () => {
     // The 152px threshold accounts for UI elements such as smart banners on iOS Retina (max ~152px)
     // and smaller overlays like offline indicators on Android. Height differences > 152px reliably indicate keyboard visibility.
     isVisible = initialViewportHeight - viewportHeight > CONST.SMART_BANNER_HEIGHT;
+
+    for (const cb of keyboardVisibilityChangeListenersSet) {
+        cb(isVisible);
+    }
 };
 
 window.visualViewport?.addEventListener('resize', handleResize);
@@ -58,6 +72,6 @@ const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
     });
 };
 
-const utils = {dismiss, dismissKeyboardAndExecute};
+const utils = {dismiss, dismissKeyboardAndExecute, subscribeKeyboardVisibilityChange};
 
 export default utils;

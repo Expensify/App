@@ -56,13 +56,17 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                         r={radius}
                     />
                     <Rect
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         x="55"
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         y={circleTopY + 8}
                         width="30%"
                         height="8"
                     />
                     <Rect
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         x="55"
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         y={circleBottomY - 12}
                         width="40%"
                         height="8"

@@ -30,6 +30,7 @@ import {
     orderOptions,
     orderWorkspaceOptions,
     recentReportComparator,
+    shouldShowLastActorDisplayName,
     sortAlphabetically,
 } from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -1297,6 +1298,142 @@ describe('OptionsListUtils', () => {
         });
     });
 
+    describe('shouldShowLastActorDisplayName()', () => {
+        it('should return false when lastReportAction is not available', () => {
+            // Given a report with no lastVisibleReportAction and no lastAction provided
+            const report = REPORTS['1'];
+            const lastActorDetails = PERSONAL_DETAILS['3'];
+
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, undefined);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when lastActorDetails is null', () => {
+            // Given a report with a lastReportAction but no lastActorDetails
+            const report = REPORTS['1'];
+            const lastAction = createRandomReportAction(1);
+
+            const result = shouldShowLastActorDisplayName(report, null, lastAction);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when report is a self DM', () => {
+            // Given a self DM report with a lastAction and lastActorDetails
+            const report = REPORTS_WITH_SELF_DM['17'];
+            const lastActorDetails = PERSONAL_DETAILS['2'];
+            const lastAction = createRandomReportAction(1);
+
+            // When we call shouldShowLastActorDisplayName with a self DM report
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when report is a DM but lastActorDetails is not the current user', () => {
+            // Given a DM report where last actor is not current user
+            const report = {
+                ...REPORTS['2'],
+                type: CONST.REPORT.TYPE.CHAT,
+            } as Report;
+            const lastActorDetails = PERSONAL_DETAILS['3'];
+            const lastAction = createRandomReportAction(1);
+
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when the last action is an IOU', () => {
+            // Given a report with an IOU last action name
+            const report = REPORTS['1'];
+            const lastActorDetails = PERSONAL_DETAILS['2'];
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when the last action is a REPORT_PREVIEW with MANAGER_MCTEST as participant', () => {
+            // Given a report with a REPORT_PREVIEW last action and MANAGER_MCTEST as participant
+            const report = {
+                ...REPORTS['1'],
+                participants: {
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [CONST.ACCOUNT_ID.MANAGER_MCTEST]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            } as Report;
+            const lastActorDetails = PERSONAL_DETAILS['2'];
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when getLastActorDisplayName returns empty string', () => {
+            renderLocaleContextProvider();
+            // Given a report with lastActorDetails that has no displayName or firstName
+            const report = REPORTS['1'];
+            const lastActorDetails: Partial<PersonalDetails> = {
+                accountID: 99,
+                login: '',
+                displayName: '',
+                firstName: '',
+            };
+            const lastAction = createRandomReportAction(1);
+
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            expect(result).toBe(false);
+        });
+
+        it('should return true when all conditions are met', () => {
+            renderLocaleContextProvider();
+            // Given a report without reportID (so it uses the lastReportAction)
+            const report: Report | undefined = undefined;
+            const lastActorDetails = PERSONAL_DETAILS['3'];
+            const lastAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+
+            // When we call shouldShowLastActorDisplayName with all valid conditions
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            expect(result).toBe(true);
+        });
+
+        it('should return true when the last actor is the current user in a group chat', () => {
+            renderLocaleContextProvider();
+            // Given a report without reportID (so it uses the lastReportAction)
+            const report: Report | undefined = undefined;
+            const lastActorDetails = PERSONAL_DETAILS['2'];
+            const lastAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            expect(result).toBe(true);
+        });
+
+        it('should return true when report is a DM with current user as the last actor', () => {
+            renderLocaleContextProvider();
+            // Given a report without reportID
+            const report: Report | undefined = undefined;
+            const lastActorDetails = PERSONAL_DETAILS['2'];
+            const lastAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+
+            // When we call shouldShowLastActorDisplayName with the current user as last actor
+            const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
+            expect(result).toBe(true);
+        });
+    });
+
     describe('formatMemberForList()', () => {
         it('should format members correctly', () => {
             // Given a set of personal details
@@ -2539,6 +2676,22 @@ describe('OptionsListUtils', () => {
                 });
                 const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
+            });
+        });
+        describe('POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE action', () => {
+            it('should return forced corporate upgrade message', async () => {
+                const report: Report = createRandomReport(0, undefined);
+                const corporateForceUpgradeAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {},
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [corporateForceUpgradeAction.reportActionID]: corporateForceUpgradeAction,
+                });
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+                expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
         });
         it('TAKE_CONTROL action', async () => {
