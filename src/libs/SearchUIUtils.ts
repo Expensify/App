@@ -335,6 +335,7 @@ type GetSectionsParams = {
     archivedReportsIDList?: ArchivedReportsIDSet;
     queryJSON?: SearchQueryJSON;
     isActionLoadingSet?: ReadonlySet<string>;
+    cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>;
 };
 
 /**
@@ -1726,7 +1727,11 @@ function getMemberSections(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getCardSections(data: OnyxTypes.SearchResults['data'], queryJSON: SearchQueryJSON | undefined): [TransactionCardGroupListItemType[], number] {
+function getCardSections(
+    data: OnyxTypes.SearchResults['data'],
+    queryJSON: SearchQueryJSON | undefined,
+    cardFeeds?: OnyxCollection<OnyxTypes.CardFeeds>,
+): [TransactionCardGroupListItemType[], number] {
     const cardSections: Record<string, TransactionCardGroupListItemType> = {};
 
     for (const key in data) {
@@ -1743,6 +1748,18 @@ function getCardSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                 transactionsQueryJSON = buildSearchQueryJSON(newQuery);
             }
 
+            // Find the custom feed name from all card feeds
+            let customFeedName: string | undefined;
+            if (cardFeeds) {
+                for (const feedData of Object.values(cardFeeds)) {
+                    const nickname = feedData?.settings?.companyCardNicknames?.[cardGroup.bank as OnyxTypes.CompanyCardFeed];
+                    if (nickname) {
+                        customFeedName = nickname;
+                        break;
+                    }
+                }
+            }
+
             cardSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.CARD,
                 transactions: [],
@@ -1755,7 +1772,7 @@ function getCardSections(data: OnyxTypes.SearchResults['data'], queryJSON: Searc
                     cardName: cardGroup.cardName,
                     lastFourPAN: cardGroup.lastFourPAN,
                 } as OnyxTypes.Card),
-                formattedFeedName: getCustomOrFormattedFeedName(cardGroup.bank as OnyxTypes.CompanyCardFeed) ?? '',
+                formattedFeedName: getCustomOrFormattedFeedName(cardGroup.bank as OnyxTypes.CompanyCardFeed, customFeedName) ?? '',
             };
         }
     }
@@ -1839,6 +1856,7 @@ function getSections({
     archivedReportsIDList,
     queryJSON,
     isActionLoadingSet,
+    cardFeeds,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -1858,7 +1876,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.FROM:
                 return getMemberSections(data, queryJSON, formatPhoneNumber);
             case CONST.SEARCH.GROUP_BY.CARD:
-                return getCardSections(data, queryJSON);
+                return getCardSections(data, queryJSON, cardFeeds);
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
                 return getWithdrawalIDSections(data, queryJSON);
         }
