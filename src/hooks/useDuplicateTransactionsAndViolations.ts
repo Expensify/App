@@ -32,7 +32,6 @@ function selectViolationsWithDuplicates(transactionIDs: string[], allTransaction
         transactionViolations
             .filter((violations) => violations.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
             .flatMap((violations) => violations?.data?.duplicates ?? [])
-            // eslint-disable-next-line unicorn/no-array-for-each
             .forEach((duplicateID) => {
                 if (!duplicateID) {
                     return;
@@ -85,7 +84,6 @@ function selectTransactionsWithDuplicates(
         transactionViolations
             .filter((violations) => violations.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
             .flatMap((violations) => violations?.data?.duplicates ?? [])
-            // eslint-disable-next-line unicorn/no-array-for-each
             .forEach((duplicateID) => {
                 if (!duplicateID) {
                     return;

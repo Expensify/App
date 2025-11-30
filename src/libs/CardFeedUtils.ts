@@ -424,7 +424,6 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
             continue;
         }
 
-        // eslint-disable-next-line unicorn/no-array-for-each
         Object.keys(getOriginalCompanyFeeds(cardFeeds)).forEach((key) => {
             const feed = key as CompanyCardFeed;
             const id = `${fundID}_${feed}`;
@@ -479,7 +478,6 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
             continue;
         }
 
-        // eslint-disable-next-line unicorn/no-array-for-each
         Object.entries(getOriginalCompanyFeeds(cardFeeds)).forEach(([key, feedData]) => {
             const preferredPolicy = 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
             const feed = key as CompanyCardFeed;

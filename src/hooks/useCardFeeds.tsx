@@ -49,7 +49,6 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
                 return acc;
             }
 
-            // eslint-disable-next-line unicorn/no-array-for-each
             Object.entries(feed.settings.companyCards).forEach(([key, feedSettings]) => {
                 const feedName = key as CompanyCardFeed;
                 const feedOAuthAccountDetails = feed.settings.oAuthAccountDetails?.[feedName];
