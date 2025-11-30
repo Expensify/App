@@ -1,5 +1,5 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 import type PolicyData from '@hooks/usePolicyData/types';
@@ -29,13 +29,36 @@ import enhanceParameters from '@libs/Network/enhanceParameters';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getPolicy, goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
-import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
+import {completeTask, getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, Report} from '@src/types/onyx';
+import type {IntroSelected, Policy, PolicyCategories, PolicyCategory, Report} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+let deprecatedIntroSelected: OnyxEntry<IntroSelected>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => (deprecatedIntroSelected = value),
+});
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
+});
+
+function completeSetupCategoriesAndTagsTask() {
+    const setupCategoriesAndTagsTaskReportID = deprecatedIntroSelected?.setupCategoriesAndTags;
+    if (setupCategoriesAndTagsTaskReportID) {
+        const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${setupCategoriesAndTagsTaskReportID}`];
+        if (taskReport) {
+            completeTask(taskReport);
+        }
+    }
+}
 
 function appendSetupCategoriesOnboardingData(
     onyxData: OnyxData,
@@ -397,6 +420,8 @@ function setWorkspaceCategoryEnabled(
     };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED, parameters, onyxData);
+
+    completeSetupCategoriesAndTagsTask();
 }
 
 function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: string, areCommentsRequired: boolean, policyCategories: PolicyCategories = {}) {
@@ -613,6 +638,8 @@ function createPolicyCategory(
     };
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
+
+    completeSetupCategoriesAndTagsTask();
 }
 
 function importPolicyCategories(policyID: string, categories: PolicyCategory[]) {
@@ -633,6 +660,8 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[]) 
     };
 
     API.write(WRITE_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET, parameters, onyxData);
+
+    completeSetupCategoriesAndTagsTask();
 }
 
 function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: string; newName: string}) {
@@ -775,6 +804,8 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
     };
 
     API.write(WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY, parameters, onyxData);
+
+    completeSetupCategoriesAndTagsTask();
 }
 
 function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, payrollCode: string, policyCategories: PolicyCategories = {}) {
