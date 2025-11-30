@@ -399,10 +399,10 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
             case 'personalDetails': {
                 const personalDetailsUpdate = update.value as Record<string, unknown>;
                 if (personalDetailsUpdate && typeof personalDetailsUpdate === 'object') {
-                    Object.keys(personalDetailsUpdate).forEach((accountIDStr) => {
+                    for (const accountIDStr of Object.keys(personalDetailsUpdate)) {
                         const accountID = Number(accountIDStr);
                         if (!accountID) {
-                            return;
+                            continue;
                         }
 
                         const affectedReports = getReportsWithUserAsSubmitterOrManager(accountID, allReports, context);
@@ -421,7 +421,7 @@ function updateOptimisticReportNamesFromUpdates(updates: OnyxUpdate[], context: 
                                 });
                             }
                         }
-                    });
+                    }
                 }
                 break;
             }
