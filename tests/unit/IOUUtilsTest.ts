@@ -4,8 +4,10 @@ import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {canSubmitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
+import * as IOU from '@src/libs/actions/IOU';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
@@ -35,6 +37,11 @@ function initCurrencyList() {
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+}));
+
+jest.mock('@src/libs/actions/IOU', () => ({
+    trackExpense: jest.fn(),
+    requestMoney: jest.fn(),
 }));
 
 describe('IOUUtils', () => {
@@ -543,5 +550,178 @@ describe('navigateToConfirmationPage', () => {
         IOUUtils.navigateToConfirmationPage(CONST.IOU.TYPE.TRACK, transactionID, reportID, undefined, false);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, reportID, undefined));
+    });
+});
+
+describe('createTransaction', () => {
+    const fakeTransaction = createRandomTransaction(1);
+    const fakeReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+
+    const fileObj = new File([new Blob(['test'])], 'test.jpg', {type: 'image/jpeg'});
+    const fakeReceiptFile: ReceiptFile = {transactionID: fakeTransaction.transactionID, file: fileObj, source: 12345};
+
+    const baseParams = {
+        transactions: [fakeTransaction],
+        iouType: CONST.IOU.TYPE.REQUEST,
+        report: fakeReport,
+        currentUserAccountID: 111,
+        currentUserEmail: 'test@example.com',
+        shouldGenerateTransactionThreadReport: false,
+        isASAPSubmitBetaEnabled: false,
+        transactionViolations: {},
+        files: [fakeReceiptFile],
+        participant: {accountID: 222, login: 'test@test.com'},
+    };
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('should call trackExpense for TRACK iouType', () => {
+        IOUUtils.createTransaction({
+            ...baseParams,
+            iouType: CONST.IOU.TYPE.TRACK,
+        });
+
+        expect(IOU.trackExpense).toHaveBeenCalledTimes(1);
+        expect(IOU.requestMoney).toHaveBeenCalledTimes(0);
+
+        expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect.objectContaining({
+                report: fakeReport,
+                isDraftPolicy: false,
+                participantParams: expect.objectContaining({
+                    payeeEmail: 'test@example.com',
+                    payeeAccountID: 111,
+                    participant: expect.objectContaining({accountID: 222, login: 'test@test.com'}),
+                }),
+                transactionParams: expect.objectContaining({
+                    amount: 0,
+                    currency: fakeTransaction.currency,
+                    created: fakeTransaction.created,
+                    receipt: expect.objectContaining({
+                        source: fakeReceiptFile.source,
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                    }),
+                    billable: undefined,
+                    reimbursable: true,
+                    gpsPoint: undefined,
+                }),
+                shouldHandleNavigation: true,
+                isASAPSubmitBetaEnabled: false,
+            }),
+        );
+
+        expect(IOU.trackExpense).toHaveBeenLastCalledWith(expect.objectContaining({shouldHandleNavigation: true}));
+    });
+
+    it('should call requestMoney for non-TRACK (SEND) iouType', () => {
+        IOUUtils.createTransaction({
+            ...baseParams,
+            iouType: CONST.IOU.TYPE.SEND,
+        });
+
+        expect(IOU.requestMoney).toHaveBeenCalledTimes(1);
+        expect(IOU.trackExpense).toHaveBeenCalledTimes(0);
+
+        expect(IOU.requestMoney).toHaveBeenCalledWith(
+            expect.objectContaining({
+                report: fakeReport,
+                participantParams: expect.objectContaining({
+                    payeeEmail: 'test@example.com',
+                    payeeAccountID: 111,
+                    participant: expect.objectContaining({accountID: 222, login: 'test@test.com'}),
+                }),
+                gpsPoint: undefined,
+                transactionParams: expect.objectContaining({
+                    amount: 0,
+                    created: fakeTransaction.created,
+                    currency: fakeTransaction.currency,
+                    attendees: fakeTransaction.comment?.attendees,
+                    merchant: '',
+                    receipt: expect.objectContaining({
+                        source: fakeReceiptFile.source,
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                    }),
+                    billable: undefined,
+                    reimbursable: true,
+                }),
+                shouldHandleNavigation: true,
+                backToReport: undefined,
+                shouldGenerateTransactionThreadReport: false,
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: 111,
+                currentUserEmailParam: 'test@example.com',
+                transactionViolations: {},
+            }),
+        );
+    });
+
+    it('should pass shouldHandleNavigation as true for last file only', () => {
+        const files = [
+            {...fakeReceiptFile, transactionID: '111'},
+            {...fakeReceiptFile, transactionID: '222'},
+            {...fakeReceiptFile, transactionID: '333'},
+        ];
+
+        IOUUtils.createTransaction({
+            ...baseParams,
+            iouType: CONST.IOU.TYPE.TRACK,
+            files,
+        });
+
+        expect(IOU.trackExpense).toHaveBeenCalledTimes(files.length);
+
+        expect(IOU.trackExpense).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({
+                shouldHandleNavigation: false,
+            }),
+        );
+        expect(IOU.trackExpense).toHaveBeenNthCalledWith(
+            2,
+            expect.objectContaining({
+                shouldHandleNavigation: false,
+            }),
+        );
+        expect(IOU.trackExpense).toHaveBeenNthCalledWith(
+            3,
+            expect.objectContaining({
+                shouldHandleNavigation: true,
+            }),
+        );
+    });
+
+    it('should default receipt source and state correctly when file is missing', () => {
+        const files = [{...fakeReceiptFile, file: undefined}];
+
+        IOUUtils.createTransaction({
+            ...baseParams,
+            files,
+        });
+
+        expect(IOU.requestMoney).toHaveBeenCalledWith(
+            expect.objectContaining({
+                transactionParams: expect.objectContaining({
+                    receipt: expect.objectContaining({
+                        source: 12345,
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                    }),
+                }),
+            }),
+        );
+    });
+
+    it('should default currentUserEmail to empty for requestMoney when not provided', () => {
+        IOUUtils.createTransaction({
+            ...baseParams,
+            currentUserEmail: undefined,
+        });
+
+        expect(IOU.requestMoney).toHaveBeenCalledWith(
+            expect.objectContaining({
+                currentUserEmailParam: '',
+            }),
+        );
     });
 });
