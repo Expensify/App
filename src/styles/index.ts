@@ -4646,8 +4646,12 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        walletIllustration: {
+        walletStaticIllustration: {
+            width: 262,
             height: 152,
+        },
+        walletLottieIllustration: {
+            height: 180,
         },
 
         walletCardLimit: {
@@ -5539,19 +5543,24 @@ const staticStyles = (theme: ThemeColors) =>
         wordBreakAll: {
             ...wordBreak.breakAll,
         },
-        preferencesIllustration: {
+        preferencesStaticIllustration: {
+            width: 280,
             height: 180,
         },
-        securitySettingsIllustration: {
+        securitySettingsStaticIllustration: {
+            width: 112,
             height: 160,
         },
-        aboutIllustration: {
+        aboutStaticIllustration: {
+            width: 100,
             height: 106,
         },
-        troubleshootIllustration: {
+        troubleshootStaticIllustration: {
+            width: 170,
             height: 160,
         },
-        saveTheWorldIllustration: {
+        saveTheWorldStaticIllustration: {
+            width: 179,
             height: 180,
         },
     }) satisfies StaticStyles;

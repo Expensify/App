@@ -28,6 +28,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import pkg from '../../../../package.json';
+import useAboutSectionIllustration from './useAboutSectionIllustration';
 
 function getFlavor(): string {
     const bundleId = DeviceInfo.getBundleId();
@@ -56,7 +57,8 @@ function AboutPage() {
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['PalmTree', 'TiltedCoinExpensify'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PalmTree'] as const);
+    const aboutIllustration = useAboutSectionIllustration();
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
@@ -156,12 +158,12 @@ function AboutPage() {
                         subtitle={translate('initialSettingsPage.aboutPage.description')}
                         isCentralPane
                         subtitleMuted
-                        illustration={illustrations.TiltedCoinExpensify}
-                        illustrationStyle={styles.aboutIllustration}
                         illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                         illustrationBackgroundColor={colors.yellow600}
                         titleStyles={styles.accountSettingsSectionTitle}
                         overlayContent={overlayContent}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...aboutIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <MenuItemList

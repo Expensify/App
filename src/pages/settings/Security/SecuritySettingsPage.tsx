@@ -46,6 +46,7 @@ import ROUTES from '@src/ROUTES';
 import type {Delegate} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import useSecuritySettingsSectionIllustration from './useSecuritySettingsSectionIllustration';
 
 type BaseMenuItemType = {
     translationKey: TranslationPaths;
@@ -58,7 +59,8 @@ type BaseMenuItemType = {
 
 function SecuritySettingsPage() {
     const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserPlus'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['LockClosed', 'Safe'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
+    const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
@@ -362,12 +364,12 @@ function SecuritySettingsPage() {
                                 subtitle={translate('securityPage.subtitle')}
                                 isCentralPane
                                 subtitleMuted
-                                illustration={illustrations.Safe}
-                                illustrationStyle={styles.securitySettingsIllustration}
                                 illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                                 illustrationBackgroundColor={colors.ice500}
                                 titleStyles={styles.accountSettingsSectionTitle}
                                 childrenStyles={styles.pt5}
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...securitySettingsIllustration}
                             >
                                 <MenuItemList
                                     menuItems={securityMenuItems}

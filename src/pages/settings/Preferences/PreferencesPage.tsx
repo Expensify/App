@@ -25,9 +25,11 @@ import {isFullySupportedLocale, LOCALE_TO_LANGUAGE_STRING} from '@src/CONST/LOCA
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import usePreferencesSectionIllustration from './usePreferencesSectionIllustration';
 
 function PreferencesPage() {
-    const illustrations = useMemoizedLazyIllustrations(['Gears', 'DjBoothReferenceHands'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Gears'] as const);
+    const preferencesIllustration = usePreferencesSectionIllustration();
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
 
     const platform = getPlatform(true);
@@ -65,10 +67,10 @@ function PreferencesPage() {
                         title={translate('preferencesPage.appSection.title')}
                         titleStyles={styles.accountSettingsSectionTitle}
                         isCentralPane
-                        illustration={illustrations.DjBoothReferenceHands}
-                        illustrationStyle={styles.preferencesIllustration}
                         illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                         illustrationBackgroundColor={colors.blue500}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...preferencesIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.sectionMenuItemTopDescription]}>

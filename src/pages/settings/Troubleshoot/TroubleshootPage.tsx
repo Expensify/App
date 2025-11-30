@@ -39,6 +39,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
+import useTroubleshootSectionIllustration from './useTroubleshootSectionIllustration';
 
 type BaseMenuItem = {
     translationKey: TranslationPaths;
@@ -48,7 +49,8 @@ type BaseMenuItem = {
 
 function TroubleshootPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'ExpensifyLogoNew'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['Lightbulb', 'WorkspaceScene'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Lightbulb'] as const);
+    const troubleshootIllustration = useTroubleshootSectionIllustration();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
@@ -168,8 +170,6 @@ function TroubleshootPage() {
                         subtitle={translate('initialSettingsPage.troubleshoot.description')}
                         isCentralPane
                         subtitleMuted
-                        illustration={illustrations.WorkspaceScene}
-                        illustrationStyle={styles.troubleshootIllustration}
                         illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                         illustrationBackgroundColor={colors.blue700}
                         titleStyles={styles.accountSettingsSectionTitle}
@@ -178,6 +178,8 @@ function TroubleshootPage() {
                                 <RenderHTML html={translate('initialSettingsPage.troubleshoot.description')} />
                             </View>
                         )}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...troubleshootIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <View>

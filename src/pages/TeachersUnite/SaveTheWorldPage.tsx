@@ -15,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import useSaveTheWorldSectionIllustration from './useSaveTheWorldSectionIllustration';
 
 function SaveTheWorldPage() {
     const styles = useThemeStyles();
@@ -22,7 +23,8 @@ function SaveTheWorldPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-    const illustrations = useMemoizedLazyIllustrations(['TeachersUnite', 'SaveTheWorldScale'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['TeachersUnite'] as const);
+    const saveTheWorldIllustration = useSaveTheWorldSectionIllustration();
     const menuItems = useMemo(() => {
         const baseMenuItems = [
             {
@@ -67,12 +69,12 @@ function SaveTheWorldPage() {
                         subtitle={translate('teachersUnitePage.joinExpensifyOrg')}
                         isCentralPane
                         subtitleMuted
-                        illustration={illustrations.SaveTheWorldScale}
-                        illustrationStyle={styles.saveTheWorldIllustration}
                         illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                         illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT].backgroundColor}
                         titleStyles={styles.accountSettingsSectionTitle}
                         childrenStyles={styles.pt5}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...saveTheWorldIllustration}
                     >
                         <MenuItemList
                             menuItems={menuItems}

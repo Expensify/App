@@ -50,6 +50,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
+import useWalletSectionIllustration from './useWalletSectionIllustration';
 
 type WalletPageProps = {
     /** Listen for window resize event on web and desktop. */
@@ -76,7 +77,8 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const kycWallRef = useContext(KYCWallContext);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['BigVault', 'MoneyIntoWallet'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet'] as const);
+    const walletIllustration = useWalletSectionIllustration();
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -401,10 +403,10 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                             isCentralPane
                             subtitleMuted
                             titleStyles={styles.accountSettingsSectionTitle}
-                            illustration={illustrations.BigVault}
-                            illustrationStyle={styles.walletIllustration}
                             illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                             illustrationBackgroundColor="#411103"
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...walletIllustration}
                         >
                             <PaymentMethodList
                                 onPress={paymentMethodPressed}
