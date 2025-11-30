@@ -32,6 +32,7 @@ function selectViolationsWithDuplicates(transactionIDs: string[], allTransaction
         transactionViolations
             .filter((violations) => violations.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
             .flatMap((violations) => violations?.data?.duplicates ?? [])
+            // eslint-disable-next-line unicorn/no-array-for-each
             .forEach((duplicateID) => {
                 if (!duplicateID) {
                     return;
@@ -81,21 +82,20 @@ function selectTransactionsWithDuplicates(
             continue;
         }
 
-        transactionViolations
+        for (const duplicateID of transactionViolations
             .filter((violations) => violations.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-            .flatMap((violations) => violations?.data?.duplicates ?? [])
-            .forEach((duplicateID) => {
-                if (!duplicateID) {
-                    return;
-                }
+            .flatMap((violations) => violations?.data?.duplicates ?? [])) {
+            if (!duplicateID) {
+                continue;
+            }
 
-                const duplicateKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateID}`;
-                const duplicateTransaction = allTransactions[duplicateKey];
+            const duplicateKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateID}`;
+            const duplicateTransaction = allTransactions[duplicateKey];
 
-                if (duplicateTransaction) {
-                    result[duplicateKey] = duplicateTransaction;
-                }
-            });
+            if (duplicateTransaction) {
+                result[duplicateKey] = duplicateTransaction;
+            }
+        }
     }
     return result;
 }
