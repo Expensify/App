@@ -346,25 +346,26 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     // their value when computing the similarSearchHash
     const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION]);
 
-    query.flatFilters
+    const flatFilters = query.flatFilters
         .map((filter) => {
             const filterKey = filter.key;
             const filters = cloneDeep(filter.filters);
             filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
             return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
         })
-        .sort((a, b) => customCollator.compare(a.filterString, b.filterString))
-        .forEach(({filterString, filterKey}) => {
-            if (!similarSearchIgnoredFilters.has(filterKey)) {
-                filterSet.add(filterKey);
-            }
+        .sort((a, b) => customCollator.compare(a.filterString, b.filterString));
 
-            if (similarSearchValueBasedFilters.has(filterKey)) {
-                filterSet.add(filterString.trim());
-            }
+    for (const {filterString, filterKey} of flatFilters) {
+        if (!similarSearchIgnoredFilters.has(filterKey)) {
+            filterSet.add(filterKey);
+        }
 
-            orderedQuery += ` ${filterString}`;
-        });
+        if (similarSearchValueBasedFilters.has(filterKey)) {
+            filterSet.add(filterString.trim());
+        }
+
+        orderedQuery += ` ${filterString}`;
+    }
 
     const similarSearchHash = hashText(Array.from(filterSet).join(''), 2 ** 32);
     const recentSearchHash = hashText(orderedQuery, 2 ** 32);
