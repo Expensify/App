@@ -70,13 +70,27 @@ export default function addUtilsToWindow() {
             const report = await window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as CollectionKeyBase);
             const typedReport = report as {parentReportID?: string; parentReportActionID?: string} | undefined;
 
-            if (!typedReport?.parentReportID || !typedReport?.parentReportActionID) {
-                return undefined;
+            // First try: Get from parent report action (for transaction thread reports)
+            if (typedReport?.parentReportID && typedReport?.parentReportActionID) {
+                const parentReportActions = await window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${typedReport.parentReportID}` as CollectionKeyBase);
+                const parentAction = (parentReportActions as Record<string, {originalMessage?: {IOUTransactionID?: string}}> | undefined)?.[typedReport.parentReportActionID];
+                if (parentAction?.originalMessage?.IOUTransactionID) {
+                    return parentAction.originalMessage.IOUTransactionID;
+                }
             }
 
-            const reportActions = await window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${typedReport.parentReportID}` as CollectionKeyBase);
-            const parentAction = (reportActions as Record<string, {originalMessage?: {IOUTransactionID?: string}}> | undefined)?.[typedReport.parentReportActionID];
-            return parentAction?.originalMessage?.IOUTransactionID;
+            // Fallback: Search the report's own report actions (for expense reports with one transaction)
+            const reportActions = await window.Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as CollectionKeyBase);
+            const actions = reportActions as Record<string, {originalMessage?: {IOUTransactionID?: string}}> | undefined;
+            if (actions) {
+                for (const action of Object.values(actions)) {
+                    if (action?.originalMessage?.IOUTransactionID) {
+                        return action.originalMessage.IOUTransactionID;
+                    }
+                }
+            }
+
+            return undefined;
         };
 
         // Helper to get policyID from report (checks parent report for one expense reports)
