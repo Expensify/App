@@ -1248,7 +1248,7 @@ describe('PolicyUtils', () => {
                                 successfulDate: '',
                             },
                         },
-                    } as Connections,
+                    } as unknown as Connections,
                 } as OnyxEntry<Policy>;
 
                 const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, false);
@@ -1271,7 +1271,7 @@ describe('PolicyUtils', () => {
                                 successfulDate: '',
                             },
                         },
-                    } as Connections,
+                    } as unknown as Connections,
                 } as OnyxEntry<Policy>;
 
                 const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, false);
@@ -1294,7 +1294,7 @@ describe('PolicyUtils', () => {
                                 successfulDate: new Date().toISOString(),
                             },
                         },
-                    } as Connections,
+                    } as unknown as Connections,
                 } as OnyxEntry<Policy>;
 
                 const result = getPolicyBrickRoadIndicatorStatus(policyWithSuccessfulQBOSync, false);
@@ -1317,7 +1317,7 @@ describe('PolicyUtils', () => {
                                 successfulDate: '',
                             },
                         },
-                    } as Connections,
+                    } as unknown as Connections,
                 } as OnyxEntry<Policy>;
 
                 // When sync is in progress (second parameter is true), should not show error
@@ -1335,7 +1335,7 @@ describe('PolicyUtils', () => {
                                 reimbursableExpensesAccount: undefined,
                             },
                         },
-                    } as Connections,
+                    } as unknown as Connections,
                 } as OnyxEntry<Policy>;
 
                 const result = getPolicyBrickRoadIndicatorStatus(policyWithMissingQBOAccount, false);
@@ -1352,7 +1352,7 @@ describe('PolicyUtils', () => {
                                 reimbursableExpensesAccount: undefined,
                             },
                         },
-                    } as Connections,
+                    } as unknown as Connections,
                 } as OnyxEntry<Policy>;
 
                 const result = getPolicyBrickRoadIndicatorStatus(policyWithMissingQBOAccount, false);
@@ -1369,7 +1369,7 @@ describe('PolicyUtils', () => {
                                 reimbursableExpensesAccount: {id: '123', name: 'Test Account'},
                             },
                         },
-                    } as Connections,
+                    } as unknown as Connections,
                 } as OnyxEntry<Policy>;
 
                 const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOConfigured, false);
@@ -1396,7 +1396,7 @@ describe('PolicyUtils', () => {
                                 reimbursableExpensesAccount: undefined,
                             },
                         },
-                    } as Connections,
+                    } as unknown as Connections,
                 } as OnyxEntry<Policy>;
 
                 const result = getPolicyBrickRoadIndicatorStatus(policyWithQBONoExportDestination, false);
