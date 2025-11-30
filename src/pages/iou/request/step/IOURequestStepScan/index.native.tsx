@@ -175,7 +175,7 @@ function IOURequestStepScan({
         }
 
         return !isArchivedReport(reportNameValuePairs) && !(isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy, reportNameValuePairs]);
+    }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, reportNameValuePairs]);
 
     const {translate} = useLocalize();
 
@@ -415,7 +415,7 @@ function IOURequestStepScan({
             // to the confirmation step.
             // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
             if (!initialTransaction?.isFromGlobalCreate && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
-                const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
+                const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                     return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
@@ -473,7 +473,7 @@ function IOURequestStepScan({
                     return;
                 }
 
-                const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipantsFromReport(receiptFile.transactionID, report));
+                const setParticipantsPromises = files.map((receiptFile) => setMoneyRequestParticipantsFromReport(receiptFile.transactionID, report, currentUserPersonalDetails.accountID));
                 Promise.all(setParticipantsPromises).then(() => navigateToConfirmationPage());
                 return;
             }
@@ -507,7 +507,7 @@ function IOURequestStepScan({
 
                 const setParticipantsPromises = files.map((receiptFile) => {
                     setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
-                    return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat);
+                    return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat, currentUserPersonalDetails.accountID);
                 });
                 Promise.all(setParticipantsPromises).then(() =>
                     Navigation.navigate(
@@ -531,7 +531,7 @@ function IOURequestStepScan({
             initialTransaction?.reportID,
             reportNameValuePairs,
             iouType,
-            personalPolicy,
+            personalPolicy?.autoReporting,
             defaultExpensePolicy,
             report,
             initialTransactionID,
@@ -661,7 +661,7 @@ function IOURequestStepScan({
             }
             navigateToConfirmationStep(files, false);
         },
-        [shouldSkipConfirmation, navigateToConfirmationStep, initialTransaction, iouType, shouldStartLocationPermissionFlow],
+        [shouldSkipConfirmation, navigateToConfirmationStep, initialTransaction?.amount, iouType, shouldStartLocationPermissionFlow],
     );
 
     const viewfinderLayout = useRef<LayoutRectangle>(null);
