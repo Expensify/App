@@ -1,18 +1,32 @@
 import lodashDropRightWhile from 'lodash/dropRightWhile';
-import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getDefaultApprover} from '@libs/PolicyUtils';
 import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees} from '@libs/WorkflowUtils';
+import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {ApprovalWorkflowOnyx, IntroSelected, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+let deprecatedIntroSelected: OnyxEntry<IntroSelected>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => (deprecatedIntroSelected = value),
+});
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
+});
 
 type SetApprovalWorkflowApproverParams = {
     approver: Approver;
@@ -80,6 +94,14 @@ function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
 
     const parameters: CreateWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
+
+    const addExpenseApprovalsTaskReportID = deprecatedIntroSelected?.addExpenseApprovals;
+    if (addExpenseApprovalsTaskReportID) {
+        const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`];
+        if (taskReport) {
+            Task.completeTask(taskReport);
+        }
+    }
 }
 
 function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[], approversToRemove: Approver[], policy: OnyxEntry<Policy>) {
