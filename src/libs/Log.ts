@@ -9,6 +9,7 @@ import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 import pkg from '../../package.json';
 import {addLog, flushAllLogsOnAppLaunch} from './actions/Console';
 import {shouldAttachLog} from './Console';
@@ -59,6 +60,8 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(requestParams.parameters);
     }
+    // Mirror backend log payload into Telemetry logger for better context
+    forwardLogsToSentry(requestParams.logPacket);
     clearTimeout(timeout);
     timeout = setTimeout(() => logger.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
     return LogCommand(requestParams);
