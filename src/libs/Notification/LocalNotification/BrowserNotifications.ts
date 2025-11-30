@@ -170,7 +170,6 @@ export default {
     clearNotifications(shouldClearNotification: (notificationData: LocalNotificationData) => boolean) {
         Object.values(notificationCache)
             .filter((notification) => shouldClearNotification(notification.data as LocalNotificationData))
-            // eslint-disable-next-line unicorn/no-array-for-each
             .forEach((notification) => notification.close());
     },
 };

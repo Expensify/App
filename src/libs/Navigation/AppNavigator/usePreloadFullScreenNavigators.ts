@@ -131,7 +131,6 @@ function usePreloadFullScreenNavigators() {
                     const isCurrentTab = TAB_TO_FULLSCREEN[tabName].includes(route.name as FullScreenName);
                     const isRouteAlreadyPreloaded = preloadedRoutes.some((preloadedRoute) => TAB_TO_FULLSCREEN[tabName].includes(preloadedRoute.name as FullScreenName));
                     return !isCurrentTab && !isRouteAlreadyPreloaded;
-                    // eslint-disable-next-line unicorn/no-array-for-each
                 }).forEach((tabName) => {
                     preloadTab(tabName, navigation, subscriptionPlan);
                 });
