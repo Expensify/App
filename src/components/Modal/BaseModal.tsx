@@ -256,7 +256,7 @@ function BaseModal({
             shouldAddBottomSafeAreaMargin,
             shouldAddTopSafeAreaMargin,
             // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
-            shouldAddBottomSafeAreaPadding: !isUsingEdgeToEdgeMode && (!avoidKeyboard || !keyboardStateContextValue.isKeyboardActive) && shouldAddBottomSafeAreaPadding,
+            shouldAddBottomSafeAreaPadding: !isUsingEdgeToEdgeMode && shouldAddBottomSafeAreaPadding,
             shouldAddTopSafeAreaPadding,
             modalContainerStyle,
             insets,
@@ -264,10 +264,8 @@ function BaseModal({
         return shouldUseModalPaddingStyle ? paddings : {paddingLeft: paddings.paddingLeft, paddingRight: paddings.paddingRight};
     }, [
         StyleUtils,
-        avoidKeyboard,
         insets,
         isUsingEdgeToEdgeMode,
-        keyboardStateContextValue.isKeyboardActive,
         modalContainerStyle,
         shouldAddBottomSafeAreaMargin,
         shouldAddBottomSafeAreaPadding,

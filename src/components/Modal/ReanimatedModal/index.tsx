@@ -2,9 +2,11 @@ import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
 import {BackHandler, InteractionManager, Modal, View} from 'react-native';
+import {KeyboardStickyView} from 'react-native-keyboard-controller';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
-import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
@@ -194,6 +196,10 @@ function ReanimatedModal({
         />
     );
 
+    const insets = useSafeAreaInsets();
+    const StyleUtils = useStyleUtils();
+    const {paddingBottom} = useMemo(() => StyleUtils.getPlatformSafeAreaPadding(insets), [insets, StyleUtils]);
+
     if (!coverScreen && isVisibleState) {
         return (
             <View
@@ -229,13 +235,13 @@ function ReanimatedModal({
             >
                 {isBackdropMounted && hasBackdrop && backdropView}
                 {avoidKeyboard ? (
-                    <KeyboardAvoidingView
-                        behavior="padding"
+                    <KeyboardStickyView
+                        offset={{opened: paddingBottom}}
                         pointerEvents="box-none"
                         style={[style, {margin: 0}]}
                     >
                         {isVisibleState && containerView}
-                    </KeyboardAvoidingView>
+                    </KeyboardStickyView>
                 ) : (
                     <FocusTrapForModal
                         active={modalVisibility}
