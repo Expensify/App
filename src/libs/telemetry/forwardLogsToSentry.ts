@@ -6,8 +6,8 @@ type SentryLogLevel = 'debug' | 'info' | 'warn' | 'error';
  * Method deciding whether a log packet should be forwarded to Sentry.
  * Currently, this always returns false because we want to deliberately decide what is being forwarded.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function shouldForwardLog(log: {message?: string; parameters?: Record<string, unknown> | undefined}) {
-    // eslint-disable-line @typescript-eslint/no-unused-vars
     return false;
 }
 
@@ -46,7 +46,7 @@ function forwardLogsToSentry(logPacket: string | undefined) {
             continue;
         }
         if (!shouldForwardLog(logLine)) {
-            return;
+            continue;
         }
 
         const level = mapLogMessageToSentryLevel(logLine.message);
