@@ -2588,7 +2588,9 @@ function getColumnsToShow(
     };
 
     if (Array.isArray(data)) {
-        data.forEach(updateColumns);
+        for (const item of data) {
+            updateColumns(item);
+        }
     } else {
         for (const key of Object.keys(data)) {
             if (!isTransactionEntry(key)) {
