@@ -67,7 +67,9 @@ function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<Em
     const defaultLangEmojis = localeEmojis[CONST.LOCALES.DEFAULT];
     const isDefaultLocale = lang === CONST.LOCALES.DEFAULT;
 
-    for (const item of emojis.filter((item: PickerEmoji): item is Emoji => !(item as HeaderEmoji).header)) {
+    const nonHeaderEmojis = emojis.filter((item: PickerEmoji): item is Emoji => !(item as HeaderEmoji).header);
+
+    for (const item of nonHeaderEmojis) {
         const englishName = item.name;
         const localeName = langEmojis?.[item.code]?.name ?? englishName;
         const normalizedName = StringUtils.normalizeAccents(localeName);
