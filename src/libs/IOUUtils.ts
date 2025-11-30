@@ -1,17 +1,39 @@
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Policy, Report} from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
+import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {Receipt} from '@src/types/onyx/Transaction';
 import SafeString from '@src/utils/SafeString';
-import type {IOURequestType} from './actions/IOU';
+import type {GpsPoint, IOURequestType} from './actions/IOU';
+import {requestMoney, trackExpense} from './actions/IOU';
 import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getReportTransactions} from './ReportUtils';
 import {getCurrency, getTagArrayFromName} from './TransactionUtils';
+
+type CreateTransactionParams = {
+    transactions: Transaction[];
+    iouType: string;
+    report: OnyxEntry<Report>;
+    currentUserAccountID: number;
+    currentUserEmail?: string;
+    backToReport?: string;
+    shouldGenerateTransactionThreadReport: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    files: ReceiptFile[];
+    participant: Participant;
+    gpsPoint?: GpsPoint;
+    policyParams?: {policy: OnyxEntry<Policy>};
+    billable?: boolean;
+    reimbursable?: boolean;
+};
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -273,6 +295,82 @@ function navigateToConfirmationPage(
     }
 }
 
+function createTransaction({
+    transactions,
+    iouType,
+    report,
+    currentUserAccountID,
+    currentUserEmail,
+    backToReport,
+    shouldGenerateTransactionThreadReport,
+    isASAPSubmitBetaEnabled,
+    transactionViolations,
+    files,
+    participant,
+    gpsPoint,
+    policyParams,
+    billable,
+    reimbursable = true,
+}: CreateTransactionParams) {
+    for (const [index, receiptFile] of files.entries()) {
+        const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
+        const receipt: Receipt = receiptFile.file ?? {};
+        receipt.source = receiptFile.source;
+        receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
+        if (iouType === CONST.IOU.TYPE.TRACK && report) {
+            trackExpense({
+                report,
+                isDraftPolicy: false,
+                participantParams: {
+                    payeeEmail: currentUserEmail,
+                    payeeAccountID: currentUserAccountID,
+                    participant,
+                },
+                transactionParams: {
+                    amount: 0,
+                    currency: transaction?.currency ?? 'USD',
+                    created: transaction?.created,
+                    receipt,
+                    billable,
+                    reimbursable,
+                    gpsPoint,
+                },
+                ...(policyParams ?? {}),
+                shouldHandleNavigation: index === files.length - 1,
+                isASAPSubmitBetaEnabled,
+            });
+        } else {
+            requestMoney({
+                report,
+                participantParams: {
+                    payeeEmail: currentUserEmail,
+                    payeeAccountID: currentUserAccountID,
+                    participant,
+                },
+                ...(policyParams ?? {}),
+                gpsPoint,
+                transactionParams: {
+                    amount: 0,
+                    attendees: transaction?.comment?.attendees,
+                    currency: transaction?.currency ?? 'USD',
+                    created: transaction?.created ?? '',
+                    merchant: '',
+                    receipt,
+                    billable,
+                    reimbursable,
+                },
+                shouldHandleNavigation: index === files.length - 1,
+                backToReport,
+                shouldGenerateTransactionThreadReport,
+                isASAPSubmitBetaEnabled,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail ?? '',
+                transactionViolations,
+            });
+        }
+    }
+}
+
 export {
     calculateAmount,
     insertTagIntoTransactionTagsString,
@@ -286,4 +384,5 @@ export {
     navigateToParticipantPage,
     shouldShowReceiptEmptyState,
     navigateToConfirmationPage,
+    createTransaction,
 };

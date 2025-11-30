@@ -59,6 +59,7 @@ import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTrans
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {
     calculateAmount as calculateIOUAmount,
+    createTransaction,
     formatCurrentUserToAttendee,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToConfirmationPage,
@@ -820,24 +821,6 @@ type DeleteTrackExpenseParams = {
     isSingleTransactionView: boolean | undefined;
     isChatReportArchived: boolean | undefined;
     isChatIOUReportArchived: boolean | undefined;
-};
-
-type CreateTransactionParams = {
-    transactions: OnyxTypes.Transaction[];
-    iouType: string;
-    report: OnyxEntry<OnyxTypes.Report>;
-    payeeAccountID: number;
-    payeeEmail?: string;
-    backToReport?: string;
-    shouldGenerateTransactionThreadReport: boolean;
-    isASAPSubmitBetaEnabled: boolean;
-    transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
-    files: ReceiptFile[];
-    participant: Participant;
-    gpsPoint?: GPSPoint;
-    policyParams?: {policy: OnyxEntry<OnyxTypes.Policy>};
-    billable?: boolean;
-    reimbursable?: boolean;
 };
 
 type InitialTransactionParams = {
@@ -14970,82 +14953,6 @@ function addReportApprover(
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
 }
 
-function createTransaction({
-    transactions,
-    iouType,
-    report,
-    payeeAccountID,
-    payeeEmail,
-    backToReport,
-    shouldGenerateTransactionThreadReport,
-    isASAPSubmitBetaEnabled,
-    transactionViolations,
-    files,
-    participant,
-    gpsPoint,
-    policyParams,
-    billable,
-    reimbursable = true,
-}: CreateTransactionParams) {
-    for (const [index, receiptFile] of files.entries()) {
-        const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
-        const receipt: Receipt = receiptFile.file ?? {};
-        receipt.source = receiptFile.source;
-        receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
-        if (iouType === CONST.IOU.TYPE.TRACK && report) {
-            trackExpense({
-                report,
-                isDraftPolicy: false,
-                participantParams: {
-                    payeeEmail,
-                    payeeAccountID,
-                    participant,
-                },
-                transactionParams: {
-                    amount: 0,
-                    currency: transaction?.currency ?? 'USD',
-                    created: transaction?.created,
-                    receipt,
-                    billable,
-                    reimbursable,
-                    gpsPoint,
-                },
-                ...(policyParams ?? {}),
-                shouldHandleNavigation: index === files.length - 1,
-                isASAPSubmitBetaEnabled,
-            });
-        } else {
-            requestMoney({
-                report,
-                participantParams: {
-                    payeeEmail,
-                    payeeAccountID,
-                    participant,
-                },
-                ...(policyParams ?? {}),
-                gpsPoint,
-                transactionParams: {
-                    amount: 0,
-                    attendees: transaction?.comment?.attendees,
-                    currency: transaction?.currency ?? 'USD',
-                    created: transaction?.created ?? '',
-                    merchant: '',
-                    receipt,
-                    billable,
-                    reimbursable,
-                },
-                shouldHandleNavigation: index === files.length - 1,
-                backToReport,
-                shouldGenerateTransactionThreadReport,
-                isASAPSubmitBetaEnabled,
-                currentUserAccountIDParam: payeeAccountID,
-                currentUserEmailParam: payeeEmail ?? '',
-                transactionViolations,
-            });
-        }
-    }
-}
-
 function handleMoneyRequestStepScanParticipants({
     iouType,
     policy,
@@ -15146,8 +15053,8 @@ function handleMoneyRequestStepScanParticipants({
                             transactions,
                             iouType,
                             report,
-                            payeeAccountID: currentUserAccountID,
-                            payeeEmail: currentUserLogin,
+                            currentUserAccountID,
+                            currentUserEmail: currentUserLogin,
                             backToReport,
                             shouldGenerateTransactionThreadReport,
                             isASAPSubmitBetaEnabled,
@@ -15167,8 +15074,8 @@ function handleMoneyRequestStepScanParticipants({
                             transactions,
                             iouType,
                             report,
-                            payeeAccountID: currentUserAccountID,
-                            payeeEmail: currentUserLogin,
+                            currentUserAccountID,
+                            currentUserEmail: currentUserLogin,
                             backToReport,
                             shouldGenerateTransactionThreadReport,
                             isASAPSubmitBetaEnabled,
@@ -15188,8 +15095,8 @@ function handleMoneyRequestStepScanParticipants({
                 transactions,
                 iouType,
                 report,
-                payeeAccountID: currentUserAccountID,
-                payeeEmail: currentUserLogin,
+                currentUserAccountID,
+                currentUserEmail: currentUserLogin,
                 backToReport,
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
@@ -15530,7 +15437,6 @@ export {
     getUpdateMoneyRequestParams,
     getUpdateTrackExpenseParams,
     getReportPreviewAction,
-    createTransaction,
     handleMoneyRequestStepScanParticipants,
     handleMoneyRequestStepDistanceNavigation,
 };
