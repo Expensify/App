@@ -8,6 +8,7 @@ import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
+import {SUPER_WIDE_RIGHT_MODALS, WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -198,21 +199,15 @@ function navigate(route: Route, options?: LinkToOptions) {
     }
 
     // Start a Sentry span for report navigation
-    if (route.startsWith('r/') || route.startsWith('search/r/') || route.startsWith('e/')) {
+    if (route.startsWith('r/') || route.startsWith('search/r/')) {
         const routePath = Str.cutAfter(route, '?');
-        const reportIDMatch = routePath.match(/^(?:search\/)?(?:r|e)\/(\d+)(?:\/\d+)?$/);
+        const reportIDMatch = routePath.match(/^(?:search\/)?r\/(\d+)(?:\/\d+)?$/);
         const reportID = reportIDMatch?.at(1);
         if (reportID) {
             const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
             let span = getSpan(spanId);
-
             if (!span) {
-                let spanName = '/r/*';
-                if (route.startsWith('search/r/')) {
-                    spanName = '/search/r/*';
-                } else if (route.startsWith('e/')) {
-                    spanName = '/e/*';
-                }
+                const spanName = route.startsWith('r/') ? '/r/*' : '/search/r/*';
                 span = startSpan(spanId, {
                     name: spanName,
                     op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
@@ -225,8 +220,10 @@ function navigate(route: Route, options?: LinkToOptions) {
             });
         }
     }
+
     linkTo(navigationRef.current, route, options);
 }
+
 /**
  * When routes are compared to determine whether the fallback route passed to the goUp function is in the state,
  * these parameters shouldn't be included in the comparison.
@@ -614,30 +611,6 @@ const dismissModalWithReport = ({reportID, reportActionID, referrer, backTo}: Re
 };
 
 /**
- * Returns to the first screen in the Right Hand Modal stack, dismissing all the others.
- */
-const dismissToFirstRHP = () => {
-    const rootState = navigationRef.getRootState();
-    if (!rootState) {
-        return;
-    }
-
-    const rhpState = rootState.routes.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
-
-    if (!rhpState) {
-        return;
-    }
-
-    const routesToPop = rhpState.routes.length - 1;
-    if (routesToPop <= 0) {
-        dismissModal();
-        return;
-    }
-
-    navigationRef.dispatch({...StackActions.pop(routesToPop), target: rhpState.key});
-};
-
-/**
  * Returns to the first screen in the stack, dismissing all the others, only if the global variable shouldPopToSidebar is set to true.
  */
 function popToTop() {
@@ -739,6 +712,49 @@ function fireModalDismissed() {
     }
 }
 
+/**
+ * When multiple screens are open in RHP, returns to the last modal stack specified in the parameter. If none are found, it dismisses the entire modal.
+ *
+ * @param modalStackNames - names of the modal stacks we want to dismiss to
+ */
+function dismissToModalStack(modalStackNames: Set<string>) {
+    const rootState = navigationRef.getRootState();
+    if (!rootState) {
+        return;
+    }
+
+    const rhpState = rootState.routes.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
+
+    if (!rhpState) {
+        return;
+    }
+
+    const lastFoundModalStackIndex = rhpState.routes.findLastIndex((route) => modalStackNames.has(route.name));
+    const routesToPop = rhpState.routes.length - lastFoundModalStackIndex - 1;
+
+    if (routesToPop <= 0 || lastFoundModalStackIndex === -1) {
+        dismissModal();
+        return;
+    }
+
+    navigationRef.dispatch({...StackActions.pop(routesToPop), target: rhpState.key});
+}
+
+/**
+ * Dismiss top layer modal and go back to the Wide/Super Wide RHP.
+ */
+function dismissToFirstRHP() {
+    const wideOrSuperWideModalStackNames = new Set([...SUPER_WIDE_RIGHT_MODALS, ...WIDE_RIGHT_MODALS]);
+    return dismissToModalStack(wideOrSuperWideModalStackNames);
+}
+
+/**
+ * Dismiss top layer modal and go back to the Wide RHP.
+ */
+function dismissToSecondRHP() {
+    return dismissToModalStack(WIDE_RIGHT_MODALS);
+}
+
 export default {
     setShouldPopToSidebar,
     getShouldPopToSidebar,
@@ -777,6 +793,7 @@ export default {
     fireModalDismissed,
     isValidateLoginFlow,
     dismissToFirstRHP,
+    dismissToSecondRHP,
 };
 
 export {navigationRef};

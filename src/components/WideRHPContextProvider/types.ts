@@ -20,7 +20,10 @@ type WideRHPContextType = {
     showSuperWideRHPVersion: (route: NavigationRoute) => void;
 
     // Remove given route from the array
-    cleanWideRHPRouteKey: (route: NavigationRoute) => void;
+    removeWideRHPRouteKey: (route: NavigationRoute) => void;
+
+    // Remove given route from the array
+    removeSuperWideRHPRouteKey: (route: NavigationRoute) => void;
 
     // Mark reportID as expense before condition check
     markReportIDAsExpense: (reportID: string) => void;
@@ -36,12 +39,6 @@ type WideRHPContextType = {
 
     // Check if reportID is marked as multi-transaction expense
     isReportIDMarkedAsMultiTransactionExpense: (reportID: string) => boolean;
-
-    // Navigate to the first visible RHP
-    dismissToFirstRHP: () => void;
-
-    // Navigate to the second visible RHP
-    dismissToSecondRHP: () => void;
 
     // Whether the currently focused route is inside the wide RHP set
     isWideRHPFocused: boolean;
