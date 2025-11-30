@@ -69,6 +69,7 @@ function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<Em
 
     emojis
         .filter((item: PickerEmoji): item is Emoji => !(item as HeaderEmoji).header)
+        // eslint-disable-next-line unicorn/no-array-for-each
         .forEach((item: Emoji) => {
             const englishName = item.name;
             const localeName = langEmojis?.[item.code]?.name ?? englishName;

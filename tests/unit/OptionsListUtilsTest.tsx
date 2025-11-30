@@ -1444,7 +1444,10 @@ describe('OptionsListUtils', () => {
             // Given a report without reportID (so it uses the lastReportAction)
             const report: Report | undefined = undefined;
             const lastActorDetails = PERSONAL_DETAILS['3'];
-            const lastAction = createRandomReportAction(1);
+            const lastAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
 
             // When we call shouldShowLastActorDisplayName with all valid conditions
             const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
@@ -1456,7 +1459,10 @@ describe('OptionsListUtils', () => {
             // Given a report without reportID (so it uses the lastReportAction)
             const report: Report | undefined = undefined;
             const lastActorDetails = PERSONAL_DETAILS['2'];
-            const lastAction = createRandomReportAction(1);
+            const lastAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
 
             const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
             expect(result).toBe(true);
@@ -1467,7 +1473,10 @@ describe('OptionsListUtils', () => {
             // Given a report without reportID
             const report: Report | undefined = undefined;
             const lastActorDetails = PERSONAL_DETAILS['2'];
-            const lastAction = createRandomReportAction(1);
+            const lastAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
 
             // When we call shouldShowLastActorDisplayName with the current user as last actor
             const result = shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
@@ -2717,6 +2726,22 @@ describe('OptionsListUtils', () => {
                 });
                 const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
+            });
+        });
+        describe('POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE action', () => {
+            it('should return forced corporate upgrade message', async () => {
+                const report: Report = createRandomReport(0, undefined);
+                const corporateForceUpgradeAction: ReportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {},
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [corporateForceUpgradeAction.reportActionID]: corporateForceUpgradeAction,
+                });
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+                expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
         });
         it('TAKE_CONTROL action', async () => {
