@@ -9,13 +9,13 @@ import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 import pkg from '../../package.json';
 import {addLog, flushAllLogsOnAppLaunch} from './actions/Console';
 import {shouldAttachLog} from './Console';
 import getPlatform from './getPlatform';
 import {post} from './Network';
 import requireParameters from './requireParameters';
+import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
 let timeout: NodeJS.Timeout;
 let shouldCollectLogs = false;

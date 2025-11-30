@@ -1,13 +1,13 @@
 import * as Sentry from '@sentry/react-native';
 
-
 type SentryLogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 /**
  * Method deciding whether a log packet should be forwarded to Sentry.
  * Currently, this always returns false because we want to deliberately decide what is being forwarded.
  */
-function shouldForwardLog(log: {message?: string; parameters?: Record<string, unknown> | undefined}) { // eslint-disable-line @typescript-eslint/no-unused-vars
+function shouldForwardLog(log: {message?: string; parameters?: Record<string, unknown> | undefined}) {
+    // eslint-disable-line @typescript-eslint/no-unused-vars
     return false;
 }
 
