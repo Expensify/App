@@ -6744,10 +6744,6 @@ function duplicateExpenseTransaction(
     const participants = getMoneyRequestParticipantsFromReport(targetReport);
     const transactionDetails = getTransactionDetails(transaction);
 
-    if (!transactionDetails?.amount) {
-        return;
-    }
-
     const params: RequestMoneyInformation = {
         report: targetReport,
         optimisticChatReportID,
@@ -6765,6 +6761,7 @@ function duplicateExpenseTransaction(
             ...transaction,
             ...transactionDetails,
             attendees: transactionDetails?.attendees as Attendee[] | undefined,
+            comment: transactionDetails?.comment,
             created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             customUnitRateID: transaction?.comment?.customUnit?.customUnitRateID,
             isTestDrive: transaction?.receipt?.isTestDriveReceipt,
@@ -6818,22 +6815,11 @@ function duplicateExpenseTransaction(
                 participants,
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
-                    comment: transactionDetails.comment ?? '',
+                    comment: transactionDetails?.comment ?? '',
                     validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
                 },
             };
             return createDistanceRequest(distanceParams);
-        }
-        case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
-            const perDiemParams: PerDiemExpenseInformation = {
-                ...params,
-                transactionParams: {
-                    ...(params.transactionParams ?? {}),
-                    customUnit: transaction?.comment?.customUnit ?? {},
-                },
-                hasViolations: false,
-            };
-            return submitPerDiemExpense(perDiemParams);
         }
         default:
             return requestMoney(params);

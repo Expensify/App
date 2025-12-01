@@ -623,23 +623,15 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
     const reportTransaction = reportTransactions.at(0);
 
     // Per diem's will be handled separately in a follow-up
-    const isPerDiemRequest = isPerDiemRequestTransactionUtils(reportTransaction);
-
-    if (isPerDiemRequest) {
+    if (isPerDiemRequestTransactionUtils(reportTransaction)) {
         return false;
     }
 
-    const currentUserAccountID = getCurrentUserAccountID();
-    const managerID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserOwner = managerID === currentUserAccountID;
-
-    if (!isCurrentUserOwner) {
+    if (!isCurrentUserSubmitter(report)) {
         return false;
     }
 
-    const isManagedCardTransaction = isManagedCardTransactionTransactionUtils(reportTransaction);
-
-    if (isManagedCardTransaction) {
+    if (isManagedCardTransactionTransactionUtils(reportTransaction)) {
         return false;
     }
 
