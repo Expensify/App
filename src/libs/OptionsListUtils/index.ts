@@ -1281,9 +1281,9 @@ function createFilteredOptionList(
         const allReportsArray = Object.values(reports ?? {});
 
         // Add ONLY 1:1 DM reports (never add group/policy chats to maintain personal avatars)
-        allReportsArray.forEach((report) => {
+        for (const report of allReportsArray) {
             if (!report) {
-                return;
+                continue;
             }
 
             // Check if this is a 1:1 DM (not a group/policy/room chat)
@@ -1291,30 +1291,31 @@ function createFilteredOptionList(
 
             if (is1on1DM) {
                 const accountIDs = getParticipantsAccountIDsForDisplay(report);
-                accountIDs.forEach((accountID) => {
+                for (const accountID of accountIDs) {
                     // ALWAYS set 1:1 DMs - prioritize them over policy/group chats
                     // This ensures proper avatar display for personal details
                     reportMapForAccountIDs[accountID] = report;
-                });
+                }
             }
-        });
+        }
     }
 
     // Step 5: Process the limited set of reports (performance optimization)
     const reportOptions: Array<SearchOption<Report>> = [];
-    limitedReports.forEach((report) => {
+    for (const report of limitedReports) {
         const {reportMapEntry, reportOption} = processReport(report, personalDetails, reportAttributesDerived);
 
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
+
             // Preserve 1:1 DMs from Step 4 - don't overwrite them with non-1:1 reports
-            // This ensures personal detail options use 1:1 DM reports for proper avatar display
             const existing = reportMapForAccountIDs[accountID];
             const existingIs1on1 = existing && reportUtilsIsOneOnOneChat(existing);
             const newIs1on1 = reportUtilsIsOneOnOneChat(reportValue);
 
             // Only overwrite if: no existing, existing is not 1:1, or both are 1:1 (prefer newer)
             const shouldOverwrite = !existing || !existingIs1on1 || newIs1on1;
+
             if (shouldOverwrite) {
                 reportMapForAccountIDs[accountID] = reportValue;
             }
@@ -1323,7 +1324,7 @@ function createFilteredOptionList(
         if (reportOption) {
             reportOptions.push(reportOption);
         }
-    });
+    }
 
     // Step 6: Process personal details (all of them - needed for search functionality)
     const personalDetailsOptions = includeP2P
