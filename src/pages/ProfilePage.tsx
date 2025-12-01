@@ -84,7 +84,8 @@ function ProfilePage({route}: ProfilePageProps) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-    }, [accountID, isCurrentUser, reports, session]);
+    }, [accountID, isCurrentUser, reports, session?.accountID]);
+
     const [report] = useOnyx(reportKey, {canBeMissing: true});
 
     const styles = useThemeStyles();

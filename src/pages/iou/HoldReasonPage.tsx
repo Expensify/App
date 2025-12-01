@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MoneyRequestNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
+import type {MoneyRequestNavigatorParamList, SearchReportActionsParamList} from '@libs/Navigation/types';
 import {getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditMoneyRequest, isReportInGroupPolicy} from '@libs/ReportUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -19,12 +19,12 @@ import HoldReasonFormView from './HoldReasonFormView';
 
 type HoldReasonPageProps =
     | PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.HOLD>
-    | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
+    | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
 
 function HoldReasonPage({route}: HoldReasonPageProps) {
     const {translate} = useLocalize();
 
-    const {transactionID, reportID, backTo, searchHash} = route.params;
+    const {transactionID, reportID, backTo} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const {selectedTransactionIDs} = useSearchContext();
@@ -42,7 +42,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, reportID, searchHash);
+        putOnHold(transactionID, values.comment, reportID);
         Navigation.goBack(backTo);
     };
 

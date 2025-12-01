@@ -279,14 +279,15 @@ function validateArray<T extends 'string' | 'number' | 'boolean' | Record<string
         throw new ArrayError(arrayType);
     }
 
-    array.forEach((element) => {
+    for (const element of array) {
         // Element is an object
         if (element && typeof element === 'object' && typeof arrayType === 'object') {
-            Object.entries(element).forEach(([key, val]) => {
+            for (const [key, val] of Object.entries(element)) {
                 const expectedType = arrayType[key as keyof typeof arrayType];
                 // Property is a constant enum, so we apply validateConstantEnum
                 if (typeof expectedType === 'object' && !Array.isArray(expectedType)) {
-                    return validateConstantEnum(String(val), expectedType as ConstantEnum);
+                    validateConstantEnum(String(val), expectedType as ConstantEnum);
+                    continue;
                 }
                 // Expected property type is array
                 if (expectedType === 'array') {
@@ -294,14 +295,14 @@ function validateArray<T extends 'string' | 'number' | 'boolean' | Record<string
                     if (!Array.isArray(val)) {
                         throw new ArrayError(arrayType);
                     }
-                    return;
+                    continue;
                 }
                 // Property type is not one of the valid types
                 if (Array.isArray(expectedType) ? !expectedType.includes(typeof val as TupleToUnion<PropertyTypes>) : typeof val !== expectedType) {
                     throw new ArrayError(arrayType);
                 }
-            });
-            return;
+            }
+            continue;
         }
         // Element is a constant enum
         if (typeof arrayType === 'object') {
@@ -309,13 +310,13 @@ function validateArray<T extends 'string' | 'number' | 'boolean' | Record<string
             if (!Object.values(arrayType).includes(element)) {
                 throw new ArrayError(arrayType);
             }
-            return;
+            continue;
         }
         // Element is not a valid type
         if (typeof element !== arrayType) {
             throw new ArrayError(arrayType);
         }
-    });
+    }
 }
 
 /**
@@ -339,7 +340,7 @@ function validateObject<T extends Record<string, unknown>>(value: string, type: 
     }
 
     if (collectionIndexType) {
-        Object.keys(object).forEach((key) => {
+        for (const key of Object.keys(object)) {
             try {
                 if (collectionIndexType === 'number') {
                     validateNumber(key);
@@ -347,27 +348,28 @@ function validateObject<T extends Record<string, unknown>>(value: string, type: 
             } catch (e) {
                 throw new ObjectError(expectedType);
             }
-        });
+        }
     }
 
     const tests = collectionIndexType ? (Object.values(object) as unknown as Array<Record<string, 'string' | 'number' | 'object'>>) : [object];
 
-    tests.forEach((test) => {
+    for (const test of tests) {
         if (typeof test !== 'object' || Array.isArray(test)) {
             throw new ObjectError(expectedType);
         }
 
-        Object.entries(test).forEach(([key, val]) => {
+        for (const [key, val] of Object.entries(test)) {
             const expectedValueType = type[key];
             // val is a constant enum
             if (typeof expectedValueType === 'object') {
-                return validateConstantEnum(val as string, expectedValueType);
+                validateConstantEnum(val as string, expectedValueType);
+                continue;
             }
             if (expectedValueType === 'array' ? !Array.isArray(val) : typeof val !== expectedValueType) {
                 throw new ObjectError(expectedType);
             }
-        });
-    });
+        }
+    }
 }
 
 /**
@@ -936,6 +938,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
     }
     switch (key) {
         case 'reportID':
+        case 'reportName':
         case 'currency':
         case 'tag':
         case 'category':
@@ -1062,6 +1065,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1300,14 +1304,14 @@ function validateTransactionViolationDraftProperty(key: keyof TransactionViolati
  */
 function validateReportActionJSON(json: string) {
     const parsedReportAction = parseJSON(json) as ReportAction;
-    REPORT_ACTION_REQUIRED_PROPERTIES.forEach((key) => {
+    for (const key of REPORT_ACTION_REQUIRED_PROPERTIES) {
         if (parsedReportAction[key] !== undefined) {
-            return;
+            continue;
         }
 
         throw new SyntaxError('debug.missingProperty', {cause: {propertyName: key}});
-    });
-    Object.entries(parsedReportAction).forEach(([key, val]) => {
+    }
+    for (const [key, val] of Object.entries(parsedReportAction)) {
         try {
             if (!isEmptyValue(val as string) && REPORT_ACTION_NUMBER_PROPERTIES.includes(key as keyof ReportAction) && typeof val !== 'number') {
                 throw new NumberError();
@@ -1317,26 +1321,26 @@ function validateReportActionJSON(json: string) {
             const {cause} = e as SyntaxError & {cause: {expectedValues: string}};
             throw new SyntaxError('debug.invalidProperty', {cause: {propertyName: key, expectedType: cause.expectedValues}});
         }
-    });
+    }
 }
 
 function validateTransactionViolationJSON(json: string) {
     const parsedTransactionViolation = parseJSON(json) as TransactionViolation;
-    TRANSACTION_VIOLATION_REQUIRED_PROPERTIES.forEach((key) => {
+    for (const key of TRANSACTION_VIOLATION_REQUIRED_PROPERTIES) {
         if (parsedTransactionViolation[key] !== undefined) {
-            return;
+            continue;
         }
 
         throw new SyntaxError('debug.missingProperty', {cause: {propertyName: key}});
-    });
-    Object.entries(parsedTransactionViolation).forEach(([key, val]) => {
+    }
+    for (const [key, val] of Object.entries(parsedTransactionViolation)) {
         try {
             validateTransactionViolationDraftProperty(key as keyof TransactionViolation, onyxDataToString(val));
         } catch (e) {
             const {cause} = e as SyntaxError & {cause: {expectedValues: string}};
             throw new SyntaxError('debug.invalidProperty', {cause: {propertyName: key, expectedType: cause.expectedValues}});
         }
-    });
+    }
 }
 
 /**

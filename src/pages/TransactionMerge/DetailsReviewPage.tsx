@@ -45,6 +45,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
     const {targetTransaction, sourceTransaction} = useMergeTransactions({mergeTransaction, hash});
 
+    const [originalTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
 
@@ -53,11 +54,11 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             return;
         }
 
-        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare);
+        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, originalTargetTransaction, localeCompare);
 
         setMergeTransactionKey(transactionID, mergeableData);
         setConflictFields(detectedConflictFields as MergeFieldKey[]);
-    }, [targetTransaction, sourceTransaction, transactionID, localeCompare]);
+    }, [targetTransaction, sourceTransaction, originalTargetTransaction, transactionID, localeCompare]);
 
     // Handle selection
     const handleSelect = useCallback(
@@ -83,7 +84,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                 } as Partial<Record<MergeFieldKey, string>>,
             });
         },
-        [mergeTransaction, transactionID],
+        [mergeTransaction?.selectedTransactionByField, transactionID],
     );
 
     // Handle continue
@@ -93,13 +94,13 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         }
 
         const newHasErrors: Partial<Record<MergeFieldKey, boolean>> = {};
-        conflictFields.forEach((field) => {
+        for (const field of conflictFields) {
             if (!isEmptyMergeValue(mergeTransaction[field])) {
-                return;
+                continue;
             }
 
             newHasErrors[field] = true;
-        });
+        }
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {

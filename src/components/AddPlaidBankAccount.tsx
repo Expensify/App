@@ -103,7 +103,7 @@ function AddPlaidBankAccount({
      */
     const isAuthenticatedWithPlaid = useCallback(
         () => (!!receivedRedirectURI && !!plaidLinkOAuthToken) || !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors),
-        [plaidData, plaidLinkOAuthToken, receivedRedirectURI],
+        [plaidData?.bankAccounts?.length, plaidData?.errors, plaidLinkOAuthToken, receivedRedirectURI],
     );
 
     /**
@@ -128,7 +128,9 @@ function AddPlaidBankAccount({
      * Unblocks the keyboard shortcuts that can navigate
      */
     const unsubscribeToNavigationShortcuts = () => {
-        subscribedKeyboardShortcuts.current.forEach((unsubscribe) => unsubscribe());
+        for (const unsubscribe of subscribedKeyboardShortcuts.current) {
+            unsubscribe();
+        }
         subscribedKeyboardShortcuts.current = [];
     };
 
