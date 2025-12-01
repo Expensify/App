@@ -4714,6 +4714,10 @@ ${
             addShippingDetails: 'Dodaj szczegóły wysyłki',
             issuedCard: ({assignee}: AssigneeParams) => `wydano ${assignee} kartę Expensify! Karta dotrze w ciągu 2-3 dni roboczych.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `Wydano ${assignee} kartę Expensify! Karta zostanie wysłana po potwierdzeniu danych wysyłkowych.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} wymienił swoją wirtualną kartę Expensify! ${link} można używać od razu.`,
+            card: 'karta',
+            replacementCard: 'karta zastępcza',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} wymienił swoją kartę Expensify. Nowa karta dotrze w ciągu 2-3 dni roboczych.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `wydano ${assignee} wirtualną ${link}! Karta może być używana od razu.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} dodał(a) szczegóły wysyłki. Expensify Card dotrze w ciągu 2-3 dni roboczych.`,
             verifyingHeader: 'Weryfikacja',
@@ -6586,6 +6590,15 @@ ${
             title: 'Aktualizacja nie powiodła się',
             message: 'Nie udało nam się sprawdzić aktualizacji. Spróbuj ponownie za chwilę.',
         },
+    },
+    settlement: {
+        status: {
+            pending: 'Oczekujące',
+            cleared: 'Rozliczone',
+            failed: 'Niepowodzenie',
+        },
+        failedError: ({link}: {link: string}) => `Ponowimy tę rozliczenie, gdy <a href="${link}">odblokujesz swoje konto</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID wypłaty: ${withdrawalID}`,
     },
     reportLayout: {
         reportLayout: 'Układ raportu',

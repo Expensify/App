@@ -4726,6 +4726,10 @@ ${
             addShippingDetails: 'Verzendgegevens toevoegen',
             issuedCard: ({assignee}: AssigneeParams) => `heeft ${assignee} een Expensify Card uitgegeven! De kaart zal binnen 2-3 werkdagen arriveren.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `heeft ${assignee} een Expensify Card uitgegeven! De kaart wordt verzonden zodra de verzendgegevens zijn bevestigd.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} heeft zijn virtuele Expensify-kaart vervangen! ${link} kan direct worden gebruikt.`,
+            card: 'kaart',
+            replacementCard: 'vervangingskaart',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} heeft zijn Expensify-kaart vervangen. De nieuwe kaart komt binnen 2-3 werkdagen aan.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `heeft ${assignee} een virtuele ${link} uitgegeven! De kaart kan direct worden gebruikt.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} heeft verzendgegevens toegevoegd. Expensify Card wordt binnen 2-3 werkdagen bezorgd.`,
             verifyingHeader: 'Verifiëren',
@@ -6599,6 +6603,15 @@ ${
             title: 'Updatecontrole mislukt',
             message: 'We konden niet controleren op een update. Probeer het over een tijdje opnieuw.',
         },
+    },
+    settlement: {
+        status: {
+            pending: 'In behandeling',
+            cleared: 'Afgewikkeld',
+            failed: 'Mislukt',
+        },
+        failedError: ({link}: {link: string}) => `We proberen deze afwikkeling opnieuw wanneer je <a href="${link}">je account ontgrendelt</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Opname-ID: ${withdrawalID}`,
     },
     reportLayout: {
         reportLayout: 'Rapportindeling',

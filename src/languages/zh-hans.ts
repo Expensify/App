@@ -4629,7 +4629,11 @@ ${
             issuedCard: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！该卡将在2-3个工作日内送达。`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `已向${assignee}发放一张 Expensify Card！确认运送信息后将寄出该卡。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `已向${assignee}发放了一张虚拟${link}！该卡可以立即使用。`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee}已更换虚拟Expensify卡！${link}可以立即使用。`,
+            card: '卡',
+            replacementCard: '替换卡',
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} 已添加发货详情。Expensify Card 将在 2-3 个工作日内送达。`,
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee}已更换Expensify卡。新卡将在2-3个工作日内送达。`,
             verifyingHeader: '验证中',
             bankAccountVerifiedHeader: '银行账户已验证',
             verifyingBankAccount: '正在验证银行账户...',
@@ -6458,6 +6462,15 @@ ${
             title: '更新检查失败',
             message: '我们无法检查更新。请稍后再试。',
         },
+    },
+    settlement: {
+        status: {
+            pending: '待处理',
+            cleared: '已结算',
+            failed: '失败',
+        },
+        failedError: ({link}: {link: string}) => `当您<a href="${link}">解锁账户</a>时，我们将重试此结算。`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 提款ID: ${withdrawalID}`,
     },
     reportLayout: {
         reportLayout: '报告布局',
