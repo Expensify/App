@@ -50,12 +50,12 @@ function useCarouselContextEvents(setShouldShowArrows?: (show?: SetStateAction<b
      * It is used to trigger touch events on the pager when the user taps on the MultiGestureCanvas/Lightbox.
      */
     const handleTap = useCallback(
-        (showArrows?: boolean) => {
+        (shouldShowArrows?: boolean) => {
             if (!isScrollEnabled.get()) {
                 return;
             }
 
-            onRequestToggleArrows(showArrows);
+            onRequestToggleArrows(shouldShowArrows);
         },
         [isScrollEnabled, onRequestToggleArrows],
     );
