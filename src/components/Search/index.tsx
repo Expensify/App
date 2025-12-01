@@ -241,6 +241,7 @@ function Search({
     const isFocused = useIsFocused();
     const {markReportIDAsExpense} = useContext(WideRHPContext);
     const {
+        currentSearchHash,
         setCurrentSearchHashAndKey,
         setCurrentSearchQueryJSON,
         setSelectedTransactions,
@@ -370,9 +371,11 @@ function Search({
         if (selectedKeys.length > 0 && !isMobileSelectionModeEnabled && !isSearchResultsEmpty) {
             turnOnMobileSelectionMode();
         }
+
+        // We only want this effect to handle the switching of mobile selection mode state when screen size changes.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSmallScreenWidth, selectedTransactions, isMobileSelectionModeEnabled]);
+    }, [isSmallScreenWidth]);
 
     useEffect(() => {
         openSearch();
@@ -582,7 +585,7 @@ function Search({
 
     useEffect(
         () => () => {
-            if (isSearchTopmostFullScreenRoute()) {
+            if (isSearchTopmostFullScreenRoute() && currentSearchHash === hash) {
                 return;
             }
             clearSelectedTransactions();
