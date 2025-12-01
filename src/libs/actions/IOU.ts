@@ -13750,6 +13750,30 @@ function prepareRejectMoneyRequestData(
         },
     });
 
+    // Update hasOutstandingChildRequest on the chat report after all optimistic updates
+    if (policyExpenseChat) {
+        const excludedReportID = rejectedToReportID ?? reportID;
+        const shouldHaveOutstandingChildRequest = hasOutstandingChildRequest(policyExpenseChat, excludedReportID, currentUserEmail);
+
+        if (policyExpenseChat.hasOutstandingChildRequest !== shouldHaveOutstandingChildRequest) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
+                value: {
+                    hasOutstandingChildRequest: shouldHaveOutstandingChildRequest,
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
+                value: {
+                    hasOutstandingChildRequest: policyExpenseChat.hasOutstandingChildRequest,
+                },
+            });
+        }
+    }
+
     // Add successData to clear pending actions when the server confirms
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,

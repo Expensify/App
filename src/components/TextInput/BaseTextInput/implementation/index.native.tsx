@@ -113,7 +113,7 @@ function BaseTextInput({
     const isLabelActive = useRef(initialActiveLabel);
     const hasLabel = !!label?.length;
 
-    useHtmlPaste(input, undefined, isMarkdownEnabled);
+    useHtmlPaste(input, undefined, isMarkdownEnabled, maxLength);
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
