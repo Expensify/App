@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,7 +15,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -30,11 +30,11 @@ import type SCREENS from '@src/SCREENS';
 
 type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT>;
 
-const DEFAULT_OBJECT = {};
 function UnshareBankAccount({route}: ShareBankAccountProps) {
     const bankAccountID = route.params?.bankAccountID;
     const styles = useThemeStyles();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [showExpensifyCardErrorModal, setShowExpensifyCardErrorModal] = useState(false);
 
     const {isOffline} = useNetwork();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
@@ -43,13 +43,13 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const isLoading = unsharedBankAccountData?.isLoading ?? false;
 
     const [unshareUser, setUnshareUser] = useState<{login?: string | null; text?: string | null} | undefined>(undefined);
-    const error = getLatestErrorMessage(unsharedBankAccountData ?? DEFAULT_OBJECT);
 
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
-    const admins = ['n.arefyev91@gmail.com', '5552@gmail.com', '5553@gmail.com'] ?? bankAccountList?.[bankAccountID]?.accountData?.sharees;
-    // const shouldShowTextInput = admins && admins?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const shouldShowTextInput = admins && admins?.length >= 2;
+    const admins = useMemo(() => bankAccountList?.[bankAccountID]?.accountData?.sharees, [bankAccountID, bankAccountList]);
+    const isExpensifyCardSettlementAccount = bankAccountList?.[bankAccountID]?.isExpensifyCardSettlementAccount ?? false;
+
+    const shouldShowTextInput = admins && admins?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
 
     useEffect(() => {
@@ -61,20 +61,17 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         };
     }, [isLoading]);
 
-    useEffect(() => {
-        if (isOffline) {
-            return;
-        }
-        // openBankAccountSharePage();
-    }, [isOffline]);
-
     const handleUnshare = useCallback(() => {
         if (!bankAccountID || !unshareUser?.login) {
             return;
         }
+        if (isExpensifyCardSettlementAccount) {
+            setShowExpensifyCardErrorModal(true);
+            return;
+        }
         unshareBankAccount(Number(bankAccountID), unshareUser.login);
         setUnshareUser(undefined);
-    }, [bankAccountID, unshareUser?.login]);
+    }, [bankAccountID, unshareUser?.login, isExpensifyCardSettlementAccount]);
 
     const adminsList = useMemo(() => {
         if (admins?.length === 0) {
@@ -107,7 +104,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     }, [admins, countryCode, debouncedSearchTerm]);
 
     const hideUnshareErrorModal = useCallback(() => {
-        clearUnshareBankAccountErrors();
+        setShowExpensifyCardErrorModal(false);
     }, []);
 
     const onSelectRow = useCallback((item: MemberForList) => {
@@ -118,8 +115,9 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         (item: ListItem) => {
             return (
                 <Button
+                    isLoading={isLoading && unsharedBankAccountData?.email === item?.login}
                     small
-                    isDisabled={isOffline}
+                    isDisabled={isOffline || isLoading}
                     danger
                     text={translate('common.unshare')}
                     onPress={() => setUnshareUser({login: item?.login, text: item?.text})}
@@ -127,7 +125,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                 />
             );
         },
-        [isOffline, translate],
+        [isLoading, unsharedBankAccountData?.email, isOffline, translate],
     );
 
     const sections = useMemo(
@@ -165,13 +163,21 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                 shouldShowListEmptyContent={false}
                 rightHandSideComponent={itemRightSideComponent}
                 shouldShowHeaderMessageAfterHeader
+                footerContent={
+                    <ErrorMessageRow
+                        errors={unsharedBankAccountData?.errors}
+                        errorRowStyles={[styles.mv3]}
+                        onClose={clearUnshareBankAccountErrors}
+                        canDismissError
+                    />
+                }
                 onSelectRow={onSelectRow}
                 headerMessage={headerMessage}
                 ListItem={UserListItem}
             />
             <ConfirmModal
                 title={translate('walletPage.unshareErrorModalTitle')}
-                isVisible={!!error}
+                isVisible={showExpensifyCardErrorModal}
                 onConfirm={hideUnshareErrorModal}
                 success
                 prompt={

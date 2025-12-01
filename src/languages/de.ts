@@ -338,6 +338,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Abbrechen',
         dismiss: 'Verwerfen',
         proceed: 'Fortfahren',
+        unshare: 'Nicht teilen',
         yes: 'Ja',
         no: 'Nein',
         ok: 'OK',
@@ -2028,6 +2029,12 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Bestätigen Sie Ihr Bankkonto',
         personalBankAccounts: 'Persönliche Bankkonten',
         businessBankAccounts: 'Geschäftsbankkonten',
+        unshareBankAccount: 'Bankkonto freigeben',
+        unshareBankAccountDescription:
+            'Alle unten aufgeführten Personen haben Zugriff auf dieses Bankkonto. Sie können den Zugriff jederzeit entfernen. Laufende Zahlungen werden weiterhin ausgeführt.',
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} verliert den Zugriff auf dieses Geschäftskonto. Laufende Zahlungen werden weiterhin ausgeführt.`,
+        reachOutForHelp: 'Dieses Konto wird mit der Expensify Card verwendet. <concierge-link>Wenden Sie sich an den Concierge</concierge-link>, wenn Sie die Freigabe aufheben möchten.',
+        unshareErrorModalTitle: 'Bankkonto kann nicht freigegeben werden',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

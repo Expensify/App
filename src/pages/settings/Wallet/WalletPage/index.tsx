@@ -320,7 +320,7 @@ function WalletPage() {
                       },
                   ]
                 : []),
-            ...(shouldShowUnshareButton
+            ...(!shouldShowUnshareButton
                 ? [
                       {
                           text: translate('common.unshare'),

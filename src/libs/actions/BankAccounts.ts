@@ -1245,6 +1245,7 @@ function unshareBankAccount(bankAccountID: number, email: string) {
                 value: {
                     isLoading: true,
                     errors: null,
+                    email,
                 },
             },
         ],
@@ -1255,8 +1256,7 @@ function unshareBankAccount(bankAccountID: number, email: string) {
                 value: {
                     isLoading: false,
                     errors: null,
-                    admins: null,
-                    shouldShowSuccess: true,
+                    email: null,
                 },
             },
         ],

@@ -338,6 +338,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Annuleren',
         dismiss: 'Verwijderen',
         proceed: 'Doorgaan',
+        unshare: 'Niet meer delen',
         yes: 'Ja',
         no: 'Nee',
         ok: 'OK',
@@ -2020,6 +2021,13 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Bevestig uw bankrekening',
         personalBankAccounts: 'Persoonlijke bankrekeningen',
         businessBankAccounts: 'Zakelijke bankrekeningen',
+        unshareBankAccount: 'Deelname bankrekening ongedaan maken',
+        unshareBankAccountDescription:
+            'Iedereen hieronder heeft toegang tot deze bankrekening. U kunt de toegang op elk moment intrekken. We zullen alle betalingen die in behandeling zijn nog steeds voltooien.',
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) =>
+            `${admin} verliest de toegang tot deze zakelijke bankrekening. We zullen alle betalingen die in behandeling zijn nog steeds voltooien.`,
+        reachOutForHelp: 'Deze wordt gebruikt met de Expensify Card. <concierge-link>Neem contact op met Concierge</concierge-link> als u de deling ongedaan wilt maken.',
+        unshareErrorModalTitle: 'Deling bankrekening kan niet ongedaan worden gemaakt',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',

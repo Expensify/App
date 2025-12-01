@@ -12,6 +12,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Cancelar',
         dismiss: 'Descartar',
         proceed: 'Proceder',
+        unshare: 'Dejar de compartir',
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
@@ -1785,6 +1786,12 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Confirma tu cuenta bancaria',
         personalBankAccounts: 'Cuentas bancarias personales',
         businessBankAccounts: 'Cuentas bancarias empresariales',
+        unshareBankAccount: 'Dejar de compartir la cuenta bancaria',
+        unshareBankAccountDescription:
+            'Todas las personas a continuación tienen acceso a esta cuenta bancaria. Puede retirar el acceso en cualquier momento. Seguiremos completando los pagos en proceso.',
+        unshareBankAccountWarning: ({admin}: {admin?: string | null}) => `${admin} perderá el acceso a esta cuenta bancaria comercial. Seguiremos completando los pagos en proceso.`,
+        reachOutForHelp: 'Se está usando con la tarjeta Expensify. <concierge-link>Contacte con Concierge</concierge-link> si necesita dejar de compartirla.',
+        unshareErrorModalTitle: 'No se puede dejar de compartir la cuenta bancaria',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',

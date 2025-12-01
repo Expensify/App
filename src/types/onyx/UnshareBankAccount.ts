@@ -8,8 +8,8 @@ type UnshareBankAccount = {
     /** Error objects keyed by field name containing errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields;
 
-    /** Whether we should show the view that the bank account was successfully unshared */
-    shouldShowSuccess?: boolean;
+    /** Unshare admin email */
+    email?: string;
 
     /** Whether the form is loading */
     isLoading?: boolean;
