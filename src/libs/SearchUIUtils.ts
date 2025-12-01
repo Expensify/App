@@ -76,6 +76,7 @@ import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {
+    getIOUActionForReportID,
     getOriginalMessage,
     isCreatedAction,
     isDeletedAction,
@@ -1415,26 +1416,39 @@ function createAndOpenSearchTransactionThread(
     shouldNavigate = true,
     searchResult?: OnyxTypes.SearchResults['data'],
 ) {
-    // Treat '0' as empty for reportActionID (0 means no IOU action exists in the backend)
-    const reportActionID = item.moneyRequestReportActionID === '0' ? '' : item.moneyRequestReportActionID;
+    const iouReportAction = getIOUActionForReportID(item.reportID, item.transactionID);
+    const moneyRequestReportActionID = item.moneyRequestReportActionID !== '0' ? item.moneyRequestReportActionID : undefined;
+
     // If the IOU action exists in the backend, populate Onyx with data from the search snapshot
     // This shows the transaction thread immediately while waiting for OpenReport to return the real data
-    if (reportActionID) {
-        const previewData = transactionPreviewData
-            ? {...transactionPreviewData, hasTransactionThreadReport: true}
-            : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-        setOptimisticDataForTransactionThreadPreview(item, previewData);
+    const previewData = transactionPreviewData
+        ? {...transactionPreviewData, hasTransactionThreadReport: true}
+        : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
+    setOptimisticDataForTransactionThreadPreview(item, previewData);
+
+    const hasActualTransactionThread = iouReportAction?.childReportID && iouReportAction?.childReportID !== CONST.FAKE_REPORT_ID;
+    let transactionThreadReport;
+
+    // The transaction thread can be created from the chat page and the snapshot data is stale
+    if (hasActualTransactionThread) {
+        transactionThreadReport = getReportOrDraftReport(iouReportAction.childReportID);
+    } else {
+        // For legacy transactions without an IOU action in the backend, pass transaction data
+        // This allows OpenReport to create the IOU action and transaction thread on the backend
+        const reportActionID = moneyRequestReportActionID ?? iouReportAction?.reportActionID;
+        const transaction = !reportActionID ? getTransactionFromTransactionListItem(item) : undefined;
+        const transactionViolations = !reportActionID ? item.violations : undefined;
+        transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID} as OnyxTypes.ReportAction, transaction, transactionViolations);
     }
 
-    // For legacy transactions without an IOU action in the backend, pass transaction data
-    // This allows OpenReport to create the IOU action and transaction thread on the backend
-    const transaction = !reportActionID ? getTransactionFromTransactionListItem(item) : undefined;
-    const transactionViolations = !reportActionID ? item.violations : undefined;
+    if (transactionThreadReport?.reportID) {
+        updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
+    }
 
-    // For legacy transactions without an IOU action, calculate isFromOneTransactionReport by checking
-    // if there are other transactions in the same report from the search data
+    // Recalculate the isFromOneTransactionReport optimistically to correctly
+    // navigate to the IOU report or transaction thread
     let calculatedIsFromOneTransactionReport = item.isFromOneTransactionReport;
-    if (!reportActionID && searchResult) {
+    if (!moneyRequestReportActionID && searchResult) {
         // Get all transactions from the same report, excluding the current transaction
         const otherTransactionsInReport = Object.entries(searchResult)
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1454,11 +1468,6 @@ function createAndOpenSearchTransactionThread(
 
         // Update the search results in Onyx with the calculated isFromOneTransactionReport value
         updateSearchResultsWithIsFromOneTransactionReport(hash, item.transactionID, calculatedIsFromOneTransactionReport);
-    }
-
-    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID} as OnyxTypes.ReportAction, transaction, transactionViolations);
-    if (transactionThreadReport?.reportID) {
-        updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
     }
 
     if (shouldNavigate) {
