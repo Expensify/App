@@ -181,9 +181,9 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         countryCode,
         membersDetails,
         selectedOptionsForDisplay,
-        availableOptions?.recentReports,
-        availableOptions?.personalDetails,
-        availableOptions?.userToInvite,
+        availableOptions.recentReports,
+        availableOptions.personalDetails,
+        availableOptions.userToInvite,
     ]);
 
     useEffect(() => {
@@ -196,7 +196,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
             return translate('messages.errorMessageInvalidEmail');
         }
         return getHeaderMessage(assignees.length > 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
-    }, [searchTerm, availableOptions.userToInvite, assignees?.length, countryCode, translate]);
+    }, [searchTerm, availableOptions.userToInvite, assignees.length, countryCode, translate]);
 
     const textInputOptions = useMemo(
         () => ({
