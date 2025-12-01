@@ -5,6 +5,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import {setDraftSplitTransaction, setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount, updateMoneyRequestTaxAmount} from '@libs/actions/IOU';
 import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
@@ -60,12 +61,15 @@ function IOURequestStepTaxAmountPage({
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
     const focusTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionDetails = getTransactionDetails(currentTransaction);
     const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : transactionDetails?.currency;
-
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     useFocusEffect(
         useCallback(() => {
@@ -114,7 +118,17 @@ function IOURequestStepTaxAmountPage({
                 navigateBack();
                 return;
             }
-            updateMoneyRequestTaxAmount(transactionID, report?.reportID, taxAmountInSmallestCurrencyUnits, policy, policyTags, policyCategories);
+            updateMoneyRequestTaxAmount(
+                transactionID,
+                report?.reportID,
+                taxAmountInSmallestCurrencyUnits,
+                policy,
+                policyTags,
+                policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+            );
             navigateBack();
             return;
         }
