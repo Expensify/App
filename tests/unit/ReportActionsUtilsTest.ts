@@ -1105,15 +1105,7 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('shouldShowAddMissingDetails', () => {
-        it('should return true if personal detail is not completed', async () => {
-            const card = {
-                cardID: 1,
-                state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
-                bank: 'vcf',
-                domainName: 'expensify',
-                lastUpdated: '2022-11-09 22:27:01.825',
-                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
-            };
+        it('should return true if personal detail is not completed', () => {
             const mockPersonalDetail = {
                 address: {
                     street: '123 Main St',
@@ -1122,19 +1114,10 @@ describe('ReportActionsUtils', () => {
                     postalCode: '10001',
                 },
             };
-            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
-            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
             expect(res).toEqual(true);
         });
-        it('should return true if card state is STATE_NOT_ISSUED', async () => {
-            const card = {
-                cardID: 1,
-                state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
-                bank: 'vcf',
-                domainName: 'expensify',
-                lastUpdated: '2022-11-09 22:27:01.825',
-                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
-            };
+        it('should return false if personal detail is completed', () => {
             const mockPersonalDetail = {
                 addresses: [
                     {
@@ -1149,35 +1132,7 @@ describe('ReportActionsUtils', () => {
                 phoneNumber: '+162992973',
                 dob: '9-9-2000',
             };
-            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
-            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
-            expect(res).toEqual(true);
-        });
-        it('should return false if no condition is matched', async () => {
-            const card = {
-                cardID: 1,
-                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-                bank: 'vcf',
-                domainName: 'expensify',
-                lastUpdated: '2022-11-09 22:27:01.825',
-                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
-            };
-            const mockPersonalDetail = {
-                addresses: [
-                    {
-                        street: '123 Main St',
-                        city: 'New York',
-                        state: 'NY',
-                        postalCode: '10001',
-                    },
-                ],
-                legalFirstName: 'John',
-                legalLastName: 'David',
-                phoneNumber: '+162992973',
-                dob: '9-9-2000',
-            };
-            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
-            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
             expect(res).toEqual(false);
         });
     });
@@ -1381,6 +1336,7 @@ describe('ReportActionsUtils', () => {
                     shouldRenderHTML: true,
                     policyID: testPolicyID,
                     expensifyCard: undefined,
+                    translate: translateLocal,
                 });
 
                 expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
@@ -1392,10 +1348,11 @@ describe('ReportActionsUtils', () => {
                     shouldRenderHTML: true,
                     policyID: testPolicyID,
                     expensifyCard: activeExpensifyCard,
+                    translate: translateLocal,
                 });
 
                 expect(messageResult).toBe(
-                    `issued <mention-user accountID="456"/> a virtual <a href='https://dev.new.expensify.com:8082/settings/card/789'>Expensify Card</a>! The card can be used right away.`,
+                    `issued <mention-user accountID="456"/> a virtual Expensify Card! The <a href='https://dev.new.expensify.com:8082/settings/card/789'>card</a> can be used right away.`,
                 );
             });
         });

@@ -495,6 +495,18 @@ const ROUTES = {
             return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
         },
     },
+    REPORT_CARD_ACTIVATE: {
+        route: 'r/:reportID/:reportActionID?/card/:cardID/activate',
+        getRoute: (cardID: number, reportID?: string, reportActionID?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_CARD_ACTIVATE route');
+            }
+            if (!reportActionID) {
+                return `r/${reportID}/card/${cardID}/activate` as const;
+            }
+            return `r/${reportID}/${reportActionID}/card/${cardID}/activate` as const;
+        },
+    },
     REPORT_ATTACHMENTS: {
         route: 'attachment',
         getRoute: (params?: ReportAttachmentsRouteParams) => getAttachmentModalScreenRoute('attachment', params),

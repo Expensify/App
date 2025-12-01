@@ -34,6 +34,7 @@ import type {
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
     ReferralDetailsNavigatorParamList,
+    ReportCardActivateNavigatorParamList,
     ReportChangeApproverParamList,
     ReportChangeWorkspaceNavigatorParamList,
     ReportDescriptionNavigatorParamList,
@@ -278,6 +279,10 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetails
     [SCREENS.REPORT_DETAILS.ROOT]: () => require<ReactComponentModule>('../../../../pages/ReportDetailsPage').default,
     [SCREENS.REPORT_DETAILS.SHARE_CODE]: () => require<ReactComponentModule>('../../../../pages/home/report/ReportDetailsShareCodePage').default,
     [SCREENS.REPORT_DETAILS.EXPORT]: () => require<ReactComponentModule>('../../../../pages/home/report/ReportDetailsExportPage').default,
+});
+
+const ReportCardActivateStackNavigator = createModalStackNavigator<ReportCardActivateNavigatorParamList>({
+    [SCREENS.REPORT_CARD_ACTIVATE]: () => require<ReactComponentModule>('../../../../pages/home/report/ActivatePhysicalCardPage').default,
 });
 
 const ReportChangeWorkspaceModalStackNavigator = createModalStackNavigator<ReportChangeWorkspaceNavigatorParamList>({
@@ -1049,5 +1054,6 @@ export {
     AddUnreportedExpenseModalStackNavigator,
     ScheduleCallModalStackNavigator,
     MergeTransactionStackNavigator,
+    ReportCardActivateStackNavigator,
     WorkspacesDomainModalStackNavigator,
 };
