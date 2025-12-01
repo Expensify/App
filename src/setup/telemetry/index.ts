@@ -8,13 +8,12 @@ import processBeforeSendTransactions from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import pkg from '../../../package.json';
+import {makeDebugTransport} from './debugTransport';
 
 export default function (): void {
-    if (isDevelopment()) {
-        return;
-    }
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
+        transport: isDevelopment() ? makeDebugTransport : undefined,
         tracesSampleRate: 1.0,
         profilesSampleRate: Platform.OS === 'android' ? 0 : 1.0,
         enableAutoPerformanceTracing: true,
