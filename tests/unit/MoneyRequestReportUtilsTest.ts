@@ -111,14 +111,14 @@ describe('MoneyRequestReportUtils', () => {
     describe('getReportIDForTransaction', () => {
         it('returns transaction thread ID if its not from one transaction report', () => {
             const transactionItem: TransactionListItemType = {...transactionItemBaseMock};
-            const resultID = getReportIDForTransaction(transactionItem);
+            const resultID = getReportIDForTransaction(transactionItem, '456');
 
             expect(resultID).toBe('456');
         });
 
         it('returns transaction thread ID if its from self DM', () => {
             const transactionItem: TransactionListItemType = {...transactionItemBaseMock, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
-            const resultID = getReportIDForTransaction(transactionItem, 'thread123');
+            const resultID = getReportIDForTransaction(transactionItem, '456');
 
             expect(resultID).toBe('456');
         });
