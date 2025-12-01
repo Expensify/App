@@ -38,7 +38,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const qboAccountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
     const invoiceAccountCollectionOptions = useMemo(() => [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
 
-    const isSyncReimbursedSwitchOn = !!qboConfig?.collectionAccountID;
+    const isSyncReimbursedSwitchOn = useMemo(() => !!qboConfig?.collectionAccountID || !!qboConfig?.reimbursementAccountID, [qboConfig?.collectionAccountID, qboConfig?.reimbursementAccountID]);
 
     const reimbursementAccountID = qboConfig?.reimbursementAccountID;
     const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => id === reimbursementAccountID)?.name, [qboAccountOptions, reimbursementAccountID]);
