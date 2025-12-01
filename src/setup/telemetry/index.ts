@@ -16,7 +16,7 @@ export default function (): void {
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
         tracesSampleRate: 1.0,
-        profilesSampleRate: Platform.OS === 'android' ? 0 : 1.0,
+        profilesSampleRate: Platform.OS === 'android' ? 0.1 : 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
         integrations: [navigationIntegration, tracingIntegration, browserTracingIntegration, SentryReact.browserProfilingIntegration()],
