@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -50,6 +50,9 @@ type OfflineWithFeedbackProps = ChildrenProps & {
     /** Additional style object for the error row */
     errorRowStyles?: StyleProp<ViewStyle>;
 
+    /** Additional style object for the error row text */
+    errorRowTextStyles?: StyleProp<TextStyle>;
+
     /** Whether applying strikethrough to the children should be disabled */
     shouldDisableStrikeThrough?: boolean;
 
@@ -87,6 +90,7 @@ function OfflineWithFeedback({
     shouldDisplayErrorAbove = false,
     shouldForceOpacity = false,
     dismissError = () => {},
+    errorRowTextStyles,
     ...rest
 }: OfflineWithFeedbackProps) {
     const styles = useThemeStyles();
@@ -143,6 +147,7 @@ function OfflineWithFeedback({
                     errorRowStyles={errorRowStyles}
                     onClose={onClose}
                     canDismissError={canDismissError}
+                    errorRowTextStyles={errorRowTextStyles}
                     dismissError={dismissError}
                 />
             )}
@@ -158,6 +163,7 @@ function OfflineWithFeedback({
                 <ErrorMessageRow
                     errors={errors}
                     errorRowStyles={errorRowStyles}
+                    errorRowTextStyles={errorRowTextStyles}
                     onClose={onClose}
                     canDismissError={canDismissError}
                     dismissError={dismissError}
