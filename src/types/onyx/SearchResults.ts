@@ -122,6 +122,9 @@ type SearchReport = {
     /** The status of the current report */
     statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
+    /** Number of transactions in the report */
+    transactionCount?: number;
+
     /** For expense reports, this is the total amount requested */
     unheldTotal?: number;
 
@@ -251,9 +254,6 @@ type SearchTransaction = {
 
     /** The ID of the money request reportAction associated with the transaction */
     moneyRequestReportActionID?: string;
-
-    /** Whether the transaction report has only a single transaction */
-    isFromOneTransactionReport?: boolean;
 
     /** Whether the transaction has violations or errors */
     errors?: OnyxCommon.Errors;

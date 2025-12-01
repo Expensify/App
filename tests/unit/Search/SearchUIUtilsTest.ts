@@ -102,6 +102,7 @@ const report1 = {
     total: -5000,
     type: 'expense',
     unheldTotal: -5000,
+    transactionCount: 1,
 } as const;
 
 const report2 = {
@@ -123,6 +124,7 @@ const report2 = {
     total: -5000,
     type: 'expense',
     unheldTotal: -5000,
+    transactionCount: 1,
 } as const;
 
 const report3 = {
@@ -147,6 +149,7 @@ const report3 = {
     total: 4400,
     type: 'iou',
     unheldTotal: 4400,
+    transactionCount: 2,
 } as const;
 
 const report4 = {
@@ -177,6 +180,7 @@ const report5 = {
     total: 0,
     type: 'expense',
     unheldTotal: 0,
+    transactionCount: 0,
 } as const;
 
 const reportAction1: OnyxTypes.ReportAction = {
@@ -392,7 +396,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2024-12-21',
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: true,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -425,7 +428,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2024-12-21',
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: true,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -459,7 +461,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2025-03-05',
             currency: 'VND',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -492,7 +493,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2025-03-05',
             currency: 'VND',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -790,7 +790,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         hasEReceipt: false,
-        isFromOneTransactionReport: true,
         keyForList: '1',
         merchant: 'Expense',
         modifiedAmount: 0,
@@ -845,7 +844,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         hasEReceipt: false,
-        isFromOneTransactionReport: true,
         keyForList: '2',
         merchant: 'Expense',
         modifiedAmount: 0,
@@ -899,7 +897,6 @@ const transactionsListItems = [
         created: '2025-03-05',
         currency: 'VND',
         hasEReceipt: false,
-        isFromOneTransactionReport: false,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -959,7 +956,6 @@ const transactionsListItems = [
         created: '2025-03-05',
         currency: 'VND',
         hasEReceipt: false,
-        isFromOneTransactionReport: false,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -1037,6 +1033,7 @@ const transactionReportGroupListItems = [
         statusNum: 0,
         to: emptyPersonalDetails,
         total: -5000,
+        transactionCount: 1,
         transactions: [
             {
                 action: 'submit',
@@ -1065,7 +1062,6 @@ const transactionReportGroupListItems = [
                     login: adminEmail,
                 },
                 hasEReceipt: false,
-                isFromOneTransactionReport: true,
                 keyForList: '1',
                 merchant: 'Expense',
                 modifiedAmount: 0,
@@ -1133,6 +1129,7 @@ const transactionReportGroupListItems = [
             login: adminEmail,
         },
         total: -5000,
+        transactionCount: 1,
         transactions: [
             {
                 action: 'review',
@@ -1167,7 +1164,6 @@ const transactionReportGroupListItems = [
                         type: CONST.VIOLATION_TYPES.VIOLATION,
                     },
                 ],
-                isFromOneTransactionReport: true,
                 keyForList: '2',
                 merchant: 'Expense',
                 modifiedAmount: 0,
@@ -1228,6 +1224,7 @@ const transactionReportGroupListItems = [
         stateNum: 1,
         statusNum: 1,
         total: 4400,
+        transactionCount: 2,
         type: 'iou',
         unheldTotal: 4400,
         action: 'pay',
@@ -1278,6 +1275,7 @@ const transactionReportGroupListItems = [
         statusNum: 0,
         to: emptyPersonalDetails,
         total: 0,
+        transactionCount: 0,
         transactions: [],
         type: 'expense',
         unheldTotal: 0,
@@ -1650,13 +1648,18 @@ describe('SearchUIUtils', () => {
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `View` action for a transaction in a multi-transaction report', () => {
+            const multiTransactionReportID = 'report_multi';
             const multiTransactionID = 'transaction_multi';
             const localSearchResults = {
                 ...searchResults.data,
+                [`report_${multiTransactionReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    transactionCount: 2,
+                },
                 [`transactions_${multiTransactionID}`]: {
                     ...searchResults.data[`transactions_${transactionID}`],
                     transactionID: multiTransactionID,
-                    isFromOneTransactionReport: false,
+                    reportID: multiTransactionReportID,
                 },
             };
             const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
@@ -1787,7 +1790,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 50;
+            const expectedPropertyCount = 49;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1820,7 +1823,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 50;
+            const expectedPropertyCount = 49;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2438,7 +2441,6 @@ describe('SearchUIUtils', () => {
                         created: '2025-05-26',
                         currency: 'USD',
                         hasEReceipt: false,
-                        isFromOneTransactionReport: true,
                         merchant: '(none)',
                         modifiedAmount: -1000,
                         modifiedCreated: '2025-05-22',
@@ -2565,7 +2567,6 @@ describe('SearchUIUtils', () => {
                     created: '2025-05-26',
                     currency: 'USD',
                     hasEReceipt: false,
-                    isFromOneTransactionReport: true,
                     merchant: '(none)',
                     modifiedAmount: -1000,
                     modifiedCreated: '2025-05-22',
