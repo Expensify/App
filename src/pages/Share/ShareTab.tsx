@@ -1,4 +1,5 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import type {Ref} from 'react';
+import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
@@ -29,7 +30,16 @@ const defaultListOptions = {
     categoryOptions: [],
 };
 
-function ShareTab() {
+type ShareTabRef = {
+    focus?: () => void;
+};
+
+type ShareTabProps = {
+    /** Reference to the outer element */
+    ref?: Ref<ShareTabRef>;
+};
+
+function ShareTab({ref}: ShareTabProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -39,6 +49,10 @@ function ShareTab() {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+
+    useImperativeHandle(ref, () => ({
+        focus: selectionListRef.current?.focusTextInput,
+    }));
 
     const {options, areOptionsInitialized} = useOptionsList();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
@@ -124,6 +138,7 @@ function ShareTab() {
             hint: offlineMessage,
             onChangeText: setTextInputValue,
             headerMessage: header,
+            disableAutoFocus: true,
         }),
         [textInputValue, setTextInputValue, translate, offlineMessage, header],
     );
