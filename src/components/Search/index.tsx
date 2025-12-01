@@ -937,7 +937,17 @@ function Search({
             ),
             filteredData,
         );
-    }, [validGroupBy, isExpenseReportType, selectedTransactions, setSelectedTransactions, clearSelectedTransactions, transactions, outstandingReportsByPolicyID, searchResults?.data]);
+    }, [
+        validGroupBy,
+        isExpenseReportType,
+        filteredData,
+        selectedTransactions,
+        setSelectedTransactions,
+        clearSelectedTransactions,
+        transactions,
+        outstandingReportsByPolicyID,
+        searchResults?.data,
+    ]);
 
     const onLayout = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
