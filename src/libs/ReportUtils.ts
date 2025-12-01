@@ -10913,27 +10913,29 @@ function getReportActionActorAccountID(
         }
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
-        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED: {
-            // For harvesting (delayed/scheduled submission), show Concierge as the actor
-            const originalMessage = getOriginalMessage(reportAction);
-            const wasSubmittedViaHarvesting = originalMessage && 'harvesting' in originalMessage ? originalMessage.harvesting : false;
-            if (wasSubmittedViaHarvesting) {
-                return CONST.ACCOUNT_ID.CONCIERGE;
-            }
-            return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
-        }
-
+        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED:
         case CONST.REPORT.ACTIONS.TYPE.APPROVED:
         case CONST.REPORT.ACTIONS.TYPE.FORWARDED:
         case CONST.REPORT.ACTIONS.TYPE.IOU: {
-            // For automatic actions via workspace rules, show Concierge as the actor
             const originalMessage = getOriginalMessage(reportAction);
+            const actionName = reportAction?.actionName;
+
+            // Check if this should show Concierge as the actor
+            const wasSubmittedViaHarvesting = originalMessage && 'harvesting' in originalMessage ? originalMessage.harvesting : false;
             const wasAutomatic = originalMessage && 'automaticAction' in originalMessage ? originalMessage.automaticAction : false;
             const isPayment = originalMessage && 'type' in originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
 
-            // Show Concierge for: automatic approvals, automatic forwards, or automatic payments
-            if (wasAutomatic && (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU || isPayment)) {
+            // Show Concierge for:
+            // - Harvesting (delayed submissions)
+            // - Automatic approvals/forwards via workspace rules
+            // - Automatic payments via workspace rules
+            if (wasSubmittedViaHarvesting || (wasAutomatic && actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) || (wasAutomatic && isPayment)) {
                 return CONST.ACCOUNT_ID.CONCIERGE;
+            }
+
+            // For SUBMITTED actions, check adminAccountID first (admin-submit case)
+            if (actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED || actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) {
+                return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
             }
 
             return reportAction?.actorAccountID;
