@@ -8,7 +8,6 @@ import SingleOptionSelector from '@components/SingleOptionSelector';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ReplacementReason} from '@libs/actions/Card';
@@ -23,7 +22,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SuccessReportCardLost from './SuccessReportCardLost';
 
 const OPTIONS_KEYS = {
     DAMAGED: 'damaged',
@@ -66,22 +64,12 @@ function ReportCardLostPage({
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
     const [shouldShowAddressError, setShouldShowAddressError] = useState(false);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
-    const [newCardID, setNewCardID] = useState<string>('');
 
     const physicalCard = cardList?.[cardID];
 
     const {paddingBottom} = useSafeAreaPaddings();
 
     const formattedAddress = getFormattedAddress(privatePersonalDetails ?? {});
-    const previousCardList = usePrevious(cardList);
-
-    useEffect(() => {
-        const newID = Object.keys(cardList ?? {}).find((cardKey) => cardList?.[cardKey]?.cardID && !(cardKey in (previousCardList ?? {})));
-        if (!newID || physicalCard?.cardID) {
-            return;
-        }
-        setNewCardID(newID);
-    }, [cardList, physicalCard?.cardID, previousCardList]);
 
     useEffect(() => {
         if (formData?.isLoading && isEmptyObject(physicalCard?.errors)) {
@@ -138,60 +126,57 @@ function ReportCardLostPage({
             <HeaderWithBackButton
                 title={translate('reportCardLostOrDamaged.screenTitle')}
                 onBackButtonPress={handleBackButtonPress}
-                shouldDisplayHelpButton={!newCardID}
+                shouldDisplayHelpButton
             />
-            {!newCardID && (
-                <View style={[styles.flex1, styles.justifyContentBetween, styles.pt3, !paddingBottom ? styles.pb5 : null]}>
-                    {isReasonConfirmed ? (
-                        <>
-                            <View>
-                                <Text style={[styles.textHeadline, styles.mb3, styles.mh5]}>{translate('reportCardLostOrDamaged.confirmAddressTitle')}</Text>
-                                <MenuItemWithTopDescription
-                                    title={formattedAddress}
-                                    description={translate('reportCardLostOrDamaged.address')}
-                                    shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADDRESS)}
-                                    numberOfLinesTitle={2}
-                                />
-                                {isDamaged ? (
-                                    <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardDamagedInfo')}</Text>
-                                ) : (
-                                    <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardLostOrStolenInfo')}</Text>
-                                )}
-                            </View>
-                            <View style={styles.mh5}>
-                                <FormAlertWithSubmitButton
-                                    isAlertVisible={shouldShowAddressError}
-                                    onSubmit={handleSubmitSecondStep}
-                                    message={translate('reportCardLostOrDamaged.addressError')}
-                                    isLoading={formData?.isLoading}
-                                    buttonText={isDamaged ? translate('reportCardLostOrDamaged.shipNewCardButton') : translate('reportCardLostOrDamaged.deactivateCardButton')}
-                                />
-                            </View>
-                        </>
-                    ) : (
-                        <>
-                            <View style={styles.mh5}>
-                                <Text style={[styles.textHeadline, styles.mr5]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
-                                <SingleOptionSelector
-                                    options={OPTIONS}
-                                    selectedOptionKey={reason?.key}
-                                    onSelectOption={handleOptionSelect}
-                                />
-                            </View>
-                            <View style={styles.mh5}>
-                                <FormAlertWithSubmitButton
-                                    isAlertVisible={shouldShowReasonError}
-                                    onSubmit={handleSubmitFirstStep}
-                                    message={translate('reportCardLostOrDamaged.reasonError')}
-                                    buttonText={translate('reportCardLostOrDamaged.nextButtonLabel')}
-                                />
-                            </View>
-                        </>
-                    )}
-                </View>
-            )}
-            {!!newCardID && <SuccessReportCardLost cardID={newCardID} />}
+            <View style={[styles.flex1, styles.justifyContentBetween, styles.pt3, !paddingBottom ? styles.pb5 : null]}>
+                {isReasonConfirmed ? (
+                    <>
+                        <View>
+                            <Text style={[styles.textHeadline, styles.mb3, styles.mh5]}>{translate('reportCardLostOrDamaged.confirmAddressTitle')}</Text>
+                            <MenuItemWithTopDescription
+                                title={formattedAddress}
+                                description={translate('reportCardLostOrDamaged.address')}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADDRESS)}
+                                numberOfLinesTitle={2}
+                            />
+                            {isDamaged ? (
+                                <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardDamagedInfo')}</Text>
+                            ) : (
+                                <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardLostOrStolenInfo')}</Text>
+                            )}
+                        </View>
+                        <View style={styles.mh5}>
+                            <FormAlertWithSubmitButton
+                                isAlertVisible={shouldShowAddressError}
+                                onSubmit={handleSubmitSecondStep}
+                                message={translate('reportCardLostOrDamaged.addressError')}
+                                isLoading={formData?.isLoading}
+                                buttonText={isDamaged ? translate('reportCardLostOrDamaged.shipNewCardButton') : translate('reportCardLostOrDamaged.deactivateCardButton')}
+                            />
+                        </View>
+                    </>
+                ) : (
+                    <>
+                        <View style={styles.mh5}>
+                            <Text style={[styles.textHeadline, styles.mr5]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
+                            <SingleOptionSelector
+                                options={OPTIONS}
+                                selectedOptionKey={reason?.key}
+                                onSelectOption={handleOptionSelect}
+                            />
+                        </View>
+                        <View style={styles.mh5}>
+                            <FormAlertWithSubmitButton
+                                isAlertVisible={shouldShowReasonError}
+                                onSubmit={handleSubmitFirstStep}
+                                message={translate('reportCardLostOrDamaged.reasonError')}
+                                buttonText={translate('reportCardLostOrDamaged.nextButtonLabel')}
+                            />
+                        </View>
+                    </>
+                )}
+            </View>
         </ScreenWrapper>
     );
 }

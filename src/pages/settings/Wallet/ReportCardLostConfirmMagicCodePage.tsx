@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
+import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -65,7 +66,14 @@ function ReportCardLostConfirmMagicCodePage({
     );
 
     if (newCardID) {
-        <SuccessReportCardLost cardID={newCardID} />;
+        return (
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom
+                testID={ReportCardLostConfirmMagicCodePage.displayName}
+            >
+                <SuccessReportCardLost cardID={newCardID} />
+            </ScreenWrapper>
+        );
     }
 
     return (
