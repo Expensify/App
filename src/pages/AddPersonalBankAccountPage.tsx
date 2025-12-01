@@ -61,7 +61,7 @@ function AddPersonalBankAccountPage() {
                   };
             addPersonalBankAccount(bankAccountWithToken, policyID, source);
         }
-    }, [plaidData, selectedPlaidAccountId, personalBankAccount]);
+    }, [plaidData?.bankAccounts, plaidData?.plaidAccessToken, selectedPlaidAccountId, personalBankAccount?.policyID, personalBankAccount?.source]);
 
     const exitFlow = useCallback(
         (shouldContinue = false) => {
@@ -76,7 +76,7 @@ function AddPersonalBankAccountPage() {
                 goBack();
             }
         },
-        [personalBankAccount, goBack, kycWallRef],
+        [personalBankAccount?.exitReportID, personalBankAccount?.onSuccessFallbackRoute, goBack, kycWallRef],
     );
 
     useEffect(() => clearPersonalBankAccount, []);
