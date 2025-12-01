@@ -577,11 +577,11 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         }
     }
 
-    Object.keys(lastUsedPaymentMethods ?? {})?.forEach((paymentMethodKey) => {
+    for (const paymentMethodKey of Object.keys(lastUsedPaymentMethods ?? {})) {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodKey];
 
         if (typeof lastUsedPaymentMethod === 'string' || !lastUsedPaymentMethod) {
-            return;
+            continue;
         }
 
         if (lastUsedPaymentMethod?.iou?.name === policyID) {
@@ -615,8 +615,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
                 },
             });
         }
-    });
-
+    }
     const apiParams: DeleteWorkspaceParams = {policyID};
 
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE, apiParams, {optimisticData, finallyData, failureData});
