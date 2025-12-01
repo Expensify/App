@@ -6,9 +6,6 @@ keywords: pay invoice, Expensify invoice, invoice payment, pay as business, mark
 
 <div id="new-expensify" markdown="1">
 
-**Breadcrumb:**  
-Account > Invoices
-
 {% include info.html %}
 Anyone who receives an invoice from Expensify can pay it—even if they don’t have an Expensify account.
 {% include end-info.html %}
