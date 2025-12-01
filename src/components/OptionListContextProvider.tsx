@@ -5,6 +5,7 @@ import usePrevious from '@hooks/usePrevious';
 import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
 import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {usePersonalDetails} from './OnyxListItemProvider';
@@ -216,7 +217,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                     if (!report) {
                         return;
                     }
-                    const reportPolicyTags = policyTags?.[report.policyID ?? ''];
+                    const reportPolicyTags = report.policyID ? policyTags?.[report.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
                     const newReportOption = createOptionFromReport(report, personalDetails, reportPolicyTags, reportAttributes?.reports, {showPersonalDetails: true});
                     const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
                     newReportOptions.push({

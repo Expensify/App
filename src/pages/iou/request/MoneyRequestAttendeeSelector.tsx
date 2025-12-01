@@ -276,6 +276,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         personalDetails,
         translate,
         reportAttributesDerived,
+        countryCode,
+        policyTags,
     ]);
 
     const optionLength = useMemo(() => {

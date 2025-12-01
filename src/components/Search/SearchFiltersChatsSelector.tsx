@@ -61,11 +61,12 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
             const reportObj = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
+            const reportPolicyTags = reportObj?.policyID ? policyTags?.[reportObj.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
             const report = getSelectedOptionData(
-                createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, policyTags?.[reportObj?.policyID ?? ''], reportAttributesDerived),
+                createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportPolicyTags, reportAttributesDerived),
             );
             const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-            const alternateText = getAlternateText(report, {}, policyTags?.[report.policyID ?? ''], isReportArchived, {});
+            const alternateText = getAlternateText(report, {}, reportPolicyTags, isReportArchived, {});
             return {...report, alternateText};
         });
     }, [archivedReportsIdSet, personalDetails, reportAttributesDerived, reports, selectedReportIDs, policyTags]);
