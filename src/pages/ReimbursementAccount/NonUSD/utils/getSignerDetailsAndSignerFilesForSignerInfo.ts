@@ -1,7 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
-import type {BeneficialOwnerDataKey, SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
+import type {BeneficialOwnerDataKey} from '@src/types/form/ReimbursementAccountForm';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SafeString from '@src/utils/SafeString';
 
