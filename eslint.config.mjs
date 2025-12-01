@@ -594,6 +594,8 @@ const config = defineConfig([
         'src/libs/SearchParser/autocompleteParser.js',
         'help/_scripts/**/*',
         'modules/ExpensifyNitroUtils/nitrogen/**/*',
+        'Mobile-Expensify',
+        'Mobile-Expensify/**',
         'Mobile-Expensify/**/*',
         '**/vendor',
         'modules/group-ib-fp/**/*',
