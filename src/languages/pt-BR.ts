@@ -6566,6 +6566,15 @@ ${
             message: 'Não conseguimos verificar uma atualização. Por favor, tente novamente em breve.',
         },
     },
+    settlement: {
+        status: {
+            pending: 'Pendente',
+            cleared: 'Liquidado',
+            failed: 'Falhou',
+        },
+        failedError: ({link}: {link: string}) => `Tentaremos esta liquidação novamente quando você <a href="${link}">desbloquear sua conta</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de saque: ${withdrawalID}`,
+    },
     reportLayout: {
         reportLayout: 'Layout do relatório',
         groupByLabel: 'Agrupar por:',
