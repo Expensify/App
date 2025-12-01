@@ -968,7 +968,27 @@ function PureReportActionItem({
             },
         );
         return actionableMentionWhisperOptions;
-    }, [action, userBillingFundID, originalReportID, reportID, isActionableWhisper, report?.policyID, policy, currentUserAccountID, personalDetail.timezone, createDraftTransactionAndNavigateToParticipantSelector, isRestrictedToPreferredPolicy, preferredPolicyID, dismissTrackExpenseActionableWhisper, translate, resolveActionableReportMentionWhisper, isReportArchived, isOriginalReportArchived, resolveActionableMentionWhisper, introSelected]);
+    }, [
+        action,
+        userBillingFundID,
+        originalReportID,
+        reportID,
+        isActionableWhisper,
+        report?.policyID,
+        policy,
+        currentUserAccountID,
+        personalDetail.timezone,
+        createDraftTransactionAndNavigateToParticipantSelector,
+        isRestrictedToPreferredPolicy,
+        preferredPolicyID,
+        dismissTrackExpenseActionableWhisper,
+        translate,
+        resolveActionableReportMentionWhisper,
+        isReportArchived,
+        isOriginalReportArchived,
+        resolveActionableMentionWhisper,
+        introSelected,
+    ]);
 
     /**
      * Get the content of ReportActionItem
