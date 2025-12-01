@@ -33,7 +33,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -121,7 +121,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
             amount: item.modifiedAmount ?? item.amount,
             convertedAmount: item.convertedAmount,
             currency: item.currency,
-            isFromOneTransactionReport: item.isFromOneTransactionReport,
+            isFromOneTransactionReport: isOneTransactionReport(item.report),
             ownerAccountID: item.reportAction?.actorAccountID,
         },
     ];
@@ -203,7 +203,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             convertedAmount: item.convertedAmount,
             convertedCurrency: item.convertedCurrency,
             currency: item.currency,
-            isFromOneTransactionReport: item.isFromOneTransactionReport,
+            isFromOneTransactionReport: isOneTransactionReport(item.report),
             ownerAccountID: item.reportAction?.actorAccountID,
         },
     };
@@ -682,7 +682,7 @@ function Search({
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
-                const shouldOpenTransactionThread = !item.isFromOneTransactionReport || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
                 createAndOpenSearchTransactionThread(item, hash, backTo, undefined, shouldOpenTransactionThread, searchResults?.data);
                 if (shouldOpenTransactionThread) {
                     return;
@@ -728,12 +728,15 @@ function Search({
                 return;
             }
 
-            const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+            let reportID = item.reportID;
+            if (isTransactionItem && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+                const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                const isFromOneTransactionReport = isOneTransactionReport(item.report);
 
-            const reportID =
-                isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-                    ? item.transactionThreadReportID
-                    : item.reportID;
+                if (isFromSelfDM || !isFromOneTransactionReport) {
+                    reportID = item.transactionThreadReportID;
+                }
+            }
 
             if (!reportID) {
                 return;
@@ -845,7 +848,8 @@ function Search({
         if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
             // Use requestAnimationFrame to safely update navigation params without overriding the current route
             requestAnimationFrame(() => {
-                Navigation.setParams({q: buildCannedSearchQuery()});
+                // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+                Navigation.setParams({q: buildCannedSearchQuery(), rawQuery: undefined});
             });
             if (shouldResetSearchQuery) {
                 setShouldResetSearchQuery(false);
@@ -965,7 +969,8 @@ function Search({
         clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
         onSortPressedCallback?.();
-        navigation.setParams({q: newQuery});
+        // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+        navigation.setParams({q: newQuery, rawQuery: undefined});
     };
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data, isExpenseReportType ?? false);
