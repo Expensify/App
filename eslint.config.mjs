@@ -272,6 +272,17 @@ const config = defineConfig([
             'rulesdir/prefer-underscore-method': 'off',
             'rulesdir/prefer-import-module-contents': 'off',
             'rulesdir/no-beta-handler': 'error',
+            'rulesdir/prefer-narrow-hook-dependencies': [
+                'error',
+                {
+                    stableObjectPatterns: [
+                        // cSpell:ignore tyles
+                        '[Ss]tyles?$', // Excludes 'style', 'styles', 'themeStyles', etc.
+                        '^theme', // Excludes 'theme', 'themeStyles', 'themeIllustrations', etc.
+                        '[Ii]cons?$', // Excludes 'icon', 'icons', 'expensifyIcons', etc.
+                    ],
+                },
+            ],
 
             // React and React Native specific rules
             'react-native-a11y/has-accessibility-hint': ['off'],
@@ -557,6 +568,14 @@ const config = defineConfig([
         },
     },
 
+    {
+        files: ['src/**/*'],
+        ignores: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
+        rules: {
+            'max-lines': ['error', 4000],
+        },
+    },
+
     globalIgnores([
         '!**/.storybook',
         '!**/.github',
@@ -579,6 +598,7 @@ const config = defineConfig([
         '**/vendor',
         'modules/group-ib-fp/**/*',
         'web/snippets/gib.js',
+        'desktop/**/*',
     ]),
 ]);
 

@@ -50,7 +50,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
 
     const changeApprover = useCallback(() => {
         if (!selectedApproverType) {
@@ -129,6 +129,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
                 showConfirmButton
                 confirmButtonText={translate('iou.changeApprover.title')}
                 onConfirm={changeApprover}
+                shouldUpdateFocusedIndex
                 customListHeader={
                     <>
                         <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.subtitle')}</Text>

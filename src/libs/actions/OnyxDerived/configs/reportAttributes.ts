@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {generateIsEmptyReport, generateReportAttributes, getReportName, isArchivedReport, isValidReport} from '@libs/ReportUtils';
+import {computeReportName} from '@libs/ReportNameUtils';
+import {generateIsEmptyReport, generateReportAttributes, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
@@ -70,7 +71,10 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
-    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails], {currentValue, sourceValues, areAllConnectionsSet}) => {
+    compute: (
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, policies],
+        {currentValue, sourceValues, areAllConnectionsSet},
+    ) => {
         if (!areAllConnectionsSet) {
             return {
                 reports: {},
@@ -200,7 +204,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             acc[report.reportID] = {
-                reportName: report ? getReportName(report, undefined, undefined, undefined, undefined, undefined, undefined, isReportArchived) : '',
+                reportName: report ? computeReportName(report, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions) : '',
                 isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,
                 requiresAttention,

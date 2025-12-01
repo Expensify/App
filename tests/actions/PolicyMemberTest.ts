@@ -188,8 +188,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
-            Member.requestWorkspaceOwnerChange(fakePolicy.id);
+            Member.requestWorkspaceOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -544,6 +543,52 @@ describe('actions/PolicyMember', () => {
             });
             expect(isWorkspaceChatArchived && isExpenseReportArchived).toBe(true);
             await mockFetch?.resume?.();
+        });
+
+        it('should preserve pendingAction DELETE when member removal fails', async () => {
+            // Given a workspace with a member
+            const policyID = 'ABCD12345';
+            const userAccountID = 1236;
+            const userEmail = 'user@example.com';
+            const ownerEmail = 'owner@gmail.com';
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [userAccountID]: {login: userEmail},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                owner: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [userEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+            });
+
+            // When removing a member and the request fails
+            mockFetch?.fail?.();
+            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID});
+
+            await waitForBatchedUpdates();
+
+            // Then the member should have pendingAction DELETE and errors
+            const policy = await new Promise<OnyxEntry<PolicyType>>((resolve, reject) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policyData) => {
+                        Onyx.disconnect(connection);
+                        if (policyData) {
+                            resolve(policyData);
+                        } else {
+                            reject(new Error('Policy not found'));
+                        }
+                    },
+                });
+            });
+
+            const failedMember = policy?.employeeList?.[userEmail];
+            expect(failedMember?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(failedMember?.errors).toBeTruthy();
+            expect(Object.keys(failedMember?.errors ?? {}).length).toBeGreaterThan(0);
         });
     });
 

@@ -1,3 +1,4 @@
+import getOSAndName from '@libs/actions/Device/getDeviceInfo/getOSAndName';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -92,6 +93,10 @@ const isModernSafari: IsModernSafari = (): boolean => {
     return parseFloat(iosVersion) >= 18;
 };
 
+const isMobileSafariOnIos26: IsModernSafari = (): boolean => {
+    return isMobileSafari() && getOSAndName().osVersion === '26';
+};
+
 /**
  * The session information needs to be passed to the Desktop app, and the only way to do that is by using query params. There is no other way to transfer the data.
  */
@@ -155,4 +160,5 @@ export {
     openRouteInDesktopApp,
     isOpeningRouteInDesktop,
     resetIsOpeningRouteInDesktop,
+    isMobileSafariOnIos26,
 };

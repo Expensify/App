@@ -2,9 +2,9 @@ import React, {useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useLocalize from '@hooks/useLocalize';
@@ -13,6 +13,8 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail, getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import {getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
@@ -21,6 +23,7 @@ import Navigation from '@navigation/Navigation';
 import {clearIssueNewCardFlow, getCardDefaultName, setDraftInviteAccountID, setIssueNewCardStepAndData} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {IssueNewCardData} from '@src/types/onyx/Card';
 
@@ -33,13 +36,16 @@ type AssigneeStepProps = {
 
     /** Start from step index */
     startStepIndex: number;
+
+    /** Route params */
+    route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW>;
 };
 
-function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
+function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const policyID = policy?.id;
+    const policyID = route.params.policyID;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
@@ -79,10 +85,13 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
         }
 
         if (!policy?.employeeList?.[assignee?.login ?? '']) {
-            data.assigneeAccountID = assignee?.accountID ?? undefined;
             setIssueNewCardStepAndData({
                 step: CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER,
-                data,
+                data: {
+                    currency,
+                    invitingMemberEmail: assignee?.login ?? '',
+                    invitingMemberAccountID: assignee?.accountID ?? undefined,
+                },
                 policyID,
             });
             setDraftInviteAccountID(data.assigneeEmail, assignee?.accountID ?? undefined, policyID);
@@ -112,9 +121,9 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
             return membersList;
         }
 
-        Object.entries(policy.employeeList ?? {}).forEach(([email, policyEmployee]) => {
+        for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
-                return;
+                continue;
             }
 
             const personalDetail = getPersonalDetailByEmail(email);
@@ -134,71 +143,38 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
                     },
                 ],
             });
-        });
+        }
 
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
     }, [policy?.employeeList, localeCompare, isOffline, issueNewCard?.data?.assigneeEmail, formatPhoneNumber]);
 
-    const sections = useMemo(() => {
+    const assignees = useMemo(() => {
         if (!debouncedSearchTerm) {
-            return [
-                {
-                    data: membersDetails,
-                    shouldShow: true,
-                },
-            ];
+            return membersDetails;
         }
-
-        const sectionsArr = [];
 
         if (!areOptionsInitialized) {
             return [];
         }
 
         const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-        const filteredOptions = tokenizedSearch(membersDetails, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
-        sectionsArr.push({
-            title: undefined,
-            data: filteredOptions,
-            shouldShow: true,
-        });
+        const filteredMembers = tokenizedSearch(membersDetails, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
-        // Selected options section
-        if (selectedOptionsForDisplay.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: selectedOptionsForDisplay,
-            });
-        }
+        const options = [
+            ...filteredMembers,
+            ...selectedOptionsForDisplay,
+            ...availableOptions.recentReports,
+            ...availableOptions.personalDetails,
+            ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
+        ];
 
-        // Recent reports section
-        if (availableOptions.recentReports.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: availableOptions.recentReports,
-            });
-        }
-
-        // Contacts section
-        if (availableOptions.personalDetails.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: availableOptions.personalDetails,
-            });
-        }
-
-        // User to invite section
-        if (availableOptions.userToInvite) {
-            sectionsArr.push({
-                title: undefined,
-                data: [availableOptions.userToInvite],
-            });
-        }
-
-        return sectionsArr;
+        return options.map((option) => ({
+            ...option,
+            keyForList: option.keyForList ?? option.login ?? '',
+        }));
     }, [
         debouncedSearchTerm,
         areOptionsInitialized,
@@ -219,14 +195,18 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
         if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        return getHeaderMessage(
-            sections.some((section) => section.data.length > 0),
-            !!availableOptions.userToInvite,
-            searchValue,
-            countryCode,
-            false,
-        );
-    }, [searchTerm, availableOptions.userToInvite, sections, countryCode, translate]);
+        return getHeaderMessage(assignees.length > 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
+    }, [searchTerm, availableOptions.userToInvite, assignees.length, countryCode, translate]);
+
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('selectionList.nameEmailOrPhoneNumber'),
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage,
+        }),
+        [headerMessage, searchTerm, setSearchTerm, translate],
+    );
 
     return (
         <InteractiveStepWrapper
@@ -242,15 +222,15 @@ function AssigneeStep({policy, stepNames, startStepIndex}: AssigneeStepProps) {
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.whoNeedsCard')}</Text>
             <SelectionList
-                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                sections={areOptionsInitialized ? sections : []}
-                headerMessage={headerMessage}
-                ListItem={UserListItem}
+                data={assignees}
                 onSelectRow={submit}
-                addBottomSafeAreaPadding
+                ListItem={UserListItem}
+                textInputOptions={textInputOptions}
                 isLoadingNewOptions={!!isSearchingForReports}
+                initiallyFocusedItemKey={issueNewCard?.data?.assigneeEmail}
+                disableMaintainingScrollPosition
+                shouldUpdateFocusedIndex
+                addBottomSafeAreaPadding
             />
         </InteractiveStepWrapper>
     );

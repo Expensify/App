@@ -33,7 +33,7 @@ type SelectedTransactionInfo = {
     reportID: string;
 
     /** The policyID tied to the report the transaction is reported on */
-    policyID: string;
+    policyID: string | undefined;
 
     /** The transaction amount */
     amount: number;
@@ -65,6 +65,7 @@ type SelectedReports = {
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
     total: number;
     currency?: string;
+    chatReportID: string | undefined;
 };
 
 /** Model of payment data used by Search bulk actions */
@@ -199,6 +200,15 @@ type QueryFilters = Array<{
     filters: QueryFilter[];
 }>;
 
+type RawFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+
+type RawQueryFilter = {
+    key: RawFilterKey;
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+    value: string | string[];
+    isDefault?: boolean;
+};
+
 type SearchQueryString = string;
 
 type SearchQueryAST = {
@@ -209,6 +219,7 @@ type SearchQueryAST = {
     groupBy?: SearchGroupBy;
     filters: ASTNode;
     policyID?: string[];
+    rawFilterList?: RawQueryFilter[];
 };
 
 type SearchQueryJSON = {
@@ -239,6 +250,7 @@ type SearchParams = {
     offset: number;
     prevReportsLength?: number;
     shouldCalculateTotals: boolean;
+    isLoading: boolean;
 };
 
 type BankAccountMenuItem = {
@@ -269,6 +281,8 @@ export type {
     ASTNode,
     QueryFilter,
     QueryFilters,
+    RawFilterKey,
+    RawQueryFilter,
     SearchFilterKey,
     UserFriendlyKey,
     ExpenseSearchStatus,

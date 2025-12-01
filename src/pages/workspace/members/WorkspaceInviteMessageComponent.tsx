@@ -42,7 +42,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceInviteMessageComponentProps = {
     policy: OnyxEntry<Policy>;
-    policyID: string | undefined;
+    policyID: string;
     backTo: Routes | undefined;
     currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
     shouldShowTooltip?: boolean;
@@ -118,6 +118,12 @@ function WorkspaceInviteMessageComponent({
         if (isEmptyObject(policy)) {
             return;
         }
+
+        if (goToNextStep) {
+            setWelcomeNote(getDefaultWelcomeNote());
+            return;
+        }
+
         Navigation.goBack(backTo);
 
         // We only want to run this useEffect when the onyx values have loaded
