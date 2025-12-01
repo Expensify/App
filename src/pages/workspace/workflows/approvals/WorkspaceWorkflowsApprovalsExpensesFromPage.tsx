@@ -75,7 +75,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 };
             }),
         );
-    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate]);
+    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate, icons.FallbackAvatar]);
 
     const approversEmail = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email), [approvalWorkflow?.approvers]);
     const allApprovers = useMemo(() => {
@@ -113,7 +113,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         members.push(...availableMembers);
 
         return members;
-    }, [selectedMembers, approvalWorkflow?.availableMembers, policy?.employeeList, policy?.owner, policy?.preventSelfApproval, personalDetailLogins, approversEmail]);
+    }, [selectedMembers, approvalWorkflow?.availableMembers, policy?.employeeList, policy?.owner, policy?.preventSelfApproval, personalDetailLogins, icons.FallbackAvatar, approversEmail]);
 
     const goBack = useCallback(() => {
         let backTo;
@@ -181,6 +181,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 footerContent={button}
                 shouldShowLoadingPlaceholder={isLoadingApprovalWorkflow}
                 shouldEnableHeaderMaxHeight
+                shouldUpdateFocusedIndex={false}
             />
         </AccessOrNotFoundWrapper>
     );

@@ -40,6 +40,7 @@ type ApproverSelectionListPageProps = {
     onSelectApprover?: (approvers: SelectionListApprover[]) => void;
     shouldShowLoadingPlaceholder?: boolean;
     shouldEnableHeaderMaxHeight?: boolean;
+    shouldUpdateFocusedIndex?: boolean;
 };
 
 type SelectionListApprover = ListItem & {
@@ -65,6 +66,7 @@ function ApproverSelectionList({
     onSelectApprover,
     shouldShowLoadingPlaceholder,
     shouldEnableHeaderMaxHeight,
+    shouldUpdateFocusedIndex = true,
 }: ApproverSelectionListPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -164,7 +166,7 @@ function ApproverSelectionList({
                     showLoadingPlaceholder={shouldShowLoadingPlaceholder}
                     footerContent={footerContent}
                     addBottomSafeAreaPadding
-                    shouldUpdateFocusedIndex
+                    shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                     showScrollIndicator
                 />
             </FullPageNotFoundView>
