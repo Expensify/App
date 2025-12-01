@@ -324,6 +324,14 @@ function createDomain(domainName: string) {
     API.write(WRITE_COMMANDS.CREATE_DOMAIN, {domainName}, {optimisticData, successData});
 }
 
+/**
+ * For resetting createDomain form data
+ * Resets it only on the client's side, no server call is performed
+ */
+function resetCreateDomainForm() {
+    Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -337,4 +345,5 @@ export {
     setSamlIdentity,
     getScimToken,
     createDomain,
+    resetCreateDomainForm,
 };

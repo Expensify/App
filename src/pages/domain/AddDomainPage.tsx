@@ -13,7 +13,8 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createDomain} from '@libs/actions/Domain';
+import {createDomain, resetCreateDomainForm} from '@libs/actions/Domain';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors, isPublicDomain} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,7 +50,7 @@ function AddDomainPage() {
         [translate],
     );
 
-    const domainNameSubmitted = useRef<string | undefined>(undefined);
+    const submittedDomainName = useRef<string | undefined>(undefined);
 
     useEffect(() => {
         if (!hasCreationSucceeded) {
@@ -57,11 +58,18 @@ function AddDomainPage() {
         }
 
         // Find the newly created domain
-        const accountID = Object.values(allDomains ?? {})?.find((domain) => domain && Str.extractEmailDomain(domain.email) === domainNameSubmitted.current)?.accountID;
+        const accountID = Object.values(allDomains ?? {})?.find((domain) => domain && Str.extractEmailDomain(domain.email) === submittedDomainName.current)?.accountID;
         if (accountID) {
             Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ADDED.getRoute(accountID), {forceReplace: true});
         }
     }, [hasCreationSucceeded, allDomains]);
+
+    useEffect(() => {
+        resetCreateDomainForm();
+        return () => {
+            clearDraftValues(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
+        };
+    }, []);
 
     return (
         <ScreenWrapper testID={AddDomainPage.displayName}>
@@ -84,7 +92,7 @@ function AddDomainPage() {
                         if (!isUserValidated) {
                             return Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT);
                         }
-                        domainNameSubmitted.current = domainName;
+                        submittedDomainName.current = domainName;
                         createDomain(domainName);
                     }}
                 >
