@@ -1065,6 +1065,7 @@ describe('SidebarUtils', () => {
                 lastAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                policyTags: undefined,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.

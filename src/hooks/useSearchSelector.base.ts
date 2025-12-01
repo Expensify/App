@@ -253,7 +253,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
-                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, {
+                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, CONST.POLICY.DEFAULT_TAG_LIST, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     includeP2P: true,

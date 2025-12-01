@@ -2714,7 +2714,7 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [corporateForceUpgradeAction.reportActionID]: corporateForceUpgradeAction,
                 });
-                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined});
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
         });
