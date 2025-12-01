@@ -41,7 +41,7 @@ function ReportCardLostConfirmMagicCodePage({
             return;
         }
         setNewCardID(newID);
-    }, [cardList, physicalCard, previousCardList]);
+    }, [cardList, physicalCard?.cardID, previousCardList]);
 
     useEffect(() => {
         resetValidateActionCodeSent();
