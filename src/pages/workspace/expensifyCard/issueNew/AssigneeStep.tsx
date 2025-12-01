@@ -175,7 +175,16 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
             ...option,
             keyForList: option.keyForList ?? option.login ?? '',
         }));
-    }, [debouncedSearchTerm, areOptionsInitialized, countryCode, membersDetails, selectedOptionsForDisplay, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite]);
+    }, [
+        debouncedSearchTerm,
+        areOptionsInitialized,
+        countryCode,
+        membersDetails,
+        selectedOptionsForDisplay,
+        availableOptions.recentReports,
+        availableOptions.personalDetails,
+        availableOptions.userToInvite,
+    ]);
 
     useEffect(() => {
         searchInServer(searchTerm);
