@@ -58,7 +58,7 @@ import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyOwner, isPolicyUser} from '@libs/PolicyUtils';
+import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
     getActionableCardFraudAlertMessage,
@@ -941,7 +941,7 @@ function PureReportActionItem({
         const isReportInPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
 
         // Show the invite to submit expense button even if one of the mentioned users is a not a policy member
-        const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyUser(policy, login)) ?? false;
+        const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login)) ?? false;
 
         if ((isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) && isReportInPolicy && !isSystemUserMentioned(action) && !hasMentionedPolicyMembers) {
             actionableMentionWhisperOptions.push({
@@ -968,28 +968,7 @@ function PureReportActionItem({
             },
         );
         return actionableMentionWhisperOptions;
-    }, [
-        action,
-        userBillingFundID,
-        originalReportID,
-        reportID,
-        isActionableWhisper,
-        report?.policyID,
-        policy,
-        currentUserAccountID,
-        personalDetail.timezone,
-        createDraftTransactionAndNavigateToParticipantSelector,
-        isRestrictedToPreferredPolicy,
-        preferredPolicyID,
-        dismissTrackExpenseActionableWhisper,
-        translate,
-        resolveActionableReportMentionWhisper,
-        isReportArchived,
-        formatPhoneNumber,
-        isOriginalReportArchived,
-        resolveActionableMentionWhisper,
-        introSelected,
-    ]);
+    }, [action, userBillingFundID, originalReportID, reportID, isActionableWhisper, report?.policyID, policy, currentUserAccountID, personalDetail.timezone, createDraftTransactionAndNavigateToParticipantSelector, isRestrictedToPreferredPolicy, preferredPolicyID, dismissTrackExpenseActionableWhisper, translate, resolveActionableReportMentionWhisper, isReportArchived, isOriginalReportArchived, resolveActionableMentionWhisper, introSelected]);
 
     /**
      * Get the content of ReportActionItem
