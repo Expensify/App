@@ -384,7 +384,7 @@ function IOURequestStepConfirmation({
 
             // Clear category field when the category doesn't exist for selected policy, or it's disabled
             if (!policyCategories?.[item.category] || !policyCategories[item.category]?.enabled) {
-                setMoneyRequestCategory(item.transactionID, '', policy?.id);
+                setMoneyRequestCategory(item.transactionID, '', policy?.id, isMovingTransactionFromTrackExpense);
             }
         }
         // We don't want to clear out category every time the transactions change
@@ -399,7 +399,7 @@ function IOURequestStepConfirmation({
             if (!isDistanceRequest || !!item?.category) {
                 continue;
             }
-            setMoneyRequestCategory(item.transactionID, defaultCategory, policy?.id);
+            setMoneyRequestCategory(item.transactionID, defaultCategory, policy?.id, isMovingTransactionFromTrackExpense);
         }
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
