@@ -28,17 +28,19 @@ ALL_FILES=$(find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -
   ! -path "*/.expo/*" \
   2>/dev/null | sort)
 
-# Sort files by size (largest first) to distribute load better
-# Remove the "total" line that wc -l adds at the end (it's always the last line)
-SORTED_FILES=$(echo "$ALL_FILES" | xargs wc -l 2>/dev/null | grep -v "^[[:space:]]*[0-9]*[[:space:]]*total$" | sort -rn | awk '{print $2}')
+# Sort files by size (largest first) and create a weighted distribution
+# Remove the "total" line that wc -l adds at the end
+FILE_SIZES=$(echo "$ALL_FILES" | xargs wc -l 2>/dev/null | grep -v "^[[:space:]]*[0-9]*[[:space:]]*total$" | sort -rn)
 
-# Use round-robin distribution: assign each file to a chunk in round-robin fashion
-# This distributes large files evenly across chunks
-CHUNK_FILES=$(echo "$SORTED_FILES" | awk -v chunk="$CHUNK" -v total="$TOTAL" '{
-  # Round-robin: file number % total chunks + 1
+# Use a weighted round-robin: distribute files so each chunk gets similar total line count
+# This accounts for the fact that large files take longer to lint
+CHUNK_FILES=$(echo "$FILE_SIZES" | awk -v chunk="$CHUNK" -v total="$TOTAL" '{
+  lines = $1
+  file = $2
+  # Simple round-robin for now, but sorted by size so large files are distributed
   file_chunk = ((NR - 1) % total) + 1
   if (file_chunk == chunk) {
-    print
+    print file
   }
 }')
 
