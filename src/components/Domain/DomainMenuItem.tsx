@@ -74,7 +74,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel="row"
                 style={styles.mh5}
-                onPress={item.action}
+                onPress={action}
             >
                 {({hovered}) => (
                     <DomainsListRow

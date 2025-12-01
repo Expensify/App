@@ -684,7 +684,7 @@ function WorkspacesListPage() {
                     },
                     {
                         value: 'domain',
-                        text: 'New domain',
+                        text: translate('domain.addDomain.newDomain'),
                         icon: icons.Globe,
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN)),
                     },

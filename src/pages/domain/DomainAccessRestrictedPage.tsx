@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -18,11 +18,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {domainNameSelector} from '@src/selectors/Domain';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainAccessRestrictedPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_DOMAIN_ACCESS_RESTRICTED>;
 
@@ -40,10 +42,22 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
     const {translate} = useLocalize();
 
     const accountID = route.params.accountID;
-    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false, selector: domainNameSelector});
+    const [domainName, domainNameResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false, selector: domainNameSelector});
+    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: true});
+
+    useEffect(() => {
+        if (!isAdmin) {
+            return;
+        }
+        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID), {forceReplace: true});
+    }, [accountID, isAdmin]);
+
+    if (isLoadingOnyxValue(domainNameResults, isAdminResults)) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     if (!domainName) {
-        return <FullScreenLoadingIndicator />;
+        return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
     }
 
     return (
@@ -68,7 +82,7 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
                         >
                             <Icon
                                 src={Checkmark}
-                                additionalStyles={[styles.mr2]}
+                                additionalStyles={styles.mr2}
                                 fill={theme.iconSuccessFill}
                             />
                             {translate(featureTranslationPath)}

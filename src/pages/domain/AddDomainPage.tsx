@@ -9,7 +9,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,7 +26,6 @@ const hasCreationSucceededSelector = (form: OnyxEntry<CreateDomainForm>) => form
 function AddDomainPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
 
     const [hasCreationSucceeded] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {canBeMissing: true, selector: hasCreationSucceededSelector});
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
@@ -94,9 +92,9 @@ function AddDomainPage() {
                         label={translate('domain.addDomain.domainName')}
                         accessibilityLabel={translate('domain.addDomain.domainName')}
                         spellCheck={false}
-                        ref={inputCallbackRef}
                         shouldSaveDraft
                         shouldSubmitForm
+                        autoFocus
                     />
                 </FormProvider>
             </ScrollView>

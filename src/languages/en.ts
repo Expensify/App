@@ -7687,6 +7687,7 @@ const translations = {
             title: 'Add domain',
             subtitle: 'Enter the name of the private domain you want to access (e.g. expensify.com).',
             domainName: 'Domain name',
+            newDomain: 'New domain',
         },
         domainAdded: {
             title: 'Domain added',

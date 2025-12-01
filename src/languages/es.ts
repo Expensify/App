@@ -7807,6 +7807,7 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Añadir dominio',
             subtitle: 'Introduce el nombre del dominio privado al que deseas acceder (por ejemplo, expensify.com).',
             domainName: 'Nombre de dominio',
+            newDomain: 'Nuevo dominio',
         },
         domainAdded: {
             title: 'Dominio añadido',
