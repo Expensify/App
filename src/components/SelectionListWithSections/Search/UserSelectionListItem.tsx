@@ -9,6 +9,7 @@ import type {ListItem, UserSelectionListItemProps} from '@components/SelectionLi
 import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,6 +38,7 @@ function UserSelectionListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const {formatPhoneNumber} = useLocalize();
 
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
@@ -61,8 +63,9 @@ function UserSelectionListItem<TItem extends ListItem>({
     const userDisplayName = useMemo(() => {
         return getDisplayNameForParticipant({
             accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            formatPhoneNumber,
         });
-    }, [item.accountID]);
+    }, [formatPhoneNumber, item.accountID]);
 
     return (
         <BaseListItem

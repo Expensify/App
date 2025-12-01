@@ -4,7 +4,9 @@ import {emailSelector} from '@selectors/Session';
 import {searchResultsErrorSelector} from '@selectors/Snapshot';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -13,6 +15,7 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import ScrollView from '@components/ScrollView';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
@@ -45,7 +48,6 @@ import {getActiveAdminWorkspaces, getAllTaxRates, isPaidGroupPolicy} from '@libs
 import {isExpenseReport} from '@libs/ReportUtils';
 import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
-import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,7 +86,7 @@ function SearchFiltersBar({
     latestBankItems,
 }: SearchFiltersBarProps) {
     const isFocused = useIsFocused();
-    const scrollRef = useRef<FlatList<FilterItem>>(null);
+    const scrollRef = useRef<RNScrollView>(null);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
@@ -169,7 +171,7 @@ function SearchFiltersBar({
         return [options, value];
     }, [allPolicies, email, unsafeType]);
 
-    const isExpenseReportType = useMemo(() => type?.value === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [type]);
+    const isExpenseReportType = useMemo(() => type?.value === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [type?.value]);
 
     const selectedItemsCount = useMemo(() => {
         if (!selectedTransactions) {
@@ -222,7 +224,7 @@ function SearchFiltersBar({
         const options = getHasOptions(type?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
         const value = hasFilterValues ? options.filter((option) => hasFilterValues.includes(option.value)) : [];
         return [options, value];
-    }, [flatFilters, type]);
+    }, [flatFilters, type?.value]);
 
     const [isOptions, is] = useMemo(() => {
         const isFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS)?.filters?.map((filter) => filter.value);
@@ -310,7 +312,8 @@ function SearchFiltersBar({
             const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
 
             close(() => {
-                Navigation.setParams({q: queryString});
+                // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+                Navigation.setParams({q: queryString, rawQuery: undefined});
             });
         },
         [filterFormValues],
@@ -651,10 +654,12 @@ function SearchFiltersBar({
 
         return filterList;
     }, [
-        type,
-        groupBy,
-        groupCurrency,
-        withdrawalType,
+        type?.value,
+        type?.text,
+        groupBy?.value,
+        groupBy?.text,
+        groupCurrency?.value,
+        withdrawalType?.text,
         displayDate,
         displayPosted,
         displayWithdrawn,
@@ -730,60 +735,6 @@ function SearchFiltersBar({
         });
     }, [filterFormValues, filters, typeFiltersKeys]);
 
-    const prevFiltersLength = useRef(0);
-
-    useEffect(() => {
-        return () => {
-            prevFiltersLength.current = filters.length;
-        };
-    }, [filters.length]);
-
-    const adjustScroll = useCallback(() => {
-        // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
-        // When the FlatList is scrolled to the end and the last item is changed, a blank space is left behind.
-        // To fix this, we detect when onEndReached is triggered due to an item deletion,
-        // and programmatically scroll to the end to fill the space.
-        if (!shouldAdjustScroll) {
-            return;
-        }
-        prevFiltersLength.current = filters.length;
-        scrollRef.current?.scrollToEnd();
-    }, [filters.length]);
-
-    const renderFilterItem = useCallback(
-        // eslint-disable-next-line react/no-unused-prop-types
-        ({item}: {item: FilterItem}) => (
-            <DropdownButton
-                label={item.label}
-                value={item.value}
-                PopoverComponent={item.PopoverComponent}
-            />
-        ),
-        [],
-    );
-
-    const filterButtonText = useMemo(
-        () => translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : ''),
-        [translate, hiddenSelectedFilters.length],
-    );
-
-    const renderListFooter = useCallback(
-        () => (
-            <Button
-                link
-                small
-                shouldUseDefaultHover={false}
-                text={filterButtonText}
-                iconFill={theme.link}
-                iconHoverFill={theme.linkHover}
-                icon={expensifyIcons.Filter}
-                textStyles={[styles.textMicroBold]}
-                onPress={openAdvancedFilters}
-            />
-        ),
-        [filterButtonText, theme.link, theme.linkHover, styles.textMicroBold, openAdvancedFilters, expensifyIcons],
-    );
-
     if (hasErrors) {
         return null;
     }
@@ -849,20 +800,35 @@ function SearchFiltersBar({
                     )}
                 </KYCWall>
             ) : (
-                <FlatList
+                <ScrollView
                     horizontal
                     keyboardShouldPersistTaps="always"
                     style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
                     contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
                     ref={scrollRef}
                     showsHorizontalScrollIndicator={false}
-                    data={filters}
-                    keyExtractor={(item) => item.label}
-                    renderItem={renderFilterItem}
-                    ListFooterComponent={renderListFooter}
-                    onEndReached={adjustScroll}
-                    onEndReachedThreshold={0.75}
-                />
+                >
+                    {filters.map((filter) => (
+                        <DropdownButton
+                            key={filter.label}
+                            label={filter.label}
+                            value={filter.value}
+                            PopoverComponent={filter.PopoverComponent}
+                        />
+                    ))}
+
+                    <Button
+                        link
+                        small
+                        shouldUseDefaultHover={false}
+                        text={translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : '')}
+                        iconFill={theme.link}
+                        iconHoverFill={theme.linkHover}
+                        icon={expensifyIcons.Filter}
+                        textStyles={[styles.textMicroBold]}
+                        onPress={openAdvancedFilters}
+                    />
+                </ScrollView>
             )}
         </View>
     );
