@@ -1126,6 +1126,22 @@ describe('ReportUtils', () => {
                 );
             });
         });
+
+        it('should return "resolved the duplicate" report name for resolved duplicate system message', () => {
+            const chatReport = createRandomReport(123, undefined);
+            const resolvedDuplicateAction: ReportAction = {
+                ...createRandomReportAction(Number(chatReport.reportID)),
+                actionName: CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
+                originalMessage: {
+                    violationName: 'duplicatedTransaction',
+                    reason: 'manual',
+                    lastModified: '2025-11-26 11:24:19.347',
+                },
+            };
+
+            const reportName = getReportName(chatReport, undefined, resolvedDuplicateAction);
+            expect(reportName).toBe('resolved the duplicate');
+        });
     });
 
     // Need to merge the same tests
@@ -1508,6 +1524,21 @@ describe('ReportUtils', () => {
                             });
 
                             expect(reportName).toBe('updated the name of this workspace to "New Workspace" (previously "Old Workspace")');
+                        });
+
+                        test('should handle corporate force upgrade action', () => {
+                            const forceUpgradeAction: ReportAction = {
+                                ...baseParentReportAction,
+                                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE,
+                            };
+
+                            const reportName = getSearchReportName({
+                                report,
+                                parentReportActionParam: forceUpgradeAction,
+                                personalDetails: participantsPersonalDetails,
+                            });
+
+                            expect(reportName).toBe(`This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.`);
                         });
                     });
                 });

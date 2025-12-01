@@ -35,7 +35,7 @@ type DropdownOption<TValueType> = {
     iconFill?: string;
     interactive?: boolean;
     numberOfLinesTitle?: number;
-    titleStyle?: ViewStyle;
+    titleStyle?: StyleProp<TextStyle>;
     shouldCloseModalOnSelect?: boolean;
     description?: string;
     descriptionTextStyle?: StyleProp<TextStyle>;
