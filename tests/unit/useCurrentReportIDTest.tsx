@@ -71,7 +71,7 @@ describe('useCurrentReportID', () => {
 
         // When the updateCurrentReportID is called
         act(() => {
-            result.current?.updateCurrentReportID(navigationState);
+            result.current?.updateCurrentReportID(result.current.getCurrentReportID(navigationState));
         });
 
         // Then the currentReportID is updated
@@ -81,7 +81,7 @@ describe('useCurrentReportID', () => {
 
         // When the updateCurrentReportID is called with the same reportID
         act(() => {
-            result.current?.updateCurrentReportID(navigationState);
+            result.current?.updateCurrentReportID(result.current.getCurrentReportID(navigationState));
         });
 
         // Then the setState should not be called again
@@ -111,7 +111,7 @@ describe('useCurrentReportID', () => {
 
         // When the updateCurrentReportID is called
         act(() => {
-            result.current?.updateCurrentReportID(navigationState);
+            result.current?.updateCurrentReportID(result.current.getCurrentReportID(navigationState));
         });
 
         // Then the currentReportID is updated
@@ -119,7 +119,7 @@ describe('useCurrentReportID', () => {
 
         // When the updateCurrentReportID is called with the same navigation state
         act(() => {
-            result.current?.updateCurrentReportID(navigationState);
+            result.current?.updateCurrentReportID(result.current.getCurrentReportID(navigationState));
         });
 
         // Then the setState should not be called again
@@ -160,7 +160,7 @@ describe('useCurrentReportID', () => {
 
         // When the updateCurrentReportID is called
         act(() => {
-            result.current?.updateCurrentReportID(state1);
+            result.current?.updateCurrentReportID(result.current.getCurrentReportID(state1));
         });
 
         // Then the currentReportID is updated
@@ -168,7 +168,7 @@ describe('useCurrentReportID', () => {
 
         // When the updateCurrentReportID is called with a different reportID
         act(() => {
-            result.current?.updateCurrentReportID(state2);
+            result.current?.updateCurrentReportID(result.current.getCurrentReportID(state2));
         });
 
         // Then the currentReportID is updated
@@ -200,7 +200,7 @@ describe('useCurrentReportID', () => {
 
         // When the updateCurrentReportID is called
         act(() => {
-            result.current?.updateCurrentReportID(settingsState);
+            result.current?.updateCurrentReportID(result.current.getCurrentReportID(settingsState));
         });
 
         // Then the currentReportID should remain unchanged
@@ -233,7 +233,7 @@ describe('useCurrentReportID', () => {
 
         // When the updateCurrentReportID is called
         act(() => {
-            result.current?.updateCurrentReportID(reportState);
+            result.current?.updateCurrentReportID(result.current.getCurrentReportID(reportState));
         });
 
         // Then the context value is updated
