@@ -58,7 +58,7 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
                 icon: feature.icon,
                 translationKey: feature.translationKey,
             }));
-    }, [illustrations]);
+    }, [illustrations.CreditCardsNew, illustrations.HandCard, illustrations.MagnifyingGlassMoney]);
 
     const handleCtaPress = useCallback(() => {
         if (!policy?.id) {
@@ -70,7 +70,7 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
         }
         clearAddNewCardFlow();
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policy.id));
-    }, [policy, isActingAsDelegate, showDelegateNoAccessModal]);
+    }, [policy?.id, isActingAsDelegate, showDelegateNoAccessModal]);
 
     return (
         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

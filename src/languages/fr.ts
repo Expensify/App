@@ -6420,6 +6420,7 @@ ${
             delete: 'Supprimer',
             hold: 'Attente',
             unhold: 'Supprimer la suspension',
+            reject: 'Refuser',
             noOptionsAvailable: 'Aucune option disponible pour le groupe de dépenses sélectionné.',
         },
         filtersHeader: 'Filtres',
