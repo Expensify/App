@@ -111,7 +111,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         const personalDetailList = filteredOptions.personalDetails.map((participant) => ({
             ...participant,
             isSelected: selectedAccountIDs.has(participant.accountID),
-            keyForList: String(participant.accountID) ?? String(participant.reportID),
+            keyForList: String(participant.accountID),
         }));
 
         const recentReportsList = filteredOptions.recentReports.map((report) => ({
