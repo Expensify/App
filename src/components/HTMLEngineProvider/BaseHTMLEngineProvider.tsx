@@ -221,7 +221,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
-                onText: (text) => (text.data = convertToLTR(text.data)),
+                onText: (text) => {
+                    // Avoid injecting LTR controls into whitespace-only nodes.
+                    // Doing so turns otherwise ignorable whitespace into visible content in some renderers (Android),
+                    // which can create empty bullets between list items.
+                    if (!/\S/.test(text.data)) {
+                        return;
+                    }
+                    // eslint-disable-next-line no-param-reassign
+                    text.data = convertToLTR(text.data);
+                },
             }}
         >
             <RenderHTMLConfigProvider
