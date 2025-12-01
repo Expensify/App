@@ -67,6 +67,7 @@ import type {
 } from '@src/types/onyx';
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -450,7 +451,7 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
  * Determine if we should show the attendee selector for a given expense on a give policy.
  */
 function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
-    if ((iouType !== CONST.IOU.TYPE.SUBMIT && iouType !== CONST.IOU.TYPE.CREATE) || !policy?.id || policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
+    if ((iouType !== CONST.IOU.TYPE.SUBMIT && iouType !== CONST.IOU.TYPE.CREATE && iouType !== CONST.IOU.TYPE.TRACK) || !policy?.id || policy?.type !== CONST.POLICY.TYPE.CORPORATE) {
         return false;
     }
 
@@ -661,6 +662,10 @@ function getUpdatedTransaction({
     }
 
     if (Object.hasOwn(transactionChanges, 'attendees')) {
+        updatedTransaction.comment = {
+            ...updatedTransaction.comment,
+            attendees: transactionChanges.attendees,
+        };
         updatedTransaction.modifiedAttendees = transactionChanges?.attendees;
     }
 
@@ -883,33 +888,65 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
 }
 
 /**
- * Return the list of modified attendees if present otherwise list of attendees
+ * Return report owner as default attendee
+ * @param transaction
+ * @param currentUserPersonalDetails - personal details of current user - needed for unreported expenses to return current user as default attendee
  */
-function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
-    const attendees = transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
-    if (attendees.length === 0 && transaction?.reportID) {
-        // Get the creator of the transaction by looking at the owner of the report linked to the transaction
-        const report = getReportOrDraftReport(transaction.reportID);
-        const creatorAccountID = report?.ownerAccountID;
+function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee | undefined {
+    if (transaction?.reportID === undefined) {
+        return;
+    }
 
-        if (creatorAccountID) {
-            const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID]});
-            const creatorEmail = creatorDetails?.login ?? '';
-            const creatorDisplayName = creatorDetails?.displayName ?? creatorEmail;
+    // Get the creator of the transaction by looking at the owner of the report linked to the transaction
+    const report = getReportOrDraftReport(transaction?.reportID);
+    // For unreported expenses, the creator ID should belong to the current user because the transaction isn’t part of any report yet
+    const creatorAccountID = isExpenseUnreported(transaction) ? currentUserPersonalDetails?.accountID : report?.ownerAccountID;
 
-            if (creatorEmail) {
-                attendees.push({
-                    email: creatorEmail,
-                    login: creatorEmail,
-                    displayName: creatorDisplayName,
-                    accountID: creatorAccountID,
-                    text: creatorDisplayName,
-                    searchText: creatorDisplayName,
-                    avatarUrl: creatorDetails?.avatarThumbnail ?? '',
-                    selected: true,
-                });
-            }
+    if (creatorAccountID) {
+        const [creatorDetails] = getPersonalDetailsByIDs({accountIDs: [creatorAccountID]});
+        const creatorEmail = creatorDetails?.login ?? '';
+        const creatorDisplayName = creatorDetails?.displayName ?? creatorEmail;
+
+        if (creatorEmail) {
+            return {
+                email: creatorEmail,
+                login: creatorEmail,
+                displayName: creatorDisplayName,
+                accountID: creatorAccountID,
+                text: creatorDisplayName,
+                searchText: creatorDisplayName,
+                avatarUrl: creatorDetails?.avatarThumbnail ?? '',
+                selected: true,
+            };
         }
+    }
+}
+
+/**
+ * Return the list of attendees present on the transaction, if it's empty return report owner as default attendee
+ * @param transaction
+ * @param currentUserPersonalDetails - personal details of current user
+ */
+function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
+    const attendees = transaction?.comment?.attendees ?? [];
+    const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
+    if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
+        attendees.push(reportOwnerAsAttendee);
+    }
+    return attendees;
+}
+
+/**
+ * Return the list of modified attendees if present otherwise list of attendees
+ * @param transaction
+ * @param currentUserPersonalDetails - personal details of current user
+ */
+function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
+    const attendees = transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
+    const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
+
+    if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
+        attendees.push(reportOwnerAsAttendee);
     }
     return attendees;
 }
@@ -2298,6 +2335,8 @@ export {
     isCorporateCardTransaction,
     isExpenseUnreported,
     mergeProhibitedViolations,
+    getOriginalAttendees,
+    getReportOwnerAsAttendee,
 };
 
 export type {TransactionChanges};
