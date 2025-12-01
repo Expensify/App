@@ -406,6 +406,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Selected accountant */
         accountant?: Accountant;
 
+        /** The Transaction converted amount */
+        convertedAmount?: number;
+
         /** The transaction tax amount */
         taxAmount?: number;
 
@@ -477,6 +480,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
+
+        /** The name of iouReport associated with the transaction */
+        reportName?: string;
 
         /** Existing routes */
         routes?: Routes;

@@ -288,6 +288,9 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                         authToken,
                         encryptedAuthToken: response.encryptedAuthToken,
                     });
+                    Onyx.merge(ONYXKEYS.ACCOUNT, {
+                        primaryLogin: requesterEmail,
+                    });
                     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
 
@@ -641,8 +644,8 @@ function updateDelegateRole({email, role, validateCode, delegatedAccess}: Update
                             ? {
                                   ...delegate,
                                   isLoading: false,
-                                  pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                  pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                  pendingAction: null,
+                                  pendingFields: {role: null},
                               }
                             : delegate,
                     ),

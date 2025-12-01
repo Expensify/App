@@ -4,9 +4,9 @@ import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {PressableWithFeedback} from '@components/Pressable';
-import SelectionList from '@components/SelectionListWithSections';
-import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -140,7 +140,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                           : undefined,
                   }
                 : undefined,
-            ratesCount > 0
+            ratesCount > 0 && policy?.areDistanceRatesEnabled
                 ? {
                       translation: translate('workspace.common.distanceRates'),
                       value: 'distanceRates',
@@ -155,7 +155,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                   }
                 : undefined,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            (bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany
+            policy?.areInvoicesEnabled && ((bankAccountList && Object.keys(bankAccountList).length) || !!invoiceCompany)
                 ? {
                       translation: translate('workspace.common.invoices'),
                       value: 'invoices',
@@ -182,9 +182,9 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         invoiceCompany,
     ]);
 
-    const listData: ListItem[] = useMemo(() => {
+    const featuresToCopy: ListItem[] = useMemo(() => {
         return items.map((option) => {
-            const alternateText = option?.alternateText ? option.alternateText.trim().replace(/,$/, '') : undefined;
+            const alternateText = option?.alternateText ? option.alternateText.trim().replaceAll(/,$/g, '') : undefined;
             return {
                 text: option.translation,
                 keyForList: option.value,
@@ -307,6 +307,15 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
 
     const isSelectAllChecked = selectedItems.length > 0 && selectedItems.length === items.length;
 
+    const confirmButtonOptions: ConfirmButtonOptions<ListItem> = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.continue'),
+            onConfirm: onConfirmSelectList,
+        }),
+        [translate, onConfirmSelectList],
+    );
+
     return (
         <>
             <HeaderWithBackButton
@@ -339,15 +348,13 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         </PressableWithFeedback>
                     </View>
                     <SelectionList
+                        data={featuresToCopy}
                         shouldSingleExecuteRowSelect
-                        sections={[{data: listData}]}
                         ListItem={MultiSelectListItem}
                         onSelectRow={updateSelectedItems}
-                        isAlternateTextMultilineSupported
+                        alternateNumberOfSupportedLines={2}
                         addBottomSafeAreaPadding
-                        showConfirmButton
-                        confirmButtonText={translate('common.continue')}
-                        onConfirm={onConfirmSelectList}
+                        confirmButtonOptions={confirmButtonOptions}
                     />
                 </View>
             </>
