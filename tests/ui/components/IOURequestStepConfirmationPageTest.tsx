@@ -251,9 +251,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
                 ...DEFAULT_SPLIT_TRANSACTION,
-                filename: 'receipt1.jpg',
                 iouRequestType: 'scan',
-                receipt: {source: 'path/to/receipt1.jpg', type: ''},
+                receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
             });
         });
 
@@ -289,9 +288,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
                 ...DEFAULT_SPLIT_TRANSACTION,
-                filename: 'receipt1.jpg',
                 iouRequestType: 'scan',
-                receipt: {source: 'path/to/receipt1.jpg', type: ''},
+                receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
                 transactionID: '1',
             });
         });
@@ -299,9 +297,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}2`, {
                 ...DEFAULT_SPLIT_TRANSACTION,
-                filename: 'receipt2.jpg',
                 iouRequestType: 'scan',
-                receipt: {source: 'path/to/receipt2.jpg', type: ''},
+                receipt: {filename: 'receipt2.jpg', source: 'path/to/receipt2.jpg', type: ''},
                 transactionID: '2',
             });
         });

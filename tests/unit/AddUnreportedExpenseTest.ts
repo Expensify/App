@@ -15,7 +15,6 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
         tag: '',
         billable: false,
         receipt: {},
-        filename: '',
         taxCode: '',
         taxAmount: 0,
         pendingAction: undefined,

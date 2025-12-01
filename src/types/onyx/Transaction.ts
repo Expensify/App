@@ -439,7 +439,11 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Server side errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
 
-        /** The name of the file used for a receipt (formerly receiptFilename) */
+        /**
+         * @deprecated - Use getReceiptFilenameFromTransaction to get filename
+         *
+         * The name of the file used for a receipt (formerly receiptFilename)
+         */
         filename?: string;
 
         /** Used during the creation flow before the transaction is saved to the server */

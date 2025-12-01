@@ -8,7 +8,6 @@ import {
     getMergeFieldUpdatedValues,
     getMergeFieldValue,
     getRateFromMerchant,
-    getReceiptFileName,
     getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
     selectTargetAndSourceTransactionsForMerge,
@@ -625,7 +624,6 @@ describe('MergeTransactionUtils', () => {
                 },
                 reimbursable: false,
                 billable: true,
-                filename: 'merged.jpg',
                 receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
                 modifiedCreated: '2025-01-02T00:00:00.000Z',
@@ -751,30 +749,6 @@ describe('MergeTransactionUtils', () => {
                 targetTransaction: cardTransaction,
                 sourceTransaction: splitExpenseTransaction,
             });
-        });
-    });
-
-    describe('getReceiptFileName', () => {
-        it('should return filename from source when source is a string', () => {
-            const receipt = {
-                source: 'https://example.com/receipts/receipt123.jpg',
-                filename: 'backup-filename.jpg',
-            };
-
-            const result = getReceiptFileName(receipt);
-
-            expect(result).toBe('receipt123.jpg');
-        });
-
-        it('should return filename when source is not a string', () => {
-            const receipt = {
-                source: 12345,
-                filename: 'receipt-from-filename.jpg',
-            };
-
-            const result = getReceiptFileName(receipt);
-
-            expect(result).toBe('receipt-from-filename.jpg');
         });
     });
 
