@@ -631,6 +631,7 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
             count: 4,
             currency: 'USD',
             total: 40,
+            state: 8,
         },
         [`${CONST.SEARCH.GROUP_PREFIX}${cardID2}` as const]: {
             entryID: entryID2,
@@ -640,6 +641,7 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
             count: 6,
             currency: 'USD',
             total: 20,
+            state: 8,
         },
     },
     search: {
@@ -1426,6 +1428,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         count: 4,
         currency: 'USD',
         total: 40,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1438,6 +1441,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         count: 6,
         currency: 'USD',
         total: 20,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1453,6 +1457,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         count: 6,
         currency: 'USD',
         total: 20,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1465,6 +1470,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         count: 4,
         currency: 'USD',
         total: 40,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1741,15 +1747,15 @@ describe('SearchUIUtils', () => {
 
     describe('Test getSections', () => {
         it('should return getReportActionsSections result when type is CHAT', () => {
-            expect(
-                SearchUIUtils.getSections({
-                    type: CONST.SEARCH.DATA_TYPES.CHAT,
-                    data: searchResults.data,
-                    currentAccountID: 2074551,
-                    currentUserEmail: '',
-                    formatPhoneNumber,
-                }),
-            ).toStrictEqual(reportActionListItems);
+            const [filteredReportActions, allReportActionsLength] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.CHAT,
+                data: searchResults.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                formatPhoneNumber,
+            });
+            expect(filteredReportActions).toStrictEqual(reportActionListItems);
+            expect(allReportActionsLength).toBe(6);
         });
 
         it('should return getTransactionsSections result when groupBy is undefined', () => {
@@ -1760,7 +1766,7 @@ describe('SearchUIUtils', () => {
                     currentAccountID: 20745,
                     currentUserEmail: '',
                     formatPhoneNumber,
-                }),
+                })[0],
             ).toEqual(transactionsListItems);
         });
 
@@ -1784,7 +1790,7 @@ describe('SearchUIUtils', () => {
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            }) as TransactionListItemType[];
+            })[0] as TransactionListItemType[];
 
             const distanceTransaction = result.find((item) => item.transactionID === distanceTransactionID);
 
@@ -1815,7 +1821,7 @@ describe('SearchUIUtils', () => {
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            }) as TransactionGroupListItemType[];
+            })[0] as TransactionGroupListItemType[];
 
             const reportGroup = result.find((group) => group.transactions?.some((transaction) => transaction.transactionID === distanceTransactionID));
 
@@ -1836,7 +1842,7 @@ describe('SearchUIUtils', () => {
                     currentAccountID: 2074551,
                     currentUserEmail: '',
                     formatPhoneNumber,
-                }),
+                })[0],
             ).toStrictEqual(transactionReportGroupListItems);
         });
 
@@ -1875,14 +1881,14 @@ describe('SearchUIUtils', () => {
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            });
+            })[0];
             const resultReportFirst = SearchUIUtils.getSections({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 data: testDataReportFirst,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            });
+            })[0];
 
             expect(resultTransactionFirst).toBeDefined();
             expect(Array.isArray(resultTransactionFirst)).toBe(true);
@@ -1903,7 +1909,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                }),
+                })[0],
             ).toStrictEqual(transactionMemberGroupListItems);
         });
 
@@ -1916,7 +1922,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
-                }),
+                })[0],
             ).toStrictEqual(transactionCardGroupListItems);
         });
 
@@ -1929,8 +1935,31 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
-                }),
+                })[0],
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
+        });
+
+        it('should filter invalid withdrawal-id entries without accountNumber', () => {
+            const staleCacheData: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2074551` as const]: {
+                    accountID: 2074551,
+                    count: 1,
+                    currency: 'USD',
+                    total: 100,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: staleCacheData,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                formatPhoneNumber,
+                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            }) as [TransactionWithdrawalIDGroupListItemType[], number];
+
+            expect(result).toHaveLength(0);
         });
     });
 

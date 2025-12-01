@@ -367,6 +367,9 @@ type SearchWithdrawalIDGroup = {
 
     /** When the withdrawal completed */
     debitPosted: string;
+
+    /** Settlement state (5/6/7=failed, 8=cleared, others=pending) */
+    state: number;
 };
 
 /**

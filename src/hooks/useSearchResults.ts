@@ -32,7 +32,7 @@ function useSearchResults<TValue extends ListItem>(data: TValue[], filterData: (
             return;
         }
         setInputValue('');
-    }, [data, prevData]);
+    }, [data.length, prevData.length]);
 
     return [inputValue, setInputValue, result] as const;
 }
