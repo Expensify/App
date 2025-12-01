@@ -1,8 +1,10 @@
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -48,6 +50,11 @@ function IOURequestStepAttendees({
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
@@ -56,12 +63,37 @@ function IOURequestStepAttendees({
         if (!deepEqual(previousAttendees, attendees)) {
             setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             if (isEditing) {
-                updateMoneyRequestAttendees(transactionID, reportID, attendees, policy, policyTags, policyCategories, transactionViolations ?? undefined);
+                updateMoneyRequestAttendees(
+                    transactionID,
+                    reportID,
+                    attendees,
+                    policy,
+                    policyTags,
+                    policyCategories,
+                    transactionViolations ?? undefined,
+                    currentUserAccountIDParam,
+                    currentUserEmailParam,
+                    isASAPSubmitBetaEnabled,
+                );
             }
         }
 
         Navigation.goBack(backTo);
-    }, [attendees, backTo, isEditing, policy, policyCategories, policyTags, previousAttendees, reportID, transactionID, transactionViolations]);
+    }, [
+        attendees,
+        backTo,
+        isEditing,
+        policy,
+        policyCategories,
+        policyTags,
+        previousAttendees,
+        reportID,
+        transactionID,
+        transactionViolations,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
+    ]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

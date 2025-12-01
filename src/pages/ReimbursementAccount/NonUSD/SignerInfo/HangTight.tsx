@@ -57,7 +57,7 @@ function HangTight({policyID, bankAccountID}: HangTightProps) {
         return () => {
             clearReimbursementAccountSendReminderForCorpaySignerInformation();
         };
-    }, [reimbursementAccount]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSendingReminderForCorpaySignerInformation, reimbursementAccount?.isSuccess]);
 
     return (
         <ScrollView
