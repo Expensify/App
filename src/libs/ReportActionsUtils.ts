@@ -2938,19 +2938,24 @@ function getSubmitsToUpdateMessage(action: ReportAction): string {
     const members = formatMemberListWithAnd(originalMessage.members ?? []);
     const isDefaultApprover = originalMessage.isDefaultApprover ?? false;
     const wasDefaultApprover = originalMessage.wasDefaultApprover ?? false;
-    const previousApprover = originalMessage.previousApprover ? formatPhoneNumber(originalMessage.previousApprover.email) : undefined;
+    const approverEmail = originalMessage.approver ? formatPhoneNumber(originalMessage.approver.email) : '';
+    const previousApproverEmail = originalMessage.previousApprover ? formatPhoneNumber(originalMessage.previousApprover.email) : undefined;
 
     if (isDefaultApprover) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.changedSubmitsToDefault', {members, previousApprover});
+        return translateLocal('workspaceActions.changedSubmitsToDefault', {
+            members,
+            approver: approverEmail,
+            previousApprover: previousApproverEmail,
+            wasDefaultApprover,
+        });
     }
 
-    const approver = formatPhoneNumber(originalMessage.approver?.email ?? '');
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return translateLocal('workspaceActions.changedSubmitsToApprover', {
         members,
-        approver,
-        previousApprover,
+        approver: approverEmail,
+        previousApprover: previousApproverEmail,
         wasDefaultApprover,
     });
 }

@@ -6341,17 +6341,38 @@ const translations = {
             wasDefaultApprover?: boolean;
         }) => {
             let text = `changed the approval workflow for ${members} to submit reports to ${approver}`;
-            if (wasDefaultApprover) {
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (previously default approver ${previousApprover})`;
+            } else if (wasDefaultApprover) {
                 text += ' (previously default approver)';
             } else if (previousApprover) {
                 text += ` (previously ${previousApprover})`;
             }
             return text;
         },
-        changedSubmitsToDefault: ({members, previousApprover}: {members: string; previousApprover?: string}) =>
-            previousApprover
-                ? `changed the approval workflow for ${members} to submit reports to the default approver (previously ${previousApprover})`
-                : `changed the approval workflow for ${members} to submit reports to the default approver`,
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `changed the approval workflow for ${members} to submit reports to the default approver ${approver}`
+                : `changed the approval workflow for ${members} to submit reports to the default approver`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (previously default approver ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (previously default approver)';
+            } else if (previousApprover) {
+                text += ` (previously ${previousApprover})`;
+            }
+            return text;
+        },
         changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
             previousForwardsTo
                 ? `changed the approval workflow for ${approver} to forward approved reports to ${forwardsTo} (previously forwarded to ${previousForwardsTo})`

@@ -5995,17 +5995,38 @@ ${amount} para ${merchant} - ${date}`,
             wasDefaultApprover?: boolean;
         }) => {
             let text = `cambió el flujo de aprobación para ${members} para enviar informes a ${approver}`;
-            if (wasDefaultApprover) {
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (previamente aprobador predeterminado ${previousApprover})`;
+            } else if (wasDefaultApprover) {
                 text += ' (previamente aprobador predeterminado)';
             } else if (previousApprover) {
                 text += ` (previamente ${previousApprover})`;
             }
             return text;
         },
-        changedSubmitsToDefault: ({members, previousApprover}: {members: string; previousApprover?: string}) =>
-            previousApprover
-                ? `cambió el flujo de aprobación para ${members} para enviar informes al aprobador predeterminado (previamente ${previousApprover})`
-                : `cambió el flujo de aprobación para ${members} para enviar informes al aprobador predeterminado`,
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `cambió el flujo de aprobación para ${members} para enviar informes al aprobador predeterminado ${approver}`
+                : `cambió el flujo de aprobación para ${members} para enviar informes al aprobador predeterminado`;
+            if (wasDefaultApprover && previousApprover) {
+                text += ` (previamente aprobador predeterminado ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += ' (previamente aprobador predeterminado)';
+            } else if (previousApprover) {
+                text += ` (previamente ${previousApprover})`;
+            }
+            return text;
+        },
         changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
             previousForwardsTo
                 ? `cambió el flujo de aprobación para ${approver} para reenviar informes aprobados a ${forwardsTo} (previamente reenviado a ${previousForwardsTo})`
