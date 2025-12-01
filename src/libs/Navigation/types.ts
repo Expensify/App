@@ -1930,6 +1930,14 @@ type ReimbursementAccountNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
         policyID?: string;
+        subStep?: typeof CONST.BANK_ACCOUNT.STEP.COUNTRY;
+    };
+    [SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: {
+        // TODO this backTo comes from drilling it through bank account form screens
+        // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+        policyID?: string;
     };
 };
 
@@ -2109,6 +2117,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: NavigatorScreenParams<TransactionDuplicateNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS]: NavigatorScreenParams<SearchReportActionsParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
@@ -2588,13 +2597,7 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR]: NavigatorScreenParams<TestToolsModalModalNavigatorParamList>;
     };
 
-type SearchReportParamList = {
-    [SCREENS.SEARCH.REPORT_RHP]: {
-        reportID: string;
-        reportActionID?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
+type SearchReportActionsParamList = {
     [SCREENS.SEARCH.REPORT_VERIFY_ACCOUNT]: {
         reportID: string;
     };
@@ -2621,6 +2624,20 @@ type SearchReportParamList = {
         backTo: Routes;
         /** Selected transactions' report ID  */
         reportID: string;
+    };
+    [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: Record<string, never>;
+    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: {
+        /** Selected transactions' report ID  */
+        reportID: string;
+    };
+};
+
+type SearchReportParamList = {
+    [SCREENS.SEARCH.REPORT_RHP]: {
+        reportID: string;
+        reportActionID?: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
     };
 };
 
@@ -2812,6 +2829,7 @@ export type {
     RoomMembersNavigatorParamList,
     RootNavigatorParamList,
     SearchAdvancedFiltersParamList,
+    SearchReportActionsParamList,
     SearchReportParamList,
     SearchSavedSearchParamList,
     SearchFullscreenNavigatorParamList,

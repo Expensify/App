@@ -4,7 +4,6 @@ import React, {useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -34,7 +33,6 @@ import type {DisplayNameWithTooltip} from './DisplayNames/types';
 import FormHelpMessage from './FormHelpMessage';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
@@ -79,6 +77,12 @@ type MenuItemBaseProps = {
     /** Text to be shown as badge near the right end. */
     badgeText?: string;
 
+    /** Icon to display on the left side of the badge */
+    badgeIcon?: IconAsset;
+
+    /** Whether the badge should be shown as success */
+    badgeSuccess?: boolean;
+
     /** Used to apply offline styles to child text components */
     style?: StyleProp<ViewStyle>;
 
@@ -95,7 +99,7 @@ type MenuItemBaseProps = {
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Used to apply styles specifically to the title */
-    titleStyle?: ViewStyle;
+    titleStyle?: StyleProp<TextStyle>;
 
     /** Any additional styles to apply on the badge element */
     badgeStyle?: ViewStyle;
@@ -398,10 +402,13 @@ const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolea
         return hoveredBackgroundColor;
     }
 };
+
 function MenuItem({
     interactive = true,
     onPress,
     badgeText,
+    badgeIcon,
+    badgeSuccess,
     style,
     wrapperStyle,
     titleWrapperStyle,
@@ -423,13 +430,13 @@ function MenuItem({
     iconWidth,
     iconHeight,
     iconStyles,
-    fallbackIcon,
+    fallbackIcon = Expensicons.FallbackAvatar,
     shouldShowTitleIcon = false,
     titleIcon,
     rightIconAccountID,
     iconAccountID,
     shouldShowRightIcon = false,
-    iconRight,
+    iconRight = Expensicons.ArrowRight,
     furtherDetailsIcon,
     furtherDetails,
     furtherDetailsNumberOfLines = 2,
@@ -518,13 +525,12 @@ function MenuItem({
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
     const popoverAnchor = useRef<View>(null);
     const deviceHasHoverSupport = hasHoverSupport();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar'] as const);
 
     const isCompact = viewMode === CONST.OPTION_MODE.COMPACT;
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
 
-    const combinedTitleTextStyle = StyleUtils.combineStyles(
+    const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
             styles.flexShrink1,
             styles.popoverMenuText,
@@ -538,7 +544,7 @@ function MenuItem({
             shouldBreakWord ? styles.breakWord : {},
             styles.mw100,
         ],
-        titleStyle ?? {},
+        (titleStyle ?? {}) as TextStyle,
     );
 
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
@@ -592,14 +598,13 @@ function MenuItem({
         return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
     }, [shouldParseHelperText, helperHtml]);
 
-    const hasPressableRightComponent = (iconRight ?? expensifyIcons.ArrowRight) || (shouldShowRightComponent && rightComponent);
+    const hasPressableRightComponent = iconRight || (shouldShowRightComponent && rightComponent);
 
     const renderTitleContent = () => {
         if (title && titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
             return (
                 <DisplayNames
                     fullTitle={title}
-                    shouldParseFullTitle={!shouldRenderAsHTML}
                     displayNamesWithTooltips={titleWithTooltips}
                     tooltipEnabled
                     numberOfLines={1}
@@ -789,7 +794,7 @@ function MenuItem({
                                                                     imageStyles={[styles.alignSelfCenter]}
                                                                     size={CONST.AVATAR_SIZE.DEFAULT}
                                                                     source={icon}
-                                                                    fallbackIcon={fallbackIcon ?? expensifyIcons.FallbackAvatar}
+                                                                    fallbackIcon={fallbackIcon}
                                                                     name={title}
                                                                     avatarID={avatarID}
                                                                     type={CONST.ICON_TYPE_WORKSPACE}
@@ -800,7 +805,7 @@ function MenuItem({
                                                                     imageStyles={[styles.alignSelfCenter]}
                                                                     source={icon}
                                                                     avatarID={avatarID}
-                                                                    fallbackIcon={fallbackIcon ?? expensifyIcons.FallbackAvatar}
+                                                                    fallbackIcon={fallbackIcon}
                                                                     size={avatarSize}
                                                                     type={CONST.ICON_TYPE_AVATAR}
                                                                 />
@@ -902,7 +907,9 @@ function MenuItem({
                                                 {!!badgeText && (
                                                     <Badge
                                                         text={badgeText}
+                                                        icon={badgeIcon}
                                                         badgeStyles={badgeStyle}
+                                                        success={badgeSuccess}
                                                     />
                                                 )}
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
@@ -933,7 +940,7 @@ function MenuItem({
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                                         <Icon
                                                             src={Expensicons.DotIndicator}
-                                                            fill={brickRoadIndicator === 'error' ? theme.danger : theme.success}
+                                                            fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
                                                         />
                                                     </View>
                                                 )}
@@ -953,7 +960,7 @@ function MenuItem({
                                                         ]}
                                                     >
                                                         <Icon
-                                                            src={iconRight ?? expensifyIcons.ArrowRight}
+                                                            src={iconRight}
                                                             fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
                                                             width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
                                                             height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}

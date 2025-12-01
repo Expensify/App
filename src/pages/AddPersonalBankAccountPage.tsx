@@ -52,7 +52,7 @@ function AddPersonalBankAccountPage() {
                 goBack();
             }
         },
-        [personalBankAccount, goBack, kycWallRef],
+        [personalBankAccount?.exitReportID, personalBankAccount?.onSuccessFallbackRoute, goBack, kycWallRef],
     );
 
     useEffect(() => clearPersonalBankAccount, []);
