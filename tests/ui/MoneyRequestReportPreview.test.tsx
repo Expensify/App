@@ -58,7 +58,7 @@ const hasViolations = (
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     _currentUserAccountID: number,
-    _currentUserEmailParam?: string,
+    _currentUserEmailParam: string,
     shouldShowInReview?: boolean,
 ) => (shouldShowInReview === undefined || shouldShowInReview) && Object.values(transactionViolations ?? {}).length > 0;
 
