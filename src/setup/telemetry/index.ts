@@ -8,16 +8,13 @@ import processBeforeSendTransactions from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import pkg from '../../../package.json';
-import {} from 'type-fest'
 
 export default function (): void {
     if (isDevelopment()) {
         return;
     }
 
-    const integrations= [navigationIntegration, tracingIntegration, SentryReact.browserProfilingIntegration(), browserTracingIntegration].filter(
-        (integration) => !!integration,
-    );
+    const integrations = [navigationIntegration, tracingIntegration, SentryReact.browserProfilingIntegration(), browserTracingIntegration].filter((integration) => !!integration);
 
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
