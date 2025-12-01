@@ -72,7 +72,8 @@ Ensure your domain is verified and the SAML setup is complete. Then, do the foll
 3. In Okta, add Expensify as an application, and configure user profile mappings.
 4. Request Okta SCIM API activation via concierge@expensify.com.
 5. Integrate the SCIM token with Okta API provisioning.
-6. Refer to the full setup in Okta’s documentation for attribute mapping and provisioning options.
+
+Refer to the full setup in Okta’s documentation for attribute mapping and provisioning options.
 
 
 ## Microsoft ADFS SAML Authentication
@@ -80,8 +81,8 @@ Ensure your domain is verified and the SAML setup is complete. Then, do the foll
 2. Import Expensify’s metadata XML from the SAML page.
 3. Configure **LDAP Attributes** for email or UPN.
 4. Add two claim rules:
-5. Send LDAP Attributes as Claims.
-6. Transform Incoming Claim (Name ID).
+   - Send LDAP Attributes as Claims.
+   - Transform Incoming Claim (Name ID).
 
 
 ---
