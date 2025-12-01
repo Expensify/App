@@ -670,7 +670,9 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
         const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
 
         for (const action of reportActions) {
-            action && showReportActionNotification(reportID, action);
+            if (action) {
+                showReportActionNotification(reportID, action);
+            }
         }
     }
 }
