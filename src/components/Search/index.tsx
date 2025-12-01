@@ -290,7 +290,9 @@ function Search({
                 const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
                 if (transactionViolations) {
                     const filteredTransactionViolations = mergeProhibitedViolations(
-                        transactionViolations.filter((violation) => shouldShowViolation(report as OnyxEntry<Report>, policy as OnyxEntry<Policy>, violation.name, email ?? '', true, transaction)),
+                        transactionViolations.filter((violation) =>
+                            shouldShowViolation(report as OnyxEntry<Report>, policy as OnyxEntry<Policy>, violation.name, email ?? '', true, transaction),
+                        ),
                     );
 
                     if (filteredTransactionViolations.length > 0) {
