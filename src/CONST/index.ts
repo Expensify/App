@@ -6654,6 +6654,11 @@ const CONST = {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
         },
+        SETTLEMENT_STATUS: {
+            PENDING: 'pending',
+            CLEARED: 'cleared',
+            FAILED: 'failed',
+        },
         IS_VALUES: {
             READ: 'read',
             UNREAD: 'unread',
