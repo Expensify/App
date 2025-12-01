@@ -53,6 +53,7 @@ import {
     getChatByParticipants,
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
+    getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getGroupChatName,
     getIconsForParticipants,
@@ -164,7 +165,7 @@ import {
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
-import {localeCompare} from '../utils/TestHelper';
+import {formatPhoneNumber, localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
@@ -9285,6 +9286,158 @@ describe('ReportUtils', () => {
         await Onyx.clear();
     });
 
+    describe('getDisplayNameForParticipant', () => {
+        it('should return the display name for a participant', async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            waitForBatchedUpdates();
+
+            const policyExpenseChat: Report = {
+                ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID: policy.id,
+                policyName: policy.name,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const lastReportPreviewAction = {
+                action: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportName: 'Expense Report 2025-07-10',
+                childReportID: '5186125925096828',
+                created: '2025-07-10 17:45:31.448',
+                reportActionID: '7425617950691586420',
+                shouldShow: true,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'a owes ETB 5.00',
+                        text: 'a owes ETB 5.00',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                        reactions: [],
+                    },
+                ],
+                originalMessage: {
+                    linkedReportID: '5186125925096828',
+                    actionableForAccountIDs: [20232605],
+                    isNewDot: true,
+                    lastModified: '2025-07-10 17:45:53.635',
+                },
+                person: [
+                    {
+                        type: 'TEXT',
+                        style: 'strong',
+                        text: 'f100',
+                    },
+                ],
+                parentReportID: policyExpenseChat.reportID,
+            };
+
+            const iouReport = {
+                reportName: 'Expense Report 2025-07-10',
+                reportID: '5186125925096828',
+                policyID: policy.id,
+                type: 'expense',
+                currency: 'ETB',
+                ownerAccountID: 1,
+                total: -500,
+                nonReimbursableTotal: 0,
+                parentReportID: policyExpenseChat.reportID,
+                parentReportActionID: lastReportPreviewAction.reportActionID,
+                chatReportID: policyExpenseChat.reportID,
+            } as Report;
+
+            const displayName = getDisplayNameForParticipant({formatPhoneNumber, accountID: iouReport.ownerAccountID});
+            expect(displayName).toBe(fakePersonalDetails?.[1]?.displayName);
+        });
+        it('should surface a GBR when copiloted into an approver account with a report with outstanding child request', async () => {
+            await Onyx.clear();
+
+            const copilotEmail = 'copilot@example.com';
+            const delegatedAccess = {
+                delegate: copilotEmail,
+                delegates: [{email: copilotEmail, role: CONST.DELEGATE_ROLE.ALL}],
+            };
+
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
+
+            const expenseReport: Report = {
+                ...createExpenseReport(1234),
+                hasOutstandingChildRequest: true,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+
+            const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, false);
+            expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+
+            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, undefined, false);
+            expect(requiresAttention).toBe(true);
+
+            const reasonForOptionList = reasonForReportToBeInOptionList({
+                report: expenseReport,
+                chatReport: undefined,
+                currentReportId: undefined,
+                isInFocusMode: true,
+                betas: undefined,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: undefined,
+                isReportArchived: undefined,
+            });
+
+            expect(reasonForOptionList).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+
+            await Onyx.clear();
+        });
+
+        it('should not surface a GBR when copiloted into an approver account with a report without outstanding child request', async () => {
+            await Onyx.clear();
+
+            const copilotEmail = 'copilot@example.com';
+            const delegatedAccess = {
+                delegate: copilotEmail,
+                delegates: [{email: copilotEmail, role: CONST.DELEGATE_ROLE.ALL}],
+            };
+
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
+
+            const expenseReport: Report = {
+                ...createExpenseReport(1234),
+                isPinned: false,
+                isWaitingOnBankAccount: false,
+                hasOutstandingChildRequest: false,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+
+            const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, false);
+            expect(reasonForAttention?.reason).toBe(undefined);
+
+            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, undefined, false);
+            expect(requiresAttention).toBe(false);
+
+            const reasonForOptionList = reasonForReportToBeInOptionList({
+                report: expenseReport,
+                chatReport: undefined,
+                currentReportId: undefined,
+                isInFocusMode: true,
+                betas: undefined,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: undefined,
+                isReportArchived: undefined,
+            });
+
+            expect(reasonForOptionList).toBe(null);
+
+            await Onyx.clear();
+        });
+    });
+
     it('should surface a GBR for admin with held expenses requiring approval or payment and avoid showing an RBR', async () => {
         await Onyx.clear();
 
@@ -9515,68 +9668,6 @@ describe('ReportUtils', () => {
 
         const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, false);
         expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
-
-        const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, undefined, false);
-        expect(requiresAttention).toBe(true);
-
-        const reasonForOptionList = reasonForReportToBeInOptionList({
-            report: expenseReport,
-            chatReport: undefined,
-            currentReportId: undefined,
-            isInFocusMode: true,
-            betas: undefined,
-            doesReportHaveViolations: false,
-            excludeEmptyChats: false,
-            draftComment: undefined,
-            isReportArchived: undefined,
-        });
-
-        expect(reasonForOptionList).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
-
-        await Onyx.clear();
-    });
-
-    it('should not surface a GBR when copiloted into an approver account with a report without outstanding child request', async () => {
-        await Onyx.clear();
-
-        const copilotEmail = 'copilot@example.com';
-        const delegatedAccess = {
-            delegate: copilotEmail,
-            delegates: [{email: copilotEmail, role: CONST.DELEGATE_ROLE.ALL}],
-        };
-
-        await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess});
-
-        const expenseReport: Report = {
-            ...createExpenseReport(1234),
-            isPinned: false,
-            isWaitingOnBankAccount: false,
-            hasOutstandingChildRequest: false,
-        };
-
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
-
-        const reasonForAttention = getReasonAndReportActionThatRequiresAttention(expenseReport, undefined, false);
-        expect(reasonForAttention?.reason).toBe(undefined);
-
-        const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, undefined, false);
-        expect(requiresAttention).toBe(false);
-
-        const reasonForOptionList = reasonForReportToBeInOptionList({
-            report: expenseReport,
-            chatReport: undefined,
-            currentReportId: undefined,
-            isInFocusMode: true,
-            betas: undefined,
-            doesReportHaveViolations: false,
-            excludeEmptyChats: false,
-            draftComment: undefined,
-            isReportArchived: undefined,
-        });
-
-        expect(reasonForOptionList).toBe(null);
-
-        await Onyx.clear();
     });
 
     describe('getOutstandingChildRequest', () => {
