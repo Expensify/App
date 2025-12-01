@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -43,16 +43,8 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
 
     const accountID = route.params.accountID;
     const [domainName, domainNameResults] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: false, selector: domainNameSelector});
-    const [isAdmin, isAdminResults] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: true});
 
-    useEffect(() => {
-        if (!isAdmin) {
-            return;
-        }
-        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID), {forceReplace: true});
-    }, [accountID, isAdmin]);
-
-    if (isLoadingOnyxValue(domainNameResults, isAdminResults)) {
+    if (isLoadingOnyxValue(domainNameResults)) {
         return <FullScreenLoadingIndicator />;
     }
 
