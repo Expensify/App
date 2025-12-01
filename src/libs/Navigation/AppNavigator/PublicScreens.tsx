@@ -69,6 +69,7 @@ function PublicScreens() {
             />
             <RootStack.Screen
                 name={SCREENS.SAML_SIGN_IN}
+                options={{gestureEnabled: false}}
                 component={SAMLSignInPage}
             />
             <RootStack.Screen
