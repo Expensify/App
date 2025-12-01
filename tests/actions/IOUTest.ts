@@ -4080,7 +4080,6 @@ describe('actions/IOU', () => {
                     iouReport,
                     chatReport,
                     isChatIOUReportArchived: true,
-                    isSingleTransactionView: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -4241,7 +4240,6 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
-                    isChatIOUReportArchived: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -4344,7 +4342,6 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
-                    isChatIOUReportArchived: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -4480,7 +4477,6 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
-                    isChatIOUReportArchived: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -4562,7 +4558,6 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
-                    isChatIOUReportArchived: undefined,
                 });
             }
             await waitForBatchedUpdates();
@@ -4913,7 +4908,6 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
-                    isChatIOUReportArchived: undefined,
                     isSingleTransactionView: true,
                 });
             }
@@ -4970,7 +4964,6 @@ describe('actions/IOU', () => {
                     violations: {},
                     iouReport,
                     chatReport,
-                    isChatIOUReportArchived: undefined,
                 });
             }
             // Then we expect to navigate to the chat report
@@ -5042,8 +5035,6 @@ describe('actions/IOU', () => {
                 violations: {},
                 iouReport: expenseReport,
                 chatReport: expenseReport,
-                isChatIOUReportArchived: undefined,
-                isSingleTransactionView: undefined,
                 transactionIDsPendingDeletion: [],
                 selectedTransactionIDs,
             });
@@ -5054,8 +5045,6 @@ describe('actions/IOU', () => {
                 violations: {},
                 iouReport: expenseReport,
                 chatReport: expenseReport,
-                isChatIOUReportArchived: undefined,
-                isSingleTransactionView: undefined,
                 transactionIDsPendingDeletion: [transaction1.transactionID],
                 selectedTransactionIDs,
             });

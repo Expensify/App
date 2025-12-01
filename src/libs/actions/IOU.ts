@@ -821,7 +821,7 @@ type DeleteMoneyRequestFunctionParams = {
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     iouReport: OnyxEntry<OnyxTypes.Report>;
     chatReport: OnyxEntry<OnyxTypes.Report>;
-    isChatIOUReportArchived: boolean | undefined;
+    isChatIOUReportArchived?: boolean | undefined;
     isSingleTransactionView?: boolean;
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
