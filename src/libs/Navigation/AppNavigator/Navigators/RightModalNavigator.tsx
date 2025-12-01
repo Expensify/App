@@ -163,6 +163,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             component={ModalStackNavigators.ReportDetailsModalStackNavigator}
                         />
                         <Stack.Screen
+                            name={SCREENS.RIGHT_MODAL.REPORT_CARD_ACTIVATE}
+                            component={ModalStackNavigators.ReportCardActivateStackNavigator}
+                        />
+                        <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE}
                             component={ModalStackNavigators.ReportChangeWorkspaceModalStackNavigator}
                         />

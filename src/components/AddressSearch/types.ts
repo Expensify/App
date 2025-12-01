@@ -75,7 +75,7 @@ type AddressSearchProps = ForwardedFSClassProps & {
     predefinedPlaces?: PredefinedPlace[] | null;
 
     /** A map of inputID key names */
-    renamedInputKeys?: Address;
+    renamedInputKeys?: Record<string, string>;
 
     /** Maximum number of characters allowed in search input */
     maxInputLength?: number;
