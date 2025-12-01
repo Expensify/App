@@ -8,13 +8,13 @@ import CONST from '@src/CONST';
 
 type SidePanelOverlayProps = {
     /** Whether the Side Panel is displayed over RHP */
-    isRHPVisible: boolean;
+    shouldBeInvisible: boolean;
 
     /** Callback fired when pressing the backdrop */
     onBackdropPress: () => void;
 };
 
-function SidePanelOverlay({isRHPVisible, onBackdropPress}: SidePanelOverlayProps) {
+function SidePanelOverlay({shouldBeInvisible, onBackdropPress}: SidePanelOverlayProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -24,9 +24,9 @@ function SidePanelOverlay({isRHPVisible, onBackdropPress}: SidePanelOverlayProps
 
     return (
         <Animated.View
-            style={[styles.sidePanelOverlay, styles.sidePanelOverlayOpacity(isRHPVisible)]}
-            entering={isRHPVisible ? undefined : CustomFadeIn}
-            exiting={isRHPVisible ? undefined : CustomFadeOut}
+            style={[styles.sidePanelOverlay, styles.sidePanelOverlayOpacity(shouldBeInvisible)]}
+            entering={shouldBeInvisible ? undefined : CustomFadeIn}
+            exiting={shouldBeInvisible ? undefined : CustomFadeOut}
         >
             <PressableWithoutFeedback
                 accessible

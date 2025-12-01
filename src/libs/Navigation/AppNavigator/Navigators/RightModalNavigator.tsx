@@ -7,6 +7,7 @@ import {Animated, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {animatedWideRHPWidth, expandedRHPProgress, innerRHPProgress, secondOverlayProgress, thirdOverlayProgress, WideRHPContext} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanel from '@hooks/useSidePanel';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
@@ -46,6 +47,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {windowWidth} = useWindowDimensions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const styles = useThemeStyles();
+    const {sidePanelOffset, shouldHideSidePanel} = useSidePanel();
 
     const animatedWidth = expandedRHPProgress.interpolate({
         inputRange: [0, 1, 2],
@@ -339,14 +341,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && !isWideRHPFocused && !isWideRHPClosing && (
                     <Overlay
                         progress={secondOverlayProgress}
-                        positionRightValue={variables.sideBarWidth}
+                        positionRightValue={shouldHideSidePanel ? variables.sideBarWidth : Animated.add(sidePanelOffset.current, variables.sideBarWidth)}
                         onPress={Navigation.dismissToFirstRHP}
                     />
                 )}
                 {shouldRenderSecondaryOverlay && !shouldUseNarrowLayout && !!isWideRHPFocused && (
                     <Overlay
                         progress={secondOverlayProgress}
-                        positionRightValue={animatedWideRHPWidth}
+                        positionRightValue={shouldHideSidePanel ? animatedWideRHPWidth : Animated.add(sidePanelOffset.current, animatedWideRHPWidth)}
                         onPress={Navigation.dismissToFirstRHP}
                     />
                 )}

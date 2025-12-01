@@ -1,5 +1,5 @@
 import {isRHPVisibleSelector} from '@selectors/Modal';
-import React, {useEffect, useMemo} from 'react';
+import React, {useContext, useEffect, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
 // @ts-expect-error This is a workaround to display SidePanel on top of everything,
@@ -8,6 +8,7 @@ import ModalPortal from 'react-native-web/dist/exports/Modal/ModalPortal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import SidePanelOverlay from '@components/SidePanel/SidePanelOverlay';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -25,6 +26,9 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
 
     const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: isRHPVisibleSelector, canBeMissing: true});
     const uniqueModalId = useMemo(() => ComposerFocusManager.getId(), []);
+
+    const {wideRHPRouteKeys, isWideRHPFocused} = useContext(WideRHPContext);
+    const isWideRHPVisible = !!wideRHPRouteKeys.length;
 
     const onCloseSidePanelOnSmallScreens = () => {
         if (isExtraLargeScreenWidth) {
@@ -61,7 +65,7 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
                         {!shouldHideSidePanelBackdrop && (
                             <SidePanelOverlay
                                 onBackdropPress={closeSidePanel}
-                                isRHPVisible={isRHPVisible}
+                                shouldBeInvisible={(!isWideRHPVisible && isRHPVisible) || (isWideRHPVisible && !isWideRHPFocused)}
                             />
                         )}
                     </View>
