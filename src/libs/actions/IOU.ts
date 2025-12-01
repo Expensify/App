@@ -8614,9 +8614,8 @@ function prepareToCleanUpMoneyRequest(
     // If we are deleting the last transaction on a report, then delete the report too
     const shouldDeleteIOUReport = getReportTransactions(iouReportID).filter((trans) => !transactionIDsPendingDeletion?.includes(trans.transactionID)).length === 1;
 
+    const iouReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`];
     if (shouldDeleteIOUReport) {
-        const iouReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`];
-
         for (const [reportActionID, reportActionData] of Object.entries(iouReportActions ?? {})) {
             if (
                 reportAction.reportActionID === reportActionID ||
@@ -8733,6 +8732,7 @@ function prepareToCleanUpMoneyRequest(
         transaction,
         transactionViolations,
         reportPreviewAction,
+        iouReportActions,
     };
 }
 
@@ -8999,6 +8999,7 @@ function deleteMoneyRequest(
         transaction,
         transactionViolations,
         reportPreviewAction,
+        iouReportActions,
     } = prepareToCleanUpMoneyRequest(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, false, transactionIDsPendingDeletion, selectedTransactionIDs);
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, isSingleTransactionView);
@@ -9195,11 +9196,24 @@ function deleteMoneyRequest(
 
     const errorKey = DateUtils.getMicroseconds();
 
+    const originalReportActionsUpdate = {} as Record<string, Partial<OnyxTypes.ReportAction>>;
+    if (shouldDeleteIOUReport) {
+        for (const action of Object.values(iouReportActions ?? {})) {
+            if (action.reportActionID === reportAction.reportActionID) {
+                continue;
+            }
+            originalReportActionsUpdate[action.reportActionID] = {
+                pendingAction: action.pendingAction ?? null,
+                message: action.message,
+            };
+        }
+    }
     failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
+                ...originalReportActionsUpdate,
                 [reportAction.reportActionID]: {
                     ...reportAction,
                     pendingAction: null,
