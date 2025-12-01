@@ -23,4 +23,6 @@ const browserTracingIntegration =
               shouldCreateSpanForRequest,
           });
 
-export {navigationIntegration, tracingIntegration, browserTracingIntegration};
+const browserProfilingIntegration = SentryReact.browserProfilingIntegration();
+
+export {navigationIntegration, tracingIntegration, browserTracingIntegration, browserProfilingIntegration};
