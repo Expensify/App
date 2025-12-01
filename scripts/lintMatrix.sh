@@ -29,8 +29,8 @@ ALL_FILES=$(find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -
   2>/dev/null | sort)
 
 # Sort files by size (largest first) to distribute load better
-# Then use round-robin to assign files to chunks
-SORTED_FILES=$(echo "$ALL_FILES" | xargs wc -l 2>/dev/null | sort -rn | awk 'NR>1 {print $2}')
+# Remove the "total" line that wc -l adds at the end
+SORTED_FILES=$(echo "$ALL_FILES" | xargs wc -l 2>/dev/null | head -n -1 | sort -rn | awk '{print $2}')
 
 # Use round-robin distribution: assign each file to a chunk in round-robin fashion
 # This distributes large files evenly across chunks
@@ -53,3 +53,4 @@ if [ "$CHUNK_COUNT" -eq 0 ]; then
 fi
 
 echo "$CHUNK_FILES" | xargs npx eslint --max-warnings=145 --cache --cache-location=node_modules/.cache/eslint --concurrency=auto
+
