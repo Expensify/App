@@ -21,7 +21,6 @@ function getSignerDetailsAndSignerFilesForSignerInfo(enterSignerInfoFormDraft: O
     const signerDetails: Record<string, string | boolean | FileObject[]> = {};
     const signerFiles: Record<string, string | FileObject | boolean> = {};
 
-    // eslint-disable-next-line unicorn/no-array-for-each
     signerDetailsFields.forEach((fieldName: keyof EnterSignerInfoForm) => {
         if (fieldName === INPUT_IDS.SIGNER_EMAIL) {
             signerDetails[fieldName] = signerEmail;
