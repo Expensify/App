@@ -247,17 +247,6 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         [applyTabStatusFilter, getSearchStateForTab, members],
     );
 
-    const buildSections = useCallback(
-        (data: MemberForList[]) => [
-            {
-                title: undefined,
-                data,
-                shouldShow: true,
-            },
-        ],
-        [],
-    );
-
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
