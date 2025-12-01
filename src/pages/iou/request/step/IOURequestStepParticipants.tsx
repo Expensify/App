@@ -4,8 +4,10 @@ import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -20,6 +22,7 @@ import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
@@ -76,6 +79,7 @@ function IOURequestStepParticipants({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`, {canBeMissing: true});
     const [optimisticTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftValuesSelector,
@@ -126,6 +130,8 @@ function IOURequestStepParticipants({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const personalPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL), [allPolicies]);
 
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
     const isActivePolicyRequest =
         iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id);
 
@@ -135,6 +141,7 @@ function IOURequestStepParticipants({
     const isCorporateCard = isCorporateCardTransaction(initialTransaction);
 
     useEffect(() => {
+        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
     }, []);
 
@@ -190,7 +197,12 @@ function IOURequestStepParticipants({
         for (const transaction of transactions) {
             setCustomUnitRateID(transaction.transactionID, rateID);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
-            setMoneyRequestParticipantsFromReport(transaction.transactionID, selfDMReport, shouldSetParticipantAutoAssignment ? isActivePolicyRequest : false);
+            setMoneyRequestParticipantsFromReport(
+                transaction.transactionID,
+                selfDMReport,
+                currentUserPersonalDetails.accountID,
+                shouldSetParticipantAutoAssignment ? isActivePolicyRequest : false,
+            );
             setTransactionReport(transaction.transactionID, {reportID: selfDMReportID}, true);
         }
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, selfDMReportID);
@@ -200,10 +212,14 @@ function IOURequestStepParticipants({
                 // We don't want to compare params because we just changed the participants.
                 Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
             } else {
-                Navigation.navigate(iouConfirmationPageRoute);
+                // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
+                // More information can be found here: https://github.com/Expensify/App/issues/73728
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(iouConfirmationPageRoute);
+                });
             }
         });
-    }, [selfDMReportID, transactions, action, initialTransactionID, waitForKeyboardDismiss, iouType, selfDMReport, isActivePolicyRequest, backTo]);
+    }, [selfDMReportID, transactions, action, initialTransactionID, waitForKeyboardDismiss, iouType, selfDMReport, currentUserPersonalDetails.accountID, isActivePolicyRequest, backTo]);
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
@@ -305,7 +321,7 @@ function IOURequestStepParticipants({
             const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
             setMoneyRequestTag(transaction.transactionID, tag);
             const category = isMovingTransactionFromTrackExpense && transaction?.category ? transaction?.category : '';
-            setMoneyRequestCategory(transaction.transactionID, category);
+            setMoneyRequestCategory(transaction.transactionID, category, isMovingTransactionFromTrackExpense ? policyForMovingExpensesID : '', isMovingTransactionFromTrackExpense);
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
             }
@@ -353,10 +369,27 @@ function IOURequestStepParticipants({
                 // We don't want to compare params because we just changed the participants.
                 Navigation.goBack(route, {compareParams: false});
             } else {
-                Navigation.navigate(route);
+                // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
+                // More information can be found here: https://github.com/Expensify/App/issues/73728
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(route);
+                });
             }
         });
-    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo, introSelected]);
+    }, [
+        action,
+        participants,
+        iouType,
+        initialTransaction,
+        transactions,
+        initialTransactionID,
+        reportID,
+        waitForKeyboardDismiss,
+        isMovingTransactionFromTrackExpense,
+        policyForMovingExpensesID,
+        introSelected,
+        backTo,
+    ]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
@@ -387,7 +420,7 @@ function IOURequestStepParticipants({
 
     const isWorkspacesOnly = useMemo(() => {
         return !!(initialTransaction?.amount && initialTransaction?.amount < 0);
-    }, [initialTransaction]);
+    }, [initialTransaction?.amount]);
 
     return (
         <StepScreenWrapper

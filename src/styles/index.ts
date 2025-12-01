@@ -3,11 +3,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
-import type {RefObject} from 'react';
 import type {LineLayer} from 'react-map-gl';
-import type {ImageStyle, TextStyle, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, Platform, StyleSheet} from 'react-native';
+import type {Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import type {PickerStyle} from 'react-native-picker-select';
 import {interpolate} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
@@ -15,7 +14,7 @@ import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
-import {receiptPaneRHPWidth} from '@components/WideRHPContextProvider';
+import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
@@ -385,6 +384,14 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
+        reportLayoutGroupHeader: {
+            paddingHorizontal: 12,
+            marginTop: 16,
+            marginBottom: 8,
+            backgroundColor: theme.appBG,
+            justifyContent: 'center',
+        },
+
         fontSizeLabel: {
             fontSize: variables.fontSizeLabel,
         },
@@ -595,8 +602,13 @@ const staticStyles = (theme: ThemeColors) =>
         textBold: {
             fontWeight: FontUtils.fontWeight.bold,
         },
+
         textItalic: {
             ...FontUtils.fontFamily.platform.MONOSPACE_ITALIC,
+        },
+
+        textMono: {
+            ...FontUtils.fontFamily.platform.MONOSPACE,
         },
 
         textVersion: {
@@ -932,6 +944,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         visibilityHidden: {
             ...visibility.hidden,
+        },
+
+        visibilityVisible: {
+            ...visibility.visible,
         },
 
         loadingVBAAnimation: {
@@ -1835,7 +1851,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         optionRowCompact: {
-            height: variables.optionRowHeightCompact,
             minHeight: variables.optionRowHeightCompact,
             paddingTop: 12,
             paddingBottom: 12,
@@ -4554,10 +4569,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 30,
             width: '100%',
         },
+
         menuItemError: {
             marginTop: 4,
             marginBottom: 0,
         },
+
         formHelperMessage: {
             height: 32,
             marginTop: 0,
@@ -5355,7 +5372,14 @@ const staticStyles = (theme: ThemeColors) =>
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             height: '100%',
             right: 0,
-            width: Animated.add(variables.sideBarWidth, receiptPaneRHPWidth),
+            width: animatedWideRHPWidth,
+        },
+
+        superWideRHPExtendedCardInterpolatorStyles: {
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            height: '100%',
+            right: 0,
+            width: animatedSuperWideRHPWidth,
         },
 
         flexibleHeight: {
@@ -5369,7 +5393,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         wideRHPMoneyRequestReceiptViewContainer: {
             backgroundColor: theme.appBG,
-            width: receiptPaneRHPWidth,
+            width: animatedReceiptPaneRHPWidth,
             height: '100%',
             borderRightWidth: 1,
             borderColor: theme.border,
@@ -5492,13 +5516,24 @@ const staticStyles = (theme: ThemeColors) =>
         copyableTextField: {
             color: theme.textSupporting,
             flex: 1,
+            ...FontUtils.fontFamily.platform.MONOSPACE,
             ...wordBreak.breakWord,
+        },
+        copyableTextFieldButton: {
+            width: 28,
+            height: 28,
+            borderRadius: variables.buttonBorderRadius,
+            justifyContent: 'center',
+            alignItems: 'center',
         },
         moneyRequestView: {
             position: 'relative',
             paddingTop: 16,
             marginTop: -16,
             ...overflowMoneyRequestView,
+        },
+        wordBreakAll: {
+            ...wordBreak.breakAll,
         },
     }) satisfies StaticStyles;
 
@@ -5574,11 +5609,6 @@ const dynamicStyles = (theme: ThemeColors) =>
                 width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
             }) satisfies ViewStyle,
 
-        animatedRHPNavigatorContainerWidth: (shouldUseNarrowLayout: boolean, expandedRHPProgress: Animated.Value) =>
-            ({
-                width: shouldUseNarrowLayout ? '100%' : Animated.add(variables.sideBarWidth, Animated.multiply(expandedRHPProgress, receiptPaneRHPWidth)),
-            }) satisfies ViewStyle,
-
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
             ({
                 width: shouldUseNarrowLayout ? variables.onboardingModalWidth : '100%',
@@ -5617,19 +5647,17 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         overlayStyles: ({
             progress,
-            hasMarginRight = false,
-            hasMarginLeft = false,
-            sidePanelTranslateX,
+            positionLeftValue,
+            positionRightValue,
         }: {
             progress: OverlayStylesParams;
-            hasMarginRight?: boolean;
-            hasMarginLeft?: boolean;
-            sidePanelTranslateX?: RefObject<Animated.Value>;
+            positionLeftValue: number | Animated.Value;
+            positionRightValue: number | Animated.Value;
         }) =>
             ({
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
-                left: hasMarginLeft ? receiptPaneRHPWidth : -2 * variables.sideBarWidth,
-                right: hasMarginRight ? Animated.add(variables.sideBarWidth, sidePanelTranslateX ? Animated.subtract(variables.sideBarWidth, sidePanelTranslateX.current) : 0) : 0,
+                left: positionLeftValue,
+                right: positionRightValue,
                 opacity: progress.interpolate({
                     inputRange: [0, 1],
                     outputRange: [0, variables.overlayOpacity],
@@ -6010,6 +6038,9 @@ const plainStyles = (theme: ThemeColors) =>
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': theme.success, 'line-width': 7},
+        },
+        searchTopBarZIndexStyle: {
+            zIndex: variables.searchTopBarZIndex,
         },
     }) satisfies Styles;
 

@@ -1,5 +1,4 @@
 import React from 'react';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
 import ROUTES from '@src/ROUTES';
@@ -15,7 +14,6 @@ function WorkspacesDomainVerifiedPage({route}: WorkspacesDomainVerifiedPageProps
         <BaseDomainVerifiedPage
             accountID={accountID}
             redirectTo={ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(accountID)}
-            navigateAfterConfirmation={() => Navigation.dismissModal()}
         />
     );
 }
