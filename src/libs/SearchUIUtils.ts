@@ -1414,13 +1414,7 @@ function getTaskSections(
 }
 
 /** Creates transaction thread report and navigates to it from the search page */
-function createAndOpenSearchTransactionThread(
-    item: TransactionListItemType,
-    hash: number,
-    backTo: string,
-    transactionPreviewData?: TransactionPreviewData,
-    shouldNavigate = true,
-) {
+function createAndOpenSearchTransactionThread(item: TransactionListItemType, hash: number, backTo: string, transactionPreviewData?: TransactionPreviewData, shouldNavigate = true) {
     const iouReportAction = getIOUActionForReportID(item.reportID, item.transactionID);
     const moneyRequestReportActionID = item.moneyRequestReportActionID !== '0' ? item.moneyRequestReportActionID : undefined;
 
@@ -2744,7 +2738,6 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
         convertedAmount,
         convertedCurrency,
         transactionThreadReportID,
-        isFromOneTransactionReport,
         accountID,
         policyID,
         ...transaction
