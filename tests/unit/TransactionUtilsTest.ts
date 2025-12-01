@@ -110,6 +110,11 @@ const defaultCustomUnitPolicyID1: Record<string, CustomUnit> = {
         rates: defaultDistanceRatePolicyID1,
     },
 };
+const currentUserPersonalDetails = {
+    accountID: CURRENT_USER_ID,
+    login: CURRENT_USER_EMAIL,
+    displayName: 'Current User',
+};
 
 describe('TransactionUtils', () => {
     beforeAll(() => {
@@ -1116,11 +1121,6 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction({
                 reportID: undefined,
             });
-            const currentUserPersonalDetails = {
-                accountID: CURRENT_USER_ID,
-                login: CURRENT_USER_EMAIL,
-                displayName: 'Current User',
-            };
 
             const result = TransactionUtils.getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
 
@@ -1132,7 +1132,7 @@ describe('TransactionUtils', () => {
                 reportID: FAKE_OPEN_REPORT_SECOND_USER_ID,
             });
 
-            const result = TransactionUtils.getReportOwnerAsAttendee(transaction);
+            const result = TransactionUtils.getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
 
             expect(result).toBeDefined();
             expect(result?.accountID).toBe(SECOND_USER_ID);
@@ -1145,11 +1145,6 @@ describe('TransactionUtils', () => {
             const transaction = generateTransaction({
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             });
-            const currentUserPersonalDetails = {
-                accountID: CURRENT_USER_ID,
-                login: CURRENT_USER_EMAIL,
-                displayName: 'Current User',
-            };
 
             const result = TransactionUtils.getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
 
@@ -1190,7 +1185,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getOriginalAttendees(transaction);
+            const result = TransactionUtils.getOriginalAttendees(transaction, currentUserPersonalDetails);
 
             expect(result).toEqual([]);
         });
@@ -1221,7 +1216,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getOriginalAttendees(transaction);
+            const result = TransactionUtils.getOriginalAttendees(transaction, currentUserPersonalDetails);
 
             expect(result).toEqual(attendees);
             expect(result.length).toBe(2);
@@ -1235,7 +1230,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getOriginalAttendees(transaction);
+            const result = TransactionUtils.getOriginalAttendees(transaction, currentUserPersonalDetails);
 
             expect(result.length).toBe(1);
             expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
@@ -1249,11 +1244,6 @@ describe('TransactionUtils', () => {
                     attendees: [],
                 },
             });
-            const currentUserPersonalDetails = {
-                accountID: CURRENT_USER_ID,
-                login: CURRENT_USER_EMAIL,
-                displayName: 'Current User',
-            };
 
             const result = TransactionUtils.getOriginalAttendees(transaction, currentUserPersonalDetails);
 
@@ -1312,7 +1302,7 @@ describe('TransactionUtils', () => {
                 modifiedAttendees,
             });
 
-            const result = TransactionUtils.getAttendees(transaction);
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
 
             expect(result).toEqual(modifiedAttendees);
             expect(result.length).toBe(1);
@@ -1337,7 +1327,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction);
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
 
             expect(result).toEqual(attendees);
         });
@@ -1350,7 +1340,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction);
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
 
             expect(result.length).toBe(1);
             expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
@@ -1364,11 +1354,6 @@ describe('TransactionUtils', () => {
                     attendees: [],
                 },
             });
-            const currentUserPersonalDetails = {
-                accountID: CURRENT_USER_ID,
-                login: CURRENT_USER_EMAIL,
-                displayName: 'Current User',
-            };
 
             const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
 
@@ -1385,7 +1370,7 @@ describe('TransactionUtils', () => {
                 },
             });
 
-            const result = TransactionUtils.getAttendees(transaction);
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
 
             expect(result).toEqual([]);
         });
@@ -1401,6 +1386,7 @@ describe('TransactionUtils', () => {
                     selected: true,
                 },
             ];
+
             const transaction = generateTransaction({
                 reportID: FAKE_OPEN_REPORT_ID,
                 comment: {
@@ -1409,7 +1395,7 @@ describe('TransactionUtils', () => {
                 modifiedAttendees: [],
             });
 
-            const result = TransactionUtils.getAttendees(transaction);
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
 
             // When modifiedAttendees is empty array and no report owner fallback applies
             expect(result.length).toBe(1);

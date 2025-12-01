@@ -892,7 +892,7 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
  * @param transaction
  * @param currentUserPersonalDetails - personal details of current user
  */
-function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails?: CurrentUserPersonalDetails): Attendee | undefined {
+function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee | undefined {
     if (transaction?.reportID === undefined) {
         return;
     }
@@ -927,7 +927,7 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
  * @param transaction
  * @param currentUserPersonalDetails - personal details of current user
  */
-function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails?: CurrentUserPersonalDetails): Attendee[] {
+function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
     const attendees = transaction?.comment?.attendees ?? [];
     const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
     if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
@@ -941,7 +941,7 @@ function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, curren
  * @param transaction
  * @param currentUserPersonalDetails - personal details of current user; needed for unreported expenses to return current user as default attendee
  */
-function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails?: CurrentUserPersonalDetails): Attendee[] {
+function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
     const attendees = transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
     const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
 
