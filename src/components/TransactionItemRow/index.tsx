@@ -473,6 +473,7 @@ function TransactionItemRow({
                                             src={Expensicons.ArrowRight}
                                             fill={theme.icon}
                                             small
+                                            additionalStyles={styles.opacitySemiTransparent}
                                         />
                                     )}
                                 </View>
