@@ -596,12 +596,15 @@ function isRemoveHoldActionForTransaction(report: Report, reportTransaction: Tra
 
 /**
  * Checks if the report should show the "Report layout" option
- * Only shows for expense reports with 2 or more transactions
+ * Only shows for expense reports (not IOU reports) with 2 or more transactions
  */
 function isReportLayoutAction(report: Report, reportTransactions: Transaction[]): boolean {
-    const isExpenseReport = isExpenseReportUtils(report);
+    if (!isExpenseReportUtils(report)) {
+        return false;
+    }
 
-    if (!isExpenseReport) {
+    // Exclude IOU reports - only show for workspace expense reports
+    if (isIOUReportUtils(report)) {
         return false;
     }
 
@@ -703,10 +706,6 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
-    if (isReportLayoutAction(report, reportTransactions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT);
-    }
-
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
     if (isChangeWorkspaceAction(report, policies, reportActions)) {
@@ -718,6 +717,10 @@ function getSecondaryReportActions({
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
+
+    if (isReportLayoutAction(report, reportTransactions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT);
+    }
 
     if (isDeleteAction(report, reportTransactions, reportActions ?? [])) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
@@ -784,4 +787,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, getSecondaryExportReportActions, isSplitAction, isReportLayoutAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, getSecondaryExportReportActions, isSplitAction};
