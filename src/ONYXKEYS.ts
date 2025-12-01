@@ -600,7 +600,7 @@ const ONYXKEYS = {
     NVP_LAST_ECASH_ANDROID_LOGIN: 'nvp_lastECashAndroidLogin',
     NVP_LAST_ANDROID_LOGIN: 'nvp_lastAndroidLogin',
 
-    /** Stores the last created distance expense type (map or manual) */
+    /** Stores the last created distance expense type (map, manual or odometer) */
     NVP_LAST_DISTANCE_EXPENSE_TYPE: 'nvp_lastDistanceExpenseType',
 
     /** Stores the user's report layout group-by preference */

@@ -71,6 +71,8 @@ function getIconTitleAndTestID(icons: Record<'CalendarSolid' | 'UploadAlt' | 'Us
             return {icon: Expensicons.Map, title: translate('tabSelector.map'), testID: 'distanceMap'};
         case CONST.TAB_REQUEST.DISTANCE_MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual'), testID: 'distanceManual'};
+        case CONST.TAB_REQUEST.DISTANCE_ODOMETER:
+            return {icon: Expensicons.Meter, title: translate('tabSelector.odometer'), testID: 'distanceOdometer'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }

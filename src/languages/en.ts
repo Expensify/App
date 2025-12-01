@@ -1031,6 +1031,7 @@ const translations = {
         manual: 'Manual',
         scan: 'Scan',
         map: 'Map',
+        odometer: 'Odometer',
     },
     spreadsheet: {
         upload: 'Upload a spreadsheet',
