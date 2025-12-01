@@ -1,9 +1,10 @@
-import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -28,16 +29,7 @@ const defaultListOptions = {
     categoryOptions: [],
 };
 
-type ShareTabRef = {
-    focus?: () => void;
-};
-
-type ShareTabProps = {
-    /** Reference to the outer element */
-    ref?: Ref<ShareTabRef>;
-};
-
-function ShareTab({ref}: ShareTabProps) {
+function ShareTab() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -106,7 +98,7 @@ function ShareTab({ref}: ShareTabProps) {
     const header = useMemo(() => {
         const headerMessage = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
         return headerMessage;
-    }, [textInputValue, styledRecentReports, translate, countryCode]);
+    }, [textInputValue, styledRecentReports, countryCode]);
 
     const onSelectRow = (item: OptionData) => {
         let reportID = item?.reportID ?? CONST.DEFAULT_NUMBER_ID;
@@ -133,12 +125,20 @@ function ShareTab({ref}: ShareTabProps) {
             onChangeText: setTextInputValue,
             headerMessage: header,
         }),
-        [textInputValue, setTextInputValue, translate, offlineMessage, setTextInputValue, header],
+        [textInputValue, setTextInputValue, translate, offlineMessage, header],
     );
+
+    const customListHeader =
+        textInputValue.trim() === '' ? (
+            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('search.recentChats')}</Text>
+            </View>
+        ) : undefined;
 
     return (
         <SelectionList
-            data={areOptionsInitialized ? styledRecentReports : (CONST.EMPTY_ARRAY as unknown as any[])}
+            data={areOptionsInitialized ? styledRecentReports : (CONST.EMPTY_ARRAY as unknown as never[])}
+            customListHeaderContent={customListHeader}
             textInputOptions={textInputOptions}
             style={{listStyle: [styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}}
             ListItem={InviteMemberListItem}
