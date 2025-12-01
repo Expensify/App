@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
@@ -239,7 +240,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         confirmDuplicate();
     }, [confirmDuplicate, duplicateWorkspace?.name, duplicateWorkspace?.policyID, policy]);
 
-    const onConfirmSelectList = useCallback(() => {
+    const onConfirmSelectList = useCallback((e?: GestureResponderEvent | KeyboardEvent, option?: ListItem) => {
         if (!totalMembers || totalMembers < 2 || !selectedItems.includes('members')) {
             confirmDuplicate();
             return;
