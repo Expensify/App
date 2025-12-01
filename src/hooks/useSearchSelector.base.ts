@@ -286,6 +286,7 @@ function useSearchSelectorBase({
         maxRecentReportsToShow,
         getValidOptionsConfig,
         selectedOptions,
+        includeCurrentUser,
     ]);
 
     const isOptionSelected = useMemo(() => {
