@@ -67,6 +67,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import MoneyRequestReportGroupHeader from './MoneyRequestReportGroupHeader';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import MoneyRequestReportTotalSpend from './MoneyRequestReportTotalSpend';
@@ -298,13 +299,14 @@ function MoneyRequestReportTransactionList({
     }, [sortedTransactions]);
 
     const groupSelectionState = useMemo(() => {
-        const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean}>();
+        const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean; pendingAction?: PendingAction}>();
 
         for (const group of groupedTransactions) {
             const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
+            const groupPendingAction = group.transactions.some((t) => getTransactionPendingAction(t)) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
 
             if (groupTransactionIDs.length === 0) {
-                state.set(group.groupKey, {isSelected: false, isIndeterminate: false, isDisabled: true});
+                state.set(group.groupKey, {isSelected: false, isIndeterminate: false, isDisabled: true, pendingAction: groupPendingAction});
                 continue;
             }
 
@@ -313,6 +315,7 @@ function MoneyRequestReportTransactionList({
                 isSelected: selectedCount === groupTransactionIDs.length,
                 isIndeterminate: selectedCount > 0 && selectedCount < groupTransactionIDs.length,
                 isDisabled: false,
+                pendingAction: groupPendingAction,
             });
         }
 
@@ -487,7 +490,7 @@ function MoneyRequestReportTransactionList({
             <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
                 {shouldShowGroupedTransactions
                     ? groupedTransactions.map((group) => {
-                          const selectionState = groupSelectionState.get(group.groupKey) ?? {isSelected: false, isIndeterminate: false, isDisabled: false};
+                          const selectionState = groupSelectionState.get(group.groupKey) ?? {isSelected: false, isIndeterminate: false, isDisabled: false, pendingAction: undefined};
 
                           return (
                               <View
@@ -504,6 +507,7 @@ function MoneyRequestReportTransactionList({
                                       isIndeterminate={selectionState.isIndeterminate}
                                       isDisabled={selectionState.isDisabled}
                                       onToggleSelection={toggleGroupSelection}
+                                      pendingAction={selectionState.pendingAction}
                                   />
                                   {group.transactions.map((transaction) => {
                                       const originalTransaction = sortedTransactionsMap.get(transaction.transactionID) ?? transaction;
