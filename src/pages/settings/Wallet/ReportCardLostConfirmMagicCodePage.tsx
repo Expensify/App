@@ -93,7 +93,7 @@ function ReportCardLostConfirmMagicCodePage({
             }}
             onClose={() => {
                 resetValidateActionCodeSent();
-                Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(cardID));
+                Navigation.goBack(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(cardID));
             }}
         />
     );
