@@ -149,7 +149,7 @@ describe('PureReportActionItem', () => {
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText(CONST.CONCIERGE_DISPLAY_NAME)).toBeOnTheScreen();
             const parsedText = parseTextWithTrailingLink(translateLocal(translationKey as TranslationPaths));
             if (!parsedText) {
                 throw new Error('Text cannot be parsed, translation failed');
