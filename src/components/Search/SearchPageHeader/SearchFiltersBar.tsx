@@ -5,8 +5,6 @@ import {searchResultsErrorSelector} from '@selectors/Snapshot';
 import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -15,7 +13,6 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import ScrollView from '@components/ScrollView';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
@@ -743,18 +740,19 @@ function SearchFiltersBar({
     }, [filters.length]);
 
     const adjustScroll = useCallback(
-        (e) => {
+        (info: {distanceFromEnd: number}) => {
             // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
             // When the FlatList is scrolled to the end and the last item is deleted, a blank space is left behind.
             // To fix this, we detect when onEndReached is triggered due to an item deletion,
             // and programmatically scroll to the end to fill the space.
-            if (!shouldAdjustScroll || e.distanceFromEnd > 0) {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if (!shouldAdjustScroll || info.distanceFromEnd > 0) {
                 return;
             }
-            prevFiltersLength.current = filtersFlatLength;
+            prevFiltersLength.current = filters.length;
             scrollRef.current?.scrollToEnd();
         },
-        [filtersFlatLength],
+        [filters.length],
     );
 
     const renderFilterItem = useCallback(
