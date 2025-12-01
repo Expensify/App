@@ -31,15 +31,15 @@ function getConvertedAmount(transaction: Transaction): number {
 }
 
 /**
- * Calculates group total using convertedAmount when available, falls back to amount for same-currency offline transactions
+ * Calculates group total using amount for same-currency transactions, falls back to convertedAmount for multi-currency
  */
 function calculateGroupTotal(transactionList: Transaction[], reportCurrency: string): number {
     let total = 0;
     for (const transaction of transactionList) {
-        if (transaction.convertedAmount) {
-            total += getConvertedAmount(transaction);
-        } else if (transaction.currency === reportCurrency) {
+        if (transaction.currency === reportCurrency) {
             total += getAmount(transaction, true, false, true);
+        } else if (transaction.convertedAmount) {
+            total += getConvertedAmount(transaction);
         }
     }
     return total;
