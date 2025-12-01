@@ -68,9 +68,9 @@ describe('groupTransactionsByCategory', () => {
         const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
 
         expect(result).toHaveLength(3);
-        expect(result[0].groupKey).toBe('Alpha');
-        expect(result[1].groupKey).toBe('Zebra');
-        expect(result[2].groupKey).toBe('');
+        expect(result.at(0)?.groupKey).toBe('Alpha');
+        expect(result.at(1)?.groupKey).toBe('Zebra');
+        expect(result.at(2)?.groupKey).toBe('');
     });
 
     it('sets isExpanded to true for all groups', () => {
@@ -127,8 +127,8 @@ describe('groupTransactionsByCategory', () => {
 
         const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
 
-        expect(result[0].groupName).toBe(result[0].groupKey);
-        expect(result[0].groupName).toBe('Travel');
+        expect(result.at(0)?.groupName).toBe(result.at(0)?.groupKey);
+        expect(result.at(0)?.groupName).toBe('Travel');
     });
 
     it('treats missing category as empty category group', () => {
@@ -141,8 +141,8 @@ describe('groupTransactionsByCategory', () => {
         const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
 
         expect(result).toHaveLength(1);
-        expect(result[0].groupKey).toBe('');
-        expect(result[0].transactions).toHaveLength(2);
+        expect(result.at(0)?.groupKey).toBe('');
+        expect(result.at(0)?.transactions).toHaveLength(2);
     });
 });
 
@@ -193,9 +193,9 @@ describe('groupTransactionsByTag', () => {
         const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
 
         expect(result).toHaveLength(3);
-        expect(result[0].groupKey).toBe('Alpha');
-        expect(result[1].groupKey).toBe('Zebra');
-        expect(result[2].groupKey).toBe('');
+        expect(result.at(0)?.groupKey).toBe('Alpha');
+        expect(result.at(1)?.groupKey).toBe('Zebra');
+        expect(result.at(2)?.groupKey).toBe('');
     });
 
     it('sets isExpanded to true for all groups', () => {
@@ -252,8 +252,8 @@ describe('groupTransactionsByTag', () => {
 
         const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
 
-        expect(result[0].groupName).toBe(result[0].groupKey);
-        expect(result[0].groupName).toBe('Project A');
+        expect(result.at(0)?.groupName).toBe(result.at(0)?.groupKey);
+        expect(result.at(0)?.groupName).toBe('Project A');
     });
 
     it('treats TAG_EMPTY_VALUE (none) as empty tag group', () => {
