@@ -631,6 +631,7 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
             count: 4,
             currency: 'USD',
             total: 40,
+            state: 8,
         },
         [`${CONST.SEARCH.GROUP_PREFIX}${cardID2}` as const]: {
             entryID: entryID2,
@@ -640,6 +641,7 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
             count: 6,
             currency: 'USD',
             total: 20,
+            state: 8,
         },
     },
     search: {
@@ -1426,6 +1428,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         count: 4,
         currency: 'USD',
         total: 40,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1438,6 +1441,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         count: 6,
         currency: 'USD',
         total: 20,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1453,6 +1457,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         count: 6,
         currency: 'USD',
         total: 20,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1465,6 +1470,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         count: 4,
         currency: 'USD',
         total: 40,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1931,6 +1937,29 @@ describe('SearchUIUtils', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 })[0],
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
+        });
+
+        it('should filter invalid withdrawal-id entries without accountNumber', () => {
+            const staleCacheData: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2074551` as const]: {
+                    accountID: 2074551,
+                    count: 1,
+                    currency: 'USD',
+                    total: 100,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: staleCacheData,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                formatPhoneNumber,
+                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            }) as [TransactionWithdrawalIDGroupListItemType[], number];
+
+            expect(result).toHaveLength(0);
         });
     });
 
