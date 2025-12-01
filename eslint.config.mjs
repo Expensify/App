@@ -416,6 +416,30 @@ const config = defineConfig([
         },
     },
 
+
+    // TS: use project for type-aware rules
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        languageOptions: {
+            parser: tsParser,
+            parserOptions: {
+                project: path.resolve(dirname, './tsconfig.json'),
+            },
+        },
+    },
+
+    // JS: no TS project (no type-aware program, much faster)
+    {
+        files: ['**/*.js', '**/*.jsx'],
+        languageOptions: {
+            parser: tsParser,
+            parserOptions: {
+                ecmaVersion: 'latest',
+                sourceType: 'module',
+            },
+        },
+    },
+
     // Some rules became stricter or stopped working after upgrading to ESLint 9, so these configs adjust the rules to match the old behavior.
     {
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
