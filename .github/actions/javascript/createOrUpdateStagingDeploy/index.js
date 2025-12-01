@@ -11674,6 +11674,7 @@ async function run() {
                 };
             });
             // Then make sure we include any demoted or closed blockers as well, and just check them off automatically
+            // eslint-disable-next-line unicorn/no-array-for-each
             currentChecklistData?.deployBlockers.forEach((deployBlocker) => {
                 const isResolved = deployBlockers.findIndex((openBlocker) => openBlocker.number === deployBlocker.number) < 0;
                 deployBlockers.push({
@@ -11682,6 +11683,7 @@ async function run() {
                 });
             });
             // Include any existing Mobile-Expensify PRs from the current checklist that aren't in the new merged list
+            // eslint-disable-next-line unicorn/no-array-for-each
             currentChecklistData?.PRListMobileExpensify.forEach((existingPR) => {
                 const isAlreadyIncluded = PRListMobileExpensify.findIndex((pr) => pr.number === existingPR.number) >= 0;
                 if (!isAlreadyIncluded) {
@@ -11921,25 +11923,25 @@ function getPreviousExistingTag(tag, level) {
  */
 function getValidMergedPRs(commits) {
     const mergedPRs = new Set();
-    commits.forEach((commit) => {
+    for (const commit of commits) {
         const author = commit.authorName;
         if (author === CONST_1.default.OS_BOTIFY) {
-            return;
+            continue;
         }
         // Retrieve the PR number from the commit subject,
         const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-(staging|production))/);
         if (!Array.isArray(match) || match.length < 2) {
-            return;
+            continue;
         }
         const pr = Number.parseInt(match[1], 10);
         if (mergedPRs.has(pr)) {
             // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
             // That also means that we don't want to include it in the current checklist, so we remove it now.
             mergedPRs.delete(pr);
-            return;
+            continue;
         }
         mergedPRs.add(pr);
-    });
+    }
     return Array.from(mergedPRs);
 }
 /**
@@ -12124,7 +12126,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replaceAll('`', '');
             return {
                 title: issue.title,
                 url: issue.url,
@@ -12248,43 +12250,43 @@ class GithubUtils {
                 // PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '**This release contains changes from the following pull requests:**\r\n';
-                    sortedPRList.forEach((URL) => {
+                    for (const URL of sortedPRList) {
                         issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Mobile-Expensify PR list
                 if (sortedPRListMobileExpensify.length > 0) {
                     issueBody += '**Mobile-Expensify PRs:**\r\n';
-                    sortedPRListMobileExpensify.forEach((URL) => {
+                    for (const URL of sortedPRListMobileExpensify) {
                         issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Internal QA PR list
                 if (!(0, isEmptyObject_1.isEmptyObject)(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '**Internal QA:**\r\n';
-                    Object.keys(internalQAPRMap).forEach((URL) => {
+                    for (const URL of Object.keys(internalQAPRMap)) {
                         const merger = internalQAPRMap[URL];
                         const mergerMention = `@${merger}`;
                         issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
                         issueBody += ` - ${mergerMention}`;
                         issueBody += '\r\n';
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Deploy blockers
                 if (deployBlockers.length > 0) {
                     issueBody += '**Deploy Blockers:**\r\n';
-                    sortedDeployBlockers.forEach((URL) => {
+                    for (const URL of sortedDeployBlockers) {
                         issueBody += resolvedDeployBlockers.includes(URL) ? '- [x] ' : '- [ ] ';
                         issueBody += URL;
                         issueBody += '\r\n';
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 issueBody += '**Deployer verifications:**';

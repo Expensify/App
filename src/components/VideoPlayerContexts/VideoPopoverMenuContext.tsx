@@ -1,7 +1,9 @@
-import type {VideoPlayer} from 'expo-video';
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -13,27 +15,21 @@ import type {PlaybackSpeed, VideoPopoverMenuContext} from './types';
 const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const {translate} = useLocalize();
     const [source, setSource] = useState('');
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[3]);
     const {isOffline} = useNetwork();
     const isLocalFile = source && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix));
-    const videoPopoverMenuPlayerRef = useRef<VideoPlayer>(null);
+    const videoPopoverMenuPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
 
     const updatePlaybackSpeed = useCallback(
         (speed: PlaybackSpeed) => {
             setCurrentPlaybackSpeed(speed);
-            if (!videoPopoverMenuPlayerRef.current) {
-                return;
-            }
-            videoPopoverMenuPlayerRef.current.playbackRate = speed;
+            videoPopoverMenuPlayerRef.current?.setStatusAsync?.({rate: speed});
         },
         [videoPopoverMenuPlayerRef],
     );
-
-    const updateVideoPopoverMenuPlayerRef = (videoPlayer: VideoPlayer | null) => {
-        videoPopoverMenuPlayerRef.current = videoPlayer;
-    };
 
     const downloadAttachment = useCallback(() => {
         if (typeof source === 'number' || !source) {
@@ -48,7 +44,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         if (!isOffline && !isLocalFile) {
             // eslint-disable-next-line react-compiler/react-compiler
             items.push({
-                icon: Expensicons.Download,
+                icon: icons.Download,
                 text: translate('common.download'),
                 onSelected: () => {
                     downloadAttachment();
@@ -70,9 +66,12 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
             })),
         });
         return items;
-    }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
+    }, [icons.Download, currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
-    const contextValue = useMemo(() => ({menuItems, updateVideoPopoverMenuPlayerRef, updatePlaybackSpeed, updateSource: setSource}), [menuItems, updatePlaybackSpeed, setSource]);
+    const contextValue = useMemo(
+        () => ({menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed, setSource}),
+        [menuItems, videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed, setSource],
+    );
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 

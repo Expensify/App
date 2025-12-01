@@ -59,7 +59,7 @@ function FullScreenLoadingIndicator({
                     testID={testID}
                     extraLoadingContext={extraLoadingContext}
                 />
-                {showGoBackButton && shouldUseGoBackButton && (
+                {showGoBackButton && (
                     <View style={styles.loadingMessage}>
                         <View style={styles.pv4}>
                             <Text>{translate('common.thisIsTakingLongerThanExpected')}</Text>

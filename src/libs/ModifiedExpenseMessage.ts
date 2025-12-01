@@ -4,22 +4,24 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {Policy, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import {getEnvironmentURL} from './Environment/Environment';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import Log from './Log';
 import Parser from './Parser';
-import {getCleanedTagName, getSortedTagKeys} from './PolicyUtils';
+import {getCleanedTagName, getPolicy, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // eslint-disable-next-line import/no-cycle
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -28,6 +30,21 @@ Onyx.connect({
             return;
         }
         allPolicyTags = value;
+    },
+});
+
+let environmentURL: string;
+getEnvironmentURL().then((url: string) => (environmentURL = url));
+
+let currentUserLogin = '';
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        // When signed out, value is undefined
+        if (!value) {
+            return;
+        }
+        currentUserLogin = value?.email ?? '';
     },
 });
 
@@ -241,11 +258,19 @@ function getForReportAction({
 
     const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
     if (hasModifiedComment) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        let descriptionLabel = translateLocal('common.description');
+
+        // Add attribution suffix based on AI-generated descriptions
+        if (reportActionOriginalMessage?.aiGenerated) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            descriptionLabel += ` ${translateLocal('iou.basedOnAI')}`;
+        }
+
         buildMessageFragmentForValue(
             Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
             Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('common.description'),
+            descriptionLabel,
             true,
             setFragments,
             removalFragments,
@@ -275,7 +300,7 @@ function getForReportAction({
     const hasModifiedCategory = isReportActionOriginalMessageAnObject && 'oldCategory' in reportActionOriginalMessage && 'category' in reportActionOriginalMessage;
     if (hasModifiedCategory) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        let categoryLabel = translateLocal('common.category');
+        let categoryLabel = translateLocal('common.category').toLowerCase();
 
         // Add attribution suffix based on source
         if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.AI) {
@@ -283,7 +308,18 @@ function getForReportAction({
             categoryLabel += ` ${translateLocal('iou.basedOnAI')}`;
         } else if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.MCC) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            categoryLabel += ` ${translateLocal('iou.basedOnMCC')}`;
+            const policy = getPolicy(policyID);
+            const isAdmin = isPolicyAdmin(policy, currentUserLogin);
+
+            // For admins, create a hyperlink to the workspace rules page
+            if (isAdmin && policy?.id) {
+                const rulesLink = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policy.id)}`;
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                categoryLabel += ` ${translateLocal('iou.basedOnMCC', {rulesLink})}`;
+            } else {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                categoryLabel += ` ${translateLocal('iou.basedOnMCC', {rulesLink: ''})}`;
+            }
         }
 
         buildMessageFragmentForValue(
@@ -294,6 +330,8 @@ function getForReportAction({
             setFragments,
             removalFragments,
             changeFragments,
+            // Don't convert to lowercase when we have source attribution (to preserve any HTML links)
+            false,
         );
     }
 
@@ -309,7 +347,7 @@ function getForReportAction({
         const localizedTagListName = translateLocal('common.tag');
         const sortedTagKeys = getSortedTagKeys(policyTags);
 
-        sortedTagKeys.forEach((policyTagKey, index) => {
+        for (const [index, policyTagKey] of sortedTagKeys.entries()) {
             const policyTagListName = policyTags[policyTagKey].name || localizedTagListName;
 
             const newTag = splittedTag.at(index) ?? '';
@@ -327,7 +365,7 @@ function getForReportAction({
                     policyTagListName === localizedTagListName,
                 );
             }
-        });
+        }
     }
 
     const hasModifiedTaxAmount = isReportActionOriginalMessageAnObject && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
@@ -357,9 +395,13 @@ function getForReportAction({
 
     const hasModifiedBillable = isReportActionOriginalMessageAnObject && 'oldBillable' in reportActionOriginalMessage && 'billable' in reportActionOriginalMessage;
     if (hasModifiedBillable) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const oldBillable = reportActionOriginalMessage?.oldBillable === 'billable' ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const newBillable = reportActionOriginalMessage?.billable === 'billable' ? translateLocal('common.billable').toLowerCase() : translateLocal('common.nonBillable').toLowerCase();
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.billable ?? '',
-            reportActionOriginalMessage?.oldBillable ?? '',
+            newBillable,
+            oldBillable,
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('iou.expense'),
             true,
@@ -371,9 +413,15 @@ function getForReportAction({
 
     const hasModifiedReimbursable = isReportActionOriginalMessageAnObject && 'oldReimbursable' in reportActionOriginalMessage && 'reimbursable' in reportActionOriginalMessage;
     if (hasModifiedReimbursable) {
+        const oldReimbursable =
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            reportActionOriginalMessage?.oldReimbursable === 'reimbursable' ? translateLocal('iou.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
+        const newReimbursable =
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            reportActionOriginalMessage?.reimbursable === 'reimbursable' ? translateLocal('iou.reimbursable').toLowerCase() : translateLocal('iou.nonReimbursable').toLowerCase();
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.reimbursable ?? '',
-            reportActionOriginalMessage?.oldReimbursable ?? '',
+            newReimbursable,
+            oldReimbursable,
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             translateLocal('iou.expense'),
             true,
@@ -398,6 +446,14 @@ function getForReportAction({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         getMessageLine(`\n${translateLocal('iou.removed')}`, removalFragments);
     if (message === '') {
+        // If we don't have enough structured information to build a detailed message but we
+        // know the change was AI-generated, fall back to an AI-attributed generic summary so
+        // users can still understand that Concierge updated the expense automatically.
+        if (reportActionOriginalMessage?.aiGenerated) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return `${translateLocal('iou.changedTheExpense')} ${translateLocal('iou.basedOnAI')}`;
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.changedTheExpense');
     }
@@ -410,11 +466,13 @@ function getForReportAction({
  */
 function getForReportActionTemp({
     reportAction,
+    policy,
     movedFromReport,
     movedToReport,
     policyTags,
 }: {
     reportAction: OnyxEntry<ReportAction>;
+    policy?: OnyxEntry<Policy>;
     movedFromReport?: OnyxEntry<Report>;
     movedToReport?: OnyxEntry<Report>;
     policyTags: OnyxEntry<PolicyTagLists>;
@@ -463,11 +521,19 @@ function getForReportActionTemp({
 
     const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
     if (hasModifiedComment) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        let descriptionLabel = translateLocal('common.description');
+
+        // Add attribution suffix based on AI-generated descriptions
+        if (reportActionOriginalMessage?.aiGenerated) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            descriptionLabel += ` ${translateLocal('iou.basedOnAI')}`;
+        }
+
         buildMessageFragmentForValue(
             Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
             Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            translateLocal('common.description'),
+            descriptionLabel,
             true,
             setFragments,
             removalFragments,
@@ -497,15 +563,24 @@ function getForReportActionTemp({
     const hasModifiedCategory = isReportActionOriginalMessageAnObject && 'oldCategory' in reportActionOriginalMessage && 'category' in reportActionOriginalMessage;
     if (hasModifiedCategory) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        let categoryLabel = translateLocal('common.category');
+        let categoryLabel = translateLocal('common.category').toLowerCase();
 
         // Add attribution suffix based on source
         if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.AI) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             categoryLabel += ` ${translateLocal('iou.basedOnAI')}`;
         } else if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.MCC) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            categoryLabel += ` ${translateLocal('iou.basedOnMCC')}`;
+            const isAdmin = isPolicyAdmin(policy, currentUserLogin);
+
+            // For admins, create a hyperlink to the workspace rules page
+            if (isAdmin && policy?.id) {
+                const rulesLink = `${environmentURL}/${ROUTES.WORKSPACE_RULES.getRoute(policy.id)}`;
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                categoryLabel += ` ${translateLocal('iou.basedOnMCC', {rulesLink})}`;
+            } else {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                categoryLabel += ` ${translateLocal('iou.basedOnMCC', {rulesLink: ''})}`;
+            }
         }
 
         buildMessageFragmentForValue(
@@ -516,6 +591,8 @@ function getForReportActionTemp({
             setFragments,
             removalFragments,
             changeFragments,
+            // Don't convert to lowercase when we have source attribution (to preserve any HTML links)
+            false,
         );
     }
 
@@ -529,7 +606,7 @@ function getForReportActionTemp({
         const localizedTagListName = translateLocal('common.tag');
         const sortedTagKeys = getSortedTagKeys(policyTags);
 
-        sortedTagKeys.forEach((policyTagKey, index) => {
+        for (const [index, policyTagKey] of sortedTagKeys.entries()) {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const policyTagListName = policyTags?.[policyTagKey]?.name || localizedTagListName;
 
@@ -548,7 +625,7 @@ function getForReportActionTemp({
                     policyTagListName === localizedTagListName,
                 );
             }
-        });
+        }
     }
 
     const hasModifiedTaxAmount = isReportActionOriginalMessageAnObject && 'oldTaxAmount' in reportActionOriginalMessage && 'taxAmount' in reportActionOriginalMessage;
