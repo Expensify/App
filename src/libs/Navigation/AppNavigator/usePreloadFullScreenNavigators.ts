@@ -100,7 +100,7 @@ function usePreloadFullScreenNavigators() {
     const route = useRoute();
     const state = navigation.getState();
     // The fallback is used to prevent crashing from the UI test
-    const preloadedRoutes = useMemo(() => state.preloadedRoutes ?? [], [state]);
+    const preloadedRoutes = useMemo(() => state.preloadedRoutes ?? [], [state.preloadedRoutes]);
     const subscriptionPlan = useSubscriptionPlan();
     const isAuthenticated = useIsAuthenticated();
     const hasPreloadedRef = useRef(false);
@@ -131,6 +131,7 @@ function usePreloadFullScreenNavigators() {
                     const isCurrentTab = TAB_TO_FULLSCREEN[tabName].includes(route.name as FullScreenName);
                     const isRouteAlreadyPreloaded = preloadedRoutes.some((preloadedRoute) => TAB_TO_FULLSCREEN[tabName].includes(preloadedRoute.name as FullScreenName));
                     return !isCurrentTab && !isRouteAlreadyPreloaded;
+                    // eslint-disable-next-line unicorn/no-array-for-each
                 }).forEach((tabName) => {
                     preloadTab(tabName, navigation, subscriptionPlan);
                 });
