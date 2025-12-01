@@ -29,6 +29,8 @@ type AvatarSelectorProps = {
     label?: string;
 };
 
+const SPACER_SIZE = 10;
+
 /**
  * AvatarSelector — renders a grid of selectable avatars.
  */
@@ -39,7 +41,7 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
     const StyleUtils = useStyleUtils();
     const {avatarList} = useLetterAvatars(name, size);
 
-    const spacers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const iconSize = StyleUtils.getAvatarSize(size);
 
     return (
         <>
@@ -91,11 +93,14 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
                         </PressableWithFeedback>
                     );
                 })}
-                {spacers.map((index) => (
+                {/* We need to several invisible items at the end of the avatar list to guarantee that the last row avatars are aligned properly */}
+                {[...Array(SPACER_SIZE).keys()].map((i) => (
                     <View
-                        key={`spacer-${index}`}
-                        style={styles.avatarSelectorWrapper}
-                    />
+                        key={`spacer-${i}`}
+                        style={[styles.avatarSelectorWrapper]}
+                    >
+                        <View style={{width: iconSize, height: iconSize}} />
+                    </View>
                 ))}
             </View>
         </>
