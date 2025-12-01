@@ -61,7 +61,16 @@ describe('getSecondaryAction', () => {
 
         const result = [CONST.REPORT.SECONDARY_ACTIONS.EXPORT, CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
         expect(
-            getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, currentUserAccountID: EMPLOYEE_ACCOUNT_ID, report, chatReport, reportTransactions: [], originalTransaction: {} as Transaction, violations: {}, policy}),
+            getSecondaryReportActions({
+                currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [],
+                originalTransaction: {} as Transaction,
+                violations: {},
+                policy,
+            }),
         ).toEqual(result);
     });
 
@@ -1599,8 +1608,41 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue(originalMessageR14932.IOUTransactionID);
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
 
-        const result = getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, report, chatReport, reportTransactions, originalTransaction: {} as Transaction, violations: {}, policy});
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions,
+            originalTransaction: {} as Transaction,
+            violations: {},
+            policy,
+        });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
+    });
+
+    it('does not include REMOVE HOLD option for closed reports with transactions on hold', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+        } as unknown as Policy;
+        const reportTransactions = [
+            {
+                comment: {
+                    hold: 'REPORT_ACTION_ID',
+                },
+            },
+        ] as unknown as Transaction[];
+
+        jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue(originalMessageR14932.IOUTransactionID);
+        jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
+
+        const result = getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, report, chatReport, reportTransactions, originalTransaction: {} as Transaction, violations: {}, policy});
+        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 });
 
@@ -1854,7 +1896,16 @@ describe('getSecondaryExportReportActions', () => {
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue(originalMessageR14932.IOUTransactionID);
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
 
-        const result = getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, report, chatReport, reportTransactions, originalTransaction: {} as Transaction, violations: {}, policy});
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions,
+            originalTransaction: {} as Transaction,
+            violations: {},
+            policy,
+        });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 });
@@ -2145,6 +2196,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             const result = getSecondaryReportActions({
                 currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport: undefined,
                 reportTransactions: [transaction],
@@ -2196,6 +2248,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             const result = getSecondaryReportActions({
                 currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport: undefined,
                 reportTransactions: [transaction],

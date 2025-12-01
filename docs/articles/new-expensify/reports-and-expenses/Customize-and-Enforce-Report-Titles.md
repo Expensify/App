@@ -16,7 +16,7 @@ Automatically generate standardized report titles across your workspace using fo
 1. Scroll to the **Report title** section.
 2. Click to open the formula editor.
 3. Use the formula list below to build your title.
-4. (Optional) Enable **Prevent members from changing custom report names** to lock naming rules.
+4. (Optional) Enable **Prevent members from changing custom report titles** to lock naming rules.
 
 **Example formula:**  
 `{report:type} - {report:submit:from:firstname} {report:startdate}`  

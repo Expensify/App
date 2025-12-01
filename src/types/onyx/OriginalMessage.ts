@@ -957,7 +957,7 @@ type OriginalMessageIntegrationSyncFailed = {
 };
 
 /**
- * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ISSUED_VIRTUAL actions
+ * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ISSUED_VIRTUAL, and CARD_REPLACED_VIRTUAL actions
  */
 type OriginalMessageCard = {
     /** The id of the user the card was assigned to */
@@ -965,6 +965,9 @@ type OriginalMessageCard = {
 
     /** The id of the card */
     cardID: number;
+
+    /** Whether the card was issued without a shipping address */
+    hadMissingAddress?: boolean;
 };
 
 /**
@@ -989,13 +992,15 @@ type OriginalMessageTakeControl = {
 };
 
 /**
- * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ASSIGNED and CARD_ISSUED_VIRTUAL actions
+ * Original message for CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ASSIGNED, CARD_ISSUED_VIRTUAL and CARD_ISSUED_VIRTUAL actions
  */
 type IssueNewCardOriginalMessage = OriginalMessage<
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED
 >;
 
 /**
@@ -1100,6 +1105,8 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL]: OriginalMessageCard;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL]: OriginalMessageCard;
+    [CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;

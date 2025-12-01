@@ -53,7 +53,7 @@ type Props = {
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
     createReport?: () => void;
-    isPerDiemRequest?: boolean;
+    isPerDiemRequest: boolean;
 };
 
 const policyIdSelector = (policy: OnyxEntry<Policy>) => policy?.id;
