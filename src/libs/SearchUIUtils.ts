@@ -1451,35 +1451,11 @@ function createAndOpenSearchTransactionThread(
         updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
     }
 
-    // Recalculate the isFromOneTransactionReport optimistically to correctly
-    // navigate to the IOU report or transaction thread
-    let calculatedIsFromOneTransactionReport = item.isFromOneTransactionReport;
-    if (!moneyRequestReportActionID && searchResult) {
-        // Get all transactions from the same report, excluding the current transaction
-        const otherTransactionsInReport = Object.entries(searchResult)
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            .filter(([key, value]) => {
-                if (!isTransactionEntry(key)) {
-                    return false;
-                }
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const transactionItem = value as SearchTransaction;
-                // Include transactions with matching reportID, but exclude the current transaction
-                return transactionItem.reportID === item.reportID && transactionItem.transactionID !== item.transactionID;
-            })
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            .map(([, value]) => value as SearchTransaction);
-
-        calculatedIsFromOneTransactionReport = otherTransactionsInReport.length === 0;
-
-        // Update the search results in Onyx with the calculated isFromOneTransactionReport value
-        updateSearchResultsWithIsFromOneTransactionReport(hash, item.transactionID, calculatedIsFromOneTransactionReport);
-    }
-
     if (shouldNavigate) {
         // Navigate to transaction thread if there are multiple transactions in the report, or to the parent report if it's the only transaction
+        const isFromOneTransactionReport = isOneTransactionReport(item.report);
         const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        const shouldNavigateToTransactionThread = (!calculatedIsFromOneTransactionReport || isFromSelfDM) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
+        const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
         const targetReportID = shouldNavigateToTransactionThread ? transactionThreadReport?.reportID : item.reportID;
 
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}));
