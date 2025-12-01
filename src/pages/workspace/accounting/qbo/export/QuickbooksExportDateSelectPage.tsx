@@ -38,7 +38,7 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
         isSelected: qboConfig?.exportDate === dateType,
     }));
 
-    const exportDate = useMemo(() => qboConfig?.exportDate, [qboConfig]);
+    const exportDate = useMemo(() => qboConfig?.exportDate, [qboConfig?.exportDate]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));

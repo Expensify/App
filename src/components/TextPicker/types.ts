@@ -29,6 +29,9 @@ type TextSelectorModalProps = {
 
     /** Whether the field is required */
     required?: boolean;
+
+    /** Whether the form should be actionable when offline */
+    enabledWhenOffline?: boolean;
 } & Pick<MenuItemBaseProps, 'subtitle' | 'description'> &
     Omit<TextProps, 'ref'>;
 
@@ -63,9 +66,12 @@ type TextPickerProps = {
     /** Whether the field is required */
     required?: boolean;
 
+    /** Whether the form should be actionable when offline */
+    enabledWhenOffline?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
-} & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive'> &
+} & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive' | 'wrapperStyle' | 'numberOfLinesTitle' | 'titleStyle' | 'descriptionTextStyle'> &
     TextProps;
 
 export type {TextSelectorModalProps, TextPickerProps};
