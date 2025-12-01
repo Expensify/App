@@ -80,6 +80,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
     shouldHighlightSelectedItem = true,
+    shouldUseDefaultRightHandSideCheckmark,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
 }: SelectionListProps<TItem>) {
@@ -332,6 +333,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                     onDismissError={onDismissError}
                     shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                    shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     rightHandSideComponent={rightHandSideComponent}
                     isMultilineSupported={isRowMultilineSupported}
