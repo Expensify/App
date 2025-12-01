@@ -5,11 +5,11 @@ import {getAllNonDeletedTransactions} from './MoneyRequestReportUtils';
 import {getOneTransactionThreadReportID} from './ReportActionsUtils';
 
 type OriginalReportIDParams = {
-    reportID: string | undefined;
+    reportID?: string;
     reportAction: OnyxInputOrEntry<Pick<ReportAction, 'reportActionID' | 'childReportID'>>;
     reportActions: OnyxEntry<ReportActions>;
     report: OnyxEntry<Report>;
-    uniqueTransactionThreadReportID: string | undefined;
+    uniqueTransactionThreadReportID?: string;
     uniqueTransactionThreadReportActions: OnyxEntry<ReportActions>;
 };
 
@@ -52,7 +52,7 @@ function resolveOriginalReportID({
 }
 
 type UniqueTransactionThreadReportIDParams = {
-    reportID: string | undefined;
+    reportID?: string;
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
     reportActions: OnyxEntry<ReportActions>;
