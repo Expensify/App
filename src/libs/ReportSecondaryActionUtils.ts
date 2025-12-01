@@ -706,10 +706,6 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
-    if (isReportLayoutAction(report, reportTransactions)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT);
-    }
-
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
     if (isChangeWorkspaceAction(report, policies, reportActions)) {
@@ -721,6 +717,10 @@ function getSecondaryReportActions({
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
+
+    if (isReportLayoutAction(report, reportTransactions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REPORT_LAYOUT);
+    }
 
     if (isDeleteAction(report, reportTransactions, reportActions ?? [])) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);

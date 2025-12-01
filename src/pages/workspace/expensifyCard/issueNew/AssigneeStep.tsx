@@ -175,7 +175,16 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
             ...option,
             keyForList: option.keyForList ?? option.login ?? '',
         }));
-    }, [debouncedSearchTerm, areOptionsInitialized, countryCode, membersDetails, selectedOptionsForDisplay, availableOptions]);
+    }, [
+        debouncedSearchTerm,
+        areOptionsInitialized,
+        countryCode,
+        membersDetails,
+        selectedOptionsForDisplay,
+        availableOptions.recentReports,
+        availableOptions.personalDetails,
+        availableOptions.userToInvite,
+    ]);
 
     useEffect(() => {
         searchInServer(searchTerm);
@@ -187,7 +196,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
             return translate('messages.errorMessageInvalidEmail');
         }
         return getHeaderMessage(assignees.length > 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
-    }, [searchTerm, availableOptions.userToInvite, assignees, countryCode, translate]);
+    }, [searchTerm, availableOptions.userToInvite, assignees.length, countryCode, translate]);
 
     const textInputOptions = useMemo(
         () => ({
