@@ -13085,6 +13085,12 @@ function shouldOptimisticallyUpdateSearch(
         shouldOptimisticallyUpdateByStatus = expenseReportStatusFilterMapping[expenseStatus](iouReport);
     }
 
+    if (currentSearchQueryJSON.policyID?.length && iouReport?.policyID) {
+        if (!currentSearchQueryJSON.policyID.includes(iouReport.policyID)) {
+            return false;
+        }
+    }
+
     if (!shouldOptimisticallyUpdateByStatus) {
         return false;
     }
