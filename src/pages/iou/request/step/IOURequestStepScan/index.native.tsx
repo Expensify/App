@@ -548,7 +548,6 @@ function IOURequestStepScan({
             transactionTaxCode,
             transactionTaxAmount,
             policy,
-            personalPolicy?.autoReporting,
             selfDMReportID,
         ],
     );

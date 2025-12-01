@@ -199,7 +199,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 },
             ];
         },
-        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed, reports, personalDetails, policyTags],
+        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed, reports, personalDetails, policyTags, icons.MagnifyingGlass],
     );
 
     const searchQueryItem = textInputValue

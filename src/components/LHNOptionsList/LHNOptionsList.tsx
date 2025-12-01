@@ -157,6 +157,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             theme.textSupporting,
             styles.textNormal,
             translate,
+            icons.MagnifyingGlass,
+            icons.Plus,
         ],
     );
 

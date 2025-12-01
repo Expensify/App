@@ -449,6 +449,7 @@ function IOURequestStepDistanceMap({
         personalPolicy?.autoReporting,
         reportID,
         transactionViolations,
+        currentUserPersonalDetails.accountID,
     ]);
 
     const getError = () => {
@@ -551,6 +552,9 @@ function IOURequestStepDistanceMap({
         transaction?.routes,
         report?.reportID,
         policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
     ]);
 
     const renderItem = useCallback(
