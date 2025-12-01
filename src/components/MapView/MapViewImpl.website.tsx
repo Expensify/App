@@ -135,7 +135,7 @@ function MapViewImpl({
             zoom: CONST.MAPBOX.DEFAULT_ZOOM,
             animate: shouldAnimate,
         });
-    }, [currentPosition, mapRef, prevUserPosition, shouldPanMapToCurrentPosition]);
+    }, [currentPosition, mapRef, prevUserPosition.longitude, prevUserPosition.latitude, shouldPanMapToCurrentPosition]);
 
     const resetBoundaries = useCallback(() => {
         if (!waypoints || waypoints.length === 0) {
@@ -224,7 +224,7 @@ function MapViewImpl({
             animate: true,
             duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
         });
-    }, [directionCoordinates, currentPosition, mapRef, waypoints, mapPadding]);
+    }, [directionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapRef, waypoints, mapPadding]);
 
     const initialViewState: Partial<ViewState> | undefined = useMemo(() => {
         if (!interactive) {
@@ -245,7 +245,7 @@ function MapViewImpl({
             latitude: currentPosition?.latitude,
             zoom: initialState.zoom,
         };
-    }, [waypoints, directionCoordinates, interactive, currentPosition, initialState.zoom]);
+    }, [waypoints, directionCoordinates, interactive, currentPosition?.longitude, currentPosition?.latitude, initialState.zoom]);
 
     const distanceSymbolCoordinate = useMemo(() => {
         if (!directionCoordinates?.length || !waypoints?.length) {

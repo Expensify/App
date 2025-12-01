@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
@@ -27,10 +28,11 @@ type UseDeleteTransactionsParams = {
 function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransactionsParams) {
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
     const [allPolicyRecentlyUsedCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES, {canBeMissing: true});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
@@ -125,6 +127,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     iouReport,
                     firstIOU: originalTransactionIouActions.at(0),
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                    currentUserPersonalDetails,
+                    transactionViolations,
                 });
             }
 
@@ -137,19 +141,18 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
                 const chatIOUReportID = chatReport?.reportID;
                 const isChatIOUReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatIOUReportID}`);
-                deleteMoneyRequest({
+                deleteMoneyRequest(
                     transactionID,
-                    reportAction: action,
-                    transactions: duplicateTransactions,
-                    violations: duplicateTransactionViolations,
+                    action,
+                    duplicateTransactions,
+                    duplicateTransactionViolations,
                     iouReport,
                     chatReport,
                     isChatIOUReportArchived,
-                    allSnapshots,
                     isSingleTransactionView,
-                    transactionIDsPendingDeletion: deletedTransactionIDs,
-                    selectedTransactionIDs: transactionIDs,
-                });
+                    deletedTransactionIDs,
+                    transactionIDs,
+                );
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
                     deletedTransactionThreadReportIDs.add(action.childReportID);
@@ -169,7 +172,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             policy,
             archivedReportsIdSet,
             isBetaEnabled,
-            allSnapshots,
+            currentUserPersonalDetails,
+            transactionViolations,
         ],
     );
 

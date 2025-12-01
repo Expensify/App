@@ -38,6 +38,7 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
 
 const CURRENT_USER_ID = 1;
 const CURRENT_USER_EMAIL = 'test@example.com';
+const OTHER_USER_EMAIL = 'other@example.com';
 const SECOND_USER_ID = 2;
 const FAKE_OPEN_REPORT_ID = 'FAKE_OPEN_REPORT_ID';
 const FAKE_OPEN_REPORT_SECOND_USER_ID = 'FAKE_OPEN_REPORT_SECOND_USER_ID';
@@ -452,17 +453,6 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('shouldShowRTERViolationMessage', () => {
-        it('should return true if transaction is receipt being scanned', () => {
-            const transaction = generateTransaction({
-                receipt: {
-                    state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
-                },
-            });
-            expect(TransactionUtils.shouldShowRTERViolationMessage([transaction])).toBe(true);
-        });
-    });
-
     describe('calculateTaxAmount', () => {
         it('returns 0 for undefined percentage', () => {
             const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 'USD');
@@ -507,10 +497,13 @@ describe('TransactionUtils', () => {
         });
 
         it('should return true when a broken connection violation exists for any of the provided transactions and the user is the policy member', () => {
-            const policy = {role: CONST.POLICY.ROLE.USER} as Policy;
+            const policy = {
+                role: CONST.POLICY.ROLE.USER,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            } as Policy;
             const transaction1 = generateTransaction();
             const transaction2 = generateTransaction();
-            const transactionIDs = [transaction1.transactionID, transaction2.transactionID];
             const transactionViolations = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`]: [
                     {
@@ -520,7 +513,13 @@ describe('TransactionUtils', () => {
                     },
                 ],
             };
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, undefined, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+                [transaction1, transaction2],
+                undefined,
+                policy,
+                transactionViolations,
+                CURRENT_USER_EMAIL,
+            );
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -770,19 +769,309 @@ describe('TransactionUtils', () => {
     });
 
     describe('isViolationDismissed', () => {
-        it('should return true when violation is dismissed for current user', () => {
-            const transaction = generateTransaction({
-                comment: {
-                    dismissedViolations: {
-                        [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
-                            [CURRENT_USER_EMAIL]: DateUtils.getDBTime(),
+        beforeAll(() => {
+            Onyx.init({
+                keys: ONYXKEYS,
+                initialKeyStates: {
+                    [ONYXKEYS.SESSION]: {
+                        email: CURRENT_USER_EMAIL,
+                        accountID: CURRENT_USER_ID,
+                    },
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                        [CURRENT_USER_ID]: {
+                            accountID: CURRENT_USER_ID,
+                            login: CURRENT_USER_EMAIL,
+                            displayName: 'Current User',
+                        },
+                        [SECOND_USER_ID]: {
+                            accountID: SECOND_USER_ID,
+                            login: OTHER_USER_EMAIL,
+                            displayName: 'Second User',
                         },
                     },
                 },
             });
-            const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
-            const result = TransactionUtils.isViolationDismissed(transaction, violation);
-            expect(result).toBe(true);
+        });
+
+        afterEach(() => Onyx.clear());
+
+        describe('Current user dismissed it themselves', () => {
+            it('should return true when current user dismissed the violation', () => {
+                // Given a transaction with a violation dismissed by current user
+                const transaction = generateTransaction({
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                                [CURRENT_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+                // When checking if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, undefined);
+
+                // Then it should return true
+                expect(result).toBe(true);
+            });
+
+            it('should return false when violation is not dismissed at all', () => {
+                // Given a transaction with no dismissed violations
+                const transaction = generateTransaction({
+                    comment: {},
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+                // When checking if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, undefined);
+
+                // Then it should return false
+                expect(result).toBe(false);
+            });
+
+            it('should return false when violation was dismissed by someone else only', () => {
+                // Given a transaction with a violation dismissed by another user
+                const transaction = generateTransaction({
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+                // When checking if violation is dismissed for current user
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, undefined);
+
+                // Then it should return false since current user hasn't dismissed it
+                expect(result).toBe(false);
+            });
+        });
+
+        describe('Admin viewing OPEN report AND report owner dismissed it', () => {
+            it('should return true when admin views open report and owner dismissed violation', () => {
+                // Given an OPEN report owned by user 2
+                const iouReport: Report = {
+                    ...openReport,
+                    ownerAccountID: SECOND_USER_ID,
+                };
+
+                // And a transaction where owner (user 2) dismissed a violation
+                const transaction = generateTransaction({
+                    reportID: iouReport.reportID,
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+                // When current user (admin, not the owner) checks if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, iouReport, undefined);
+
+                // Then it should return true because admin sees owner's perspective on open reports
+                expect(result).toBe(true);
+            });
+
+            it('should return false when admin views PROCESSING report and only owner dismissed violation', () => {
+                // Given a PROCESSING report (not OPEN) owned by user 2
+                const iouReport: Report = {
+                    ...processingReport,
+                    ownerAccountID: SECOND_USER_ID,
+                };
+
+                // And a transaction where owner dismissed a violation
+                const transaction = generateTransaction({
+                    reportID: iouReport.reportID,
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+                // When current user (admin, not the owner) checks if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, iouReport, undefined);
+
+                // Then it should return false because on processing reports, admin must dismiss separately
+                expect(result).toBe(false);
+            });
+
+            it('should return false when submitter views their own open report (not condition 2)', () => {
+                // Given an OPEN report owned by current user
+                const iouReport: Report = {
+                    ...openReport,
+                    ownerAccountID: CURRENT_USER_ID,
+                };
+
+                // And a transaction where someone else dismissed a violation
+                const transaction = generateTransaction({
+                    reportID: iouReport.reportID,
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+                // When current user (the submitter) checks if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, iouReport, undefined);
+
+                // Then it should return false (condition 2 doesn't apply to submitters)
+                expect(result).toBe(false);
+            });
+        });
+
+        describe('RTER violation on instant submit policy - dismissed by anyone', () => {
+            it('should return true when RTER violation dismissed by anyone on instant submit policy', () => {
+                // Given an instant submit policy
+                const policy: Policy = {
+                    ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                };
+
+                // And a transaction with RTER violation dismissed by someone else
+                const transaction = generateTransaction({
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.RTER]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
+
+                // When current user checks if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, policy);
+
+                // Then it should return true because on instant submit, anyone's dismissal counts
+                expect(result).toBe(true);
+            });
+
+            it('should return false when RTER violation dismissed by anyone on NON-instant submit policy', () => {
+                // Given a non-instant submit policy
+                const policy: Policy = {
+                    ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+                };
+
+                // And a transaction with RTER violation dismissed by someone else
+                const transaction = generateTransaction({
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.RTER]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
+
+                // When current user checks if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, policy);
+
+                // Then it should return false because on non-instant submit, each person must dismiss separately
+                expect(result).toBe(false);
+            });
+
+            it('should return false when non-RTER violation dismissed by anyone on instant submit policy', () => {
+                // Given an instant submit policy
+                const policy: Policy = {
+                    ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                };
+
+                // And a transaction with non-RTER violation dismissed by someone else
+                const transaction = generateTransaction({
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+                // When current user checks if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, policy);
+
+                // Then it should return false because condition 3 only applies to RTER violations
+                expect(result).toBe(false);
+            });
+
+            it('should return true when RTER violation dismissed by multiple people on instant submit policy', () => {
+                // Given an instant submit policy
+                const policy: Policy = {
+                    ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                };
+
+                // And a transaction with RTER violation dismissed by multiple people
+                const transaction = generateTransaction({
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.RTER]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                                [CURRENT_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
+
+                // When current user checks if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, policy);
+
+                // Then it should return true
+                expect(result).toBe(true);
+            });
+        });
+
+        describe('Edge cases and data validation', () => {
+            it('should return false when transaction is null', () => {
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+                const result = TransactionUtils.isViolationDismissed(undefined, violation, CURRENT_USER_EMAIL, undefined, undefined);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when violation is null', () => {
+                const transaction = generateTransaction({});
+                const result = TransactionUtils.isViolationDismissed(transaction, undefined, CURRENT_USER_EMAIL, undefined, undefined);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when violation name does not exist in dismissedViolations', () => {
+                const transaction = generateTransaction({
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.SMARTSCAN_FAILED]: {
+                                [CURRENT_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, undefined, undefined);
+                expect(result).toBe(false);
+            });
         });
     });
 
