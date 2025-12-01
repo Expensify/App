@@ -1944,14 +1944,14 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const result = SearchUIUtils.getSections({
+            const [result] = SearchUIUtils.getSections({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 data: staleCacheData,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
                 groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
-            }) as TransactionWithdrawalIDGroupListItemType[];
+            }) as [TransactionWithdrawalIDGroupListItemType[], number];
 
             expect(result).toHaveLength(0);
         });
