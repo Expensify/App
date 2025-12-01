@@ -6605,6 +6605,15 @@ ${
             message: "Nous n'avons pas pu vérifier la mise à jour. Veuillez réessayer dans un moment.",
         },
     },
+    settlement: {
+        status: {
+            pending: 'En attente',
+            cleared: 'Réglé',
+            failed: 'Échoué',
+        },
+        failedError: ({link}: {link: string}) => `Nous réessaierons ce règlement lorsque vous <a href="${link}">déverrouillez votre compte</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retrait: ${withdrawalID}`,
+    },
     reportLayout: {
         reportLayout: 'Mise en page du rapport',
         groupByLabel: 'Grouper par :',

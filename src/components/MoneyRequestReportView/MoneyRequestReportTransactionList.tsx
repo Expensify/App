@@ -298,13 +298,13 @@ function MoneyRequestReportTransactionList({
     }, [sortedTransactions]);
 
     const groupSelectionState = useMemo(() => {
-        const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean}>();
+        const state = new Map<string, {isSelected: boolean; isIndeterminate: boolean; isDisabled: boolean}>();
 
         for (const group of groupedTransactions) {
             const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
 
             if (groupTransactionIDs.length === 0) {
-                state.set(group.groupKey, {isSelected: false, isIndeterminate: false});
+                state.set(group.groupKey, {isSelected: false, isIndeterminate: false, isDisabled: true});
                 continue;
             }
 
@@ -312,6 +312,7 @@ function MoneyRequestReportTransactionList({
             state.set(group.groupKey, {
                 isSelected: selectedCount === groupTransactionIDs.length,
                 isIndeterminate: selectedCount > 0 && selectedCount < groupTransactionIDs.length,
+                isDisabled: false,
             });
         }
 
@@ -325,14 +326,13 @@ function MoneyRequestReportTransactionList({
                 return;
             }
             const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
-            const allSelected = groupTransactionIDs.every((id) => selectedTransactionIDs.includes(id));
+            const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
 
             let newSelectedTransactionIDs = selectedTransactionIDs;
-            if (allSelected) {
+            if (anySelected) {
                 newSelectedTransactionIDs = selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id));
             } else {
-                const idsToAdd = groupTransactionIDs.filter((id) => !selectedTransactionIDs.includes(id));
-                newSelectedTransactionIDs = [...selectedTransactionIDs, ...idsToAdd];
+                newSelectedTransactionIDs = [...selectedTransactionIDs, ...groupTransactionIDs];
             }
             setSelectedTransactions(newSelectedTransactionIDs);
         },
@@ -487,7 +487,7 @@ function MoneyRequestReportTransactionList({
             <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
                 {shouldShowGroupedTransactions
                     ? groupedTransactions.map((group) => {
-                          const selectionState = groupSelectionState.get(group.groupKey) ?? {isSelected: false, isIndeterminate: false};
+                          const selectionState = groupSelectionState.get(group.groupKey) ?? {isSelected: false, isIndeterminate: false, isDisabled: false};
 
                           return (
                               <View
@@ -496,12 +496,14 @@ function MoneyRequestReportTransactionList({
                               >
                                   <MoneyRequestReportGroupHeader
                                       group={group}
+                                      groupKey={group.groupKey}
+                                      currency={report?.currency ?? ''}
                                       isGroupedByTag={currentGroupBy === CONST.REPORT_LAYOUT.GROUP_BY.TAG}
                                       isSelectionModeEnabled={isMobileSelectionModeEnabled}
                                       isSelected={selectionState.isSelected}
                                       isIndeterminate={selectionState.isIndeterminate}
+                                      isDisabled={selectionState.isDisabled}
                                       onToggleSelection={toggleGroupSelection}
-                                      groupKey={group.groupKey}
                                   />
                                   {group.transactions.map((transaction) => {
                                       const originalTransaction = sortedTransactionsMap.get(transaction.transactionID) ?? transaction;
