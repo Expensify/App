@@ -101,15 +101,16 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     }, [
         isApprovalWorkflowLoading,
         employeeList,
+        isDefault,
         policy?.preventSelfApproval,
         policy?.owner,
         membersEmail,
         approversFromWorkflow,
         selectedApproverEmail,
-        isDefault,
         approverIndex,
         defaultApprover,
         personalDetails,
+        icons.FallbackAvatar,
     ]);
 
     const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading;
