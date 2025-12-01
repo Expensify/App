@@ -59,6 +59,7 @@ import {
     getIOUReportActionDisplayMessage,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
+    getOutstandingChildRequest,
     getParentNavigationSubtitle,
     getParticipantsList,
     getPolicyExpenseChat,
@@ -132,7 +133,6 @@ import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {Participant, Participants} from '@src/types/onyx/Report';
-import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
@@ -1126,6 +1126,22 @@ describe('ReportUtils', () => {
                 );
             });
         });
+
+        it('should return "resolved the duplicate" report name for resolved duplicate system message', () => {
+            const chatReport = createRandomReport(123, undefined);
+            const resolvedDuplicateAction: ReportAction = {
+                ...createRandomReportAction(Number(chatReport.reportID)),
+                actionName: CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
+                originalMessage: {
+                    violationName: 'duplicatedTransaction',
+                    reason: 'manual',
+                    lastModified: '2025-11-26 11:24:19.347',
+                },
+            };
+
+            const reportName = getReportName(chatReport, undefined, resolvedDuplicateAction);
+            expect(reportName).toBe('resolved the duplicate');
+        });
     });
 
     // Need to merge the same tests
@@ -1509,6 +1525,21 @@ describe('ReportUtils', () => {
 
                             expect(reportName).toBe('updated the name of this workspace to "New Workspace" (previously "Old Workspace")');
                         });
+
+                        test('should handle corporate force upgrade action', () => {
+                            const forceUpgradeAction: ReportAction = {
+                                ...baseParentReportAction,
+                                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE,
+                            };
+
+                            const reportName = getSearchReportName({
+                                report,
+                                parentReportActionParam: forceUpgradeAction,
+                                personalDetails: participantsPersonalDetails,
+                            });
+
+                            expect(reportName).toBe(`This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.`);
+                        });
                     });
                 });
 
@@ -1663,8 +1694,8 @@ describe('ReportUtils', () => {
                             currency: 'USD',
                         },
                     };
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    const transaction: SearchTransaction = {
+
+                    const transaction: Transaction = {
                         transactionID: 'txn1',
                         reportID: '2',
                         amount: 1000,
@@ -1672,8 +1703,7 @@ describe('ReportUtils', () => {
                         merchant: 'Test Merchant',
                         created: testDate,
                         modifiedMerchant: 'Test Merchant',
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    } as SearchTransaction;
+                    } as Transaction;
 
                     const reportName = getSearchReportName({
                         report: baseExpenseReport,
@@ -8204,6 +8234,20 @@ describe('ReportUtils', () => {
                 expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.CREATE)).toBe(true);
             });
 
+            it('should return true when report is null and iouType is SUBMIT', () => {
+                expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.SUBMIT)).toBe(true);
+            });
+
+            it('should return true when report is null, the iouType is SUBMIT, and the receipts do not include a user', () => {
+                const participants = [{accountID: 0, isPolicyExpenseChat: true, isSender: false}];
+                expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.SUBMIT, participants)).toBe(true);
+            });
+
+            it('should return false when report is null, the iouType is SUBMIT, and the receipts include a user', () => {
+                const participants = [{accountID: 1, isPolicyExpenseChat: false, isSender: false}];
+                expect(shouldEnableNegative(undefined, undefined, CONST.IOU.TYPE.SUBMIT, participants)).toBe(false);
+            });
+
             it('should handle undefined policy type gracefully', () => {
                 const policyWithUndefinedType = {
                     ...createRandomPolicy(4),
@@ -8643,7 +8687,7 @@ describe('ReportUtils', () => {
         const mockReportIDIndex = 1;
         const mockReportID = mockReportIDIndex.toString();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const mockSearchReport: SearchReport = {
+        const mockSearchReport: Report = {
             ...createRandomReport(mockReportIDIndex, undefined),
             reportName: 'Search Report',
             type: CONST.REPORT.TYPE.CHAT,
@@ -8673,7 +8717,7 @@ describe('ReportUtils', () => {
 
         test('returns onyx report when search report is not found but onyx report exists', async () => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
             expect(result).toEqual(mockOnyxReport);
@@ -8681,7 +8725,7 @@ describe('ReportUtils', () => {
 
         test('returns draft report when neither search nor onyx report exists but draft exists', async () => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
             expect(result).toEqual(mockDraftReport);
@@ -8689,14 +8733,14 @@ describe('ReportUtils', () => {
 
         test('returns fallback report when no other reports exist', () => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             const result = getReportOrDraftReport('unknownReportID', searchReports, mockFallbackReport);
             expect(result).toEqual(mockFallbackReport);
         });
 
         test('returns undefined when no reports exist and no fallback provided', () => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             const result = getReportOrDraftReport(mockReportID, searchReports);
             expect(result).toBeUndefined();
         });
@@ -8728,7 +8772,7 @@ describe('ReportUtils', () => {
 
         test('prioritizes onyx report over draft report when both exist', async () => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
@@ -8738,7 +8782,7 @@ describe('ReportUtils', () => {
 
         test('prioritizes draft report over fallback when both exist', async () => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const searchReports: SearchReport[] = [];
+            const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport);
             expect(result).toEqual(mockDraftReport);
@@ -9533,6 +9577,94 @@ describe('ReportUtils', () => {
         expect(reasonForOptionList).toBe(null);
 
         await Onyx.clear();
+    });
+
+    describe('getOutstandingChildRequest', () => {
+        const fakePolicy: Policy = {
+            ...createRandomPolicy(12),
+            harvesting: {
+                enabled: false,
+            },
+            type: CONST.POLICY.TYPE.TEAM,
+        };
+
+        beforeAll(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+        });
+
+        it('should return hasOutstandingChildRequest as true if the expense report is open report', async () => {
+            const iouReport: Report = {
+                ...createRandomReport(100, undefined),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: fakePolicy.id,
+            };
+
+            expect(getOutstandingChildRequest(iouReport).hasOutstandingChildRequest).toBe(true);
+        });
+
+        it('should return empty object if the expense report is not open report', async () => {
+            const iouReport: Report = {
+                ...createRandomReport(100, undefined),
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: fakePolicy.id,
+            };
+
+            expect(getOutstandingChildRequest(iouReport).hasOutstandingChildRequest).toBeFalsy();
+        });
+
+        it('should return empty object if harvesting is enabled', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {harvesting: {enabled: true}});
+
+            const iouReport: Report = {
+                ...createRandomReport(100, undefined),
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: fakePolicy.id,
+            };
+
+            expect(getOutstandingChildRequest(iouReport).hasOutstandingChildRequest).toBeFalsy();
+        });
+
+        it('should return true if the current user is the manger of the iou report and the total spend is not zero', async () => {
+            const iouReport: Report = {
+                ...createRandomReport(100, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                policyID: fakePolicy.id,
+                managerID: currentUserAccountID,
+                total: 100,
+            };
+
+            expect(getOutstandingChildRequest(iouReport).hasOutstandingChildRequest).toBe(true);
+        });
+
+        it('should return false if the current user is not the manger of the iou report', async () => {
+            const iouReport: Report = {
+                ...createRandomReport(100, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                policyID: fakePolicy.id,
+                ownerAccountID: currentUserAccountID,
+                total: 100,
+            };
+
+            expect(getOutstandingChildRequest(iouReport).hasOutstandingChildRequest).toBeFalsy();
+        });
+
+        it('should return false if the total spend is zero', async () => {
+            const iouReport: Report = {
+                ...createRandomReport(100, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                policyID: fakePolicy.id,
+                managerID: currentUserAccountID,
+                total: 0,
+            };
+
+            expect(getOutstandingChildRequest(iouReport).hasOutstandingChildRequest).toBeFalsy();
+        });
     });
 
     it('should stop surfacing a GBR for a workspace once it is archived', async () => {
