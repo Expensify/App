@@ -248,9 +248,11 @@ function BaseVideoPlayer({
             return;
         }
         isReadyForDisplayRef.current = true;
-        if (videoPlayerRef.current === currentVideoPlayerRef.current && isFirstLoad) {
-            playVideo();
+        if (isFirstLoad) {
             setIsFirstLoad(false);
+            if (videoPlayerRef.current === currentVideoPlayerRef.current && !isUploading) {
+                playVideo();
+            }
         }
     });
 
