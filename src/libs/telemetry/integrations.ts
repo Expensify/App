@@ -18,7 +18,7 @@ const tracingIntegration = Sentry.reactNativeTracingIntegration({
 // Browser tracing integration crashes on mobile in release builds
 const browserTracingIntegration =
     Platform.OS === 'android' || Platform.OS === 'ios'
-        ? undefined
+        ? null
         : SentryReact.browserTracingIntegration({
               shouldCreateSpanForRequest,
           });
