@@ -12,9 +12,6 @@ type ListHeaderProps<TItem extends ListItem> = {
     /** Data details containing selection state and items info */
     dataDetails: DataDetailsType<TItem>;
 
-    /** Message to display above the list */
-    aboveListHeaderMessage?: string;
-
     /** Custom header content to render instead of the default select all header */
     customListHeader?: React.ReactNode;
 
@@ -33,7 +30,6 @@ type ListHeaderProps<TItem extends ListItem> = {
 
 function ListHeader<TItem extends ListItem>({
     dataDetails,
-    aboveListHeaderMessage,
     customListHeader,
     canSelectMultiple,
     onSelectAll,
@@ -42,10 +38,6 @@ function ListHeader<TItem extends ListItem>({
 }: ListHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    if (aboveListHeaderMessage) {
-        return null;
-    }
 
     if (!canSelectMultiple || !shouldShowSelectAllButton) {
         return customListHeader;
