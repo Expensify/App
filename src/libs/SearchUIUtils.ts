@@ -1557,7 +1557,10 @@ function getReportSections(
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
                 const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail, actions);
 
-                const fromDetails = data.personalDetailsList?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? emptyPersonalDetails;
+                const fromDetails =
+                    data.personalDetailsList?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
+                    getPersonalDetailsForAccountID(reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) ??
+                    emptyPersonalDetails;
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
 
                 const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
@@ -1737,6 +1740,10 @@ function getWithdrawalIDSections(data: OnyxTypes.SearchResults['data'], queryJSO
                 const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
                 const newQuery = buildSearchQueryString(newQueryJSON);
                 transactionsQueryJSON = buildSearchQueryJSON(newQuery);
+            }
+
+            if (!withdrawalIDGroup.accountNumber) {
+                continue;
             }
 
             withdrawalIDSections[key] = {
