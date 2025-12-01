@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
-import type {ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
+import type {ACHData, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
 import resetNonUSDBankAccount from './resetNonUSDBankAccount';
 import resetUSDBankAccount from './resetUSDBankAccount';
 
@@ -26,6 +26,10 @@ function setBankAccountState(state: string): Promise<void | void[]> {
 
 function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
+}
+
+function updateReimbursementAccount(achData: Partial<ACHData>) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData});
 }
 
 function updateReimbursementAccountDraft(bankAccountData: Partial<ReimbursementAccountForm>) {
@@ -69,4 +73,5 @@ export {
     clearReimbursementAccountDraft,
     setBankAccountState,
     setReimbursementAccountOptionPressed,
+    updateReimbursementAccount,
 };

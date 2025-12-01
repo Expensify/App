@@ -1932,6 +1932,29 @@ describe('SearchUIUtils', () => {
                 })[0],
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
         });
+
+        it('should filter invalid withdrawal-id entries without accountNumber', () => {
+            const staleCacheData: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2074551` as const]: {
+                    accountID: 2074551,
+                    count: 1,
+                    currency: 'USD',
+                    total: 100,
+                },
+            };
+
+            const result = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: staleCacheData,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                formatPhoneNumber,
+                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            }) as TransactionWithdrawalIDGroupListItemType[];
+
+            expect(result).toHaveLength(0);
+        });
     });
 
     describe('Test getSortedSections', () => {

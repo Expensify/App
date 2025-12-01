@@ -970,6 +970,7 @@ function buildUserReadableQueryString(
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
+    autoCompleteWithSpace = false,
 ) {
     const {type, status, groupBy, policyID} = queryJSON;
     const filters = queryJSON.flatFilters;
@@ -1048,6 +1049,10 @@ function buildUserReadableQueryString(
             }));
         }
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
+    }
+
+    if (autoCompleteWithSpace && !title.endsWith(' ')) {
+        title += ' ';
     }
 
     return title;
