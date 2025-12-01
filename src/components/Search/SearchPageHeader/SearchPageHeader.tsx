@@ -73,7 +73,7 @@ function SearchPageHeader({
 
         // Otherwise count transactions
         return selectedTransactionsKeys.length;
-    }, [selectedTransactionsKeys, type]);
+    }, [selectedTransactionsKeys.length, type, selectedTransactions]);
 
     if (shouldUseNarrowLayout && isMobileSelectionModeEnabled) {
         return (
