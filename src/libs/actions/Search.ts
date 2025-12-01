@@ -917,7 +917,8 @@ function clearAllFilters() {
 
 function clearAdvancedFilters() {
     const values: Partial<Nullable<SearchAdvancedFiltersForm>> = {};
-    for (const key of Object.values(FILTER_KEYS).filter((key) => key !== FILTER_KEYS.GROUP_BY)) {
+    const filterKeys = Object.values(FILTER_KEYS).filter((key) => key !== FILTER_KEYS.GROUP_BY);
+    for (const key of filterKeys) {
         if (key === FILTER_KEYS.TYPE) {
             values[key] = CONST.SEARCH.DATA_TYPES.EXPENSE;
             continue;
