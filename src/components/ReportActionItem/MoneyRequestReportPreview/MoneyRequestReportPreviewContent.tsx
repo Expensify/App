@@ -417,6 +417,7 @@ function MoneyRequestReportPreviewContent({
     const viewabilityConfig = useMemo(() => {
         return {itemVisiblePercentThreshold: 100};
     }, []);
+
     useEffect(() => {
         const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.includes(transaction.transactionID));
 
@@ -424,7 +425,7 @@ function MoneyRequestReportPreviewContent({
             return;
         }
         setTimeout(() => {
-            carouselRef.current?.scrollToIndex({index, viewOffset: 5});
+            carouselRef.current?.scrollToIndex({index, viewOffset: 15});
         }, CONST.ANIMATED_TRANSITION);
 
         // eslint-disable-next-line react-compiler/react-compiler

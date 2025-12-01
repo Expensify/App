@@ -224,6 +224,7 @@ function TransactionPreviewContent({
         backgroundColor: theme.cardBG,
         shouldApplyOtherStyles: false,
     });
+
     const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedbackPending];
 
     return (
