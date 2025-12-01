@@ -2944,7 +2944,6 @@ describe('SearchUIUtils', () => {
                 convertedAmount,
                 convertedCurrency,
                 transactionThreadReportID,
-                isFromOneTransactionReport,
                 accountID,
                 policyID: searchPolicyID,
                 ...expectedTransaction

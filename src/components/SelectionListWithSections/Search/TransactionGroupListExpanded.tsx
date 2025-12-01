@@ -114,7 +114,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         const navigateToTransactionThread = () => {
             if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                createAndOpenSearchTransactionThread(transactionItem, currentSearchHash, backTo, undefined, true, transactionsSnapshot?.data);
+                createAndOpenSearchTransactionThread(transactionItem, currentSearchHash, backTo, undefined, true);
                 return;
             }
             markReportIDAsExpense(reportID);

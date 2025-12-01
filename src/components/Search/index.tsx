@@ -683,7 +683,7 @@ function Search({
             if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                createAndOpenSearchTransactionThread(item, hash, backTo, undefined, shouldOpenTransactionThread, searchResults?.data);
+                createAndOpenSearchTransactionThread(item, hash, backTo, undefined, shouldOpenTransactionThread);
                 if (shouldOpenTransactionThread) {
                     return;
                 }
@@ -753,7 +753,7 @@ function Search({
                 const firstTransaction = item.transactions.at(0);
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
                     if (firstTransaction.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                        createAndOpenSearchTransactionThread(firstTransaction, hash, backTo, transactionPreviewData, false, searchResults?.data);
+                        createAndOpenSearchTransactionThread(firstTransaction, hash, backTo, transactionPreviewData, false);
                     } else {
                         setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
                     }
