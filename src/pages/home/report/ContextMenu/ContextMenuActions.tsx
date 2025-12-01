@@ -108,6 +108,7 @@ import {
     getChildReportNotificationPreference as getChildReportNotificationPreferenceReportUtils,
     getDeletedTransactionMessage,
     getDowngradeWorkspaceMessage,
+    getForcedCorporateUpgradeMessage,
     getIOUReportActionDisplayMessage,
     getMovedActionMessage,
     getOriginalReportID,
@@ -216,6 +217,7 @@ type ContextMenuActionPayload = {
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
+    policy?: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
 };
@@ -540,6 +542,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 movedToReport,
                 childReport,
                 getLocalDateFromDatetime,
+                policy,
                 policyTags,
                 translate,
             },
@@ -562,6 +565,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = getForReportActionTemp({
                         reportAction,
+                        policy,
                         movedFromReport,
                         movedToReport,
                         policyTags,
@@ -684,6 +688,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
                     const displayMessage = getUpgradeWorkspaceMessage();
+                    Clipboard.setString(displayMessage);
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
+                    const displayMessage = Parser.htmlToText(getForcedCorporateUpgradeMessage());
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
                     const displayMessage = getDowngradeWorkspaceMessage();
