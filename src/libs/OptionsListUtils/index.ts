@@ -1180,7 +1180,7 @@ function processReport(
         reportMapEntry,
         reportOption: {
             item: report,
-            ...createOption(accountIDs, personalDetails, report, {}, reportAttributesDerived),
+            ...createOption(accountIDs, personalDetails, report, undefined, reportAttributesDerived),
         },
     };
 }
