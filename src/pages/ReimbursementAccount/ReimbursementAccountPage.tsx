@@ -137,7 +137,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
     useEffect(() => {
         const achContractValues = lodashPick(reimbursementAccountDraft, ['isAuthorizedToUseBankAccount', 'certifyTrueInformation', 'acceptTermsAndConditions']);
-        
+
         if (!isEmptyObject(achContractValues)) {
             achContractValuesRef.current = achContractValues;
         }
