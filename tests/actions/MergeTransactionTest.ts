@@ -94,6 +94,9 @@ describe('mergeTransactionRequest', () => {
             policy: undefined,
             policyTags: undefined,
             policyCategories: undefined,
+            currentUserAccountIDParam: 123,
+            currentUserEmailParam: 'existing@example.com',
+            isASAPSubmitBetaEnabled: false,
         });
 
         await mockFetch?.resume?.();
@@ -213,6 +216,9 @@ describe('mergeTransactionRequest', () => {
             policy: undefined,
             policyTags: undefined,
             policyCategories: undefined,
+            currentUserAccountIDParam: 123,
+            currentUserEmailParam: 'existing@example.com',
+            isASAPSubmitBetaEnabled: false,
         });
 
         await waitForBatchedUpdates();
@@ -307,6 +313,9 @@ describe('mergeTransactionRequest', () => {
             policy: undefined,
             policyTags: undefined,
             policyCategories: undefined,
+            currentUserAccountIDParam: 123,
+            currentUserEmailParam: 'existing@example.com',
+            isASAPSubmitBetaEnabled: false,
         });
 
         await mockFetch?.resume?.();
@@ -383,6 +392,9 @@ describe('mergeTransactionRequest', () => {
                 policy: undefined,
                 policyTags: undefined,
                 policyCategories: undefined,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
             });
 
             await mockFetch?.resume?.();
@@ -621,6 +633,73 @@ describe('areTransactionsEligibleForMerge', () => {
             const result = areTransactionsEligibleForMerge(cashTransaction1, cashTransaction2);
 
             // Then it should return true because both are cash transactions with non-zero amounts
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('Split Expense Rules', () => {
+        it('can not merge 2 split expenses', () => {
+            const splitExpenseTransaction1 = {
+                ...createRandomTransaction(1),
+                comment: {
+                    ...createRandomTransaction(1).comment,
+                    originalTransactionID: 'original-1',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            } as Transaction;
+            const splitExpenseTransaction2 = {
+                ...createRandomTransaction(2),
+                comment: {
+                    ...createRandomTransaction(2).comment,
+                    originalTransactionID: 'original-2',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            } as Transaction;
+
+            const result = areTransactionsEligibleForMerge(splitExpenseTransaction1, splitExpenseTransaction2);
+            expect(result).toBe(false);
+        });
+
+        it('can merge split expense with cash transaction', () => {
+            const splitExpenseTransaction = {
+                ...createRandomTransaction(1),
+                amount: 1000,
+                comment: {
+                    ...createRandomTransaction(1).comment,
+                    originalTransactionID: 'original-split-transaction',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+                reportID: 'expense-report-123',
+            } as Transaction;
+            const cashTransaction = {
+                ...createRandomTransaction(2),
+                amount: 1500,
+                managedCard: undefined,
+                reportID: 'expense-report-456',
+            } as Transaction;
+
+            const result = areTransactionsEligibleForMerge(splitExpenseTransaction, cashTransaction);
+            expect(result).toBe(true);
+        });
+
+        it('can merge split expense with card transaction', () => {
+            const splitExpenseTransaction = {
+                ...createRandomTransaction(1),
+                amount: 1000,
+                managedCard: undefined,
+                comment: {
+                    ...createRandomTransaction(1).comment,
+                    originalTransactionID: 'original-split-transaction',
+                    source: CONST.IOU.TYPE.SPLIT,
+                },
+            } as Transaction;
+            const cardTransaction = {
+                ...createRandomTransaction(2),
+                amount: 2000,
+                managedCard: true,
+            } as Transaction;
+
+            const result = areTransactionsEligibleForMerge(splitExpenseTransaction, cardTransaction);
             expect(result).toBe(true);
         });
     });
