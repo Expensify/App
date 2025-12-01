@@ -112,7 +112,7 @@ function ShareTab({ref}: ShareTabProps) {
     const header = useMemo(() => {
         const headerMessage = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
         return headerMessage;
-    }, [textInputValue, styledRecentReports, countryCode]);
+    }, [textInputValue, styledRecentReports.length, countryCode]);
 
     const onSelectRow = (item: OptionData) => {
         let reportID = item?.reportID ?? CONST.DEFAULT_NUMBER_ID;
