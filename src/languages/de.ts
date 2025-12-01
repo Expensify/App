@@ -6597,6 +6597,15 @@ ${
             message: 'Wir konnten nicht nach einem Update suchen. Bitte versuchen Sie es in Kürze erneut.',
         },
     },
+    settlement: {
+        status: {
+            pending: 'Ausstehend',
+            cleared: 'Abgewickelt',
+            failed: 'Fehlgeschlagen',
+        },
+        failedError: ({link}: {link: string}) => `Wir werden diese Abwicklung erneut versuchen, wenn Sie <a href="${link}">Ihr Konto entsperren</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Auszahlungs-ID: ${withdrawalID}`,
+    },
     reportLayout: {
         reportLayout: 'Berichtslayout',
         groupByLabel: 'Gruppieren nach:',
