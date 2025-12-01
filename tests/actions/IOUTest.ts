@@ -389,47 +389,26 @@ describe('actions/IOU', () => {
             };
             const policyID = '12345';
             const currentSearchQueryJSON = {
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                status: '' as SearchStatus,
-                sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
-                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                filters: {
-                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-                    left: {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                        right: policyID,
-                    },
-                    right: {
-                        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                        left: 'from',
-                        right: '20671314',
-                    },
-                },
-                flatFilters: [
+                type: 'expense',
+                status: '',
+                sortBy: 'date',
+                sortOrder: 'desc',
+                policyID: [policyID],
+                filters: null,
+                inputQuery: `type:expense sortBy:date sortOrder:desc policyID:${policyID}`,
+                flatFilters: [],
+                hash: 591785022,
+                recentSearchHash: 714245044,
+                similarSearchHash: 1023624110,
+                rawFilterList: [
                     {
-                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                        filters: [
-                            {
-                                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                                value: policyID,
-                            },
-                        ],
-                    },
-                    {
-                        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                        filters: [
-                            {
-                                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-                                value: '20671314',
-                            },
-                        ],
+                        key: 'policyID',
+                        operator: 'eq',
+                        value: policyID,
+                        isDefault: true,
                     },
                 ],
-                hash: 1920151829,
-                recentSearchHash: 2100977843,
-                similarSearchHash: 1855682507,
-            } as SearchQueryJSON;
+            } as unknown as SearchQueryJSON;
 
             // When the IOU report has a matching policyID, it should return true
             const matchingIOUReport: Report = {
