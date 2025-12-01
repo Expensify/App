@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -94,9 +95,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
         return transactionDetails.amount;
     }, [transactionDetails?.amount, splitExpenseTransactionID]);
-    const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction]);
+    const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction?.comment?.splitExpenses]);
     const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
-
     const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
     const isPerDiem = isPerDiemRequest(transaction);
@@ -108,6 +108,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const childTransactions = useMemo(() => getChildTransactions(allTransactions, allReports, transactionID), [allReports, allTransactions, transactionID]);
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const {isBetaEnabled} = usePermissions();
 
@@ -197,6 +199,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             iouReport,
             firstIOU: iouActions.at(0),
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+            currentUserPersonalDetails,
+            transactionViolations,
         });
     }, [
         splitExpenses,
@@ -219,11 +223,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         policyRecentlyUsedCategories,
         iouReport,
         iouActions,
+        currentUserPersonalDetails,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
         transactionDetails?.currency,
         isBetaEnabled,
+        transactionViolations,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
@@ -320,20 +326,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 )}
             </View>
         );
-    }, [
-        childTransactions.length,
-        styles.w100,
-        styles.flexColumn,
-        styles.mt1,
-        styles.mb3,
-        styles.ph4,
-        shouldUseNarrowLayout,
-        onAddSplitExpense,
-        translate,
-        icons.Plus,
-        icons.ArrowsLeftRight,
-        onMakeSplitsEven,
-    ]);
+    }, [onAddSplitExpense, onMakeSplitsEven, translate, childTransactions.length, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
 
     const footerContent = useMemo(() => {
         const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
