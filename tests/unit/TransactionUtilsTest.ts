@@ -121,7 +121,19 @@ describe('TransactionUtils', () => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID, email: 'test@example.com'},
+                [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID, email: CURRENT_USER_EMAIL},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [CURRENT_USER_ID]: {
+                        accountID: CURRENT_USER_ID,
+                        login: CURRENT_USER_EMAIL,
+                        displayName: 'Current User',
+                    },
+                    [SECOND_USER_ID]: {
+                        accountID: SECOND_USER_ID,
+                        login: OTHER_USER_EMAIL,
+                        displayName: 'Second User',
+                    },
+                },
                 ...reportCollectionDataSet,
             },
         });
@@ -774,32 +786,6 @@ describe('TransactionUtils', () => {
     });
 
     describe('isViolationDismissed', () => {
-        beforeAll(() => {
-            Onyx.init({
-                keys: ONYXKEYS,
-                initialKeyStates: {
-                    [ONYXKEYS.SESSION]: {
-                        email: CURRENT_USER_EMAIL,
-                        accountID: CURRENT_USER_ID,
-                    },
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                        [CURRENT_USER_ID]: {
-                            accountID: CURRENT_USER_ID,
-                            login: CURRENT_USER_EMAIL,
-                            displayName: 'Current User',
-                        },
-                        [SECOND_USER_ID]: {
-                            accountID: SECOND_USER_ID,
-                            login: OTHER_USER_EMAIL,
-                            displayName: 'Second User',
-                        },
-                    },
-                },
-            });
-        });
-
-        afterEach(() => Onyx.clear());
-
         describe('Current user dismissed it themselves', () => {
             it('should return true when current user dismissed the violation', () => {
                 // Given a transaction with a violation dismissed by current user
@@ -1100,23 +1086,6 @@ describe('TransactionUtils', () => {
     });
 
     describe('getReportOwnerAsAttendee', () => {
-        beforeAll(() => {
-            return Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                    [CURRENT_USER_ID]: {
-                        accountID: CURRENT_USER_ID,
-                        login: CURRENT_USER_EMAIL,
-                        displayName: 'Current User',
-                    },
-                    [SECOND_USER_ID]: {
-                        accountID: SECOND_USER_ID,
-                        login: OTHER_USER_EMAIL,
-                        displayName: 'Second User',
-                    },
-                },
-            });
-        });
-
         it('should return undefined when transaction has no reportID', () => {
             const transaction = generateTransaction({
                 reportID: undefined,
@@ -1158,25 +1127,6 @@ describe('TransactionUtils', () => {
     });
 
     describe('getOriginalAttendees', () => {
-        beforeAll(() => {
-            return Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                    [CURRENT_USER_ID]: {
-                        accountID: CURRENT_USER_ID,
-                        login: CURRENT_USER_EMAIL,
-                        displayName: 'Current User',
-                        avatarThumbnail: '',
-                    },
-                    [SECOND_USER_ID]: {
-                        accountID: SECOND_USER_ID,
-                        login: OTHER_USER_EMAIL,
-                        displayName: 'Second User',
-                        avatarThumbnail: '',
-                    },
-                },
-            });
-        });
-
         it('should return empty array when transaction has no attendees and no reportID', () => {
             const transaction = generateTransaction({
                 reportID: undefined,
@@ -1254,25 +1204,6 @@ describe('TransactionUtils', () => {
     });
 
     describe('getAttendees', () => {
-        beforeAll(() => {
-            return Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                    [CURRENT_USER_ID]: {
-                        accountID: CURRENT_USER_ID,
-                        login: CURRENT_USER_EMAIL,
-                        displayName: 'Current User',
-                        avatarThumbnail: '',
-                    },
-                    [SECOND_USER_ID]: {
-                        accountID: SECOND_USER_ID,
-                        login: OTHER_USER_EMAIL,
-                        displayName: 'Second User',
-                        avatarThumbnail: '',
-                    },
-                },
-            });
-        });
-
         it('should return modifiedAttendees when they exist', () => {
             const originalAttendees: Attendee[] = [
                 {

@@ -890,7 +890,7 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
 /**
  * Return report owner as default attendee
  * @param transaction
- * @param currentUserPersonalDetails - personal details of current user
+ * @param currentUserPersonalDetails - personal details of current user - needed for unreported expenses to return current user as default attendee
  */
 function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee | undefined {
     if (transaction?.reportID === undefined) {
@@ -939,7 +939,7 @@ function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, curren
 /**
  * Return the list of modified attendees if present otherwise list of attendees
  * @param transaction
- * @param currentUserPersonalDetails - personal details of current user; needed for unreported expenses to return current user as default attendee
+ * @param currentUserPersonalDetails - personal details of current user
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails: CurrentUserPersonalDetails | undefined): Attendee[] {
     const attendees = transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
