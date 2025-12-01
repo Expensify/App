@@ -23,7 +23,8 @@ import {
     getReimbursable,
     getTaxName,
     getWaypoints,
-    isDistanceRequest, isExpenseSplit,
+    isDistanceRequest,
+    isExpenseSplit,
     isManagedCardTransaction,
     isMerchantMissing,
 } from './TransactionUtils';

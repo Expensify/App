@@ -17,7 +17,13 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
-import {buildMergedTransactionData, getReportIDForExpense, getSourceTransactionFromMergeTransaction, getTargetTransactionFromMergeTransaction, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
+import {
+    buildMergedTransactionData,
+    getReportIDForExpense,
+    getSourceTransactionFromMergeTransaction,
+    getTargetTransactionFromMergeTransaction,
+    getTransactionThreadReportID,
+} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
