@@ -525,6 +525,9 @@ const config = defineConfig([
         rules: {
             // For all these Node.js scripts, we do not want to disable `console` statements
             'no-console': 'off',
+            // Disable type-requiring rules since we disabled type-checked rules for these files
+            'rulesdir/prefer-at': 'off',
+            'rulesdir/boolean-conditional-rendering': 'off',
         },
     },
 
