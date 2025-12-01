@@ -123,7 +123,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     }, [inputFieldsIDs.state, stepFields]);
 
     useEffect(() => {
-        // When country is not editable we need to manually set it's draft value in case user enters address manually
+        // When country is not editable we need to manually set its draft value in case user enters address manually
         if (shouldAllowCountryChange || inputFieldsIDs.country === undefined) {
             return;
         }
