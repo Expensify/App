@@ -125,6 +125,8 @@ function TextSelectorModal({
             onModalHide={hide}
             shouldUseModalPaddingStyle={false}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldHandleNavigationBack
+            swipeDirection={CONST.SWIPE_DIRECTION.RIGHT}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
