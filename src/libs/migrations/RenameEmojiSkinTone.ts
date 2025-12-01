@@ -25,6 +25,7 @@ export default function () {
 
                 Log.info('[Migrate Onyx] Running RenameEmojiSkinTone migration');
 
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data
                 Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, -1).then(() => {
                     Log.info('[Migrate Onyx] Ran migration RenameEmojiSkinTone');
                     resolve();
