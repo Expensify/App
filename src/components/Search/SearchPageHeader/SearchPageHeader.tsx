@@ -1,11 +1,15 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {BankAccountMenuItem, SearchQueryJSON} from '@components/Search/types';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {getTypeOptions} from '@libs/SearchUIUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {emailSelector} from '@src/selectors/Session';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
 
@@ -43,11 +47,39 @@ function SearchPageHeader({
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
+    const {type: unsafeType} = queryJSON;
+    const [type] = useMemo(() => {
+        const options = getTypeOptions(allPolicies, email);
+        const value = options.find((option) => option.value === unsafeType) ?? null;
+        return [value];
+    }, [allPolicies, email, unsafeType]);
+
+    const selectedItemsCount = useMemo(() => {
+        if (!selectedTransactions) {
+            return 0;
+        }
+
+        if (type?.value === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+            // In expense report mode, count unique reports instead of individual transactions
+            const reportIDs = new Set(
+                Object.values(selectedTransactions)
+                    .map((transaction) => transaction?.reportID)
+                    .filter((reportID): reportID is string => !!reportID),
+            );
+            return reportIDs.size;
+        }
+
+        // Otherwise count transactions
+        return selectedTransactionsKeys.length;
+    }, [selectedTransactionsKeys, type]);
+
     if (shouldUseNarrowLayout && isMobileSelectionModeEnabled) {
         return (
             <SearchSelectedNarrow
                 options={headerButtonsOptions}
-                itemsLength={selectedTransactionsKeys.length}
+                itemsLength={selectedItemsCount}
                 currentSelectedPolicyID={currentSelectedPolicyID}
                 currentSelectedReportID={currentSelectedReportID}
                 confirmPayment={confirmPayment}
