@@ -61,7 +61,7 @@ describe('getSecondaryAction', () => {
 
         const result = [CONST.REPORT.SECONDARY_ACTIONS.EXPORT, CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF, CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS];
         expect(
-            getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, report, chatReport, reportTransactions: [], originalTransaction: {} as Transaction, violations: {}, policy}),
+            getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, currentUserAccountID: EMPLOYEE_ACCOUNT_ID, report, chatReport, reportTransactions: [], originalTransaction: {} as Transaction, violations: {}, policy}),
         ).toEqual(result);
     });
 
@@ -87,6 +87,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -116,6 +117,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -145,6 +147,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -188,6 +191,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction1, transaction2],
@@ -217,6 +221,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -262,6 +267,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -293,6 +299,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -330,6 +337,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -369,6 +377,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -405,6 +414,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -443,6 +453,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -481,6 +492,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -516,6 +528,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -551,6 +564,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -583,6 +597,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -606,6 +621,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -632,6 +648,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -657,6 +674,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -682,6 +700,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -708,6 +727,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -734,6 +754,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -761,6 +782,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -785,6 +807,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -821,6 +844,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [
@@ -854,6 +878,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValueOnce(originalMessageR14932.IOUTransactionID);
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -896,6 +921,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -939,6 +965,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -997,6 +1024,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -1055,6 +1083,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -1113,6 +1142,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
@@ -1137,6 +1167,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [{} as Transaction],
@@ -1199,6 +1230,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -1242,6 +1274,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -1300,6 +1333,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction1, transaction2],
@@ -1332,6 +1366,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -1369,6 +1404,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction1, transaction2],
@@ -1404,6 +1440,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -1454,6 +1491,7 @@ describe('getSecondaryAction', () => {
         // Then it should return false since the unreported card expense is imported with deleting disabled
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -1494,6 +1532,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -1533,6 +1572,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction],
@@ -1937,6 +1977,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],

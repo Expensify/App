@@ -642,6 +642,7 @@ function MoneyReportHeader({
     const primaryAction = useMemo(() => {
         return getReportPrimaryAction({
             currentUserEmail: currentUserLogin ?? '',
+            currentUserAccountID: accountID,
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
@@ -669,6 +670,7 @@ function MoneyReportHeader({
         isChatReportArchived,
         invoiceReceiverPolicy,
         currentUserLogin,
+        accountID,
     ]);
 
     const confirmExport = useCallback(() => {
@@ -921,6 +923,7 @@ function MoneyReportHeader({
         }
         return getSecondaryReportActions({
             currentUserEmail: currentUserLogin ?? '',
+            currentUserAccountID: accountID,
             report: moneyRequestReport,
             chatReport,
             reportTransactions: transactions,
@@ -932,7 +935,7 @@ function MoneyReportHeader({
             policies,
             isChatReportArchived,
         });
-    }, [moneyRequestReport, currentUserLogin, chatReport, transactions, originalIOUTransaction, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived]);
+    }, [moneyRequestReport, currentUserLogin, accountID, chatReport, transactions, originalIOUTransaction, violations, policy, reportNameValuePairs, reportActions, policies, isChatReportArchived]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {

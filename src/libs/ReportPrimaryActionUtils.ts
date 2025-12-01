@@ -50,6 +50,7 @@ import {
 
 type GetReportPrimaryActionParams = {
     currentUserEmail: string;
+    currentUserAccountID: number;
     report: Report | undefined;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
@@ -335,6 +336,7 @@ function getAllExpensesToHoldIfApplicable(report: Report | undefined, reportActi
 function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
     const {
         currentUserEmail,
+        currentUserAccountID,
         report,
         reportTransactions,
         violations,

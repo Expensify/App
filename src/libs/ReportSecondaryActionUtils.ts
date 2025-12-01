@@ -614,6 +614,7 @@ function isReportLayoutAction(report: Report, reportTransactions: Transaction[])
 
 function getSecondaryReportActions({
     currentUserEmail,
+    currentUserAccountID,
     report,
     chatReport,
     reportTransactions,
@@ -626,6 +627,7 @@ function getSecondaryReportActions({
     isChatReportArchived = false,
 }: {
     currentUserEmail: string;
+    currentUserAccountID: number;
     report: Report;
     chatReport: OnyxEntry<Report>;
     reportTransactions: Transaction[];
@@ -650,6 +652,7 @@ function getSecondaryReportActions({
 
     const primaryAction = getReportPrimaryAction({
         currentUserEmail,
+        currentUserAccountID,
         report,
         chatReport,
         reportTransactions,
