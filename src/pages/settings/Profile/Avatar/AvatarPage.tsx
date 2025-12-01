@@ -9,20 +9,20 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useAvatarMenu from '@hooks/useAvatarMenu';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAvatarLocal, getAvatarURL, isCustomAvatarID} from '@libs/Avatars/CustomAvatarCatalog';
+import {getAvatarLocal, getAvatarURL, isPresetAvatarID} from '@libs/Avatars/PresetAvatarCatalog';
 import {validateAvatarImage} from '@libs/AvatarUtils';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AvatarSource} from '@libs/UserUtils';
-import {getDefaultAvatarName, isDefaultOrCustomDefaultAvatar} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {getDefaultAvatarName, isLetterAvatar, isPresetAvatar} from '@libs/UserAvatarUtils';
 import DiscardChangesConfirmation from '@pages/iou/request/step/DiscardChangesConfirmation';
 import {updateAvatar} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -53,6 +53,7 @@ function ProfileAvatar() {
     const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
     const isSavingRef = useRef(false);
 
+    const icons = useMemoizedLazyExpensifyIcons(['Upload'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [cropImageData, setCropImageData] = useState<ImageData>({...EMPTY_FILE});
@@ -68,7 +69,7 @@ function ProfileAvatar() {
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     // eslint-disable-next-line no-nested-ternary
     let avatarURL: AvatarSource = '';
-    if (selected && isCustomAvatarID(selected)) {
+    if (selected && isPresetAvatarID(selected)) {
         avatarURL = getAvatarLocal(selected);
     } else if (selected) {
         avatarURL = avatars[selected];
@@ -77,8 +78,8 @@ function ProfileAvatar() {
     } else {
         avatarURL = currentUserPersonalDetails?.avatar ?? '';
     }
-
-    const isUsingDefaultAvatar = (!imageData.uri && isDefaultOrCustomDefaultAvatar(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.originalFileName)) || !!selected;
+    // Weather avatar view & edit options should be hidden. False if user uploaded their own avatar.
+    const shouldHideAvatarEdit = (!imageData.uri && (isPresetAvatar(currentUserPersonalDetails?.avatar) || isLetterAvatar(currentUserPersonalDetails?.originalFileName))) || !!selected;
 
     const setError = (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => {
         setErrorData({
@@ -124,7 +125,12 @@ function ProfileAvatar() {
     }, []);
 
     const onImageRemoved = useCallback(() => {
-        setSelected(getDefaultAvatarName(currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.email));
+        setSelected(
+            getDefaultAvatarName({
+                accountID: currentUserPersonalDetails?.accountID,
+                accountEmail: currentUserPersonalDetails?.email,
+            }),
+        );
         setImageData({...EMPTY_FILE});
     }, [currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.email]);
 
@@ -133,7 +139,7 @@ function ProfileAvatar() {
     }, []);
 
     const {createMenuItems} = useAvatarMenu({
-        isUsingDefaultAvatar,
+        shouldHideAvatarEdit,
         accountID,
         onImageRemoved,
         showAvatarCropModal,
@@ -157,7 +163,7 @@ function ProfileAvatar() {
             return;
         }
 
-        if (selected && isCustomAvatarID(selected)) {
+        if (selected && isPresetAvatarID(selected)) {
             updateAvatar(
                 {
                     uri: getAvatarURL(selected),
@@ -228,7 +234,7 @@ function ProfileAvatar() {
                         if (menuItems?.length <= 1) {
                             return (
                                 <Button
-                                    icon={Expensicons.Upload}
+                                    icon={icons.Upload}
                                     text={translate('avatarPage.uploadPhoto')}
                                     accessibilityLabel={translate('avatarPage.uploadPhoto')}
                                     isDisabled={isAvatarCropModalOpen}
@@ -264,7 +270,7 @@ function ProfileAvatar() {
             >
                 <View style={[styles.ph5, styles.pb5, styles.flexColumn, styles.flex1, styles.gap3]}>
                     <AvatarSelector
-                        label={translate('avatarPage.chooseCustomAvatar')}
+                        label={translate('avatarPage.choosePresetAvatar')}
                         name={currentUserPersonalDetails?.displayName}
                         selectedID={selected}
                         onSelect={(id) => {

@@ -26,11 +26,11 @@ import {
     getMoneyRequestSpendBreakdown,
     getReportFieldKey,
     hasUpdatedTotal,
-    isAdminOwnerApproverOrReportOwner,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
     isPaidGroupPolicyExpenseReport as isPaidGroupPolicyExpenseReportUtils,
     isReportFieldDisabled,
+    isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
     isSettled as isSettledReportUtils,
 } from '@libs/ReportUtils';
@@ -91,7 +91,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
         return fields.filter((field) => field.target === report?.type).sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
-    }, [policy, report]);
+    }, [policy?.fieldList, report]);
 
     const enabledReportFields = sortedPolicyReportFields.filter(
         (reportField) => !isReportFieldDisabled(report, reportField, policy) || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA,
@@ -145,7 +145,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                                 }
 
                                 const fieldValue = reportField.value ?? reportField.defaultValue;
-                                const isFieldDisabled = isReportFieldDisabled(report, reportField, policy) || !isAdminOwnerApproverOrReportOwner(report, policy);
+                                const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
 
                                 const violation = isFieldDisabled ? undefined : getFieldViolation(violations, reportField);
