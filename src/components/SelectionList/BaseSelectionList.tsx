@@ -50,6 +50,7 @@ function BaseSelectionList<TItem extends ListItem>({
     children,
     customListHeader,
     customListHeaderContent,
+    customLoadingPlaceholder,
     footerContent,
     listEmptyContent,
     listFooterContent,
@@ -354,7 +355,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
-            return <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
+            return customLoadingPlaceholder ?? <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
         }
         if (showListEmptyContent) {
             return listEmptyContent;

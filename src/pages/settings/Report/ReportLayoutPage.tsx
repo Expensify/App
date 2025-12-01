@@ -26,7 +26,7 @@ function ReportLayoutPage() {
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupByNVP);
 
     const goBack = useCallback(() => {
-        Navigation.dismissModal();
+        Navigation.goBack();
     }, []);
 
     const onSelectGroupBy = useCallback(

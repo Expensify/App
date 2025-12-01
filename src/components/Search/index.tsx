@@ -277,7 +277,7 @@ function Search({
         const transactionKeys = Object.keys(searchResults.data).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 
         for (const key of transactionKeys) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            // eslint-disable-next-line
             const transaction = searchResults.data[key as keyof typeof searchResults.data] as SearchTransaction;
             if (!transaction || typeof transaction !== 'object' || !('transactionID' in transaction) || !('reportID' in transaction)) {
                 continue;
@@ -377,6 +377,13 @@ function Search({
     useEffect(() => {
         openSearch();
     }, []);
+
+    useEffect(() => {
+        if (!prevIsOffline || isOffline) {
+            return;
+        }
+        openSearch();
+    }, [isOffline, prevIsOffline]);
 
     const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
         searchResults,
@@ -838,7 +845,8 @@ function Search({
         if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
             // Use requestAnimationFrame to safely update navigation params without overriding the current route
             requestAnimationFrame(() => {
-                Navigation.setParams({q: buildCannedSearchQuery()});
+                // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+                Navigation.setParams({q: buildCannedSearchQuery(), rawQuery: undefined});
             });
             if (shouldResetSearchQuery) {
                 setShouldResetSearchQuery(false);
@@ -958,7 +966,8 @@ function Search({
         clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
         onSortPressedCallback?.();
-        navigation.setParams({q: newQuery});
+        // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+        navigation.setParams({q: newQuery, rawQuery: undefined});
     };
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data, isExpenseReportType ?? false);

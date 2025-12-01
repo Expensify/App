@@ -4452,6 +4452,7 @@ function getTransactionDetails(
     policy: OnyxEntry<Policy> = undefined,
     allowNegativeAmount = false,
     disableOppositeConversion = false,
+    currentUserDetails = currentUserPersonalDetails,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
@@ -4464,7 +4465,7 @@ function getTransactionDetails(
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
         amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
-        attendees: getAttendees(transaction),
+        attendees: getAttendees(transaction, currentUserDetails),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),
         taxCode: getTaxCode(transaction),
         currency: getCurrency(transaction),
@@ -5313,7 +5314,7 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.merchant = transactionChanges?.merchant;
     }
     if ('attendees' in transactionChanges) {
-        originalMessage.oldAttendees = getAttendees(oldTransaction);
+        originalMessage.oldAttendees = getAttendees(oldTransaction, currentUserPersonalDetails);
         originalMessage.newAttendees = transactionChanges?.attendees;
     }
 
