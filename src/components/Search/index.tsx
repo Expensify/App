@@ -697,7 +697,7 @@ function Search({
                 filteredData,
             );
         },
-        [setSelectedTransactions, selectedTransactions, transactions, outstandingReportsByPolicyID, searchResults?.data],
+        [setSelectedTransactions, selectedTransactions, filteredData, transactions, outstandingReportsByPolicyID, searchResults?.data],
     );
 
     const onSelectRow = useCallback(

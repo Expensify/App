@@ -14,6 +14,7 @@ function useAllTransactions() {
     const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
     const [allTransactionsCollection] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+
     const allTransactions = useMemo(() => {
         const data = currentSearchResults?.data;
         if (!data) {
@@ -37,7 +38,7 @@ function useAllTransactions() {
             ...filteredSearchTransactions,
             ...allTransactionsCollection,
         };
-    }, [currentSearchResults, allTransactionsCollection]);
+    }, [currentSearchResults?.data, allTransactionsCollection]);
 
     return allTransactions;
 }

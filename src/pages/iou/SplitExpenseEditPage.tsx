@@ -63,7 +63,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
 
     const policy = usePolicy(currentReport?.policyID);
-    const currentPolicy = policy ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
+    const currentPolicy = policy?.employeeList?.length ? policy : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${currentReport?.policyID}`, {canBeMissing: false});
 

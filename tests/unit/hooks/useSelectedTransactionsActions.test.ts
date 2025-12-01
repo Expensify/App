@@ -117,9 +117,9 @@ describe('useSelectedTransactionsActions', () => {
         jest.clearAllMocks();
         await Onyx.clear();
         mockSelectedTransactionIDs.length = 0;
-        Object.keys(mockSelectedTransactions).forEach((key: string) => {
+        for (const key of Object.keys(mockSelectedTransactions)) {
             delete mockSelectedTransactions[key];
-        });
+        }
         mockIsOffline = false;
     });
 
