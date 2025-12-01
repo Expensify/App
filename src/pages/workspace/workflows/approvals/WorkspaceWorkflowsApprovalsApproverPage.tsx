@@ -173,6 +173,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
             <ApproverSelectionList
+                key={selectedApproverEmail}
                 testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}
                 headerTitle={translate('workflowsPage.approver')}
                 subtitle={subtitle}
