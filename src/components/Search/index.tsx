@@ -845,7 +845,8 @@ function Search({
         if (hasErrors && (currentRoute === '/' || (shouldResetSearchQuery && currentRoute === '/search'))) {
             // Use requestAnimationFrame to safely update navigation params without overriding the current route
             requestAnimationFrame(() => {
-                Navigation.setParams({q: buildCannedSearchQuery()});
+                // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+                Navigation.setParams({q: buildCannedSearchQuery(), rawQuery: undefined});
             });
             if (shouldResetSearchQuery) {
                 setShouldResetSearchQuery(false);
@@ -965,7 +966,8 @@ function Search({
         clearSelectedTransactions();
         const newQuery = buildSearchQueryString({...queryJSON, sortBy: column, sortOrder: order});
         onSortPressedCallback?.();
-        navigation.setParams({q: newQuery});
+        // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+        navigation.setParams({q: newQuery, rawQuery: undefined});
     };
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data, isExpenseReportType ?? false);

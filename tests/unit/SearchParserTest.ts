@@ -783,14 +783,14 @@ const keywordTests = [
 
 describe('search parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
-        const result = parse(query) as SearchQueryJSON;
-        expect(result).toEqual(expected);
+        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
+        expect(resultWithoutRawFilters).toEqual(expected);
     });
 });
 
 describe('Testing search parser with special characters and wrapped in quotes.', () => {
     test.each(keywordTests)(`parsing: $query`, ({query, expected}) => {
-        const result = parse(query) as SearchQueryJSON;
-        expect(result).toEqual(expected);
+        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
+        expect(resultWithoutRawFilters).toEqual(expected);
     });
 });

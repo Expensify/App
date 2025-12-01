@@ -205,7 +205,12 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 return;
             }
 
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+            Navigation.navigate(
+                ROUTES.SEARCH_ROOT.getRoute({
+                    query: updatedQuery,
+                    rawQuery: queryWithSubstitutions,
+                }),
+            );
             hideSearchRouterList?.();
             setIsAutocompleteListVisible(false);
             if (updatedQuery !== originalInputQuery) {
