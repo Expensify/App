@@ -114,7 +114,20 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 requiresUpdate: true,
             },
         ];
-    }, [illustrations, translate, userReportedIntegration]);
+    }, [
+        illustrations.FolderOpen,
+        illustrations.Accounting,
+        illustrations.CompanyCard,
+        illustrations.Workflows,
+        illustrations.InvoiceBlue,
+        illustrations.Rules,
+        illustrations.Car,
+        illustrations.HandCard,
+        illustrations.Tag,
+        illustrations.PerDiem,
+        translate,
+        userReportedIntegration,
+    ]);
 
     const [userToggledFeatures, setUserToggledFeatures] = useState<Set<string>>(new Set());
 
