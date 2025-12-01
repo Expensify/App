@@ -138,7 +138,7 @@ function ReportActionItemSingle({
         () =>
             CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) ||
             (!details.isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID))),
-        [action, details.isWorkspaceActor, details.accountID],
+        [action?.delegateAccountID, details.isWorkspaceActor, details.accountID],
     );
 
     const getBackgroundColor = () => {
