@@ -44,7 +44,11 @@ function StatusPage() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
+
+    // We intentionally use isSmallScreenWidth here. Since the Status page is displayed
+    // inside the RHP, shouldUseNarrowLayout is always true. However, we still need to
+    // distinguish between large and small screens, so we rely on isSmallScreenWidth
+    // to accurately detect the screen size.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
