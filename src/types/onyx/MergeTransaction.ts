@@ -71,6 +71,9 @@ type MergeTransaction = {
     /** The attendees of the transaction */
     attendees?: Attendee[];
 
+    /** ID of the original transaction */
+    originalTransactionID?: string;
+
     /** Tax percentage value of the transaction */
     taxValue: string;
 
