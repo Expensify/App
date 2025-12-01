@@ -14,7 +14,7 @@ type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovere
     reportID?: string;
 
     /** Callback function to call when the video is tap */
-    onTap?: (showArrows?: boolean) => void;
+    onTap?: (shouldShowArrows?: boolean) => void;
 };
 
 function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoElement = false, duration = 0, reportID, onTap}: AttachmentViewVideoProps) {
