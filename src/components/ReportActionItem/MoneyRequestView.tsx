@@ -98,7 +98,7 @@ type MoneyRequestViewProps = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
-    /** Policy that the report belongs to */
+    /** Policy that the report belongs to, or the target transaction policy in merge transaction flow */
     expensePolicy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Whether we should display the animated banner above the component */
@@ -115,12 +115,16 @@ type MoneyRequestViewProps = {
 
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
+
+    /** Source transaction policy in merge transaction flow */
+    sourceTransactionPolicy?: OnyxEntry<OnyxTypes.Policy>;
 };
 
 function MoneyRequestView({
     allReports,
     report,
     expensePolicy,
+    sourceTransactionPolicy,
     shouldShowAnimatedBackground,
     readonly = false,
     updatedTransaction,
@@ -244,7 +248,7 @@ function MoneyRequestView({
             : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), actualCurrency);
 
     const taxRatesDescription = taxRates?.name;
-    const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction) : getTaxName(policy, transaction);
+    const taxRateTitle = updatedTransaction ? getTaxName(sourceTransactionPolicy ?? policy, updatedTransaction) : getTaxName(policy, transaction);
 
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
     const fallbackTaxRateTitle = updatedTransaction?.taxValue ?? transaction?.taxValue;
@@ -308,7 +312,7 @@ function MoneyRequestView({
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, policy, isDistanceRequest, isPerDiemRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported, sourceTransactionPolicy ?? policy, isDistanceRequest, isPerDiemRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 

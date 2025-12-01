@@ -17,7 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
-import {buildMergedTransactionData, getReportIDForExpense, getSourceTransactionFromMergeTransaction, getTargetTransactionFromMergeTransaction} from '@libs/MergeTransactionUtils';
+import {buildMergedTransactionData, getReportIDForExpense, getSourceTransactionFromMergeTransaction, getTargetTransactionFromMergeTransaction, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
@@ -63,6 +63,11 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+
+    const sourceTransactionThreadReportID = getTransactionThreadReportID(sourceTransaction);
+    const [sourceTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${sourceTransactionThreadReportID}`, {canBeMissing: true});
+    const [sourceTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${sourceTransactionThreadReport?.policyID}`, {canBeMissing: true});
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -151,6 +156,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                         <MoneyRequestView
                             allReports={allReports}
                             expensePolicy={policy}
+                            sourceTransactionPolicy={sourceTransactionPolicy}
                             report={targetTransactionThreadReport}
                             shouldShowAnimatedBackground={false}
                             readonly
