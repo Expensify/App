@@ -141,10 +141,12 @@ describe('ValidationUtils', () => {
 
     describe('isValidExpirationDate', () => {
         test('Should return true for a valid formats expiration date in the future', () => {
-            const firstFutureExpirationDate = '12/25'; // MM/YY format, in the future
-            const secondFutureExpirationDate = '12/2025'; // MM/YYYY format, in the future
-            const thirdFutureExpirationDate = '1225'; // MMYY format, in the future
-            const fourthFutureExpirationDate = '122025'; // MMYYYY format, in the future
+            const furtherYear = new Date().getFullYear() + 1;
+            const yyFurtherYearFormat = `${furtherYear % 100}`;
+            const firstFutureExpirationDate = `12/${yyFurtherYearFormat}`; // MM/YY format, in the future
+            const secondFutureExpirationDate = `12/${furtherYear}`; // MM/YYYY format, in the future
+            const thirdFutureExpirationDate = `12${yyFurtherYearFormat}`; // MMYY format, in the future
+            const fourthFutureExpirationDate = `12${furtherYear}`; // MMYYYY format, in the future
             expect(isValidExpirationDate(firstFutureExpirationDate)).toBe(true);
             expect(isValidExpirationDate(secondFutureExpirationDate)).toBe(true);
             expect(isValidExpirationDate(thirdFutureExpirationDate)).toBe(true);
