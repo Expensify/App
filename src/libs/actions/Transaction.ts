@@ -693,7 +693,7 @@ function setTransactionReport(transactionID: string, transaction: Partial<Transa
 }
 
 function changeTransactionsReport(
-    transactionIDs: string[],
+    transactionsOrIDs: Transaction[] | string[],
     isASAPSubmitBetaEnabled: boolean,
     accountID: number,
     email: string,
@@ -703,8 +703,11 @@ function changeTransactionsReport(
     policyCategories?: OnyxEntry<PolicyCategories>,
 ) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
-
-    const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
+    const transactions =
+        typeof transactionsOrIDs.at(0) === 'string'
+            ? (transactionsOrIDs as string[]).map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined)
+            : (transactionsOrIDs as Transaction[]);
+    const transactionIDs = transactions.map((t) => t.transactionID);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};

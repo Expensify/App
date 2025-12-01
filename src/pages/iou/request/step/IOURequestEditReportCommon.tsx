@@ -214,7 +214,7 @@ function IOURequestEditReportCommon({
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 
     const createReportOption = useMemo(() => {
-        if (!createReport || (isEditing && !isOwner)) {
+        if (!createReport) {
             return undefined;
         }
 
@@ -226,7 +226,7 @@ function IOURequestEditReportCommon({
                 icon={icons.Document}
             />
         );
-    }, [icons.Document, createReport, isEditing, isOwner, translate, policyForMovingExpenses?.name]);
+    }, [icons.Document, createReport, translate, policyForMovingExpenses?.name]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(() => {

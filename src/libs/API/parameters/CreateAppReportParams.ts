@@ -5,5 +5,6 @@ type CreateAppReportParams = {
     reportID: string;
     reportActionID: string;
     reportPreviewReportActionID: string;
+    reportCreatorEmail?: string;
 };
 export default CreateAppReportParams;
