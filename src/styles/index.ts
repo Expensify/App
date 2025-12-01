@@ -14,9 +14,11 @@ import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-
 import type {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
-import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth, calculateReceiptPaneRHPWidth, calculateSuperWideRHPWidth} from '@components/WideRHPContextProvider';
+import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
+import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
 import {defaultTheme} from './theme';
