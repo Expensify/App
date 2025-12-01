@@ -8,6 +8,7 @@ import type {ListItem, SelectionListProps} from './types';
 
 function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHideKeyboardOnScroll = true, ref, ...props}: SelectionListProps<TItem>) {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
 
     const touchStart = () => setIsScreenTouched(true);
     const touchEnd = () => setIsScreenTouched(false);
@@ -64,6 +65,35 @@ function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHide
         Keyboard.dismiss();
     };
 
+    useEffect(() => {
+        if (canUseTouchScreen()) {
+            return;
+        }
+
+        let lastClientX = 0;
+        let lastClientY = 0;
+        const mouseMoveHandler = (event: MouseEvent) => {
+            // On Safari, scrolling can also trigger a mousemove event,
+            // so this comparison is needed to filter out cases where the mouse hasn't actually moved.
+            if (event.clientX === lastClientX && event.clientY === lastClientY) {
+                return;
+            }
+
+            lastClientX = event.clientX;
+            lastClientY = event.clientY;
+
+            setShouldDisableHoverStyle(false);
+        };
+        const wheelHandler = () => setShouldDisableHoverStyle(false);
+
+        document.addEventListener('mousemove', mouseMoveHandler, {passive: true});
+        document.addEventListener('wheel', wheelHandler, {passive: true});
+        return () => {
+            document.removeEventListener('mousemove', mouseMoveHandler);
+            document.removeEventListener('wheel', wheelHandler);
+        };
+    }, []);
+
     return (
         <BaseSelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -74,6 +104,9 @@ function SelectionListWithSections<TItem extends ListItem>({onScroll, shouldHide
             // For example, a long press will trigger a focus event on mobile chrome.
             shouldIgnoreFocus={isMobileChrome() && isScreenTouched}
             shouldDebounceScrolling={shouldDebounceScrolling}
+            isRowMultilineSupported
+            shouldDisableHoverStyle={shouldDisableHoverStyle}
+            setShouldDisableHoverStyle={setShouldDisableHoverStyle}
         />
     );
 }

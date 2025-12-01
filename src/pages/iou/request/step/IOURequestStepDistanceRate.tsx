@@ -50,9 +50,6 @@ function IOURequestStepDistanceRate({
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
@@ -60,6 +57,11 @@ function IOURequestStepDistanceRate({
 
     const currentRateID = getRateID(transaction);
     const transactionCurrency = getCurrency(transaction);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
     const sortedRates = useMemo(() => Object.values(rates).sort((a, b) => localeCompare(a.name ?? '', b.name ?? '')), [rates, localeCompare]);
@@ -70,9 +72,7 @@ function IOURequestStepDistanceRate({
 
     const options = sortedRates.map((rate) => {
         const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
-        const isSelected = currentRateID
-            ? currentRateID === rate.customUnitRateID
-            : DistanceRequestUtils.getDefaultMileageRate(policy, localeCompare)?.customUnitRateID === rate.customUnitRateID;
+        const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
         const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
         return {
             text: rate.name ?? rateForDisplay,
@@ -113,8 +113,8 @@ function IOURequestStepDistanceRate({
                     policy,
                     policyTagList: policyTags,
                     policyCategories,
-                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    currentUserAccountIDParam,
+                    currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                     updatedTaxAmount: taxAmount,
                     updatedTaxCode: taxRateExternalID,

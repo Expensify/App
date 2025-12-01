@@ -45,9 +45,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
         canBeMissing: true,
     });
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const targetTransactionThreadReportIDSelector = useCallback(
         (reportActionsList: OnyxEntry<ReportActions>) => {
             const reportActions = Object.values(reportActionsList ?? {});
@@ -66,6 +63,11 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     // Build the merged transaction data for display
     const mergedTransactionData = useMemo(() => buildMergedTransactionData(targetTransaction, mergeTransaction), [targetTransaction, mergeTransaction]);
@@ -99,8 +101,8 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             policy,
             policyTags,
             policyCategories,
-            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-            currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+            currentUserAccountIDParam,
+            currentUserEmailParam,
             isASAPSubmitBetaEnabled,
         });
 
@@ -119,8 +121,8 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         policy,
         policyTags,
         policyCategories,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails.login,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
         isASAPSubmitBetaEnabled,
     ]);
 

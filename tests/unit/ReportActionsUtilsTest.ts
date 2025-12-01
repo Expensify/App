@@ -1482,4 +1482,23 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(expected);
         });
     });
+    describe('isDeletedAction', () => {
+        it('should return false if the action is a hold or unhold action', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD | typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+                created: '2025-09-29',
+                reportActionID: '1',
+                originalMessage: undefined,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'Hold',
+                    },
+                ],
+                previousMessage: [],
+            };
+            expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
+        });
+    });
 });

@@ -11,7 +11,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
-import {Alert, PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
@@ -24,6 +23,7 @@ import TextLink from '@components/TextLink';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -80,17 +80,6 @@ type EmptySearchViewItem = {
     subtitleStyle?: TextStyle;
     children?: React.ReactNode;
 };
-
-const tripsFeatures: FeatureListItem[] = [
-    {
-        icon: PiggyBank,
-        translationKey: 'travel.features.saveMoney',
-    },
-    {
-        icon: Alert,
-        translationKey: 'travel.features.alerts',
-    },
-];
 
 type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
 
@@ -158,6 +147,21 @@ function EmptySearchViewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'Alert'] as const);
+
+    const tripsFeatures: FeatureListItem[] = useMemo(
+        () => [
+            {
+                icon: illustrations.PiggyBank,
+                translationKey: 'travel.features.saveMoney',
+            },
+            {
+                icon: illustrations.Alert,
+                translationKey: 'travel.features.alerts',
+            },
+        ],
+        [illustrations.PiggyBank, illustrations.Alert],
+    );
     const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
     const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
         setContextMenuAnchor(node);
@@ -287,7 +291,7 @@ function EmptySearchViewContent({
                 </SearchScopeProvider>
             </>
         );
-    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate]);
+    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate, tripsFeatures]);
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useMemo(
@@ -484,7 +488,7 @@ function EmptySearchViewContent({
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,
-        groupPoliciesWithChatEnabled,
+        groupPoliciesWithChatEnabled.length,
         tripViewChildren,
         hasTransactions,
         shouldRedirectToExpensifyClassic,

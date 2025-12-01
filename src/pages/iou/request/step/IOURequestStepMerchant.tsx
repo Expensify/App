@@ -58,9 +58,11 @@ function IOURequestStepMerchant({
     const initialMerchant = isEmptyMerchant ? '' : merchant;
     const merchantRef = useRef(initialMerchant);
     const isSavedRef = useRef(false);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isMerchantRequired = isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
 
@@ -120,8 +122,8 @@ function IOURequestStepMerchant({
                 policy,
                 policyTags,
                 policyCategories,
-                currentUserPersonalDetails.accountID,
-                currentUserPersonalDetails.login ?? '',
+                currentUserAccountIDParam,
+                currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
             );
         }

@@ -50,9 +50,11 @@ function IOURequestStepAttendees({
     const {translate} = useLocalize();
     const transactionViolations = useTransactionViolations(transactionID);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
@@ -69,8 +71,8 @@ function IOURequestStepAttendees({
                     policyTags,
                     policyCategories,
                     transactionViolations ?? undefined,
-                    currentUserPersonalDetails.accountID,
-                    currentUserPersonalDetails.login ?? '',
+                    currentUserAccountIDParam,
+                    currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                 );
             }
@@ -88,8 +90,8 @@ function IOURequestStepAttendees({
         reportID,
         transactionID,
         transactionViolations,
-        currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails.login,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
         isASAPSubmitBetaEnabled,
     ]);
 

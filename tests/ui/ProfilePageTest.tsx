@@ -92,7 +92,7 @@ describe('ProfilePage contact method indicator', () => {
 
         renderPage();
 
-        // Description for contact method is 'contacts.contactMethod' via mocked translate
+        // Description for contact methods is 'contacts.contactMethods' via mocked translate
         let node = screen.getByText('error-brickRoadIndicator');
         expect(node).toBeDefined();
 
