@@ -70,16 +70,6 @@ Onyx.connect({
     callback: (actions) => (allReportActions = actions),
 });
 
-let sessionEmail = '';
-let sessionAccountID = 0;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        sessionEmail = val?.email ?? '';
-        sessionAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
 let policyOwnershipChecks: Record<string, PolicyOwnershipChangeChecks>;
 Onyx.connect({
     key: ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS,
@@ -224,7 +214,6 @@ function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersL
 function removeOptimisticRoomMembers(
     roomType: typeof CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE | typeof CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
     policyID: string | undefined,
-    policyName: string,
     accountIDs: number[],
 ): OnyxDataReturnType {
     const roomMembers: OnyxDataReturnType = {
@@ -246,50 +235,20 @@ function removeOptimisticRoomMembers(
 
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, reportMetadata?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-    roomMembers.optimisticData.push(
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {
-                ...(accountIDs.includes(sessionAccountID)
-                    ? {
-                          statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                          stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                          oldPolicyName: policyName,
-                      }
-                    : {}),
-            },
+    roomMembers.optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
+        value: {
+            pendingChatMembers,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
-            value: {
-                pendingChatMembers,
-            },
+    });
+    roomMembers.failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
+        value: {
+            pendingChatMembers: reportMetadata?.pendingChatMembers ?? null,
         },
-    );
-    roomMembers.failureData.push(
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {
-                ...(accountIDs.includes(sessionAccountID)
-                    ? {
-                          statusNum: report.statusNum,
-                          stateNum: report.stateNum,
-                          oldPolicyName: report.oldPolicyName,
-                      }
-                    : {}),
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
-            value: {
-                pendingChatMembers: reportMetadata?.pendingChatMembers ?? null,
-            },
-        },
-    );
+    });
     roomMembers.successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
@@ -321,9 +280,8 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
     if (!adminLoginList.length) {
         return {optimisticData, successData, failureData};
     }
-
     for (const connection of connections) {
-        const exporter = policy?.connections?.[connection]?.config.export.exporter;
+        const exporter = policy?.connections?.[connection]?.config?.export?.exporter;
         if (!exporter || !adminLoginList.includes(exporter)) {
             continue;
         }
@@ -357,7 +315,7 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
                 connections: {
                     [connection]: {
                         config: {
-                            export: {exporter: policy?.connections?.[connection]?.config.export.exporter},
+                            export: {exporter},
                             pendingFields: {[pendingFieldKey]: null},
                         },
                     },
@@ -366,7 +324,7 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
         });
     }
 
-    const exporter = policy?.connections?.netsuite?.options.config.exporter;
+    const exporter = policy?.connections?.netsuite?.options?.config?.exporter;
     if (exporter && adminLoginList.includes(exporter)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -385,7 +343,7 @@ function resetAccountingPreferredExporter(policyID: string, loginList: string[])
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {connections: {netsuite: {options: {config: {exporter: policy?.connections?.netsuite?.options.config.exporter, pendingFields: {exporter: null}}}}}},
+            value: {connections: {netsuite: {options: {config: {exporter, pendingFields: {exporter: null}}}}}},
         });
     }
 
@@ -409,15 +367,15 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
     const policy = getPolicy(policyID);
 
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
-    const optimisticClosedReportActions = workspaceChats.map(() =>
-        ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy?.name ?? '', CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY),
-    );
+    // comment out for time this issue would be resolved https://github.com/Expensify/App/issues/35952
+    // const optimisticClosedReportActions = workspaceChats.map(() =>
+    //     ReportUtils.buildOptimisticClosedReportAction(currentUserEmail, policy?.name ?? '', CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY),
+    // );
 
-    const announceRoomMembers = removeOptimisticRoomMembers(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policy?.id, policy?.name ?? '', accountIDs);
+    const announceRoomMembers = removeOptimisticRoomMembers(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policy?.id, accountIDs);
     const adminRoomMembers = removeOptimisticRoomMembers(
         CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         policy?.id,
-        policy?.name ?? '',
         selectedMemberEmails
             .filter((login) => {
                 const role = login ? policy?.employeeList?.[login]?.role : '';
@@ -635,13 +593,14 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
             },
         });
     }
-    for (const [index, reportAction] of optimisticClosedReportActions.entries()) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats?.at(index)?.reportID}`,
-            value: {[reportAction.reportActionID]: null},
-        });
-    }
+    // comment out for time this issue would be resolved https://github.com/Expensify/App/issues/35952
+    // for (const [index, reportAction] of optimisticClosedReportActions.entries()) {
+    //     failureData.push({
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats?.at(index)?.reportID}`,
+    //         value: {[reportAction.reportActionID]: null},
+    //     });
+    // }
 
     const params: DeleteMembersFromWorkspaceParams = {
         emailList: selectedMemberEmails.join(','),
@@ -767,7 +726,7 @@ function updateWorkspaceMembersRole(policyID: string, selectedMemberEmails: stri
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 
-function requestWorkspaceOwnerChange(policyID: string | undefined) {
+function requestWorkspaceOwnerChange(policyID: string | undefined, currentUserAccountID: number, currentUserAccountLogin: string) {
     if (!policyID) {
         return;
     }
@@ -823,8 +782,8 @@ function requestWorkspaceOwnerChange(policyID: string | undefined) {
                 isLoading: false,
                 isChangeOwnerSuccessful: true,
                 isChangeOwnerFailed: false,
-                owner: sessionEmail,
-                ownerAccountID: sessionAccountID,
+                owner: currentUserAccountLogin,
+                ownerAccountID: currentUserAccountID,
             },
         },
     ];

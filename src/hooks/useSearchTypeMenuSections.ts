@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -47,6 +48,7 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
 const useSearchTypeMenuSections = () => {
     const {defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard} = useCardFeedsForDisplay();
 
+    const icons = useMemoizedLazyExpensifyIcons(['Document'] as const);
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
@@ -56,7 +58,12 @@ const useSearchTypeMenuSections = () => {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(
+        undefined,
+        transactionViolations,
+        currentUserLoginAndAccountID?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        currentUserLoginAndAccountID?.email ?? '',
+    );
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: () => void} | null>(null);
 
     const handlePendingConfirm = useCallback(() => {
@@ -122,6 +129,7 @@ const useSearchTypeMenuSections = () => {
     const typeMenuSections = useMemo(
         () =>
             createTypeMenuSections(
+                icons,
                 currentUserLoginAndAccountID?.email,
                 currentUserLoginAndAccountID?.accountID,
                 cardFeedsByPolicy,
@@ -148,6 +156,7 @@ const useSearchTypeMenuSections = () => {
             isASAPSubmitBetaEnabled,
             hasViolations,
             createReportWithConfirmation,
+            icons,
         ],
     );
 
