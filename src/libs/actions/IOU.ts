@@ -6602,7 +6602,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         customUnitRateID,
         attendees,
     } = transactionData;
-
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
@@ -6824,6 +6823,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         default: {
             const parameters: TrackExpenseParams = {
                 amount,
+                attendees: attendees ? JSON.stringify(attendees) : undefined,
                 currency,
                 comment,
                 distance,
