@@ -6641,6 +6641,7 @@ const CONST = {
             HOLD: 'hold',
             UNHOLD: 'unhold',
             DELETE: 'delete',
+            REJECT: 'reject',
             CHANGE_REPORT: 'changeReport',
         },
         TRANSACTION_TYPE: {
@@ -7231,6 +7232,7 @@ const CONST = {
         HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
         HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
         HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
+        HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
     },
 
     DEBUG: {

@@ -35,6 +35,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
+import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {checkIfFeedConnectionIsBroken, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
@@ -132,6 +133,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const walletBrickRoadIndicator = useMemo(() => {
         if (hasPaymentMethodError(bankAccountList, fundList, allCards) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        } else if (hasPartiallySetupBankAccount(bankAccountList)) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
         if (hasPendingCardAction) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
@@ -250,9 +253,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,
-        subscriptionPlan,
-        styles.accountSettingsSectionContainer,
         styles.badgeSuccess,
+        styles.accountSettingsSectionContainer,
+        subscriptionPlan,
         privateSubscription?.errors,
         stripeCustomerId,
         retryBillingSuccessful,

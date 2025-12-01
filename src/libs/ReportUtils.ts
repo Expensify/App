@@ -5760,6 +5760,10 @@ function getReportName(
         return getWorkspaceTaxUpdateMessage(parentReportAction);
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
+        return getDismissedViolationMessageText(getOriginalMessage(parentReportAction));
+    }
+
     if (isMoneyRequestAction(parentReportAction)) {
         const originalMessage = getOriginalMessage(parentReportAction);
         const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -11065,7 +11069,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(
             const policyExpenseReport = getPolicyExpenseChat(currentUserAccountID, preferredPolicyID);
 
             if (policyExpenseReport) {
-                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport).then(() => {
+                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, currentUserAccountID).then(() => {
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.SUBMIT, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReport.reportID));
                 });
                 return;
@@ -12660,10 +12664,58 @@ function getReportURLForCurrentContext(reportID: string | undefined): string {
     return `${environmentURL}/${relativePath}`;
 }
 
+/**
+ * Checks if all selected items have the necessary Onyx data hydrated for bulk rejection.
+ */
+function checkBulkRejectHydration(
+    selectedTransactions: Record<string, {reportID: string; policyID?: string}>,
+    policies: Record<string, unknown> | null | undefined,
+): {areHydrated: boolean; missingReportIDs: string[]; missingPolicyIDs: string[]} {
+    const transactionIDs = Object.keys(selectedTransactions);
+    const missingReportIDs: string[] = [];
+    const missingPolicyIDs: string[] = [];
+
+    for (const transactionID of transactionIDs) {
+        const transaction = selectedTransactions[transactionID];
+        const reportID = transaction?.reportID;
+
+        // Check if we have the report data
+        const report = getReportOrDraftReport(reportID);
+        if (!report) {
+            missingReportIDs.push(reportID);
+            continue;
+        }
+
+        const effectivePolicyID = transaction?.policyID ?? report.policyID;
+
+        // Check if we have the policy data (required for canRejectReportAction check)
+        if (effectivePolicyID) {
+            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${effectivePolicyID}`];
+            if (!policy) {
+                missingPolicyIDs.push(effectivePolicyID);
+                continue;
+            }
+        }
+
+        // Check if essential report fields are present
+        if (report.managerID == null || report.stateNum == null || report.statusNum == null) {
+            missingReportIDs.push(reportID);
+            continue;
+        }
+    }
+
+    return {
+        areHydrated: missingReportIDs.length === 0 && missingPolicyIDs.length === 0,
+        missingReportIDs: [...new Set(missingReportIDs)],
+        missingPolicyIDs: [...new Set(missingPolicyIDs)],
+    };
+}
+
 export {
     areAllRequestsBeingSmartScanned,
     buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,
+    checkBulkRejectHydration,
     buildOptimisticUnapprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticChangedTaskAssigneeReportAction,

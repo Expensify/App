@@ -129,7 +129,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
                     canSelectMultiple={canSelectMultiple}
                     onCheckboxPress={handleCheckboxPress}
                     onButtonPress={handleOnButtonPress}
-                    avatarBorderColor={theme.highlightBG}
                     isSelectAllChecked={!!reportItem.isSelected}
                     isIndeterminate={false}
                     isDisabledCheckbox={isDisabledCheckbox}
