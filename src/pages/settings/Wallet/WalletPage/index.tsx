@@ -69,7 +69,7 @@ function WalletPage() {
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserMinus'] as const);
     const {asset: MoneyIntoWallet} = useMemoizedLazyAsset(() => loadIllustration('MoneyIntoWallet' as IllustrationName));
 
     const theme = useTheme();
@@ -81,6 +81,7 @@ function WalletPage() {
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
+    const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
     const kycWallRef = useContext(KYCWallContext);
 
     const hasWallet = !isEmpty(userWallet);
@@ -125,6 +126,9 @@ function WalletPage() {
                     description: description ?? getPaymentMethodDescription(accountType, accountData, translate),
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
+            }
+            if (accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !!accountData?.sharees?.length) {
+                setShouldShowUnshareButton(accountData?.state !== CONST.BANK_ACCOUNT.STATE.PENDING);
             }
             setPaymentMethod({
                 isSelectedPaymentMethodDefault: !!isDefault,
@@ -206,6 +210,7 @@ function WalletPage() {
             deletePaymentCard(fundID);
         }
         setShowConfirmDeleteModal(false);
+        setShouldShowUnshareButton(false);
         resetSelectedPaymentMethodData();
     }, [
         paymentMethod.selectedPaymentMethod.bankAccountID,
@@ -312,6 +317,21 @@ function WalletPage() {
                               makeDefaultPaymentMethod();
                           },
                           numberOfLinesTitle: 0,
+                      },
+                  ]
+                : []),
+            ...(shouldShowUnshareButton
+                ? [
+                      {
+                          text: translate('common.unshare'),
+                          icon: icons.UserMinus,
+                          onSelected: () => {
+                              if (isAccountLocked) {
+                                  closeModal(() => showLockedAccountModal());
+                                  return;
+                              }
+                              closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                          },
                       },
                   ]
                 : []),
