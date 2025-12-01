@@ -5,10 +5,11 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import {Document, ensurePdfJsInitialized, Thumbnail} from '@components/PDF';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import CONST from '@src/CONST';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess, onPDFLoadError}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess, onPdfInitFailed}: PDFThumbnailProps) {
     const [failedToLoad, setFailedToLoad] = useState(false);
     const [ready, setReady] = useState(false);
     const [pdfInitializationFailed, setPdfInitializationFailed] = useState(false);
@@ -22,14 +23,14 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
             })
             .catch(() => {
                 setPdfInitializationFailed(true);
-                onPDFLoadError?.();
+                onPdfInitFailed?.();
             });
         // We only want to call this method once
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const loadingIndicator = useMemo(() => <ActivityIndicator size="large" />, []);
+    const loadingIndicator = useMemo(() => <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />, []);
 
     const handleOnLoad = useCallback(() => {
         setFailedToLoad(false);
