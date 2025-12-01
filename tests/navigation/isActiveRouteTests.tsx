@@ -4,6 +4,19 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {Route} from '@src/ROUTES';
 
+jest.mock('@libs/Navigation/navigationRef', () => {
+    const navigationRefMock = {
+        current: {getCurrentRoute: jest.fn()},
+        getRootState: jest.fn(),
+        isReady: jest.fn(),
+    };
+
+    return {
+        __esModule: true,
+        default: navigationRefMock,
+    };
+});
+
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const actual = jest.requireActual('@react-navigation/native') as {getPathFromState: typeof GetPathFromState};
@@ -15,16 +28,19 @@ jest.mock('@react-navigation/native', () => {
 
 describe('Navigation', () => {
     afterEach(() => {
-        jest.restoreAllMocks();
+        jest.clearAllMocks();
     });
 
     beforeEach(() => {
-        // Minimal stubs so getActiveRoute() can derive a path without rendering navigation containers.
-        const ref = navigationRef as typeof navigationRef & {current: {getCurrentRoute: () => {name: string}} | null};
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
-        ref.current = {getCurrentRoute: jest.fn().mockReturnValue({name: 'test'})} as any;
-        jest.spyOn(navigationRef, 'getRootState').mockReturnValue({} as unknown as ReturnType<typeof navigationRef.getRootState>);
-        jest.spyOn(navigationRef, 'isReady').mockReturnValue(true);
+        const navigationRefMock = navigationRef as typeof navigationRef & {
+            current: {getCurrentRoute: jest.Mock};
+            getRootState: jest.Mock;
+            isReady: jest.Mock;
+        };
+
+        navigationRefMock.current.getCurrentRoute.mockReturnValue({name: 'test'});
+        navigationRefMock.getRootState.mockReturnValue({} as ReturnType<typeof navigationRef.getRootState>);
+        navigationRefMock.isReady.mockReturnValue(true);
     });
 
     it('Should correctly identify active routes', () => {
