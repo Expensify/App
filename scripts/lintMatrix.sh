@@ -29,8 +29,8 @@ ALL_FILES=$(find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -
   2>/dev/null | sort)
 
 # Sort files by size (largest first) to distribute load better
-# Remove the "total" line that wc -l adds at the end
-SORTED_FILES=$(echo "$ALL_FILES" | xargs wc -l 2>/dev/null | head -n -1 | sort -rn | awk '{print $2}')
+# Remove the "total" line that wc -l adds at the end (it's always the last line)
+SORTED_FILES=$(echo "$ALL_FILES" | xargs wc -l 2>/dev/null | grep -v "^[[:space:]]*[0-9]*[[:space:]]*total$" | sort -rn | awk '{print $2}')
 
 # Use round-robin distribution: assign each file to a chunk in round-robin fashion
 # This distributes large files evenly across chunks
