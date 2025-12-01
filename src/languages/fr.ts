@@ -2557,7 +2557,7 @@ ${amount} pour ${merchant} - ${date}`,
                                 ? `[Accéder à la comptabilité](${workspaceAccountingLink}).
 
                         ![Se connecter à ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                                : `[Ir a contabilidad](${workspaceAccountingLink}).`
+                                : `[Accéder à la comptabilité](${workspaceAccountingLink})`
                         }`),
             },
             connectCorporateCardTask: {
