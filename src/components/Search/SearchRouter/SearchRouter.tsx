@@ -153,7 +153,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     return undefined;
                 }
                 const reportPolicyTags = policyTags?.[report.policyID ?? ''];
-                const option = createOptionFromReport(report, personalDetails, reportPolicyTags);
+                const option = createOptionFromReport(report, personalDetails, reportPolicyTags, undefined, {showPersonalDetails: true});
                 reportForContextualSearch = option;
             }
 

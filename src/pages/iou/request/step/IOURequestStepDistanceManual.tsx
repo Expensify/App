@@ -87,11 +87,14 @@ function IOURequestStepDistanceManual({
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
 
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
     const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy}).unit;
@@ -161,6 +164,9 @@ function IOURequestStepDistanceManual({
                         // Not required for manual distance request
                         transactionBackup: undefined,
                         policy,
+                        currentUserAccountIDParam,
+                        currentUserEmailParam,
+                        isASAPSubmitBetaEnabled,
                     });
                 }
                 Navigation.goBack(backTo);
@@ -173,7 +179,7 @@ function IOURequestStepDistanceManual({
             }
 
             if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
-                const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
+                const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                     return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policyTags, reportAttributesDerived);
@@ -187,8 +193,8 @@ function IOURequestStepDistanceManual({
                             report,
                             isDraftPolicy: false,
                             participantParams: {
-                                payeeEmail: currentUserPersonalDetails.login,
-                                payeeAccountID: currentUserPersonalDetails.accountID,
+                                payeeEmail: currentUserEmailParam,
+                                payeeAccountID: currentUserAccountIDParam,
                                 participant,
                             },
                             policyParams: {
@@ -215,8 +221,8 @@ function IOURequestStepDistanceManual({
                     createDistanceRequest({
                         report,
                         participants,
-                        currentUserLogin: currentUserPersonalDetails.login,
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        currentUserLogin: currentUserEmailParam,
+                        currentUserAccountID: currentUserAccountIDParam,
                         iouType,
                         existingTransaction: transaction,
                         transactionParams: {
@@ -233,10 +239,11 @@ function IOURequestStepDistanceManual({
                         },
                         backToReport,
                         isASAPSubmitBetaEnabled,
+                        transactionViolations,
                     });
                     return;
                 }
-                setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
+                setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
                     navigateToConfirmationPage();
                 });
                 return;
@@ -250,7 +257,7 @@ function IOURequestStepDistanceManual({
                 defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
                 !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
             ) {
-                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
+                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
                 const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
                 const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({
@@ -261,7 +268,7 @@ function IOURequestStepDistanceManual({
                 });
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setCustomUnitRateID(transactionID, rateID);
-                setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+                setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat, currentUserPersonalDetails.accountID).then(() => {
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                             CONST.IOU.ACTION.CREATE,
@@ -293,14 +300,15 @@ function IOURequestStepDistanceManual({
             policyTags,
             reportAttributesDerived,
             translate,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
+            currentUserEmailParam,
+            currentUserAccountIDParam,
             lastSelectedDistanceRates,
             backToReport,
             isASAPSubmitBetaEnabled,
             customUnitRateID,
             navigateToConfirmationPage,
             personalPolicy?.autoReporting,
+            transactionViolations,
         ],
     );
 

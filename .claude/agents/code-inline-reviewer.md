@@ -198,39 +198,6 @@ memo(ReportActionItem, (prevProps, nextProps) =>
 )
 ```
 
----
-
-### [PERF-6] Use specific properties as hook dependencies
-
-- **Search patterns**: `useEffect`, `useMemo`, `useCallback` dependency arrays
-
-- **Condition**: In `useEffect`, `useMemo`, and `useCallback`, specify individual object properties as dependencies instead of passing entire objects.
-- **Reasoning**: Passing entire objects as dependencies causes hooks to re-execute whenever any property changes, even unrelated ones. Specifying individual properties creates more granular dependency tracking, reducing unnecessary hook executions and improving performance predictability.
-
-Good:
-
-```tsx
-const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
-    return {
-        amountColumnSize: transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        taxAmountColumnSize: transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-    };
-}, [transactionItem.isAmountColumnWide, transactionItem.isTaxAmountColumnWide, transactionItem.shouldShowYear]);
-```
-
-Bad:
-
-```tsx
-const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
-    return {
-        amountColumnSize: transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        taxAmountColumnSize: transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-    };
-}, [transactionItem]);
-```
-
 ## Instructions
 
 1. **First, get the list of changed files and their diffs:**

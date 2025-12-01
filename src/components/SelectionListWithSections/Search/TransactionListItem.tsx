@@ -71,7 +71,7 @@ function TransactionListItem<TItem extends ListItem>({
     const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
         (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.moneyRequestReportActionID}`],
-        [transactionItem],
+        [transactionItem?.moneyRequestReportActionID],
     );
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`, {selector: parentReportActionSelector, canBeMissing: true}, [
         transactionItem,
@@ -102,12 +102,12 @@ function TransactionListItem<TItem extends ListItem>({
             taxAmountColumnSize: transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
         };
-    }, [transactionItem]);
+    }, [transactionItem.isAmountColumnWide, transactionItem.isTaxAmountColumnWide, transactionItem.shouldShowYear]);
 
     const transactionViolations = useMemo(() => {
         return (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
             (violation: TransactionViolation) =>
-                !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '') &&
+                !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', snapshotReport, snapshotPolicy) &&
                 shouldShowViolation(snapshotReport, snapshotPolicy, violation.name, currentUserDetails.email ?? '', false),
         );
     }, [snapshotPolicy, snapshotReport, transactionItem, violations, currentUserDetails.email]);
@@ -179,7 +179,7 @@ function TransactionListItem<TItem extends ListItem>({
                     onCheckboxPress={handleCheckboxPress}
                     shouldUseNarrowLayout={!isLargeScreenWidth}
                     columns={columns}
-                    isActionLoading={isLoading ?? transactionItem.isActionLoading ?? isActionLoading}
+                    isActionLoading={isLoading ?? isActionLoading}
                     isSelected={!!transactionItem.isSelected}
                     dateColumnSize={dateColumnSize}
                     amountColumnSize={amountColumnSize}
