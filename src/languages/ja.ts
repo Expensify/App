@@ -700,6 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'ドメイン',
         reportName: 'レポート名',
         showLess: '表示を減らす',
+        actionRequired: 'アクションが必要',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -2899,6 +2900,8 @@ ${
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから再試行してください。',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。<a href="${workspaceRoute}">ワークスペースの設定</a> USDに設定して、もう一度お試しください。`,
+        bbaAdded: 'ビジネス銀行口座が追加されました！',
+        bbaAddedDescription: '支払いに使用する準備ができています。',
         error: {
             youNeedToSelectAnOption: 'オプションを選択してください',
             noBankAccountAvailable: '申し訳ありませんが、利用可能な銀行口座がありません。',
