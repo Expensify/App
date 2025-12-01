@@ -505,7 +505,7 @@ const config = defineConfig([
         ...typescriptEslint.configs.disableTypeChecked,
     },
     {
-        files: ['.github/**/*', 'scripts/**/*'],
+        files: ['.github/**/*', 'scripts/**/*', 'tests/**/*', '__mocks__/**/*', 'jest/**/*'],
         ...typescriptEslint.configs.disableTypeChecked,
     },
     {
@@ -545,7 +545,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['.github/**/*', 'scripts/**/*'],
+        files: ['.github/**/*', 'scripts/**/*', 'tests/**/*', '__mocks__/**/*', 'jest/**/*'],
         rules: {
             // For all these Node.js scripts, we do not want to disable `console` statements
             'no-console': 'off',

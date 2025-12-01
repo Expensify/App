@@ -13,9 +13,13 @@ concurrency:
 
 jobs:
   lint:
-    name: ESLint check
+    name: ESLint check (chunk ${{ matrix.chunk }}/${{ strategy.job-total }})
     if: ${{ github.event.head_commit.author.name != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: [1, 2, 3, 4, 5, 6, 7, 8]
     steps:
       - name: Checkout
         # v4
@@ -25,6 +29,6 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Lint JavaScript and Typescript with ESLint
-        run: npm run lint
+        run: ./scripts/lintMatrix.sh ${{ matrix.chunk }} ${{ strategy.job-total }}
         env:
           CI: true
