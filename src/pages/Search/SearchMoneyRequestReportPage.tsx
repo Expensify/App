@@ -115,7 +115,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         const violations = snapshotData[violationKey] as TransactionViolations | undefined;
 
         return {snapshotTransaction: transaction, snapshotViolations: violations};
-    }, [snapshot, allReportTransactions]);
+    }, [snapshot?.data, allReportTransactions]);
 
     useEffect(() => {
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && oneTransactionID) {

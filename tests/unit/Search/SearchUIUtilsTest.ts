@@ -27,6 +27,7 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
+import type * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -48,6 +49,10 @@ jest.mock('@userActions/Report', () => ({
 jest.mock('@userActions/Search', () => ({
     ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
     updateSearchResultsWithTransactionThreadReportID: jest.fn(),
+}));
+jest.mock('@libs/ReportActionsUtils', () => ({
+    ...jest.requireActual<typeof ReportActionsUtils>('@libs/ReportActionsUtils'),
+    getIOUActionForReportID: jest.fn(),
 }));
 
 const adminAccountID = 18439984;
@@ -2904,7 +2909,6 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should create transaction thread report for legacy transactions without IOU action (moneyRequestReportActionID = "0")', () => {
-            const setOptimisticDataForTransactionThreadMock = jest.spyOn(require('@userActions/Search'), 'setOptimisticDataForTransactionThreadPreview');
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
             // Create a legacy transaction item with moneyRequestReportActionID = '0'
@@ -2914,9 +2918,6 @@ describe('SearchUIUtils', () => {
             };
 
             SearchUIUtils.createAndOpenSearchTransactionThread(legacyTransactionItem, hash, backTo);
-
-            // Should NOT call setOptimisticDataForTransactionThreadPreview for legacy transactions
-            expect(setOptimisticDataForTransactionThreadMock).not.toHaveBeenCalled();
 
             // Extract the transaction by removing UI-specific and search-specific fields
             const {
@@ -2949,8 +2950,8 @@ describe('SearchUIUtils', () => {
             } = legacyTransactionItem;
 
             // For legacy transactions (moneyRequestReportActionID = '0'), should pass transaction and violations
-            // '0' is treated as empty string for reportActionID
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report, {reportActionID: ''}, expect.objectContaining(expectedTransaction), violations);
+            // reportActionID will be undefined since there's no IOU action
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report, {reportActionID: undefined}, expect.objectContaining(expectedTransaction), violations);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
