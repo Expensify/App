@@ -7686,17 +7686,22 @@ ${
         accessRestricted: {
             title: 'Dostęp ograniczony',
             subtitle: ({domainName}: {domainName: string}) =>
-                `Proszę zweryfikować się jako upoważniony administrator firmy dla <strong>${domainName}</strong>, jeśli potrzebujesz kontroli nad:`,
+                `Proszę zweryfikować się jako autoryzowany administrator firmy dla <strong>${domainName}</strong>, jeśli potrzebujesz kontroli nad:`,
             companyCardManagement: 'Zarządzanie kartami firmowymi',
             accountCreationAndDeletion: 'Tworzenie i usuwanie konta',
             workspaceCreation: 'Tworzenie obszaru roboczego',
             samlSSO: 'SAML SSO',
         },
-        addDomain: {title: 'Dodaj domenę', subtitle: 'Wprowadź nazwę prywatnej domeny, do której chcesz uzyskać dostęp (np. expensify.com).', domainName: 'Nazwa domeny'},
+        addDomain: {
+            title: 'Dodaj domenę',
+            subtitle: 'Wprowadź nazwę prywatnej domeny, do której chcesz uzyskać dostęp (np. expensify.com).',
+            domainName: 'Nazwa domeny',
+            newDomain: 'Nowa domena',
+        },
         domainAdded: {title: 'Dodano domenę', description: 'Następnie musisz zweryfikować własność domeny i dostosować ustawienia zabezpieczeń.', configure: 'Skonfiguruj'},
         enhancedSecurity: {
             title: 'Zwiększone bezpieczeństwo',
-            subtitle: 'Wymagaj, aby członkowie w Twojej domenie logowali się za pomocą logowania jednokrotnego (SSO), ograniczaj tworzenie obszarów roboczych i nie tylko.',
+            subtitle: 'Wymagaj, aby członkowie Twojej domeny logowali się przez Single Sign-On (SSO), ograniczaj tworzenie obszarów roboczych i nie tylko.',
             enable: 'Włącz',
         },
     },

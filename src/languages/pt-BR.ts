@@ -7701,13 +7701,18 @@ ${
         },
         accessRestricted: {
             title: 'Acesso restrito',
-            subtitle: ({domainName}: {domainName: string}) => `Confirme que você é um administrador autorizado da empresa <strong>${domainName}</strong> se precisar de controle sobre:`,
+            subtitle: ({domainName}: {domainName: string}) => `Confirme que você é um administrador autorizado da empresa para <strong>${domainName}</strong> se precisar de controle sobre:`,
             companyCardManagement: 'Gerenciamento de cartões corporativos',
-            accountCreationAndDeletion: 'Criação e exclusão de contas',
-            workspaceCreation: 'Criação de espaço de trabalho',
+            accountCreationAndDeletion: 'Criação e exclusão de conta',
+            workspaceCreation: 'Criação do espaço de trabalho',
             samlSSO: 'SSO SAML',
         },
-        addDomain: {title: 'Adicionar domínio', subtitle: 'Insira o nome do domínio privado que você deseja acessar (por exemplo, expensify.com).', domainName: 'Nome de domínio'},
+        addDomain: {
+            title: 'Adicionar domínio',
+            subtitle: 'Digite o nome do domínio privado que você deseja acessar (ex.: expensify.com).',
+            domainName: 'Nome de domínio',
+            newDomain: 'Novo domínio',
+        },
         domainAdded: {
             title: 'Domínio adicionado',
             description: 'Em seguida, você precisará verificar a propriedade do domínio e ajustar suas configurações de segurança.',
@@ -7715,7 +7720,7 @@ ${
         },
         enhancedSecurity: {
             title: 'Segurança aprimorada',
-            subtitle: 'Exija que os membros do seu domínio façam login por meio de single sign-on (SSO), restrinja a criação de espaços de trabalho e muito mais.',
+            subtitle: 'Exija que os membros do seu domínio façam login por meio de logon único (SSO), restrinja a criação de espaços de trabalho e muito mais.',
             enable: 'Ativar',
         },
     },
