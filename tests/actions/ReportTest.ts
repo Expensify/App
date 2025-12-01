@@ -1746,22 +1746,12 @@ describe('actions/Report', () => {
             ...createRandomPolicy(Number(policyID)),
             isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
+            autoReporting: false,
             harvesting: {
                 enabled: false,
             },
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
-
-        // Initialize the parent policy expense chat report in Onyx
-        // This ensures the report exists when createNewReport tries to update it
-        const parentReportID = MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID;
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {
-            reportID: parentReportID,
-            type: CONST.REPORT.TYPE.CHAT,
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            policyID,
-            hasOutstandingChildRequest: false,
-        });
 
         mockFetchData.pause();
         const {reportID} = Report.createNewReport({accountID}, true, false, policyID);
