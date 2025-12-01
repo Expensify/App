@@ -139,7 +139,6 @@ import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import Timing from '@userActions/Timing';
-import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -1259,18 +1258,11 @@ function createFilteredOptionList(
     const {maxRecentReports = 500, includeP2P = true, searchTerm = ''} = options;
     const reportMapForAccountIDs: Record<number, Report> = {};
 
-    // PERF: Start timing
-    const perfStart = performance.now();
-    const allReportsCount = Object.keys(reports ?? {}).length;
-
     // Step 1: Pre-filter reports to avoid processing thousands
     // Only filter out null/undefined - let shouldReportBeInOptionList handle business logic
     const reportsArray = Object.values(reports ?? {}).filter((report): report is Report => {
         return !!report;
     });
-
-    // PERF: Log after filter
-    const afterFilterCount = reportsArray.length;
 
     // Step 2: Sort by lastVisibleActionCreated (most recent first)
     const sortedReports = reportsArray.sort((a, b) => {
@@ -1281,9 +1273,6 @@ function createFilteredOptionList(
 
     // Step 3: Limit to top N reports
     const limitedReports = sortedReports.slice(0, maxRecentReports);
-
-    // PERF: Log reports processed
-    const reportsProcessed = limitedReports.length;
 
     // Step 4: If search term is present, build report map with ONLY 1:1 DM reports
     // This allows personal details to have valid 1:1 DM reportIDs for proper avatar display
