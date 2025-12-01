@@ -700,6 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domini',
         reportName: 'Nome del report',
         showLess: 'Mostra meno',
+        actionRequired: 'Azione richiesta',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -1337,7 +1338,8 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `ha cambiato il ${translatedChangedField} in ${newMerchant} (precedentemente ${oldMerchant}), il che ha aggiornato l'importo a ${newAmountToDisplay} (precedentemente ${oldAmountToDisplay})`,
         basedOnAI: 'basato su attività passate',
-        basedOnMCC: 'basato su regola dello spazio di lavoro',
+        basedOnMCC: ({rulesLink}: {rulesLink: string}) =>
+            rulesLink ? `in base alle <a href="${rulesLink}">regole dello spazio di lavoro</a>` : 'in base alla regola dello spazio di lavoro',
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `per ${comment}` : 'spesa'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Rapporto Fattura n. ${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} inviato${comment ? `per ${comment}` : ''}`,
@@ -2909,6 +2911,8 @@ ${
         hasBeenThrottledError: "Si è verificato un errore durante l'aggiunta del tuo conto bancario. Attendi qualche minuto e riprova.",
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Ops! Sembra che la valuta del tuo spazio di lavoro sia impostata su una valuta diversa da USD. Per procedere, vai a <a href="${workspaceRoute}">le impostazioni del tuo spazio di lavoro</a> impostarlo su USD e riprovare.`,
+        bbaAdded: 'Conto bancario aziendale aggiunto!',
+        bbaAddedDescription: 'È pronto per essere utilizzato per i pagamenti.',
         error: {
             youNeedToSelectAnOption: "Seleziona un'opzione per procedere",
             noBankAccountAvailable: 'Spiacente, non è disponibile alcun conto bancario.',
@@ -6611,6 +6615,15 @@ ${
             title: 'Aggiornamento del controllo fallito',
             message: "Non siamo riusciti a verificare la presenza di un aggiornamento. Riprova tra un po'.",
         },
+    },
+    settlement: {
+        status: {
+            pending: 'In sospeso',
+            cleared: 'Liquidato',
+            failed: 'Fallito',
+        },
+        failedError: ({link}: {link: string}) => `Riproveremo questa liquidazione quando <a href="${link}">sblocchi il tuo account</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID prelievo: ${withdrawalID}`,
     },
     reportLayout: {
         reportLayout: 'Layout del rapporto',

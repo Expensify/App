@@ -92,9 +92,20 @@ function IOURequestStepDistanceManual({
     const isCreatingNewRequest = !(backTo || isEditing);
 
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+
+    const shouldUseDefaultExpensePolicy = useMemo(
+        () =>
+            iouType === CONST.IOU.TYPE.CREATE &&
+            isPaidGroupPolicy(defaultExpensePolicy) &&
+            defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
+            !shouldRestrictUserBillableActions(defaultExpensePolicy.id),
+        [iouType, defaultExpensePolicy],
+    );
 
     const customUnitRateID = getRateID(transaction);
-    const unit = DistanceRequestUtils.getRate({transaction, policy}).unit;
+    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
     const distance = transaction?.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -161,6 +172,9 @@ function IOURequestStepDistanceManual({
                         // Not required for manual distance request
                         transactionBackup: undefined,
                         policy,
+                        currentUserAccountIDParam,
+                        currentUserEmailParam,
+                        isASAPSubmitBetaEnabled,
                     });
                 }
                 Navigation.goBack(backTo);
@@ -187,8 +201,8 @@ function IOURequestStepDistanceManual({
                             report,
                             isDraftPolicy: false,
                             participantParams: {
-                                payeeEmail: currentUserPersonalDetails.login,
-                                payeeAccountID: currentUserPersonalDetails.accountID,
+                                payeeEmail: currentUserEmailParam,
+                                payeeAccountID: currentUserAccountIDParam,
                                 participant,
                             },
                             policyParams: {
@@ -215,8 +229,8 @@ function IOURequestStepDistanceManual({
                     createDistanceRequest({
                         report,
                         participants,
-                        currentUserLogin: currentUserPersonalDetails.login,
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        currentUserLogin: currentUserEmailParam,
+                        currentUserAccountID: currentUserAccountIDParam,
                         iouType,
                         existingTransaction: transaction,
                         transactionParams: {
@@ -245,13 +259,8 @@ function IOURequestStepDistanceManual({
 
             // If there was no reportID, then that means the user started this flow from the global menu
             // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-            if (
-                iouType === CONST.IOU.TYPE.CREATE &&
-                isPaidGroupPolicy(defaultExpensePolicy) &&
-                defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-                !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
-            ) {
-                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
+            if (shouldUseDefaultExpensePolicy) {
+                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
                 const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
                 const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({
@@ -284,7 +293,7 @@ function IOURequestStepDistanceManual({
             report,
             reportNameValuePairs,
             iouType,
-            defaultExpensePolicy,
+            shouldUseDefaultExpensePolicy,
             distance,
             transaction,
             reportID,
@@ -293,13 +302,14 @@ function IOURequestStepDistanceManual({
             personalDetails,
             reportAttributesDerived,
             translate,
-            currentUserPersonalDetails.login,
-            currentUserPersonalDetails.accountID,
+            currentUserEmailParam,
+            currentUserAccountIDParam,
             lastSelectedDistanceRates,
             backToReport,
             isASAPSubmitBetaEnabled,
             customUnitRateID,
             navigateToConfirmationPage,
+            defaultExpensePolicy,
             personalPolicy?.autoReporting,
             transactionViolations,
         ],

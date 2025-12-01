@@ -694,6 +694,7 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: '域名',
         reportName: '报告名称',
         showLess: '显示更少',
+        actionRequired: '需要操作',
     },
     supportalNoAccess: {
         title: '慢一点',
@@ -1317,7 +1318,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `将${translatedChangedField}更改为${newMerchant}（之前为${oldMerchant}），这更新了金额为${newAmountToDisplay}（之前为${oldAmountToDisplay}）`,
         basedOnAI: '基于过去的活动',
-        basedOnMCC: '基于工作空间规则',
+        basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `基于 <a href="${rulesLink}">工作区规则</a>` : '基于工作区规则'),
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `为${comment}` : '费用'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `发票报告 #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 已发送${comment ? `对于${comment}` : ''}`,
@@ -2868,6 +2869,8 @@ ${
         hasBeenThrottledError: '添加您的银行账户时发生错误。请稍等几分钟后重试。',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `哎呀！您的工作区货币似乎设置为不同于 USD 的货币。要继续，请前往 <a href="${workspaceRoute}">您的工作区设置</a> 将其设置为美元，然后重试。`,
+        bbaAdded: '企业银行账户已添加！',
+        bbaAddedDescription: '已准备好用于付款。',
         error: {
             youNeedToSelectAnOption: '请选择一个选项继续',
             noBankAccountAvailable: '抱歉，没有可用的银行账户。',
@@ -6456,6 +6459,15 @@ ${
             title: '更新检查失败',
             message: '我们无法检查更新。请稍后再试。',
         },
+    },
+    settlement: {
+        status: {
+            pending: '待处理',
+            cleared: '已结算',
+            failed: '失败',
+        },
+        failedError: ({link}: {link: string}) => `当您<a href="${link}">解锁账户</a>时，我们将重试此结算。`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 提款ID: ${withdrawalID}`,
     },
     reportLayout: {
         reportLayout: '报告布局',

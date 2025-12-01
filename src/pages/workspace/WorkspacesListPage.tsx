@@ -141,6 +141,7 @@ function WorkspacesListPage() {
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isRestrictedPolicyCreation} = usePreferredPolicy();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
@@ -212,6 +213,7 @@ function WorkspacesListPage() {
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,
+            bankAccountList,
             lastUsedPaymentMethods: lastPaymentMethod,
         });
         if (isOffline) {
@@ -595,18 +597,19 @@ function WorkspacesListPage() {
     }, [navigateToDomain, allDomains, adminAccess]);
 
     useEffect(() => {
-        if (isEmptyObject(duplicateWorkspace) || !filteredWorkspaces.length || !isFocused) {
+        const duplicatedWSPolicyID = duplicateWorkspace?.policyID;
+        if (!duplicatedWSPolicyID || !filteredWorkspaces.length || !isFocused) {
             return;
         }
-        const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicateWorkspace.policyID);
-        if (duplicateWorkspaceIndex > 0) {
+        const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicatedWSPolicyID);
+        if (duplicateWorkspaceIndex >= 0) {
             flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearDuplicateWorkspace();
             });
         }
-    }, [duplicateWorkspace, isFocused, filteredWorkspaces]);
+    }, [duplicateWorkspace?.policyID, isFocused, filteredWorkspaces]);
 
     const listHeaderComponent = (
         <>

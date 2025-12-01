@@ -700,6 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'ドメイン',
         reportName: 'レポート名',
         showLess: '表示を減らす',
+        actionRequired: 'アクションが必要',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1339,7 +1340,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `${translatedChangedField}を${newMerchant}に変更しました（以前は${oldMerchant}）、これにより金額が${newAmountToDisplay}に更新されました（以前は${oldAmountToDisplay}）。`,
         basedOnAI: '過去のアクティビティに基づく',
-        basedOnMCC: 'ワークスペースルールに基づく',
+        basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `<a href="${rulesLink}">ワークスペースのルール</a>に基づいて` : 'ワークスペースのルールに基づく'),
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `${comment}用` : '経費'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `請求書レポート #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 送信済み${comment ? `${comment} のために` : ''}`,
@@ -2899,6 +2900,8 @@ ${
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから再試行してください。',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。<a href="${workspaceRoute}">ワークスペースの設定</a> USDに設定して、もう一度お試しください。`,
+        bbaAdded: 'ビジネス銀行口座が追加されました！',
+        bbaAddedDescription: '支払いに使用する準備ができています。',
         error: {
             youNeedToSelectAnOption: 'オプションを選択してください',
             noBankAccountAvailable: '申し訳ありませんが、利用可能な銀行口座がありません。',
@@ -6546,6 +6549,15 @@ ${
             title: '更新の確認に失敗しました',
             message: '更新を確認できませんでした。しばらくしてからもう一度お試しください。',
         },
+    },
+    settlement: {
+        status: {
+            pending: '保留中',
+            cleared: '決済済み',
+            failed: '失敗',
+        },
+        failedError: ({link}: {link: string}) => `この決済は<a href="${link}">アカウントのロックを解除</a>すると再試行されます。`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 出金ID: ${withdrawalID}`,
     },
     reportLayout: {
         reportLayout: 'レポートレイアウト',
