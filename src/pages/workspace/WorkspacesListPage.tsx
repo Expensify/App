@@ -25,6 +25,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import WorkspacesEmptyStateComponent from '@components/WorkspacesEmptyStateComponent';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -128,6 +129,7 @@ function WorkspacesListPage() {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -301,17 +303,17 @@ function WorkspacesListPage() {
             }
 
             clearWorkspaceOwnerChangeFlow(policyID);
-            requestWorkspaceOwnerChange(policyID);
+            requestWorkspaceOwnerChange(policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
             Navigation.navigate(
                 ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(
                     policyID,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserPersonalDetails.accountID,
                     'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
                     Navigation.getActiveRoute(),
                 ),
             );
         },
-        [session?.accountID],
+        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login],
     );
 
     useEffect(() => {
