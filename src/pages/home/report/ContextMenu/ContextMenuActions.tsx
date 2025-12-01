@@ -477,6 +477,43 @@ const ContextMenuActions: ContextMenuAction[] = [
         getDescription: () => {},
     },
     {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.leaveThread',
+        icon: Expensicons.Exit,
+        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction}) => {
+            const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
+            const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
+            const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
+            const subscribed = childReportNotificationPreference !== 'hidden';
+            const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
+            const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
+            const isTaskAction = isCreatedTaskReportAction(reportAction);
+            return (
+                subscribed &&
+                !isWhisperAction &&
+                !isTaskAction &&
+                !isExpenseReportAction &&
+                !isThreadReportParentAction &&
+                (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
+            );
+        },
+        onPress: (closePopover, {reportAction, reportID}) => {
+            const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
+            const originalReportID = getOriginalReportID(reportID, reportAction);
+            if (closePopover) {
+                hideContextMenu(false, () => {
+                    ReportActionComposeFocusManager.focus();
+                    toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
+                });
+                return;
+            }
+
+            ReportActionComposeFocusManager.focus();
+            toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
+        },
+        getDescription: () => {},
+    },
+    {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Copy,
