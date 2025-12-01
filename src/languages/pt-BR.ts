@@ -6263,26 +6263,47 @@ ${
             previousApprover?: string;
             wasDefaultApprover?: boolean;
         }) => {
-            let text = `alterou o fluxo de aprovação para que ${members} enviem relatórios para ${approver}`;
-            if (wasDefaultApprover) {
+            let text = `alterou o fluxo de aprovação para ${members} enviar relatórios para ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(aprovador padrão anterior ${previousApprover})`;
+            } else if (wasDefaultApprover) {
                 text += '(aprovador padrão anterior)';
             } else if (previousApprover) {
                 text += `(anteriormente ${previousApprover})`;
             }
             return text;
         },
-        changedSubmitsToDefault: ({members, previousApprover}: {members: string; previousApprover?: string}) =>
-            previousApprover
-                ? `alterou o fluxo de aprovação para que ${members} enviem relatórios ao aprovador padrão (anteriormente ${previousApprover})`
-                : `alterou o fluxo de aprovação de ${members} para que os relatórios sejam enviados ao aprovador padrão`,
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `alterou o fluxo de aprovação para que ${members} enviem relatórios ao aprovador padrão ${approver}`
+                : `alterou o fluxo de aprovação para que ${members} enviem relatórios ao aprovador padrão`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(aprovador padrão anterior ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(aprovador padrão anterior)';
+            } else if (previousApprover) {
+                text += `(anteriormente ${previousApprover})`;
+            }
+            return text;
+        },
         changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
             previousForwardsTo
-                ? `alterou o fluxo de aprovação de ${approver} para encaminhar relatórios aprovados para ${forwardsTo} (anteriormente encaminhados para ${previousForwardsTo})`
-                : `alterou o fluxo de aprovação de ${approver} para encaminhar relatórios aprovados para ${forwardsTo} (anteriormente, relatórios aprovados finais)`,
+                ? `alterou o fluxo de aprovação de ${approver} para encaminhar relatórios aprovados para ${forwardsTo} (anteriormente encaminhava para ${previousForwardsTo})`
+                : `alterou o fluxo de aprovação de ${approver} para encaminhar relatórios aprovados para ${forwardsTo} (anteriormente, relatórios com aprovação final)`,
         removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
             previousForwardsTo
-                ? `alterou o fluxo de aprovação de ${approver} para deixar de encaminhar relatórios aprovados (antes encaminhados para ${previousForwardsTo})`
-                : `alterou o fluxo de aprovação de ${approver} para deixar de encaminhar relatórios aprovados`,
+                ? `alterou o fluxo de aprovação de ${approver} para deixar de encaminhar relatórios aprovados (anteriormente encaminhados para ${previousForwardsTo})`
+                : `alterou o fluxo de aprovação de ${approver} para interromper o encaminhamento de relatórios aprovados`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',

@@ -6271,7 +6271,7 @@ ${
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'abilitato' : 'disabilitato'} tracciamento dei partecipanti`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
-            previousApprover ? `ha modificato l'approvatore predefinito in ${newApprover} (in precedenza ${previousApprover})` : `ha modificato l'approvatore predefinito in ${newApprover}`,
+            previousApprover ? `ha cambiato l'approvatore predefinito in ${newApprover} (in precedenza ${previousApprover})` : `ha modificato l'approvatore predefinito in ${newApprover}`,
         changedSubmitsToApprover: ({
             members,
             approver,
@@ -6284,24 +6284,45 @@ ${
             wasDefaultApprover?: boolean;
         }) => {
             let text = `ha modificato il flusso di approvazione per ${members} in modo che inviino i report a ${approver}`;
-            if (wasDefaultApprover) {
-                text += '(precedentemente approvatore predefinito)';
+            if (wasDefaultApprover && previousApprover) {
+                text += `(in precedenza approvatore predefinito ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(in precedenza approvatore predefinito)';
             } else if (previousApprover) {
-                text += `(in precedenza ${previousApprover})`;
+                text += `(precedentemente ${previousApprover})`;
             }
             return text;
         },
-        changedSubmitsToDefault: ({members, previousApprover}: {members: string; previousApprover?: string}) =>
-            previousApprover
-                ? `ha modificato il flusso di approvazione per ${members} per inviare i report all'approvatore predefinito (in precedenza ${previousApprover})`
-                : `ha modificato il flusso di approvazione per ${members} per inviare i rapporti all'approvatore predefinito`,
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `ha modificato il flusso di approvazione per ${members} per inviare i report all'approvatore predefinito ${approver}`
+                : `ha modificato il flusso di approvazione per ${members} per inviare i report all'approvatore predefinito`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(in precedenza approvatore predefinito ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(in precedenza approvatore predefinito)';
+            } else if (previousApprover) {
+                text += `(precedentemente ${previousApprover})`;
+            }
+            return text;
+        },
         changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
             previousForwardsTo
-                ? `ha modificato il flusso di approvazione per ${approver} in modo da inoltrare i report approvati a ${forwardsTo} (in precedenza inoltrati a ${previousForwardsTo})`
-                : `ha modificato il flusso di approvazione per ${approver} in modo da inoltrare i rapporti approvati a ${forwardsTo} (in precedenza rapporti approvati finali)`,
+                ? `ha modificato il flusso di approvazione per ${approver} per inoltrare i report approvati a ${forwardsTo} (in precedenza inoltrati a ${previousForwardsTo})`
+                : `ha modificato il flusso di approvazione per ${approver} in modo da inoltrare i report approvati a ${forwardsTo} (in precedenza solo i report approvati finali)`,
         removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
             previousForwardsTo
-                ? `ha modificato il flusso di approvazione per ${approver} per smettere di inoltrare i report approvati (in precedenza inoltrati a ${previousForwardsTo})`
+                ? `ha modificato il flusso di approvazione per ${approver} per interrompere l'inoltro dei report approvati (in precedenza inoltrati a ${previousForwardsTo})`
                 : `ha modificato il flusso di approvazione per ${approver} per interrompere l'inoltro dei report approvati`,
     },
     roomMembersPage: {

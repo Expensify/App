@@ -6302,26 +6302,47 @@ ${
             previousApprover?: string;
             wasDefaultApprover?: boolean;
         }) => {
-            let text = `a modifié le processus d'approbation pour ${members} afin qu'ils soumettent des rapports à ${approver}`;
-            if (wasDefaultApprover) {
-                text += '(ancien approbateur par défaut)';
+            let text = `a modifié le processus d’approbation pour que ${members} soumettent des rapports à ${approver}`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(ancien approbateur par défaut ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(auparavant approbateur par défaut)';
             } else if (previousApprover) {
                 text += `(auparavant ${previousApprover})`;
             }
             return text;
         },
-        changedSubmitsToDefault: ({members, previousApprover}: {members: string; previousApprover?: string}) =>
-            previousApprover
-                ? `a modifié le flux d’approbation pour que ${members} soumettent leurs rapports à l’approbateur par défaut (auparavant ${previousApprover})`
-                : `a modifié le flux d’approbation pour que les rapports de ${members} soient soumis à l’approbateur par défaut`,
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `a modifié le flux d’approbation pour ${members} afin qu’ils soumettent des rapports à l’approbateur par défaut ${approver}`
+                : `a modifié le flux d’approbation pour que ${members} soumettent des rapports à l'approbateur par défaut`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(auparavant approbateur par défaut ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(auparavant approbateur par défaut)';
+            } else if (previousApprover) {
+                text += `(auparavant ${previousApprover})`;
+            }
+            return text;
+        },
         changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
             previousForwardsTo
-                ? `a modifié le flux d’approbation pour ${approver} afin de transférer les rapports approuvés à ${forwardsTo} (auparavant transférés à ${previousForwardsTo})`
-                : `a modifié le flux d’approbation pour ${approver} afin de transmettre les rapports approuvés à ${forwardsTo} (auparavant les rapports approuvés finaux)`,
+                ? `a modifié le flux d’approbation pour ${approver} afin de transmettre les rapports approuvés à ${forwardsTo} (auparavant transmis à ${previousForwardsTo})`
+                : `a modifié le flux d’approbation pour ${approver} afin de transmettre les rapports approuvés à ${forwardsTo} (auparavant, les rapports approuvés définitivement)`,
         removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
             previousForwardsTo
-                ? `a modifié le workflow d'approbation pour ${approver} afin de cesser de transférer les rapports approuvés (auparavant transférés à ${previousForwardsTo})`
-                : `a modifié le flux d’approbation pour ${approver} afin de ne plus transmettre les rapports approuvés`,
+                ? `a modifié le flux d’approbation pour ${approver} afin de ne plus transférer les rapports approuvés (auparavant transférés à ${previousForwardsTo})`
+                : `a modifié le flux d'approbation pour ${approver} afin de ne plus transférer les rapports approuvés`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre non trouvé.',

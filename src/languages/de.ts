@@ -6282,7 +6282,7 @@ ${
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Teilnehmerverfolgung`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
-            previousApprover ? `Standardgenehmiger auf ${newApprover} geändert (zuvor ${previousApprover})` : `Der Standardgenehmiger wurde auf ${newApprover} geändert`,
+            previousApprover ? `Standardgenehmiger auf ${newApprover} geändert (zuvor ${previousApprover})` : `den Standardgenehmiger auf ${newApprover} geändert`,
         changedSubmitsToApprover: ({
             members,
             approver,
@@ -6294,26 +6294,47 @@ ${
             previousApprover?: string;
             wasDefaultApprover?: boolean;
         }) => {
-            let text = `Genehmigungsworkflow für ${members} geändert, sodass Berichte an ${approver} eingereicht werden`;
-            if (wasDefaultApprover) {
-                text += '(zuvor Standardgenehmiger)';
+            let text = `hat den Genehmigungsworkflow für ${members} geändert, sodass Berichte an ${approver} eingereicht werden`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(bisheriger Standardgenehmiger ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(früher Standardgenehmiger)';
             } else if (previousApprover) {
                 text += `(zuvor ${previousApprover})`;
             }
             return text;
         },
-        changedSubmitsToDefault: ({members, previousApprover}: {members: string; previousApprover?: string}) =>
-            previousApprover
-                ? `hat den Genehmigungsworkflow für ${members} so geändert, dass Berichte an den Standardgenehmiger eingereicht werden (zuvor ${previousApprover})`
-                : `Genehmigungs-Workflow für ${members} so geändert, dass Berichte an den Standardgenehmiger eingereicht werden`,
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `hat den Genehmigungsworkflow für ${members} so geändert, dass Berichte an den Standardgenehmiger ${approver} eingereicht werden`
+                : `den Genehmigungsworkflow für ${members} geändert, sodass Berichte beim Standardgenehmiger eingereicht werden`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(bisheriger Standardgenehmiger ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '(früher Standardgenehmiger)';
+            } else if (previousApprover) {
+                text += `(zuvor ${previousApprover})`;
+            }
+            return text;
+        },
         changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
             previousForwardsTo
-                ? `änderte den Genehmigungs-Workflow für ${approver}, sodass genehmigte Berichte an ${forwardsTo} weitergeleitet werden (zuvor weitergeleitet an ${previousForwardsTo})`
-                : `hat den Genehmigungsworkflow für ${approver} so geändert, dass genehmigte Berichte an ${forwardsTo} weitergeleitet werden (zuvor endgültig genehmigte Berichte)`,
+                ? `Genehmigungsworkflow für ${approver} geändert, um genehmigte Berichte an ${forwardsTo} weiterzuleiten (zuvor weitergeleitet an ${previousForwardsTo})`
+                : `Genehmigungs-Workflow für ${approver} geändert, um genehmigte Berichte an ${forwardsTo} weiterzuleiten (zuvor endgültig genehmigte Berichte)`,
         removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
             previousForwardsTo
-                ? `hat den Genehmigungsworkflow für ${approver} geändert, sodass genehmigte Berichte nicht mehr weitergeleitet werden (zuvor weitergeleitet an ${previousForwardsTo})`
-                : `hat den Genehmigungsworkflow für ${approver} geändert, sodass genehmigte Berichte nicht mehr weitergeleitet werden`,
+                ? `hat den Genehmigungsworkflow für ${approver} so geändert, dass genehmigte Berichte nicht mehr weitergeleitet werden (zuvor weitergeleitet an ${previousForwardsTo})`
+                : `hat den Genehmigungsworkflow für ${approver} so geändert, dass genehmigte Berichte nicht mehr weitergeleitet werden`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',

@@ -6217,26 +6217,47 @@ ${
             previousApprover?: string;
             wasDefaultApprover?: boolean;
         }) => {
-            let text = `${members} が ${approver} にレポートを提出するよう承認ワークフローを変更しました`;
-            if (wasDefaultApprover) {
-                text += '(以前のデフォルト承認者)';
+            let text = `${members} の承認ワークフローを変更し、レポートを ${approver} に提出するようにしました`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(以前のデフォルト承認者 ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '（以前のデフォルト承認者）';
             } else if (previousApprover) {
                 text += `(以前は${previousApprover})`;
             }
             return text;
         },
-        changedSubmitsToDefault: ({members, previousApprover}: {members: string; previousApprover?: string}) =>
-            previousApprover
-                ? `${members} の承認ワークフローを変更し、レポートをデフォルトの承認者（以前は ${previousApprover}）に提出するようにしました`
-                : `${members}の承認ワークフローを、レポートをデフォルトの承認者に提出するように変更しました`,
+        changedSubmitsToDefault: ({
+            members,
+            approver,
+            previousApprover,
+            wasDefaultApprover,
+        }: {
+            members: string;
+            approver?: string;
+            previousApprover?: string;
+            wasDefaultApprover?: boolean;
+        }) => {
+            let text = approver
+                ? `${members}の承認ワークフローを、デフォルトの承認者${approver}にレポートを提出するように変更しました`
+                : `${members}の承認ワークフローを変更し、レポートをデフォルトの承認者に提出するようにしました`;
+            if (wasDefaultApprover && previousApprover) {
+                text += `(以前のデフォルト承認者 ${previousApprover})`;
+            } else if (wasDefaultApprover) {
+                text += '（以前のデフォルト承認者）';
+            } else if (previousApprover) {
+                text += `(以前は${previousApprover})`;
+            }
+            return text;
+        },
         changedForwardsTo: ({approver, forwardsTo, previousForwardsTo}: {approver: string; forwardsTo: string; previousForwardsTo?: string}) =>
             previousForwardsTo
-                ? `${approver} の承認ワークフローを変更し、承認済みレポートを ${forwardsTo} に転送するようにしました（以前は ${previousForwardsTo} に転送）`
-                : `${approver} の承認ワークフローを変更し、承認済みレポートを ${forwardsTo} に転送するようにしました（以前は最終承認済みレポートを転送）`,
+                ? `${approver} の承認ワークフローを変更し、承認済みレポートを ${forwardsTo} に転送するようにしました（以前は ${previousForwardsTo} に転送していました）`
+                : `${approver} の承認ワークフローを変更し、承認済みレポートを ${forwardsTo} に転送するようにしました（以前は最終承認済みレポートのみを転送）`,
         removedForwardsTo: ({approver, previousForwardsTo}: {approver: string; previousForwardsTo?: string}) =>
             previousForwardsTo
-                ? `${approver} の承認ワークフローを、承認済みレポートの転送を停止するように変更しました（以前は ${previousForwardsTo} に転送していました）`
-                : `${approver} の承認ワークフローを、承認済みレポートを転送しないように変更しました`,
+                ? `承認済みレポートの転送を停止するように${approver}の承認ワークフローを変更しました（以前は${previousForwardsTo}に転送していました）`
+                : `承認済みレポートの転送を停止するように、${approver} の承認ワークフローを変更しました`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
