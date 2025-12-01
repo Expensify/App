@@ -2,6 +2,15 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Model of Expensify card status changes */
+type CardStatusChanges = {
+    /** Card status change date */
+    date: string;
+
+    /** Card status change value */
+    status: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
+};
+
 /** Model of Expensify card */
 type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card ID number */
@@ -117,6 +126,12 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Card expiration date */
         expirationDate?: string;
 
+        /** Card status changes */
+        statusChanges?: CardStatusChanges[];
+
+        /** Card terminated reason */
+        terminationReason?: ValueOf<typeof CONST.EXPENSIFY_CARD.TERMINATION_REASON>;
+
         /** Card's primary account identifier */
         // eslint-disable-next-line @typescript-eslint/naming-convention
         expensifyCard_panReferenceID?: string;
@@ -217,6 +232,12 @@ type CardLimitType = ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 type IssueNewCardData = {
     /** The email address of the cardholder */
     assigneeEmail: string;
+
+    /** The email address of the inviting member */
+    invitingMemberEmail: string;
+
+    /** The accountID of the inviting member */
+    invitingMemberAccountID: number;
 
     /** Card type */
     cardType: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>;
