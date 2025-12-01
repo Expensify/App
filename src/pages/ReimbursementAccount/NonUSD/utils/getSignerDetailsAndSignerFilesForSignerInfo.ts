@@ -26,25 +26,25 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
     const signerDetails: Record<string, string | boolean | FileObject[]> = {};
     const signerFiles: Record<string, string | FileObject | boolean> = {};
 
-    signerDetailsFields.forEach((fieldName) => {
+    for (const fieldName of signerDetailsFields) {
         if (fieldName === EMAIL) {
             signerDetails[fieldName] = signerEmail;
-            return;
+            continue;
         }
 
         if (!reimbursementAccountDraft?.[fieldName]) {
-            return;
+            continue;
         }
 
         if (fieldName === STREET || fieldName === CITY || fieldName === STATE || fieldName === ZIP_CODE) {
             signerDetails[ADDRESS] = signerDetails[ADDRESS]
                 ? `${SafeString(signerDetails[ADDRESS])}, ${SafeString(reimbursementAccountDraft?.[fieldName])}`
                 : reimbursementAccountDraft?.[fieldName];
-            return;
+            continue;
         }
 
         signerDetails[fieldName] = reimbursementAccountDraft?.[fieldName];
-    });
+    }
 
     if (isUserBeneficialOwner) {
         signerDetails[FULL_NAME] = '';
