@@ -1,12 +1,13 @@
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
 import {useEffect, useMemo, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {getDefaultActionableSearchMenuItem} from '@libs/SearchUIUtils';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONFIG from '@src/CONFIG';
@@ -94,8 +95,10 @@ function useOnboardingFlowRouter() {
                 const lastRoute = navigationState.routes.at(-1);
                 // Prevent duplicate navigation if the migrated user modal is already shown.
                 if (lastRoute?.name !== NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR) {
-                    const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? buildCannedSearchQuery()}));
+                    const flattenedMenuItems = typeMenuSections.flatMap((section) => section.menuItems);
+                    const defaultActionableSearchQuery =
+                        getDefaultActionableSearchMenuItem(flattenedMenuItems)?.searchQuery ?? flattenedMenuItems.at(0)?.searchQuery ?? typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultActionableSearchQuery ?? buildCannedSearchQuery()}));
                     Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true));
                 }
                 return;
@@ -129,6 +132,7 @@ function useOnboardingFlowRouter() {
                         currentOnboardingCompanySize,
                         currentOnboardingPurposeSelected,
                         onboardingInitialPath,
+                        onboardingValues,
                     });
                 }
             }
@@ -143,6 +147,7 @@ function useOnboardingFlowRouter() {
                     currentOnboardingCompanySize,
                     currentOnboardingPurposeSelected,
                     onboardingInitialPath,
+                    onboardingValues,
                 });
             }
         });

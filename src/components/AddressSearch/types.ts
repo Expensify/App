@@ -1,5 +1,5 @@
-import type {RefObject} from 'react';
-import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, View, ViewStyle} from 'react-native';
+import type {ForwardedRef, RefObject} from 'react';
+import type {BlurEvent, StyleProp, View, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
 import type {Country} from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
@@ -74,7 +74,7 @@ type AddressSearchProps = {
     predefinedPlaces?: PredefinedPlace[] | null;
 
     /** A map of inputID key names */
-    renamedInputKeys?: Address;
+    renamedInputKeys?: Record<string, string>;
 
     /** Maximum number of characters allowed in search input */
     maxInputLength?: number;
@@ -90,8 +90,11 @@ type AddressSearchProps = {
 
     /** If true, caret is hidden. The default value is false. */
     caretHidden?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<HTMLElement>;
 };
 
-type IsCurrentTargetInsideContainerType = (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>, containerRef: RefObject<View | HTMLElement | null>) => boolean;
+type IsCurrentTargetInsideContainerType = (event: FocusEvent | BlurEvent, containerRef: RefObject<View | HTMLElement | null>) => boolean;
 
 export type {CurrentLocationButtonProps, AddressSearchProps, IsCurrentTargetInsideContainerType, StreetValue, PredefinedPlace};

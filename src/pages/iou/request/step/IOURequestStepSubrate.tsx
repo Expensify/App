@@ -88,7 +88,7 @@ function IOURequestStepSubrate({
 
     const onChangeQuantity = useCallback((newValue: string) => {
         // replace all characters that are not spaces or digits
-        let validQuantity = newValue.replace(/[^0-9]/g, '');
+        let validQuantity = newValue.replaceAll(/[^0-9]/g, '');
         validQuantity = validQuantity.match(/(?:\d *){1,12}/)?.[0] ?? '';
         setQuantityValue(validQuantity);
     }, []);

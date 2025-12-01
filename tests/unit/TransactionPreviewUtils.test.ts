@@ -11,7 +11,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx';
+import type {ReportActions, Transaction} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
@@ -43,6 +43,7 @@ const basicProps = {
     shouldShowRBR: false,
     isReportAPolicyExpenseChat: false,
     areThereDuplicates: false,
+    currentUserEmail: '',
 };
 
 describe('TransactionPreviewUtils', () => {
@@ -160,7 +161,7 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.translationPath).toEqual('iou.receiptStatusTitle');
         });
 
-        it('handles currency and amount display correctly for scan split bill manually completed', async () => {
+        it('handles currency and amount display correctly for scan split bill manually completed', () => {
             const modifiedAmount = 300;
             const currency = 'EUR';
             const originalTransactionID = '2';
@@ -169,20 +170,20 @@ describe('TransactionPreviewUtils', () => {
                 transactionDetails: {amount: modifiedAmount / 2, currency},
                 transaction: {...basicProps.transaction, amount: modifiedAmount / 2, currency, comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT}},
                 isBillSplit: true,
+                originalTransaction: {
+                    reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                    transactionID: originalTransactionID,
+                    comment: {
+                        splits: [
+                            {accountID: 1, email: 'aa@gmail.com'},
+                            {accountID: 2, email: 'cc@gmail.com'},
+                        ],
+                    },
+                    modifiedAmount,
+                    amount: 0,
+                    currency,
+                } as Transaction,
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
-                reportID: CONST.REPORT.SPLIT_REPORT_ID,
-                transactionID: originalTransactionID,
-                comment: {
-                    splits: [
-                        {accountID: 1, email: 'aa@gmail.com'},
-                        {accountID: 2, email: 'cc@gmail.com'},
-                    ],
-                },
-                modifiedAmount,
-                amount: 0,
-                currency,
-            });
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });

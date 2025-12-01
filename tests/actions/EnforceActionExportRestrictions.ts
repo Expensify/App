@@ -18,9 +18,9 @@ describe('ReportUtils', () => {
         expect(ReportUtils.getReport).toBeUndefined();
     });
 
-    it('does not export isOneTransactionReport', () => {
+    it('does not export isOneTransactionReportDeprecated', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(ReportUtils.isOneTransactionReport).toBeUndefined();
+        expect(ReportUtils.isOneTransactionReportDeprecated).toBeUndefined();
     });
 
     it('does not export getPolicy', () => {
@@ -86,6 +86,11 @@ describe('ReportUtils', () => {
     it('does not export getIconsForGroupChat', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getIconsForGroupChat).toBeUndefined();
+    });
+
+    it('does not export getIconsForUserCreatedPolicyRoom', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForUserCreatedPolicyRoom).toBeUndefined();
     });
 
     it('does not export getAllReportActions', () => {

@@ -378,6 +378,13 @@ describe('ReportActionsUtils', () => {
             childReportID: 'existingChildReportID',
         };
 
+        const deletedLinkedActionWithChildReportID: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+            ...mockIOUAction,
+            message: [{deleted: '2025-11-27 09:06:16.568', type: 'COMMENT', text: ''}],
+            originalMessage: {...originalMessage, IOUTransactionID: '123'},
+            childReportID: 'existingChildReportID',
+        };
+
         const linkedActionWithoutChildReportID = {
             ...mockIOUAction,
             originalMessage: {...originalMessage, IOUTransactionID},
@@ -435,6 +442,16 @@ describe('ReportActionsUtils', () => {
         it('should return undefined when only PAY actions exist', () => {
             const result = ReportActionsUtils.getOneTransactionThreadReportAction(mockedReports[IOUReportID], mockedReports[mockChatReportID], [payAction], false, [IOUTransactionID]);
             expect(result).toBeUndefined();
+        });
+
+        it('should return action when single IOU action and deleted IOU action exist', () => {
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(
+                mockedReports[IOUReportID],
+                mockedReports[mockChatReportID],
+                [linkedActionWithChildReportID, deletedLinkedActionWithChildReportID],
+                false,
+            );
+            expect(result).toEqual(linkedActionWithChildReportID);
         });
     });
 
@@ -1309,7 +1326,7 @@ describe('ReportActionsUtils', () => {
                 reportActionID: '1',
                 created: '1',
             };
-            const report = {...createRandomReport(2), type: CONST.REPORT.TYPE.CHAT};
+            const report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.CHAT};
             expect(ReportActionsUtils.getRenamedAction(reportAction, isExpenseReport(report), 'John')).toBe('John renamed this room to "New name" (previously "Old name")');
         });
 
@@ -1326,7 +1343,7 @@ describe('ReportActionsUtils', () => {
                 reportActionID: '1',
                 created: '1',
             };
-            const report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE};
+            const report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE};
 
             expect(ReportActionsUtils.getRenamedAction(reportAction, isExpenseReport(report), 'John')).toBe('John renamed to "New name" (previously "Old name")');
         });
@@ -1421,7 +1438,7 @@ describe('ReportActionsUtils', () => {
 
         it('should return true for moved transaction if the report destination is available', async () => {
             // Given a moved transaction action but the report destination is available
-            const report: Report = createRandomReport(2);
+            const report: Report = createRandomReport(2, undefined);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
@@ -1480,6 +1497,25 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(action);
             const expected = translateLocal('report.actions.type.removeMember', {email: formatPhoneNumber(email), role: translateLocal('workspace.common.roleName', {role}).toLowerCase()});
             expect(actual).toBe(expected);
+        });
+    });
+    describe('isDeletedAction', () => {
+        it('should return false if the action is a hold or unhold action', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD | typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+                created: '2025-09-29',
+                reportActionID: '1',
+                originalMessage: undefined,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'Hold',
+                    },
+                ],
+                previousMessage: [],
+            };
+            expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
         });
     });
 });
