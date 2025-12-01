@@ -49,11 +49,19 @@ import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {doesReportReceiverMatchParticipant, generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {
+    doesReportReceiverMatchParticipant,
+    generateReportID,
+    getReportOrDraftReport,
+    hasViolations as hasViolationsReportUtils,
+    isProcessingReport,
+    isReportOutstanding,
+    isSelectedManagerMcTest,
+} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {
-    getAttendees,
     getDefaultTaxCode,
+    getOriginalAttendees,
     getRateID,
     getRequestType,
     getValidWaypoints,
@@ -187,6 +195,8 @@ function IOURequestStepConfirmation({
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
 
     const policyCategories = useMemo(() => {
         if (isDraftPolicy && draftPolicyID) {
@@ -374,7 +384,7 @@ function IOURequestStepConfirmation({
 
             // Clear category field when the category doesn't exist for selected policy, or it's disabled
             if (!policyCategories?.[item.category] || !policyCategories[item.category]?.enabled) {
-                setMoneyRequestCategory(item.transactionID, '', policy?.id);
+                setMoneyRequestCategory(item.transactionID, '', policy?.id, isMovingTransactionFromTrackExpense);
             }
         }
         // We don't want to clear out category every time the transactions change
@@ -389,7 +399,7 @@ function IOURequestStepConfirmation({
             if (!isDistanceRequest || !!item?.category) {
                 continue;
             }
-            setMoneyRequestCategory(item.transactionID, defaultCategory, policy?.id);
+            setMoneyRequestCategory(item.transactionID, defaultCategory, policy?.id, isMovingTransactionFromTrackExpense);
         }
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -592,6 +602,9 @@ function IOURequestStepConfirmation({
                     shouldGenerateTransactionThreadReport,
                     backToReport,
                     isASAPSubmitBetaEnabled,
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    transactionViolations,
                 });
                 existingIOUReport = iouReport;
             }
@@ -617,6 +630,7 @@ function IOURequestStepConfirmation({
             viewTourTaskParentReport,
             isASAPSubmitBetaEnabled,
             isViewTourTaskParentReportArchived,
+            transactionViolations,
         ],
     );
 
@@ -658,6 +672,9 @@ function IOURequestStepConfirmation({
                     attendees: transaction.comment?.attendees,
                 },
                 isASAPSubmitBetaEnabled,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                hasViolations,
             });
         },
         [
@@ -670,6 +687,7 @@ function IOURequestStepConfirmation({
             policyCategories,
             recentlyUsedDestinations,
             isASAPSubmitBetaEnabled,
+            hasViolations,
         ],
     );
 
@@ -790,6 +808,7 @@ function IOURequestStepConfirmation({
                 },
                 backToReport,
                 isASAPSubmitBetaEnabled,
+                transactionViolations,
             });
         },
         [
@@ -809,6 +828,7 @@ function IOURequestStepConfirmation({
             receiptFiles,
             backToReport,
             isASAPSubmitBetaEnabled,
+            transactionViolations,
         ],
     );
 
@@ -903,6 +923,7 @@ function IOURequestStepConfirmation({
                         taxAmount: transactionTaxAmount,
                         policyRecentlyUsedCategories,
                         isASAPSubmitBetaEnabled,
+                        transactionViolations,
                     });
                 }
                 return;
@@ -930,6 +951,7 @@ function IOURequestStepConfirmation({
                         taxAmount: transactionTaxAmount,
                         policyRecentlyUsedCategories,
                         isASAPSubmitBetaEnabled,
+                        transactionViolations,
                     });
                 }
                 return;
@@ -1071,6 +1093,7 @@ function IOURequestStepConfirmation({
             isUnreported,
             isASAPSubmitBetaEnabled,
             receiverParticipantAccountID,
+            transactionViolations,
         ],
     );
 
@@ -1289,7 +1312,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={transaction?.amount ?? 0}
-                        iouAttendees={getAttendees(transaction)}
+                        iouAttendees={getOriginalAttendees(transaction, currentUserPersonalDetails)}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}

@@ -63,6 +63,7 @@ const mockReportItemWithHold = {
         phoneNumber: '',
         validated: false,
     },
+    shouldShowYear: false,
     transactions: [
         {
             report: {
@@ -100,7 +101,6 @@ const mockReportItemWithHold = {
             created: '2024-12-04',
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             managerID: 1206,
             merchant: 'Qatar',
             modifiedAmount: 0,
@@ -189,7 +189,6 @@ const mockReportItemWithHold = {
             created: '2024-12-04',
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             merchant: 'Forbes',
             modifiedAmount: 0,
             modifiedCreated: '',

@@ -24,8 +24,8 @@ import {getPreservedNavigatorState} from './createSplitNavigator/usePreserveNavi
 // This timing is used to call the preload function after a tab change, when the initial tab screen has already been rendered.
 const TIMING_TO_CALL_PRELOAD = 1000;
 
-// Currently, only the Account and Workspaces tabs are preloaded. The remaining tabs will be supported soon.
-const TABS_TO_PRELOAD = [NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES];
+// Currently, only the Workspaces, Account tabs are preloaded. The remaining tabs will be supported soon.
+const TABS_TO_PRELOAD = [NAVIGATION_TABS.WORKSPACES, NAVIGATION_TABS.SETTINGS];
 
 function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     const state = getWorkspacesTabStateFromSessionStorage() ?? navigation.getState();
@@ -100,7 +100,7 @@ function usePreloadFullScreenNavigators() {
     const route = useRoute();
     const state = navigation.getState();
     // The fallback is used to prevent crashing from the UI test
-    const preloadedRoutes = useMemo(() => state.preloadedRoutes ?? [], [state]);
+    const preloadedRoutes = useMemo(() => state.preloadedRoutes ?? [], [state.preloadedRoutes]);
     const subscriptionPlan = useSubscriptionPlan();
     const isAuthenticated = useIsAuthenticated();
     const hasPreloadedRef = useRef(false);
@@ -131,6 +131,7 @@ function usePreloadFullScreenNavigators() {
                     const isCurrentTab = TAB_TO_FULLSCREEN[tabName].includes(route.name as FullScreenName);
                     const isRouteAlreadyPreloaded = preloadedRoutes.some((preloadedRoute) => TAB_TO_FULLSCREEN[tabName].includes(preloadedRoute.name as FullScreenName));
                     return !isCurrentTab && !isRouteAlreadyPreloaded;
+                    // eslint-disable-next-line unicorn/no-array-for-each
                 }).forEach((tabName) => {
                     preloadTab(tabName, navigation, subscriptionPlan);
                 });
