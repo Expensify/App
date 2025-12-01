@@ -19,6 +19,7 @@ import {
     hasDynamicExternalWorkflow,
     hasOnlyPersonalPolicies,
     hasOtherControlWorkspaces,
+    hasPolicyWithXeroConnection,
     isCurrentUserMemberOfAnyPolicy,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
@@ -1504,6 +1505,64 @@ describe('PolicyUtils', () => {
                 {...createRandomPolicy(3, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
             ];
             const result = hasOtherControlWorkspaces(policies, '1');
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('hasPolicyWithXeroConnection', () => {
+        it('should return false when no admin policies are provided', () => {
+            const result = hasPolicyWithXeroConnection(undefined);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when no admin policies have Xero connection', () => {
+            const adminPolicies: Policy[] = [
+                {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: true,
+                            lastSync: {
+                                errorDate: '',
+                                errorMessage: '',
+                                isAuthenticationError: false,
+                                isConnected: true,
+                                isSuccessful: true,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                        },
+                    } as Connections,
+                },
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            ];
+            const result = hasPolicyWithXeroConnection(adminPolicies);
+            expect(result).toBe(false);
+        });
+
+        it('should return true when at least one admin policy has Xero connection', () => {
+            const adminPolicies: Policy[] = [
+                {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            lastSync: {
+                                errorDate: '',
+                                errorMessage: '',
+                                isAuthenticationError: false,
+                                isConnected: true,
+                                isSuccessful: true,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                            config: {} as unknown as Connections[typeof CONST.POLICY.CONNECTIONS.NAME.XERO]['config'],
+                            data: {} as unknown as Connections[typeof CONST.POLICY.CONNECTIONS.NAME.XERO]['data'],
+                        },
+                    } as Connections,
+                },
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            ];
+            const result = hasPolicyWithXeroConnection(adminPolicies);
             expect(result).toBe(true);
         });
     });
