@@ -8576,7 +8576,7 @@ describe('ReportUtils', () => {
                 ],
             };
 
-            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, false);
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, false, CONST.DEFAULT_NUMBER_ID, '');
 
             expect(result).toBe(false);
         });
@@ -8584,7 +8584,7 @@ describe('ReportUtils', () => {
         it('should return false when areStrictPolicyRulesEnabled is true but no violations exist', () => {
             const transactionViolations = {};
 
-            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true);
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, 0, '');
 
             expect(result).toBe(false);
         });
@@ -8600,7 +8600,7 @@ describe('ReportUtils', () => {
                 ],
             };
 
-            const result = shouldBlockSubmitDueToStrictPolicyRules(undefined, transactionViolations, true);
+            const result = shouldBlockSubmitDueToStrictPolicyRules(undefined, transactionViolations, true, 0, '');
 
             expect(result).toBe(false);
         });
@@ -8629,7 +8629,7 @@ describe('ReportUtils', () => {
                 ],
             };
 
-            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, false, transactions);
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, false, 0, '', transactions);
 
             expect(result).toBe(false);
         });
@@ -8658,7 +8658,7 @@ describe('ReportUtils', () => {
                 ],
             };
 
-            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, transactions);
+            const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, 0, '', transactions);
 
             expect(result).toBe(true);
         });

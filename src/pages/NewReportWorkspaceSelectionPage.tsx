@@ -1,4 +1,4 @@
-import {accountIDSelector} from '@selectors/Session';
+import {accountIDSelector, emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -61,7 +61,9 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
+    const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, email ?? '');
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -71,7 +73,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
 
     const policiesWithEmptyReportsSelector = useCallback(
         (reports: OnyxCollection<OnyxTypes.Report>) => {

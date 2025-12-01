@@ -2552,6 +2552,14 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
  * Checks if a report has only one transaction associated with it
  */
 function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
+    return report?.transactionCount === 1;
+}
+
+/**
+ * Checks if a report has only one transaction associated with it
+ * @deprecated - Use isOneTransactionReport instead
+ */
+function isOneTransactionReportDeprecated(report: OnyxEntry<Report>): boolean {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? ([] as ReportAction[]);
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
     return !!getOneTransactionThreadReportID(report, chatReport, reportActions);
@@ -2561,7 +2569,8 @@ function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
  * Whether the report contains only one expense and the expense should be paid later
  */
 function isPayAtEndExpenseReport(report: OnyxEntry<Report>, transactions: Transaction[] | undefined): boolean {
-    if ((!!transactions && transactions.length !== 1) || !isOneTransactionReport(report)) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    if ((!!transactions && transactions.length !== 1) || !isOneTransactionReportDeprecated(report)) {
         return false;
     }
 
@@ -3619,7 +3628,8 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
     const isManager = currentUserAccountID === report?.managerID;
 
     // For one transaction IOUs, display a simplified report icon
-    if (isOneTransactionReport(report)) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    if (isOneTransactionReportDeprecated(report)) {
         return [ownerIcon];
     }
 
@@ -4452,6 +4462,7 @@ function getTransactionDetails(
     policy: OnyxEntry<Policy> = undefined,
     allowNegativeAmount = false,
     disableOppositeConversion = false,
+    currentUserDetails = currentUserPersonalDetails,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
@@ -4464,7 +4475,7 @@ function getTransactionDetails(
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
         amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
-        attendees: getAttendees(transaction),
+        attendees: getAttendees(transaction, currentUserDetails),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),
         taxCode: getTaxCode(transaction),
         currency: getCurrency(transaction),
@@ -5313,7 +5324,7 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.merchant = transactionChanges?.merchant;
     }
     if ('attendees' in transactionChanges) {
-        originalMessage.oldAttendees = getAttendees(oldTransaction);
+        originalMessage.oldAttendees = getAttendees(oldTransaction, currentUserPersonalDetails);
         originalMessage.newAttendees = transactionChanges?.attendees;
     }
 
@@ -8985,10 +8996,44 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
 
         return (
             !isInvoiceReport(potentialReport) &&
-            ViolationsUtils.hasVisibleViolationsForUser(potentialReport, transactionViolations, currentUserEmail ?? '', policy, transactions) &&
-            (hasViolations(potentialReport.reportID, transactionViolations, true, transactions, currentUserEmail, potentialReport, policy) ||
-                hasWarningTypeViolations(potentialReport.reportID, transactionViolations, true, transactions, currentUserEmail, potentialReport, policy) ||
-                hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, true, transactions, currentUserEmail, potentialReport, policy))
+            ViolationsUtils.hasVisibleViolationsForUser(
+                potentialReport,
+                transactionViolations,
+                currentUserEmail ?? '',
+                currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                policy,
+                transactions,
+            ) &&
+            (hasViolations(
+                potentialReport.reportID,
+                transactionViolations,
+                currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                currentUserEmail ?? '',
+                true,
+                transactions,
+                potentialReport,
+                policy,
+            ) ||
+                hasWarningTypeViolations(
+                    potentialReport.reportID,
+                    transactionViolations,
+                    currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserEmail ?? '',
+                    true,
+                    transactions,
+                    potentialReport,
+                    policy,
+                ) ||
+                hasNoticeTypeViolations(
+                    potentialReport.reportID,
+                    transactionViolations,
+                    currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserEmail ?? '',
+                    true,
+                    transactions,
+                    potentialReport,
+                    policy,
+                ))
         );
     });
 }
@@ -8999,14 +9044,15 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
 function hasViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
-    currentUserEmailParam?: string,
     report?: OnyxEntry<Report>,
     policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasViolation(transaction, transactionViolations, currentUserEmailParam ?? '', report, policy, shouldShowInReview));
+    return transactions.some((transaction) => hasViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy, shouldShowInReview));
 }
 
 /**
@@ -9015,14 +9061,17 @@ function hasViolations(
 function hasWarningTypeViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
-    currentUserEmailParam?: string,
     report?: OnyxEntry<Report>,
     policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasWarningTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', report, policy, shouldShowInReview));
+    return transactions.some((transaction) =>
+        hasWarningTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy, shouldShowInReview),
+    );
 }
 
 /**
@@ -9051,14 +9100,17 @@ function hasReceiptErrors(reportID: string | undefined): boolean {
 function hasNoticeTypeViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
     shouldShowInReview?: boolean,
     reportTransactions?: Transaction[],
-    currentUserEmailParam?: string,
     report?: OnyxEntry<Report>,
     policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
-    return transactions.some((transaction) => hasNoticeTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', report, policy, shouldShowInReview));
+    return transactions.some((transaction) =>
+        hasNoticeTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy, shouldShowInReview),
+    );
 }
 
 /**
@@ -9067,15 +9119,16 @@ function hasNoticeTypeViolations(
 function hasAnyViolations(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
     reportTransactions?: Transaction[],
-    currentUserEmailParam?: string,
     report?: OnyxEntry<Report>,
     policy?: OnyxEntry<Policy>,
 ) {
     return (
-        hasViolations(reportID, transactionViolations, undefined, reportTransactions, currentUserEmailParam, report, policy) ||
-        hasNoticeTypeViolations(reportID, transactionViolations, true, reportTransactions, currentUserEmailParam, report, policy) ||
-        hasWarningTypeViolations(reportID, transactionViolations, true, reportTransactions, currentUserEmailParam, report, policy)
+        hasViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, undefined, reportTransactions, report, policy) ||
+        hasNoticeTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, true, reportTransactions, report, policy) ||
+        hasWarningTypeViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam ?? '', true, reportTransactions, report, policy)
     );
 }
 
@@ -9095,12 +9148,14 @@ function shouldBlockSubmitDueToStrictPolicyRules(
     reportID: string | undefined,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     areStrictPolicyRulesEnabled: boolean,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
     reportTransactions?: Transaction[],
 ) {
     if (!areStrictPolicyRulesEnabled) {
         return false;
     }
-    return hasAnyViolations(reportID, transactionViolations, reportTransactions);
+    return hasAnyViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, reportTransactions);
 }
 
 type ReportErrorsAndReportActionThatRequiresAttention = {
@@ -13164,6 +13219,7 @@ export {
     getUnresolvedCardFraudAlertAction,
     shouldBlockSubmitDueToStrictPolicyRules,
     isWorkspaceChat,
+    isOneTransactionReport,
 };
 export type {
     Ancestor,
