@@ -65,7 +65,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
         });
 
         return () => scrollingListener.remove();
-    }, [shouldHandleScroll, isHovered, onHoverIn, onHoverOut]);
+    }, [shouldHandleScroll, onHoverIn, onHoverOut]);
 
     useEffect(() => {
         const handleVisibilityChange = () => {
