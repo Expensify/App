@@ -37,6 +37,7 @@ import type {
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
+import type {ThemeColors} from '@styles/theme/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -2604,6 +2605,82 @@ function getColumnsToShow(
     return columns;
 }
 
+/**
+ * Maps numeric state value to settlement status
+ * State mapping confirmed by backend team (@JS00001):
+ * - 5, 6, 7: Failed
+ * - 8: Cleared (succeeded and complete)
+ * - All others: Pending (processing)
+ */
+const settlementStatusMap = new Map<number, ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>>([
+    [5, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
+    [6, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
+    [7, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
+    [8, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED],
+]);
+
+function getSettlementStatus(state: number | undefined): ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS> | undefined {
+    if (state === undefined) {
+        return undefined;
+    }
+
+    return settlementStatusMap.get(state) ?? CONST.SEARCH.SETTLEMENT_STATUS.PENDING;
+}
+
+/**
+ * Get badge properties for settlement status
+ * Uses Report Status Badge styling as recommended by designer
+ */
+function getSettlementStatusBadgeProps(
+    state: number | undefined,
+    translate: LocaleContextProps['translate'],
+    theme: ThemeColors,
+): {
+    text: string;
+    badgeStyles: ViewStyle;
+    textStyles: TextStyle;
+} | null {
+    const status = getSettlementStatus(state);
+    if (!status) {
+        return null;
+    }
+
+    switch (status) {
+        case CONST.SEARCH.SETTLEMENT_STATUS.CLEARED:
+            return {
+                text: translate('settlement.status.cleared'),
+                badgeStyles: {
+                    backgroundColor: theme.reportStatusBadge.closed.backgroundColor,
+                },
+                textStyles: {
+                    color: theme.reportStatusBadge.closed.textColor,
+                },
+            };
+        case CONST.SEARCH.SETTLEMENT_STATUS.FAILED:
+            return {
+                text: translate('settlement.status.failed'),
+                badgeStyles: {
+                    backgroundColor: theme.reportStatusBadge.outstanding.backgroundColor,
+                },
+                textStyles: {
+                    color: theme.reportStatusBadge.outstanding.textColor,
+                },
+            };
+        case CONST.SEARCH.SETTLEMENT_STATUS.PENDING:
+            return {
+                text: translate('settlement.status.pending'),
+                badgeStyles: {
+                    backgroundColor: theme.reportStatusBadge.draft.backgroundColor,
+                },
+                textStyles: {
+                    color: theme.reportStatusBadge.draft.textColor,
+                },
+            };
+        default:
+            return null;
+    }
+}
+
 export {
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
@@ -2646,5 +2723,7 @@ export {
     getActionOptions,
     getColumnsToShow,
     getHasOptions,
+    getSettlementStatus,
+    getSettlementStatusBadgeProps,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
