@@ -144,9 +144,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }, [reimbursementAccountDraft]);
 
     useEffect(() => {
-        if (!reimbursementAccountDraft && !isEmptyObject(achContractValuesRef.current) && currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT) {
-            updateReimbursementAccountDraft(achContractValuesRef.current);
+        if (reimbursementAccountDraft || isEmptyObject(achContractValuesRef.current) || currentStep !== CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT) {
+            return;
         }
+
+        updateReimbursementAccountDraft(achContractValuesRef.current);
     }, [reimbursementAccountDraft, currentStep]);
 
     function getBankAccountFields(fieldNames: InputID[]): Partial<ACHDataReimbursementAccount> {
