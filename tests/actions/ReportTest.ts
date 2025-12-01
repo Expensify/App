@@ -1746,6 +1746,7 @@ describe('actions/Report', () => {
             ...createRandomPolicy(Number(policyID)),
             isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
+            autoReporting: false,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
             harvesting: {
                 enabled: false,
