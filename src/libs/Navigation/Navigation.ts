@@ -8,6 +8,7 @@ import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
+import {SUPER_WIDE_RIGHT_MODALS, WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -711,6 +712,49 @@ function fireModalDismissed() {
     }
 }
 
+/**
+ * When multiple screens are open in RHP, returns to the last modal stack specified in the parameter. If none are found, it dismisses the entire modal.
+ *
+ * @param modalStackNames - names of the modal stacks we want to dismiss to
+ */
+function dismissToModalStack(modalStackNames: Set<string>) {
+    const rootState = navigationRef.getRootState();
+    if (!rootState) {
+        return;
+    }
+
+    const rhpState = rootState.routes.findLast((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.state;
+
+    if (!rhpState) {
+        return;
+    }
+
+    const lastFoundModalStackIndex = rhpState.routes.findLastIndex((route) => modalStackNames.has(route.name));
+    const routesToPop = rhpState.routes.length - lastFoundModalStackIndex - 1;
+
+    if (routesToPop <= 0 || lastFoundModalStackIndex === -1) {
+        dismissModal();
+        return;
+    }
+
+    navigationRef.dispatch({...StackActions.pop(routesToPop), target: rhpState.key});
+}
+
+/**
+ * Dismiss top layer modal and go back to the Wide/Super Wide RHP.
+ */
+function dismissToFirstRHP() {
+    const wideOrSuperWideModalStackNames = new Set([...SUPER_WIDE_RIGHT_MODALS, ...WIDE_RIGHT_MODALS]);
+    return dismissToModalStack(wideOrSuperWideModalStackNames);
+}
+
+/**
+ * Dismiss top layer modal and go back to the Wide RHP.
+ */
+function dismissToSecondRHP() {
+    return dismissToModalStack(WIDE_RIGHT_MODALS);
+}
+
 export default {
     setShouldPopToSidebar,
     getShouldPopToSidebar,
@@ -748,6 +792,8 @@ export default {
     onModalDismissedOnce,
     fireModalDismissed,
     isValidateLoginFlow,
+    dismissToFirstRHP,
+    dismissToSecondRHP,
 };
 
 export {navigationRef};
