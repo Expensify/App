@@ -133,7 +133,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const walletBrickRoadIndicator = useMemo(() => {
         if (hasPaymentMethodError(bankAccountList, fundList, allCards) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-        } else if (hasPartiallySetupBankAccount(bankAccountList)) {
+        }
+        if (hasPartiallySetupBankAccount(bankAccountList)) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
         if (hasPendingCardAction) {
