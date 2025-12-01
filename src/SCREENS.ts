@@ -46,6 +46,7 @@ const SCREENS = {
         MONEY_REQUEST_REPORT: 'Search_Money_Request_Report',
         MONEY_REQUEST_REPORT_VERIFY_ACCOUNT: 'Search_Money_Request_Report_Verify_Account',
         MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
+        MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS: 'Search_Money_Request_Report_Reject_Transactions',
         REPORT_RHP: 'Search_Report_RHP',
         REPORT_VERIFY_ACCOUNT: 'Search_Report_Verify_Account',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
@@ -91,6 +92,7 @@ const SCREENS = {
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
+        SEARCH_REJECT_REASON_RHP: 'Search_Reject_Reason_RHP',
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_RHP',
     },
     SETTINGS: {
@@ -245,6 +247,11 @@ const SCREENS = {
         TRANSACTION_DUPLICATE: 'TransactionDuplicate',
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
+        SEARCH_REPORT_ACTIONS: 'SearchReportActions',
+        // These two routes will be added in a separate PR adding Super Wide RHP routes
+        EXPENSE_REPORT: 'ExpenseReport',
+        SEARCH_MONEY_REQUEST_REPORT: 'SearchMoneyRequestReport',
+
         SEARCH_ADVANCED_FILTERS: 'SearchAdvancedFilters',
         SEARCH_SAVED_SEARCH: 'SearchSavedSearch',
         SETTINGS_CATEGORIES: 'SettingsCategories',

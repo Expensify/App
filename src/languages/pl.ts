@@ -700,6 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domeny',
         reportName: 'Nazwa raportu',
         showLess: 'Pokaż mniej',
+        actionRequired: 'Wymagane działanie',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1336,7 +1337,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `zmienił ${translatedChangedField} na ${newMerchant} (wcześniej ${oldMerchant}), co zaktualizowało kwotę na ${newAmountToDisplay} (wcześniej ${oldAmountToDisplay})`,
         basedOnAI: 'na podstawie wcześniejszej aktywności',
-        basedOnMCC: 'na podstawie reguły przestrzeni roboczej',
+        basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `na podstawie <a href="${rulesLink}">zasad obszaru roboczego</a>` : 'na podstawie reguły obszaru roboczego'),
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `dla ${comment}` : 'wydatek'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Raport faktury nr ${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} wysłano${comment ? `dla ${comment}` : ''}`,
@@ -2913,6 +2914,8 @@ ${
         hasBeenThrottledError: 'Wystąpił błąd podczas dodawania Twojego konta bankowego. Proszę poczekać kilka minut i spróbować ponownie.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Ups! Wygląda na to, że waluta Twojego miejsca pracy jest ustawiona na inną niż USD. Aby kontynuować, przejdź do <a href="${workspaceRoute}">ustawienia Twojego miejsca pracy</a> ustawić na USD i spróbować ponownie.`,
+        bbaAdded: 'Dodano firmowe konto bankowe!',
+        bbaAddedDescription: 'Jest gotowe do użycia w płatnościach.',
         error: {
             youNeedToSelectAnOption: 'Proszę wybrać opcję, aby kontynuować',
             noBankAccountAvailable: 'Przepraszamy, nie ma dostępnego konta bankowego.',
@@ -6378,6 +6381,7 @@ ${
             delete: 'Usuń',
             hold: 'Trzymaj',
             unhold: 'Usuń blokadę',
+            reject: 'Odrzuć',
             noOptionsAvailable: 'Brak dostępnych opcji dla wybranej grupy wydatków.',
         },
         filtersHeader: 'Filtry',
