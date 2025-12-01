@@ -147,6 +147,17 @@ const restrictedImportPatterns = [
 ];
 
 const config = defineConfig([
+    // Global ignores - these directories/files are excluded from linting
+    // Note: Using eslint . ensures new directories are automatically included
+    {
+        ignores: [
+            'Mobile-Expensify/**',
+            'docs/**',
+            'coverage/**',
+            'android/**/build/**',
+            'ios/**/build/**',
+        ],
+    },
     expensifyConfig,
     typescriptEslint.configs.recommendedTypeChecked,
     typescriptEslint.configs.stylisticTypeChecked,
