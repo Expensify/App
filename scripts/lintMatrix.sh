@@ -17,7 +17,7 @@ if [ -z "$CHUNK" ] || [ -z "$TOTAL" ]; then
 fi
 
 # Find all lintable files
-FILES=$(find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) \
+ALL_FILES=$(find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) \
   ! -path "*/node_modules/*" \
   ! -path "*/dist/*" \
   ! -path "*/build/*" \
@@ -26,30 +26,30 @@ FILES=$(find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name
   ! -path "*/docs/*" \
   ! -path "*/.rock/*" \
   ! -path "*/.expo/*" \
-  | sort)
+  2>/dev/null | sort)
 
-# Calculate chunk size
-TOTAL_FILES=$(echo "$FILES" | wc -l | tr -d ' ')
-CHUNK_SIZE=$((TOTAL_FILES / TOTAL))
-REMAINDER=$((TOTAL_FILES % TOTAL))
+# Sort files by size (largest first) to distribute load better
+# Then use round-robin to assign files to chunks
+SORTED_FILES=$(echo "$ALL_FILES" | xargs wc -l 2>/dev/null | sort -rn | awk 'NR>1 {print $2}')
 
-# Calculate start and end indices for this chunk
-if [ "$CHUNK" -le "$REMAINDER" ]; then
-  START=$(((CHUNK - 1) * (CHUNK_SIZE + 1) + 1))
-  END=$((CHUNK * (CHUNK_SIZE + 1)))
-else
-  START=$((REMAINDER * (CHUNK_SIZE + 1) + (CHUNK - REMAINDER - 1) * CHUNK_SIZE + 1))
-  END=$((START + CHUNK_SIZE - 1))
-fi
+# Use round-robin distribution: assign each file to a chunk in round-robin fashion
+# This distributes large files evenly across chunks
+CHUNK_FILES=$(echo "$SORTED_FILES" | awk -v chunk="$CHUNK" -v total="$TOTAL" '{
+  # Round-robin: file number % total chunks + 1
+  file_chunk = ((NR - 1) % total) + 1
+  if (file_chunk == chunk) {
+    print
+  }
+}')
 
-# Extract files for this chunk
-CHUNK_FILES=$(echo "$FILES" | sed -n "${START},${END}p")
+TOTAL_FILES=$(echo "$SORTED_FILES" | wc -l | tr -d ' ')
+CHUNK_COUNT=$(echo "$CHUNK_FILES" | grep -c . || echo "0")
 
-if [ -z "$CHUNK_FILES" ]; then
+# Run ESLint on this chunk
+echo "Linting chunk $CHUNK/$TOTAL ($CHUNK_COUNT files out of $TOTAL_FILES total)"
+if [ "$CHUNK_COUNT" -eq 0 ]; then
   echo "No files to lint in chunk $CHUNK"
   exit 0
 fi
 
-# Run ESLint on this chunk
-echo "Linting chunk $CHUNK/$TOTAL (files $START-$END of $TOTAL_FILES)"
 echo "$CHUNK_FILES" | xargs npx eslint --max-warnings=145 --cache --cache-location=node_modules/.cache/eslint --concurrency=auto
