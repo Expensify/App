@@ -105,7 +105,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
                 setDefaultData();
             }
         },
-        [account, closeAccount, input, setLogin, validate],
+        [account?.errors, account?.message, closeAccount?.success, input, setLogin, validate],
     );
 
     function getSignInWithStyles() {
@@ -144,7 +144,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
 
         // Check if this login has an account associated with it or not
         beginSignIn(parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : loginTrim);
-    }, [login, account, closeAccount, isOffline, validate, countryCode]);
+    }, [login, account?.isLoading, closeAccount?.success, isOffline, validate, countryCode]);
 
     useEffect(() => {
         // Call clearAccountMessages on the login page (home route).
