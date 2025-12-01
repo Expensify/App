@@ -700,6 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domaines',
         reportName: 'Nom du rapport',
         showLess: 'Afficher moins',
+        actionRequired: 'Action requise',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -1343,7 +1344,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `a changé le ${translatedChangedField} en ${newMerchant} (précédemment ${oldMerchant}), ce qui a mis à jour le montant à ${newAmountToDisplay} (précédemment ${oldAmountToDisplay})`,
         basedOnAI: "basé sur l'activité passée",
-        basedOnMCC: "basé sur la règle de l'espace de travail",
+        basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `selon <a href="${rulesLink}">les règles de l'espace de travail</a>` : 'selon la règle de l’espace de travail'),
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `pour ${comment}` : 'dépense'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Rapport de Facture n°${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} envoyé${comment ? `pour ${comment}` : ''}`,
@@ -2926,6 +2927,8 @@ ${
         hasBeenThrottledError: "Une erreur s'est produite lors de l'ajout de votre compte bancaire. Veuillez attendre quelques minutes et réessayer.",
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Oups ! Il semble que la devise de votre espace de travail soit différente de l'USD. Pour continuer, veuillez aller sur <a href="${workspaceRoute}">vos paramètres d'espace de travail</a> pour le régler sur USD et réessayer.`,
+        bbaAdded: 'Compte bancaire professionnel ajouté !',
+        bbaAddedDescription: 'Il est prêt à être utilisé pour les paiements.',
         error: {
             youNeedToSelectAnOption: 'Veuillez sélectionner une option pour continuer',
             noBankAccountAvailable: "Désolé, aucun compte bancaire n'est disponible.",

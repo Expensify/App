@@ -1069,6 +1069,7 @@ describe('actions/Policy', () => {
                 reportsToArchive: [fakeReport],
                 transactionViolations: undefined,
                 reimbursementAccountError: {},
+                bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
             });
 
@@ -1164,6 +1165,7 @@ describe('actions/Policy', () => {
                     ],
                 },
                 reimbursementAccountError: undefined,
+                bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
             });
 
@@ -1199,6 +1201,7 @@ describe('actions/Policy', () => {
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
+                bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
             });
             await waitForBatchedUpdates();
@@ -1233,6 +1236,7 @@ describe('actions/Policy', () => {
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
+                bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
             });
             await waitForBatchedUpdates();
@@ -1269,6 +1273,7 @@ describe('actions/Policy', () => {
                 reportsToArchive: [],
                 transactionViolations: undefined,
                 reimbursementAccountError: undefined,
+                bankAccountList: {},
                 lastUsedPaymentMethods: undefined,
             });
             await waitForBatchedUpdates();
