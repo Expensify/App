@@ -187,6 +187,9 @@ const config = defineConfig([
 
             parserOptions: {
                 project: path.resolve(dirname, './tsconfig.json'),
+                projectService: {
+                    allowDefaultProject: ['*.js', '*.jsx'],
+                },
             },
 
             globals: {
@@ -475,6 +478,10 @@ const config = defineConfig([
 
     {
         files: ['**/*.js', '**/*.jsx'],
+        ...typescriptEslint.configs.disableTypeChecked,
+    },
+    {
+        files: ['.github/**/*', 'scripts/**/*'],
         ...typescriptEslint.configs.disableTypeChecked,
     },
     {
