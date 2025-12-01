@@ -930,7 +930,7 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
 function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails?: CurrentUserPersonalDetails): Attendee[] {
     const attendees = transaction?.comment?.attendees ?? [];
     const reportOwnerAsAttendee = getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
-    if (attendees.length === 0 && transaction?.reportID && reportOwnerAsAttendee !== undefined) {
+    if (attendees.length === 0 && reportOwnerAsAttendee !== undefined) {
         attendees.push(reportOwnerAsAttendee);
     }
     return attendees;
@@ -939,7 +939,7 @@ function getOriginalAttendees(transaction: OnyxInputOrEntry<Transaction>, curren
 /**
  * Return the list of modified attendees if present otherwise list of attendees
  * @param transaction
- * @param currentUserPersonalDetails - personal details of current user
+ * @param currentUserPersonalDetails - personal details of current user; needed for unreported expenses to return current user as default attendee
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>, currentUserPersonalDetails?: CurrentUserPersonalDetails): Attendee[] {
     const attendees = transaction?.modifiedAttendees ? transaction.modifiedAttendees : (transaction?.comment?.attendees ?? []);
@@ -2336,6 +2336,7 @@ export {
     isExpenseUnreported,
     mergeProhibitedViolations,
     getOriginalAttendees,
+    getReportOwnerAsAttendee,
 };
 
 export type {TransactionChanges};
