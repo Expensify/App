@@ -4718,6 +4718,10 @@ ${
             issuedCard: ({assignee}: AssigneeParams) => `emitiu um Cartão Expensify para ${assignee}! O cartão chegará em 2-3 dias úteis.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
                 `Foi emitido para ${assignee} um Expensify Card! O cartão será enviado assim que os detalhes de envio forem confirmados.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} substituiu seu cartão virtual Expensify! ${link} pode ser usado imediatamente.`,
+            card: 'cartão',
+            replacementCard: 'cartão de substituição',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} substituiu seu cartão Expensify. O novo cartão chegará em 2-3 dias úteis.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `emitiu ${assignee} um ${link} virtual! O cartão pode ser usado imediatamente.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} adicionou informações de envio. O Expensify Card chegará em 2-3 dias úteis.`,
             verifyingHeader: 'Verificando',
