@@ -1,5 +1,6 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {InteractionManager} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
@@ -19,6 +20,7 @@ import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditRe
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Transaction} from '@src/types/onyx';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -32,17 +34,22 @@ function SearchTransactionsChangeReport() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
+    const hasPerDiemTransactionsSelector = useCallback(
+        (transactions: OnyxCollection<Transaction>) => {
+            return selectedTransactionsKeys.some((transactionID) => {
+                const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                return transaction && isPerDiemRequest(transaction);
+            });
+        },
+        [selectedTransactionsKeys],
+    );
     const [hasPerDiemTransactions] = useOnyx(
         ONYXKEYS.COLLECTION.TRANSACTION,
         {
-            selector: (transactions) =>
-                selectedTransactionsKeys.some((transactionID) => {
-                    const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-                    return transaction && isPerDiemRequest(transaction);
-                }),
+            selector: hasPerDiemTransactionsSelector,
             canBeMissing: true,
         },
-        [selectedTransactionsKeys],
+        [hasPerDiemTransactionsSelector],
     );
 
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions);
