@@ -149,9 +149,6 @@ const ONYXKEYS = {
     /** Contains the user preference for the LHN priority mode */
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
-    /** Contains the user preference for report layout group-by option */
-    NVP_REPORT_LAYOUT_GROUP_BY: 'nvp_expensify_groupByOption',
-
     /** Contains the users's block expiration (if they have one) */
     NVP_BLOCKED_FROM_CONCIERGE: 'nvp_private_blockedFromConcierge',
 
@@ -606,6 +603,9 @@ const ONYXKEYS = {
     /** Stores the last created distance expense type (map or manual) */
     NVP_LAST_DISTANCE_EXPENSE_TYPE: 'nvp_lastDistanceExpenseType',
 
+    /** Stores the user's report layout group-by preference */
+    NVP_REPORT_LAYOUT_GROUP_BY: 'nvp_expensify_groupByOption',
+
     /** Whether the user has denied the contact import permission prompt */
     HAS_DENIED_CONTACT_IMPORT_PROMPT: 'hasDeniedContactImportPrompt',
 
@@ -713,6 +713,9 @@ const ONYXKEYS = {
 
         /** Used for identifying user as admin of a domain */
         SHARED_NVP_PRIVATE_ADMIN_ACCESS: 'sharedNVP_private_admin_access_',
+
+        /** SAML login metadata for a domain */
+        SAML_METADATA: 'saml_metadata_',
     },
 
     /** List of Form ids */
@@ -1095,6 +1098,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS]: boolean;
+    [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
 };
 
 type OnyxValuesMapping = {
@@ -1147,7 +1151,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.BETA_CONFIGURATION]: OnyxTypes.BetaConfiguration;
     [ONYXKEYS.NVP_MUTED_PLATFORMS]: Partial<Record<Platform, true>>;
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
-    [ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY]: string;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.QUEUE_FLUSHED_DATA]: OnyxUpdate[];
 
@@ -1300,6 +1303,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
     [ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS]: Record<string, OnyxTypes.ExportTemplate>;
     [ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE]: DistanceExpenseType;
+    [ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY]: string;
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
 };
 
