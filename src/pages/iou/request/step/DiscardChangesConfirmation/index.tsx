@@ -17,6 +17,7 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
     const [isVisible, setIsVisible] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
     const shouldNavigateBack = useRef(false);
+    const isConfirmed = useRef(false);
 
     useBeforeRemove(
         useCallback(
@@ -59,6 +60,17 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
         return unsubscribe;
     }, [navigation, getHasUnsavedChanges]);
 
+    const navigateBack = useCallback(() => {
+        if (blockedNavigationAction.current) {
+            navigationRef.current?.dispatch(blockedNavigationAction.current);
+            return;
+        }
+        if (!shouldNavigateBack.current) {
+            return;
+        }
+        navigationRef.current?.goBack();
+    }, []);
+
     return (
         <ConfirmModal
             isVisible={isVisible}
@@ -68,18 +80,8 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
             confirmText={translate('discardChangesConfirmation.confirmText')}
             cancelText={translate('common.cancel')}
             onConfirm={() => {
+                isConfirmed.current = true;
                 setIsVisible(false);
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
-                    if (blockedNavigationAction.current) {
-                        navigationRef.current?.dispatch(blockedNavigationAction.current);
-                        return;
-                    }
-                    if (!shouldNavigateBack.current) {
-                        return;
-                    }
-                    navigationRef.current?.goBack();
-                });
             }}
             onCancel={() => {
                 setIsVisible(false);
@@ -87,8 +89,12 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
                 shouldNavigateBack.current = false;
             }}
             onModalHide={() => {
-                shouldNavigateBack.current = false;
-                onCancel?.();
+                if (isConfirmed.current) {
+                    navigateBack();
+                } else {
+                    shouldNavigateBack.current = false;
+                    onCancel?.();
+                }
             }}
             shouldIgnoreBackHandlerDuringTransition
         />
