@@ -250,7 +250,10 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         const currentRoute = navigationRef.getCurrentRoute();
         Firebase.log(`[NAVIGATION] screen: ${currentRoute?.name}, params: ${JSON.stringify(currentRoute?.params ?? {})}`);
 
-        currentReportIDValue?.updateCurrentReportID(state);
+        // Performance optimization to avoid context consumers to delay first render
+        setTimeout(() => {
+            currentReportIDValue?.updateCurrentReportID(state);
+        }, 0);
         parseAndLogRoute(state);
 
         // We want to clean saved scroll offsets for screens that aren't anymore in the state.
