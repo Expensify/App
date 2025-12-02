@@ -4945,7 +4945,7 @@ const translations = {
                     features: {
                         support: 'Connect cards from 10,000+ banks',
                         assignCards: 'Link your team’s existing cards',
-                        automaticImport: 'We'll pull in transactions automatically',
+                        automaticImport: 'We’ll pull in transactions automatically',
                     },
                 },
                 bankConnectionError: 'Bank connection issue',
