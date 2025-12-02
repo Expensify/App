@@ -4967,18 +4967,9 @@ ${amount} para ${merchant} - ${date}`,
             removeMemberPrompt: ({memberName}) => `¿Estás seguro de que deseas eliminar a ${memberName}?`,
             removeMemberTitle: 'Eliminar miembro',
             transferOwner: 'Transferir la propiedad',
-            makeMember: () => ({
-                one: 'Make member',
-                other: 'Make members',
-            }),
-            makeAdmin: () => ({
-                one: 'Make admin',
-                other: 'Make admins',
-            }),
-            makeAuditor: () => ({
-                one: 'Make auditor',
-                other: 'Make auditors',
-            }),
+            makeMember: 'Hacer miembro',
+            makeAdmin: 'Hacer administrador',
+            makeAuditor: 'Hacer auditor',
             selectAll: 'Seleccionar todo',
             error: {
                 genericAdd: 'Ha ocurrido un problema al añadir el miembro al espacio de trabajo',
