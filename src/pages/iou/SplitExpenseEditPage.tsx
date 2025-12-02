@@ -74,6 +74,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], originalTransaction, policy);
 
     const isCategoryRequired = !!policy?.requiresCategory;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName(report, policy);
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, policy?.areRulesEnabled);
 
