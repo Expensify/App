@@ -127,17 +127,11 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
     ];
 }
 
-function mapToTransactionItemWithAdditionalInfo(
-    item: TransactionListItemType,
-    selectedTransactions: SelectedTransactions,
-    canSelectMultiple: boolean,
-    shouldAnimateInHighlight: boolean,
-    hash?: number,
-) {
-    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple, hash};
+function mapToTransactionItemWithAdditionalInfo(item: TransactionListItemType, shouldAnimateInHighlight: boolean, hash?: number) {
+    return {...item, shouldAnimateInHighlight, hash};
 }
 
-function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean, hash?: number) {
+function mapToItemWithAdditionalInfo(item: SearchListItem, shouldAnimateInHighlight: boolean, hash?: number) {
     if (isTaskListItemType(item)) {
         return {
             ...item,
@@ -155,16 +149,10 @@ function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions:
     }
 
     return isTransactionListItemType(item)
-        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash)
+        ? mapToTransactionItemWithAdditionalInfo(item, shouldAnimateInHighlight, hash)
         : {
               ...item,
               shouldAnimateInHighlight,
-              transactions: item.transactions?.map((transaction) =>
-                  mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash),
-              ),
-              isSelected:
-                  item?.transactions?.length > 0 &&
-                  item.transactions?.filter((t) => !isTransactionPendingDelete(t)).every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
               hash,
           };
 }
@@ -807,7 +795,7 @@ function Search({
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && validGroupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
     const ListItem = getListItem(type, status, validGroupBy);
 
-    const sortedSelectedData = useMemo(
+    const sortedData = useMemo(
         () =>
             getSortedSections(type, status, filteredData, localeCompare, sortBy, sortOrder, validGroupBy).map((item) => {
                 const baseKey = isChat
@@ -828,9 +816,9 @@ function Search({
                 // Determine if either the base key or any transaction key matches
                 const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
-                return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
+                return mapToItemWithAdditionalInfo(item, shouldAnimateInHighlight, hash);
             }),
-        [type, status, filteredData, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, selectedTransactions, canSelectMultiple, localeCompare, hash],
+        [type, status, filteredData, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, localeCompare, hash],
     );
 
     useEffect(() => {
@@ -891,8 +879,8 @@ function Search({
 
     const onLayout = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
-        handleSelectionListScroll(sortedSelectedData, searchListRef.current);
-    }, [handleSelectionListScroll, sortedSelectedData]);
+        handleSelectionListScroll(sortedData, searchListRef.current);
+    }, [handleSelectionListScroll, sortedData]);
 
     const areAllOptionalColumnsHidden = useMemo(() => {
         const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
@@ -972,12 +960,13 @@ function Search({
             <Animated.View style={[styles.flex1, animatedStyle]}>
                 <SearchList
                     ref={searchListRef}
-                    data={sortedSelectedData}
+                    data={sortedData}
                     ListItem={ListItem}
                     onSelectRow={onSelectRow}
                     onCheckboxPress={toggleTransaction}
                     onAllCheckboxPress={toggleAllTransactions}
                     canSelectMultiple={canSelectMultiple}
+                    selectedTransactions={selectedTransactions}
                     shouldPreventLongPressRow={isChat || isTask}
                     isFocused={isFocused}
                     onDEWModalOpen={handleDEWModalOpen}

@@ -1,7 +1,7 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
-import type {SearchColumnType} from '@components/Search/types';
+import type {SearchColumnType, SelectedTransactions} from '@components/Search/types';
 import type {ExtendedTargetedEvent, SearchListItem} from '@components/SelectionListWithSections/types';
 import type {Transaction} from '@src/types/onyx';
 
@@ -43,6 +43,9 @@ type BaseSearchListProps = Pick<
 
     /** The function to scroll to an index */
     scrollToIndex?: (index: number, animated?: boolean) => void;
+
+    /** Selected transactions for triggering re-render via extraData */
+    selectedTransactions?: SelectedTransactions;
 };
 
 export default BaseSearchListProps;

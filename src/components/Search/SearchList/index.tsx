@@ -15,7 +15,7 @@ import Modal from '@components/Modal';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
+import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
 import type TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
 import type TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
@@ -118,6 +118,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
 
+    /** Selected transactions for determining isSelected state */
+    selectedTransactions: SelectedTransactions;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
 };
@@ -169,6 +172,7 @@ function SearchList({
     newTransactions = [],
     violations,
     onDEWModalOpen,
+    selectedTransactions,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -185,13 +189,7 @@ function SearchList({
     }, [data, groupBy, type]);
     const flattenedItemsWithoutPendingDelete = useMemo(() => flattenedItems.filter((t) => t?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [flattenedItems]);
 
-    const selectedItemsLength = useMemo(
-        () =>
-            flattenedItems.reduce((acc, item) => {
-                return item?.isSelected ? acc + 1 : acc;
-            }, 0),
-        [flattenedItems],
-    );
+    const selectedItemsLength = useMemo(() => Object.values(selectedTransactions).filter((t) => t?.isSelected).length, [selectedTransactions]);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -302,6 +300,43 @@ function SearchList({
 
             const newTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
 
+            let isSelected = false;
+            let itemWithSelection: SearchListItem = item;
+
+            if ('transactions' in item && item.transactions) {
+                if (!canSelectMultiple) {
+                    itemWithSelection = {...item, isSelected: false};
+                } else {
+                    const hasAnySelected = item.transactions.some((t) => t.keyForList && selectedTransactions[t.keyForList]?.isSelected);
+
+                    if (!hasAnySelected) {
+                        itemWithSelection = {...item, isSelected: false};
+                    } else {
+                        let allNonDeletedSelected = true;
+                        let hasNonDeletedTransactions = false;
+
+                        const mappedTransactions = item.transactions.map((transaction) => {
+                            const isTransactionSelected = !!(transaction.keyForList && selectedTransactions[transaction.keyForList]?.isSelected);
+
+                            if (transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                                hasNonDeletedTransactions = true;
+                                if (!isTransactionSelected) {
+                                    allNonDeletedSelected = false;
+                                }
+                            }
+
+                            return {...transaction, isSelected: isTransactionSelected};
+                        });
+
+                        isSelected = hasNonDeletedTransactions && allNonDeletedSelected;
+                        itemWithSelection = {...item, isSelected, transactions: mappedTransactions};
+                    }
+                }
+            } else {
+                isSelected = !!(canSelectMultiple && item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
+                itemWithSelection = {...item, isSelected};
+            }
+
             return (
                 <Animated.View
                     exiting={shouldApplyAnimation && isFocused ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
@@ -316,7 +351,7 @@ function SearchList({
                         onLongPressRow={handleLongPressRow}
                         onCheckboxPress={onCheckboxPress}
                         canSelectMultiple={canSelectMultiple}
-                        item={item}
+                        item={itemWithSelection}
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         queryJSONHash={hash}
                         columns={columns}
@@ -354,6 +389,7 @@ function SearchList({
             handleLongPressRow,
             onCheckboxPress,
             canSelectMultiple,
+            selectedTransactions,
             shouldPreventDefaultFocusOnSelectRow,
             hash,
             columns,
@@ -426,6 +462,7 @@ function SearchList({
                 onLayout={onLayout}
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
+                selectedTransactions={selectedTransactions}
             />
             <Modal
                 isVisible={isModalVisible}
