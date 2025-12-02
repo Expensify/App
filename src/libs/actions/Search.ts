@@ -1034,21 +1034,35 @@ function isValidBulkPayOption(item: PopoverMenuItem) {
 /**
  * Handles the click event when user selects bulk pay action.
  */
-function handleBulkPayItemSelected(
-    item: PopoverMenuItem,
-    triggerKYCFlow: (params: ContinueActionParams) => void,
-    isAccountLocked: boolean,
-    showLockedAccountModal: () => void,
-    policy: OnyxEntry<Policy>,
-    latestBankItems: BankAccountMenuItem[] | undefined,
-    activeAdminPolicies: Policy[],
-    isUserValidated: boolean | undefined,
-    isDelegateAccessRestricted: boolean,
-    showDelegateNoAccessModal: () => void,
-    confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void,
-) {
+function handleBulkPayItemSelected(params: {
+    item: PopoverMenuItem;
+    triggerKYCFlow: (params: ContinueActionParams) => void;
+    isAccountLocked: boolean;
+    showLockedAccountModal: () => void;
+    policy: OnyxEntry<Policy>;
+    latestBankItems: BankAccountMenuItem[] | undefined;
+    activeAdminPolicies: Policy[];
+    isUserValidated: boolean | undefined;
+    isDelegateAccessRestricted: boolean;
+    showDelegateNoAccessModal: () => void;
+    confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void;
+}) {
+    const {
+        item,
+        triggerKYCFlow,
+        isAccountLocked,
+        showLockedAccountModal,
+        policy,
+        latestBankItems,
+        activeAdminPolicies,
+        isUserValidated,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+        confirmPayment,
+    } = params;
+
     // If delegate access is restricted, we should not allow bulk pay with business bank account or bulk pay
-    if (isDelegateAccessRestricted && ('value' in item && (item.value === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || item.value === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT))) {
+    if (isDelegateAccessRestricted && 'value' in item && (item.value === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || item.value === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT)) {
         showDelegateNoAccessModal();
         return;
     }

@@ -76,19 +76,19 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
                         onPress={() => null}
                         onOptionSelected={(item) => handleOnMenuItemPress(item)}
                         onSubItemSelected={(subItem) =>
-                            handleBulkPayItemSelected(
-                                subItem,
+                            handleBulkPayItemSelected({
+                                item: subItem,
                                 triggerKYCFlow,
                                 isAccountLocked,
                                 showLockedAccountModal,
-                                currentPolicy,
+                                policy: currentPolicy,
                                 latestBankItems,
                                 activeAdminPolicies,
                                 isUserValidated,
                                 isDelegateAccessRestricted,
                                 showDelegateNoAccessModal,
                                 confirmPayment,
-                            )
+                            })
                         }
                         success
                         isSplitButton={false}

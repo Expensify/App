@@ -769,19 +769,19 @@ function SearchFiltersBar({
                                 customText={selectionButtonText}
                                 options={headerButtonsOptions}
                                 onSubItemSelected={(subItem) =>
-                                    handleBulkPayItemSelected(
-                                        subItem,
+                                    handleBulkPayItemSelected({
+                                        item: subItem,
                                         triggerKYCFlow,
                                         isAccountLocked,
                                         showLockedAccountModal,
-                                        currentPolicy,
+                                        policy: currentPolicy,
                                         latestBankItems,
                                         activeAdminPolicies,
                                         isUserValidated,
                                         isDelegateAccessRestricted,
                                         showDelegateNoAccessModal,
                                         confirmPayment,
-                                    )
+                                    })
                                 }
                                 isSplitButton={false}
                                 buttonRef={buttonRef}
