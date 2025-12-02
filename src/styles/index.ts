@@ -5239,8 +5239,8 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 16,
         },
 
-        // We have to use 10000 here as sidePanel has to be displayed on top of modals which have z-index of 9999
-        sidePanelContainer: {zIndex: 10000},
+        // We have to use 9998 here as sidePanel has to be displayed right under popovers which have z-index of 9999
+        sidePanelContainer: {zIndex: 9998},
 
         reportPreviewArrowButton: {
             borderRadius: 50,
