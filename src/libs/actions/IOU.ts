@@ -182,6 +182,7 @@ import {
     isIOUReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isOneOnOneChat,
+    isOneTransactionReport,
     isOneTransactionThread,
     isOpenExpenseReport as isOpenExpenseReportReportUtils,
     isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
@@ -201,7 +202,6 @@ import {
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     shouldEnableNegative,
     updateReportPreview,
-    isOneTransactionReport,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
