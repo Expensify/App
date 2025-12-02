@@ -122,6 +122,9 @@ type SearchReport = {
     /** The status of the current report */
     statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
+    /** Number of transactions in the report */
+    transactionCount?: number;
+
     /** For expense reports, this is the total amount requested */
     unheldTotal?: number;
 
@@ -248,9 +251,6 @@ type SearchTransaction = {
     /** The ID of the money request reportAction associated with the transaction */
     moneyRequestReportActionID?: string;
 
-    /** Whether the transaction report has only a single transaction */
-    isFromOneTransactionReport?: boolean;
-
     /** Whether the transaction has violations or errors */
     errors?: OnyxCommon.Errors;
 
@@ -263,11 +263,11 @@ type SearchTransaction = {
     /** The display name of the purchaser card, if any */
     cardName?: string;
 
-    /** The converted amount of the transaction, defaults to the active policies currency, or the converted currency if a currency conversion is used */
-    convertedAmount: number;
+    /** The transaction converted amount in `groupCurrency` currency */
+    groupAmount?: number;
 
-    /** The currency that the converted amount is in */
-    convertedCurrency: string;
+    /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
+    groupCurrency?: string;
 };
 
 /** Model of tasks search result */
