@@ -9,10 +9,9 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import {isNetSuiteCustomFieldPropertyEditable, isNetSuiteCustomSegmentRecord, settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -36,6 +35,8 @@ type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
 
             /** Selected field of the current record  */
             fieldName: string;
+
+            policyID: string;
         };
     };
 };
@@ -43,10 +44,9 @@ type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
 function NetSuiteImportCustomFieldEdit({
     policy,
     route: {
-        params: {importCustomField, valueIndex, fieldName},
+        params: {importCustomField, valueIndex, fieldName, policyID},
     },
 }: NetSuiteImportCustomFieldViewProps) {
-    const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -72,7 +72,7 @@ function NetSuiteImportCustomFieldEdit({
                     return record;
                 });
 
-                if (PolicyUtils.isNetSuiteCustomSegmentRecord(customField)) {
+                if (isNetSuiteCustomSegmentRecord(customField)) {
                     updateNetSuiteCustomSegments(
                         policyID,
                         updatedRecords as NetSuiteCustomSegment[],
@@ -91,7 +91,7 @@ function NetSuiteImportCustomFieldEdit({
                 }
             }
 
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, valueIndex));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, valueIndex));
         },
         [allRecords, customField, fieldName, importCustomField, policyID, valueIndex],
     );
@@ -103,13 +103,13 @@ function NetSuiteImportCustomFieldEdit({
             const key = fieldName as keyof typeof formValues;
             const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths);
             if (!formValues[key]) {
-                ErrorUtils.addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {fieldName: fieldLabel}));
+                addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {fieldName: fieldLabel}));
             } else if (
                 policy?.connections?.netsuite?.options?.config?.syncOptions?.customSegments?.find(
                     (customSegment) => customSegment?.[fieldName as keyof typeof customSegment]?.toLowerCase() === formValues[key].toLowerCase(),
                 )
             ) {
-                ErrorUtils.addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel}));
+                addErrorMessage(errors, fieldName, translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel}));
             }
 
             return errors;
@@ -129,6 +129,7 @@ function NetSuiteImportCustomFieldEdit({
                     shouldValidateOnBlur
                     shouldValidateOnChange
                     isSubmitDisabled={!!settingsPendingAction([`${importCustomField}_${valueIndex}`], config?.pendingFields)}
+                    shouldHideFixErrorsAlert
                 >
                     <InputWrapper
                         InputComponent={TextInput}
@@ -160,7 +161,7 @@ function NetSuiteImportCustomFieldEdit({
         [customField, fieldName, fieldValue, updateRecord],
     );
 
-    const renderMap: Record<string, JSX.Element> = {
+    const renderMap: Record<string, React.JSX.Element> = {
         mapping: renderSelection,
     };
 
@@ -174,7 +175,7 @@ function NetSuiteImportCustomFieldEdit({
             contentContainerStyle={[styles.pb2, styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            shouldBeBlocked={!customField || !PolicyUtils.isNetSuiteCustomFieldPropertyEditable(customField, fieldName)}
+            shouldBeBlocked={!customField || !isNetSuiteCustomFieldPropertyEditable(customField, fieldName)}
             shouldUseScrollView={false}
         >
             {renderMap[fieldName] || renderForm}

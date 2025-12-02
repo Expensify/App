@@ -1,39 +1,53 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import useEReceipt from '@hooks/useEReceipt';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
+import {convertToDisplayString, getCurrencySymbol} from '@libs/CurrencyUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getTransactionDetails} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
-import EReceiptThumbnail from './EReceiptThumbnail';
+import type Transaction from '@src/types/onyx/Transaction';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
+import ImageSVG from './ImageSVG';
+import type {TransactionListItemType} from './SelectionListWithSections/types';
 import Text from './Text';
 
-type EReceiptOnyxProps = {
-    transaction: OnyxEntry<Transaction>;
-};
-
-type EReceiptProps = EReceiptOnyxProps & {
+type EReceiptProps = {
     /* TransactionID of the transaction this EReceipt corresponds to */
-    transactionID: string;
+    transactionID: string | undefined;
+
+    /** The transaction data in search */
+    transactionItem?: TransactionListItemType | Transaction;
+
+    /** Where it is the preview */
+    isThumbnail?: boolean;
+
+    /** Callback to be called when the image loads */
+    onLoad?: () => void;
 };
 
-function EReceipt({transaction, transactionID}: EReceiptProps) {
+const receiptMCCSize: number = variables.eReceiptMCCHeightWidthMedium;
+const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
+function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}: EReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody', 'ExpensifyWordmark'] as const);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
-    // Get receipt colorway, or default to Yellow.
-    const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction)) ?? {};
+    const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionItem ?? transaction);
+
+    const isLoadedRef = useRef(false);
 
     const {
         amount: transactionAmount,
@@ -41,58 +55,117 @@ function EReceipt({transaction, transactionID}: EReceiptProps) {
         merchant: transactionMerchant,
         created: transactionDate,
         cardID: transactionCardID,
-    } = ReportUtils.getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
-    const formattedAmount = CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
-    const currency = CurrencyUtils.getCurrencySymbol(transactionCurrency ?? '');
+        cardName: transactionCardName,
+    } = getTransactionDetails(transactionItem ?? transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
+    const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency);
+    const currency = getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
-    const cardDescription = TransactionUtils.getCardName(transaction) ?? (transactionCardID ? CardUtils.getCardDescription(transactionCardID) : '');
+    const cardDescription = getCompanyCardDescription(transactionCardName, transactionCardID, cardList) ?? (transactionCardID ? getCardDescription(cardList?.[transactionCardID]) : '');
+    const secondaryBgcolorStyle = secondaryColor ? StyleUtils.getBackgroundColorStyle(secondaryColor) : undefined;
+    const primaryTextColorStyle = primaryColor ? StyleUtils.getColorStyle(primaryColor) : undefined;
+    const titleTextColorStyle = titleColor ? StyleUtils.getColorStyle(titleColor) : undefined;
 
-    const secondaryTextColorStyle = secondaryColor ? StyleUtils.getColorStyle(secondaryColor) : undefined;
+    useEffect(() => {
+        if (isLoadedRef.current) {
+            return;
+        }
+        isLoadedRef.current = true;
+        onLoad?.();
+    }, [onLoad]);
 
     return (
-        <View style={[styles.eReceiptContainer, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : undefined]}>
-            <View style={styles.fullScreen}>
-                <EReceiptThumbnail
-                    transactionID={transactionID}
-                    centerIconV={false}
-                />
-            </View>
-            <View style={[styles.alignItemsCenter, styles.ph8, styles.pb14, styles.pt8]}>
-                <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.eReceiptIconHeight)]} />
-            </View>
-            <View style={[styles.flexColumn, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph9, styles.flex1]}>
-                <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2, styles.mb8]}>
-                    <View style={[styles.flexRow, styles.justifyContentCenter, StyleUtils.getWidthStyle(variables.eReceiptTextContainerWidth)]}>
-                        <View style={[styles.flexColumn, styles.pt1]}>
-                            <Text style={[styles.eReceiptCurrency, secondaryTextColorStyle]}>{currency}</Text>
+        <View
+            style={[
+                styles.eReceiptContainer,
+                primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : undefined,
+                isThumbnail && StyleUtils.getMinimumWidth(variables.eReceiptBGHWidth),
+            ]}
+        >
+            <View style={[styles.flex1, primaryColor ? StyleUtils.getBackgroundColorStyle(primaryColor) : {}, styles.overflowHidden, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <View style={[styles.eReceiptBackgroundThumbnail, StyleUtils.getMinimumWidth(backgroundImageMinWidth)]}>
+                    <ImageSVG src={backgroundImage} />
+                </View>
+                <View style={styles.eReceiptContentContainer}>
+                    <View>
+                        <ImageSVG
+                            src={icons.ReceiptBody}
+                            fill={theme.textColorfulBackground}
+                            contentFit="fill"
+                        />
+                        <View style={styles.eReceiptContentWrapper}>
+                            <View style={[StyleUtils.getBackgroundColorStyle(theme.textColorfulBackground), styles.alignItemsCenter, styles.justifyContentCenter, styles.h100]}>
+                                <View
+                                    style={[
+                                        StyleUtils.getWidthAndHeightStyle(variables.eReceiptEmptyIconWidth, variables.eReceiptEmptyIconWidth),
+                                        styles.alignItemsCenter,
+                                        styles.justifyContentCenter,
+                                        styles.borderRadiusComponentNormal,
+                                        secondaryBgcolorStyle,
+                                        styles.mb3,
+                                    ]}
+                                >
+                                    <View>
+                                        {MCCIcon ? (
+                                            <Icon
+                                                src={MCCIcon}
+                                                height={receiptMCCSize}
+                                                width={receiptMCCSize}
+                                                fill={primaryColor}
+                                            />
+                                        ) : null}
+                                        {!MCCIcon && tripIcon ? (
+                                            <Icon
+                                                src={tripIcon}
+                                                height={receiptMCCSize}
+                                                width={receiptMCCSize}
+                                                fill={primaryColor}
+                                            />
+                                        ) : null}
+                                    </View>
+                                </View>
+                                <Text style={[styles.eReceiptGuaranteed, primaryTextColorStyle]}>{translate('eReceipt.guaranteed')}</Text>
+                                <View style={[styles.alignItemsCenter]}>
+                                    <View style={[StyleUtils.getWidthAndHeightStyle(variables.eReceiptIconWidth, variables.h40)]} />
+                                </View>
+                                <View style={[styles.flexColumn, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph9, styles.flex1]}>
+                                    <View style={[styles.alignItemsCenter, styles.alignSelfCenter, styles.flexColumn, styles.gap2]}>
+                                        <View style={[styles.flexRow, styles.justifyContentCenter, StyleUtils.getWidthStyle(variables.eReceiptTextContainerWidth)]}>
+                                            <View style={[styles.flexColumn, styles.pt1]}>
+                                                <Text style={[styles.eReceiptCurrency, primaryTextColorStyle]}>{currency}</Text>
+                                            </View>
+                                            <Text
+                                                adjustsFontSizeToFit
+                                                style={[styles.eReceiptAmountLarge, primaryTextColorStyle, styles.pr4]}
+                                            >
+                                                {amount}
+                                            </Text>
+                                        </View>
+                                        <Text style={[styles.eReceiptMerchant, styles.breakWord, styles.textAlignCenter, primaryTextColorStyle]}>{transactionMerchant}</Text>
+                                    </View>
+                                    <View style={[styles.alignSelfStretch, styles.flexColumn, styles.gap4, styles.ph3]}>
+                                        <View style={[styles.flexColumn, styles.gap1]}>
+                                            <Text style={[styles.eReceiptWaypointTitle, titleTextColorStyle]}>{translate('eReceipt.transactionDate')}</Text>
+                                            <Text style={[styles.eReceiptWaypointAddress, primaryTextColorStyle]}>{transactionDate}</Text>
+                                        </View>
+                                        <View style={[styles.flexColumn, styles.gap1]}>
+                                            <Text style={[styles.eReceiptWaypointTitle, titleTextColorStyle]}>{translate('common.card')}</Text>
+                                            <Text style={[styles.eReceiptWaypointAddress, primaryTextColorStyle]}>{cardDescription}</Text>
+                                        </View>
+                                    </View>
+                                    <View>
+                                        <View style={[styles.alignItemsCenter, styles.alignSelfStretch, styles.flexRow, styles.w100, styles.mb8]}>
+                                            <Icon
+                                                width={variables.eReceiptWordmarkWidth}
+                                                height={variables.eReceiptWordmarkHeight}
+                                                fill={secondaryColor}
+                                                src={icons.ExpensifyWordmark}
+                                            />
+                                        </View>
+                                    </View>
+                                </View>
+                            </View>
                         </View>
-                        <Text
-                            adjustsFontSizeToFit
-                            style={[styles.eReceiptAmountLarge, secondaryTextColorStyle]}
-                        >
-                            {amount}
-                        </Text>
                     </View>
-                    <Text style={[styles.eReceiptMerchant, styles.breakWord, styles.textAlignCenter]}>{transactionMerchant}</Text>
-                </View>
-                <View style={[styles.alignSelfStretch, styles.flexColumn, styles.mb8, styles.gap4]}>
-                    <View style={[styles.flexColumn, styles.gap1]}>
-                        <Text style={[styles.eReceiptWaypointTitle, secondaryTextColorStyle]}>{translate('eReceipt.transactionDate')}</Text>
-                        <Text style={[styles.eReceiptWaypointAddress]}>{transactionDate}</Text>
-                    </View>
-                    <View style={[styles.flexColumn, styles.gap1]}>
-                        <Text style={[styles.eReceiptWaypointTitle, secondaryTextColorStyle]}>{translate('common.card')}</Text>
-                        <Text style={[styles.eReceiptWaypointAddress]}>{cardDescription}</Text>
-                    </View>
-                </View>
-                <View style={[styles.justifyContentBetween, styles.alignItemsCenter, styles.alignSelfStretch, styles.flexRow, styles.mb8]}>
-                    <Icon
-                        width={variables.eReceiptWordmarkWidth}
-                        height={variables.eReceiptWordmarkHeight}
-                        fill={secondaryColor}
-                        src={Expensicons.ExpensifyWordmark}
-                    />
-                    <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
                 </View>
             </View>
         </View>
@@ -101,9 +174,5 @@ function EReceipt({transaction, transactionID}: EReceiptProps) {
 
 EReceipt.displayName = 'EReceipt';
 
-export default withOnyx<EReceiptProps, EReceiptOnyxProps>({
-    transaction: {
-        key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-    },
-})(EReceipt);
-export type {EReceiptProps, EReceiptOnyxProps};
+export default EReceipt;
+export type {EReceiptProps};

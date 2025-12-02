@@ -7,7 +7,7 @@ import Text from './Text';
 type BulletListItem = string;
 
 type BulletListProps = {
-    /** List of items for the list. Each item will be rendered as a sepearte point.  */
+    /** List of items for the list. Each item will be rendered as a separate point.  */
     items: BulletListItem[];
 
     /** Header section of the list */
@@ -48,5 +48,4 @@ function BulletList({items, header}: BulletListProps) {
 
 BulletList.displayName = 'BulletList';
 
-export type {BulletListProps};
 export default BulletList;

@@ -1,23 +1,15 @@
+import type {AndroidCardData, IOSEncryptPayload} from '@expensify/react-native-wallet';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {
-    AcceptWalletTermsParams,
-    AnswerQuestionsForWalletParams,
-    RequestPhysicalExpensifyCardParams,
-    UpdatePersonalDetailsForWalletParams,
-    VerifyIdentityParams,
-} from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import type {PrivatePersonalDetails} from '@libs/GetPhysicalCardUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import type {AcceptWalletTermsParams, AnswerQuestionsForWalletParams, UpdatePersonalDetailsForWalletParams, VerifyIdentityParams} from '@libs/API/parameters';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import * as FormActions from './FormActions';
+import type {ProvisioningCardData, WalletAdditionalQuestionDetails} from '@src/types/onyx';
+import pkg from '../../../package.json';
 
 type WalletQuestionAnswer = {
     question: string;
@@ -57,11 +49,6 @@ function openOnfidoFlow() {
 
 function setAdditionalDetailsQuestions(questions: WalletAdditionalQuestionDetails[] | null, idNumber?: string) {
     Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {questions, idNumber});
-}
-
-function setAdditionalDetailsErrors(errorFields: OnyxCommon.ErrorFields) {
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errorFields: null});
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errorFields});
 }
 
 /**
@@ -259,133 +246,87 @@ function answerQuestionsForWallet(answers: WalletQuestionAnswer[], idNumber: str
     });
 }
 
-function requestPhysicalExpensifyCard(cardID: number, authToken: string, privatePersonalDetails: PrivatePersonalDetails, validateCode: string) {
-    const {legalFirstName = '', legalLastName = '', phoneNumber = ''} = privatePersonalDetails;
-    const {city = '', country = '', state = '', street = '', zip = ''} = PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails) ?? {};
-
-    const requestParams: RequestPhysicalExpensifyCardParams = {
-        authToken,
-        legalFirstName,
-        legalLastName,
-        phoneNumber,
-        addressCity: city,
-        addressCountry: country,
-        addressState: state,
-        addressStreet: street,
-        addressZip: zip,
-        validateCode,
-    };
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    errors: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: privatePersonalDetails,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
-            value: {
-                isLoading: true,
-                errors: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.VALIDATE_ACTION_CODE,
-            value: {
-                validateCodeSent: false,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    state: 4, // NOT_ACTIVATED
-                    errors: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
-            value: {
-                isLoading: false,
-                errors: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.VALIDATE_ACTION_CODE,
-            value: {
-                validateCodeSent: false,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_LIST,
-            value: {
-                [cardID]: {
-                    state: 2,
-                    isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.REQUEST_PHYSICAL_EXPENSIFY_CARD, requestParams, {optimisticData, failureData, successData});
-}
-
 function resetWalletAdditionalDetailsDraft() {
     Onyx.set(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT, null);
 }
 
-/**
- * Clear the error of specific card
- * @param cardID The card id of the card that you want to clear the errors.
- */
-function clearPhysicalCardError(cardID?: string) {
-    if (!cardID) {
-        return;
-    }
+function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[]): Promise<IOSEncryptPayload> {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-api-in-views
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
+        platform: 'ios',
+        appVersion: pkg.version,
+        certificates: JSON.stringify({certificates}),
+        nonce,
+        nonceSignature,
+    })
+        .then((response) => {
+            const data = response as unknown as IOSEncryptPayload;
+            return {
+                encryptedPassData: data.encryptedPassData,
+                activationData: data.activationData,
+                ephemeralPublicKey: data.ephemeralPublicKey,
+            } as IOSEncryptPayload;
+        })
+        .catch((error) => {
+            Log.warn(`issuerEncryptPayloadCallback error: ${error}`);
+            return {} as IOSEncryptPayload;
+        });
+}
 
-    FormActions.clearErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
-    Onyx.merge(ONYXKEYS.CARD_LIST, {
-        [cardID]: {
-            errors: null,
-        },
-    });
+/**
+ * Add card to digital wallet
+ *
+ * @param walletAccountID ID of the wallet on user's phone
+ * @param deviceID ID of user's phone
+ */
+function createDigitalGoogleWallet({
+    walletAccountID,
+    deviceID,
+    cardID,
+    cardHolderName,
+}: {
+    deviceID: string;
+    walletAccountID: string;
+    cardID: number;
+    cardHolderName: string;
+}): Promise<AndroidCardData> {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
+        platform: 'android',
+        appVersion: pkg.version,
+        walletAccountID,
+        deviceID,
+        cardID,
+    })
+        .then((response) => {
+            const data = response as unknown as ProvisioningCardData;
+            return {
+                network: data.network,
+                opaquePaymentCard: data.opaquePaymentCard,
+                cardHolderName,
+                lastDigits: data.lastDigits,
+                userAddress: {
+                    name: data.userAddress.name,
+                    addressOne: data.userAddress.address1,
+                    addressTwo: data.userAddress.address2,
+                    administrativeArea: data.userAddress.state,
+                    locality: data.userAddress.city,
+                    countryCode: data.userAddress.country,
+                    postalCode: data.userAddress.postal_code,
+                    phoneNumber: data.userAddress.phone,
+                },
+            } as AndroidCardData;
+        })
+        .catch((error) => {
+            Log.warn(`createDigitalGoogleWallet error: ${error}`);
+            return {} as AndroidCardData;
+        });
 }
 
 export {
     openOnfidoFlow,
     openInitialSettingsPage,
     openEnablePaymentsPage,
-    setAdditionalDetailsErrors,
     setAdditionalDetailsQuestions,
     updateCurrentStep,
     answerQuestionsForWallet,
@@ -393,7 +334,7 @@ export {
     verifyIdentity,
     acceptWalletTerms,
     setKYCWallSource,
-    requestPhysicalExpensifyCard,
     resetWalletAdditionalDetailsDraft,
-    clearPhysicalCardError,
+    issuerEncryptPayloadCallback,
+    createDigitalGoogleWallet,
 };

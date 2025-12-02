@@ -1,12 +1,15 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {sortAlphabetically} from '@libs/OptionsListUtils';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import MenuItem from './MenuItem';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
@@ -21,9 +24,10 @@ type ApprovalWorkflowSectionProps = {
 };
 
 function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSectionProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Users', 'UserCheck'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, toLocaleOrdinal} = useLocalize();
+    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const approverTitle = useCallback(
@@ -37,10 +41,10 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
             return translate('workspace.common.everyone');
         }
 
-        return OptionsListUtils.sortAlphabetically(approvalWorkflow.members, 'displayName')
-            .map((m) => m.displayName)
+        return sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
+            .map((m) => Str.removeSMSDomain(m.displayName))
             .join(', ');
-    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
+    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate, localeCompare]);
 
     return (
         <PressableWithoutFeedback
@@ -70,10 +74,10 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                     title={translate('workflowsExpensesFromPage.title')}
                     style={styles.p0}
                     titleStyle={styles.textLabelSupportingNormal}
-                    descriptionTextStyle={styles.textNormalThemeText}
+                    descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
                     description={members}
                     numberOfLinesDescription={4}
-                    icon={Expensicons.Users}
+                    icon={icons.Users}
                     iconHeight={20}
                     iconWidth={20}
                     iconFill={theme.icon}
@@ -89,11 +93,12 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                             title={approverTitle(index)}
                             style={styles.p0}
                             titleStyle={styles.textLabelSupportingNormal}
-                            descriptionTextStyle={styles.textNormalThemeText}
-                            description={approver.displayName}
-                            icon={Expensicons.UserCheck}
+                            descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
+                            description={Str.removeSMSDomain(approver.displayName)}
+                            icon={icons.UserCheck}
                             iconHeight={20}
                             iconWidth={20}
+                            numberOfLinesDescription={1}
                             iconFill={theme.icon}
                             onPress={onPress}
                             shouldRemoveBackground

@@ -252,6 +252,7 @@
     "GBP": {
         "symbol": "£",
         "name": "British Pound",
+        "countries": ["GB"],
         "ISO4217": "826"
     },
     "GEL": {

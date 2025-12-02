@@ -1,13 +1,13 @@
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
 import Debug from '@libs/actions/Debug';
 import DebugUtils from '@libs/DebugUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {DebugTabNavigatorRoutes} from '@libs/Navigation/DebugTabNavigator';
 import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,8 +29,9 @@ function DebugTransactionViolationPage({
     },
 }: DebugTransactionViolationPageProps) {
     const {translate} = useLocalize();
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+    const transactionViolations = useTransactionViolations(transactionID);
     const transactionViolation = useMemo(() => transactionViolations?.[Number(index)], [index, transactionViolations]);
+
     const styles = useThemeStyles();
 
     const saveChanges = useCallback(
@@ -48,6 +49,7 @@ function DebugTransactionViolationPage({
         Navigation.goBack();
         // We need to wait for navigation animations to finish before deleting a violation,
         // otherwise the user will see a not found page briefly.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
         });
@@ -84,7 +86,7 @@ function DebugTransactionViolationPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMinHeight={canUseTouchScreen()}
             testID={DebugTransactionViolationPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (

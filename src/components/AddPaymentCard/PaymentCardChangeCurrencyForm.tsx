@@ -6,11 +6,12 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidSecurityCode} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
@@ -28,34 +29,42 @@ const REQUIRED_FIELDS = [INPUT_IDS.SECURITY_CODE];
 function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeRequired, initialCurrency}: PaymentCardFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
 
     const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
     const [currency, setCurrency] = useState<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>(initialCurrency ?? CONST.PAYMENT_CARD_CURRENCY.USD);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+        const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
-        if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
+        if (values.securityCode && !isValidSecurityCode(values.securityCode)) {
             errors.securityCode = translate('addPaymentCardPage.error.securityCode');
         }
 
         return errors;
     };
 
-    const {sections} = useMemo(
-        () => ({
-            sections: [
-                {
-                    data: (Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Array<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>).map((currencyItem) => ({
-                        text: currencyItem,
-                        value: currencyItem,
-                        keyForList: currencyItem,
-                        isSelected: currencyItem === currency,
-                    })),
-                },
-            ],
-        }),
-        [currency],
+    const availableCurrencies = useMemo(() => {
+        const canUseEurBilling = isBetaEnabled(CONST.BETAS.EUR_BILLING);
+        const allCurrencies = Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Array<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>;
+        // Filter out EUR if user doesn't have EUR billing beta
+        return allCurrencies.filter((currencyItem) => {
+            if (currencyItem === CONST.PAYMENT_CARD_CURRENCY.EUR && !canUseEurBilling) {
+                return false;
+            }
+            return true;
+        });
+    }, [isBetaEnabled]);
+
+    const currencyOptions = useMemo(
+        () =>
+            availableCurrencies.map((currencyItem) => ({
+                text: currencyItem,
+                value: currencyItem,
+                keyForList: currencyItem,
+                isSelected: currencyItem === currency,
+            })),
+        [availableCurrencies, currency],
     );
 
     const showCurrenciesModal = useCallback(() => {
@@ -84,6 +93,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                 submitButtonText={translate('common.save')}
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
+                shouldHideFixErrorsAlert
             >
                 <PaymentCardCurrencyHeader />
                 <>
@@ -102,14 +112,13 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                         label={translate('addDebitCardPage.cvv')}
                         aria-label={translate('addDebitCardPage.cvv')}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={4}
                         containerStyles={[styles.mt5]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                     />
                 </>
                 <PaymentCardCurrencyModal
                     isVisible={isCurrencyModalVisible}
-                    currencies={Object.keys(CONST.PAYMENT_CARD_CURRENCY) as Array<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>}
+                    currencies={availableCurrencies}
                     currentCurrency={currency}
                     onCurrencyChange={changeCurrency}
                     onClose={() => setIsCurrencyModalVisible(false)}
@@ -121,17 +130,15 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
     return (
         <View style={[styles.mh5, styles.flexGrow1]}>
             <SelectionList
-                headerContent={<PaymentCardCurrencyHeader isSectionList />}
-                initiallyFocusedOptionKey={currency}
-                containerStyle={[styles.mhn5]}
-                sections={sections}
+                data={currencyOptions}
+                ListItem={RadioListItem}
                 onSelectRow={(option) => {
                     selectCurrency(option.value);
                 }}
-                showScrollIndicator
+                style={{containerStyle: styles.mhn5}}
+                initiallyFocusedItemKey={currency}
+                customListHeader={<PaymentCardCurrencyHeader isSectionList />}
                 shouldStopPropagation
-                shouldUseDynamicMaxToRenderPerBatch
-                ListItem={RadioListItem}
             />
         </View>
     );

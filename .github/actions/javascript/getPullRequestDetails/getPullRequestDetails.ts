@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import {getJSONInput} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@github/libs/isEmptyObject';
 
 type PullRequest = Awaited<ReturnType<typeof GithubUtils.octokit.pulls.get>>['data'];
 
@@ -54,6 +54,7 @@ GithubUtils.octokit.pulls
     .then(({data: PR}) => {
         if (!isEmptyObject(PR)) {
             console.log(`Found matching pull request: ${PR.html_url}`);
+            console.log(`Pull request details: ${JSON.stringify(PR)}}`);
             core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
             core.setOutput('HEAD_COMMIT_SHA', PR.head?.sha);
             core.setOutput('IS_MERGED', PR.merged);

@@ -8,7 +8,7 @@ function NextStepEmailRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) 
 
     return (
         <Text
-            nativeID="email-with-break-opportunities"
+            testID="email-with-break-opportunities"
             style={[styles.breakWord, styles.textLabelSupporting, styles.textStrong]}
         >
             {'data' in tnode ? tnode.data : ''}

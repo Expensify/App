@@ -1,9 +1,13 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
+import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+import {translateLocal} from '../utils/TestHelper';
 
 const categoryOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
@@ -13,6 +17,53 @@ const categoryOutOfPolicyViolation = {
 const missingCategoryViolation = {
     name: CONST.VIOLATIONS.MISSING_CATEGORY,
     type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+};
+
+const futureDateViolation = {
+    name: CONST.VIOLATIONS.FUTURE_DATE,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+};
+
+const receiptRequiredViolation = {
+    name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+    data: {
+        formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT),
+    },
+};
+
+const categoryReceiptRequiredViolation = {
+    name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+    data: undefined,
+};
+
+const overLimitViolation = {
+    name: CONST.VIOLATIONS.OVER_LIMIT,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+    data: {
+        formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT),
+    },
+};
+
+const categoryOverLimitViolation = {
+    name: CONST.VIOLATIONS.OVER_CATEGORY_LIMIT,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+    data: {
+        formattedLimit: convertAmountToDisplayString(CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT),
+    },
+};
+
+const categoryMissingCommentViolation = {
+    name: CONST.VIOLATIONS.MISSING_COMMENT,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
 };
 
 const customUnitOutOfPolicyViolation = {
@@ -30,6 +81,16 @@ const tagOutOfPolicyViolation = {
     type: CONST.VIOLATION_TYPES.VIOLATION,
 };
 
+const smartScanFailedViolation = {
+    name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
+    type: CONST.VIOLATION_TYPES.WARNING,
+};
+
+const duplicatedTransactionViolation = {
+    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+    type: CONST.VIOLATION_TYPES.WARNING,
+};
+
 describe('getViolationsOnyxData', () => {
     let transaction: Transaction;
     let transactionViolations: TransactionViolation[];
@@ -40,13 +101,12 @@ describe('getViolationsOnyxData', () => {
     beforeEach(() => {
         transaction = {
             transactionID: '123',
-            attendees: [{email: 'text@expensify.com'}],
             reportID: '1234',
             amount: 100,
-            comment: {},
+            comment: {attendees: [{email: 'text@expensify.com', displayName: 'Test User', avatarUrl: ''}]},
             created: '2023-07-24 13:46:20',
             merchant: 'United Airlines',
-            currency: 'USD',
+            currency: CONST.CURRENCY.USD,
         };
         transactionViolations = [];
         policy = {requiresTag: false, requiresCategory: false} as Policy;
@@ -55,7 +115,7 @@ describe('getViolationsOnyxData', () => {
     });
 
     it('should return an object with correct shape and with empty transactionViolations array', () => {
-        const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+        const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
         expect(result).toEqual({
             onyxMethod: Onyx.METHOD.SET,
@@ -65,11 +125,14 @@ describe('getViolationsOnyxData', () => {
     });
 
     it('should handle multiple violations', () => {
+        policy.type = 'corporate';
+        policy.maxExpenseAmountNoReceipt = 25;
+        transaction.amount = 100;
         transactionViolations = [
             {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION},
             {name: 'receiptRequired', type: CONST.VIOLATION_TYPES.VIOLATION},
         ];
-        const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+        const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
         expect(result.value).toEqual(expect.arrayContaining(transactionViolations));
     });
 
@@ -106,9 +169,130 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should remove the customUnitOutOfPolicy violation if the modified one belongs to the policy', () => {
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
             expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
+        });
+    });
+
+    describe('per diem rate validation', () => {
+        beforeEach(() => {
+            transactionViolations = [customUnitOutOfPolicyViolation];
+
+            const customUnitRateID = 'per_diem_rate_id';
+            transaction.comment = {
+                ...transaction.comment,
+                customUnit: {
+                    ...(transaction?.comment?.customUnit ?? {}),
+                    customUnitRateID,
+                },
+            };
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
+            policy.customUnits = {
+                perDiemUnitId: {
+                    customUnitID: 'perDiemUnitId',
+                    defaultCategory: '',
+                    enabled: true,
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: true,
+                            name: 'Spain',
+                            rate: 0,
+                        },
+                    },
+                },
+            };
+        });
+
+        it('should remove the customUnitOutOfPolicy violation if the per diem rate is valid for the policy', () => {
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
+        });
+    });
+
+    describe('controlPolicyViolations', () => {
+        beforeEach(() => {
+            policy.type = 'corporate';
+            policy.outputCurrency = CONST.CURRENCY.USD;
+        });
+
+        it('should not add futureDate violation if the policy is not corporate', () => {
+            transaction.created = '9999-12-31T23:59:59Z';
+            policy.type = 'personal';
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual(transactionViolations);
+        });
+
+        it('should add futureDate violation if the transaction has a future date and policy is corporate', () => {
+            transaction.created = '9999-12-31T23:59:59Z';
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual(expect.arrayContaining([futureDateViolation, ...transactionViolations]));
+        });
+
+        it('should remove futureDate violation if the policy is downgraded', () => {
+            transaction.created = '9999-12-31T23:59:59Z';
+            policy.type = 'personal';
+            transactionViolations = [futureDateViolation];
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(futureDateViolation);
+        });
+
+        it('should add receiptRequired violation if the transaction has no receipt', () => {
+            transaction.amount = -1000000;
+            policy.maxExpenseAmountNoReceipt = 2500;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual(expect.arrayContaining([receiptRequiredViolation, ...transactionViolations]));
+        });
+
+        it('should not add receiptRequired violation if the transaction has different currency than the workspace currency', () => {
+            transaction.amount = -1000000;
+            transaction.modifiedCurrency = CONST.CURRENCY.CAD;
+            policy.maxExpenseAmountNoReceipt = 2500;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([]);
+        });
+
+        it('should add overLimit violation if the transaction amount is over the policy limit', () => {
+            transaction.amount = -1000000;
+            policy.maxExpenseAmount = 200000;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual(expect.arrayContaining([overLimitViolation, ...transactionViolations]));
+        });
+
+        it('should not add overLimit violation if the transaction currency is different from the workspace currency', () => {
+            transaction.amount = -1000000;
+            transaction.modifiedCurrency = CONST.CURRENCY.NZD;
+            policy.maxExpenseAmount = 200000;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([]);
+        });
+    });
+
+    describe('policyCategoryRules', () => {
+        beforeEach(() => {
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.outputCurrency = CONST.CURRENCY.USD;
+            policyCategories = {
+                Food: {
+                    name: 'Food',
+                    enabled: true,
+                    areCommentsRequired: true,
+                    maxAmountNoReceipt: 0,
+                    maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
+                },
+            };
+            transaction.category = 'Food';
+            transaction.amount = -CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT - 1;
+            transaction.comment = {comment: ''};
+        });
+
+        it('should add category specific violations', () => {
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual(expect.arrayContaining([categoryOverLimitViolation, categoryReceiptRequiredViolation, categoryMissingCommentViolation, ...transactionViolations]));
         });
     });
 
@@ -117,53 +301,81 @@ describe('getViolationsOnyxData', () => {
             policy.requiresCategory = true;
             policyCategories = {Food: {name: 'Food', unencodedName: '', enabled: true, areCommentsRequired: false, externalID: '1234', origin: '12345'}};
             transaction.category = 'Food';
+            transaction.amount = 100;
         });
 
         it('should add missingCategory violation if no category is included', () => {
             transaction.category = undefined;
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
         });
 
         it('should add categoryOutOfPolicy violation when category is not in policy', () => {
             transaction.category = 'Bananas';
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual(expect.arrayContaining([categoryOutOfPolicyViolation, ...transactionViolations]));
         });
 
         it('should not include a categoryOutOfPolicy violation when category is in policy', () => {
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
-        it('should not add a category violation when the transaction is partial', () => {
-            const partialTransaction = {...transaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, category: undefined};
-            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false);
+        it('should not add a category violation when the transaction is scanning', () => {
+            const partialTransaction = {
+                ...transaction,
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                category: undefined,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).not.toContainEqual(missingCategoryViolation);
+        });
+
+        it('should not add categoryOutOfPolicy violation when category is Uncategorized', () => {
+            transaction.category = 'Uncategorized';
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
+        });
+
+        it('should not add categoryOutOfPolicy violation when category is none', () => {
+            transaction.category = 'none';
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
         it('should add categoryOutOfPolicy violation to existing violations if they exist', () => {
             transaction.category = 'Bananas';
-            transactionViolations = [
-                {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION},
-                {name: 'receiptRequired', type: CONST.VIOLATION_TYPES.VIOLATION},
-            ];
+            transaction.amount = 1000000;
+            transactionViolations = [{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
             expect(result.value).toEqual(expect.arrayContaining([categoryOutOfPolicyViolation, ...transactionViolations]));
         });
 
         it('should add missingCategory violation to existing violations if they exist', () => {
             transaction.category = undefined;
-            transactionViolations = [
-                {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION},
-                {name: 'receiptRequired', type: CONST.VIOLATION_TYPES.VIOLATION},
-            ];
+            transaction.amount = 1000000;
+            transactionViolations = [{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
+        });
+
+        it('should only return smartscanFailed violation for smart scan failed transactions', () => {
+            const partialTransaction = {
+                ...transaction,
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                category: undefined,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).toEqual([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}]);
         });
     });
 
@@ -173,7 +385,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should not add any violations when categories are not required', () => {
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
             expect(result.value).not.toContainEqual(missingCategoryViolation);
@@ -198,7 +410,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it("shouldn't update the transactionViolations if the policy requires tags and the transaction has a tag from the policy", () => {
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
             expect(result.value).toEqual(transactionViolations);
         });
@@ -206,47 +418,47 @@ describe('getViolationsOnyxData', () => {
         it('should add a missingTag violation if none is provided and policy requires tags', () => {
             transaction.tag = undefined;
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation}]));
+            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, data: {tagName: 'Meals'}}]));
         });
 
         it('should add a tagOutOfPolicy violation when policy requires tags and tag is not in the policy', () => {
             policyTags = {};
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
             expect(result.value).toEqual([]);
         });
 
-        it('should not add a tag violation when the transaction is partial', () => {
-            const partialTransaction = {...transaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, tag: undefined};
-            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false);
+        it('should not add a tag violation when the transaction is scanning', () => {
+            const partialTransaction = {
+                ...transaction,
+                amount: 0,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                tag: undefined,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).not.toContainEqual(missingTagViolation);
         });
 
         it('should add tagOutOfPolicy violation to existing violations if transaction has tag that is not in the policy', () => {
             transaction.tag = 'Bananas';
-            transactionViolations = [
-                {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION},
-                {name: 'receiptRequired', type: CONST.VIOLATION_TYPES.VIOLATION},
-            ];
+            transactionViolations = [{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...tagOutOfPolicyViolation}, ...transactionViolations]));
+            expect(result.value).toEqual(expect.arrayContaining([{...tagOutOfPolicyViolation, data: {tagName: 'Meals'}}, ...transactionViolations]));
         });
 
         it('should add missingTag violation to existing violations if transaction does not have a tag', () => {
             transaction.tag = undefined;
-            transactionViolations = [
-                {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION},
-                {name: 'receiptRequired', type: CONST.VIOLATION_TYPES.VIOLATION},
-            ];
+            transactionViolations = [{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
 
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation}, ...transactionViolations]));
+            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, data: {tagName: 'Meals'}}, ...transactionViolations]));
         });
     });
 
@@ -256,7 +468,7 @@ describe('getViolationsOnyxData', () => {
         });
 
         it('should not add any violations when tags are not required', () => {
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
             expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
             expect(result.value).not.toContainEqual(missingTagViolation);
@@ -312,30 +524,30 @@ describe('getViolationsOnyxData', () => {
             };
 
             // Test case where transaction has no tags
-            let result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            let result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual([someTagLevelsRequiredViolation]);
 
             // Test case where transaction has 1 tag
             transaction.tag = 'Africa';
             someTagLevelsRequiredViolation.data = {errorIndexes: [1, 2]};
-            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual([someTagLevelsRequiredViolation]);
 
             // Test case where transaction has 2 tags
             transaction.tag = 'Africa::Project1';
             someTagLevelsRequiredViolation.data = {errorIndexes: [1]};
-            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual([someTagLevelsRequiredViolation]);
 
             // Test case where transaction has all tags
             transaction.tag = 'Africa:Accounting:Project1';
-            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual([]);
         });
         it('should return tagOutOfPolicy when a tag is not enabled in the policy but is set in the transaction', () => {
             policyTags.Department.tags.Accounting.enabled = false;
             transaction.tag = 'Africa:Accounting:Project1';
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             const violation = {...tagOutOfPolicyViolation, data: {tagName: 'Department'}};
             expect(result.value).toEqual([violation]);
         });
@@ -344,8 +556,454 @@ describe('getViolationsOnyxData', () => {
             const missingRegionTag = {...missingTagViolation, data: {tagName: 'Region'}};
             const missingProjectTag = {...missingTagViolation, data: {tagName: 'Project'}};
             transaction.tag = undefined;
-            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, true);
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, true, false);
             expect(result.value).toEqual(expect.arrayContaining([missingDepartmentTag, missingRegionTag, missingProjectTag]));
         });
+    });
+});
+
+const getFakeTransaction = (transactionID: string, comment?: Transaction['comment']) => ({
+    transactionID,
+    attendees: [{email: 'text@expensify.com'}],
+    reportID: '1234',
+    amount: 100,
+    comment: comment ?? {},
+    created: '2023-07-24 13:46:20',
+    merchant: 'United Airlines',
+    currency: 'USD',
+});
+
+const CARLOS_EMAIL = 'cmartins@expensifail.com';
+const CARLOS_ACCOUNT_ID = 1;
+
+describe('getViolations', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.SESSION]: {
+                    email: CARLOS_EMAIL,
+                    accountID: CARLOS_ACCOUNT_ID,
+                },
+            },
+        });
+    });
+
+    afterEach(() => Onyx.clear());
+
+    it('should check if violation is dismissed or not', async () => {
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+
+        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
+        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
+
+        expect(isSmartScanDismissed).toBeTruthy();
+        expect(isDuplicateViolationDismissed).toBeFalsy();
+    });
+
+    it('should check if violation is dismissed or not (with report and policy params)', async () => {
+        const policy: Policy = {
+            id: 'test-policy-id',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: CARLOS_EMAIL,
+            isPolicyExpenseChatEnabled: false,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+            outputCurrency: CONST.CURRENCY.USD,
+        };
+
+        const report: Report = {
+            reportID: 'test-report-id',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CARLOS_ACCOUNT_ID,
+            policyID: policy.id,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+
+        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
+        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
+
+        expect(isSmartScanDismissed).toBeTruthy();
+        expect(isDuplicateViolationDismissed).toBeFalsy();
+    });
+
+    it('should return filtered out dismissed violations', async () => {
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        const transactionViolationsCollection = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+
+        // Should filter out the smartScanFailedViolation
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
+        expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
+    });
+
+    it('should return filtered out dismissed violations (with report and policy params)', async () => {
+        const policy: Policy = {
+            id: 'test-policy-id',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: CARLOS_EMAIL,
+            isPolicyExpenseChatEnabled: false,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            outputCurrency: CONST.CURRENCY.USD,
+        };
+
+        const report: Report = {
+            reportID: 'test-report-id',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CARLOS_ACCOUNT_ID,
+            policyID: policy.id,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        const transactionViolationsCollection = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+
+        // Should filter out the smartScanFailedViolation
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
+        expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
+    });
+
+    it('checks if transaction has warning type violation after filtering dismissed violations', async () => {
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        const transactionViolationsCollection = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, '', CONST.DEFAULT_NUMBER_ID, undefined, undefined);
+        expect(hasWarningTypeViolationRes).toBeTruthy();
+    });
+
+    it('checks if transaction has warning type violation after filtering dismissed violations (with report and policy params)', async () => {
+        const policy: Policy = {
+            id: 'test-policy-id',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: CARLOS_EMAIL,
+            isPolicyExpenseChatEnabled: false,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+            outputCurrency: CONST.CURRENCY.USD,
+            pendingAction: undefined,
+        };
+
+        const report: Report = {
+            reportID: 'test-report-id',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CARLOS_ACCOUNT_ID,
+            policyID: policy.id,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        const transactionViolationsCollection = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
+        expect(hasWarningTypeViolationRes).toBeTruthy();
+    });
+});
+
+const brokenCardConnectionViolation: TransactionViolation = {
+    name: CONST.VIOLATIONS.RTER,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    data: {
+        brokenBankConnection: true,
+        isAdmin: true,
+        rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION,
+    },
+};
+
+const brokenCardConnection530Violation: TransactionViolation = {
+    name: CONST.VIOLATIONS.RTER,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    data: {
+        brokenBankConnection: true,
+        isAdmin: false,
+        rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
+    },
+};
+
+describe('getViolationTranslation', () => {
+    it('should return the correct message for broken card connection violation', () => {
+        const testPolicyID = 'test-policy-123';
+        const companyCardPageURL = `workspaces/${testPolicyID}/company-cards`;
+        const brokenCardConnectionViolationExpected = translateLocal('violations.rter', {
+            brokenBankConnection: true,
+            isAdmin: true,
+            rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION,
+            isTransactionOlderThan7Days: false,
+            companyCardPageURL,
+        });
+        expect(ViolationsUtils.getViolationTranslation(brokenCardConnectionViolation, translateLocal)).toBe(brokenCardConnectionViolationExpected);
+        const brokenCardConnection530ViolationExpected = translateLocal('violations.rter', {
+            brokenBankConnection: true,
+            isAdmin: false,
+            rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
+            isTransactionOlderThan7Days: false,
+            companyCardPageURL,
+        });
+        expect(ViolationsUtils.getViolationTranslation(brokenCardConnection530Violation, translateLocal)).toBe(brokenCardConnection530ViolationExpected);
+    });
+});
+
+describe('getRBRMessages', () => {
+    const mockTransaction: Transaction = {
+        transactionID: 'test-transaction-id',
+        reportID: 'test-report-id',
+        amount: 100,
+        currency: CONST.CURRENCY.USD,
+        created: '2023-07-24 13:46:20',
+        merchant: 'Test Merchant',
+    };
+
+    const mockViolations: TransactionViolation[] = [
+        {
+            name: CONST.VIOLATIONS.MISSING_CATEGORY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        },
+        {
+            name: CONST.VIOLATIONS.MISSING_TAG,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        },
+    ];
+
+    it('should return all violations and missing field error', () => {
+        const missingFieldError = 'Missing required field';
+        const result = ViolationsUtils.getRBRMessages(mockTransaction, mockViolations, translateLocal, missingFieldError, []);
+        const expectedResult = `Missing required field. ${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
+
+        expect(result).toBe(expectedResult);
+    });
+
+    it('should filter out empty strings', () => {
+        const result = ViolationsUtils.getRBRMessages(mockTransaction, mockViolations, translateLocal, undefined, []);
+        const expectedResult = `${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
+
+        expect(result).toBe(expectedResult);
+    });
+});
+
+describe('hasVisibleViolationsForUser', () => {
+    const submitterAccountID = 12345;
+    const testReportID = 'test-report-123';
+    const testTransactionID = 'test-transaction-123';
+    const testPolicyID = 'test-policy-123';
+
+    const mockReport = {
+        reportID: testReportID,
+        ownerAccountID: submitterAccountID,
+        policyID: testPolicyID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+    } as Report;
+
+    const mockPolicy = {
+        id: testPolicyID,
+        role: CONST.POLICY.ROLE.ADMIN,
+        type: CONST.POLICY.TYPE.TEAM,
+    } as Policy;
+
+    const mockTransaction = {
+        transactionID: testTransactionID,
+        reportID: testReportID,
+        accountID: submitterAccountID,
+        amount: 1000,
+        created: '2023-01-01',
+        currency: 'USD',
+        merchant: 'Test Merchant',
+    } as Transaction;
+
+    beforeEach(() => {
+        Onyx.set(ONYXKEYS.SESSION, {accountID: submitterAccountID});
+    });
+
+    it('should return false when report is null', () => {
+        const violations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
+        };
+
+        const result = ViolationsUtils.hasVisibleViolationsForUser(undefined, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
+        expect(result).toBe(false);
+    });
+
+    it('should return false when violations is null', () => {
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, undefined, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
+        expect(result).toBe(false);
+    });
+
+    it('should return false when transactions is empty', () => {
+        const violations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
+        };
+
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, []);
+        expect(result).toBe(false);
+    });
+
+    it('should return false when no violations exist for transactions', () => {
+        const violations = {};
+
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
+        expect(result).toBe(false);
+    });
+
+    it('should return true when violations are visible to submitter', () => {
+        const violations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
+        };
+
+        // Mock shouldShowViolation to return true for missing category
+        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockReturnValue(true);
+
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
+        expect(result).toBe(true);
+    });
+
+    it('should return false when violations are hidden from submitter', () => {
+        const violations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [
+                {
+                    name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                    type: CONST.VIOLATION_TYPES.NOTICE,
+                },
+            ],
+        };
+
+        // Mock shouldShowViolation to return false for RECEIPT_NOT_SMART_SCANNED (hidden from submitter)
+        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+            if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
+                return false; // Hidden from submitter
+            }
+            return true;
+        });
+
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
+        expect(result).toBe(false);
+    });
+
+    it('should return true when at least one violation is visible', () => {
+        const violations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [
+                {
+                    name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                    type: CONST.VIOLATION_TYPES.NOTICE,
+                },
+                missingCategoryViolation,
+            ],
+        };
+
+        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+            if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
+                return false;
+            }
+            if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY) {
+                return true;
+            }
+            return true;
+        });
+
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
+        expect(result).toBe(true);
+    });
+
+    it('should handle multiple transactions correctly', () => {
+        const secondTransactionID = 'test-transaction-456';
+        const secondTransaction = {
+            transactionID: secondTransactionID,
+            reportID: testReportID,
+            accountID: submitterAccountID,
+            amount: 2000,
+            created: '2023-01-02',
+            currency: 'USD',
+            merchant: 'Test Merchant 2',
+        } as Transaction;
+
+        const violations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [
+                {
+                    name: CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
+                    type: CONST.VIOLATION_TYPES.NOTICE,
+                },
+            ],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${secondTransactionID}`]: [missingCategoryViolation],
+        };
+
+        jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockImplementation((report, policy, violationName) => {
+            if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
+                return false;
+            }
+            if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY) {
+                return true;
+            }
+            return true;
+        });
+
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction, secondTransaction]);
+        expect(result).toBe(true);
     });
 });

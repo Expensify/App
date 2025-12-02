@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';

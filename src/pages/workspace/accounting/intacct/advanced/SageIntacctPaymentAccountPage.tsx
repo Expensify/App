@@ -1,19 +1,19 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSageIntacctBankAccounts, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import {updateSageIntacctSyncReimbursementAccountID} from '@userActions/connections/SageIntacct';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -21,9 +21,10 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
 
     const {config} = policy?.connections?.intacct ?? {};
+    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
 
     const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctBankAccounts(policy, config?.sync?.reimbursementAccountID), [policy, config?.sync?.reimbursementAccountID]);
 
@@ -40,14 +41,14 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.sageIntacct.noAccountsFound')}
                 subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
             />
         ),
-        [translate],
+        [illustrations.Telescope, translate],
     );
 
     return (
@@ -64,9 +65,9 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
+            errors={getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
+            onClose={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
         />
     );
 }

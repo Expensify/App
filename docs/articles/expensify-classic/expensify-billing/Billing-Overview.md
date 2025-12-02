@@ -1,86 +1,118 @@
 ---
-title: Billing Overview
-description: Learn about Expensify billing, including active member charges, annual subscription savings, and pay-per-use options. Discover how the Expensify Card can reduce costs and maximize value.
+title: Billing and Subscriptions
+description: Understand how Collect and Control plans are billed in Expensify, including pricing tiers, eligibility, and how to transfer billing ownership.
+keywords: [Expensify Classic, billing, subscription, pricing, collect plan, control plan, expensify card, billing owner, workspace billing, transfer billing]
 ---
 
-Expensify’s billing is based on monthly member activity. You’ll be charged for the previous month’s usage at the beginning of each month. Your bill depends on:  
-- Plan type: Annual subscription or pay-per-use.  
-- Expensify Visa® Commercial Card usage: Discounts are available based on your card spending.
+  
+Here’s everything you need to know about how Expensify bills for Collect and Control plans. Learn how pricing works, who gets billed, and how to transfer billing ownership.
+
+# Billing and Subscriptions
+
+Expensify has two plans: **Collect** and **Control**.
+
+Collect is perfect for small teams that need an easy way to track receipts and get reimbursed, while Control is built for growing businesses that want more control over spending, smoother approvals, and smarter policy automation. For a full breakdown of features across plans, visit [the Expensify pricing page](https://www.expensify.com/pricing).
 
 ---
-# How Billing Works
-- Billing occurs on the first of each month for the previous month’s usage.
-- Only Group Workspace owners are billed.  
-- View billing receipts in:  
-  Settings > Account > Payments > Billing History.
 
-**Tip: Designate one billing owner for all Group Workspaces to streamline billing management.**
+# Collect Plan
 
----
-## What is an Active Member?
-An active member is anyone who performs any of these actions in Expensify during a month:
-- Chats  
-- Creates, submits, approves, reimburses, or exports a report  
-- Uses the Copilot feature to take an action in another user's account
+## 💵 Pricing
 
----
-# Annual Subscription
+- $5 per **unique member** per month  
+- Fully month-to-month (no annual contracts)
 
-## Key Benefits:
-- Save 50% per active member compared to pay-per-use billing.  
-  - Collect plan: $10 per member (vs. $20).  
-  - Control plan: $18 per member (vs. $36).  
-- Set your monthly active member count upfront and pay a fixed rate.
+## 👤 Who Gets Billed
 
-## How It Works:
-- You’ll be billed for the number of members set in your subscription.  
-- Extra active members beyond your subscription size are charged at the pay-per-use rate.
+- Every **unique member** added to a workspace, regardless of activity
 
-**Example:**
-- Plan: Control  
-- Subscription size: 10 members  
-  - Cost: $18/member x 10 members = $180/month
-- Scenario: 12 active members in one month  
-  - Cost for additional two members: $36/member = $72  
-  - Total bill: $252
+## 💳 Expensify Card not required
 
-**Adjustments:**
-- You can increase your subscription size by extending your subscription period.  
-- Reductions are only allowed after your current subscription ends.  
----
-# Pay-Per-Use Billing
-- Charges apply at full rates with no discounts.  
-  - Collect plan: $20 per active member.  
-  - Control plan: $36 per active member.
+- You do **not** need to use the Expensify Card to access this pricing  
+- However, 1% cash back still applies if you do use it
+
+## 📅 Eligibility
+
+- Applies to new Collect customers whose **first workspace** was created on or after **April 1, 2025**
+
+## 🌍 Localized Pricing
+
+- Equivalent pricing available in **EUR**, **GBP**, **AUD**, and **NZD**
+
+## 🔄 Flexible Scaling
+
+- Add or remove members anytime — your bill automatically adjusts each month
+
+## 🧾 Receipts
+
+- Receipts show: `X Collect members @ $5.00`  
+- View receipts under **Settings > Account > Subscription > Billing History**
 
 ---
-# How the Expensify Card Reduces Your Bill
 
-## Bundling Benefits:
-- Combine an Expensify Card with an annual subscription for the lowest price per member.  
-- Spending at least 50% of your total settled US spend on Expensify Cards earns a further 50% discount.
+# Control Plan
 
-## Discount Breakdown:
-- Collect plan: $5/member.  
-- Control plan: $9/member.
+## 💸 Best Way to Save
 
-## Additional Savings:
-- Earn 1% cash back on Expensify Card purchases.  
-  - 2% cash back if total card spend exceeds $250k (US purchases only).  
-  - Cashback is first applied to your bill, reducing costs further. Any surplus is deposited into your bank account.
+- Combine an **annual subscription** with the **Expensify Visa® Commercial Card**  
+- Price: **$9 per active member/month**
 
-## Savings Calculator
-Use our [savings calculator](https://use.expensify.com/price-savings-calculator) to estimate potential savings and earnings with the Expensify Card. Enter your details to see the results!
+**To qualify:** Use the Expensify Card for **50% or more** of your total settled US spending for the month.
+
+**Bonus:**  
+Earn **1%–2% cash back**  
+- 1% for all US purchases  
+- 2% if monthly spend reaches **$250,000+**  
+- Cash back is applied to your bill first, then to your bank account
+
+👉 Use the [savings calculator](https://use.expensify.com/savings-calculator) to estimate your monthly savings.
+
+## 📅 Annual Subscription Only
+
+- Without card usage, pricing is **$18 per active member/month**  
+- Add users anytime (extends your term)  
+- You can only reduce users after your current term ends  
+- Extra users above your committed quantity are billed at **$36/month**
+
+## 🔁 Pay-per-use (no-commitment)
+
+- Price: **$36 per active member/month**  
+- This option allows flexibility without a long-term commitment
+
+## 👤 Who Gets Billed
+
+- Every **active member** (anyone who creates, submits, approves, reimburses, or exports reports during the month)  
+- Includes Copilots and automated Concierge actions
+
+## 💳 Expensify Card Access
+
+- Required for discounted pricing  
+- Cashback still applies even if the discounted rate isn’t reached
+
+## 🌍 Localized Pricing
+
+- Equivalent pricing available in **EUR**, **GBP**, **AUD**, and **NZD**
+
+## 🧾 Receipts
+
+- View billing receipts at **Settings > Account > Subscription > Billing History** 
+- We recommend having **one billing owner** per workspace
 
 ---
+
+# Transfer Billing Ownership
+
+To change the billing owner of a workspace:
+
+1. Ensure the new billing owner is a **Workspace Admin**  
+2. Go to: **Settings > Workspaces > [Workspace Name] > Overview > Take Over Billing** 
+3. The new owner adds a payment card and will be billed starting on the 1st of the next month
+
+---
+
 # FAQ
 
-## What if less than 50% of the spend is on Expensify Cards?
-Discounts are applied on a sliding scale based on your Expensify Card spend percentage.  
+## Why am I being charged more than $5 per user for a Collect plan?
 
-**Example:**
-- Annual subscription discount: 50%  
-- Expensify Card spend (US purchases): 20% of total spend  
-- Expensify Card discount: 20%
-- Total savings: 70% discount on the per-member price for that month.
+The Collect plan pricing changed in **April 2025**. If your first workspace was created **before April 1, 2025**, your billing is based on the **previous pricing structure**. Contact **Concierge or your Account Manager** if you need help understanding your charges.
 

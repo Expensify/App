@@ -1,13 +1,10 @@
-import type ReactNavigationNative from '@react-navigation/native';
-import {fireEvent, render, screen, within} from '@testing-library/react-native';
+import type * as ReactNavigationNative from '@react-navigation/native';
+import {fireEvent, render, screen, userEvent, within} from '@testing-library/react-native';
 import {addMonths, addYears, subMonths, subYears} from 'date-fns';
-import type {ComponentType} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
-import type {WithLocalizeProps} from '@components/withLocalize';
 import DateUtils from '@libs/DateUtils';
-import CONST from '@src/CONST';
 
-const monthNames = DateUtils.getMonthNames(CONST.LOCALES.EN);
+const monthNames = DateUtils.getMonthNames();
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
@@ -15,26 +12,13 @@ jest.mock('@react-navigation/native', () => ({
     createNavigationContainerRef: jest.fn(),
 }));
 
-jest.mock('../../src/components/withLocalize', () => (Component: ComponentType<WithLocalizeProps>) => {
-    function WrappedComponent(props: Omit<WithLocalizeProps, 'translate' | 'preferredLocale'>) {
-        return (
-            <Component
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                translate={() => ''}
-                preferredLocale="en"
-            />
-        );
-    }
-    WrappedComponent.displayName = `WrappedComponent`;
-    return WrappedComponent;
-});
-
 jest.mock('../../src/hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn(),
     })),
 );
+
+jest.mock('@src/components/ConfirmedRoute.tsx');
 
 describe('CalendarPicker', () => {
     test('renders calendar component', () => {
@@ -121,7 +105,7 @@ describe('CalendarPicker', () => {
         expect(onSelectedMock).toHaveBeenCalledWith('2022-02-15');
     });
 
-    test('should block the back arrow when there is no available dates in the previous month', () => {
+    test('should block the back arrow when there is no available dates in the previous month', async () => {
         const minDate = new Date('2003-02-01');
         const value = new Date('2003-02-17');
 
@@ -134,16 +118,17 @@ describe('CalendarPicker', () => {
         );
 
         // When the previous month arrow is pressed
-        fireEvent.press(screen.getByTestId('prev-month-arrow'));
+        const user = userEvent.setup();
+        await user.press(screen.getByTestId('prev-month-arrow'));
 
         // Then the previous month should not be called as the previous month button is disabled
-        const prevMonth = subMonths(new Date(), 1).getMonth();
+        const prevMonth = subMonths(value, 1).getMonth();
         expect(screen.queryByText(monthNames.at(prevMonth) ?? '')).not.toBeOnTheScreen();
     });
 
-    test('should block the next arrow when there is no available dates in the next month', () => {
+    test('should block the next arrow when there is no available dates in the next month', async () => {
         const maxDate = new Date('2003-02-24');
-        const value = '2003-02-17';
+        const value = new Date('2003-02-17');
         render(
             <CalendarPicker
                 maxDate={maxDate}
@@ -152,10 +137,11 @@ describe('CalendarPicker', () => {
         );
 
         // When the next month arrow is pressed
-        fireEvent.press(screen.getByTestId('next-month-arrow'));
+        const user = userEvent.setup();
+        await user.press(screen.getByTestId('next-month-arrow'));
 
         // Then the next month should not be called as the next month button is disabled
-        const nextMonth = addMonths(new Date(), 1).getMonth();
+        const nextMonth = addMonths(value, 1).getMonth();
         expect(screen.queryByText(monthNames.at(nextMonth) ?? '')).not.toBeOnTheScreen();
     });
 

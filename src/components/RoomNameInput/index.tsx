@@ -1,27 +1,22 @@
 import React, {useState} from 'react';
-import type {ForwardedRef} from 'react';
-import type {NativeSyntheticEvent, TextInputChangeEventData} from 'react-native';
+import type {TextInputChangeEvent} from 'react-native';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import type {Selection} from '@libs/ComposerUtils';
-import * as RoomNameInputUtils from '@libs/RoomNameInputUtils';
-import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
+import {modifyRoomName} from '@libs/RoomNameInputUtils';
 import CONST from '@src/CONST';
 import type RoomNameInputProps from './types';
 
-function RoomNameInput(
-    {disabled = false, autoFocus = false, shouldDelayFocus = false, isFocused, value = '', onBlur, onChangeText, onInputChange, ...props}: RoomNameInputProps,
-    ref: ForwardedRef<BaseTextInputRef>,
-) {
+function RoomNameInput({disabled = false, autoFocus = false, isFocused, value = '', onBlur, onChangeText, onInputChange, ref, ...props}: RoomNameInputProps) {
     const {translate} = useLocalize();
     const [selection, setSelection] = useState<Selection>({start: value.length - 1, end: value.length - 1});
 
     /**
      * Calls the onChangeText callback with a modified room name
      */
-    const setModifiedRoomName = (event: NativeSyntheticEvent<TextInputChangeEventData>) => {
+    const setModifiedRoomName = (event: TextInputChangeEvent) => {
         const roomName = event.nativeEvent.text;
-        const modifiedRoomName = RoomNameInputUtils.modifyRoomName(roomName);
+        const modifiedRoomName = modifyRoomName(roomName);
         onChangeText?.(modifiedRoomName);
 
         // if custom component has onInputChange, use it to trigger changes (Form input)
@@ -55,10 +50,8 @@ function RoomNameInput(
             prefixCharacter={CONST.POLICY.ROOM_PREFIX}
             placeholder={translate('newRoomPage.social')}
             value={value?.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
-            maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
             onBlur={(event) => isFocused && onBlur?.(event)}
             autoFocus={isFocused && autoFocus}
-            shouldDelayFocus={shouldDelayFocus}
             autoCapitalize="none"
             onChange={setModifiedRoomName}
             onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
@@ -71,4 +64,4 @@ function RoomNameInput(
 
 RoomNameInput.displayName = 'RoomNameInput';
 
-export default React.forwardRef(RoomNameInput);
+export default RoomNameInput;

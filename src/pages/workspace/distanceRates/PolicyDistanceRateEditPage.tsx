@@ -17,7 +17,7 @@ import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as DistanceRate from '@userActions/Policy/DistanceRate';
+import {updatePolicyDistanceRateValue} from '@userActions/Policy/DistanceRate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -46,14 +46,14 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
         if (!customUnit || !rate) {
             return;
         }
-        DistanceRate.updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
+        updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
         Keyboard.dismiss();
         Navigation.goBack();
     };
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => validateRateValue(values, customUnit?.rates ?? {}, toLocaleDigit, rate?.rate),
-        [toLocaleDigit, customUnit?.rates, rate?.rate],
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => validateRateValue(values, toLocaleDigit, translate),
+        [toLocaleDigit, translate],
     );
 
     if (!rate) {
@@ -67,7 +67,7 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={PolicyDistanceRateEditPage.displayName}
                 shouldEnableMaxHeight
@@ -87,11 +87,12 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
                     shouldHideFixErrorsAlert
                     submitFlexEnabled={false}
                     submitButtonStyles={[styles.mh5, styles.mt0]}
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapperWithRef
                         InputComponent={AmountForm}
                         inputID={INPUT_IDS.RATE}
-                        fixedDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                        decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                         defaultValue={currentRateValue}
                         isCurrencyPressable={false}
                         currency={currency}

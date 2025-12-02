@@ -1,30 +1,46 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearDelegateRolePendingAction, requestValidationCode, updateDelegateRoleOptimistically} from '@libs/actions/Delegate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {DelegateRole} from '@src/types/onyx/Account';
 
 type UpdateDelegateRolePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE>;
 
+function UpdateDelegateRoleSelectionListHeader() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    return (
+        <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
+            <>
+                {translate('delegate.accessLevelDescription')}{' '}
+                <TextLink
+                    style={[styles.link]}
+                    href={CONST.COPILOT_HELP_URL}
+                >
+                    {translate('common.learnMore')}
+                </TextLink>
+                .
+            </>
+        </Text>
+    );
+}
+
 function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
-    const login = route.params.login;
-    const currentRole = route.params.currentRole;
+    const {currentRole, login} = route.params;
 
-    const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
         value: role,
         text: translate('delegate.role', {role}),
@@ -32,12 +48,6 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
         alternateText: translate('delegate.roleDescription', {role}),
         isSelected: role === currentRole,
     }));
-
-    useEffect(() => {
-        updateDelegateRoleOptimistically(login ?? '', currentRole as DelegateRole);
-        return () => clearDelegateRolePendingAction(login);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [login]);
 
     return (
         <ScreenWrapper
@@ -50,33 +60,18 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <SelectionList
-                    isAlternateTextMultilineSupported
-                    alternateTextNumberOfLines={4}
-                    initiallyFocusedOptionKey={currentRole}
+                    alternateNumberOfSupportedLines={4}
+                    initiallyFocusedItemKey={currentRole}
                     shouldUpdateFocusedIndex
-                    headerContent={
-                        <Text style={[styles.ph5, styles.pb5, styles.pt3]}>
-                            <>
-                                {translate('delegate.accessLevelDescription')}{' '}
-                                <TextLink
-                                    style={[styles.link]}
-                                    href={CONST.COPILOT_HELP_URL}
-                                >
-                                    {translate('common.learnMore')}
-                                </TextLink>
-                            </>
-                        </Text>
-                    }
+                    customListHeader={<UpdateDelegateRoleSelectionListHeader />}
                     onSelectRow={(option) => {
-                        if (option.isSelected) {
+                        if (!option.value || option.isSelected) {
                             Navigation.dismissModal();
                             return;
                         }
-
-                        requestValidationCode();
-                        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE.getRoute(login, option.value));
+                        Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_MAGIC_CODE.getRoute(login, option?.value));
                     }}
-                    sections={[{data: roleOptions}]}
+                    data={roleOptions}
                     ListItem={RadioListItem}
                 />
             </DelegateNoAccessWrapper>

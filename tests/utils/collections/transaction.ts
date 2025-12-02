@@ -22,8 +22,8 @@ export default function createRandomTransaction(index: number): Transaction {
                     name: randWord(),
                 },
             },
+            attendees: [{email: randWord(), displayName: 'Test User', avatarUrl: ''}],
         },
-        attendees: [{email: randWord()}],
         filename: randWord(),
         managedCard: randBoolean(),
         created: format(randPastDate(), CONST.DATE.FNS_DB_FORMAT_STRING),
@@ -34,7 +34,6 @@ export default function createRandomTransaction(index: number): Transaction {
         modifiedMerchant: randWord(),
         originalAmount: randAmount(),
         originalCurrency: rand(Object.values(CONST.CURRENCY)),
-        pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
         reportID: index.toString(),
         transactionID: index.toString(),
         tag: randWord(),
@@ -43,5 +42,15 @@ export default function createRandomTransaction(index: number): Transaction {
         receipt: {},
         reimbursable: randBoolean(),
         hasEReceipt: randBoolean(),
+        modifiedAmount: 0,
     };
 }
+
+const createRandomDistanceRequestTransaction = (index: number): Transaction => {
+    return {
+        ...createRandomTransaction(index),
+        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+    };
+};
+
+export {createRandomDistanceRequestTransaction};

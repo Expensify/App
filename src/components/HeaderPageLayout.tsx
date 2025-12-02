@@ -8,7 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
+import {isSafari} from '@libs/Browser';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -84,6 +84,7 @@ function HeaderPageLayout({
             offlineIndicatorStyle={[appBGColor]}
             testID={testID}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
+            shouldEnableMaxHeight
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
@@ -94,8 +95,8 @@ function HeaderPageLayout({
                         iconFill={iconFill}
                     />
                     <View style={[styles.flex1, appBGColor, !isOffline && footer ? safeAreaPaddingBottomStyle : {}]}>
-                        {/** Safari on ios/mac has a bug where overscrolling the page scrollview shows green background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422 */}
-                        {Browser.isSafari() && (
+                        {/** Safari on ios/mac has a bug where over scrolling the page ScrollView shows green background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422 */}
+                        {isSafari() && (
                             <View style={styles.dualColorOverscrollSpacer}>
                                 <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.appBG)]} />
                                 <View style={[shouldUseNarrowLayout ? styles.flex1 : styles.flex3, appBGColor]} />
@@ -105,7 +106,7 @@ function HeaderPageLayout({
                             contentContainerStyle={[safeAreaPaddingBottomStyle, style, scrollViewContainerStyles]}
                             keyboardShouldPersistTaps={keyboardShouldPersistTaps}
                         >
-                            {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor ?? theme.appBG, windowHeight)} />}
+                            {!isSafari() && <View style={[styles.overscrollSpacerPosition, styles.w100, styles.overscrollSpacer(backgroundColor ?? theme.appBG, windowHeight)]} />}
                             <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.appBG), headerContainerStyles]}>
                                 {headerContent}
                             </View>

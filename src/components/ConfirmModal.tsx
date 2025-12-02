@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -94,6 +95,9 @@ type ConfirmModalProps = {
     /** Image to display with content */
     image?: IconAsset;
 
+    /** Styles for the image */
+    imageStyles?: StyleProp<ViewStyle>;
+
     /**
      * Whether the modal should enable the new focus manager.
      * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
@@ -102,6 +106,15 @@ type ConfirmModalProps = {
 
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
+
+    /** Whether the confirm button is loading */
+    isConfirmLoading?: boolean;
+
+    /** Whether to handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
+
+    /** Whether to ignore the back handler during transition */
+    shouldIgnoreBackHandlerDuringTransition?: boolean;
 };
 
 function ConfirmModal({
@@ -126,6 +139,7 @@ function ConfirmModal({
     isVisible,
     onConfirm,
     image,
+    imageStyles,
     iconWidth,
     iconHeight,
     iconFill,
@@ -135,11 +149,22 @@ function ConfirmModal({
     shouldReverseStackedButtons,
     shouldEnableNewFocusManagement,
     restoreFocusType,
+    isConfirmLoading,
+    shouldHandleNavigationBack,
+    shouldIgnoreBackHandlerDuringTransition,
 }: ConfirmModalProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
+
+    // Previous state needed for exiting animation to play correctly.
+    const prevVisible = usePrevious(isVisible);
+
+    // Perf: Prevents from rendering whole confirm modal on initial render.
+    if (!isVisible && !prevVisible) {
+        return null;
+    }
 
     return (
         <Modal
@@ -149,9 +174,11 @@ function ConfirmModal({
             shouldSetModalVisibility={shouldSetModalVisibility}
             onModalHide={onModalHide}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-            innerContainerStyle={image ? styles.pt0 : {}}
+            innerContainerStyle={styles.pv0}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             restoreFocusType={restoreFocusType}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
+            shouldIgnoreBackHandlerDuringTransition={shouldIgnoreBackHandlerDuringTransition}
         >
             <ConfirmContent
                 title={title}
@@ -182,6 +209,8 @@ function ConfirmModal({
                 shouldStackButtons={shouldStackButtons}
                 shouldReverseStackedButtons={shouldReverseStackedButtons}
                 image={image}
+                imageStyles={imageStyles}
+                isConfirmLoading={isConfirmLoading}
             />
         </Modal>
     );
@@ -190,3 +219,4 @@ function ConfirmModal({
 ConfirmModal.displayName = 'ConfirmModal';
 
 export default ConfirmModal;
+export type {ConfirmModalProps};

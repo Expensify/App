@@ -1,37 +1,38 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteInvoiceItem} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getNetSuiteInvoiceItemOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const netsuiteInvoiceItemOptions = useMemo<SelectorType[]>(() => getNetSuiteInvoiceItemOptions(policy ?? undefined, config?.invoiceItem), [config?.invoiceItem, policy]);
 
     const initiallyFocusedOptionKey = useMemo(() => netsuiteInvoiceItemOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteInvoiceItemOptions]);
 
     const updateInvoiceItem = useCallback(
         ({value}: SelectorType) => {
-            if (config?.invoiceItem !== value) {
-                Connections.updateNetSuiteInvoiceItem(policyID, value, config?.invoiceItem);
+            if (config?.invoiceItem !== value && policyID) {
+                updateNetSuiteInvoiceItem(policyID, value, config?.invoiceItem);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID));
         },
@@ -41,7 +42,7 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.netsuite.noItemsFound')}
@@ -49,7 +50,7 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10],
     );
 
     return (
@@ -68,9 +69,9 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={config?.invoiceItemPreference !== CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM)}
+            errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM)}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM)}
         />
     );
 }

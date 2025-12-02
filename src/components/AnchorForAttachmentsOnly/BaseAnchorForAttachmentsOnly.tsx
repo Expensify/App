@@ -1,17 +1,18 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import * as Browser from '@libs/Browser';
+import {isMobileSafari} from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as Download from '@userActions/Download';
+import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
+import {setDownload} from '@userActions/Download';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type AnchorForAttachmentsOnlyProps from './types';
 
 type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
@@ -26,7 +27,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(source);
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
 
-    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`, {canBeMissing: true});
 
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -35,23 +36,23 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+            {({anchor, report, isReportArchived, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                 <PressableWithoutFeedback
                     style={[style, (isOffline || !sourceID) && styles.cursorDefault]}
                     onPress={() => {
                         if (isDownloading || isOffline || !sourceID) {
                             return;
                         }
-                        Download.setDownload(sourceID, true);
-                        fileDownload(sourceURLWithAuth, displayName, '', Browser.isMobileSafari()).then(() => Download.setDownload(sourceID, false));
+                        setDownload(sourceID, true);
+                        fileDownload(sourceURLWithAuth, displayName, '', isMobileSafari()).then(() => setDownload(sourceID, false));
                     }}
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
                     onLongPress={(event) => {
-                        if (isDisabled) {
+                        if (isDisabled || !shouldDisplayContextMenu) {
                             return;
                         }
-                        showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs));
+                        showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived));
                     }}
                     shouldUseHapticsOnLongPress
                     accessibilityLabel={displayName}
@@ -66,6 +67,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                         isDeleted={!!isDeleted}
                         isUploading={!sourceID}
                         isAuthTokenRequired={!!sourceID}
+                        isUploaded={!isEmptyObject(report)}
                     />
                 </PressableWithoutFeedback>
             )}

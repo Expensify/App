@@ -12,9 +12,4 @@ type CustomSubStepProps = SubStepProps & {
     fieldsMap: Record<ValueOf<typeof CONST.CORPAY_FIELDS.STEPS_NAME>, CorpayFieldsMap>;
 };
 
-type CountryZipRegex = {
-    regex?: RegExp;
-    samples?: string;
-};
-
-export type {CustomSubStepProps, CountryZipRegex};
+export default CustomSubStepProps;

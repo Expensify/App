@@ -1,15 +1,16 @@
-import React, {forwardRef, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import type {FlatListProps, ScrollViewProps, ViewToken} from 'react-native';
 import {DeviceEventEmitter, FlatList} from 'react-native';
 import type {ReportAction} from '@src/types/onyx';
 
 type BaseInvertedFlatListProps = FlatListProps<ReportAction> & {
     shouldEnableAutoScrollToTopThreshold?: boolean;
+    ref?: React.ForwardedRef<FlatList<ReportAction>>;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 128;
 
-function BaseInvertedFlatListE2e(props: BaseInvertedFlatListProps, ref: React.ForwardedRef<FlatList<ReportAction>>) {
+function BaseInvertedFlatListE2e({ref, ...props}: BaseInvertedFlatListProps) {
     const {shouldEnableAutoScrollToTopThreshold, ...rest} = props;
 
     const handleViewableItemsChanged = useMemo(
@@ -23,7 +24,7 @@ function BaseInvertedFlatListE2e(props: BaseInvertedFlatListProps, ref: React.Fo
     const maintainVisibleContentPosition = useMemo(() => {
         const config: ScrollViewProps['maintainVisibleContentPosition'] = {
             // This needs to be 1 to avoid using loading views as anchors.
-            minIndexForVisible: 1,
+            minIndexForVisible: rest.data?.length ? Math.min(1, rest.data.length - 1) : 0,
         };
 
         if (shouldEnableAutoScrollToTopThreshold) {
@@ -31,7 +32,7 @@ function BaseInvertedFlatListE2e(props: BaseInvertedFlatListProps, ref: React.Fo
         }
 
         return config;
-    }, [shouldEnableAutoScrollToTopThreshold]);
+    }, [shouldEnableAutoScrollToTopThreshold, rest.data?.length]);
 
     return (
         <FlatList<ReportAction>
@@ -47,4 +48,4 @@ function BaseInvertedFlatListE2e(props: BaseInvertedFlatListProps, ref: React.Fo
 
 BaseInvertedFlatListE2e.displayName = 'BaseInvertedFlatListE2e';
 
-export default forwardRef(BaseInvertedFlatListE2e);
+export default BaseInvertedFlatListE2e;

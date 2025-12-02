@@ -1,3 +1,5 @@
+import type {Receipt} from '@src/types/onyx/Transaction';
+
 type CreateDistanceRequestParams = {
     transactionID: string;
     chatReportID: string;
@@ -11,15 +13,20 @@ type CreateDistanceRequestParams = {
     createdIOUReportActionID?: string;
     reportPreviewReportActionID?: string;
     category?: string;
+    receipt?: Receipt;
     tag?: string;
     taxCode?: string;
     taxAmount?: number;
     billable?: boolean;
+    reimbursable?: boolean;
     transactionThreadReportID?: string;
     createdReportActionIDForThread?: string;
     payerEmail?: string;
     splits?: string;
     chatType?: string;
+    description?: string;
+    attendees?: string;
+    distance?: number;
 };
 
 export default CreateDistanceRequestParams;

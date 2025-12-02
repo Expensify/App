@@ -14,12 +14,12 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {hasEReceipt, hasReceiptSource, isDistanceRequest, isFetchingWaypointsFromServer, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Transaction} from '@src/types/onyx';
+import type {Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReportActionItemImageProps = {
@@ -35,7 +35,7 @@ type ReportActionItemImageProps = {
     isThumbnail?: boolean;
 
     /** URI for the image or local numeric reference for the image  */
-    image?: string;
+    image?: string | number;
 
     /** whether to enable the image preview modal */
     enablePreviewModal?: boolean;
@@ -61,8 +61,26 @@ type ReportActionItemImageProps = {
     /** whether or not this report is from review duplicates */
     isFromReviewDuplicates?: boolean;
 
+    /** Merge transaction ID to show in merge transaction flow */
+    mergeTransactionID?: string;
+
     /** Callback to be called on pressing the image */
     onPress?: () => void;
+
+    /** Whether the receipt empty state should extend to the full height of the container. */
+    shouldUseFullHeight?: boolean;
+
+    /** The report associated with this image, if any. Used to pass report directly instead of relaying on context. */
+    report?: OnyxEntry<Report>;
+
+    /** Whether to use the thumbnail image instead of the full image */
+    shouldUseThumbnailImage?: boolean;
+
+    /** Callback to be called when the image loads */
+    onLoad?: (event?: {nativeEvent: {width: number; height: number}}) => void;
+
+    /** Callback to be called when the image fails to load */
+    onLoadFailure?: () => void;
 };
 
 /**
@@ -85,14 +103,20 @@ function ReportActionItemImage({
     readonly = false,
     shouldMapHaveBorderRadius,
     isFromReviewDuplicates = false,
+    mergeTransactionID,
     onPress,
+    shouldUseFullHeight,
+    report: reportProp,
+    shouldUseThumbnailImage,
+    onLoad,
+    onLoadFailure,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isDistanceRequest = !!transaction && TransactionUtils.isDistanceRequest(transaction);
-    const hasPendingWaypoints = transaction && TransactionUtils.isFetchingWaypointsFromServer(transaction);
+    const isMapDistanceRequest = !!transaction && isDistanceRequest(transaction) && !isManualDistanceRequest(transaction);
+    const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
-    const showMapAsImage = isDistanceRequest && (hasErrors || hasPendingWaypoints);
+    const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingWaypoints);
 
     if (showMapAsImage) {
         return (
@@ -108,37 +132,48 @@ function ReportActionItemImage({
         );
     }
 
-    const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
+    const originalImageSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
-    const isEReceipt = transaction && !TransactionUtils.hasReceiptSource(transaction) && TransactionUtils.hasEReceipt(transaction);
+    const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
+    const isPDF = filename && Str.isPDF(filename);
 
     let propsObj: ReceiptImageProps;
 
     if (isEReceipt) {
-        propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize)};
+        propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize), shouldUseFullHeight};
     } else if (thumbnail && !isLocalFile) {
         propsObj = {
-            shouldUseThumbnailImage: true,
-            source: thumbnailSource,
+            shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
+
+            // PDF won't have originalImage that we can use. Use thumbnail instead
+            // We explicitly want to use || instead of nullish-coalescing because shouldUseThumbnailImage can be false.
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            source: shouldUseThumbnailImage || isPDF ? thumbnailSource : originalImageSource,
             fallbackIcon: Expensicons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
             isAuthTokenRequired: true,
-            shouldUseInitialObjectPosition: isDistanceRequest,
+
+            // If the image is full height, use initial position to make sure it will grow properly to fill the container
+            shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
         };
-    } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
-        propsObj = {isPDFThumbnail: true, source: attachmentModalSource};
+    } else if (isLocalFile && isPDF && typeof originalImageSource === 'string') {
+        propsObj = {isPDFThumbnail: true, source: originalImageSource};
     } else {
         propsObj = {
             isThumbnail,
             ...(isThumbnail && {iconSize: (isSingleImage ? 'medium' : 'small') as IconSize, fileExtension}),
-            shouldUseThumbnailImage: true,
+            shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
             isAuthTokenRequired: false,
-            source: thumbnail ?? image ?? '',
-            shouldUseInitialObjectPosition: isDistanceRequest,
+            source: shouldUseThumbnailImage ? (thumbnail ?? image ?? '') : originalImageSource,
+
+            // If the image is full height, use initial position to make sure it will grow properly to fill the container
+            shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
             isEmptyReceipt,
             onPress,
         };
     }
+
+    propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
 
     if (enablePreviewModal) {
         return (
@@ -149,24 +184,38 @@ function ReportActionItemImage({
                         onPress={() =>
                             Navigation.navigate(
                                 ROUTES.TRANSACTION_RECEIPT.getRoute(
-                                    transactionThreadReport?.reportID ?? report?.reportID ?? '-1',
-                                    transaction?.transactionID ?? '-1',
+                                    transactionThreadReport?.reportID ?? report?.reportID ?? reportProp?.reportID,
+                                    transaction?.transactionID,
                                     readonly,
                                     isFromReviewDuplicates,
+                                    mergeTransactionID,
                                 ),
                             )
                         }
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         accessibilityRole={CONST.ROLE.BUTTON}
                     >
-                        <ReceiptImage {...propsObj} />
+                        <ReceiptImage
+                            {...propsObj}
+                            onLoad={onLoad}
+                            shouldUseFullHeight={shouldUseFullHeight}
+                            onLoadFailure={onLoadFailure}
+                        />
                     </PressableWithoutFocus>
                 )}
             </ShowContextMenuContext.Consumer>
         );
     }
 
-    return <ReceiptImage {...propsObj} />;
+    return (
+        <ReceiptImage
+            {...propsObj}
+            shouldUseFullHeight={shouldUseFullHeight}
+            thumbnailContainerStyles={styles.thumbnailImageContainerHover}
+            onLoad={onLoad}
+            onLoadFailure={onLoadFailure}
+        />
+    );
 }
 
 ReportActionItemImage.displayName = 'ReportActionItemImage';

@@ -14,6 +14,9 @@ type PendingChatMember = {
 
 /** Model of report metadata */
 type ReportMetadata = {
+    /** Whether the user has successfully opened a report at least once, or if it was created by this user */
+    hasOnceLoadedReportActions?: boolean;
+
     /** Are we loading newer report actions? */
     isLoadingNewerReportActions?: boolean;
 
@@ -40,6 +43,12 @@ type ReportMetadata = {
 
     /** Pending members of the report */
     pendingChatMembers?: PendingChatMember[];
+
+    /** Whether the action is loading */
+    isActionLoading?: boolean;
+
+    /** Whether the report has violations or errors */
+    errors?: OnyxCommon.Errors;
 };
 
 export default ReportMetadata;

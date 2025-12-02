@@ -10,10 +10,11 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
+import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
-import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
+import {emojiPickerRef, resetEmojiPopoverAnchor, showEmojiPicker} from '@userActions/EmojiPickerAction';
 import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
-import * as Session from '@userActions/Session';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type {CloseContextMenuCallback, OpenPickerCallback, PickerRefElement} from './QuickEmojiReactions/types';
@@ -54,25 +55,26 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
     const ref = useRef<View | HTMLDivElement>(null);
     const {translate} = useLocalize();
 
-    useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
+    useEffect(() => resetEmojiPopoverAnchor, []);
 
     const onPress = () => {
         const openPicker = (refParam?: PickerRefElement, anchorOrigin?: AnchorOrigin) => {
-            EmojiPickerAction.showEmojiPicker(
-                () => {
+            showEmojiPicker({
+                onModalHide: () => {
                     setIsEmojiPickerActive?.(false);
                 },
-                (emojiCode, emojiObject) => {
+                onEmojiSelected: (emojiCode, emojiObject) => {
                     onSelectEmoji(emojiObject);
                 },
-                refParam ?? ref,
+                emojiPopoverAnchor: refParam ?? ref,
                 anchorOrigin,
-                onWillShowPicker,
-                reportAction.reportActionID,
-            );
+                onWillShow: onWillShowPicker,
+                id: reportAction.reportActionID,
+                composerToRefocusOnClose: contextMenuRef.current?.composerToRefocusOnCloseEmojiPicker,
+            });
         };
 
-        if (!EmojiPickerAction.emojiPickerRef.current?.isEmojiPickerVisible) {
+        if (!emojiPickerRef.current?.isEmojiPickerVisible) {
             setIsEmojiPickerActive?.(true);
             if (onPressOpenPicker) {
                 onPressOpenPicker(openPicker);
@@ -81,7 +83,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
             }
         } else {
             setIsEmojiPickerActive?.(false);
-            EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
+            emojiPickerRef.current.hideEmojiPicker();
         }
     };
 
@@ -90,7 +92,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
             <PressableWithFeedback
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, isContextMenu)]}
-                onPress={Session.checkIfActionIsAllowed(onPress)}
+                onPress={callFunctionIfActionIsAllowed(onPress)}
                 onMouseDown={(event) => {
                     // Allow text input blur when Add reaction is right clicked
                     if (!event || event.button === 2) {

@@ -12,7 +12,7 @@ type ReportActionsSkeletonViewProps = {
 };
 
 function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContentItems = 0}: ReportActionsSkeletonViewProps) {
-    const contentItems = possibleVisibleContentItems || Math.ceil(Dimensions.get('window').height / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
+    const contentItems = possibleVisibleContentItems || Math.ceil(Dimensions.get('screen').height / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
     const skeletonViewLines: React.ReactNode[] = [];
     for (let index = 0; index < contentItems; index++) {
         const iconIndex = (index + 1) % 4;
@@ -45,7 +45,7 @@ function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContent
                 );
         }
     }
-    return <View>{skeletonViewLines}</View>;
+    return <View testID="ReportActionsSkeletonView">{skeletonViewLines}</View>;
 }
 
 ReportActionsSkeletonView.displayName = 'ReportActionsSkeletonView';

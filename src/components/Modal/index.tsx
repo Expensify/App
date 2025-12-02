@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import StatusBar from '@libs/StatusBar';
@@ -21,45 +21,72 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     };
 
     const hideModal = () => {
-        setStatusBarColor(previousStatusBarColor);
         onModalHide();
-        if ((window.history.state as WindowState)?.shouldGoBack) {
-            window.history.back();
-        }
     };
 
     const handlePopStateRef = useRef(() => {
-        rest.onClose();
+        rest.onClose?.();
     });
 
+    // This useEffect is needed so that when the onClose function changes, the ref contains the current value of this function.
+    // More information can be found here: https://github.com/Expensify/App/issues/69781
+    useEffect(() => {
+        handlePopStateRef.current = () => {
+            rest.onClose?.();
+        };
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rest.onClose]);
+
+    // We use a stable callback here to avoid issues with stale closures in event listeners.
+    // If we directly passed `handlePopStateRef.current` to addEventListener, the listener would
+    // capture the value of `onClose` at the time it was registered and would not update when
+    // `onClose` changes. By wrapping it in a stable useCallback and referencing
+    // handlePopStateRef.current inside, we ensure that the listener always calls the latest
+    // version of `onClose` without needing to reattach the event listener.
+    const handlePopState = useCallback(() => {
+        handlePopStateRef.current();
+    }, []);
+
     const showModal = () => {
-        const statusBarColor = StatusBar.getBackgroundColor() ?? theme.appBG;
-
-        const isFullScreenModal =
-            type === CONST.MODAL.MODAL_TYPE.CENTERED ||
-            type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
-            type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED ||
-            CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT;
-
-        if (statusBarColor) {
-            setPreviousStatusBarColor(statusBarColor);
-            // If it is a full screen modal then match it with appBG, otherwise we use the backdrop color
-            setStatusBarColor(isFullScreenModal ? theme.appBG : StyleUtils.getThemeBackgroundColor(statusBarColor));
-        }
-
         if (shouldHandleNavigationBack) {
             window.history.pushState({shouldGoBack: true}, '', null);
-            window.addEventListener('popstate', handlePopStateRef.current);
+            window.addEventListener('popstate', handlePopState);
         }
         onModalShow?.();
     };
 
     useEffect(
         () => () => {
-            window.removeEventListener('popstate', handlePopStateRef.current);
+            window.removeEventListener('popstate', handlePopState);
         },
-        [],
+        [handlePopState],
     );
+
+    const onModalWillShow = () => {
+        const statusBarColor = StatusBar.getBackgroundColor() ?? theme.appBG;
+
+        const isFullScreenModal =
+            type === CONST.MODAL.MODAL_TYPE.CENTERED ||
+            type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
+            type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED ||
+            type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT;
+
+        if (statusBarColor) {
+            setPreviousStatusBarColor(statusBarColor);
+            // If it is a full screen modal then match it with appBG, otherwise we use the backdrop color
+            setStatusBarColor(isFullScreenModal ? theme.appBG : StyleUtils.getThemeBackgroundColor(statusBarColor));
+        }
+        rest.onModalWillShow?.();
+    };
+
+    const onModalWillHide = () => {
+        setStatusBarColor(previousStatusBarColor);
+        rest.onModalWillHide?.();
+        if ((window.history.state as WindowState)?.shouldGoBack && shouldHandleNavigationBack) {
+            window.history.back();
+        }
+    };
 
     return (
         <BaseModal
@@ -67,10 +94,10 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
             {...rest}
             onModalHide={hideModal}
             onModalShow={showModal}
+            onModalWillShow={onModalWillShow}
+            onModalWillHide={onModalWillHide}
             avoidKeyboard={false}
             fullscreen={fullscreen}
-            useNativeDriver={false}
-            useNativeDriverForBackdrop={false}
             type={type}
         >
             {children}

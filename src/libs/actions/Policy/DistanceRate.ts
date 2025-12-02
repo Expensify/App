@@ -13,66 +13,26 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import {getDistanceRateCustomUnit, navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {buildOnyxDataForPolicyDistanceRateUpdates} from '@libs/PolicyDistanceRatesUtils';
+import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {TransactionViolation} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
-import type {Attributes, CustomUnit, Rate} from '@src/types/onyx/Policy';
+import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-type NewCustomUnit = {
-    customUnitID: string;
-    name: string;
-    attributes: Attributes;
-    rates: Rate;
-};
-
-const allPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-        if (val === null || val === undefined) {
-            // If we are deleting a policy, we have to check every report linked to that policy
-            // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
-            // More info: https://github.com/Expensify/App/issues/14260
-            const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
-            const policyReports = ReportUtils.getAllPolicyReports(policyID);
-            const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
-            policyReports.forEach((policyReport) => {
-                if (!policyReport) {
-                    return;
-                }
-                const {reportID} = policyReport;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
-            });
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
-            Onyx.multiSet(cleanUpSetQueries);
-            delete allPolicies[key];
-            return;
-        }
-
-        allPolicies[key] = val;
-    },
-});
 
 /**
  * Takes array of customUnitRates and removes pendingFields and errorFields from each rate - we don't want to send those via API
  */
 function prepareCustomUnitRatesArray(customUnitRates: Rate[]): Rate[] {
     const customUnitRateArray: Rate[] = [];
-    customUnitRates.forEach((rate) => {
+    for (const rate of customUnitRates) {
         const cleanedRate = {...rate};
         delete cleanedRate.pendingFields;
         delete cleanedRate.errorFields;
         customUnitRateArray.push(cleanedRate);
-    });
+    }
 
     return customUnitRateArray;
 }
@@ -87,7 +47,7 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
-function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
+function enablePolicyDistanceRates(policyID: string, enabled: boolean, customUnit: CustomUnit | undefined) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -126,47 +86,43 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
         ],
     };
 
-    if (!enabled) {
-        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-        const customUnit = getDistanceRateCustomUnit(policy);
-        if (customUnit) {
-            const customUnitID = customUnit.customUnitID;
+    if (!enabled && customUnit) {
+        const customUnitID = customUnit.customUnitID;
+        const rateEntries = Object.entries(customUnit.rates ?? {});
+        // find the rate to be enabled after disabling the distance rate feature
+        const rateEntryToBeEnabled = rateEntries.at(0);
 
-            const rateEntries = Object.entries(customUnit.rates ?? {});
-            // find the rate to be enabled after disabling the distance rate feature
-            const rateEntryToBeEnabled = rateEntries.at(0);
-
-            onyxData.optimisticData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    customUnits: {
-                        [customUnitID]: {
-                            rates: Object.fromEntries(
-                                rateEntries.map((rateEntry) => {
-                                    const [rateID, rate] = rateEntry;
-                                    return [
-                                        rateID,
-                                        {
-                                            ...rate,
-                                            enabled: rateID === rateEntryToBeEnabled?.at(0),
-                                        },
-                                    ];
-                                }),
-                            ),
-                        },
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        rates: Object.fromEntries(
+                            rateEntries.map((rateEntry) => {
+                                const [rateID, rate] = rateEntry;
+                                return [
+                                    rateID,
+                                    {
+                                        ...rate,
+                                        enabled: rateID === rateEntryToBeEnabled?.at(0),
+                                    },
+                                ];
+                            }),
+                        ),
                     },
                 },
-            });
-        }
+            },
+        });
     }
 
     const parameters: EnablePolicyDistanceRatesParams = {policyID, enabled};
 
+    // We can't use writeWithNoDuplicatesEnableFeatureConflicts because the distance rates data is also changed when disabling/enabling this feature
     API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        navigateWhenEnableFeature(policyID);
+        goBackWhenEnableFeature(policyID);
     }
 }
 
@@ -340,66 +296,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
 }
 
 function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
-    const currentRates = customUnit.rates;
-    const optimisticRates: Record<string, NullishDeep<Rate>> = {};
-    const successRates: Record<string, NullishDeep<Rate>> = {};
-    const failureRates: Record<string, NullishDeep<Rate>> = {};
-    const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
-
-    for (const rateID of Object.keys(customUnit.rates)) {
-        if (rateIDs.includes(rateID)) {
-            const foundRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
-            optimisticRates[rateID] = {...foundRate, pendingFields: {rate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
-            successRates[rateID] = {...foundRate, pendingFields: {rate: null}};
-            failureRates[rateID] = {
-                ...currentRates[rateID],
-                pendingFields: {rate: null},
-                errorFields: {rate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
-            };
-        }
-    }
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: optimisticRates,
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: successRates,
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: failureRates,
-                    },
-                },
-            },
-        },
-    ];
+    const {optimisticData, successData, failureData} = buildOnyxDataForPolicyDistanceRateUpdates(policyID, customUnit, customUnitRates, 'rate');
 
     const params: UpdatePolicyDistanceRateValueParams = {
         policyID,
@@ -410,15 +307,27 @@ function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit,
     API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE, params, {optimisticData, successData, failureData});
 }
 
+function updatePolicyDistanceRateName(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
+    const {optimisticData, successData, failureData} = buildOnyxDataForPolicyDistanceRateUpdates(policyID, customUnit, customUnitRates, 'name');
+
+    const params: UpdatePolicyDistanceRateValueParams = {
+        policyID,
+        customUnitID: customUnit.customUnitID,
+        customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_NAME, params, {optimisticData, successData, failureData});
+}
+
 function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, NullishDeep<Rate>> = {};
     const successRates: Record<string, NullishDeep<Rate>> = {};
     const failureRates: Record<string, NullishDeep<Rate>> = {};
-    const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
+    const rateIDs = new Set(customUnitRates.map((rate) => rate.customUnitRateID));
 
     for (const rateID of Object.keys(currentRates)) {
-        if (rateIDs.includes(rateID)) {
+        if (rateIDs.has(rateID)) {
             const foundRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
             optimisticRates[rateID] = {...foundRate, pendingFields: {enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
             successRates[rateID] = {...foundRate, pendingFields: {enabled: null}};
@@ -481,7 +390,13 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
     API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED, params, {optimisticData, successData, failureData});
 }
 
-function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rateIDsToDelete: string[]) {
+function deletePolicyDistanceRates(
+    policyID: string,
+    customUnit: CustomUnit,
+    rateIDsToDelete: string[],
+    transactionIDsAffected: string[],
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+) {
     const currentRates = customUnit.rates;
     const optimisticRates: Record<string, Rate> = {};
     const successRates: Record<string, Rate> = {};
@@ -550,6 +465,38 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
         },
     ];
 
+    const optimisticTransactionsViolations: OnyxUpdate[] = [];
+    const failureTransactionsViolations: OnyxUpdate[] = [];
+
+    for (const transactionID of transactionIDsAffected) {
+        const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+        if (currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY)) {
+            return;
+        }
+
+        optimisticTransactionsViolations.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: [
+                ...currentTransactionViolations,
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    showInReview: true,
+                },
+            ],
+        });
+
+        failureTransactionsViolations.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: currentTransactionViolations,
+        });
+    }
+
+    optimisticData.push(...optimisticTransactionsViolations);
+    failureData.push(...failureTransactionsViolations);
+
     const params: DeletePolicyDistanceRatesParams = {
         policyID,
         customUnitID: customUnit.customUnitID,
@@ -560,66 +507,7 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
 }
 
 function updateDistanceTaxClaimableValue(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
-    const currentRates = customUnit.rates;
-    const optimisticRates: Record<string, NullishDeep<Rate>> = {};
-    const successRates: Record<string, NullishDeep<Rate>> = {};
-    const failureRates: Record<string, NullishDeep<Rate>> = {};
-    const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
-
-    for (const rateID of Object.keys(customUnit.rates)) {
-        if (rateIDs.includes(rateID)) {
-            const foundRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
-            optimisticRates[rateID] = {...foundRate, pendingFields: {taxClaimablePercentage: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
-            successRates[rateID] = {...foundRate, pendingFields: {taxClaimablePercentage: null}};
-            failureRates[rateID] = {
-                ...currentRates[rateID],
-                pendingFields: {taxClaimablePercentage: null},
-                errorFields: {taxClaimablePercentage: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
-            };
-        }
-    }
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: optimisticRates,
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: successRates,
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: failureRates,
-                    },
-                },
-            },
-        },
-    ];
+    const {optimisticData, successData, failureData} = buildOnyxDataForPolicyDistanceRateUpdates(policyID, customUnit, customUnitRates, 'taxClaimablePercentage');
 
     const params: UpdatePolicyDistanceRateValueParams = {
         policyID,
@@ -631,66 +519,7 @@ function updateDistanceTaxClaimableValue(policyID: string, customUnit: CustomUni
 }
 
 function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
-    const currentRates = customUnit.rates;
-    const optimisticRates: Record<string, NullishDeep<Rate>> = {};
-    const successRates: Record<string, NullishDeep<Rate>> = {};
-    const failureRates: Record<string, NullishDeep<Rate>> = {};
-    const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
-
-    for (const rateID of Object.keys(customUnit.rates)) {
-        if (rateIDs.includes(rateID)) {
-            const foundRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
-            optimisticRates[rateID] = {...foundRate, pendingFields: {taxRateExternalID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
-            successRates[rateID] = {...foundRate, pendingFields: {taxRateExternalID: null}};
-            failureRates[rateID] = {
-                ...currentRates[rateID],
-                pendingFields: {taxRateExternalID: null},
-                errorFields: {taxRateExternalID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
-            };
-        }
-    }
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: optimisticRates,
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: successRates,
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: failureRates,
-                    },
-                },
-            },
-        },
-    ];
+    const {optimisticData, successData, failureData} = buildOnyxDataForPolicyDistanceRateUpdates(policyID, customUnit, customUnitRates, 'taxRateExternalID');
 
     const params: UpdatePolicyDistanceRateValueParams = {
         policyID,
@@ -711,10 +540,9 @@ export {
     clearPolicyDistanceRatesErrorFields,
     clearPolicyDistanceRateErrorFields,
     updatePolicyDistanceRateValue,
+    updatePolicyDistanceRateName,
     setPolicyDistanceRatesEnabled,
     deletePolicyDistanceRates,
     updateDistanceTaxClaimableValue,
     updateDistanceTaxRate,
 };
-
-export type {NewCustomUnit};

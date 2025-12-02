@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type {Icon} from './OnyxCommon';
@@ -77,6 +78,9 @@ type Participant = {
 
     /** The report associated to the IOU participant */
     item?: Report;
+
+    /** The avatar of the IOU participant */
+    avatar?: AvatarSource;
 };
 
 /** Model of IOU split */
@@ -122,6 +126,39 @@ type Split = {
 
     /** IOU tax amount */
     taxAmount?: number;
+};
+
+/** Model for one portion of a shared expense */
+type SplitExpense = {
+    /** Unique identifier of this split expense */
+    transactionID: string;
+
+    /** Amount allocated to this split */
+    amount: number;
+
+    /** Description of this split */
+    description?: string;
+
+    /** Category assigned to this split */
+    category?: string;
+
+    /** Tags associated with this split */
+    tags?: string[];
+
+    /** Timestamp when this split was created */
+    created: string;
+
+    /** Merchant where the amount was spent */
+    merchant?: string;
+
+    /** The status of the transaction report */
+    statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+
+    /** Current reportID  */
+    reportID?: string;
+
+    /** Whether the split expense is reimbursable (out-of-pocket) or non-reimbursable (company spend) */
+    reimbursable?: boolean;
 };
 
 /** Model of IOU request */
@@ -172,13 +209,13 @@ type IOU = {
 /** Model of IOU attendee */
 type Attendee = {
     /** IOU attendee email */
-    email?: string;
+    email: string;
 
     /** IOU attendee display name */
-    displayName?: string;
+    displayName: string;
 
     /** IOU attendee avatar url */
-    avatarUrl?: string;
+    avatarUrl: string;
 
     /** Account ID */
     accountID?: number;
@@ -202,5 +239,17 @@ type Attendee = {
     reportID?: string;
 };
 
+/** Model of IOU accountant */
+type Accountant = {
+    /** Account ID */
+    accountID?: number;
+
+    /** Account login */
+    login?: string;
+};
+
+/** Type of distance expense */
+type DistanceExpenseType = typeof CONST.IOU.EXPENSE_TYPE.DISTANCE_MAP | typeof CONST.IOU.EXPENSE_TYPE.DISTANCE_MANUAL;
+
 export default IOU;
-export type {Participant, Split, Attendee};
+export type {Participant, Split, Attendee, Accountant, SplitExpense, DistanceExpenseType};

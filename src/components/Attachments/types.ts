@@ -1,17 +1,20 @@
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type AttachmentSource = string | IconAsset | number;
 
 type Attachment = {
+    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
+    source: AttachmentSource;
+
     /** Report action ID of the attachment */
     reportActionID?: string;
 
+    /** The attachment id, which is the concatenation of the report action id it is in and its order index within that report action. */
+    attachmentID?: string;
+
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
-
-    /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
-    source: AttachmentSource;
 
     /** URL to preview-sized attachment that is also used for the thumbnail */
     previewSource?: AttachmentSource;

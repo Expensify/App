@@ -1,23 +1,21 @@
 import type * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, screen} from '@testing-library/react-native';
 import React, {useMemo} from 'react';
-import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {OptionsListContext} from '@components/OptionListContextProvider';
+import SearchAutocompleteInput from '@components/Search/SearchAutocompleteInput';
 import SearchRouter from '@components/Search/SearchRouter/SearchRouter';
-import SearchRouterInput from '@components/Search/SearchRouter/SearchRouterInput';
-import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ComposeProviders from '@src/components/ComposeProviders';
-import OnyxProvider from '@src/components/OnyxProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -45,6 +43,8 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     isDisplayedInModal: jest.fn(() => false),
 }));
 
+jest.mock('@src/hooks/useRootNavigationState');
+
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
@@ -52,8 +52,7 @@ jest.mock('@react-navigation/native', () => {
         useFocusEffect: jest.fn(),
         useIsFocused: () => true,
         useRoute: () => jest.fn(),
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        UNSTABLE_usePreventRemove: () => jest.fn(),
+        usePreventRemove: () => jest.fn(),
         useNavigation: () => ({
             navigate: jest.fn(),
             addListener: () => jest.fn(),
@@ -71,26 +70,12 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType<WithNavigationFocusProps>) => {
-    function WithNavigationFocus(props: WithNavigationFocusProps) {
-        return (
-            <Component
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                isFocused={false}
-            />
-        );
-    }
-
-    WithNavigationFocus.displayName = 'WithNavigationFocus';
-
-    return WithNavigationFocus;
-});
+jest.mock('@src/components/ConfirmedRoute.tsx');
 
 const getMockedReports = (length = 100) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
-        (index) => createRandomReport(index),
+        (index) => createRandomReport(index, undefined),
         length,
     );
 
@@ -109,7 +94,7 @@ const mockedOptions = createOptionList(mockedPersonalDetails, mockedReports);
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
-        safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT],
+        evictableKeys: [ONYXKEYS.COLLECTION.REPORT],
     }),
 );
 
@@ -127,14 +112,15 @@ afterEach(() => {
 
 const mockOnClose = jest.fn();
 
-function SearchRouterInputWrapper() {
+function SearchAutocompleteInputWrapper() {
     const [value, setValue] = React.useState('');
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
-            <SearchRouterInput
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+            <SearchAutocompleteInput
                 value={value}
                 onSearchQueryChange={(searchTerm) => setValue(searchTerm)}
                 isFullWidth={false}
+                substitutionMap={CONST.EMPTY_OBJECT}
             />
         </ComposeProviders>
     );
@@ -142,7 +128,7 @@ function SearchRouterInputWrapper() {
 
 function SearchRouterWrapperWithCachedOptions() {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <OptionsListContext.Provider value={useMemo(() => ({options: mockedOptions, initializeOptions: () => {}, resetOptions: () => {}, areOptionsInitialized: true}), [])}>
                 <SearchRouter onRouterClose={mockOnClose} />
             </OptionsListContext.Provider>
@@ -169,7 +155,7 @@ test('[SearchRouter] should render list with cached options', async () => {
 
 test('[SearchRouter] should react to text input changes', async () => {
     const scenario = async () => {
-        const input = await screen.findByTestId('search-router-text-input');
+        const input = await screen.findByTestId('search-autocomplete-text-input');
         fireEvent.changeText(input, 'Email Four');
         fireEvent.changeText(input, 'Report');
         fireEvent.changeText(input, 'Email Five');
@@ -184,5 +170,5 @@ test('[SearchRouter] should react to text input changes', async () => {
                 [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
-        .then(() => measureRenders(<SearchRouterInputWrapper />, {scenario}));
+        .then(() => measureRenders(<SearchAutocompleteInputWrapper />, {scenario}));
 });

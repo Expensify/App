@@ -1,23 +1,44 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Platform} from 'react-native';
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
 import CONST from './CONST';
 import getPlatform from './libs/getPlatform';
-import * as Url from './libs/Url';
+import addTrailingForwardSlash from './libs/UrlUtils';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to prevent headaches
 const get = (config: NativeConfig, key: string, defaultValue: string): string => (config?.[key] ?? defaultValue).trim();
 
+const getDefaultLegacyPartnerConfig = () => {
+    // eslint-disable-next-line no-restricted-properties
+    if (!HybridAppModule.isHybridApp()) {
+        return {name: '', password: ''};
+    }
+
+    if (Platform.OS === 'ios') {
+        return {
+            name: 'iphone',
+            password: 'e88ed31140a66c73b36a',
+        };
+    }
+
+    // Android partner config
+    return {
+        name: 'android',
+        password: 'c3a9ac418ea3f152aae2',
+    };
+};
+
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const ENVIRONMENT = get(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
-const newExpensifyURL = Url.addTrailingForwardSlash(get(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com/'));
-const expensifyURL = Url.addTrailingForwardSlash(get(Config, 'EXPENSIFY_URL', 'https://www.expensify.com/'));
-const stagingExpensifyURL = Url.addTrailingForwardSlash(get(Config, 'STAGING_EXPENSIFY_URL', 'https://staging.expensify.com/'));
-const stagingSecureExpensifyUrl = Url.addTrailingForwardSlash(get(Config, 'STAGING_SECURE_EXPENSIFY_URL', 'https://staging-secure.expensify.com/'));
-const ngrokURL = Url.addTrailingForwardSlash(get(Config, 'NGROK_URL', ''));
-const secureNgrokURL = Url.addTrailingForwardSlash(get(Config, 'SECURE_NGROK_URL', ''));
-const secureExpensifyUrl = Url.addTrailingForwardSlash(get(Config, 'SECURE_EXPENSIFY_URL', 'https://secure.expensify.com/'));
+const newExpensifyURL = addTrailingForwardSlash(get(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com/'));
+const expensifyURL = addTrailingForwardSlash(get(Config, 'EXPENSIFY_URL', 'https://www.expensify.com/'));
+const stagingExpensifyURL = addTrailingForwardSlash(get(Config, 'STAGING_EXPENSIFY_URL', 'https://staging.expensify.com/'));
+const stagingSecureExpensifyUrl = addTrailingForwardSlash(get(Config, 'STAGING_SECURE_EXPENSIFY_URL', 'https://staging-secure.expensify.com/'));
+const ngrokURL = addTrailingForwardSlash(get(Config, 'NGROK_URL', ''));
+const secureNgrokURL = addTrailingForwardSlash(get(Config, 'SECURE_NGROK_URL', ''));
+const secureExpensifyUrl = addTrailingForwardSlash(get(Config, 'SECURE_EXPENSIFY_URL', 'https://secure.expensify.com/'));
 const useNgrok = get(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = get(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
@@ -60,6 +81,8 @@ export default {
         DEFAULT_SECURE_API_ROOT: secureURLRoot,
         STAGING_API_ROOT: stagingExpensifyURL,
         STAGING_SECURE_API_ROOT: stagingSecureExpensifyUrl,
+        LEGACY_PARTNER_NAME: get(Config, 'LEGACY_EXPENSIFY_PARTNER_NAME', getDefaultLegacyPartnerConfig().name),
+        LEGACY_PARTNER_PASSWORD: get(Config, 'LEGACY_EXPENSIFY_PARTNER_PASSWORD', getDefaultLegacyPartnerConfig().password),
         PARTNER_NAME: get(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
         PARTNER_PASSWORD: get(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
         EXPENSIFY_CASH_REFERER: 'ecash',
@@ -92,8 +115,20 @@ export default {
         REDIRECT_URI: `${newExpensifyURL}appleauth`,
     },
     GOOGLE_SIGN_IN: {
+        // cspell:disable-next-line
         WEB_CLIENT_ID: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
+        // cspell:disable-next-line
         IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
+        HYBRID_APP: {
+            // cspell:disable-next-line
+            IOS_CLIENT_ID: '1008697809946-sh04nqq0hea396s1qdqqbj6ia649odb2.apps.googleusercontent.com',
+            WEB_CLIENT_ID: {
+                // cspell:disable-next-line
+                IOS: '1008697809946-5e095eqem3o6ugtpc2rjf7v880tcp28p.apps.googleusercontent.com',
+                // cspell:disable-next-line
+                ANDROID: '240677659774-86pov3adub93cv4b8uj13g7varolmk2l.apps.googleusercontent.com',
+            },
+        },
     },
     GCP_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
     FIREBASE_WEB_CONFIG: {
@@ -105,4 +140,7 @@ export default {
     USE_REACT_STRICT_MODE_IN_DEV: false,
     ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
     IS_TEST_ENV: process.env.NODE_ENV === 'test',
+    // eslint-disable-next-line no-restricted-properties
+    IS_HYBRID_APP: HybridAppModule.isHybridApp(),
+    SENTRY_DSN: get(Config, 'SENTRY_DSN', 'https://7b463fb4d4402d342d1166d929a62f4e@o4510228013121536.ingest.us.sentry.io/4510228107427840'),
 } as const;

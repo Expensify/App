@@ -1,8 +1,19 @@
+import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
+import {shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
+import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {Policy, Transaction} from '../../src/types/onyx';
+import type {Policy, Report, Transaction} from '../../src/types/onyx';
+import type {CardList} from '../../src/types/onyx/Card';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
+import {createRandomReport} from '../utils/collections/reports';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const reportID = '1';
@@ -25,7 +36,111 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     return {...baseValues, ...values};
 }
 
+const CURRENT_USER_ID = 1;
+const CURRENT_USER_EMAIL = 'test@example.com';
+const OTHER_USER_EMAIL = 'other@example.com';
+const SECOND_USER_ID = 2;
+const FAKE_OPEN_REPORT_ID = 'FAKE_OPEN_REPORT_ID';
+const FAKE_OPEN_REPORT_SECOND_USER_ID = 'FAKE_OPEN_REPORT_SECOND_USER_ID';
+const FAKE_PROCESSING_REPORT_ID = 'FAKE_PROCESSING_REPORT_ID';
+const FAKE_APPROVED_REPORT_ID = 'FAKE_APPROVED_REPORT_ID';
+const openReport = {
+    reportID: FAKE_OPEN_REPORT_ID,
+    ownerAccountID: CURRENT_USER_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+};
+const processingReport = {
+    reportID: FAKE_PROCESSING_REPORT_ID,
+    ownerAccountID: CURRENT_USER_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+};
+const approvedReport = {
+    reportID: FAKE_APPROVED_REPORT_ID,
+    ownerAccountID: SECOND_USER_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+};
+const secondUserOpenReport = {
+    reportID: FAKE_OPEN_REPORT_SECOND_USER_ID,
+    ownerAccountID: SECOND_USER_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+};
+const reportCollectionDataSet: ReportCollectionDataSet = {
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`]: openReport,
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_PROCESSING_REPORT_ID}`]: processingReport,
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_APPROVED_REPORT_ID}`]: approvedReport,
+    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_SECOND_USER_ID}`]: secondUserOpenReport,
+};
+const defaultDistanceRatePolicyID1: Record<string, Rate> = {
+    customUnitRateID1: {
+        currency: 'USD',
+        customUnitRateID: 'customUnitRateID1',
+        enabled: true,
+        name: 'Default Rate',
+        rate: 70,
+        subRates: [],
+    },
+};
+const distanceRateTransactionID1: TransactionCustomUnit = {
+    customUnitID: 'customUnitID1',
+    customUnitRateID: 'customUnitRateID1',
+    distanceUnit: 'mi',
+    name: 'Distance',
+};
+const distanceRateTransactionID2: TransactionCustomUnit = {
+    customUnitID: 'customUnitID2',
+    customUnitRateID: 'customUnitRateID2',
+    distanceUnit: 'mi',
+    name: 'Distance',
+};
+const defaultCustomUnitPolicyID1: Record<string, CustomUnit> = {
+    customUnitID1: {
+        attributes: {
+            unit: 'mi',
+        },
+        customUnitID: 'customUnitID1',
+        defaultCategory: 'Car',
+        enabled: true,
+        name: 'Distance',
+        rates: defaultDistanceRatePolicyID1,
+    },
+};
+const currentUserPersonalDetails = {
+    accountID: CURRENT_USER_ID,
+    login: CURRENT_USER_EMAIL,
+    displayName: 'Current User',
+};
+
 describe('TransactionUtils', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID, email: CURRENT_USER_EMAIL},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [CURRENT_USER_ID]: {
+                        accountID: CURRENT_USER_ID,
+                        login: CURRENT_USER_EMAIL,
+                        displayName: 'Current User',
+                    },
+                    [SECOND_USER_ID]: {
+                        accountID: SECOND_USER_ID,
+                        login: OTHER_USER_EMAIL,
+                        displayName: 'Second User',
+                    },
+                },
+                ...reportCollectionDataSet,
+            },
+        });
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
+    });
+
     describe('getCreated', () => {
         describe('when the transaction property "modifiedCreated" has value', () => {
             const transaction = generateTransaction({
@@ -240,16 +355,983 @@ describe('TransactionUtils', () => {
             expect(updatedTransaction.taxCode).toBe(taxCode);
             expect(updatedTransaction.taxAmount).toBe(5);
         });
+
+        it('should update transaction when distance is changed', () => {
+            // Given: a policy with a mileage rate
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            default: {
+                                customUnitRateID: '1',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 1, // 1 USD per mile
+                            },
+                        },
+                        attributes: {
+                            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10, // original distance
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            const newDistance = 20; // change distance to 20 miles
+
+            // When: updating the transaction with a new distance
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                policy: fakePolicy,
+                transactionChanges: {distance: newDistance},
+            });
+
+            // Then: quantity should be updated
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(newDistance);
+
+            // And: amount should be recalculated (20 miles × 1 USD = 20)
+            expect(updatedTransaction.modifiedAmount).toBe(20);
+
+            // And: merchant should be updated with mileage description
+            expect(updatedTransaction.modifiedMerchant).toContain('20');
+
+            // And: currency should be set from policy mileage rate
+            expect(updatedTransaction.modifiedCurrency).toBe(CONST.CURRENCY.USD);
+
+            // And: pending fields should mark distance-related updates
+            expect(updatedTransaction.pendingFields).toMatchObject({
+                quantity: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            });
+        });
     });
 
-    describe('shouldShowRTERViolationMessage', () => {
-        it('should return true if transaction is receipt being scanned', () => {
+    describe('getTransactionType', () => {
+        it('returns card when the transaction is null', () => {
+            expect(TransactionUtils.getTransactionType(null as unknown as Transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+        });
+
+        it('returns distance when the transaction has a distance custom unit', () => {
             const transaction = generateTransaction({
-                receipt: {
-                    state: CONST.IOU.RECEIPT_STATE.SCANREADY,
+                comment: {
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    },
                 },
             });
-            expect(TransactionUtils.shouldShowRTERViolationMessage([transaction])).toBe(true);
+
+            expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.DISTANCE);
+        });
+
+        it('returns per diem when the transaction has an international per diem custom unit', () => {
+            const transaction = generateTransaction({
+                comment: {
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    },
+                },
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM);
+        });
+
+        it('returns cash when the transaction cardID maps to a cash card in the card list', () => {
+            const cardID = 101;
+            const cardList = {
+                [cardID]: {
+                    cardName: '__CASH__',
+                },
+            } as unknown as CardList;
+            const transaction = generateTransaction({
+                cardID,
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction, cardList)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+        });
+
+        it('returns cash when the transaction card name includes the cash card name substring', () => {
+            const transaction = generateTransaction({
+                cardName: `Example ${CONST.EXPENSE.TYPE.CASH_CARD_NAME}`,
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
+        });
+    });
+
+    describe('calculateTaxAmount', () => {
+        it('returns 0 for undefined percentage', () => {
+            const result = TransactionUtils.calculateTaxAmount(undefined, 10000, 'USD');
+            expect(result).toBe(0);
+        });
+
+        it('returns 0 for empty percentage', () => {
+            const result = TransactionUtils.calculateTaxAmount('', 10000, 'USD');
+            expect(result).toBe(0);
+        });
+
+        it('returns 0 for zero percentage', () => {
+            const result = TransactionUtils.calculateTaxAmount('0%', 10000, 'USD');
+            expect(result).toBe(0);
+        });
+
+        it('returns 0 for zero amount', () => {
+            const result = TransactionUtils.calculateTaxAmount('10%', 0, 'USD');
+            expect(result).toBe(0);
+        });
+
+        it('returns correct tax amount for valid percentage and amount', () => {
+            const result = TransactionUtils.calculateTaxAmount('10%', 10000, 'USD');
+            expect(result).toBe(9.09);
+        });
+    });
+
+    describe('shouldShowBrokenConnectionViolation', () => {
+        it('should return false when no broken connection violations are found for the provided transaction', () => {
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, undefined, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(false);
+        });
+
+        it('should return true when a broken connection violation exists for one transaction and the user is the policy member', () => {
+            const policy = {role: CONST.POLICY.ROLE.USER} as Policy;
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
+        it('should return true when a broken connection violation exists for any of the provided transactions and the user is the policy member', () => {
+            const policy = {
+                role: CONST.POLICY.ROLE.USER,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            } as Policy;
+            const transaction1 = generateTransaction();
+            const transaction2 = generateTransaction();
+            const transactionViolations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction1.transactionID}`]: [
+                    {
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        name: CONST.VIOLATIONS.RTER,
+                        data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION},
+                    },
+                ],
+            };
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+                [transaction1, transaction2],
+                undefined,
+                policy,
+                transactionViolations,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ID,
+            );
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
+        it('should return true when a broken connection violation exists and the user is the policy admin and the expense submitter', () => {
+            const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
+            const report = processingReport;
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
+        it('should return true when a broken connection violation exists, the user is the policy admin and the expense report is in the open state', () => {
+            const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
+            const report = secondUserOpenReport;
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
+        it('should return true when a broken connection violation exists, the user is the policy admin, the expense report is in the processing state and instant submit is enabled', () => {
+            const policy = {role: CONST.POLICY.ROLE.ADMIN, autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT} as Policy;
+            const report = processingReport;
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(true);
+        });
+
+        it('should return false when a broken connection violation exists, the user is the policy admin but the expense report is in the approved state', () => {
+            const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
+            const report = approvedReport;
+            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
+
+            expect(showBrokenConnectionViolation).toBe(false);
+        });
+    });
+
+    describe('getMerchant', () => {
+        it('should return merchant if transaction has merchant', () => {
+            const transaction = generateTransaction({
+                merchant: 'Merchant',
+            });
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('Merchant');
+        });
+
+        it('should return (none) if transaction has no merchant', () => {
+            const transaction = generateTransaction();
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('(none)');
+        });
+
+        it('should return modified merchant if transaction has modified merchant', () => {
+            const transaction = generateTransaction({
+                modifiedMerchant: 'Modified Merchant',
+                merchant: 'Original Merchant',
+            });
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('Modified Merchant');
+        });
+
+        it('should return distance merchant if transaction is distance expense and pending create', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            });
+            const policy: Policy = {
+                ...createRandomPolicy(10),
+                role: CONST.POLICY.ROLE.ADMIN,
+                customUnits: {},
+            };
+            const merchant = TransactionUtils.getMerchant(transaction, policy);
+            expect(merchant).toBe('Pending...');
+        });
+
+        it('should return distance merchant if transaction is created distance expense', () => {
+            return waitForBatchedUpdates()
+                .then(async () => {
+                    const fakePolicy: Policy = {
+                        ...createRandomPolicy(0),
+                        customUnits: {
+                            Unit1: {
+                                customUnitID: 'Unit1',
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                rates: {
+                                    Rate1: {
+                                        customUnitRateID: 'Rate1',
+                                        currency: CONST.CURRENCY.USD,
+                                        rate: 100,
+                                    },
+                                },
+                                enabled: true,
+                                attributes: {
+                                    unit: 'mi',
+                                },
+                            },
+                        },
+                        outputCurrency: CONST.CURRENCY.USD,
+                    };
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`, {policyID: fakePolicy.id});
+                })
+                .then(() => {
+                    const transaction = generateTransaction({
+                        comment: {
+                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                            customUnit: {
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                customUnitID: 'Unit1',
+                                customUnitRateID: 'Rate1',
+                                quantity: 100,
+                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            },
+                        },
+                        reportID: FAKE_OPEN_REPORT_ID,
+                    });
+                    const merchant = TransactionUtils.getMerchant(transaction);
+                    expect(merchant).toBe('100.00 mi @ USD 1.00 / mi');
+                });
+        });
+    });
+    describe('getTransactionPendingAction', () => {
+        it.each([
+            ['when pendingAction is null', null, null],
+            ['when pendingAction is delete', CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE],
+            ['when pendingAction is add', CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD],
+        ])('%s', (_description, pendingAction, expected) => {
+            const transaction = generateTransaction({pendingAction});
+            const result = TransactionUtils.getTransactionPendingAction(transaction);
+            expect(result).toEqual(expected);
+        });
+        it('when pendingAction is update', () => {
+            const pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+            const transaction = generateTransaction({
+                pendingFields: {amount: pendingAction},
+                pendingAction: null,
+            });
+            const result = TransactionUtils.getTransactionPendingAction(transaction);
+            expect(result).toEqual(pendingAction);
+        });
+    });
+
+    describe('isTransactionPendingDelete', () => {
+        it.each([
+            ['when pendingAction is null', null, false],
+            ['when pendingAction is delete', CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, true],
+            ['when pendingAction is add', CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, false],
+            ['when pendingAction is update', CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, false],
+        ])('%s', (_description, pendingAction, expected) => {
+            const transaction = generateTransaction({pendingAction});
+            const result = TransactionUtils.isTransactionPendingDelete(transaction);
+            expect(result).toEqual(expected);
+        });
+    });
+
+    describe('isUnreportedAndHasInvalidDistanceRateTransaction', () => {
+        it('should be false when transaction is null', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: defaultCustomUnitPolicyID1,
+            };
+            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(null, fakePolicy);
+            expect(result).toBe(false);
+        });
+        it('should be false when transaction is not distance type transaction', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: defaultCustomUnitPolicyID1,
+            };
+            const transaction: Transaction = {
+                ...generateTransaction(),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            };
+            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
+            expect(result).toBe(false);
+        });
+        it('should be false when transaction is reported', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: defaultCustomUnitPolicyID1,
+            };
+            const transaction: Transaction = {
+                ...generateTransaction(),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                reportID: '1',
+            };
+            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
+            expect(result).toBe(false);
+        });
+        it('should be false when transaction is unreported and has valid rate', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: defaultCustomUnitPolicyID1,
+            };
+            const transaction: Transaction = {
+                ...generateTransaction(),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                reportID: '0',
+                comment: {
+                    customUnit: distanceRateTransactionID1,
+                    type: 'customUnit',
+                },
+            };
+
+            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
+            expect(result).toBe(false);
+        });
+        it('should be false when transaction is unreported, has invalid rate but policy has default rate', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: defaultCustomUnitPolicyID1,
+            };
+            const transaction: Transaction = {
+                ...generateTransaction(),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                reportID: '0',
+                comment: {
+                    customUnit: distanceRateTransactionID2,
+                    type: 'customUnit',
+                },
+            };
+
+            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
+            expect(result).toBe(false);
+        });
+        it('should be true when transaction is unreported, has invalid rate and policy has no default rate', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {},
+            };
+            const transaction: Transaction = {
+                ...generateTransaction(),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                reportID: '0',
+                comment: {
+                    customUnit: distanceRateTransactionID2,
+                    type: 'customUnit',
+                },
+            };
+
+            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('isViolationDismissed', () => {
+        describe('Current user dismissed it themselves', () => {
+            it('should return true when current user dismissed the violation', () => {
+                // Given a transaction with a violation dismissed by current user
+                const transaction = generateTransaction({
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                                [CURRENT_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+                // When checking if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+
+                // Then it should return true
+                expect(result).toBe(true);
+            });
+
+            it('should return false when violation is not dismissed at all', () => {
+                // Given a transaction with no dismissed violations
+                const transaction = generateTransaction({
+                    comment: {},
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+                // When checking if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+
+                // Then it should return false
+                expect(result).toBe(false);
+            });
+
+            it('should return false when violation was dismissed by someone else only', () => {
+                // Given a transaction with a violation dismissed by another user
+                const transaction = generateTransaction({
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+                // When checking if violation is dismissed for current user
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+
+                // Then it should return false since current user hasn't dismissed it
+                expect(result).toBe(false);
+            });
+        });
+
+        describe('Admin viewing OPEN report AND report owner dismissed it', () => {
+            it('should return true when admin views open report and owner dismissed violation', () => {
+                // Given an OPEN report owned by user 2
+                const iouReport: Report = {
+                    ...openReport,
+                    ownerAccountID: SECOND_USER_ID,
+                };
+
+                // And a transaction where owner (user 2) dismissed a violation
+                const transaction = generateTransaction({
+                    reportID: iouReport.reportID,
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+                // When current user (admin, not the owner) checks if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
+
+                // Then it should return true because admin sees owner's perspective on open reports
+                expect(result).toBe(true);
+            });
+
+            it('should return false when admin views PROCESSING report and only owner dismissed violation', () => {
+                // Given a PROCESSING report (not OPEN) owned by user 2
+                const iouReport: Report = {
+                    ...processingReport,
+                    ownerAccountID: SECOND_USER_ID,
+                };
+
+                // And a transaction where owner dismissed a violation
+                const transaction = generateTransaction({
+                    reportID: iouReport.reportID,
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+                // When current user (admin, not the owner) checks if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
+
+                // Then it should return false because on processing reports, admin must dismiss separately
+                expect(result).toBe(false);
+            });
+
+            it('should return false when submitter views their own open report (not condition 2)', () => {
+                // Given an OPEN report owned by current user
+                const iouReport: Report = {
+                    ...openReport,
+                    ownerAccountID: CURRENT_USER_ID,
+                };
+
+                // And a transaction where someone else dismissed a violation
+                const transaction = generateTransaction({
+                    reportID: iouReport.reportID,
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+                // When current user (the submitter) checks if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, iouReport, undefined);
+
+                // Then it should return false (condition 2 doesn't apply to submitters)
+                expect(result).toBe(false);
+            });
+        });
+
+        describe('RTER violation on instant submit policy - dismissed by anyone', () => {
+            it('should return true when RTER violation dismissed by anyone on instant submit policy', () => {
+                // Given an instant submit policy
+                const policy: Policy = {
+                    ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                };
+
+                // And a transaction with RTER violation dismissed by someone else
+                const transaction = generateTransaction({
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.RTER]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
+
+                // When current user checks if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
+
+                // Then it should return true because on instant submit, anyone's dismissal counts
+                expect(result).toBe(true);
+            });
+
+            it('should return false when RTER violation dismissed by anyone on NON-instant submit policy', () => {
+                // Given a non-instant submit policy
+                const policy: Policy = {
+                    ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+                };
+
+                // And a transaction with RTER violation dismissed by someone else
+                const transaction = generateTransaction({
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.RTER]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
+
+                // When current user checks if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
+
+                // Then it should return false because on non-instant submit, each person must dismiss separately
+                expect(result).toBe(false);
+            });
+
+            it('should return false when non-RTER violation dismissed by anyone on instant submit policy', () => {
+                // Given an instant submit policy
+                const policy: Policy = {
+                    ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                };
+
+                // And a transaction with non-RTER violation dismissed by someone else
+                const transaction = generateTransaction({
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.DUPLICATED_TRANSACTION]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+
+                // When current user checks if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
+
+                // Then it should return false because condition 3 only applies to RTER violations
+                expect(result).toBe(false);
+            });
+
+            it('should return true when RTER violation dismissed by multiple people on instant submit policy', () => {
+                // Given an instant submit policy
+                const policy: Policy = {
+                    ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                };
+
+                // And a transaction with RTER violation dismissed by multiple people
+                const transaction = generateTransaction({
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.RTER]: {
+                                [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                                [CURRENT_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.WARNING, name: CONST.VIOLATIONS.RTER};
+
+                // When current user checks if violation is dismissed
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, policy);
+
+                // Then it should return true
+                expect(result).toBe(true);
+            });
+        });
+
+        describe('Edge cases and data validation', () => {
+            it('should return false when transaction is null', () => {
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+                const result = TransactionUtils.isViolationDismissed(undefined, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when violation is null', () => {
+                const transaction = generateTransaction({});
+                const result = TransactionUtils.isViolationDismissed(transaction, undefined, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                expect(result).toBe(false);
+            });
+
+            it('should return false when violation name does not exist in dismissedViolations', () => {
+                const transaction = generateTransaction({
+                    comment: {
+                        dismissedViolations: {
+                            [CONST.VIOLATIONS.SMARTSCAN_FAILED]: {
+                                [CURRENT_USER_EMAIL]: DateUtils.getDBTime(),
+                            },
+                        },
+                    },
+                });
+                const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION};
+                const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined);
+                expect(result).toBe(false);
+            });
+        });
+    });
+
+    describe('shouldShowViolation', () => {
+        it('should return false for auto approval limit violation when report is not open/processing report', () => {
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                ownerAccountID: 2,
+            };
+
+            const policy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            expect(TransactionUtils.shouldShowViolation(iouReport, policy, CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT, 'test@example.com')).toBe(false);
+        });
+    });
+
+    describe('getReportOwnerAsAttendee', () => {
+        it('should return undefined when transaction has no reportID', () => {
+            const transaction = generateTransaction({
+                reportID: undefined,
+            });
+
+            const result = TransactionUtils.getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
+
+            expect(result).toBeUndefined();
+        });
+
+        it('should return report owner as attendee for reported expense', () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_SECOND_USER_ID,
+            });
+
+            const result = TransactionUtils.getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
+
+            expect(result).toBeDefined();
+            expect(result?.accountID).toBe(SECOND_USER_ID);
+            expect(result?.email).toBe(OTHER_USER_EMAIL);
+            expect(result?.login).toBe(OTHER_USER_EMAIL);
+            expect(result?.selected).toBe(true);
+        });
+
+        it('should return current user as attendee for unreported expense', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            });
+
+            const result = TransactionUtils.getReportOwnerAsAttendee(transaction, currentUserPersonalDetails);
+
+            expect(result).toBeDefined();
+            expect(result?.accountID).toBe(CURRENT_USER_ID);
+            expect(result?.email).toBe(CURRENT_USER_EMAIL);
+            expect(result?.login).toBe(CURRENT_USER_EMAIL);
+            expect(result?.displayName).toBe('Current User');
+            expect(result?.selected).toBe(true);
+        });
+    });
+
+    describe('getOriginalAttendees', () => {
+        it('should return empty array when transaction has no attendees and no reportID', () => {
+            const transaction = generateTransaction({
+                reportID: undefined,
+                comment: {
+                    attendees: [],
+                },
+            });
+
+            const result = TransactionUtils.getOriginalAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should return attendees from comment when they exist', () => {
+            const attendees: Attendee[] = [
+                {
+                    email: 'attendee1@example.com',
+                    login: 'attendee1@example.com',
+                    displayName: 'Attendee One',
+                    avatarUrl: '',
+                    accountID: 3,
+                    selected: true,
+                },
+                {
+                    email: 'attendee2@example.com',
+                    login: 'attendee2@example.com',
+                    displayName: 'Attendee Two',
+                    avatarUrl: '',
+                    accountID: 4,
+                    selected: false,
+                },
+            ];
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees,
+                },
+            });
+
+            const result = TransactionUtils.getOriginalAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result).toEqual(attendees);
+            expect(result.length).toBe(2);
+        });
+
+        it('should return report owner as default attendee when attendees array is empty', () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: [],
+                },
+            });
+
+            const result = TransactionUtils.getOriginalAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result.length).toBe(1);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+            expect(result.at(0)?.selected).toBe(true);
+        });
+
+        it('should return current user as default attendee for unreported expense with no attendees', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                comment: {
+                    attendees: [],
+                },
+            });
+
+            const result = TransactionUtils.getOriginalAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result.length).toBe(1);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
+        });
+    });
+
+    describe('getAttendees', () => {
+        it('should return modifiedAttendees when they exist', () => {
+            const originalAttendees: Attendee[] = [
+                {
+                    email: 'original@example.com',
+                    login: 'original@example.com',
+                    displayName: 'Original Attendee',
+                    avatarUrl: '',
+                    accountID: 5,
+                    selected: true,
+                },
+            ];
+            const modifiedAttendees: Attendee[] = [
+                {
+                    email: 'modified@example.com',
+                    login: 'modified@example.com',
+                    displayName: 'Modified Attendee',
+                    avatarUrl: '',
+                    accountID: 6,
+                    selected: true,
+                },
+            ];
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: originalAttendees,
+                },
+                modifiedAttendees,
+            });
+
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result).toEqual(modifiedAttendees);
+            expect(result.length).toBe(1);
+            expect(result.at(0)?.email).toBe('modified@example.com');
+        });
+
+        it('should return original attendees when modifiedAttendees does not exist', () => {
+            const attendees: Attendee[] = [
+                {
+                    email: 'attendee@example.com',
+                    login: 'attendee@example.com',
+                    displayName: 'Attendee',
+                    avatarUrl: '',
+                    accountID: 7,
+                    selected: true,
+                },
+            ];
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees,
+                },
+            });
+
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result).toEqual(attendees);
+        });
+
+        it('should return report owner as default attendee when both modifiedAttendees and attendees are empty', () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: [],
+                },
+            });
+
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result.length).toBe(1);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+            expect(result.at(0)?.selected).toBe(true);
+        });
+
+        it('should return current user as default attendee for unreported expense with no attendees', () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                comment: {
+                    attendees: [],
+                },
+            });
+
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result.length).toBe(1);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+            expect(result.at(0)?.email).toBe(CURRENT_USER_EMAIL);
+        });
+
+        it('should return empty array when transaction has no reportID and no attendees', () => {
+            const transaction = generateTransaction({
+                reportID: undefined,
+                comment: {
+                    attendees: [],
+                },
+            });
+
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should prefer modifiedAttendees even when empty if they are explicitly set', () => {
+            const originalAttendees: Attendee[] = [
+                {
+                    email: 'original@example.com',
+                    login: 'original@example.com',
+                    displayName: 'Original Attendee',
+                    avatarUrl: '',
+                    accountID: 8,
+                    selected: true,
+                },
+            ];
+
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: originalAttendees,
+                },
+                modifiedAttendees: [],
+            });
+
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+
+            // When modifiedAttendees is empty array and no report owner fallback applies
+            expect(result.length).toBe(1);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
         });
     });
 });

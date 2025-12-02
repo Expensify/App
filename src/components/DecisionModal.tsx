@@ -44,10 +44,11 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
             onClose={onClose}
             isVisible={isVisible}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+            innerContainerStyle={styles.pv0}
         >
             <View style={[styles.m5]}>
                 <View>
-                    <View style={[styles.flexRow, styles.mb4]}>
+                    <View style={[styles.flexRow, styles.mb5]}>
                         <Header
                             title={title}
                             containerStyles={[styles.alignItemsCenter]}
@@ -58,16 +59,18 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
                 {!!firstOptionText && (
                     <Button
                         success
-                        style={[styles.mt4]}
+                        style={[styles.mt5]}
                         onPress={onFirstOptionSubmit}
                         pressOnEnter
                         text={firstOptionText}
+                        large
                     />
                 )}
                 <Button
-                    style={[styles.mt3, styles.noSelect]}
+                    style={[firstOptionText ? styles.mt3 : styles.mt5, styles.noSelect]}
                     onPress={onSecondOptionSubmit}
                     text={secondOptionText}
+                    large
                 />
             </View>
         </Modal>

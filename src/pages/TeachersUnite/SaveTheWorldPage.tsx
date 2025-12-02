@@ -1,12 +1,11 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -16,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import useSaveTheWorldSectionIllustration from './useSaveTheWorldSectionIllustration';
 
 function SaveTheWorldPage() {
     const styles = useThemeStyles();
@@ -23,7 +23,8 @@ function SaveTheWorldPage() {
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-
+    const illustrations = useMemoizedLazyIllustrations(['TeachersUnite'] as const);
+    const saveTheWorldIllustration = useSaveTheWorldSectionIllustration();
     const menuItems = useMemo(() => {
         const baseMenuItems = [
             {
@@ -57,8 +58,8 @@ function SaveTheWorldPage() {
                 title={translate('sidebarScreen.saveTheWorld')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={() => Navigation.goBack()}
-                icon={Illustrations.TeachersUnite}
+                onBackButtonPress={Navigation.popToSidebar}
+                icon={illustrations.TeachersUnite}
                 shouldUseHeadlineHeader
             />
             <ScrollView contentContainerStyle={styles.pt3}>
@@ -68,10 +69,12 @@ function SaveTheWorldPage() {
                         subtitle={translate('teachersUnitePage.joinExpensifyOrg')}
                         isCentralPane
                         subtitleMuted
-                        illustration={LottieAnimations.SaveTheWorld}
+                        illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                         illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SAVE_THE_WORLD.ROOT].backgroundColor}
                         titleStyles={styles.accountSettingsSectionTitle}
                         childrenStyles={styles.pt5}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...saveTheWorldIllustration}
                     >
                         <MenuItemList
                             menuItems={menuItems}

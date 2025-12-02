@@ -1,10 +1,10 @@
 import 'core-js/proposals/promise-with-resolvers';
 // eslint-disable-next-line import/extensions
-import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs';
+import pdfWorkerSource from 'pdfjs-dist/build/pdf.worker.min.mjs';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import PDFThumbnailError from './PDFThumbnailError';
@@ -21,7 +21,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
     const thumbnail = useMemo(
         () => (
             <Document
-                loading={<FullScreenLoadingIndicator />}
+                loading={<ActivityIndicator size="large" />}
                 file={isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}
                 options={{
                     cMapUrl: 'cmaps/',

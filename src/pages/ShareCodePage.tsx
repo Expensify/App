@@ -6,24 +6,37 @@ import type {SvgProps} from 'react-native-svg';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
-import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
+import type {QRShareWithDownloadHandle} from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {
+    getChatRoomSubtitle,
+    getDefaultWorkspaceAvatar,
+    getDisplayNameForParticipant,
+    getParentNavigationSubtitle,
+    getParticipantsAccountIDsForDisplay,
+    getPolicyName,
+    getReportName,
+    isExpenseReport,
+    isMoneyRequestReport,
+} from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
-import * as Url from '@libs/Url';
-import * as UserUtils from '@libs/UserUtils';
+import addTrailingForwardSlash from '@libs/UrlUtils';
+import {getAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
@@ -56,41 +69,45 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
 }
 
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
+    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const isReport = !!report?.reportID;
 
     const subtitle = useMemo(() => {
         if (isReport) {
-            if (ReportUtils.isExpenseReport(report)) {
-                return ReportUtils.getPolicyName(report);
+            if (isExpenseReport(report)) {
+                return getPolicyName({report});
             }
-            if (ReportUtils.isMoneyRequestReport(report)) {
+            if (isMoneyRequestReport(report)) {
                 // generate subtitle from participants
-                return ReportUtils.getParticipantsAccountIDsForDisplay(report, true)
-                    .map((accountID) => ReportUtils.getDisplayNameForParticipant(accountID))
+                return getParticipantsAccountIDsForDisplay(report, true)
+                    .map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber}))
                     .join(' & ');
             }
 
-            return ReportUtils.getParentNavigationSubtitle(report).workspaceName ?? ReportUtils.getChatRoomSubtitle(report);
+            return getParentNavigationSubtitle(report, isParentReportArchived).workspaceName ?? getChatRoomSubtitle(report, false, isReportArchived);
         }
 
         return currentUserPersonalDetails.login;
-    }, [report, currentUserPersonalDetails, isReport]);
+    }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber]);
 
-    const title = isReport ? ReportUtils.getReportName(report) : currentUserPersonalDetails.displayName ?? '';
-    const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
+    const title = isReport ? getReportName(report) : (currentUserPersonalDetails.displayName ?? '');
+    const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
-        : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? '-1')}`;
+        : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID)}`;
 
-    const logo = isReport ? getLogoForWorkspace(report, policy) : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
+    const logo = isReport
+        ? getLogoForWorkspace(report, policy)
+        : (getAvatarURL({avatarSource: currentUserPersonalDetails?.avatar, accountID: currentUserPersonalDetails?.accountID}) as ImageSourcePropType);
 
     // Default logos (avatars) are SVG and they require some special logic to display correctly
     let svgLogo: React.FC<SvgProps> | undefined;
@@ -98,9 +115,9 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     let svgLogoFillColor: string | undefined;
 
     if (!logo && policy && !policy.avatarURL) {
-        svgLogo = ReportUtils.getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
+        svgLogo = getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
 
-        const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id ?? '');
+        const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id);
         logoBackgroundColor = defaultWorkspaceAvatarColors.backgroundColor?.toString();
         svgLogoFillColor = defaultWorkspaceAvatarColors.fill;
     }
@@ -119,9 +136,9 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         url={url}
                         title={title}
                         subtitle={subtitle}
-                        logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
-                        logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
-                        logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
+                        logo={logo}
+                        logoRatio={logo === expensifyLogo ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
+                        logoMarginRatio={logo === expensifyLogo ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                         svgLogo={svgLogo}
                         svgLogoFillColor={svgLogoFillColor}
                         logoBackgroundColor={logoBackgroundColor}
@@ -138,21 +155,21 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         onPress={() => Clipboard.setString(url)}
                         shouldLimitWidth={false}
                     />
-                    {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done. 
-                    We shouldn't introduce platform specific code in our codebase. 
+                    {/* Remove this platform specific condition once https://github.com/Expensify/App/issues/19834 is done.
+                    We shouldn't introduce platform specific code in our codebase.
                     This is a temporary solution while Web is not supported for the QR code download feature */}
                     {shouldAllowDownloadQRCode && (
                         <MenuItem
                             isAnonymousAction
                             title={translate('common.download')}
-                            icon={Expensicons.Download}
+                            icon={icons.Download}
                             // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             onPress={() => qrCodeRef.current?.download?.()}
                         />
                     )}
 
                     <MenuItem
-                        title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
+                        title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
                         icon={Expensicons.Cash}
                         onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE, Navigation.getActiveRoute()))}
                         shouldShowRightIcon

@@ -1,10 +1,10 @@
-import type {ForwardedRef, KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react';
-import React, {forwardRef} from 'react';
+import type {KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react';
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText, StyleProp, TextStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Link from '@userActions/Link';
+import {openLink as openLinkUtil} from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {TextProps} from './Text';
 import Text from './Text';
@@ -32,7 +32,7 @@ type TextLinkProps = (LinkProps | PressProps) &
         onMouseDown?: MouseEventHandler;
     };
 
-function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), ...rest}: TextLinkProps, ref: ForwardedRef<RNText>) {
+function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), ref, ...rest}: TextLinkProps) {
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
 
@@ -40,7 +40,7 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
         if (onPress) {
             onPress(event);
         } else {
-            Link.openLink(href, environmentURL);
+            openLinkUtil(href, environmentURL);
         }
     };
 
@@ -79,6 +79,6 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
 
 TextLink.displayName = 'TextLink';
 
-export type {LinkProps, PressProps};
+export type {LinkProps, PressProps, TextLinkProps};
 
-export default forwardRef(TextLink);
+export default TextLink;

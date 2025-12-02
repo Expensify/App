@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -10,13 +9,14 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as PerDiem from '@userActions/Policy/PerDiem';
+import {editPerDiemRateDestination} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -44,8 +44,12 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
 
-            if (!values.destination.trim()) {
+            const destinationTrimmed = values.destination.trim();
+
+            if (!destinationTrimmed) {
                 errors.destination = translate('common.error.fieldRequired');
+            } else if (destinationTrimmed.length > CONST.MAX_LENGTH_256) {
+                errors.destination = translate('common.error.characterLimitExceedCounter', {length: destinationTrimmed.length, limit: CONST.MAX_LENGTH_256});
             }
 
             return errors;
@@ -57,7 +61,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
             const newDestination = values.destination.trim();
             if (newDestination !== selectedRate?.name) {
-                PerDiem.editPerDiemRateDestination(policyID, rateID, customUnit, newDestination);
+                editPerDiemRateDestination(policyID, rateID, customUnit, newDestination);
             }
             Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
         },
@@ -72,7 +76,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
             shouldBeBlocked={!policyID || !rateID || isEmptyObject(selectedRate)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={EditPerDiemDestinationPage.displayName}
                 shouldEnableMaxHeight
@@ -88,6 +92,8 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.pb4}>
                         <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>
@@ -102,7 +108,6 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                         accessibilityLabel={translate('common.destination')}
                         inputID={INPUT_IDS.DESTINATION}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.MAX_LENGTH_256}
                     />
                 </FormProvider>
             </ScreenWrapper>

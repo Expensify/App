@@ -1,20 +1,21 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as NextStepUtils from '@libs/NextStepUtils';
+import {parseMessage} from '@libs/NextStepUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type ReportNextStep from '@src/types/onyx/ReportNextStep';
+import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDeprecated';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
-    /** The next step for the report */
-    nextStep: ReportNextStep;
+    /** The next step for the report (deprecated old format) */
+    nextStep: ReportNextStepDeprecated | undefined;
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
@@ -28,16 +29,18 @@ const iconMap: IconMap = {
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails.login ?? '';
     const messageContent = useMemo(() => {
-        const messageArray = nextStep.message;
-        return NextStepUtils.parseMessage(messageArray);
-    }, [nextStep.message]);
+        const messageArray = nextStep?.message;
+        return parseMessage(messageArray, currentUserEmail);
+    }, [nextStep?.message, currentUserEmail]);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
                 <Icon
-                    src={iconMap[nextStep.icon] || Expensicons.Hourglass}
+                    src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? Expensicons.Hourglass}
                     height={variables.iconSizeSmall}
                     width={variables.iconSizeSmall}
                     fill={theme.icon}

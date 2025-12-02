@@ -1,7 +1,11 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {isBefore} from 'date-fns';
+import debounce from 'lodash/debounce';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {OnyxKey} from 'react-native-onyx/dist/types';
 import type {ValueOf} from 'type-fest';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -9,6 +13,7 @@ import type {
     CloseAccountParams,
     DeleteContactMethodParams,
     GetStatementPDFParams,
+    PusherPingParams,
     RequestContactMethodValidateCodeParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
@@ -18,23 +23,25 @@ import type {
     UpdatePreferredEmojiSkinToneParams,
     UpdateStatusParams,
     UpdateThemeParams,
-    ValidateLoginParams,
     ValidateSecondaryLoginParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type LockAccountParams from '@libs/API/parameters/LockAccountParams';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as Pusher from '@libs/Pusher/pusher';
+import Pusher from '@libs/Pusher';
+import type {PingPongEvent} from '@libs/Pusher/types';
 import PusherUtils from '@libs/PusherUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -42,16 +49,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
-import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
+import type {OnyxServerUpdate, OnyxUpdatesFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as App from './App';
+import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
-import * as Link from './Link';
-import * as Report from './Report';
-import * as Session from './Session';
+import {openOldDotLink} from './Link';
+import {showReportActionNotification} from './Report';
+import {resendValidateCode as sessionResendValidateCode} from './Session';
+import Timing from './Timing';
 
 let currentUserAccountID = -1;
 let currentEmail = '';
@@ -83,7 +91,7 @@ Onyx.connect({
 });
 
 /**
- * Attempt to close the user's accountt
+ * Attempt to close the user's account
  */
 function closeAccount(reason: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
@@ -110,13 +118,18 @@ function closeAccount(reason: string) {
         optimisticData,
         failureData,
     });
+
+    // On HybridApp, we need to sign out from the oldDot app as well to keep state of both apps in sync
+    if (CONFIG.IS_HYBRID_APP) {
+        HybridAppModule.signOutFromOldDot();
+    }
 }
 
 /**
- * Resends a validation link to a given login
+ * Resend a validation link to a given login
  */
 function resendValidateCode(login: string) {
-    Session.resendValidateCode(login);
+    sessionResendValidateCode(login);
 }
 
 /**
@@ -182,20 +195,20 @@ function requestContactMethodValidateCode(contactMethod: string) {
 }
 
 /**
- * Sets whether the user is subscribed to Expensify news
+ * Sets whether the user account is subscribed to Expensify news
  */
 function updateNewsletterSubscription(isSubscribed: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.USER,
+            key: ONYXKEYS.ACCOUNT,
             value: {isSubscribedToNewsletter: isSubscribed},
         },
     ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.USER,
+            key: ONYXKEYS.ACCOUNT,
             value: {isSubscribedToNewsletter: !isSubscribed},
         },
     ];
@@ -275,7 +288,7 @@ function clearContactMethod(contactMethod: string) {
 }
 
 /**
- * Clears error for a sepcific field on validate action code.
+ * Clears error for a specific field on validate action code.
  */
 function clearValidateCodeActionError(fieldName: string) {
     Onyx.merge(ONYXKEYS.VALIDATE_ACTION_CODE, {
@@ -330,6 +343,12 @@ function clearUnvalidatedNewContactMethodAction() {
     Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, null);
 }
 
+function clearPendingContactActionErrors() {
+    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
+        errorFields: null,
+    });
+}
+
 /**
  * When user adds a new contact method, they need to verify the magic code first
  * So we add the temporary contact method to Onyx to use it later, after user verified magic code.
@@ -338,76 +357,6 @@ function addPendingContactMethod(contactMethod: string) {
     Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
         contactMethod,
     });
-}
-
-/**
- * Validates the action to add secondary contact method
- */
-function saveNewContactMethodAndRequestValidationCode(contactMethod: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                contactMethod,
-                errorFields: {
-                    actionVerified: null,
-                },
-                pendingFields: {
-                    actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: true},
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                validateCodeSent: true,
-                errorFields: {
-                    actionVerified: null,
-                },
-                pendingFields: {
-                    actionVerified: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                validateCodeSent: null,
-                errorFields: {
-                    actionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
-                },
-                pendingFields: {
-                    actionVerified: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
 }
 
 /**
@@ -425,9 +374,6 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
                     errorFields: {
                         addedLogin: null,
                     },
-                    pendingFields: {
-                        addedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    },
                 },
             },
         },
@@ -440,26 +386,12 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
-            value: {
-                [contactMethod]: {
-                    pendingFields: {
-                        addedLogin: null,
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
                 contactMethod: null,
                 validateCodeSent: null,
                 actionVerified: true,
                 errorFields: {
-                    actionVerified: null,
-                },
-                pendingFields: {
                     actionVerified: null,
                 },
             },
@@ -473,26 +405,12 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
-            value: {
-                [contactMethod]: {
-                    errorFields: {
-                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod'),
-                    },
-                    pendingFields: {
-                        addedLogin: null,
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {isLoading: false},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {validateCodeSent: null},
         },
     ];
@@ -560,41 +478,15 @@ function requestValidateCodeAction() {
 }
 
 /**
- * Validates a login given an accountID and validation code
- */
-function validateLogin(accountID: number, validateCode: string) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-
-    const finallyData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const parameters: ValidateLoginParams = {accountID, validateCode};
-
-    API.write(WRITE_COMMANDS.VALIDATE_LOGIN, parameters, {optimisticData, finallyData});
-    Navigation.navigate(ROUTES.HOME);
-}
-
-/**
  * Validates a secondary login / contact method
  */
-function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: string, validateCode: string, shouldResetActionCode?: boolean) {
+function validateSecondaryLogin(
+    loginList: OnyxEntry<LoginList>,
+    contactMethod: string,
+    validateCode: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    shouldResetActionCode?: boolean,
+) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -644,13 +536,6 @@ function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: 
                 validated: true,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.USER,
-            value: {
-                validated: true,
-            },
-        },
     ];
     // If the primary login isn't validated yet, set the secondary login as the primary login
     if (!loginList?.[currentEmail].validatedDate) {
@@ -676,13 +561,14 @@ function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: 
                     value: {
                         [currentUserAccountID]: {
                             login: contactMethod,
-                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, myPersonalDetails),
+                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, myPersonalDetails, formatPhoneNumber),
                         },
                     },
                 },
             ],
         );
 
+        // eslint-disable-next-line unicorn/no-array-for-each
         Object.values(allPolicies ?? {}).forEach((policy) => {
             if (!policy) {
                 return;
@@ -776,6 +662,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
 }
 
 function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
+    // eslint-disable-next-line unicorn/no-array-for-each
     onyxUpdates.forEach((update) => {
         if (!update.shouldNotify && !update.shouldShowPushNotification) {
             return;
@@ -784,7 +671,8 @@ function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
 
-        reportActions.forEach((action) => action && ReportActionsUtils.isNotifiableReportAction(action) && Report.showReportActionNotification(reportID, action));
+        // eslint-disable-next-line unicorn/no-array-for-each
+        reportActions.forEach((action) => action && showReportActionNotification(reportID, action));
     });
 }
 
@@ -830,7 +718,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 
             for (const data of flatten) {
                 // Someone completes a task
-                if (data.actionName === 'TASKCOMPLETED') {
+                if (data.actionName === CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED) {
                     return playSound(SOUNDS.SUCCESS);
                 }
             }
@@ -849,12 +737,12 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 
                 // mention user
                 if ('html' in message && typeof message.html === 'string' && message.html.includes(`<mention-user>@${currentEmail}</mention-user>`)) {
-                    return playSoundExcludingMobile(SOUNDS.ATTENTION);
+                    return playSound(SOUNDS.ATTENTION);
                 }
 
                 // mention @here
                 if ('html' in message && typeof message.html === 'string' && message.html.includes('<mention-here>')) {
-                    return playSoundExcludingMobile(SOUNDS.ATTENTION);
+                    return playSound(SOUNDS.ATTENTION);
                 }
 
                 // assign a task
@@ -874,7 +762,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 
                 // plain message
                 if ('html' in message) {
-                    return playSoundExcludingMobile(SOUNDS.RECEIVE);
+                    return playSound(SOUNDS.RECEIVE);
                 }
             }
         } catch (e) {
@@ -886,6 +774,125 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
             Log.client(`Unexpected error occurred while parsing the data to play a sound: ${errorMessage}`);
         }
     });
+}
+
+let pongHasBeenMissed = false;
+let lastPingSentTimestamp = Date.now();
+let lastPongReceivedTimestamp = Date.now();
+function subscribeToPusherPong() {
+    // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
+    if (currentUserAccountID === -1) {
+        return;
+    }
+
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountID.toString(), (pushJSON) => {
+        Log.info(`[Pusher PINGPONG] Received a PONG event from the server`, false, pushJSON);
+        lastPongReceivedTimestamp = Date.now();
+
+        // Calculate the latency between the client and the server
+        const pongEvent = pushJSON as PingPongEvent;
+        const latency = Date.now() - Number(pongEvent.pingTimestamp);
+        Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
+
+        Timing.end(CONST.TIMING.PUSHER_PING_PONG);
+
+        // When any PONG event comes in, reset this flag so that checkForLatePongReplies will resume looking for missed PONGs
+        pongHasBeenMissed = false;
+    });
+}
+
+// Specify how long between each PING event to the server
+const PING_INTERVAL_LENGTH_IN_SECONDS = 30;
+
+// Specify how long between each check for missing PONG events
+const CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS = 60;
+
+// Specify how long before a PING event is considered to be missing a PONG event in order to put the application in offline mode
+const NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
+
+function pingPusher() {
+    if (isOffline()) {
+        Log.info('[Pusher PINGPONG] Skipping PING because the client is offline');
+        return;
+    }
+    // Send a PING event to the server with a specific ID and timestamp
+    // The server will respond with a PONG event with the same ID and timestamp
+    // Then we can calculate the latency between the client and the server (or if the server never replies)
+    const pingID = NumberUtils.rand64();
+    const pingTimestamp = Date.now();
+
+    // In local development, there can end up being multiple intervals running because when JS code is replaced with hot module replacement, the old interval is not cleared
+    // and keeps running. This little bit of logic will attempt to keep multiple pings from happening.
+    if (pingTimestamp - lastPingSentTimestamp < PING_INTERVAL_LENGTH_IN_SECONDS * 1000) {
+        return;
+    }
+    lastPingSentTimestamp = pingTimestamp;
+
+    const parameters: PusherPingParams = {pingID, pingTimestamp};
+    API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.PUSHER_PING, parameters);
+    Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
+    Timing.start(CONST.TIMING.PUSHER_PING_PONG);
+}
+
+function checkForLatePongReplies() {
+    if (isOffline()) {
+        Log.info('[Pusher PINGPONG] Skipping checkForLatePongReplies because the client is offline');
+        return;
+    }
+
+    if (pongHasBeenMissed) {
+        Log.info(`[Pusher PINGPONG] Skipped checking for late PONG events because a PONG has already been missed`);
+        return;
+    }
+
+    Log.info(`[Pusher PINGPONG] Checking for late PONG events`);
+    const timeSinceLastPongReceived = Date.now() - lastPongReceivedTimestamp;
+
+    // If the time since the last pong was received is more than 2 * PING_INTERVAL_LENGTH_IN_SECONDS, then record it in the logs
+    if (timeSinceLastPongReceived > NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS * 1000) {
+        Log.info(`[Pusher PINGPONG] The server has not replied to the PING event in ${timeSinceLastPongReceived} ms so going offline`);
+
+        // When going offline, reset the pingpong state so that when the network reconnects, the client will start fresh
+        lastPingSentTimestamp = Date.now();
+        pongHasBeenMissed = true;
+    } else {
+        Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so not going offline`);
+    }
+}
+
+let pingPusherIntervalID: ReturnType<typeof setInterval>;
+let checkForLatePongRepliesIntervalID: ReturnType<typeof setInterval>;
+function initializePusherPingPong() {
+    // Only run the ping pong from the leader client
+    if (!ActiveClientManager.isClientTheLeader()) {
+        Log.info("[Pusher PINGPONG] Not starting PING PONG because this instance isn't the leader client");
+        return;
+    }
+
+    Log.info(`[Pusher PINGPONG] Starting Pusher PING PONG and pinging every ${PING_INTERVAL_LENGTH_IN_SECONDS} seconds`);
+
+    // Subscribe to the pong event from Pusher. Unfortunately, there is no way of knowing when the client is actually subscribed
+    // so there could be a little delay before the client is actually listening to this event.
+    subscribeToPusherPong();
+
+    // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
+    if (pingPusherIntervalID) {
+        clearInterval(pingPusherIntervalID);
+    }
+
+    // Send a ping to pusher on a regular interval
+    pingPusherIntervalID = setInterval(pingPusher, PING_INTERVAL_LENGTH_IN_SECONDS * 1000);
+
+    // Delay the start of this by double the length of PING_INTERVAL_LENGTH_IN_SECONDS to give a chance for the first
+    // events to be sent and received
+    setTimeout(() => {
+        // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
+        if (checkForLatePongRepliesIntervalID) {
+            clearInterval(checkForLatePongRepliesIntervalID);
+        }
+        // Check for any missing pong events on a regular interval
+        checkForLatePongRepliesIntervalID = setInterval(checkForLatePongReplies, CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS * 1000);
+    }, PING_INTERVAL_LENGTH_IN_SECONDS * 2);
 }
 
 /**
@@ -901,6 +908,7 @@ function subscribeToUserEvents() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
+        const pushEventData = pushJSON as OnyxUpdatesFromServer;
         // If this is not the main client, we shouldn't process any data received from pusher.
         if (!ActiveClientManager.isClientTheLeader()) {
             Log.info('[Pusher] Received updates, but ignoring it since this is not the active client');
@@ -910,16 +918,27 @@ function subscribeToUserEvents() {
         // Example: {lastUpdateID: 1, previousUpdateID: 0, updates: [{onyxMethod: 'whatever', key: 'foo', value: 'bar'}]}
         const updates = {
             type: CONST.ONYX_UPDATE_TYPES.PUSHER,
-            lastUpdateID: Number(pushJSON.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID),
-            updates: pushJSON.updates ?? [],
+            lastUpdateID: Number(pushEventData.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID),
+            updates: pushEventData.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),
         };
+        Log.info('[subscribeToUserEvents] Applying Onyx updates');
         applyOnyxUpdatesReliably(updates);
     });
 
+    // Debounce the playSoundForMessageType function to avoid playing sounds too often, for example when a user comeback after offline and a lot of messages come in
+    // See https://github.com/Expensify/App/issues/57961 for more details
+    const debouncedPlaySoundForMessageType = debounce(
+        (pushJSONMessage: OnyxServerUpdate[]) => {
+            playSoundForMessageType(pushJSONMessage);
+        },
+        CONST.TIMING.PLAY_SOUND_MESSAGE_DEBOUNCE_TIME,
+        {trailing: true},
+    );
+
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON: OnyxServerUpdate[]) => {
-        playSoundForMessageType(pushJSON);
+        debouncedPlaySoundForMessageType(pushJSON);
 
         return SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) or this is not the
@@ -945,9 +964,11 @@ function subscribeToUserEvents() {
     // We have an event to reconnect the App. It is triggered when we detect that the user passed updateID
     // is not in the DB
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, () => {
-        App.reconnectApp();
+        reconnectApp();
         return Promise.resolve();
     });
+
+    initializePusherPingPong();
 }
 
 /**
@@ -1000,16 +1021,11 @@ function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, autom
     }
 }
 
-function clearFocusModeNotification() {
-    Onyx.set(ONYXKEYS.FOCUS_MODE_NOTIFICATION, false);
-}
-
 function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
-    Onyx.merge(ONYXKEYS.USER, {shouldUseStagingServer});
-}
-
-function clearUserErrorMessage() {
-    Onyx.merge(ONYXKEYS.USER, {error: ''});
+    if (CONFIG.IS_HYBRID_APP) {
+        HybridAppModule.shouldUseStaging(shouldUseStagingServer);
+    }
+    Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, shouldUseStagingServer);
 }
 
 function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<Platform, true>>) {
@@ -1053,7 +1069,7 @@ function clearScreenShareRequest() {
  * @param roomName Name of the screen share room to join
  */
 function joinScreenShare(accessToken: string, roomName: string) {
-    Link.openOldDotLink(`inbox?action=screenShare&accessToken=${accessToken}&name=${roomName}`);
+    openOldDotLink(`inbox?action=screenShare&accessToken=${accessToken}&name=${roomName}`);
     clearScreenShareRequest();
 }
 
@@ -1102,7 +1118,7 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string, backTo?: string) {
+function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], backTo?: string) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1139,7 +1155,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, backTo?: str
             value: {
                 [currentUserAccountID]: {
                     login: newDefaultContactMethod,
-                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, myPersonalDetails),
+                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, myPersonalDetails, formatPhoneNumber),
                 },
             },
         },
@@ -1195,6 +1211,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, backTo?: str
         },
     ];
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.values(allPolicies ?? {}).forEach((policy) => {
         if (!policy) {
             return;
@@ -1326,6 +1343,14 @@ function updateDraftCustomStatus(status: CustomStatusDraft) {
 }
 
 /**
+ * Sets a clear after date for the custom status
+ *
+ */
+function updateStatusDraftCustomClearAfterDate(date: string) {
+    Onyx.set(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE, date);
+}
+
+/**
  * Clear the custom draft status
  */
 function clearDraftCustomStatus() {
@@ -1351,45 +1376,113 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
-function dismissTrackTrainingModal() {
+function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
     const parameters: SetNameValuePairParams = {
-        name: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
-        value: true,
+        name,
+        value,
     };
 
     const optimisticData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
-            value: true,
+            key: name,
+            value,
         },
     ];
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    const failureData: OnyxUpdate[] | undefined = shouldRevertValue
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: name,
+                  value: revertedValue,
+              },
+          ]
+        : undefined;
+
     API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
         optimisticData,
+        failureData,
     });
+}
+
+/**
+ * Dismiss the Auto-Submit explanation modal
+ * @param shouldDismiss Whether the user selected "Don't show again"
+ */
+function dismissASAPSubmitExplanation(shouldDismiss: boolean) {
+    Onyx.merge(ONYXKEYS.NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION, shouldDismiss);
 }
 
 function requestRefund() {
     API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
 
-function subscribeToActiveGuides() {
-    const pusherChannelName = `${CONST.PUSHER.PRESENCE_ACTIVE_GUIDES}${CONFIG.PUSHER.SUFFIX}`;
-    Pusher.subscribe(pusherChannelName).catch(() => {
-        Log.hmmm('[User] Failed to initially subscribe to Pusher channel', {pusherChannelName});
-    });
+function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
+    Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, isDebugModeEnabled);
 }
 
-function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
-    Onyx.merge(ONYXKEYS.USER, {isDebugModeEnabled});
+function lockAccount() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: true,
+                lockAccount: {
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                lockAccount: {
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('failedToLockAccountPage.failedToLockAccountDescription'),
+            },
+        },
+    ];
+
+    const params: LockAccountParams = {
+        accountID: currentUserAccountID,
+    };
+
+    // We need to know if this command fails so that we can navigate the user to a failure page.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
+}
+
+function requestUnlockAccount() {
+    const params: LockAccountParams = {
+        accountID: currentUserAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
 }
 
 export {
-    clearFocusModeNotification,
     closeAccount,
     dismissReferralBanner,
-    dismissTrackTrainingModal,
+    dismissASAPSubmitExplanation,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,
@@ -1397,14 +1490,12 @@ export {
     clearContactMethodErrors,
     clearContactMethod,
     addNewContactMethod,
-    validateLogin,
     validateSecondaryLogin,
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,
     setShouldUseStagingServer,
     togglePlatformMute,
-    clearUserErrorMessage,
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
@@ -1415,14 +1506,17 @@ export {
     updateCustomStatus,
     clearCustomStatus,
     updateDraftCustomStatus,
+    updateStatusDraftCustomClearAfterDate,
     clearDraftCustomStatus,
     requestRefund,
-    saveNewContactMethodAndRequestValidationCode,
+    setNameValuePair,
     clearUnvalidatedNewContactMethodAction,
+    clearPendingContactActionErrors,
     requestValidateCodeAction,
     addPendingContactMethod,
     clearValidateCodeActionError,
-    subscribeToActiveGuides,
     setIsDebugModeEnabled,
     resetValidateActionCodeSent,
+    lockAccount,
+    requestUnlockAccount,
 };

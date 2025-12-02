@@ -1,36 +1,41 @@
-import React, {useRef} from 'react';
-import type {ValueOf} from 'type-fest';
+import React, {useMemo, useRef} from 'react';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import {setLocaleAndNavigate} from '@userActions/App';
-import type {ListItem} from '@src/components/SelectionList/types';
-import CONST from '@src/CONST';
+import {setLocale} from '@userActions/App';
+import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
+import type Locale from '@src/types/onyx/Locale';
 
 type LanguageEntry = ListItem & {
-    value: ValueOf<typeof CONST.LOCALES>;
+    value: Locale;
 };
 
 function LanguagePage() {
     const {translate, preferredLocale} = useLocalize();
     const isOptionSelected = useRef(false);
 
-    const localesToLanguages = CONST.LANGUAGES.map((language) => ({
-        value: language,
-        text: translate(`languagePage.languages.${language}.label`),
-        keyForList: language,
-        isSelected: preferredLocale === language,
-    }));
+    const locales = useMemo(() => {
+        return SORTED_LOCALES.map((locale) => ({
+            value: locale,
+            text: LOCALE_TO_LANGUAGE_STRING[locale],
+            keyForList: locale,
+            isSelected: preferredLocale === locale,
+        }));
+    }, [preferredLocale]);
 
     const updateLanguage = (selectedLanguage: LanguageEntry) => {
         if (isOptionSelected.current) {
             return;
         }
         isOptionSelected.current = true;
-        setLocaleAndNavigate(selectedLanguage.value);
+
+        setLocale(selectedLanguage.value, preferredLocale);
+        Navigation.goBack();
     };
 
     return (
@@ -42,13 +47,15 @@ function LanguagePage() {
                 title={translate('languagePage.language')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <SelectionList
-                sections={[{data: localesToLanguages}]}
-                ListItem={RadioListItem}
-                onSelectRow={updateLanguage}
-                shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={localesToLanguages.find((locale) => locale.isSelected)?.keyForList}
-            />
+            <FullPageOfflineBlockingView>
+                <SelectionList
+                    data={locales}
+                    ListItem={RadioListItem}
+                    onSelectRow={updateLanguage}
+                    shouldSingleExecuteRowSelect
+                    initiallyFocusedItemKey={locales.find((locale) => locale.isSelected)?.keyForList}
+                />
+            </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }

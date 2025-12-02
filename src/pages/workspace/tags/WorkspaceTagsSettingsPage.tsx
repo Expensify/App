@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -11,67 +10,70 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Tag from '@libs/actions/Policy/Tag';
+import {disableWorkspaceBillableExpenses, setPolicyBillableMode} from '@libs/actions/Policy/Policy';
+import {clearPolicyTagListErrors, setPolicyRequiresTag} from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {hasEnabledOptions as hasEnabledOptionsUtil} from '@libs/OptionsListUtils';
+import {getTagLists as getTagListsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
+import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 
-type WorkspaceTagsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_SETTINGS>;
+type WorkspaceTagsSettingsPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_SETTINGS>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS>;
 
 /**
  * The pending state might be set by either setPolicyBillableMode or disableWorkspaceBillableExpenses.
  * setPolicyBillableMode changes disabledFields and defaultBillable and is called when disabledFields.defaultBillable is set.
  * Otherwise, disableWorkspaceBillableExpenses is used and it changes only disabledFields
  * */
-function billableExpensesPending(policy: OnyxEntry<OnyxTypes.Policy>) {
+function billableExpensesPending(policy: OnyxEntry<Policy>) {
     if (policy?.disabledFields?.defaultBillable) {
         return policy?.pendingFields?.disabledFields ?? policy?.pendingFields?.defaultBillable;
     }
     return policy?.pendingFields?.disabledFields;
 }
 
-function toggleBillableExpenses(policy: OnyxEntry<OnyxTypes.Policy>) {
+function toggleBillableExpenses(policy: OnyxEntry<Policy>) {
     if (policy?.disabledFields?.defaultBillable) {
-        Policy.setPolicyBillableMode(policy.id, false);
+        setPolicyBillableMode(policy.id, false);
     } else if (policy) {
-        Policy.disableWorkspaceBillableExpenses(policy.id);
+        disableWorkspaceBillableExpenses(policy.id);
     }
 }
 
 function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const styles = useThemeStyles();
+    const policyData = usePolicyData(policyID);
+    const {tags: policyTags} = policyData;
     const {translate} = useLocalize();
-    const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
-    const isLoading = !PolicyUtils.getTagLists(policyTags)?.at(0) || Object.keys(policyTags ?? {}).at(0) === 'undefined';
+    const [policyTagLists, isMultiLevelTags] = useMemo(() => [getTagListsUtil(policyTags), isMultiLevelTagsUtil(policyTags)], [policyTags]);
+    const isLoading = !getTagListsUtil(policyTags)?.at(0) || Object.keys(policyTags ?? {}).at(0) === 'undefined';
     const {isOffline} = useNetwork();
-    const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
+    const hasEnabledOptions = hasEnabledOptionsUtil(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
-            Tag.setPolicyRequiresTag(policyID, value);
+            setPolicyRequiresTag(policyData, value);
         },
-        [policyID],
+        [policyData],
     );
-    const isQuickSettingsFlow = !!backTo;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS;
 
-    const getTagsSettings = (policy: OnyxEntry<OnyxTypes.Policy>) => (
+    const getTagsSettings = (policy: OnyxEntry<Policy>) => (
         <View style={styles.flexGrow1}>
             {!isMultiLevelTags && (
                 <OfflineWithFeedback
                     errors={policyTags?.[policyTagLists.at(0)?.name ?? '']?.errors}
-                    onClose={() => Tag.clearPolicyTagListErrors(policyID, policyTagLists.at(0)?.orderWeight ?? 0)}
+                    onClose={() => clearPolicyTagListErrors({policyID, tagListIndex: policyTagLists.at(0)?.orderWeight ?? 0, policyTags})}
                     pendingAction={policyTags?.[policyTagLists.at(0)?.name ?? '']?.pendingAction}
                     errorRowStyles={styles.mh5}
                 >
@@ -95,7 +97,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                 errorRowStyles={styles.mh5}
             >
                 <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <Text style={[styles.textNormal]}>{translate('workspace.tags.requiresTag')}</Text>
+                    <Text style={[styles.textNormal, styles.flex1, styles.mr2]}>{translate('workspace.tags.requiresTag')}</Text>
                     <Switch
                         isOn={policy?.requiresTag ?? false}
                         accessibilityLabel={translate('workspace.tags.requiresTag')}
@@ -104,18 +106,17 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                     />
                 </View>
             </OfflineWithFeedback>
-            {!!policy?.areRulesEnabled && (
-                <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
-                    <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text style={[styles.textNormal]}>{translate('workspace.tags.trackBillable')}</Text>
-                        <Switch
-                            isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
-                            accessibilityLabel={translate('workspace.tags.trackBillable')}
-                            onToggle={() => toggleBillableExpenses(policy)}
-                        />
-                    </View>
-                </OfflineWithFeedback>
-            )}
+            <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
+                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                    <Text style={[styles.textNormal, styles.flex1, styles.mr2]}>{translate('workspace.tags.trackBillable')}</Text>
+                    <Switch
+                        isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
+                        accessibilityLabel={translate('workspace.tags.trackBillable')}
+                        onToggle={() => toggleBillableExpenses(policy)}
+                        disabled={!policy?.areTagsEnabled}
+                    />
+                </View>
+            </OfflineWithFeedback>
         </View>
     );
     return (
@@ -126,7 +127,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
         >
             {({policy}) => (
                 <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
+                    enableEdgeToEdgeBottomSafeAreaPadding
                     style={[styles.defaultModalContainer]}
                     testID={WorkspaceTagsSettingsPage.displayName}
                 >
@@ -134,7 +135,7 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                         title={translate('common.settings')}
                         onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
                     />
-                    {isOffline && isLoading ? <FullPageOfflineBlockingView>{getTagsSettings(policy)}</FullPageOfflineBlockingView> : getTagsSettings(policy)}
+                    {isOffline && isLoading ? <FullPageOfflineBlockingView addBottomSafeAreaPadding>{getTagsSettings(policy)}</FullPageOfflineBlockingView> : getTagsSettings(policy)}
                 </ScreenWrapper>
             )}
         </AccessOrNotFoundWrapper>

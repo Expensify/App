@@ -14,11 +14,12 @@ concurrency:
 jobs:
   lint:
     name: ESLint check
-    if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
+    if: ${{ github.event.head_commit.author.name != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode

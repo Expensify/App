@@ -1,9 +1,8 @@
-import {createRef} from 'react';
-import type {MutableRefObject} from 'react';
-import type {GestureResponderEvent} from 'react-native';
+import type {RefObject} from 'react';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {KYCWallRef} from '@components/KYCWall/types';
 import * as API from '@libs/API';
 import type {
     AddPaymentCardParams,
@@ -14,34 +13,25 @@ import type {
     TransferWalletBalanceParams,
     UpdateBillingCurrencyParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
-import type {BankAccountList, FundList} from '@src/types/onyx';
-import type {AccountData} from '@src/types/onyx/Fund';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {BankAccountList, CardList, FundList} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 
-type KYCWallRef = {
-    continueAction?: (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType) => void;
-};
-
-/**
- * Sets up a ref to an instance of the KYC Wall component.
- */
-const kycWallRef: MutableRefObject<KYCWallRef | null> = createRef<KYCWallRef>();
-
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
  */
-function continueSetup(fallbackRoute?: Route) {
+function continueSetup(kycWallRef: RefObject<KYCWallRef | null>, fallbackRoute?: Route) {
     if (!kycWallRef.current?.continueAction) {
         Navigation.goBack(fallbackRoute);
         return;
@@ -49,10 +39,10 @@ function continueSetup(fallbackRoute?: Route) {
 
     // Close the screen (Add Debit Card, Add Bank Account, or Enable Payments) on success and continue with setup
     Navigation.goBack(fallbackRoute);
-    kycWallRef.current.continueAction();
+    kycWallRef.current.continueAction({goBackRoute: fallbackRoute});
 }
 
-function openWalletPage() {
+function getPaymentMethods(includePartiallySetupBankAccounts?: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -75,11 +65,15 @@ function openWalletPage() {
         },
     ];
 
-    return API.read(READ_COMMANDS.OPEN_PAYMENTS_PAGE, null, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    return API.read(
+        READ_COMMANDS.OPEN_PAYMENTS_PAGE,
+        {includePartiallySetupBankAccounts},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
 function getMakeDefaultPaymentOnyxData(
@@ -262,8 +256,8 @@ function addSubscriptionPaymentCard(
         },
     ];
 
-    if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP) {
-        addPaymentCardGBP(parameters, {optimisticData, successData, failureData});
+    if (CONST.SCA_CURRENCIES.has(currency)) {
+        addPaymentCardSCA(parameters, {optimisticData, successData, failureData});
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
@@ -272,23 +266,19 @@ function addSubscriptionPaymentCard(
             failureData,
         });
     }
-
-    GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+    if (getCardForSubscriptionBilling()) {
+        Log.info(`[GTM] Not logging ${CONST.ANALYTICS.EVENT.PAID_ADOPTION} because a card was already added`);
+    } else {
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+    }
 }
 
 /**
- * Calls the API to add a new GBP card.
+ * Calls the API to add a new SCA (GBP or EUR) card.
  * Updates verify3dsSubscription Onyx key with a new authentication link for 3DS.
  */
-function addPaymentCardGBP(params: AddPaymentCardParams, onyxData: OnyxData = {}) {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP, params, onyxData).then((response) => {
-        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return;
-        }
-        // We are using this onyx key to open Modal and preview iframe. Potentially we can save the whole object which come from side effect
-        Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
-    });
+function addPaymentCardSCA(params: AddPaymentCardParams, onyxData: OnyxData = {}) {
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD_SCA, params, onyxData);
 }
 
 /**
@@ -400,7 +390,7 @@ function resetWalletTransferData() {
     });
 }
 
-function saveWalletTransferAccountTypeAndID(selectedAccountType: string, selectedAccountID: string) {
+function saveWalletTransferAccountTypeAndID(selectedAccountType: string | undefined, selectedAccountID: string | undefined) {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {selectedAccountType, selectedAccountID});
 }
 
@@ -421,8 +411,8 @@ function dismissSuccessfulTransferBalancePage() {
  * Looks through each payment method to see if there is an existing error
  *
  */
-function hasPaymentMethodError(bankList: OnyxEntry<BankAccountList>, fundList: OnyxEntry<FundList>): boolean {
-    const combinedPaymentMethods = {...bankList, ...fundList};
+function hasPaymentMethodError(bankList: OnyxEntry<BankAccountList>, fundList: OnyxEntry<FundList>, cardList: OnyxEntry<CardList>): boolean {
+    const combinedPaymentMethods = {...bankList, ...fundList, ...cardList};
 
     return Object.values(combinedPaymentMethods).some((item) => Object.keys(item.errors ?? {}).length);
 }
@@ -539,21 +529,6 @@ function updateBillingCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRE
 }
 
 /**
- * Set payment card form with API data
- *
- */
-function setPaymentCardForm(values: AccountData) {
-    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
-        [INPUT_IDS.CARD_NUMBER]: values.cardNumber,
-        [INPUT_IDS.EXPIRATION_DATE]: `${values.cardMonth}${values.cardYear?.toString()?.substring(2)}`,
-        [INPUT_IDS.ADDRESS_STREET]: values.addressStreet,
-        [INPUT_IDS.ADDRESS_ZIP_CODE]: values.addressZip?.toString(),
-        [INPUT_IDS.ADDRESS_STATE]: values.addressState,
-        [INPUT_IDS.CURRENCY]: values.currency,
-    });
-}
-
-/**
  *  Sets the default bank account to use for receiving payouts from
  *
  */
@@ -600,9 +575,8 @@ function setInvoicingTransferBankAccount(bankAccountID: number, policyID: string
 export {
     deletePaymentCard,
     addPaymentCard,
-    openWalletPage,
+    getPaymentMethods,
     makeDefaultPaymentMethod,
-    kycWallRef,
     continueSetup,
     addSubscriptionPaymentCard,
     clearPaymentCardFormErrorAndSubmit,
@@ -619,8 +593,7 @@ export {
     setPaymentMethodCurrency,
     clearPaymentCard3dsVerification,
     clearWalletTermsError,
-    setPaymentCardForm,
     verifySetupIntent,
-    addPaymentCardGBP,
+    addPaymentCardSCA,
     setInvoicingTransferBankAccount,
 };

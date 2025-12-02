@@ -1,64 +1,55 @@
 import React, {useEffect, useRef} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {inviteMemberToWorkspace} from '@libs/actions/Policy/Member';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {isPendingDeletePolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
-import * as MemberAction from '@userActions/Policy/Member';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-type WorkspaceJoinUserPageOnyxProps = {
-    /** The policy of the report */
-    policy: OnyxEntry<Policy>;
-};
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceJoinUserPageRoute = {route: PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_JOIN_USER>['route']};
-type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute & WorkspaceJoinUserPageOnyxProps;
+type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute;
 
-let isJoinLinkUsed = false;
-
-function WorkspaceJoinUserPage({route, policy}: WorkspaceJoinUserPageProps) {
+function WorkspaceJoinUserPage({route}: WorkspaceJoinUserPageProps) {
     const styles = useThemeStyles();
     const policyID = route?.params?.policyID;
+    const [policy, policyResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const isPolicyLoading = isLoadingOnyxValue(policyResult);
     const inviterEmail = route?.params?.email;
     const isUnmounted = useRef(false);
 
     useEffect(() => {
-        if (!isJoinLinkUsed) {
+        if (isUnmounted.current || isPolicyLoading) {
             return;
         }
-        navigateAfterJoinRequest();
-    }, []);
-
-    useEffect(() => {
-        if (isUnmounted.current || isJoinLinkUsed) {
-            return;
-        }
-        if (!isEmptyObject(policy) && !policy?.isJoinRequestPending && !PolicyUtils.isPendingDeletePolicy(policy)) {
+        if (!isEmptyObject(policy) && !policy?.isJoinRequestPending && !isPendingDeletePolicy(policy)) {
             Navigation.isNavigationReady().then(() => {
-                Navigation.goBack(undefined, false, true);
-                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID ?? '-1'));
+                if (Navigation.getShouldPopToSidebar()) {
+                    Navigation.popToSidebar();
+                } else {
+                    Navigation.goBack();
+                }
+                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
             });
             return;
         }
-        MemberAction.inviteMemberToWorkspace(policyID, inviterEmail);
-        isJoinLinkUsed = true;
+        inviteMemberToWorkspace(policyID, inviterEmail);
         Navigation.isNavigationReady().then(() => {
             if (isUnmounted.current) {
                 return;
             }
             navigateAfterJoinRequest();
         });
-    }, [policy, policyID, inviterEmail]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we only want to run this once after the policy loads
+    }, [isPolicyLoading]);
 
     useEffect(
         () => () => {
@@ -75,8 +66,4 @@ function WorkspaceJoinUserPage({route, policy}: WorkspaceJoinUserPageProps) {
 }
 
 WorkspaceJoinUserPage.displayName = 'WorkspaceJoinUserPage';
-export default withOnyx<WorkspaceJoinUserPageProps, WorkspaceJoinUserPageOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route?.params?.policyID}`,
-    },
-})(WorkspaceJoinUserPage);
+export default WorkspaceJoinUserPage;

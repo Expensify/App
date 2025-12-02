@@ -1,51 +1,63 @@
 ---
-title: Claim and verify a domain
-description: Grant specific employee permissions by claiming a private domain and verifying it in Expensify
+title: Claim and Verify a Domain
+description: Learn how to claim and verify a private domain in Expensify to manage employee permissions and enable advanced features.
+keywords: [Expensify Classic, claim a domain, domain permissions, verify domain]
 ---
-<div id="expensify-classic" markdown="1">
 
-If you have a private domain (like yourcompany.com), you can add the domain to your Expensify account. Claiming a domain allows you to grant specific permissions to accounts that include the domain in their email address (for example, if your domain is yourcompany.com, anyone who signs up under this domain—like yourname@yourcompany.com—will have these domain rules applied to their account). 
 
-Claiming a domain also allows you to: 
-* Import and reconcile company credit cards and Expensify Cards
-* Add company credit card and Expensify Card rules and restrictions
+If you have a private domain (e.g., `yourcompany.com`), you can claim and verify it in Expensify to manage employee permissions and enable additional security features.
 
-Once you verify your domain, you’ll be able to:
-* Assign delegates for employees who are on vacation
-* Delete employee Expensify accounts
-* Enable SAML / SSO settings for secure log in
+## Claiming a domain allows you to:
+- Grant specific permissions to employees using the domain in their email address.
+- Import and reconcile company credit cards and Expensify Cards.
+- Apply company credit card and Expensify Card rules.
 
-{% include info.html %}
-You can claim and verify private domains only. Public domains (like gmail.com) cannot be used to create a domain.
-{% include end-info.html %}
+## Verifying a domain allows you to:
+- Assign delegates for employees on vacation.
+- Delete employee Expensify accounts.
+- Enable SAML/SSO for secure login.
 
-# Step 1: Claim domain
+**Note:** Only private domains can be claimed and verified. Public domains (e.g., gmail.com) cannot be used.
 
-<ol type="a">
-   <li>Hover over Settings, then click <b>Domains</b>.</li>
-   <li>Click <b>New Domain</b>.</li>  
-   <li>Enter your domain name (e.g., yourcompany.com).</li>
-   <li>Click <b>Submit</b>.</li>
-</ol>
+---
 
-# Step 2: Verify domain ownership
+# Step 1: Claim Your Domain
+1. Hover over **Settings**, then click **Domains**.
+2. Click **New Domain**.
+3. Enter your domain name (e.g., `yourcompany.com`).
+4. Click **Submit**.
 
-{% include info.html %}
-To complete this step, you must have a Control workspace, and you’ll need access to your domain provider account (GoDaddy, Wix, GSuite, etc.). If you don’t verify the domain, you will still have access to the domain to add and manage credit card expenses and domain admins, but you will not be able to invite members, add groups, use domain reporting tools, set delegates for employees on vacation, or enable SAML SSO. For more guidance on how to complete this process for a specific provider, check the provider’s website.
-{% include end-info.html %}
+---
 
-<ol type="a">
-   <li>Log in to your DNS service provider (which may be the website you purchased the domain from or that currently hosts the domain, like NameCheap, GoDaddy, DNSMadeEasy, or Amazon Route53. You may need to contact your company’s IT department if your domain is managed internally).</li>
-   <li>Find the page for DNS records, which might be labeled as DNS Management or Zone File Editor.</li>  
-   <li>Add a new TXT record with the value assigned to you in the domain verification settings.</li>
-   <li>Save your changes.</li>
-   <li>In Expensify, click the Domain Members tab and click <b>Verify</b>.</li>
-</ol>
+# Step 2: Verify Domain Ownership
+To verify a domain, you must have a **Control** workspace and access to your domain provider account (e.g., GoDaddy, Wix, Google Domains).
 
-After successful verification, an email will be sent to all members of the Expensify domain to inform them that their accounts will be under domain control (i.e. the rules set for the domain will affect their account). 
+**If you don’t complete the verification, you can still:**
+- Manage credit card expenses and domain admins.
+- Add and remove domain admins.
 
-# Add another domain
+**Without verifying the domain, you cannot:**
+- Invite domain members.
+- Add groups.
+- Use domain reporting tools.
+- Set delegates for employees on vacation.
+- Enable SAML/SSO.
 
-To add an additional domain, you’ll have to first add your email address that is connected with your domain as your [primary or secondary email](https://help.expensify.com/articles/expensify-classic/settings/account-settings/Change-or-add-email-address) (for example, if your domain is yourcompany.com, then you want to add and verify your email address @yourcompany.com as your primary or secondary email address). Then you can complete the steps above to add the domain. 
+For provider-specific instructions, refer to your domain provider’s documentation.
 
-</div>
+## To Verify a Domain:
+1. Log in to your **DNS service provider** (e.g., Namecheap, GoDaddy, Amazon Route 53). If your domain is managed internally, contact your IT department.
+2. Locate the **DNS Records** page (sometimes labeled as DNS Management or Zone File Editor).
+3. Add a **TXT record** with the verification value provided in Expensify.
+4. Save your changes.
+5. In Expensify, go to the **Domain Members** tab and click **Verify**.
+
+Once verified, an email will be sent to all domain members informing them that their accounts are now managed under the domain rules.
+
+---
+
+# Add Another Domain
+To add an additional domain:
+1. Add your domain email address (`@yourcompany.com`) as a **primary or secondary email** in Expensify -- [How to add an email](https://help.expensify.com/articles/expensify-classic/settings/account-settings/Change-or-add-email-address)
+2. Follow the steps above to claim and verify the new domain.
+

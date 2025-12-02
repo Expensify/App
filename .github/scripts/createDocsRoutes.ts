@@ -41,6 +41,7 @@ const routes = yaml.load(fs.readFileSync(`${docsDir}/_data/_routes.yml`, 'utf8')
 const platformNames = {
     expensifyClassic: 'expensify-classic',
     newExpensify: 'new-expensify',
+    travel: 'travel',
 } as const;
 
 /**
@@ -108,14 +109,14 @@ function getOrderFromArticleFrontMatter(path: string): number | undefined {
  * @param routeHubs - The hubs insude docs/data/_routes.yml for a platform
  */
 function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof platformNames>, routeHubs: Hub[]) {
-    hubs.forEach((hub) => {
+    for (const hub of hubs) {
         // Iterate through each directory in articles
-        fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}`).forEach((fileOrFolder) => {
+        for (const fileOrFolder of fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}`)) {
             // If the directory content is a markdown file, then it is an article
             if (fileOrFolder.endsWith('.md')) {
                 const articleObj = getArticleObj(fileOrFolder);
                 pushOrCreateEntry(routeHubs, hub, 'articles', articleObj);
-                return;
+                continue;
             }
 
             // For readability, we will use the term section to refer to subfolders
@@ -123,26 +124,28 @@ function createHubsWithArticles(hubs: string[], platformName: ValueOf<typeof pla
             const articles: Article[] = [];
 
             // Each subfolder will be a section containing articles
-            fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}/${section}`).forEach((subArticle) => {
+            for (const subArticle of fs.readdirSync(`${docsDir}/articles/${platformName}/${hub}/${section}`)) {
                 const order = getOrderFromArticleFrontMatter(`${docsDir}/articles/${platformName}/${hub}/${section}/${subArticle}`);
                 articles.push(getArticleObj(subArticle, order));
-            });
+            }
 
             pushOrCreateEntry(routeHubs, hub, 'sections', {
                 href: section,
                 title: toTitleCase(section.replaceAll('-', ' ')),
                 articles,
             });
-        });
-    });
+        }
+    }
 }
 
 function run() {
     const expensifyClassicArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.expensifyClassic}`);
     const newExpensifyArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.newExpensify}`);
+    const travelArticleHubs = fs.readdirSync(`${docsDir}/articles/${platformNames.travel}`);
 
     const expensifyClassicRoute = routes.platforms.find((platform) => platform.href === platformNames.expensifyClassic);
     const newExpensifyRoute = routes.platforms.find((platform) => platform.href === platformNames.newExpensify);
+    const travelRoute = routes.platforms.find((platform) => platform.href === platformNames.travel);
 
     if (expensifyClassicArticleHubs.length !== expensifyClassicRoute?.hubs.length) {
         console.error(warnMessage(platformNames.expensifyClassic));
@@ -154,8 +157,14 @@ function run() {
         process.exit(1);
     }
 
+    if (travelArticleHubs.length !== travelRoute?.hubs.length) {
+        console.error(warnMessage(platformNames.travel));
+        process.exit(1);
+    }
+
     createHubsWithArticles(expensifyClassicArticleHubs, platformNames.expensifyClassic, expensifyClassicRoute.hubs);
     createHubsWithArticles(newExpensifyArticleHubs, platformNames.newExpensify, newExpensifyRoute.hubs);
+    createHubsWithArticles(travelArticleHubs, platformNames.travel, travelRoute.hubs);
 
     // Convert the object to YAML and write it to the file
     let yamlString = yaml.dump(routes);

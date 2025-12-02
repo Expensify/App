@@ -1,19 +1,20 @@
 import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DebugUtils from '@libs/DebugUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {DebugTabNavigatorRoutes} from '@libs/Navigation/DebugTabNavigator';
 import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import Debug from '@userActions/Debug';
@@ -21,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 import DebugReportActionPreview from './DebugReportActionPreview';
 
 type DebugReportActionPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION>;
@@ -32,11 +34,24 @@ function DebugReportActionPage({
 }: DebugReportActionPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        canEvict: false,
-        selector: (reportActions) => reportActions?.[reportActionID],
-    });
-    const transactionID = ReportActionsUtils.getLinkedTransactionID(reportAction);
+
+    const getReportActionSelector = useCallback(
+        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
+            return reportActions?.[reportActionID];
+        },
+        [reportActionID],
+    );
+
+    const [reportAction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+        {
+            canEvict: false,
+            selector: getReportActionSelector,
+            canBeMissing: true,
+        },
+        [getReportActionSelector],
+    );
+    const transactionID = getLinkedTransactionID(reportAction);
 
     const DebugDetailsTab = useCallback(
         () => (
@@ -50,6 +65,7 @@ function DebugReportActionPage({
                     Navigation.goBack();
                     // We need to wait for navigation animations to finish before deleting an action,
                     // otherwise the user will see a not found page briefly.
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
                     });
@@ -73,7 +89,15 @@ function DebugReportActionPage({
 
     const DebugJSONTab = useCallback(() => <DebugJSON data={reportAction ?? {}} />, [reportAction]);
 
-    const DebugReportActionPreviewTab = useCallback(() => <DebugReportActionPreview reportAction={reportAction} />, [reportAction]);
+    const DebugReportActionPreviewTab = useCallback(
+        () => (
+            <DebugReportActionPreview
+                reportAction={reportAction}
+                reportID={reportID}
+            />
+        ),
+        [reportAction, reportID],
+    );
 
     const routes = useMemo<DebugTabNavigatorRoutes>(
         () => [
@@ -88,7 +112,7 @@ function DebugReportActionPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMinHeight={canUseTouchScreen()}
             testID={DebugReportActionPage.displayName}
         >
             {({safeAreaPaddingBottomStyle}) => (

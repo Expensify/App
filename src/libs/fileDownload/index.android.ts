@@ -3,7 +3,7 @@ import type {FetchBlobResponse} from 'react-native-blob-util';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import CONST from '@src/CONST';
-import * as FileUtils from './FileUtils';
+import {appendTimeToFileName, getFileName, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
 import type {FileDownload} from './types';
 
 /**
@@ -35,18 +35,18 @@ function hasAndroidPermission(): Promise<boolean> {
 /**
  * Handling the download
  */
-function handleDownload(url: string, fileName?: string, successMessage?: string): Promise<void> {
+function handleDownload(url: string, fileName?: string, successMessage?: string, shouldUnlink = true): Promise<void> {
     return new Promise((resolve) => {
         const dirs = RNFetchBlob.fs.dirs;
 
         // Android files will download to Download directory
         const path = dirs.DownloadDir;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and since fileName can be an empty string we want to default to `FileUtils.getFileName(url)`
-        const attachmentName = FileUtils.appendTimeToFileName(fileName || FileUtils.getFileName(url));
+        const attachmentName = appendTimeToFileName(fileName || getFileName(url));
 
         const isLocalFile = url.startsWith('file://');
 
-        let attachmentPath = isLocalFile ? url : undefined;
+        let attachmentPath = isLocalFile ? decodeURI(url) : undefined;
         let fetchedAttachment: Promise<void | FetchBlobResponse> = Promise.resolve();
 
         if (!isLocalFile) {
@@ -84,13 +84,13 @@ function handleDownload(url: string, fileName?: string, successMessage?: string)
                 );
             })
             .then(() => {
-                if (attachmentPath) {
+                if (attachmentPath && shouldUnlink) {
                     RNFetchBlob.fs.unlink(attachmentPath);
                 }
-                FileUtils.showSuccessAlert(successMessage);
+                showSuccessAlert(successMessage);
             })
             .catch(() => {
-                FileUtils.showGeneralErrorAlert();
+                showGeneralErrorAlert();
             })
             .finally(() => resolve());
     });
@@ -114,14 +114,14 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
             return response.text();
         })
         .then((fileData) => {
-            const finalFileName = FileUtils.appendTimeToFileName(fileName ?? 'Expensify');
+            const finalFileName = appendTimeToFileName(fileName ?? 'Expensify');
             const downloadPath = `${RNFS.DownloadDirectoryPath}/${finalFileName}`;
             return RNFS.writeFile(downloadPath, fileData, 'utf8').then(() => downloadPath);
         })
         .then((downloadPath) =>
             RNFetchBlob.MediaCollection.copyToMediaStore(
                 {
-                    name: FileUtils.getFileName(downloadPath),
+                    name: getFileName(downloadPath),
                     parentFolder: 'Expensify',
                     mimeType: null,
                 },
@@ -131,11 +131,11 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
         )
         .then((downloadPath) => {
             RNFetchBlob.fs.unlink(downloadPath);
-            FileUtils.showSuccessAlert();
+            showSuccessAlert();
         })
         .catch(() => {
             if (!onDownloadFailed) {
-                FileUtils.showGeneralErrorAlert();
+                showGeneralErrorAlert();
             }
             onDownloadFailed?.();
         });
@@ -144,7 +144,7 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
 /**
  * Checks permission and downloads the file for Android
  */
-const fileDownload: FileDownload = (url, fileName, successMessage, _, formData, requestType, onDownloadFailed) =>
+const fileDownload: FileDownload = (url, fileName, successMessage, _, formData, requestType, onDownloadFailed, shouldUnlink) =>
     new Promise((resolve) => {
         hasAndroidPermission()
             .then((hasPermission) => {
@@ -152,12 +152,12 @@ const fileDownload: FileDownload = (url, fileName, successMessage, _, formData, 
                     if (requestType === CONST.NETWORK.METHOD.POST) {
                         return postDownloadFile(url, fileName, formData, onDownloadFailed);
                     }
-                    return handleDownload(url, fileName, successMessage);
+                    return handleDownload(url, fileName, successMessage, shouldUnlink);
                 }
-                FileUtils.showPermissionErrorAlert();
+                showPermissionErrorAlert();
             })
             .catch(() => {
-                FileUtils.showPermissionErrorAlert();
+                showPermissionErrorAlert();
             })
             .finally(() => resolve());
     });

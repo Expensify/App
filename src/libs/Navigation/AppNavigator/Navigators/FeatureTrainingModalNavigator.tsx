@@ -1,10 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
+import AutoSubmitModal from '@components/AutoSubmitModal';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {FeatureTrainingNavigatorParamList} from '@libs/Navigation/types';
-import ProcessMoneyRequestHoldPage from '@pages/ProcessMoneyRequestHoldPage';
+import ChangePolicyEducationalModal from '@pages/ChangePolicyEducationalModal';
 import TrackTrainingPage from '@pages/TrackTrainingPage';
 import SCREENS from '@src/SCREENS';
 
@@ -20,8 +21,12 @@ function FeatureTrainingModalNavigator() {
                         component={TrackTrainingPage}
                     />
                     <Stack.Screen
-                        name={SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT}
-                        component={ProcessMoneyRequestHoldPage}
+                        name={SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT}
+                        component={ChangePolicyEducationalModal}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.AUTO_SUBMIT_ROOT}
+                        component={AutoSubmitModal}
                     />
                 </Stack.Navigator>
             </View>

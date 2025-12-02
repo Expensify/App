@@ -1,60 +1,63 @@
 import {format, subDays} from 'date-fns';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import DatePicker from '@components/DatePicker';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import TransactionStartDateSelectorModal from './TransactionStartDateSelectorModal';
 
 function TransactionStartDateStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;
     const data = assignCard?.data;
-    const assigneeDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
+    const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
 
-    const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING);
-    const [isModalOpened, setIsModalOpened] = useState(false);
-    const [startDate, setStartDate] = useState(() => format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+    const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+    const [errorText, setErrorText] = useState('');
+    const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            CompanyCards.setAssignCardStepAndData({
+            setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
             return;
         }
-        CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CARD});
-    };
-
-    const handleSelectDate = (date: string) => {
-        setStartDate(date);
+        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CARD});
     };
 
     const handleSelectDateOption = (dateOption: string) => {
+        setErrorText('');
         setDateOptionSelected(dateOption);
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
-            setStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+            return;
         }
+        setStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
     };
 
     const submit = () => {
+        if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
+            setErrorText(translate('common.error.fieldRequired'));
+            return;
+        }
+
         const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
 
-        CompanyCards.setAssignCardStepAndData({
+        setAssignCardStepAndData({
             currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
             data: {
                 dateOption: dateOptionSelected,
@@ -90,45 +93,49 @@ function TransactionStartDateStep() {
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={assigneeDisplayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseTransactionStartDate')}</Text>
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
             <View style={styles.flex1}>
                 <SelectionList
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={({value}) => handleSelectDateOption(value)}
-                    sections={[{data: dateOptions}]}
+                    data={dateOptions}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={dateOptionSelected}
+                    initiallyFocusedItemKey={dateOptionSelected}
                     shouldUpdateFocusedIndex
+                    addBottomSafeAreaPadding
+                    shouldHighlightSelectedItem={false}
+                    footerContent={
+                        <Button
+                            success
+                            large
+                            pressOnEnter
+                            text={translate(isEditing ? 'common.confirm' : 'common.next')}
+                            onPress={submit}
+                        />
+                    }
                     listFooterContent={
                         dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (
-                            <>
-                                <MenuItemWithTopDescription
-                                    description={translate('common.date')}
-                                    title={startDate}
-                                    shouldShowRightIcon
-                                    onPress={() => setIsModalOpened(true)}
+                            <View style={[styles.ph5]}>
+                                <DatePicker
+                                    inputID=""
+                                    value={startDate}
+                                    label={translate('iou.startDate')}
+                                    onInputChange={(value) => {
+                                        setErrorText('');
+                                        setStartDate(value);
+                                    }}
+                                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                                    maxDate={new Date()}
+                                    errorText={errorText}
                                 />
-                                <TransactionStartDateSelectorModal
-                                    isVisible={isModalOpened}
-                                    date={startDate}
-                                    handleSelectDate={handleSelectDate}
-                                    onClose={() => setIsModalOpened(false)}
-                                />
-                            </>
+                            </View>
                         ) : null
                     }
                 />
             </View>
-            <Button
-                success
-                large
-                pressOnEnter
-                text={translate(isEditing ? 'common.confirm' : 'common.next')}
-                onPress={submit}
-                style={styles.m5}
-            />
         </InteractiveStepWrapper>
     );
 }

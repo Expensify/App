@@ -1,25 +1,28 @@
 /* eslint-disable react-compiler/react-compiler */
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Dimensions} from 'react-native';
-import type {EmitterSubscription, GestureResponderEvent, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {EmitterSubscription, View} from 'react-native';
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
-import {completePaymentOnboarding} from '@libs/actions/IOU';
+import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU';
+import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Log from '@libs/Log';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
-import {isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
-import {kycWallRef} from '@userActions/PaymentMethods';
+import {getBankAccountRoute, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
 import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {BankAccountList, Policy} from '@src/types/onyx';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
-import type {AnchorPosition, DomRect, KYCWallProps, PaymentMethod} from './types';
+import type {AnchorPosition, ContinueActionParams, DomRect, KYCWallProps, PaymentMethod} from './types';
 
 // This sets the Horizontal anchor position offset for POPOVER MENU.
 const POPOVER_MENU_ANCHOR_POSITION_HORIZONTAL_OFFSET = 20;
@@ -44,12 +47,17 @@ function KYCWall({
     shouldListenForResize = false,
     source,
     shouldShowPersonalBankAccountOption = false,
+    ref,
 }: KYCWallProps) {
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const {formatPhoneNumber} = useLocalize();
 
     const anchorRef = useRef<HTMLDivElement | View>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
@@ -60,6 +68,8 @@ function KYCWall({
         anchorPositionVertical: 0,
         anchorPositionHorizontal: 0,
     });
+
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
 
     const getAnchorPosition = useCallback(
         (domRect: DomRect): AnchorPosition => {
@@ -92,7 +102,6 @@ function KYCWall({
         if (!transferBalanceButtonRef.current) {
             return;
         }
-
         const buttonPosition = getClickedTargetLocation(transferBalanceButtonRef.current as HTMLDivElement);
         const position = getAnchorPosition(buttonPosition);
 
@@ -100,30 +109,63 @@ function KYCWall({
     }, [getAnchorPosition]);
 
     const selectPaymentMethod = useCallback(
-        (paymentMethod: PaymentMethod) => {
-            onSelectPaymentMethod(paymentMethod);
+        (paymentMethod?: PaymentMethod, policy?: Policy) => {
+            if (paymentMethod) {
+                onSelectPaymentMethod(paymentMethod);
+            }
 
             if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-                openPersonalBankAccountSetupView();
+                openPersonalBankAccountSetupView({shouldSetUpUSBankAccount: isIOUReport(iouReport)});
             } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-                Navigation.navigate(addDebitCardRoute);
-            } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
+                Navigation.navigate(addDebitCardRoute ?? ROUTES.HOME);
+            } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT || policy) {
                 if (iouReport && isIOUReport(iouReport)) {
+                    const adminPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`];
+                    if (adminPolicy) {
+                        const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport?.reportID, adminPolicy, formatPhoneNumber);
+                        if (inviteResult?.policyExpenseChatReportID) {
+                            setNavigationActionToMicrotaskQueue(() => {
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(inviteResult.policyExpenseChatReportID));
+                                if (adminPolicy?.achAccount) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(adminPolicy.id));
+                            });
+                        } else {
+                            const moveResult = moveIOUReportToPolicy(iouReport?.reportID, adminPolicy, true);
+                            savePreferredPaymentMethod(iouReport.policyID, adminPolicy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[adminPolicy.id]);
+
+                            if (moveResult?.policyExpenseChatReportID && !moveResult.useTemporaryOptimisticExpenseChatReportID) {
+                                setNavigationActionToMicrotaskQueue(() => {
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(moveResult.policyExpenseChatReportID));
+                                    if (adminPolicy?.achAccount) {
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(adminPolicy.id));
+                                });
+                            }
+                        }
+                        return;
+                    }
+
                     const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} = createWorkspaceFromIOUPayment(iouReport) ?? {};
-                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, adminsChatReportID, policyID);
+                    if (policyID && iouReport?.policyID) {
+                        savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
+                    }
+                    completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, adminsChatReportID, policyID);
                     if (workspaceChatReportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(workspaceChatReportID, reportPreviewReportActionID));
                     }
 
                     // Navigate to the bank account set up flow for this specific policy
                     Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID));
-
                     return;
                 }
-                Navigation.navigate(addBankAccountRoute);
+                const bankAccountRoute = addBankAccountRoute ?? getBankAccountRoute(chatReport);
+                Navigation.navigate(bankAccountRoute);
             }
         },
-        [addBankAccountRoute, addDebitCardRoute, iouReport, onSelectPaymentMethod],
+        [onSelectPaymentMethod, iouReport, addDebitCardRoute, addBankAccountRoute, chatReport, policies, introSelected, formatPhoneNumber, lastPaymentMethod],
     );
 
     /**
@@ -133,7 +175,8 @@ function KYCWall({
      *
      */
     const continueAction = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent, iouPaymentType?: PaymentMethodType) => {
+        (params?: ContinueActionParams) => {
+            const {event, iouPaymentType, paymentMethod, policy, goBackRoute} = params ?? {};
             const currentSource = walletTerms?.source ?? source;
 
             /**
@@ -154,16 +197,28 @@ function KYCWall({
 
             const isExpenseReport = isExpenseReportReportUtils(iouReport);
             const paymentCardList = fundList ?? {};
+            const hasValidPaymentMethod = hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard);
+            const isFromWalletPage = source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET || source === CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE;
 
             // Check to see if user has a valid payment method on file and display the add payment popover if they don't
-            if (
-                (isExpenseReport && reimbursementAccount?.achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) ||
-                (!isExpenseReport && bankAccountList !== null && !hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard))
-            ) {
+            if ((isExpenseReport && reimbursementAccount?.achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN) || (!isExpenseReport && bankAccountList !== null && !hasValidPaymentMethod)) {
                 Log.info('[KYC Wallet] User does not have valid payment method');
 
-                if (!shouldIncludeDebitCard) {
+                if (!shouldIncludeDebitCard || (isFromWalletPage && !hasValidPaymentMethod)) {
                     selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+                    return;
+                }
+
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                if (paymentMethod || policy) {
+                    setShouldShowAddPaymentMenu(false);
+                    selectPaymentMethod(paymentMethod, policy);
+                    return;
+                }
+
+                if (iouPaymentType && isExpenseReport) {
+                    setShouldShowAddPaymentMenu(false);
+                    selectPaymentMethod(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
                     return;
                 }
 
@@ -179,11 +234,21 @@ function KYCWall({
                 // Ask the user to upgrade to a gold wallet as this means they have not yet gone through our Know Your Customer (KYC) checks
                 const hasActivatedWallet = userWallet?.tierName && [CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM].some((name) => name === userWallet.tierName);
 
-                if (!hasActivatedWallet) {
+                if (!hasActivatedWallet && !policy) {
                     Log.info('[KYC Wallet] User does not have active wallet');
 
-                    Navigation.navigate(enablePaymentsRoute);
+                    // If the goBackRoute is the enablePaymentsRoute there's no need to directly navigate to it here
+                    if (goBackRoute !== enablePaymentsRoute) {
+                        Navigation.navigate(enablePaymentsRoute);
+                    }
 
+                    return;
+                }
+
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                if (policy || (paymentMethod && (!hasActivatedWallet || paymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT))) {
+                    setShouldShowAddPaymentMenu(false);
+                    selectPaymentMethod(paymentMethod, policy);
                     return;
                 }
             }
@@ -213,20 +278,25 @@ function KYCWall({
     useEffect(() => {
         let dimensionsSubscription: EmitterSubscription | null = null;
 
-        kycWallRef.current = {continueAction};
-
         if (shouldListenForResize) {
             dimensionsSubscription = Dimensions.addEventListener('change', setMenuPosition);
         }
 
         return () => {
-            if (shouldListenForResize && dimensionsSubscription) {
-                dimensionsSubscription.remove();
+            if (!shouldListenForResize || !dimensionsSubscription) {
+                return;
             }
-
-            kycWallRef.current = null;
+            dimensionsSubscription.remove();
         };
-    }, [chatReportID, setMenuPosition, shouldListenForResize, continueAction]);
+    }, [chatReportID, setMenuPosition, shouldListenForResize]);
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            continueAction,
+        }),
+        [continueAction],
+    );
 
     return (
         <>

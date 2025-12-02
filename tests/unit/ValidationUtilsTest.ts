@@ -1,24 +1,39 @@
 import {addDays, format, startOfDay, subYears} from 'date-fns';
-import {translateLocal} from '@libs/Localize';
+import {TextEncoder} from 'util';
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import {
     getAgeRequirementError,
     isRequiredFulfilled,
     isValidAccountRoute,
     isValidDate,
     isValidExpirationDate,
+    isValidInputLength,
     isValidLegalName,
     isValidPastDate,
     isValidPaymentZipCode,
     isValidPersonName,
+    isValidRegistrationNumber,
     isValidRoomName,
     isValidTwoFactorCode,
     isValidWebsite,
     meetsMaximumAgeRequirement,
     meetsMinimumAgeRequirement,
 } from '@src/libs/ValidationUtils';
+import {translateLocal} from '../utils/TestHelper';
+
+global.TextEncoder = TextEncoder as typeof global.TextEncoder;
 
 describe('ValidationUtils', () => {
+    beforeAll(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2024-01-15'));
+    });
+
+    afterAll(() => {
+        jest.useRealTimers();
+    });
+
     describe('isValidDate', () => {
         test('Should return true for a valid date within the range', () => {
             const validDate = '2023-07-18';
@@ -41,6 +56,12 @@ describe('ValidationUtils', () => {
         test('Should return false for a date after the range', () => {
             const futureDate = '3042-07-18';
             const isValid = isValidDate(futureDate);
+            expect(isValid).toBe(false);
+        });
+
+        test('Should return false for a invalid date format', () => {
+            const validDate = '2025-07';
+            const isValid = isValidDate(validDate);
             expect(isValid).toBe(false);
         });
     });
@@ -394,6 +415,143 @@ describe('ValidationUtils', () => {
             const futureDate = "@ , : ; ' &";
             const isValid = isValidPaymentZipCode(futureDate);
             expect(isValid).toBe(false);
+        });
+    });
+
+    describe('isValidInputLength', () => {
+        // Test Latin alphabet characters (1 byte each in UTF-8)
+        describe('Latin alphabet characters', () => {
+            test('returns true and correct byte length when Latin string byte length exceeds limit', () => {
+                expect(isValidInputLength('abc', 2)).toEqual({isValid: false, byteLength: 3}); // 3 bytes > 2
+            });
+
+            test('returns false and correct byte length when Latin string byte length equals limit', () => {
+                expect(isValidInputLength('abc', 3)).toEqual({isValid: true, byteLength: 3}); // 3 bytes ≤ 3
+            });
+
+            test('returns false and correct byte length when Latin string byte length is less than limit', () => {
+                expect(isValidInputLength('ab', 3)).toEqual({isValid: true, byteLength: 2}); // 2 bytes ≤ 3
+            });
+        });
+
+        // Test Sanskrit characters (typically 3 bytes each in UTF-8)
+        describe('Sanskrit characters', () => {
+            test('returns true and correct byte length when Sanskrit string byte length exceeds limit', () => {
+                expect(isValidInputLength('कष', 5)).toEqual({isValid: false, byteLength: 6}); // 6 bytes > 5
+            });
+
+            test('returns false and correct byte length when Sanskrit string byte length equals limit', () => {
+                expect(isValidInputLength('कष', 6)).toEqual({isValid: true, byteLength: 6}); // 6 bytes ≤ 6
+            });
+
+            test('returns false and correct byte length when Sanskrit string byte length is less than limit', () => {
+                expect(isValidInputLength('क', 4)).toEqual({isValid: true, byteLength: 3}); // 3 bytes ≤ 4
+            });
+        });
+
+        // Test emojis (typically 4 bytes each in UTF-8)
+        describe('Emojis', () => {
+            test('returns true and correct byte length when emoji byte length exceeds limit', () => {
+                expect(isValidInputLength('😊', 3)).toEqual({isValid: false, byteLength: 4}); // 4 bytes > 3
+            });
+
+            test('returns false and correct byte length when emoji byte length equals limit', () => {
+                expect(isValidInputLength('😊', 4)).toEqual({isValid: true, byteLength: 4}); // 4 bytes ≤ 4
+            });
+
+            test('returns false and correct byte length when emoji byte length is less than limit', () => {
+                expect(isValidInputLength('😊', 5)).toEqual({isValid: true, byteLength: 4}); // 4 bytes ≤ 5
+            });
+        });
+
+        // Test empty strings and spaces
+        describe('Empty strings and spaces', () => {
+            test('returns false and correct byte length for empty string regardless of limit', () => {
+                expect(isValidInputLength('', 0)).toEqual({isValid: true, byteLength: 0}); // 0 bytes ≤ 0
+                expect(isValidInputLength('', 1)).toEqual({isValid: true, byteLength: 0}); // 0 bytes ≤ 1
+            });
+
+            test('returns true and correct byte length when space string byte length exceeds limit', () => {
+                expect(isValidInputLength('   ', 2)).toEqual({isValid: false, byteLength: 3}); // 3 bytes > 2
+            });
+
+            test('returns false and correct byte length when space string byte length equals limit', () => {
+                expect(isValidInputLength('  ', 2)).toEqual({isValid: true, byteLength: 2}); // 2 bytes ≤ 2
+            });
+        });
+
+        // Test mixed characters
+        describe('Mixed characters', () => {
+            test('returns true and correct byte length when mixed string byte length exceeds limit', () => {
+                expect(isValidInputLength('aक😊', 6)).toEqual({isValid: false, byteLength: 8}); // 1 + 3 + 4 = 8 bytes > 6
+            });
+
+            test('returns false and correct byte length when mixed string byte length equals limit', () => {
+                expect(isValidInputLength('aक😊', 8)).toEqual({isValid: true, byteLength: 8}); // 1 + 3 + 4 = 8 bytes ≤ 8
+            });
+
+            test('returns false and correct byte length when mixed string byte length is less than limit', () => {
+                expect(isValidInputLength('aक', 5)).toEqual({isValid: true, byteLength: 4}); // 1 + 3 = 4 bytes ≤ 5
+            });
+        });
+
+        // Test edge cases
+        describe('Edge cases', () => {
+            test('handles negative length parameter', () => {
+                expect(isValidInputLength('abc', -1)).toEqual({isValid: false, byteLength: 3}); // 3 bytes > -1
+            });
+
+            test('handles zero length parameter', () => {
+                expect(isValidInputLength('a', 0)).toEqual({isValid: false, byteLength: 1}); // 1 byte > 0
+                expect(isValidInputLength('', 0)).toEqual({isValid: true, byteLength: 0}); // 0 bytes ≤ 0
+            });
+
+            test('handles special characters (e.g., newlines, tabs)', () => {
+                expect(isValidInputLength('\n\t', 1)).toEqual({isValid: false, byteLength: 2}); // 2 bytes > 1
+                expect(isValidInputLength('\n\t', 2)).toEqual({isValid: true, byteLength: 2}); // 2 bytes ≤ 2
+            });
+        });
+    });
+
+    describe('isValidRegistrationNumber', () => {
+        describe('EU countries', () => {
+            test.each([
+                ['AT', 'FN123456', true],
+                ['AT', 'FN654321a', true],
+                ['AT', '123456', false],
+                ['BE', '0123.456.789', true],
+                ['BE', '1234.567.890', false],
+                ['BG', '123456789', true],
+                ['BG', '1234567890123', true],
+                ['BG', '12345678', false],
+                ['DE', 'HRB12345', true],
+                ['DE', 'HRA 6789', true],
+                ['DE', 'XYZ123', false],
+                ['ES', 'A12345678', true],
+                ['ES', 'B87654321', true],
+                ['ES', '12345678A', false],
+            ])('validates EU country registration number', (country, value, expected) => {
+                expect(isValidRegistrationNumber(value, country as Country)).toBe(expected);
+            });
+        });
+
+        describe('Non-EU countries', () => {
+            test.each([
+                ['AU', '51824753556', true],
+                ['AU', '004085616', true],
+                ['AU', '123456789', false],
+                ['AU', '51824753557', false],
+                ['GB', '12345678', true],
+                ['GB', 'SC123456', true],
+                ['GB', 'S1234567', false],
+                ['GB', '1234567A', false],
+                ['CA', '123456789', true],
+                ['CA', '123456789RC0001', true],
+                ['CA', '12345678', false],
+                ['CA', '123456789XX123', false],
+            ])('validates Non-EU country registration number', (country, value, expected) => {
+                expect(isValidRegistrationNumber(value, country as Country)).toBe(expected);
+            });
         });
     });
 });

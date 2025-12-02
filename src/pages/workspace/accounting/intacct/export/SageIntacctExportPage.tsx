@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendingAction} from '@libs/PolicyUtils';
+import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -22,36 +23,36 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT>>();
     const backTo = route?.params?.backTo;
     const {export: exportConfig, pendingFields, errorFields} = policy?.connections?.intacct?.config ?? {};
-    const shouldGoBackToSpecificRoute = exportConfig?.reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT && backTo;
+    const shouldGoBackToSpecificRoute = exportConfig?.reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT;
+
+    const goBack = useCallback(() => {
+        return goBackFromExportConnection(shouldGoBackToSpecificRoute, backTo);
+    }, [backTo, shouldGoBackToSpecificRoute]);
 
     const sections = useMemo(
         () => [
             {
                 description: translate('workspace.sageIntacct.preferredExporter'),
-                action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER.getRoute(policyID)),
-                title: exportConfig?.exporter ?? translate('workspace.sageIntacct.notConfigured'),
+                action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER.getRoute(policyID, Navigation.getActiveRoute())),
+                title: exportConfig?.exporter,
                 subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.EXPORTER],
             },
             {
                 description: translate('workspace.sageIntacct.exportDate.label'),
-                action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE.getRoute(policyID)),
-                title: exportConfig?.exportDate ? translate(`workspace.sageIntacct.exportDate.values.${exportConfig.exportDate}.label`) : translate(`workspace.sageIntacct.notConfigured`),
+                action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE.getRoute(policyID, Navigation.getActiveRoute())),
+                title: exportConfig?.exportDate ? translate(`workspace.sageIntacct.exportDate.values.${exportConfig.exportDate}.label`) : undefined,
                 subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE],
             },
             {
                 description: translate('workspace.accounting.exportOutOfPocket'),
-                action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.getRoute(policyID)),
-                title: exportConfig?.reimbursable
-                    ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${exportConfig.reimbursable}`)
-                    : translate('workspace.sageIntacct.notConfigured'),
+                action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.getRoute(policyID, Navigation.getActiveRoute())),
+                title: exportConfig?.reimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${exportConfig.reimbursable}`) : undefined,
                 subscribedSettings: [CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR],
             },
             {
                 description: translate('workspace.accounting.exportCompanyCard'),
-                action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID)),
-                title: exportConfig?.nonReimbursable
-                    ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${exportConfig.nonReimbursable}`)
-                    : translate('workspace.sageIntacct.notConfigured'),
+                action: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID, Navigation.getActiveRoute())),
+                title: exportConfig?.nonReimbursable ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${exportConfig.nonReimbursable}`) : undefined,
                 subscribedSettings: [
                     CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE,
                     CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT,
@@ -61,7 +62,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 ],
             },
         ],
-        [exportConfig, policyID, translate],
+        [exportConfig?.exporter, exportConfig?.exportDate, exportConfig?.reimbursable, exportConfig?.nonReimbursable, policyID, translate],
     );
 
     return (
@@ -72,7 +73,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
             title="workspace.sageIntacct.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            onBackButtonPress={shouldGoBackToSpecificRoute ? () => Navigation.navigate(backTo) : undefined}
+            onBackButtonPress={goBack}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}

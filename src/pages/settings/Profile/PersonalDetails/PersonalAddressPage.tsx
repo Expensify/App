@@ -1,32 +1,24 @@
 import React, {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import useOnyx from '@hooks/useOnyx';
+import {normalizeCountryCode} from '@libs/CountryUtils';
+import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import AddressPage from '@pages/AddressPage';
-import * as PersonalDetails from '@userActions/PersonalDetails';
 import type {FormOnyxValues} from '@src/components/Form/types';
+import type {Country} from '@src/CONST';
+import {updateAddress as updateAddressPersonalDetails} from '@src/libs/actions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
-import type {PrivatePersonalDetails} from '@src/types/onyx';
-
-type PersonalAddressPageOnyxProps = {
-    /** User's private personal details */
-    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
-    /** Whether app is loading */
-    isLoadingApp: OnyxEntry<boolean>;
-};
-
-type PersonalAddressPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS> & PersonalAddressPageOnyxProps;
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 /**
  * Submit form to update user's first and last legal name
  * @param values - form input values
  */
-function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) {
-    PersonalDetails.updateAddress(
+function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>, addresses: Address[]) {
+    updateAddressPersonalDetails(
+        addresses,
         values.addressLine1?.trim() ?? '',
         values.addressLine2?.trim() ?? '',
         values.city.trim(),
@@ -36,15 +28,22 @@ function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS
     );
 }
 
-function PersonalAddressPage({privatePersonalDetails, isLoadingApp = true}: PersonalAddressPageProps) {
+function PersonalAddressPage() {
     const {translate} = useLocalize();
-    const address = useMemo(() => PersonalDetailsUtils.getCurrentAddress(privatePersonalDetails), [privatePersonalDetails]);
-
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [defaultCountry, defaultCountryStatus] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: true});
+    const isLoading = isLoadingOnyxValue(defaultCountryStatus);
+    const address = useMemo(() => normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address, [privatePersonalDetails]);
+    if (isLoading) {
+        return <FullScreenLoadingIndicator />;
+    }
     return (
         <AddressPage
+            defaultCountry={defaultCountry as Country}
             address={address}
             isLoadingApp={isLoadingApp}
-            updateAddress={updateAddress}
+            updateAddress={(values) => updateAddress(values, privatePersonalDetails?.addresses ?? [])}
             title={translate('privatePersonalDetails.address')}
         />
     );
@@ -52,11 +51,4 @@ function PersonalAddressPage({privatePersonalDetails, isLoadingApp = true}: Pers
 
 PersonalAddressPage.displayName = 'PersonalAddressPage';
 
-export default withOnyx<PersonalAddressPageProps, PersonalAddressPageOnyxProps>({
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-    isLoadingApp: {
-        key: ONYXKEYS.IS_LOADING_APP,
-    },
-})(PersonalAddressPage);
+export default PersonalAddressPage;

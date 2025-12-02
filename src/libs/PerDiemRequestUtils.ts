@@ -1,31 +1,21 @@
-import {addDays, differenceInDays, differenceInMinutes, format, startOfDay} from 'date-fns';
+import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, startOfDay} from 'date-fns';
 import lodashSortBy from 'lodash/sortBy';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
-import {translateLocal} from './Localize';
 import type {OptionTree, SectionBase} from './OptionsListUtils';
 import {getPolicy} from './PolicyUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReports = value;
-    },
-});
+import tokenizedSearch from './tokenizedSearch';
 
 /**
  * Returns custom unit ID for the per diem transaction
  */
-function getCustomUnitID(reportID: string) {
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+function getCustomUnitID(report: OnyxEntry<Report>, parentReport: OnyxEntry<Report>) {
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(report?.policyID ?? parentReport?.policyID);
     let customUnitID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     let category: string | undefined;
@@ -66,9 +56,9 @@ type Destination = {
  */
 function getDestinationOptionTree(options: Destination[]): ModifiedOptionTree[] {
     const optionCollection = new Map<string, ModifiedOptionTree>();
-    Object.values(options).forEach((option) => {
+    for (const option of Object.values(options)) {
         if (optionCollection.has(option.rateID)) {
-            return;
+            continue;
         }
 
         optionCollection.set(option.rateID, {
@@ -80,7 +70,7 @@ function getDestinationOptionTree(options: Destination[]): ModifiedOptionTree[] 
             isSelected: !!option.isSelected,
             currency: option.currency,
         });
-    });
+    }
 
     return Array.from(optionCollection.values());
 }
@@ -94,12 +84,14 @@ function getDestinationListSections({
     selectedOptions = [],
     recentlyUsedDestinations = [],
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+    translate,
 }: {
     destinations: Rate[];
     selectedOptions?: Destination[];
     searchValue?: string;
     recentlyUsedDestinations?: string[];
     maxRecentReportsToShow?: number;
+    translate: LocalizedTranslate;
 }): DestinationTreeSection[] {
     const sortedDestinations: Destination[] = lodashSortBy(destinations, 'name').map((rate) => ({
         name: rate.name ?? '',
@@ -109,17 +101,10 @@ function getDestinationListSections({
     const destinationSections: DestinationTreeSection[] = [];
 
     if (searchValue) {
-        const searchDestinations: Destination[] = [];
-
-        sortedDestinations.forEach((destination) => {
-            if (!destination.name.toLowerCase().includes(searchValue.toLowerCase())) {
-                return;
-            }
-            searchDestinations.push({
-                ...destination,
-                isSelected: selectedOptions.some((selectedOption) => selectedOption.rateID === destination.rateID),
-            });
-        });
+        const searchDestinations: Destination[] = tokenizedSearch(sortedDestinations, searchValue, (destination) => [destination.name]).map((destination) => ({
+            ...destination,
+            isSelected: selectedOptions.some((selectedOption) => selectedOption.rateID === destination.rateID),
+        }));
 
         const data = getDestinationOptionTree(searchDestinations);
         destinationSections.push({
@@ -144,10 +129,10 @@ function getDestinationListSections({
         });
     }
 
-    const selectedOptionRateIDs = selectedOptions.map((selectedOption) => selectedOption.rateID);
+    const selectedOptionRateIDs = new Set(selectedOptions.map((selectedOption) => selectedOption.rateID));
 
     if (sortedDestinations.length < CONST.STANDARD_LIST_ITEM_LIMIT) {
-        const filteredNonSelectedDestinations = sortedDestinations.filter(({rateID}) => !selectedOptionRateIDs.includes(rateID));
+        const filteredNonSelectedDestinations = sortedDestinations.filter(({rateID}) => !selectedOptionRateIDs.has(rateID));
         if (filteredNonSelectedDestinations.length === 0) {
             return destinationSections;
         }
@@ -163,7 +148,7 @@ function getDestinationListSections({
         return destinationSections;
     }
 
-    const filteredRecentlyUsedDestinations = sortedDestinations.filter(({rateID}) => recentlyUsedDestinations.includes(rateID) && !selectedOptionRateIDs.includes(rateID));
+    const filteredRecentlyUsedDestinations = sortedDestinations.filter(({rateID}) => recentlyUsedDestinations.includes(rateID) && !selectedOptionRateIDs.has(rateID));
 
     if (filteredRecentlyUsedDestinations.length > 0) {
         const cutRecentlyUsedDestinations = filteredRecentlyUsedDestinations.slice(0, maxRecentReportsToShow);
@@ -171,7 +156,7 @@ function getDestinationListSections({
         const data = getDestinationOptionTree(cutRecentlyUsedDestinations);
         destinationSections.push({
             // "Recent" section
-            title: translateLocal('common.recent'),
+            title: translate('common.recent'),
             shouldShow: true,
             data,
             indexOffset: data.length,
@@ -181,7 +166,7 @@ function getDestinationListSections({
     const data = getDestinationOptionTree(sortedDestinations);
     destinationSections.push({
         // "All" section when items amount more than the threshold
-        title: translateLocal('common.all'),
+        title: translate('common.all'),
         shouldShow: true,
         data,
         indexOffset: data.length,
@@ -258,6 +243,16 @@ function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
     const startDate = new Date(customUnitRateDate.start);
     const endDate = new Date(customUnitRateDate.end);
+
+    if (isSameDay(startDate, endDate)) {
+        const hourDiff = differenceInMinutes(endDate, startDate) / 60;
+        return {
+            firstDay: hourDiff,
+            tripDays: 0,
+            lastDay: undefined,
+        };
+    }
+
     const firstDayDiff = differenceInMinutes(startOfDay(addDays(startDate, 1)), startDate);
     const tripDaysDiff = differenceInDays(startOfDay(endDate), startOfDay(addDays(startDate, 1)));
     const lastDayDiff = differenceInMinutes(endDate, startOfDay(endDate));
@@ -268,6 +263,6 @@ function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {
     };
 }
 
-export type {Destination};
+export type {Destination, DestinationTreeSection};
 
 export {getCustomUnitID, getDestinationListSections, getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeForDisplay, getTimeDifferenceIntervals};

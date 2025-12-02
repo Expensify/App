@@ -1,4 +1,3 @@
-/* eslint-disable @lwc/lwc/no-async-await */
 import {DeviceEventEmitter} from 'react-native';
 import type {NetworkCacheEntry, NetworkCacheMap} from '@libs/E2E/types';
 
@@ -21,13 +20,13 @@ let networkCache: NetworkCacheMap | null = null;
 function getFetchRequestHeadersAsObject(fetchRequest: RequestInit): Record<string, string> {
     const headers: Record<string, string> = {};
     if (Array.isArray(fetchRequest.headers)) {
-        fetchRequest.headers.forEach(([key, value]) => {
+        for (const [key, value] of fetchRequest.headers) {
             headers[key] = value;
-        });
+        }
     } else if (typeof fetchRequest.headers === 'object') {
-        Object.entries(fetchRequest.headers).forEach(([key, value]) => {
+        for (const [key, value] of Object.entries(fetchRequest.headers)) {
             headers[key] = value as string;
-        });
+        }
     }
     return headers;
 }
@@ -70,9 +69,9 @@ function fetchArgsGetUrl(args: Parameters<typeof fetch>): string {
 function networkCacheEntryToResponse({headers, status, statusText, body}: NetworkCacheEntry): Response {
     // Transform headers to Headers object:
     const newHeaders = new Headers();
-    Object.entries(headers).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(headers)) {
         newHeaders.append(key, value);
-    });
+    }
 
     return new Response(body, {
         status,

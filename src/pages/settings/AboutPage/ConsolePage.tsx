@@ -3,22 +3,24 @@ import {format} from 'date-fns';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ListRenderItem, ListRenderItemInfo} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import InvertedFlatList from '@components/InvertedFlatList';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addLog} from '@libs/actions/Console';
 import {createLog, parseStringifiedMessages, sanitizeConsoleInput} from '@libs/Console';
 import type {Log} from '@libs/Console';
@@ -40,8 +42,9 @@ const filterBy = {
 type FilterBy = (typeof filterBy)[keyof typeof filterBy];
 
 function ConsolePage() {
-    const [capturedLogs] = useOnyx(ONYXKEYS.LOGS);
-    const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'UploadAlt'] as const);
+    const [capturedLogs] = useOnyx(ONYXKEYS.LOGS, {canBeMissing: false});
+    const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const [input, setInput] = useState('');
     const [isGeneratingLogsFile, setIsGeneratingLogsFile] = useState(false);
     const [isLimitModalVisible, setIsLimitModalVisible] = useState(false);
@@ -49,8 +52,8 @@ function ConsolePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {windowWidth} = useWindowDimensions();
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
+    const isAuthenticated = useIsAuthenticated();
 
     const menuItems: PopoverMenuItem[] = useMemo(
         () => [
@@ -105,7 +108,9 @@ function ConsolePage() {
         const sanitizedInput = sanitizeConsoleInput(input);
 
         const output = createLog(sanitizedInput);
-        output.forEach((log) => addLog(log));
+        for (const log of output) {
+            addLog(log);
+        }
         setInput('');
     };
 
@@ -161,7 +166,6 @@ function ConsolePage() {
                 onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={menuItems}
-                threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
                 threeDotsMenuIcon={Expensicons.Filter}
                 threeDotsMenuIconFill={theme.icon}
             />
@@ -178,17 +182,19 @@ function ConsolePage() {
                     text={translate('initialSettingsPage.debugConsole.saveLog')}
                     onPress={saveLogs}
                     large
-                    icon={Expensicons.Download}
+                    icon={icons.Download}
                     style={[styles.flex1, styles.mr1]}
                 />
-                <Button
-                    text={translate('initialSettingsPage.debugConsole.shareLog')}
-                    onPress={shareLogs}
-                    large
-                    icon={!isGeneratingLogsFile ? Expensicons.UploadAlt : undefined}
-                    style={[styles.flex1, styles.ml1]}
-                    isLoading={isGeneratingLogsFile}
-                />
+                {isAuthenticated && (
+                    <Button
+                        text={translate('initialSettingsPage.debugConsole.shareLog')}
+                        onPress={shareLogs}
+                        large
+                        icon={!isGeneratingLogsFile ? icons.UploadAlt : undefined}
+                        style={[styles.flex1, styles.ml1]}
+                        isLoading={isGeneratingLogsFile}
+                    />
+                )}
             </View>
             <View style={[styles.mh5]}>
                 <TextInput

@@ -8,7 +8,7 @@ type Action<T extends unknown[]> = (...params: T) => void | Promise<void>;
  */
 export default function useSingleExecution() {
     const [isExecuting, setIsExecuting] = useState(false);
-    const isExecutingRef = useRef<boolean>();
+    const isExecutingRef = useRef<boolean | undefined>(undefined);
 
     // eslint-disable-next-line react-compiler/react-compiler
     isExecutingRef.current = isExecuting;
@@ -24,6 +24,7 @@ export default function useSingleExecution() {
                 isExecutingRef.current = true;
 
                 const execution = action(...params);
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     if (!(execution instanceof Promise)) {
                         setIsExecuting(false);

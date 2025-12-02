@@ -1,14 +1,14 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import CategorySelector from '@components/CategorySelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPolicyPerDiemRatesErrorFields} from '@libs/actions/Policy/PerDiem';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -60,13 +60,17 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
             featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspacePerDiemSettingsPage.displayName}
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
-                <FullPageBlockingView style={customUnit ? styles.flexGrow1 : []}>
+                <FullPageBlockingView
+                    style={customUnit ? styles.flexGrow1 : []}
+                    addBottomSafeAreaPadding
+                >
                     <ScrollView
+                        addBottomSafeAreaPadding
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="always"
                     >

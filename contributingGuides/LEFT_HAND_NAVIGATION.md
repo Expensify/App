@@ -39,6 +39,6 @@ Certain reports are excluded from the LHN to avoid clutter and to focus on relev
 4. Non-Archived reports:
     - In default mode, these are sorted by the lastVisibleActionCreated date, so the most recently updated reports appear first.
     - In focus mode, these reports are sorted alphabetically by name for quicker navigation.
-5. Archived eports:
+5. Archived reports:
     - In default mode, these are sorted by lastVisibleActionCreated, with recent reports displayed first.
     - In focus mode, archived reports are sorted alphabetically by name.

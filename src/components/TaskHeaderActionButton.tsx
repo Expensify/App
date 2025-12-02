@@ -1,15 +1,16 @@
 import React from 'react';
 import {View} from 'react-native';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useParentReport from '@hooks/useParentReport';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TaskUtils from '@libs/TaskUtils';
-import * as Session from '@userActions/Session';
-import * as Task from '@userActions/Task';
-import CONST from '@src/CONST';
+import {canWriteInReport, isCompletedTaskReport} from '@libs/ReportUtils';
+import {isActiveTaskEditRoute} from '@libs/TaskUtils';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
 import type * as OnyxTypes from '@src/types/onyx';
 import Button from './Button';
-import {useSession} from './OnyxProvider';
 
 type TaskHeaderActionButtonProps = {
     /** The report currently being looked at */
@@ -19,9 +20,12 @@ type TaskHeaderActionButtonProps = {
 function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const session = useSession();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const parentReport = useParentReport(report.reportID);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const isTaskActionable = canActionTask(report, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
 
-    if (!ReportUtils.canWriteInReport(report)) {
+    if (!canWriteInReport(report)) {
         return null;
     }
 
@@ -29,17 +33,17 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
                 success
-                isDisabled={!Task.canActionTask(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
-                text={translate(ReportUtils.isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
-                onPress={Session.checkIfActionIsAllowed(() => {
+                isDisabled={!isTaskActionable}
+                text={translate(isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
+                onPress={callFunctionIfActionIsAllowed(() => {
                     // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                    if (TaskUtils.isActiveTaskEditRoute(report.reportID)) {
+                    if (isActiveTaskEditRoute(report.reportID)) {
                         return;
                     }
-                    if (ReportUtils.isCompletedTaskReport(report)) {
-                        Task.reopenTask(report);
+                    if (isCompletedTaskReport(report)) {
+                        reopenTask(report, currentUserPersonalDetails.accountID);
                     } else {
-                        Task.completeTask(report);
+                        completeTask(report);
                     }
                 })}
                 style={styles.flex1}

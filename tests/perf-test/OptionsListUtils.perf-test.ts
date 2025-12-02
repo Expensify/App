@@ -2,7 +2,7 @@ import {rand} from '@ngneat/falso';
 import type * as NativeNavigation from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,12 +13,14 @@ import createCollection from '../utils/collections/createCollection';
 import createRandomOptionData from '../utils/collections/optionData';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
+import {getNvpDismissedProductTraining} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
 const SEARCH_VALUE = 'TestingValue';
+const COUNTRY_CODE = 1;
 
 const PERSONAL_DETAILS_COUNT = 1000;
 const SELECTED_OPTIONS_COUNT = 1000;
@@ -27,12 +29,14 @@ const RECENT_REPORTS_COUNT = 100;
 const reports = createCollection<Report>(
     (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
     (index) => ({
-        ...createRandomReport(index),
+        ...createRandomReport(index, undefined),
         type: rand(Object.values(CONST.REPORT.TYPE)),
         lastVisibleActionCreated: getRandomDate(),
     }),
     REPORTS_COUNT,
 );
+
+const nvpDismissedProductTraining = getNvpDismissedProductTraining();
 
 const personalDetails = createCollection<PersonalDetails>(
     (item) => item.accountID,
@@ -44,7 +48,7 @@ const getMockedReports = (length = 500) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
         (index) => ({
-            ...createRandomReport(index),
+            ...createRandomReport(index, undefined),
             type: rand(Object.values(CONST.REPORT.TYPE)),
             lastVisibleActionCreated: getRandomDate(),
         }),
@@ -73,7 +77,18 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-const options = OptionsListUtils.createOptionList(personalDetails, reports);
+const options = createOptionList(personalDetails, reports);
+
+const ValidOptionsConfig = {
+    betas: mockedBetas,
+    includeRecentReports: true,
+    includeTasks: true,
+    includeThreads: true,
+    includeMoneyRequests: true,
+    includeMultipleParticipantReports: true,
+    includeSelfDM: true,
+    includeOwnedWorkspaceChats: true,
+};
 
 /* GetOption is the private function and is never called directly, we are testing the functions which call getOption with different params */
 describe('OptionsListUtils', () => {
@@ -95,34 +110,50 @@ describe('OptionsListUtils', () => {
     /* Testing getSearchOptions */
     test('[OptionsListUtils] getSearchOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getSearchOptions(options, mockedBetas));
-    });
-
-    /* Testing getShareLogOptions */
-    test('[OptionsListUtils] getShareLogOptions', async () => {
-        await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getShareLogOptions(options, mockedBetas));
+        await measureFunction(() => getSearchOptions({options, betas: mockedBetas, draftComments: {}, nvpDismissedProductTraining}));
     });
 
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, ValidOptionsConfig);
         await measureFunction(() => {
-            const formattedOptions = OptionsListUtils.getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {betas: mockedBetas});
-            OptionsListUtils.filterAndOrderOptions(formattedOptions, SEARCH_VALUE);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE);
+        });
+    });
+    test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
+        await waitForBatchedUpdates();
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, ValidOptionsConfig);
+        await measureFunction(() => {
+            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE);
         });
     });
 
-    /* Testing getShareDestinationOptions */
+    /* Testing getValidOptions for share destination */
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getShareDestinationOptions(options.reports, options.personalDetails, mockedBetas));
+        await measureFunction(() =>
+            getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, {
+                betas: mockedBetas,
+                includeMultipleParticipantReports: true,
+                showChatPreviewLine: true,
+                forcePolicyNamePreview: true,
+                includeThreads: true,
+                includeMoneyRequests: true,
+                includeTasks: true,
+                excludeLogins: {},
+                includeOwnedWorkspaceChats: true,
+                includeSelfDM: true,
+                searchString: '',
+                includeUserToInvite: false,
+            }),
+        );
     });
 
     /* Testing getMemberInviteOptions */
     test('[OptionsListUtils] getMemberInviteOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => OptionsListUtils.getMemberInviteOptions(options.personalDetails, mockedBetas));
+        await measureFunction(() => getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, mockedBetas));
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {

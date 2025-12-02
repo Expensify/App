@@ -25,16 +25,18 @@ type AddressPageProps = {
     updateAddress: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => void;
     /** Title of address page */
     title: string;
+
+    defaultCountry?: Country;
 } & BackToParams;
 
-function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo}: AddressPageProps) {
+function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry}: AddressPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     // Check if country is valid
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
-    const [currentCountry, setCurrentCountry] = useState(address?.country);
+    const [currentCountry, setCurrentCountry] = useState(address?.country ?? defaultCountry);
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
     const [zipcode, setZipcode] = useState(address?.zip);
@@ -50,37 +52,40 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [address?.state, address?.country, address?.city, address?.zip]);
 
-    const handleAddressChange = useCallback((value: unknown, key: unknown) => {
-        const addressPart = value as string;
-        const addressPartKey = key as keyof Address;
+    const handleAddressChange = useCallback(
+        (value: unknown, key: unknown) => {
+            const addressPart = value as string;
+            const addressPartKey = key as keyof Address;
 
-        if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
-            return;
-        }
-        if (addressPartKey === INPUT_IDS.COUNTRY) {
-            setCurrentCountry(addressPart as Country | '');
-            setState('');
-            setCity('');
-            setZipcode('');
-            return;
-        }
-        if (addressPartKey === INPUT_IDS.STATE) {
-            setState(addressPart);
-            setCity('');
-            setZipcode('');
-            return;
-        }
-        if (addressPartKey === INPUT_IDS.CITY) {
-            setCity(addressPart);
-            setZipcode('');
-            return;
-        }
-        setZipcode(addressPart);
-    }, []);
+            if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
+                return;
+            }
+            if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
+                setCurrentCountry(addressPart as Country | '');
+                setState('');
+                setCity('');
+                setZipcode('');
+                return;
+            }
+            if (addressPartKey === INPUT_IDS.STATE) {
+                setState(addressPart);
+                setCity('');
+                setZipcode('');
+                return;
+            }
+            if (addressPartKey === INPUT_IDS.CITY) {
+                setCity(addressPart);
+                setZipcode('');
+                return;
+            }
+            setZipcode(addressPart);
+        },
+        [currentCountry],
+    );
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID={AddressPage.displayName}
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>

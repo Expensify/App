@@ -1,50 +1,64 @@
 import {useCallback, useMemo} from 'react';
+import type {TupleToUnion} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TransactionViolation, ViolationName} from '@src/types/onyx';
 
 /**
  * Names of Fields where violations can occur.
  */
-type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax' | 'customUnitRateID' | 'none';
+const validationFields = ['amount', 'billable', 'category', 'comment', 'date', 'merchant', 'receipt', 'tag', 'tax', 'customUnitRateID', 'none'] as const;
+
+type ViolationField = TupleToUnion<typeof validationFields>;
 
 /**
  * Map from Violation Names to the field where that violation can occur.
  */
-const violationFields: Record<ViolationName, ViolationField> = {
-    allTagLevelsRequired: 'tag',
-    autoReportedRejectedExpense: 'merchant',
-    billableExpense: 'billable',
-    cashExpenseWithNoReceipt: 'receipt',
-    categoryOutOfPolicy: 'category',
-    conversionSurcharge: 'amount',
-    customUnitOutOfPolicy: 'customUnitRateID',
-    duplicatedTransaction: 'merchant',
-    fieldRequired: 'merchant',
-    futureDate: 'date',
-    invoiceMarkup: 'amount',
-    maxAge: 'date',
-    missingCategory: 'category',
-    missingComment: 'comment',
-    missingTag: 'tag',
-    modifiedAmount: 'amount',
-    modifiedDate: 'date',
-    nonExpensiworksExpense: 'merchant',
-    overAutoApprovalLimit: 'amount',
-    overCategoryLimit: 'amount',
-    overLimit: 'amount',
-    overLimitAttendee: 'amount',
-    perDayLimit: 'amount',
-    receiptNotSmartScanned: 'receipt',
-    receiptRequired: 'receipt',
-    rter: 'merchant',
-    smartscanFailed: 'receipt',
-    someTagLevelsRequired: 'tag',
-    tagOutOfPolicy: 'tag',
-    taxRateChanged: 'tax',
-    taxAmountChanged: 'tax',
-    taxOutOfPolicy: 'tax',
-    taxRequired: 'tax',
-    hold: 'none',
+const violationNameToField: Record<ViolationName, (violation: TransactionViolation) => ViolationField> = {
+    allTagLevelsRequired: () => 'tag',
+    autoReportedRejectedExpense: () => 'merchant',
+    billableExpense: () => 'billable',
+    cashExpenseWithNoReceipt: () => 'receipt',
+    categoryOutOfPolicy: () => 'category',
+    conversionSurcharge: () => 'amount',
+    customUnitOutOfPolicy: () => 'customUnitRateID',
+    duplicatedTransaction: () => 'merchant',
+    fieldRequired: () => 'merchant',
+    futureDate: () => 'date',
+    invoiceMarkup: () => 'amount',
+    maxAge: () => 'date',
+    missingCategory: () => 'category',
+    missingComment: () => 'comment',
+    missingTag: () => 'tag',
+    modifiedAmount: () => 'amount',
+    modifiedDate: () => 'date',
+    nonExpensiworksExpense: () => 'merchant',
+    overAutoApprovalLimit: () => 'amount',
+    overCategoryLimit: () => 'amount',
+    overLimit: () => 'amount',
+    overTripLimit: () => 'amount',
+    overLimitAttendee: () => 'amount',
+    perDayLimit: () => 'amount',
+    prohibitedExpense: () => 'receipt',
+    receiptNotSmartScanned: () => 'receipt',
+    receiptRequired: () => 'receipt',
+    customRules: (violation) => {
+        if (!violation?.data?.field) {
+            return 'receipt';
+        }
+
+        const field = violation.data.field as ViolationField;
+        return validationFields.includes(field) ? field : 'receipt';
+    },
+    rter: () => 'merchant',
+    smartscanFailed: () => 'receipt',
+    someTagLevelsRequired: () => 'tag',
+    tagOutOfPolicy: () => 'tag',
+    taxRateChanged: () => 'tax',
+    taxAmountChanged: () => 'tax',
+    taxOutOfPolicy: () => 'tax',
+    taxRequired: () => 'tax',
+    hold: () => 'none',
+    receiptGeneratedWithAI: () => 'receipt',
 };
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
@@ -64,7 +78,7 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
 
         const violationGroups = new Map<ViolationField, TransactionViolation[]>();
         for (const violation of filteredViolations) {
-            const field = violationFields[violation.name];
+            const field = violationNameToField[violation.name]?.(violation);
             const existingViolations = violationGroups.get(field) ?? [];
             violationGroups.set(field, [...existingViolations, violation]);
         }
@@ -76,7 +90,7 @@ function useViolations(violations: TransactionViolation[], shouldShowOnlyViolati
             const currentViolations = violationsByField.get(field) ?? [];
             const firstViolation = currentViolations.at(0);
 
-            // someTagLevelsRequired has special logic becase data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
+            // someTagLevelsRequired has special logic because data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
             // tagListIndex can be 0 so we compare with undefined
             if (firstViolation?.name === CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && data?.tagListIndex !== undefined && Array.isArray(firstViolation?.data?.errorIndexes)) {
                 return currentViolations

@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -12,26 +12,15 @@ type SavedSearchItemThreeDotMenuProps = {
     renderTooltipContent: () => React.JSX.Element;
     shouldRenderTooltip: boolean;
 };
+
 function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrainingTooltip, renderTooltipContent, shouldRenderTooltip}: SavedSearchItemThreeDotMenuProps) {
-    const threeDotsMenuContainerRef = useRef<View>(null);
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState({horizontal: 0, vertical: 0});
     const styles = useThemeStyles();
+
     return (
-        <View
-            ref={threeDotsMenuContainerRef}
-            style={[isDisabledItem && styles.pointerEventsNone]}
-        >
+        <View style={[isDisabledItem && styles.pointerEventsNone]}>
             <ThreeDotsMenu
+                shouldSelfPosition
                 menuItems={menuItems}
-                onIconPress={() => {
-                    threeDotsMenuContainerRef.current?.measureInWindow((x, y, width) => {
-                        setThreeDotsMenuPosition({
-                            horizontal: x + width,
-                            vertical: y,
-                        });
-                    });
-                }}
-                anchorPosition={threeDotsMenuPosition}
                 renderProductTrainingTooltipContent={renderTooltipContent}
                 shouldShowProductTrainingTooltip={shouldRenderTooltip}
                 anchorAlignment={{

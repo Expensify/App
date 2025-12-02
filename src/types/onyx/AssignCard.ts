@@ -1,5 +1,8 @@
+import type {LinkAccount} from 'react-native-plaid-link-sdk';
+import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {CompanyCardFeed} from './CardFeeds';
 
 /** Assign card flow steps */
 type AssignCardStep = ValueOf<typeof CONST.COMPANY_CARD.STEP>;
@@ -16,7 +19,7 @@ type AssignCardData = {
     cardNumber: string;
 
     /** The name of the feed */
-    bankName: string;
+    bankName: CompanyCardFeed;
 
     /** The name of the card */
     cardName: string;
@@ -26,6 +29,24 @@ type AssignCardData = {
 
     /** An option based on which the transaction start date is chosen */
     dateOption: string;
+
+    /** bank id for Plaid */
+    institutionId?: string;
+
+    /** access token for Plaid bank */
+    plaidAccessToken?: string;
+
+    /** Plaid feed name */
+    plaidConnectedFeedName?: string;
+
+    /** Plaid accounts */
+    plaidAccounts?: LinkAccount[] | PlaidAccount[];
+
+    /** The email address of the inviting member */
+    invitingMemberEmail: string;
+
+    /** The accountID of the inviting member */
+    invitingMemberAccountID: number;
 };
 
 /** Model of assign card flow */
@@ -38,6 +59,12 @@ type AssignCard = {
 
     /** Whether the user is editing step */
     isEditing: boolean;
+
+    /** Whether the card is successfully assigned */
+    isAssigned?: boolean;
+
+    /** Whether the card is assigning */
+    isAssigning?: boolean;
 };
 
 export type {AssignCard, AssignCardStep, AssignCardData};

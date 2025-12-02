@@ -1,7 +1,11 @@
+import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import type {Connection, OnyxEntry} from 'react-native-onyx';
+import type {Connection, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {formatCurrentUserToAttendee} from '@libs/IOUUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Transaction} from '@src/types/onyx';
+import {generateTransactionID, getDraftTransactions} from './Transaction';
 
 let connection: Connection;
 
@@ -20,7 +24,8 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: b
     const newTransaction = {
         ...transaction,
     };
-    const conn = Onyx.connect({
+    // We need to read the old transaction backup first before writing a new one, otherwise we might overwrite an existing backup. It does not update impact UI rendering since this function is called on page mount.
+    const conn = Onyx.connectWithoutView({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`,
         callback: (transactionBackup) => {
             Onyx.disconnect(conn);
@@ -52,7 +57,8 @@ function restoreOriginalTransactionFromBackup(transactionID: string | undefined,
         return;
     }
 
-    connection = Onyx.connect({
+    // We need to use connectWithoutView as this action is called during unmount, and we need to read the latest value from Onyx before we can restore it. As it is called during unmount, it does not impact UI rendering.
+    connection = Onyx.connectWithoutView({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
         callback: (backupTransaction) => {
             Onyx.disconnect(connection);
@@ -85,4 +91,91 @@ function removeDraftTransaction(transactionID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-export {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup, createDraftTransaction, removeDraftTransaction};
+function removeDraftSplitTransaction(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, null);
+}
+
+function removeDraftTransactions(shouldExcludeInitialTransaction = false, allTransactionDrafts?: OnyxCollection<Transaction>) {
+    const draftTransactions = getDraftTransactions(allTransactionDrafts);
+    const draftTransactionsSet = draftTransactions.reduce(
+        (acc, item) => {
+            if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+                return acc;
+            }
+            acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
+            return acc;
+        },
+        {} as Record<string, null>,
+    );
+    Onyx.multiSet(draftTransactionsSet);
+}
+
+function replaceDefaultDraftTransaction(transaction: OnyxEntry<Transaction>) {
+    if (!transaction) {
+        return;
+    }
+
+    Onyx.update([
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
+            value: {
+                ...transaction,
+                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`,
+            value: null,
+        },
+    ]);
+}
+
+function removeTransactionReceipt(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: null});
+}
+
+type BuildOptimisticTransactionParams = {
+    initialTransaction: Partial<Transaction>;
+    currentUserPersonalDetails: PersonalDetails;
+    reportID: string;
+};
+
+function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUserPersonalDetails, reportID}: BuildOptimisticTransactionParams): Transaction {
+    const newTransactionID = generateTransactionID();
+    const {currency, iouRequestType, isFromGlobalCreate} = initialTransaction ?? {};
+    const newTransaction = {
+        amount: 0,
+        created: format(new Date(), 'yyyy-MM-dd'),
+        currency,
+        comment: {attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID)},
+        iouRequestType,
+        reportID,
+        transactionID: newTransactionID,
+        isFromGlobalCreate,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+    } as Transaction;
+    createDraftTransaction(newTransaction);
+    return newTransaction;
+}
+
+export {
+    createBackupTransaction,
+    removeBackupTransaction,
+    restoreOriginalTransactionFromBackup,
+    createDraftTransaction,
+    removeDraftTransaction,
+    removeTransactionReceipt,
+    removeDraftTransactions,
+    removeDraftSplitTransaction,
+    replaceDefaultDraftTransaction,
+    buildOptimisticTransactionAndCreateDraft,
+};

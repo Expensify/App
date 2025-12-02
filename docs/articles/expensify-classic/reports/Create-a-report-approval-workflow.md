@@ -1,30 +1,42 @@
 ---
-title: Create a report approval workflow
-description: Set up an approval workflow automation for employee reports
+title: Create a Report Approval Workflow
+description: Automate expense report approvals by setting up an approval workflow in Expensify Classic with single or multi-level approvers.
+keywords: [Expensify Classic, approval workflow, report approvals, auto-approve, enforce approval rules, complex workflows]
 ---
-<div id="expensify-classic" markdown="1">
 
-Expensify allows Workspace Admins to create workflows and automations that determine how expense reports are approved for the workspace. You can choose from three different workflows that either:
-- Allow all submitted expenses to be automatically approved (if they don’t have any violations).
-- Assign one approver for all reports under the workspace.
-- Set up multi-level approvals for more complex workflows. 
 
-# Set approval workflow
+Set up an automated report approval workflow in Expensify Classic to streamline expense review. Depending on your workspace's needs, you can choose a simple or multi-level approach.
 
-1. Hover over Settings, then click **Workspaces**.
-2. Click the desired workspace name. 
-3. Click the **Members** tab on the left. 
-4. Scroll down to the Approval Mode section. 
-5. Select an approval mode. 
-   - **Submit and Close**: No approval is required. Once a report is submitted, it will be automatically approved and closed. This option may be useful if your expense approvals occur in another system or if the submitter and approver are the same person.
-   - **Submit and Approve**: All reports go to one person that you assign as the approver. Once a report is submitted, it is sent to the approver. This is the default option. 
-   - **Advanced Approval**: Allows for more complex workflows, like assigning different [approvers](https://help.expensify.com/articles/expensify-classic/reports/Assign-report-approvers-to-specific-employees) for different employees or requiring secondary approvals for expenses that exceed a [set limit](https://help.expensify.com/articles/expensify-classic/reports/Require-review-for-over-limit-expenses).
+# Set an Approval Workflow
 
-To add to your approval workflow, you can also set up approval rules for specific categories and tags. 
+To configure how expense reports are approved in your workspace:
 
-### Enforce workflow
-If you want to ensure your employees cannot override the workflow you set for them, enable workflow enforcement on your workspace’s Members tab. Admins will still be able to “take control” of reports and override the set workflow.
+1. Go to **Settings > Workspaces > [Workspace Name] > Workflows**
+2. Under **Approval Mode**, choose one of the following options:
+   - **Submit and Close**\
+     Reports are automatically approved and closed after submission. Use this if approvals happen outside of Expensify or if the submitter is also the approver.
+   - **Submit and Approve** *(default)*\
+     All reports are routed to a single approver assigned by the Workspace Admin.
+   - **Advanced Approval**\
+     Create a more detailed workflow. You can:
+     - Assign different [approvers](https://help.expensify.com/articles/expensify-classic/reports/Assign-report-approvers-to-specific-employees) to different employees.
+     - Require a second approval for reports that exceed a [specific amount](https://help.expensify.com/articles/expensify-classic/reports/Require-review-for-over-limit-expenses).
 
-Visit our How Complex Approval Workflows Work guide for more details.
+You can further customize the approval process by setting up rules based on specific [categories or tags](https://help.expensify.com/articles/expensify-classic/reports/Report-Approvals#assign-tag-and-category-approvers).
 
-</div>
+---
+
+# Enforce the Approval Workflow
+
+To make sure employees follow the set workflow:
+
+1. Go to **Settings > Workspaces > [Workspace Name] > Workflows**.
+2. Enable **Enforce Workflow** under the **Approval Mode** section.
+
+When enabled:
+
+- Employees must follow the configured workflow.
+- Admins can still “take control” of reports if necessary.
+
+**Note:** Learn more about [Complex Approval Workflows](https://help.expensify.com/articles/expensify-classic/reports/How-Complex-Approval-Workflows-Work) for advanced setup options.
+

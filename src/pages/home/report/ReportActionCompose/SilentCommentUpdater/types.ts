@@ -1,11 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
-
-type SilentCommentUpdaterOnyxProps = {
-    /** The comment of the report */
-    comment: OnyxEntry<string>;
-};
-
-type SilentCommentUpdaterProps = SilentCommentUpdaterOnyxProps & {
+type SilentCommentUpdaterProps = {
     /** Updates the comment */
     updateComment: (comment: string) => void;
 
@@ -22,4 +15,4 @@ type SilentCommentUpdaterProps = SilentCommentUpdaterOnyxProps & {
     isCommentPendingSaved: React.RefObject<boolean>;
 };
 
-export type {SilentCommentUpdaterProps, SilentCommentUpdaterOnyxProps};
+export default SilentCommentUpdaterProps;

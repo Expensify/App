@@ -1,12 +1,24 @@
-import type * as OptionsListUtils from '@libs/OptionsListUtils';
+import type {Section} from '@libs/OptionsListUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
-import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
+import {getTagListSections, getTagVisibility, sortTags} from '@libs/TagsOptionsListUtils';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+import type {PolicyTagLists} from '@src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
+import createRandomTransaction from '../utils/collections/transaction';
+import {localeCompare, translateLocal} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('TagsOptionsListUtils', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.EN);
+        return waitForBatchedUpdates();
+    });
     it('getTagListSections()', () => {
         const search = 'ing';
         const emptySearch = '';
         const wrongSearch = 'bla bla';
+        const employeeSearch = 'Employee Office';
         const recentlyUsedTags = ['Engineering', 'HR'];
 
         const selectedOptions: SelectedTagOption[] = [
@@ -38,8 +50,13 @@ describe('TagsOptionsListUtils', () => {
                 accountID: undefined,
                 pendingAction: 'delete',
             },
+            EmployeeMealsOffice: {
+                enabled: true,
+                name: 'Employee Meals Office',
+                accountID: undefined,
+            },
         };
-        const smallResultList: OptionsListUtils.Section[] = [
+        const smallResultList: Section[] = [
             {
                 title: '',
                 shouldShow: false,
@@ -50,6 +67,15 @@ describe('TagsOptionsListUtils', () => {
                         keyForList: 'Accounting',
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                    {
+                        text: 'Employee Meals Office',
+                        keyForList: 'Employee Meals Office',
+                        searchText: 'Employee Meals Office',
+                        tooltipText: 'Employee Meals Office',
                         isDisabled: false,
                         isSelected: false,
                         pendingAction: undefined,
@@ -75,7 +101,7 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const smallSearchResultList: OptionsListUtils.Section[] = [
+        const smallSearchResultList: Section[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -92,7 +118,24 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const smallWrongSearchResultList: OptionsListUtils.Section[] = [
+        const employeeSearchResultList: Section[] = [
+            {
+                title: '',
+                shouldShow: true,
+                data: [
+                    {
+                        text: 'Employee Meals Office',
+                        keyForList: 'Employee Meals Office',
+                        searchText: 'Employee Meals Office',
+                        tooltipText: 'Employee Meals Office',
+                        isDisabled: false,
+                        isSelected: false,
+                        pendingAction: undefined,
+                    },
+                ],
+            },
+        ];
+        const smallWrongSearchResultList: Section[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -157,7 +200,7 @@ describe('TagsOptionsListUtils', () => {
                 accountID: undefined,
             },
         };
-        const largeResultList: OptionsListUtils.Section[] = [
+        const largeResultList: Section[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -259,7 +302,7 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const largeSearchResultList: OptionsListUtils.Section[] = [
+        const largeSearchResultList: Section[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -285,7 +328,7 @@ describe('TagsOptionsListUtils', () => {
                 ],
             },
         ];
-        const largeWrongSearchResultList: OptionsListUtils.Section[] = [
+        const largeWrongSearchResultList: Section[] = [
             {
                 title: '',
                 shouldShow: true,
@@ -293,26 +336,31 @@ describe('TagsOptionsListUtils', () => {
             },
         ];
 
-        const smallResult = TagsOptionsListUtils.getTagListSections({searchValue: emptySearch, tags: smallTagsList});
+        const smallResult = getTagListSections({searchValue: emptySearch, tags: smallTagsList, localeCompare, translate: translateLocal});
         expect(smallResult).toStrictEqual(smallResultList);
 
-        const smallSearchResult = TagsOptionsListUtils.getTagListSections({searchValue: search, tags: smallTagsList});
+        const smallSearchResult = getTagListSections({searchValue: search, tags: smallTagsList, localeCompare, translate: translateLocal});
         expect(smallSearchResult).toStrictEqual(smallSearchResultList);
 
-        const smallWrongSearchResult = TagsOptionsListUtils.getTagListSections({searchValue: wrongSearch, tags: smallTagsList});
+        const employeeSearchResult = getTagListSections({searchValue: employeeSearch, tags: smallTagsList, localeCompare, translate: translateLocal});
+        expect(employeeSearchResult).toStrictEqual(employeeSearchResultList);
+
+        const smallWrongSearchResult = getTagListSections({searchValue: wrongSearch, tags: smallTagsList, localeCompare, translate: translateLocal});
         expect(smallWrongSearchResult).toStrictEqual(smallWrongSearchResultList);
 
-        const largeResult = TagsOptionsListUtils.getTagListSections({searchValue: emptySearch, selectedOptions, tags: largeTagsList, recentlyUsedTags});
+        const largeResult = getTagListSections({searchValue: emptySearch, selectedOptions, tags: largeTagsList, recentlyUsedTags, localeCompare, translate: translateLocal});
         expect(largeResult).toStrictEqual(largeResultList);
 
-        const largeSearchResult = TagsOptionsListUtils.getTagListSections({searchValue: search, selectedOptions, tags: largeTagsList, recentlyUsedTags});
+        const largeSearchResult = getTagListSections({searchValue: search, selectedOptions, tags: largeTagsList, recentlyUsedTags, localeCompare, translate: translateLocal});
         expect(largeSearchResult).toStrictEqual(largeSearchResultList);
 
-        const largeWrongSearchResult = TagsOptionsListUtils.getTagListSections({
+        const largeWrongSearchResult = getTagListSections({
             searchValue: wrongSearch,
             selectedOptions,
             tags: largeTagsList,
             recentlyUsedTags,
+            localeCompare,
+            translate: translateLocal,
         });
         expect(largeWrongSearchResult).toStrictEqual(largeWrongSearchResultList);
     });
@@ -321,16 +369,16 @@ describe('TagsOptionsListUtils', () => {
         const createTagObjects = (names: string[]) => names.map((name) => ({name, enabled: true}));
 
         const unorderedTagNames = ['10bc', 'b', '0a', '1', '中国', 'b10', '!', '2', '0', '@', 'a1', 'a', '3', 'b1', '日本', '$', '20', '20a', '#', 'a20', 'c', '10'];
-        const expectedOrderNames = ['!', '#', '$', '0', '0a', '1', '10', '10bc', '2', '20', '20a', '3', '@', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c', '中国', '日本'];
+        const expectedOrderNames = ['!', '@', '#', '$', '0', '0a', '1', '2', '3', '10', '10bc', '20', '20a', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c', '中国', '日本'];
         const unorderedTags = createTagObjects(unorderedTagNames);
         const expectedOrder = createTagObjects(expectedOrderNames);
-        expect(TagsOptionsListUtils.sortTags(unorderedTags)).toStrictEqual(expectedOrder);
+        expect(sortTags(unorderedTags, localeCompare)).toStrictEqual(expectedOrder);
 
         const unorderedTagNames2 = ['0', 'a1', '1', 'b1', '3', '10', 'b10', 'a', '2', 'c', '20', 'a20', 'b'];
-        const expectedOrderNames2 = ['0', '1', '10', '2', '20', '3', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c'];
+        const expectedOrderNames2 = ['0', '1', '2', '3', '10', '20', 'a', 'a1', 'a20', 'b', 'b1', 'b10', 'c'];
         const unorderedTags2 = createTagObjects(unorderedTagNames2);
         const expectedOrder2 = createTagObjects(expectedOrderNames2);
-        expect(TagsOptionsListUtils.sortTags(unorderedTags2)).toStrictEqual(expectedOrder2);
+        expect(sortTags(unorderedTags2, localeCompare)).toStrictEqual(expectedOrder2);
 
         const unorderedTagNames3 = [
             '61',
@@ -436,8 +484,15 @@ describe('TagsOptionsListUtils', () => {
         ];
         const expectedOrderNames3 = [
             '1',
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
             '10',
-            '100',
             '11',
             '12',
             '13',
@@ -447,7 +502,6 @@ describe('TagsOptionsListUtils', () => {
             '17',
             '18',
             '19',
-            '2',
             '20',
             '21',
             '22',
@@ -458,7 +512,6 @@ describe('TagsOptionsListUtils', () => {
             '27',
             '28',
             '29',
-            '3',
             '30',
             '31',
             '32',
@@ -469,7 +522,6 @@ describe('TagsOptionsListUtils', () => {
             '37',
             '38',
             '39',
-            '4',
             '40',
             '41',
             '42',
@@ -480,7 +532,6 @@ describe('TagsOptionsListUtils', () => {
             '47',
             '48',
             '49',
-            '5',
             '50',
             '51',
             '52',
@@ -491,7 +542,6 @@ describe('TagsOptionsListUtils', () => {
             '57',
             '58',
             '59',
-            '6',
             '60',
             '61',
             '62',
@@ -502,7 +552,6 @@ describe('TagsOptionsListUtils', () => {
             '67',
             '68',
             '69',
-            '7',
             '70',
             '71',
             '72',
@@ -513,7 +562,6 @@ describe('TagsOptionsListUtils', () => {
             '77',
             '78',
             '79',
-            '8',
             '80',
             '81',
             '82',
@@ -524,7 +572,6 @@ describe('TagsOptionsListUtils', () => {
             '87',
             '88',
             '89',
-            '9',
             '90',
             '91',
             '92',
@@ -535,10 +582,11 @@ describe('TagsOptionsListUtils', () => {
             '97',
             '98',
             '99',
+            '100',
         ];
         const unorderedTags3 = createTagObjects(unorderedTagNames3);
         const expectedOrder3 = createTagObjects(expectedOrderNames3);
-        expect(TagsOptionsListUtils.sortTags(unorderedTags3)).toStrictEqual(expectedOrder3);
+        expect(sortTags(unorderedTags3, localeCompare)).toStrictEqual(expectedOrder3);
     });
 
     it('sortTags by object works the same', () => {
@@ -562,11 +610,173 @@ describe('TagsOptionsListUtils', () => {
             },
         };
 
-        const sorted = TagsOptionsListUtils.sortTags(tagsObject.tags);
+        const sorted = sortTags(tagsObject.tags, localeCompare);
         expect(Array.isArray(sorted)).toBe(true);
         // Expect to be sorted alphabetically
         expect(sorted.at(0)?.name).toBe('Car');
         expect(sorted.at(1)?.name).toBe('DisabledTag');
         expect(sorted.at(2)?.name).toBe('OfficeSupplies');
+    });
+
+    describe('getTagVisibility', () => {
+        const mockPolicy = createRandomPolicy(1, 'corporate', 'Test Policy');
+        const mockTransaction = createRandomTransaction(1);
+        const mockPolicyTags: PolicyTagLists = {
+            tagList1: {
+                name: 'Category',
+                required: true,
+                tags: {
+                    tag1: {name: 'Tag1', enabled: true},
+                    tag2: {name: 'Tag2', enabled: false},
+                },
+                orderWeight: 0,
+            },
+            tagList2: {
+                name: 'Subcategory',
+                required: false,
+                tags: {
+                    tag3: {name: 'Tag3', enabled: true},
+                    tag4: {name: 'Tag4', enabled: true},
+                },
+                orderWeight: 1,
+            },
+        };
+
+        it('should hide all tags when shouldShowTags is false', () => {
+            const result = getTagVisibility({
+                shouldShowTags: false,
+                policy: mockPolicy,
+                policyTags: mockPolicyTags,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([
+                {isTagRequired: true, shouldShow: false},
+                {isTagRequired: false, shouldShow: false},
+            ]);
+        });
+
+        it('should show all tags when shouldShowTags is true and no dependent/multilevel tags', () => {
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: mockPolicy,
+                policyTags: mockPolicyTags,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([
+                {isTagRequired: true, shouldShow: true},
+                {isTagRequired: false, shouldShow: true},
+            ]);
+        });
+
+        it('should show tags when multilevel tags are enabled and have enabled options', () => {
+            const policyTagsWithEnabledOptions: PolicyTagLists = {
+                tagList1: {
+                    name: 'Category',
+                    required: true,
+                    tags: {
+                        tag1: {name: 'Tag1', enabled: true},
+                        tag2: {name: 'Tag2', enabled: true},
+                    },
+                    orderWeight: 0,
+                },
+                tagList2: {
+                    name: 'Subcategory',
+                    required: false,
+                    tags: {
+                        tag3: {name: 'Tag3', enabled: true},
+                        tag4: {name: 'Tag4', enabled: true},
+                    },
+                    orderWeight: 1,
+                },
+            };
+
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: mockPolicy,
+                policyTags: policyTagsWithEnabledOptions,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([
+                {isTagRequired: true, shouldShow: true},
+                {isTagRequired: false, shouldShow: true},
+            ]);
+        });
+
+        it('should hide tags when multilevel tags are enabled but have no enabled options', () => {
+            const policyTagsWithDisabledOptions: PolicyTagLists = {
+                tagList1: {
+                    name: 'Category',
+                    required: true,
+                    tags: {
+                        tag1: {name: 'Tag1', enabled: false},
+                        tag2: {name: 'Tag2', enabled: false},
+                    },
+                    orderWeight: 0,
+                },
+                tagList2: {
+                    name: 'Subcategory',
+                    required: false,
+                    tags: {
+                        tag3: {name: 'Tag3', enabled: false},
+                        tag4: {name: 'Tag4', enabled: false},
+                    },
+                    orderWeight: 1,
+                },
+            };
+
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: mockPolicy,
+                policyTags: policyTagsWithDisabledOptions,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([
+                {isTagRequired: true, shouldShow: false},
+                {isTagRequired: false, shouldShow: false},
+            ]);
+        });
+
+        it('should handle empty policyTags', () => {
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: mockPolicy,
+                policyTags: undefined,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([]);
+        });
+
+        it('should handle undefined policy', () => {
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: undefined,
+                policyTags: mockPolicyTags,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([
+                {isTagRequired: true, shouldShow: true},
+                {isTagRequired: false, shouldShow: true},
+            ]);
+        });
+
+        it('should handle undefined transaction', () => {
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: mockPolicy,
+                policyTags: mockPolicyTags,
+                transaction: undefined,
+            });
+
+            expect(result).toEqual([
+                {isTagRequired: true, shouldShow: true},
+                {isTagRequired: false, shouldShow: true},
+            ]);
+        });
     });
 });

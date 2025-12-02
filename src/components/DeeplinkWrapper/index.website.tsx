@@ -1,14 +1,20 @@
+import {isActingAsDelegateSelector} from '@selectors/Account';
+import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
+import useOnyx from '@hooks/useOnyx';
 import {isMobile} from '@libs/Browser';
+import getCurrentUrl from '@libs/Navigation/currentUrl';
+import shouldPreventDeeplinkPrompt from '@libs/Navigation/helpers/shouldPreventDeeplinkPrompt';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import shouldPreventDeeplinkPrompt from '@libs/Navigation/shouldPreventDeeplinkPrompt';
+import {getSearchParamFromUrl} from '@libs/Url';
 import {beginDeepLinkRedirect, beginDeepLinkRedirectAfterTransition} from '@userActions/App';
 import {getInternalNewExpensifyPath} from '@userActions/Link';
 import {isAnonymousUser} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type DeeplinkWrapperProps from './types';
 
@@ -16,7 +22,7 @@ function isMacOSWeb(): boolean {
     return !isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
 }
 
-function promptToOpenInDesktopApp(initialUrl = '') {
+function promptToOpenInDesktopApp(currentUserAccountID?: number, initialUrl = '') {
     // If the current url path is /transition..., meaning it was opened from oldDot, during this transition period:
     // 1. The user session may not exist, because sign-in has not been completed yet.
     // 2. There may be non-idempotent operations (e.g. create a new workspace), which obviously should not be executed again in the desktop app.
@@ -31,15 +37,26 @@ function promptToOpenInDesktopApp(initialUrl = '') {
     } else {
         // Match any magic link (/v/<account id>/<6 digit code>)
         const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(window.location.pathname);
+        const shouldAuthenticateWithCurrentAccount = !isMagicLink || (isMagicLink && !!currentUserAccountID && window.location.pathname.includes(currentUserAccountID.toString()));
 
-        beginDeepLinkRedirect(!isMagicLink, getInternalNewExpensifyPath(initialUrl));
+        beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount, isMagicLink, getInternalNewExpensifyPath(initialUrl));
     }
 }
 
 function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}: DeeplinkWrapperProps) {
     const [currentScreen, setCurrentScreen] = useState<string | undefined>();
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
-    const removeListener = useRef<() => void>();
+    const removeListener = useRef<(() => void) | undefined>(undefined);
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: isActingAsDelegateSelector,
+        canBeMissing: true,
+    });
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {
+        selector: accountIDSelector,
+        canBeMissing: true,
+    });
+    const isActingAsDelegateRef = useRef(isActingAsDelegate);
+    const delegatorEmailRef = useRef(getSearchParamFromUrl(getCurrentUrl(), 'delegatorEmail'));
 
     useEffect(() => {
         // If we've shown the prompt and still have a listener registered,
@@ -78,7 +95,9 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
             isConnectionCompleteRoute ||
             CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV ||
             autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED ||
-            isAnonymousUser()
+            isAnonymousUser() ||
+            !!delegatorEmailRef.current ||
+            isActingAsDelegateRef.current
         ) {
             return;
         }
@@ -86,7 +105,7 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
         // Otherwise, we want to wait until the navigation state is set up
         // and we know the user is on a screen that supports deeplinks.
         if (isAuthenticated) {
-            promptToOpenInDesktopApp(initialUrl);
+            promptToOpenInDesktopApp(currentUserAccountID, initialUrl);
             setHasShownPrompt(true);
         } else {
             // Navigation state is not set up yet, we're unsure if we should show the deep link prompt or not
@@ -102,7 +121,7 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
             promptToOpenInDesktopApp();
             setHasShownPrompt(true);
         }
-    }, [currentScreen, hasShownPrompt, isAuthenticated, autoAuthState, initialUrl]);
+    }, [currentScreen, hasShownPrompt, isAuthenticated, autoAuthState, initialUrl, currentUserAccountID]);
 
     return children;
 }

@@ -1,9 +1,9 @@
-import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {ActivityIndicator, Keyboard, LogBox, View} from 'react-native';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard, LogBox, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
@@ -48,39 +48,38 @@ function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean 
 // VirtualizedList component with a VirtualizedList-backed instead
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
-function AddressSearch(
-    {
-        canUseCurrentLocation = false,
-        containerStyles,
-        defaultValue,
-        errorText = '',
-        hint = '',
-        inputID,
-        isLimitedToUSA = false,
-        label,
-        maxInputLength,
-        onFocus,
-        onBlur,
-        onInputChange,
-        onPress,
-        onCountryChange,
-        predefinedPlaces = [],
-        renamedInputKeys = {
-            street: 'addressStreet',
-            street2: 'addressStreet2',
-            city: 'addressCity',
-            state: 'addressState',
-            zipCode: 'addressZipCode',
-            lat: 'addressLat',
-            lng: 'addressLng',
-        },
-        resultTypes = 'address',
-        shouldSaveDraft = false,
-        value,
-        locationBias,
-    }: AddressSearchProps,
-    ref: ForwardedRef<HTMLElement>,
-) {
+function AddressSearch({
+    canUseCurrentLocation = false,
+    containerStyles,
+    defaultValue,
+    errorText = '',
+    hint = '',
+    inputID,
+    limitSearchesToCountry,
+    label,
+    maxInputLength,
+    onFocus,
+    onBlur,
+    onInputChange,
+    onPress,
+    onCountryChange,
+    predefinedPlaces = [],
+    renamedInputKeys = {
+        street: 'addressStreet',
+        street2: 'addressStreet2',
+        city: 'addressCity',
+        state: 'addressState',
+        zipCode: 'addressZipCode',
+        lat: 'addressLat',
+        lng: 'addressLng',
+    },
+    resultTypes = 'address',
+    shouldSaveDraft = false,
+    value,
+    locationBias,
+    caretHidden,
+    ref,
+}: AddressSearchProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -100,10 +99,10 @@ function AddressSearch(
         () => ({
             language: preferredLocale,
             types: resultTypes,
-            components: isLimitedToUSA ? 'country:us' : undefined,
+            components: limitSearchesToCountry ? `country:${limitSearchesToCountry.toLocaleLowerCase()}` : undefined,
             ...(locationBias && {locationbias: locationBias}),
         }),
-        [preferredLocale, resultTypes, isLimitedToUSA, locationBias],
+        [preferredLocale, resultTypes, limitSearchesToCountry, locationBias],
     );
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
     const saveLocationDetails = (autocompleteData: GooglePlaceData, details: GooglePlaceDetail | null) => {
@@ -180,7 +179,7 @@ function AddressSearch(
             // When locality is not returned, many countries return the city as postalTown (e.g. 5 New Street
             // Square, London), otherwise as sublocality (e.g. 384 Court Street Brooklyn). If postalTown is
             // returned, the sublocality will be a city subdivision so shouldn't take precedence (e.g.
-            // Salagatan, Upssala, Sweden).
+            // Salagatan, Uppsala, Sweden).
             city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
 
@@ -229,13 +228,13 @@ function AddressSearch(
         }
 
         if (inputID) {
-            Object.entries(values).forEach(([key, inputValue]) => {
+            for (const [key, inputValue] of Object.entries(values)) {
                 const inputKey = renamedInputKeys?.[key as keyof Omit<Address, 'current'>] ?? key;
                 if (!inputKey) {
-                    return;
+                    continue;
                 }
                 onInputChange?.(inputValue, inputKey);
-            });
+            }
         } else {
             onInputChange?.(values);
         }
@@ -338,13 +337,10 @@ function AddressSearch(
     const listLoader = useMemo(
         () => (
             <View style={[styles.pv4]}>
-                <ActivityIndicator
-                    color={theme.spinner}
-                    size="small"
-                />
+                <ActivityIndicator />
             </View>
         ),
-        [styles.pv4, theme.spinner],
+        [styles.pv4],
     );
 
     return (
@@ -444,6 +440,7 @@ function AddressSearch(
                             maxLength: maxInputLength,
                             spellCheck: false,
                             selectTextOnFocus: true,
+                            caretHidden,
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
@@ -490,6 +487,6 @@ function AddressSearch(
 
 AddressSearch.displayName = 'AddressSearchWithRef';
 
-export default forwardRef(AddressSearch);
+export default AddressSearch;
 
 export type {AddressSearchProps};

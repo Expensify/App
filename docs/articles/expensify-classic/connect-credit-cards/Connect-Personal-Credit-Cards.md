@@ -1,90 +1,88 @@
 ---
-title: Connect Personal Credit Cards
-description: Connect or import your personal credit cards into Expensify for tracking and reimbursement
+Title: Connecting Personal Credit Cards to Expensify  
+Description: Learn how to connect or manually import your personal credit card expenses into Expensify for seamless tracking and reimbursement.
 ---
 
-Connecting your pesonal credit card accounts to Expensify allows you to track your expenses and get reimbursed for them all in one place. You can set up a connection to automatically import your credit card expenses directly from your credit card account, or you can import them manually from a CSV file. 
+Connecting a personal credit card to Expensify makes it easy to track your expenses and get reimbursed all in one place. You can either set up a direct connection to automatically import transactions or manually upload a CSV file. These methods also merge your expenses with SmartScanned receipts and, if enabled, allow you to generate IRS-compliant eReceipts.
 
-These options also automatically merge your expenses with any related SmartScanned expenses in your Expensify account. Additionally, importing directly from your credit card account also allows you to generate IRS-compliant eReceipts (if enabled).
+---
 
-# Import directly from your credit card account
+# Option 1: Connect Directly to Your Credit Card Account
 
-1. In Expensify, hover over **Settings** and click **Account**.
-2. Click **Credit Card Import***.
-3. Click **Import Bank/Card**.
-4. Choose your bank from the list or use the search box.
-   - If your bank isn't listed, you can use the process below to upload a spreadsheet instead.
-5. Select a transaction start date using the calendar dropdown.
+Follow these steps to import expenses automatically from your bank or credit card account:
 
-{% include info.html %}
-Depending on your bank, you may be able to go back up to 90 days. If you need to include transactions from an earlier date, you can upload a spreadsheet of those transactions separately using the process below.
-{% include end-info.html %}
+1. Log in to Expensify and navigate to **Settings > Account**.
+2. Select **Wallet**.
+3. Under **Imported Card Feeds**, click **Import Bank/Card**.
+4. Search for and select your bank from the list.
+   - If your bank isn’t listed, proceed to **Option 2: (Manual Import via Spreadsheet)**.
+5. Choose a transaction start date from the calendar.  
+   _**Note:** Most banks allow importing up to 30 to 90 days of transactions. If you need older transactions, use a spreadsheet import (details below)._
+6. Enter your online banking credentials.
+7. Select the account(s) to import.
+8. Click **Update** to sync the latest transactions.
 
-{:start="6"}
+---
 
-6. Click **Take me there**.
-7. Enter the username and password you use for online banking.
-8. Select the account(s) you want to import.
-9. Click **Update** to import the latest transactions into your account.
+# Option 2: Import Transactions via Spreadsheet
 
-# Import via spreadsheet
+Use this method if your bank isn’t supported or you need older transactions. Supported file types: CSV, OFX, QFX, or XLS.
 
-To import a CSV, OFX, QFX, or XLS file,
+1. Download your transactions from your credit card account in one of the supported formats.
+   - **Tip**: CSV files are a good fallback if OFX files aren’t compatible.
+2. Ensure your file includes columns for **Merchant**, **Transaction Date**, and **Amount** (formatted as positive values). 
+   - Keep only one header row.
+   - Format dates (e.g., `yyyy-mm-dd` or `mm-dd-yyyy`). In Excel, go to **Format Cells > Custom** to update the format.
+3. Log in to Expensify and go to **Settings > Account > Wallet > Imported Card Feeds**.
+4. Select **Import Transactions from File** and click **Upload**.
+5. For first-time uploads:
+   - Keep the layout set to **Default**.
+   - Assign a clear name for this card, like “Platinum Visa,” for future reference.
+6. Set the date format and currency to match your file.
+7. If you've imported transactions for this card before, choose a previously saved layout.
+8. Map file columns to **Merchant**, **Date**, and **Amount**.  
+   *Optional*: Map additional columns like categories and tags (only if there’s no accounting integration in your workspace). 
+9. Review the **Output Preview**, then click **Add Expenses**.  
 
-1. Download a spreadsheet of your expenses directly from your credit card account. *Note: An OFX file won't require additional editing but not all bank OFX files are compatible. CSV is a good option to have as a backup.*
-2. Modify your spreadsheet as needed. At minimum, you should have columns for the merchant, transaction date, and amount.
-   - Make sure you only have one header row.
-   - Format the date column using your preferred format (e.g., yyyy-mm-dd or mm-dd-yyyy). If you use Excel, you can do this by clicking **Format Cells** and selecting **Custom**. 
-3. In Expensify, hover over **Settings** and click **Account**.
-4. Click **Credit Card Import**.
-5. Click **Import Transactions from File**, then select **Upload**.
-6. If this is the first time you're uploading for this card, keep the layout set to **Default** and choose a mapping name, such as Platinum Visa. You might use this layout again in the future, so be sure to choose something that’s easy to remember.
-7. Set the date format that matches your CSV. Then adjust the currency to match your credit card account currency.
-8. If you've previously imported expenses for this card, choose the default layout of a previously uploaded spreadsheet.
-9. Scroll down and select which columns map to the merchant, date, and amount (as a number without a currency symbol).
-10. If applicable, you can also map specific categories and tags as long as you don't have an accounting integration connected to the Workspace. In this case, you'll want to add the categories and tags to the expense after it is uploaded.
-11. Check the preview of your selection under Output Preview. If everything looks good, click **Add Expenses**.
+**Note:** For checking accounts, toggle **Flip Amount Sign** if transactions are listed as negatives.
 
-*Note: For checking accounts, you may need to "Flip Amount Sign," as transactions are often exported as negative amounts.*
+---
 
-# Manage settings
+# Managing Credit Card Settings
 
-You can change the name of a card or determine whether the card's expenses are reimbursable or non-reimbursable by default. 
+You can customize how imported card transactions appear:
 
-1. Click **Settings** under the card.
-2. Change the card name or change the default to reimbursable or non-reimbursable.
-   - **Reimbursable expenses** are owed back to you by the person/company you are submitting them to. If you incurred an expense on a personal card you, it is likely reimbursable.
-   - **Non-reimbursable expenses** are expenses that are not owed back to you. This is likely spend incurred on a company card or any card that someone else pays the balance for that you incur spend on and must track the expenses for. 
+1. Navigate to the card’s settings under **Settings > Account > Wallet**.
+2. Change the card name or set the default reimbursement option:
+   - **Reimbursable**: Expenses you need to be reimbursed for, such as personal card purchases made for work.
+   - **Non-Reimbursable**: Expenses incurred with a company card or paid by someone else.
 
-# Remove a card
+---
 
-{% include info.html %}
-Removing a card will delete all unsubmitted expenses for that card from your account. Any imported card transactions in a Processing, Approved, Closed, or Reimbursed report will remain unaffected. 
-{% include end-info.html %}
+# Removing a Card
 
-To remove a card, click the red trashcan icon next to the card. 
+**Important:** Removing a card deletes all unsubmitted expenses associated with it, so any card expenses on a Draft report or left Unreported will be deleted. Card expenses that were submitted are unaffected (on reports that are Outstanding, Approved, Paid, or Done).
 
-{% include faq-begin.md %}
+1. Go to **Settings > Account > Wallet**.
+2. Under **Imported Card Feeds**, click the red trashcan icon next to the card.
 
-**Should I import directly from my bank or do the spreadsheet upload?**
+---
 
-**Direct import**: If you incur expenses on your personal or business card that need to be reported to your company, this could be a good option for you. However, if you have a company-assigned corporate card, check with your company's Expensify Admin about the process for handling these expenses. Admins often take care of card assignments, which may mean that you won't need to import them yourself.
+# FAQ
 
-**Spreadsheet import**: This is a good option for manually creating expenses in bulk if:
-- You have already imported your card but need earlier transactions.
-- Your bank is not supported through a direct connection with Expensify. To determine if your bank is supported, try importing it. If your bank is not listed, it is not supported at this time.
+## Should I Use Direct Import or Spreadsheet Upload?
 
-**Why can't I see the transactions I imported when I click View Expenses?**
+- **Direct Import**: This option is ideal for personal or business cards that require regular reporting. If you are using a company-assigned corporate card, consult your Expensify Admin, as they may handle imports.  
+- **Spreadsheet Upload**: This option is best for banks not supported by Expensify or when you need to import older transactions.
 
-Use the filters at the top of the Expenses page (such as the Date filter). This will often reveals "missing" expenses.
+## Why Don’t I See My Imported Transactions?
 
-**What’s the difference between a reimbursable and non-reimbursable expense?**
+Use the filters on the **Expenses** page (e.g., Date filter) to locate missing expenses.
 
-- **Reimbursable expenses**: Expenses that the company has agreed to pay you back for. This may include:
-   - Cash & personal card: Expenses paid for by the employee on behalf of the business.
-   - Per diem: Expenses for a daily or partial daily rate configured in your Workspace.
-   - Time: An hourly rate for your employees or jobs as set for your workspace. This expense type is usually used by contractors or small businesses billing the customer via Expensify Invoicing.
-   - Distance: Expenses related to business travel.
-- **Non-reimbursable expenses**: Expenses that you pay for with company money that need to be documented for accounting purposes (like a lunch paid for with a company card).
+## What’s the Difference Between Reimbursable and Non-Reimbursable Expenses?
 
-{% include faq-end.md %}
+- **Reimbursable**: Personal expenses incurred for work, including:
+  - Cash or personal card purchases.
+  - Per diem, hourly, or mileage expenses.
+- **Non-Reimbursable**: Expenses paid using company funds, like a corporate card transaction, that require documentation but not reimbursement.
+

@@ -2,41 +2,48 @@ import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
+import {holdMoneyRequestOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+import type {SearchReportActionsParamList} from '@navigation/types';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
-import * as FormActions from '@userActions/FormActions';
-import * as SearchActions from '@src/libs/actions/Search';
+import {putTransactionsOnHold} from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
-type SearchHoldReasonPageRouteParams = {
-    /** Link to previous page */
-    backTo: Route;
-};
-
-type SearchHoldReasonPageProps = {
-    /** Navigation route context info provided by react navigation */
-    route: PlatformStackRouteProp<{params?: SearchHoldReasonPageRouteParams}>;
-};
+type SearchHoldReasonPageProps =
+    | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS>
+    | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
 
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
+    const {backTo = '', reportID} = route.params ?? {};
+    const context = useSearchContext();
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
 
-    const {currentSearchHash, selectedTransactions} = useSearchContext();
-    const {backTo = ''} = route.params ?? {};
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+    const onSubmit = useCallback(
+        ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
+            if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
+                putTransactionsOnHold(context.selectedTransactionIDs, comment, reportID);
+                context.clearSelectedTransactions(true);
+            } else {
+                holdMoneyRequestOnSearch(context.currentSearchHash, Object.keys(context.selectedTransactions), comment, allTransactions, allReportActions);
+                context.clearSelectedTransactions();
+            }
 
-    const selectedTransactionIDs = Object.keys(selectedTransactions);
-    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        SearchActions.holdMoneyRequestOnSearch(currentSearchHash, selectedTransactionIDs, values.comment);
-        Navigation.goBack();
-    };
+            Navigation.goBack();
+        },
+        [route.name, context, reportID, allTransactions, allReportActions],
+    );
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM> = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMMENT]);
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM> = getFieldRequiredErrors(values, [INPUT_IDS.COMMENT]);
 
             if (!values.comment) {
                 errors.comment = translate('common.error.fieldRequired');
@@ -48,14 +55,17 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     );
 
     useEffect(() => {
-        FormActions.clearErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
-        FormActions.clearErrorFields(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
+        clearErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
+        clearErrorFields(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
     }, []);
+
+    const expenseCount = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS ? context.selectedTransactionIDs.length : Object.keys(context.selectedTransactions).length;
 
     return (
         <HoldReasonFormView
             onSubmit={onSubmit}
             validate={validate}
+            expenseCount={expenseCount}
             backTo={backTo}
         />
     );

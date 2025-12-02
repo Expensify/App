@@ -14,6 +14,7 @@ import {setPolicyTaxCode, validateTaxCode} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,11 +27,13 @@ type WorkspaceTaxCodePageProps = PlatformStackScreenProps<SettingsNavigatorParam
 function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const currentTaxCode = route.params.taxID;
 
     const policy = usePolicy(policyID);
     const {inputCallbackRef} = useAutoFocusInput();
+
+    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
 
     const setTaxCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
@@ -40,10 +43,21 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                 return;
             }
 
-            setPolicyTaxCode(policyID, currentTaxCode, newTaxCode);
+            if (!policy?.taxRates?.taxes[currentTaxCode]) {
+                return;
+            }
+            setPolicyTaxCode(
+                policyID,
+                currentTaxCode,
+                newTaxCode,
+                policy?.taxRates?.taxes[currentTaxCode],
+                policy?.taxRates?.foreignTaxDefault,
+                policy?.taxRates?.defaultExternalID,
+                distanceRateCustomUnit,
+            );
             Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, currentTaxCode));
         },
-        [currentTaxCode, policyID],
+        [currentTaxCode, policyID, policy?.taxRates, distanceRateCustomUnit],
     );
 
     const validate = useCallback(
@@ -68,7 +82,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceTaxCodePage.displayName}
             >
@@ -84,6 +98,8 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                     onSubmit={setTaxCode}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -93,7 +109,6 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                             label={translate('workspace.taxes.taxCode')}
                             accessibilityLabel={translate('workspace.taxes.taxCode')}
                             defaultValue={currentTaxCode}
-                            maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                             ref={inputCallbackRef}
                         />
                     </View>

@@ -7,12 +7,22 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {TransactionViolation} from '@src/types/onyx';
 import Text from './Text';
 
-type ViolationMessagesProps = {violations: TransactionViolation[]; isLast?: boolean; containerStyle?: StyleProp<ViewStyle>; textStyle?: StyleProp<TextStyle>};
+type ViolationMessagesProps = {
+    violations: TransactionViolation[];
+    isLast?: boolean;
+    containerStyle?: StyleProp<ViewStyle>;
+    textStyle?: StyleProp<TextStyle>;
+    canEdit: boolean;
+    companyCardPageURL?: string;
+};
 
-export default function ViolationMessages({violations, isLast, containerStyle, textStyle}: ViolationMessagesProps) {
+export default function ViolationMessages({violations, isLast, containerStyle, textStyle, canEdit, companyCardPageURL}: ViolationMessagesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const violationMessages = useMemo(() => violations.map((violation) => [violation.name, ViolationsUtils.getViolationTranslation(violation, translate)]), [translate, violations]);
+    const violationMessages = useMemo(
+        () => violations.map((violation) => [violation.name, ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL)]),
+        [canEdit, translate, violations, companyCardPageURL],
+    );
 
     return (
         <View style={[styles.mtn1, isLast ? styles.mb2 : styles.mb1, containerStyle, styles.gap1]}>

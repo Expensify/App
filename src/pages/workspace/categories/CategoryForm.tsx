@@ -8,8 +8,9 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryForm';
@@ -34,23 +35,25 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const decodedCategoryName = getDecodedCategoryName(categoryName ?? '');
+
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
             const newCategoryName = values.categoryName.trim();
 
-            if (!ValidationUtils.isRequiredFulfilled(newCategoryName)) {
+            if (!isRequiredFulfilled(newCategoryName)) {
                 errors.categoryName = translate('workspace.categories.categoryRequiredError');
             } else if (policyCategories?.[newCategoryName]) {
                 errors.categoryName = translate('workspace.categories.existingCategoryError');
             } else if (newCategoryName === CONST.INVALID_CATEGORY_NAME) {
                 errors.categoryName = translate('workspace.categories.invalidCategoryName');
-            } else if ([...newCategoryName].length > CONST.CATEGORY_NAME_LIMIT) {
+            } else if ([...newCategoryName].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                ErrorUtils.addErrorMessage(
+                addErrorMessage(
                     errors,
                     'categoryName',
-                    translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.CATEGORY_NAME_LIMIT}),
+                    translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH}),
                 );
             }
 
@@ -76,12 +79,13 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
             validate={validateEdit || validate}
             style={[styles.mh5, styles.flex1]}
             enabledWhenOffline
+            shouldHideFixErrorsAlert
+            addBottomSafeAreaPadding
         >
             <InputWrapper
                 ref={inputCallbackRef}
                 InputComponent={TextInput}
-                maxLength={CONST.CATEGORY_NAME_LIMIT}
-                defaultValue={categoryName}
+                defaultValue={decodedCategoryName}
                 label={translate('common.name')}
                 accessibilityLabel={translate('common.name')}
                 inputID={INPUT_IDS.CATEGORY_NAME}

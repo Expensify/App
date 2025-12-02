@@ -1,4 +1,5 @@
-import {useCallback, useEffect} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
+import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import type UseHtmlPaste from './types';
@@ -54,6 +55,23 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                     htmlInput.setRangeText(text.slice(0, availableLength));
                 }
 
+                requestAnimationFrame(() => {
+                    const selection = window.getSelection();
+                    if (selection && selection.rangeCount > 0) {
+                        const range = selection.getRangeAt(0);
+                        const caretRect = range.getBoundingClientRect();
+                        const inputRect = textInputHTMLElement.getBoundingClientRect();
+
+                        // Calculate position need to scroll to
+                        const scrollLeft = Math.max(0, caretRect.left - inputRect.left + textInputHTMLElement.scrollLeft - textInputHTMLElement.clientWidth / 2);
+                        const scrollTop = Math.max(0, caretRect.top - inputRect.top + textInputHTMLElement.scrollTop - textInputHTMLElement.clientHeight / 2);
+
+                        // Auto scroll to the position of cursor
+                        textInputHTMLElement.scrollLeft = scrollLeft;
+                        textInputHTMLElement.scrollTop = scrollTop;
+                    }
+                });
+
                 // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
                 // To avoid the keyboard toggle issue in mWeb if using blur() and focus() functions, we just need to dispatch the event to trigger the onFocus handler
                 // We need to trigger the bubbled "focusin" event to make sure the onFocus handler is triggered
@@ -77,22 +95,32 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
      */
     const handlePastedHTML = useCallback(
         (html: string) => {
-            paste(Parser.htmlToMarkdown(html.slice(0, maxLength)));
+            paste(Parser.htmlToMarkdown(html, {}));
         },
-        [paste, maxLength],
+        [paste],
     );
 
     /**
      * Paste the plaintext content into Composer.
-     *
-     * @param {ClipboardEvent} event
+     * If the clipboard contains a single URL and there is selected text, wrap the selected text in a markdown link.
      */
     const handlePastePlainText = useCallback(
         (event: ClipboardEvent) => {
-            const plainText = event.clipboardData?.getData('text/plain');
-            if (plainText) {
-                paste(plainText);
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const clipboardText = event.clipboardData?.getData('text/plain') || event.clipboardData?.getData('text/uri-list');
+            if (!clipboardText) {
+                return;
             }
+
+            const selection = window.getSelection?.();
+            const selectedText = selection?.toString() ?? '';
+
+            if (isStandaloneURL(clipboardText) && selectedText) {
+                paste(toMarkdownLink(selectedText, clipboardText));
+                return;
+            }
+
+            paste(clipboardText);
         },
         [paste],
     );
@@ -132,6 +160,12 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                         return;
                     }
                 }
+                // If HTML starts with <p dir="ltr">, it means that the text was copied from the markdown input from the native app
+                // and was saved to clipboard with additional styling, so we need to treat this as plain text to avoid adding unnecessary characters.
+                if (pastedHTML.startsWith('<p dir="ltr">')) {
+                    handlePastePlainText(event);
+                    return;
+                }
                 handlePastedHTML(pastedHTML);
                 return;
             }
@@ -141,17 +175,30 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
         [handlePastedHTML, handlePastePlainText, preHtmlPasteCallback],
     );
 
+    const handlePasteRef = useRef<(event: ClipboardEvent) => void>(handlePaste);
+    useEffect(() => {
+        handlePasteRef.current = handlePaste;
+    }, [handlePaste]);
+
     useEffect(() => {
         if (!isActive) {
             return;
         }
-        document.addEventListener('paste', handlePaste, true);
+
+        const listener = (event: ClipboardEvent) => {
+            handlePasteRef.current(event);
+        };
+
+        document.addEventListener('paste', listener, true);
 
         return () => {
-            document.removeEventListener('paste', handlePaste, true);
+            document.removeEventListener('paste', listener, true);
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isActive]);
+
+    return {
+        handlePastePlainText,
+    };
 };
 
 export default useHtmlPaste;

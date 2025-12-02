@@ -60,11 +60,12 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, emo
             hoverStyle={hoveredComponentBG}
             onSelectRow={() => {
                 onClose?.();
-
-                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+                });
             }}
             option={{
-                reportID: String(item.accountID),
+                accountID: item.accountID,
                 text: Str.removeSMSDomain(item.displayName ?? ''),
                 alternateText: Str.removeSMSDomain(item.login ?? ''),
                 participantsList: [item],

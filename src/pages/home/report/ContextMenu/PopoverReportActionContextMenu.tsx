@@ -1,28 +1,39 @@
 /* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
-import {DeviceEventEmitter, Dimensions} from 'react-native';
+import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+import {useSearchContext} from '@components/Search/SearchContext';
+import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDeleteTransactions from '@hooks/useDeleteTransactions';
+import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
+import {deleteTrackExpense} from '@libs/actions/IOU';
+import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as IOU from '@userActions/IOU';
-import * as Report from '@userActions/Report';
+import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
+import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getOriginalReportID} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
+import type {Location} from '@src/types/utils/Layout';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
 import type {ContextMenuAction} from './ContextMenuActions';
 import type {ContextMenuAnchor, ContextMenuType, ReportActionContextMenu} from './ReportActionContextMenu';
-
-type Location = {
-    x: number;
-    y: number;
-};
 
 function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEvent | NativeTouchEvent {
     if ('nativeEvent' in event) {
@@ -31,15 +42,23 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
     return event;
 }
 
-function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<ReportActionContextMenu>) {
+type PopoverReportActionContextMenuProps = {
+    /** Reference to the outer element */
+    ref?: ForwardedRef<ReportActionContextMenu>;
+};
+
+function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
     const {translate} = useLocalize();
-    const reportIDRef = useRef('-1');
-    const typeRef = useRef<ContextMenuType>();
+    const reportIDRef = useRef<string | undefined>(undefined);
+    const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
-    const reportActionIDRef = useRef('-1');
-    const originalReportIDRef = useRef('-1');
+    const reportActionIDRef = useRef<string | undefined>(undefined);
+    const originalReportIDRef = useRef<string | undefined>(undefined);
     const selectionRef = useRef('');
-    const reportActionDraftMessageRef = useRef<string>();
+    const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
+    const isReportArchived = useReportIsArchived(reportIDRef.current);
+    const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current));
+    const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -51,8 +70,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         horizontal: 0,
         vertical: 0,
     });
-
-    const [instanceID, setInstanceID] = useState('');
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
+    const instanceIDRef = useRef('');
+    const {email} = useCurrentUserPersonalDetails();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
@@ -64,7 +84,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
     const [isThreadReportParentAction, setIsThreadReportParentAction] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
-    const [shoudSwitchPositionIfOverflow, setShoudSwitchPositionIfOverflow] = useState(false);
+    const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
+    const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -76,9 +97,12 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         height: 0,
     });
 
+    const [composerToRefocusOnClose, setComposerToRefocusOnClose] = useState<ComposerType>();
+
     const onPopoverShow = useRef(() => {});
+    const [isContextMenuOpening, setIsContextMenuOpening] = useState(false);
     const onPopoverHide = useRef(() => {});
-    const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>();
+    const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>(undefined);
     const onCancelDeleteModal = useRef(() => {});
     const onConfirmDeleteModal = useRef(() => {});
 
@@ -132,7 +156,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         !!actionID && (reportActionIDRef.current === actionID || reportActionRef.current?.reportActionID === actionID);
 
     const clearActiveReportAction = () => {
-        reportActionIDRef.current = '-1';
+        reportActionIDRef.current = undefined;
         reportActionRef.current = null;
     };
 
@@ -145,8 +169,8 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
      * @param contextMenuAnchor - popoverAnchor
      * @param reportID - Active Report Id
      * @param reportActionID - ReportAction for ContextMenu
-     * @param originalReportID - The currrent Report Id of the reportAction
-     * @param draftMessage - ReportAction Draftmessage
+     * @param originalReportID - The current Report Id of the reportAction
+     * @param draftMessage - ReportAction draft message
      * @param [onShow] - Run a callback when Menu is shown
      * @param [onHide] - Run a callback when Menu is hidden
      * @param isArchivedRoom - Whether the provided report is an archived room
@@ -154,27 +178,31 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
      * @param isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
      * @param isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
      */
-    const showContextMenu: ReportActionContextMenu['showContextMenu'] = (
-        type,
-        event,
-        selection,
-        contextMenuAnchor,
-        reportID,
-        reportActionID,
-        originalReportID,
-        draftMessage,
-        onShow = () => {},
-        onHide = () => {},
-        isArchivedRoom = false,
-        isChronosReport = false,
-        isPinnedChat = false,
-        isUnreadChat = false,
-        disabledOptions = [],
-        shouldCloseOnTarget = false,
-        setIsEmojiPickerActive = () => {},
-        isOverflowMenu = false,
-        isThreadReportParentActionParam = false,
-    ) => {
+    const showContextMenu: ReportActionContextMenu['showContextMenu'] = (showContextMenuParams) => {
+        const {
+            type,
+            event,
+            selection,
+            contextMenuAnchor,
+            report: currentReport = {},
+            reportAction = {},
+            callbacks = {},
+            disabledOptions = [],
+            shouldCloseOnTarget = false,
+            isOverflowMenu = false,
+            withoutOverlay = true,
+        } = showContextMenuParams;
+        if (ReportActionComposeFocusManager.isFocused()) {
+            setComposerToRefocusOnClose('main');
+        } else if (ReportActionComposeFocusManager.isEditFocused()) {
+            setComposerToRefocusOnClose('edit');
+        }
+
+        const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = currentReport;
+        const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
+        const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
+        setIsContextMenuOpening(true);
+        setIsWithoutOverlay(withoutOverlay);
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
         contextMenuTargetNode.current = event.target as HTMLDivElement;
@@ -211,29 +239,34 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         }).then(() => {
             setDisabledActions(disabledOptions);
             typeRef.current = type;
-            reportIDRef.current = reportID ?? '-1';
-            reportActionIDRef.current = reportActionID ?? '-1';
+            reportIDRef.current = reportID;
+            reportActionIDRef.current = reportActionID;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            originalReportIDRef.current = originalReportID || '-1';
+            originalReportIDRef.current = originalReportID || undefined;
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
             setIsRoomArchived(isArchivedRoom);
-            setIsChronosReportEnabled(isChronosReport);
+            setIsChronosReportEnabled(isChronos);
             setIsChatPinned(isPinnedChat);
             setHasUnreadMessages(isUnreadChat);
             setIsThreadReportParentAction(isThreadReportParentActionParam);
-            setShoudSwitchPositionIfOverflow(isOverflowMenu);
+            setShouldSwitchPositionIfOverflow(isOverflowMenu);
         });
     };
 
     /** After Popover shows, call the registered onPopoverShow callback and reset it */
     const runAndResetOnPopoverShow = () => {
-        setInstanceID(Math.random().toString(36).slice(2, 7));
+        instanceIDRef.current = Math.random().toString(36).slice(2, 7);
         onPopoverShow.current();
 
         // After we have called the action, reset it.
         onPopoverShow.current = () => {};
+
+        // After the context menu opening animation ends reset isContextMenuOpening.
+        setTimeout(() => {
+            setIsContextMenuOpening(false);
+        }, CONST.ANIMATED_TRANSITION);
     };
 
     /** Run the callback and return a noop function to reset it */
@@ -244,10 +277,11 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
     /** After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it */
     const runAndResetOnPopoverHide = () => {
-        reportIDRef.current = '-1';
-        reportActionIDRef.current = '-1';
-        originalReportIDRef.current = '-1';
-        setInstanceID('');
+        reportIDRef.current = undefined;
+        reportActionIDRef.current = undefined;
+        originalReportIDRef.current = undefined;
+        instanceIDRef.current = '';
+        selectionRef.current = '';
 
         onPopoverHide.current = runAndResetCallback(onPopoverHide.current);
         onPopoverHideActionCallback.current = runAndResetCallback(onPopoverHideActionCallback.current);
@@ -257,33 +291,103 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
      * Hide the ReportActionContextMenu modal popover.
      * @param onHideActionCallback Callback to be called after popover is completely hidden
      */
-    const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (onHideActionCallback) => {
-        if (typeof onHideActionCallback === 'function') {
-            onPopoverHideActionCallback.current = onHideActionCallback;
+    const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (hideContextMenuParams) => {
+        const {callbacks = {}} = hideContextMenuParams ?? {};
+
+        if (typeof callbacks.onHide === 'function') {
+            onPopoverHideActionCallback.current = callbacks.onHide;
         }
 
         selectionRef.current = '';
         reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
+
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
+            type: Actions.CLOSE_POPOVER,
+        });
+
+        refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose).then(() => {
+            setComposerToRefocusOnClose(undefined);
+        });
     };
 
+    const transactionIDs: string[] = [];
+    if (isMoneyRequestAction(reportActionRef.current)) {
+        const originalMessage = getOriginalMessage(reportActionRef.current);
+        if (originalMessage && 'IOUTransactionID' in originalMessage && !!originalMessage.IOUTransactionID) {
+            transactionIDs.push(originalMessage.IOUTransactionID);
+        }
+    }
+
+    const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionIDs);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDRef.current}`, {
+        canBeMissing: true,
+    });
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const {currentSearchHash} = useSearchContext();
+    const {deleteTransactions} = useDeleteTransactions({
+        report,
+        reportActions: reportActionRef.current ? [reportActionRef.current] : [],
+        policy,
+    });
+
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getOriginalReportID(reportIDRef.current, reportActionRef.current)}`, {
+        canBeMissing: true,
+    });
+    const ancestorsRef = useRef<typeof ancestors>([]);
+    const ancestors = useAncestors(originalReport);
+    useEffect(() => {
+        if (!originalReport) {
+            return;
+        }
+        ancestorsRef.current = ancestors;
+    }, [originalReport, ancestors]);
     const confirmDeleteAndHideModal = useCallback(() => {
         callbackWhenDeleteModalHide.current = runAndResetCallback(onConfirmDeleteModal.current);
         const reportAction = reportActionRef.current;
-        if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-            const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
-            if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
-                IOU.deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID ?? '-1', reportAction);
-            } else {
-                IOU.deleteMoneyRequest(originalMessage?.IOUTransactionID ?? '-1', reportAction);
+        if (isMoneyRequestAction(reportAction)) {
+            const originalMessage = getOriginalMessage(reportAction);
+            if (isTrackExpenseAction(reportAction)) {
+                deleteTrackExpense({
+                    chatReportID: reportIDRef.current,
+                    chatReport: report,
+                    transactionID: originalMessage?.IOUTransactionID,
+                    reportAction,
+                    iouReport,
+                    chatIOUReport: chatReport,
+                    transactions: duplicateTransactions,
+                    violations: duplicateTransactionViolations,
+                    isSingleTransactionView: undefined,
+                    isChatReportArchived: isReportArchived,
+                    isChatIOUReportArchived,
+                });
+            } else if (originalMessage?.IOUTransactionID) {
+                deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
             }
+        } else if (isReportPreviewAction(reportAction)) {
+            deleteAppReport(reportAction.childReportID, email ?? '');
         } else if (reportAction) {
-            Report.deleteReportComment(reportIDRef.current, reportAction);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived);
+            });
         }
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
         setIsDeleteCommentConfirmModalVisible(false);
-    }, []);
+    }, [
+        report,
+        iouReport,
+        chatReport,
+        duplicateTransactions,
+        duplicateTransactionViolations,
+        isReportArchived,
+        isChatIOUReportArchived,
+        deleteTransactions,
+        currentSearchHash,
+        isOriginalReportArchived,
+        email,
+    ]);
 
     const hideDeleteModal = () => {
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
@@ -313,10 +417,12 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         showDeleteModal,
         hideDeleteModal,
         isActiveReportAction,
-        instanceID,
+        instanceIDRef,
         runAndResetOnPopoverHide,
         clearActiveReportAction,
         contentRef,
+        isContextMenuOpening,
+        composerToRefocusOnCloseEmojiPicker: composerToRefocusOnClose,
     }));
 
     const reportAction = reportActionRef.current;
@@ -325,19 +431,18 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         <>
             <PopoverWithMeasuredContent
                 isVisible={isPopoverVisible}
-                onClose={hideContextMenu}
+                onClose={() => hideContextMenu()}
                 onModalShow={runAndResetOnPopoverShow}
                 onModalHide={runAndResetOnPopoverHide}
                 anchorPosition={popoverAnchorPosition.current}
                 animationIn="fadeIn"
                 disableAnimation={false}
-                animationOutTiming={1}
                 shouldSetModalVisibility={false}
                 fullscreen
-                withoutOverlay
+                withoutOverlay={isWithoutOverlay}
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
-                shoudSwitchPositionIfOverflow={shoudSwitchPositionIfOverflow}
+                shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             >
                 <BaseReportActionContextMenu
                     isVisible={isPopoverVisible}
@@ -379,4 +484,4 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
 PopoverReportActionContextMenu.displayName = 'PopoverReportActionContextMenu';
 
-export default forwardRef(PopoverReportActionContextMenu);
+export default PopoverReportActionContextMenu;

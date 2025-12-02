@@ -1,7 +1,7 @@
-import React from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {useMemo} from 'react';
 import FullNameStep from '@components/SubStepForms/FullNameStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditionalDetailsStepFormSubmit';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,12 +12,15 @@ const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.L
 
 function LegalNameStep({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
-    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {canBeMissing: true});
 
-    const defaultValues = {
-        firstName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.FIRST_NAME] ?? '',
-        lastName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.LAST_NAME] ?? '',
-    };
+    const defaultValues = useMemo(
+        () => ({
+            firstName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.FIRST_NAME] ?? '',
+            lastName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.LAST_NAME] ?? '',
+        }),
+        [walletAdditionalDetails],
+    );
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -37,6 +40,7 @@ function LegalNameStep({onNext, onMove, isEditing}: SubStepProps) {
             firstNameInputID={PERSONAL_INFO_STEP_KEY.FIRST_NAME}
             lastNameInputID={PERSONAL_INFO_STEP_KEY.LAST_NAME}
             defaultValues={defaultValues}
+            shouldShowPatriotActLink
         />
     );
 }

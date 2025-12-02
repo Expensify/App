@@ -1,41 +1,50 @@
 ---
-title: Require tags and categories for expenses
-description: Make tags and/or categories required for all expenses
+title: Require Tags and Categories for Expenses
+description: Learn how to make tags and categories mandatory for all expenses in a workspace.
+keywords: [New Expensify, require tags, require categories, expense compliance, workspace settings, default category, smartscan]
 ---
-<div id="new-expensify" markdown="1">
 
-To require workspace members to add tags and/or categories to their expenses, 
+To improve expense accuracy and compliance, Workspace Admins can require all expenses to be tagged and categorized before submission. This guide walks through how to enable this setting and manage default categories that auto-apply based on merchant history.
 
-{% include selector.html values="desktop, mobile" %}
+---
 
-{% include option.html value="desktop" %}
-1. Click your profile image or icon in the bottom left menu.
-2. Scroll down and click **Workspaces** in the left menu. 
-3. Select a workspace. 
-4. Click **Tags** or **Categories** in the left menu.
-5. Click **Settings** at the top right of the page. 
-6. Enable the “Members must tag/categorize all expenses" toggle. 
-7. If desired, repeat steps 4-6 for tags or categories (whichever you haven’t done yet).
-{% include end-option.html %}
+# Require Tags or Categories for Expenses
 
-{% include option.html value="mobile" %}
-1. Tap your profile image or icon in the bottom menu.
-2. Tap **Workspaces**. 
-3. Select a workspace. 
-4. Tap **Tags** or **Categories**.
-5. Tap **Settings** at the top right of the page. 
-6. Enable the “Members must tag/categorize all expenses" toggle. 
-7. If desired, repeat steps 4-6 for tags or categories (whichever you haven’t done yet).
-{% include end-option.html %}
+When this setting is turned on, expenses must include a **tag** or **category** before submission. The relevant field will display as **required** during entry.
 
-{% include end-selector.html %}
+**Note:** If tags or categories are required but not applied, the expense can still be submitted. However, the submitter and approver will see an orange dot indicating the field needs attention.
 
-![In the Workspace, Categories setting, the right-hand panel is open and the toggle to require categories on expenses is highlighted.]({{site.url}}/assets/images/Workspace_category_toggle.png){:width="100%"}
-   
-This will highlight the tag and/or category field as required on all expenses. 
+## On Web
 
-{% include info.html %}
-Expenses will still be able to be submitted without a tag and/or category even if they are set as required. The submitter and approver will see an orange dot on the expense details alerting them that the tag/category is missing.
-{% include end-info.html %}
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Tags** or **Categories**.
+4. In the top-right corner, click **Settings**.
+5. Toggle on **Members must tag or categorize all expenses**.
+6. Repeat the steps for the other option (Tags or Categories) if needed.
 
-</div>
+## On Mobile
+
+1. Tap your **profile icon**, then tap **Workspaces**.
+2. Select your workspace.
+3. Tap **Tags** or **Categories**.
+4. Tap **Settings** in the top-right.
+5. Toggle on **Members must tag or categorize all expenses**.
+6. Repeat for the other field type if needed.
+
+![Workspace Categories Setting with Required Toggle Highlighted]({{site.url}}/assets/images/Workspace_category_toggle.png){:width="100%"}
+
+---
+
+# Default Spend Categories
+
+Expensify learns how you categorize expenses by merchant and automatically applies those preferences going forward. You can always update or override a category, and Expensify will learn your changes over time.
+
+## Manage Default Spend Categories
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Categories**.
+4. Click **Settings** in the top-right.
+5. Click any default category to update its assigned value.
+

@@ -1,37 +1,31 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
+import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ApiUtils from '@libs/ApiUtils';
-import * as Network from '@userActions/Network';
-import * as Session from '@userActions/Session';
-import * as User from '@userActions/User';
+import {isUsingStagingApi} from '@libs/ApiUtils';
+import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
+import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
+import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {User as UserOnyx} from '@src/types/onyx';
 import Button from './Button';
+import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
-const USER_DEFAULT: UserOnyx = {
-    shouldUseStagingServer: undefined,
-    isSubscribedToNewsletter: false,
-    validated: false,
-    isFromPublicDomain: false,
-    isUsingExpensifyCard: false,
-    isDebugModeEnabled: false,
-};
-
 function TestToolMenu() {
-    const [network] = useOnyx(ONYXKEYS.NETWORK);
-    const [user = USER_DEFAULT] = useOnyx(ONYXKEYS.USER);
-    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
-    const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
-    const isDebugModeEnabled = !!user?.isDebugModeEnabled;
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE, {canBeMissing: true});
+    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER, {canBeMissing: true});
+    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    // Check if the user is authenticated to show options that require authentication
+    const isAuthenticated = useIsAuthenticated();
 
     return (
         <>
@@ -41,14 +35,45 @@ function TestToolMenu() {
             >
                 {translate('initialSettingsPage.troubleshoot.testingPreferences')}
             </Text>
-            {/* When toggled the app will be put into debug mode. */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugMode')}>
-                <Switch
-                    accessibilityLabel={translate('initialSettingsPage.troubleshoot.debugMode')}
-                    isOn={isDebugModeEnabled}
-                    onToggle={() => User.setIsDebugModeEnabled(!isDebugModeEnabled)}
-                />
-            </TestToolRow>
+            {isAuthenticated && (
+                <>
+                    {/* When toggled the app will be put into debug mode. */}
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugMode')}>
+                        <Switch
+                            accessibilityLabel={translate('initialSettingsPage.troubleshoot.debugMode')}
+                            isOn={isDebugModeEnabled}
+                            onToggle={() => setIsDebugModeEnabled(!isDebugModeEnabled)}
+                        />
+                    </TestToolRow>
+
+                    {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
+                        <Button
+                            small
+                            text={translate('initialSettingsPage.troubleshoot.invalidate')}
+                            onPress={() => invalidateAuthToken()}
+                        />
+                    </TestToolRow>
+
+                    {/* Invalidate stored user auto-generated credentials. Useful for manually testing sign out logic. */}
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.deviceCredentials')}>
+                        <Button
+                            small
+                            text={translate('initialSettingsPage.troubleshoot.destroy')}
+                            onPress={() => invalidateCredentials()}
+                        />
+                    </TestToolRow>
+
+                    {/* Sends an expired session to the FE and invalidates the session by the same time in the BE. Action is delayed for 15s */}
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
+                        <Button
+                            small
+                            text={translate('initialSettingsPage.troubleshoot.invalidateWithDelay')}
+                            onPress={() => expireSessionWithDelay()}
+                        />
+                    </TestToolRow>
+                </>
+            )}
 
             {/* Option to switch between staging and default api endpoints.
         This enables QA, internal testers and external devs to take advantage of sandbox environments for 3rd party services like Plaid and Onfido.
@@ -58,7 +83,7 @@ function TestToolMenu() {
                     <Switch
                         accessibilityLabel="Use Staging Server"
                         isOn={shouldUseStagingServer}
-                        onToggle={() => User.setShouldUseStagingServer(!shouldUseStagingServer)}
+                        onToggle={() => setShouldUseStagingServer(!shouldUseStagingServer)}
                     />
                 </TestToolRow>
             )}
@@ -68,7 +93,7 @@ function TestToolMenu() {
                 <Switch
                     accessibilityLabel="Force offline"
                     isOn={!!network?.shouldForceOffline}
-                    onToggle={() => Network.setShouldForceOffline(!network?.shouldForceOffline)}
+                    onToggle={() => setShouldForceOffline(!network?.shouldForceOffline)}
                     disabled={!!isUsingImportedState || !!network?.shouldSimulatePoorConnection || network?.shouldFailAllRequests}
                 />
             </TestToolRow>
@@ -78,48 +103,21 @@ function TestToolMenu() {
                 <Switch
                     accessibilityLabel="Simulate poor internet connection"
                     isOn={!!network?.shouldSimulatePoorConnection}
-                    onToggle={() => Network.setShouldSimulatePoorConnection(!network?.shouldSimulatePoorConnection, network?.poorConnectionTimeoutID)}
+                    onToggle={() => setShouldSimulatePoorConnection(!network?.shouldSimulatePoorConnection, network?.poorConnectionTimeoutID)}
                     disabled={!!isUsingImportedState || !!network?.shouldFailAllRequests || network?.shouldForceOffline}
                 />
             </TestToolRow>
 
             {/* When toggled all network requests will fail. */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulatFailingNetworkRequests')}>
+            <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulateFailingNetworkRequests')}>
                 <Switch
                     accessibilityLabel="Simulate failing network requests"
                     isOn={!!network?.shouldFailAllRequests}
-                    onToggle={() => Network.setShouldFailAllRequests(!network?.shouldFailAllRequests)}
+                    onToggle={() => setShouldFailAllRequests(!network?.shouldFailAllRequests)}
                     disabled={!!network?.shouldForceOffline || network?.shouldSimulatePoorConnection}
                 />
             </TestToolRow>
-
-            {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
-                <Button
-                    small
-                    text={translate('initialSettingsPage.troubleshoot.invalidate')}
-                    onPress={() => Session.invalidateAuthToken()}
-                />
-            </TestToolRow>
-
-            {/* Invalidate stored user auto-generated credentials. Useful for manually testing sign out logic. */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.deviceCredentials')}>
-                <Button
-                    small
-                    text={translate('initialSettingsPage.troubleshoot.destroy')}
-                    onPress={() => Session.invalidateCredentials()}
-                />
-            </TestToolRow>
-
-            {/* Sends an expired session to the FE and invalidates the session by the same time in the BE. Action is delayed for 15s */}
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
-                <Button
-                    small
-                    text={translate('initialSettingsPage.troubleshoot.invalidateWithDelay')}
-                    onPress={() => Session.expireSessionWithDelay()}
-                />
-            </TestToolRow>
-
+            <SoftKillTestToolRow />
             <TestCrash />
         </>
     );

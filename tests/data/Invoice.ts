@@ -173,22 +173,22 @@ const policy: OnyxEntry<OnyxTypes.Policy> = {
 
 const transaction: OnyxEntry<OnyxTypes.Transaction> = {
     amount: 100,
-    attendees: [
-        {
-            email: 'a1@53019.com',
-            login: 'a1@53019.com',
-            displayName: 'a1',
-            avatarUrl: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
-            accountID: 32,
-            text: 'a1@53019.com',
-            selected: true,
-            reportID: '3634215302663162',
-        },
-    ],
     comment: {
         customUnit: {
             customUnitRateID: '_FAKE_P2P_ID_',
         },
+        attendees: [
+            {
+                email: 'a1@53019.com',
+                login: 'a1@53019.com',
+                displayName: 'a1',
+                avatarUrl: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
+                accountID: 32,
+                text: 'a1@53019.com',
+                selected: true,
+                reportID: '3634215302663162',
+            },
+        ],
     },
     created: '2024-12-13',
     currency: 'USD',
@@ -197,7 +197,6 @@ const transaction: OnyxEntry<OnyxTypes.Transaction> = {
     transactionID: '1',
     isFromGlobalCreate: true,
     merchant: '(none)',
-    splitPayerAccountIDs: [32],
     shouldShowOriginalAmount: true,
     participants: [
         {
@@ -238,7 +237,7 @@ const convertedInvoiceChat: OnyxTypes.Report = {
     isOwnPolicyExpenseChat: false,
     isPinned: false,
     isWaitingOnBankAccount: false,
-    lastActionType: 'REPORTPREVIEW',
+    lastActionType: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
     lastActorAccountID: 32,
     lastMessageHtml: 'paid $1.00',
     lastMessageText: 'paid $1.00',

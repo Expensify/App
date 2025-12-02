@@ -3,8 +3,9 @@ import {useCallback} from 'react';
 import {Dimensions} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
-import * as Browser from '@libs/Browser';
+import {useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+import {isMobile} from '@libs/Browser';
 import {SPRING_CONFIG} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
 import * as MultiGestureCanvasUtils from './utils';
@@ -12,7 +13,7 @@ import * as MultiGestureCanvasUtils from './utils';
 // This value determines how fast the pan animation should phase out
 // We're using a "withDecay" animation to smoothly phase out the pan animation
 // https://docs.swmansion.com/react-native-reanimated/docs/animations/withDecay/
-const PAN_DECAY_DECELARATION = 0.9915;
+const PAN_DECAY_DECLARATION = 0.9915;
 const SCREEN_HEIGHT = Dimensions.get('screen').height;
 const SNAP_POINT = SCREEN_HEIGHT / 4;
 const SNAP_POINT_HIDDEN = SCREEN_HEIGHT / 1.2;
@@ -59,7 +60,7 @@ const usePanGesture = ({
     const panVelocityX = useSharedValue(0);
     const panVelocityY = useSharedValue(0);
 
-    const isMobileBrowser = Browser.isMobile();
+    const isMobileBrowser = isMobile();
 
     // Disable "swipe down to close" gesture when content is bigger than the canvas
     const enableSwipeDownToClose = useDerivedValue(() => canvasSize.height < zoomedContentHeight.get(), [canvasSize.height]);
@@ -126,7 +127,7 @@ const usePanGesture = ({
                     withDecay({
                         velocity: panVelocityX.get(),
                         clamp: [horizontalBoundaries.min, horizontalBoundaries.max],
-                        deceleration: PAN_DECAY_DECELARATION,
+                        deceleration: PAN_DECAY_DECLARATION,
                         rubberBandEffect: false,
                     }),
                 );
@@ -144,20 +145,20 @@ const usePanGesture = ({
                     withDecay({
                         velocity: panVelocityY.get(),
                         clamp: [verticalBoundaries.min, verticalBoundaries.max],
-                        deceleration: PAN_DECAY_DECELARATION,
+                        deceleration: PAN_DECAY_DECLARATION,
                     }),
                 );
             }
         } else {
             const finalTranslateY = offsetY.get() + panVelocityY.get() * 0.2;
 
-            if (finalTranslateY > SNAP_POINT && zoomScale.get() <= 1) {
+            if (onSwipeDown && finalTranslateY > SNAP_POINT && zoomScale.get() <= 1) {
                 offsetY.set(
                     withSpring(SNAP_POINT_HIDDEN, SPRING_CONFIG, () => {
                         isSwipingDownToClose.set(false);
 
                         if (onSwipeDown) {
-                            runOnJS(onSwipeDown)();
+                            scheduleOnRN(onSwipeDown);
                         }
                     }),
                 );

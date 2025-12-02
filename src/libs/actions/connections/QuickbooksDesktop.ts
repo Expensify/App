@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     ConnectPolicyToQuickBooksDesktopParams,
+    UpdateQuickbooksDesktopAccountingMethodParams,
     UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams,
     UpdateQuickbooksDesktopExpensesExportDestinationTypeParams,
     UpdateQuickbooksDesktopGenericTypeParams,
@@ -85,11 +86,16 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
     settingValue: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
     oldSettingValue?: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
 ) {
+    const exporterOptimisticData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORTER ? {exporter: settingValue} : {};
+    const exporterErrorData = settingName === CONST.QUICKBOOKS_CONFIG.EXPORTER ? {exporter: oldSettingValue} : {};
+
     const optimisticData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...exporterOptimisticData,
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
                         config: {
@@ -110,10 +116,12 @@ function buildOnyxDataForQuickbooksExportConfiguration<TSettingName extends keyo
     ];
 
     const failureData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...exporterErrorData,
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
                         config: {
@@ -329,7 +337,7 @@ function getQuickbooksDesktopCodatSetupLink(policyID: string) {
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP, params);
 }
 
-function updateQuickbooksDesktopExpensesExportDestination<TConfigUpdate extends {reimbursable: QBDReimbursableExportAccountType; reimbursableAccount: string}>(
+function updateQuickbooksDesktopExpensesExportDestination<TConfigUpdate extends {reimbursable: QBDReimbursableExportAccountType; reimbursableAccount?: string}>(
     policyID: string,
     configUpdate: TConfigUpdate,
     configCurrentData: Partial<TConfigUpdate>,
@@ -339,7 +347,7 @@ function updateQuickbooksDesktopExpensesExportDestination<TConfigUpdate extends 
     const parameters: UpdateQuickbooksDesktopExpensesExportDestinationTypeParams = {
         policyID,
         reimbursableExpensesExportDestination: configUpdate.reimbursable,
-        reimbursableExpensesAccount: configUpdate.reimbursableAccount,
+        reimbursableExpensesAccount: configUpdate?.reimbursableAccount,
         idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE),
     };
 
@@ -347,14 +355,14 @@ function updateQuickbooksDesktopExpensesExportDestination<TConfigUpdate extends 
 }
 
 function updateQuickbooksCompanyCardExpenseAccount<
-    TConfigUpdate extends {nonReimbursable: QBDNonReimbursableExportAccountType; nonReimbursableAccount: string; nonReimbursableBillDefaultVendor: string},
+    TConfigUpdate extends {nonReimbursable: QBDNonReimbursableExportAccountType; nonReimbursableAccount: string | undefined; nonReimbursableBillDefaultVendor: string},
 >(policyID: string, configUpdate: TConfigUpdate, configCurrentData: Partial<TConfigUpdate>) {
     const onyxData = buildOnyxDataForMultipleQuickbooksExportConfigurations(policyID, configUpdate, configCurrentData);
 
     const parameters: UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams = {
         policyID,
         nonReimbursableExpensesExportDestination: configUpdate.nonReimbursable,
-        nonReimbursableExpensesAccount: configUpdate.nonReimbursableAccount,
+        nonReimbursableExpensesAccount: configUpdate?.nonReimbursableAccount,
         nonReimbursableBillDefaultVendor: configUpdate.nonReimbursableBillDefaultVendor,
         idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION),
     };
@@ -363,9 +371,12 @@ function updateQuickbooksCompanyCardExpenseAccount<
 }
 
 function updateQuickbooksDesktopShouldAutoCreateVendor<TSettingValue extends Connections['quickbooksDesktop']['config']['shouldAutoCreateVendor']>(
-    policyID: string,
+    policyID: string | undefined,
     settingValue: TSettingValue,
 ) {
+    if (!policyID) {
+        return;
+    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR, settingValue, !settingValue);
 
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
@@ -468,7 +479,7 @@ function updateQuickbooksDesktopPreferredExporter<TSettingValue extends Connecti
 
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
         policyID,
-        settingValue,
+        settingValue: settingValue ?? '',
         idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.EXPORTER),
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT, parameters, onyxData);
@@ -530,8 +541,23 @@ function updateQuickbooksDesktopAutoSync<TSettingValue extends Connections['quic
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_AUTO_SYNC, parameters, onyxData);
 }
 
+function updateQuickbooksDesktopAccountingMethod<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['accountingMethod']>(
+    policyID: string,
+    settingValue: TSettingValue,
+    oldSettingValue?: TSettingValue,
+) {
+    const onyxData = buildOnyxDataForQuickbooksExportConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD, settingValue, oldSettingValue);
+
+    const parameters: UpdateQuickbooksDesktopAccountingMethodParams = {
+        policyID,
+        accountingMethod: settingValue,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD, parameters, onyxData);
+}
+
 export {
     updateQuickbooksDesktopAutoSync,
+    updateQuickbooksDesktopAccountingMethod,
     updateQuickbooksDesktopPreferredExporter,
     updateQuickbooksDesktopMarkChecksToBePrinted,
     updateQuickbooksDesktopNonReimbursableBillDefaultVendor,

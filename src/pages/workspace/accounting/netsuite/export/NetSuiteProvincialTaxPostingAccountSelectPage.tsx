@@ -1,29 +1,30 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteProvincialTaxPostingAccount} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {canUseProvincialTaxNetSuite, getNetSuiteTaxAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const {subsidiaryList} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
 
@@ -36,8 +37,8 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
 
     const updateTaxAccount = useCallback(
         ({value}: SelectorType) => {
-            if (config?.provincialTaxPostingAccount !== value) {
-                Connections.updateNetSuiteProvincialTaxPostingAccount(policyID, value, config?.provincialTaxPostingAccount);
+            if (config?.provincialTaxPostingAccount !== value && policyID) {
+                updateNetSuiteProvincialTaxPostingAccount(policyID, value, config?.provincialTaxPostingAccount);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
         },
@@ -47,7 +48,7 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.netsuite.noAccountsFound')}
@@ -55,7 +56,7 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10],
     );
 
     return (
@@ -74,9 +75,9 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={!!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseProvincialTaxNetSuite(selectedSubsidiary?.country)}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT)}
+            errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT)}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT)}
         />
     );
 }

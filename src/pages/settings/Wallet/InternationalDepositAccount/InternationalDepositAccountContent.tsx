@@ -3,14 +3,17 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSubStep from '@hooks/useSubStep';
 import {clearDraftValues} from '@libs/actions/FormActions';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {InternationalBankAccountForm} from '@src/types/form';
 import type {BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -21,7 +24,7 @@ import BankInformation from './substeps/BankInformation';
 import Confirmation from './substeps/Confirmation';
 import CountrySelection from './substeps/CountrySelection';
 import Success from './substeps/Success';
-import type {CustomSubStepProps} from './types';
+import type CustomSubStepProps from './types';
 import {getFieldsMap, getInitialPersonalDetailsValues, getInitialSubstep, getSubstepValues, testValidation} from './utils';
 
 type InternationalDepositAccountContentProps = {
@@ -66,21 +69,21 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
 
     const skippedSteps = getSkippedSteps(skipAccountTypeStep, skipAccountHolderInformationStep);
 
-    const topMostCentralPane = Navigation.getTopMostCentralPaneRouteFromRootState();
+    const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((route) => isFullScreenName(route.name)));
 
     const goBack = useCallback(() => {
-        switch (topMostCentralPane?.name) {
-            case SCREENS.SETTINGS.WALLET.ROOT:
-                Navigation.goBack(ROUTES.SETTINGS_WALLET, true);
+        switch (topmostFullScreenRoute?.name) {
+            case NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR:
+                Navigation.goBack(ROUTES.SETTINGS_WALLET);
                 break;
-            case SCREENS.REPORT:
+            case NAVIGATORS.REPORTS_SPLIT_NAVIGATOR:
                 Navigation.closeRHPFlow();
                 break;
             default:
                 Navigation.goBack();
                 break;
         }
-    }, [topMostCentralPane]);
+    }, [topmostFullScreenRoute?.name]);
 
     const handleFinishStep = useCallback(() => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
@@ -100,24 +103,27 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
     const handleBackButtonPress = () => {
         if (isEditing) {
             resetScreenIndex(CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION);
-            return;
+            return true;
         }
 
         // Clicking back on the first screen should dismiss the modal
         if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.COUNTRY_SELECTOR) {
             clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
             goBack();
-            return;
+            return true;
         }
 
         // Clicking back on the success screen should dismiss the modal
         if (screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.SUCCESS) {
             clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
             goBack();
-            return;
+            return true;
         }
         prevScreen();
+        return true;
     };
+
+    useHandleBackButton(handleBackButtonPress);
 
     const handleNextScreen = useCallback(() => {
         if (isEditing) {
@@ -135,6 +141,8 @@ function InternationalDepositAccountContent({privatePersonalDetails, corpayField
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={InternationalDepositAccountContent.displayName}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+            shouldShowOfflineIndicatorInWideScreen={screenIndex === CONST.CORPAY_FIELDS.INDEXES.MAPPING.CONFIRMATION}
         >
             <HeaderWithBackButton
                 title={translate('bankAccount.addBankAccount')}

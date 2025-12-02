@@ -1,23 +1,26 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import TimeModalPicker from '@components/TimeModalPicker';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabled} from '@libs/PolicyUtils';
 import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestTimeForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -26,9 +29,12 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TIME> & {
+type IOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TIME | typeof SCREENS.MONEY_REQUEST.STEP_TIME_EDIT> & {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Indicates whether the transaction data is loading */
+    isLoadingTransaction?: boolean;
 
     /** The report linked to the transaction */
     report: OnyxEntry<Report>;
@@ -37,25 +43,48 @@ type IOURequestStepTimeProps = WithWritableReportOrNotFoundProps<typeof SCREENS.
 function IOURequestStepTime({
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
+        name,
     },
     transaction,
+    isLoadingTransaction,
     report,
 }: IOURequestStepTimeProps) {
     const styles = useThemeStyles();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getIOURequestPolicyID(transaction, report)}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const {translate} = useLocalize();
     const currentDateAttributes = transaction?.comment?.customUnit?.attributes?.dates;
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
     const currentEndDate = currentDateAttributes?.end ? DateUtils.extractDate(currentDateAttributes.end) : undefined;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(transaction?.comment?.customUnit) || isEmptyObject(policy);
+    const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
+    const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
 
     const navigateBack = () => {
+        if (isEditPage) {
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID));
+            return;
+        }
+
         if (backTo) {
             Navigation.goBack(backTo);
             return;
         }
-        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID));
+
+        if (transaction?.isFromGlobalCreate) {
+            if (hasMoreThanOnePolicyWithPerDiemEnabled) {
+                Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, reportID));
+                return;
+            }
+
+            // If there is only one per diem policy, we can't override the reportID that is already on the stack to make sure we go back to the right screen.
+            Navigation.goBack();
+        }
+
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.getRoute(action, iouType, transactionID, reportID));
     };
 
     const validate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_TIME_FORM>) => {
@@ -78,7 +107,7 @@ function IOURequestStepTime({
 
         setMoneyRequestDateAttribute(transactionID, newStart, newEnd);
 
-        if (backTo) {
+        if (isEditPage) {
             navigateBack();
         } else {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, transactionID, reportID));
@@ -91,10 +120,15 @@ function IOURequestStepTime({
         [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ''}),
         [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ''}),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
+        [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
+
+    if (isLoadingTransaction) {
+        return <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />;
+    }
 
     return (
         <StepScreenWrapper

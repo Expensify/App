@@ -2,11 +2,14 @@ import React from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
+import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
 type PreRendererProps = CustomRendererProps<TBlock> & {
@@ -28,30 +31,49 @@ type PreRendererProps = CustomRendererProps<TBlock> & {
 
 function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...defaultRendererProps}: PreRendererProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isLast = defaultRendererProps.renderIndex === defaultRendererProps.renderLength - 1;
+
+    const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(defaultRendererProps.tnode);
+    const isInsideTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(defaultRendererProps.tnode);
+    const fontSize = StyleUtils.getCodeFontSize(false, isInsideTaskTitle);
+
+    if (isChildOfTaskTitle) {
+        return (
+            <TDefaultRenderer
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...defaultRendererProps}
+                style={styles.taskTitleMenuItem}
+            />
+        );
+    }
 
     return (
         <View style={isLast ? styles.mt2 : styles.mv2}>
             <ShowContextMenuContext.Consumer>
-                {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+                {({onShowContextMenu, anchor, report, isReportArchived, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                     <PressableWithoutFeedback
                         onPress={onPressIn ?? (() => {})}
                         onPressIn={onPressIn}
                         onPressOut={onPressOut}
                         onLongPress={(event) => {
-                            if (isDisabled) {
-                                return;
-                            }
-                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs));
+                            onShowContextMenu(() => {
+                                if (isDisabled || !shouldDisplayContextMenu) {
+                                    return;
+                                }
+                                return showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived));
+                            });
                         }}
                         shouldUseHapticsOnLongPress
                         role={CONST.ROLE.PRESENTATION}
-                        accessibilityLabel={translate('accessibilityHints.prestyledText')}
+                        accessibilityLabel={translate('accessibilityHints.preStyledText')}
                     >
                         <View>
-                            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                            <TDefaultRenderer {...defaultRendererProps} />
+                            <Text style={{fontSize}}>
+                                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                                <TDefaultRenderer {...defaultRendererProps} />
+                            </Text>
                         </View>
                     </PressableWithoutFeedback>
                 )}

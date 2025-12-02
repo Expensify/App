@@ -1,14 +1,12 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {AnchorPosition} from '@styles/index';
-import * as Report from '@userActions/Report';
-import * as Subscription from '@userActions/Subscription';
+import {navigateToConciergeChat} from '@userActions/Report';
+import {requestTaxExempt} from '@userActions/Subscription';
 import CONST from '@src/CONST';
 
 const anchorAlignment = {
@@ -17,11 +15,8 @@ const anchorAlignment = {
 };
 
 function TaxExemptActions() {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const threeDotsMenuContainerRef = useRef<View>(null);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -30,35 +25,19 @@ function TaxExemptActions() {
                 numberOfLinesTitle: 2,
                 text: translate('subscription.details.taxExempt'),
                 onSelected: () => {
-                    Subscription.requestTaxExempt();
-                    Report.navigateToConciergeChat();
+                    requestTaxExempt();
+                    navigateToConciergeChat();
                 },
             },
         ],
         [translate],
     );
 
-    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
-        if (shouldUseNarrowLayout) {
-            return;
-        }
-        threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-            setThreeDotsMenuPosition({
-                horizontal: x + width,
-                vertical: y + height,
-            });
-        });
-    }, [shouldUseNarrowLayout]);
-
     return (
-        <View
-            ref={threeDotsMenuContainerRef}
-            style={[styles.mtn2, styles.pAbsolute, styles.rn3]}
-        >
+        <View style={[styles.mtn2, styles.pAbsolute, styles.rn3]}>
             <ThreeDotsMenu
-                onIconPress={calculateAndSetThreeDotsMenuPosition}
+                shouldSelfPosition
                 menuItems={overflowMenu}
-                anchorPosition={threeDotsMenuPosition}
                 anchorAlignment={anchorAlignment}
                 shouldOverlay
             />

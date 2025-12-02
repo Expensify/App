@@ -34,7 +34,7 @@ beforeAll(() => {
     asMutable(core).setOutput = mockSetOutput;
 
     // Mock octokit module
-    const moctokit = {
+    const mockOctokit = {
         rest: {
             issues: {
                 get: mockGetIssue,
@@ -43,7 +43,7 @@ beforeAll(() => {
         },
     } as unknown as InternalOctokit;
 
-    GithubUtils.internalOctokit = moctokit;
+    GithubUtils.internalOctokit = mockOctokit;
 });
 
 let baseComments: Comment = {};
@@ -84,7 +84,7 @@ function mockIssue(prList: PullRequest[], deployBlockerList?: PullRequest[]) {
             title: "Scott's QA Checklist",
             body: `
 **Release Version:** \`1.1.31-2\`
-**Compare Changes:** https://github.com/Expensify/App/compare/production...staging
+**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging
 
 **This release contains changes from the following pull requests:**
 ${prList
@@ -115,7 +115,7 @@ cc @Expensify/applauseleads
 }
 
 describe('checkDeployBlockers', () => {
-    const allClearIssue = mockIssue([{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true}]);
+    const allClearIssue = mockIssue([{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6882`, isQASuccess: true}]);
 
     describe('checkDeployBlockers', () => {
         test('Test an issue with all checked items and :shipit:', async () => {
@@ -144,7 +144,10 @@ describe('checkDeployBlockers', () => {
 
         test('Test an issue with all QA checked but not all deploy blockers', async () => {
             mockGetIssue.mockResolvedValue(
-                mockIssue([{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true}], [{url: 'https://github.com/Expensify/App/pull/6883', isQASuccess: false}]),
+                mockIssue(
+                    [{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6882`, isQASuccess: true}],
+                    [{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6883`, isQASuccess: false}],
+                ),
             );
             mockListComments.mockResolvedValue(baseComments);
             await expect(run()).resolves.toBeUndefined();
@@ -153,7 +156,10 @@ describe('checkDeployBlockers', () => {
 
         test('Test an issue with all QA checked and all deploy blockers resolved', async () => {
             mockGetIssue.mockResolvedValue(
-                mockIssue([{url: 'https://github.com/Expensify/App/pull/6882', isQASuccess: true}], [{url: 'https://github.com/Expensify/App/pull/6883', isQASuccess: true}]),
+                mockIssue(
+                    [{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6882`, isQASuccess: true}],
+                    [{url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/6883`, isQASuccess: true}],
+                ),
             );
             mockListComments.mockResolvedValue(baseComments);
             await expect(run()).resolves.toBeUndefined();

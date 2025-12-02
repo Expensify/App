@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {getExpensifyIcon} from '@components/Icon/chunks/expensify-icons.chunk';
 import PromotedActionsBar from '@components/PromotedActionsBar';
 import type {PromotedAction, PromotedActionsBarProps} from '@components/PromotedActionsBar';
 import variables from '@src/styles/variables';
@@ -15,7 +15,9 @@ const story = {
     component: PromotedActionsBar,
 };
 
-type StoryType = typeof Template & {args?: Partial<PromotedActionsBarProps>};
+type PromotedActionWithText = Omit<PromotedAction, 'translationKey'> & {text: string};
+type PromotedActionsBarPropsWithText = Omit<PromotedActionsBarProps, 'promotedActions'> & {promotedActions: PromotedActionWithText[]};
+type StoryType = typeof Template & {args?: Partial<PromotedActionsBarPropsWithText>};
 
 function Template(args: PromotedActionsBarProps) {
     return (
@@ -31,27 +33,27 @@ function Template(args: PromotedActionsBarProps) {
 const promotedActions = [
     {
         key: 'join',
-        icon: Expensicons.CommentBubbles,
+        icon: getExpensifyIcon('CommentBubbles'),
         text: 'Join',
         onSelected: () => {},
     },
     {
         key: 'pin',
-        icon: Expensicons.Pin,
+        icon: getExpensifyIcon('Pin'),
         text: 'Pin',
         onSelected: () => {},
     },
     {
         key: 'share',
-        icon: Expensicons.QrCode,
+        icon: getExpensifyIcon('QrCode'),
         text: 'Share',
         onSelected: () => {},
     },
-] satisfies PromotedAction[];
+] satisfies PromotedActionWithText[];
 
 const defaultPromotedAction = {
     key: '',
-    icon: Expensicons.ExpensifyLogoNew,
+    icon: getExpensifyIcon('ExpensifyLogoNew'),
     text: '',
     onSelected: () => {},
 };

@@ -1,4 +1,5 @@
 import React from 'react';
+import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -7,7 +8,6 @@ import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
-import DotIndicatorMessage from './DotIndicatorMessage';
 import type DotLottieAnimation from './LottieAnimations/types';
 import MenuItem from './MenuItem';
 import Section from './Section';
@@ -24,6 +24,9 @@ type FeatureListProps = {
     /** The text to display in the subtitle of the section */
     subtitle?: string;
 
+    /** The component to display custom subtitle */
+    renderSubtitle?: () => ReactNode;
+
     /** Text of the call to action button */
     ctaText?: string;
 
@@ -33,20 +36,11 @@ type FeatureListProps = {
     /** Action to call on cta button press */
     onCtaPress?: () => void;
 
-    /** Text of the secondary button button */
-    secondaryButtonText?: string;
-
-    /** Accessibility label for the secondary button */
-    secondaryButtonAccessibilityLabel?: string;
-
-    /** Action to call on secondary button press */
-    onSecondaryButtonPress?: () => void;
-
     /** A list of menuItems representing the feature list. */
     menuItems: FeatureListItem[];
 
     /** The illustration to display in the header. Can be an image or a JSON object representing a Lottie animation. */
-    illustration: DotLottieAnimation | IconAsset;
+    illustration: DotLottieAnimation | IconAsset | undefined;
 
     /** The style passed to the illustration */
     illustrationStyle?: StyleProp<ViewStyle>;
@@ -60,23 +54,22 @@ type FeatureListProps = {
     /** The style used for the title */
     titleStyles?: StyleProp<TextStyle>;
 
-    /** The error message to display for the CTA button */
-    ctaErrorMessage?: string;
-
     /** Padding for content on large screens */
     contentPaddingOnLargeScreens?: {padding: number};
+
+    /** Custom content to display in the footer */
+    footer?: ReactNode;
+
+    /** Whether the button should be disabled */
+    isButtonDisabled?: boolean;
 };
 
 function FeatureList({
     title,
     subtitle = '',
-    ctaText = '',
-    ctaAccessibilityLabel = '',
-    onCtaPress = () => {},
-    secondaryButtonText = '',
-    secondaryButtonAccessibilityLabel = '',
-    onSecondaryButtonPress = () => {},
-    ctaErrorMessage,
+    ctaText,
+    ctaAccessibilityLabel,
+    onCtaPress,
     menuItems,
     illustration,
     illustrationStyle,
@@ -84,6 +77,9 @@ function FeatureList({
     illustrationContainerStyle,
     titleStyles,
     contentPaddingOnLargeScreens,
+    footer,
+    isButtonDisabled = false,
+    renderSubtitle,
 }: FeatureListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -100,6 +96,7 @@ function FeatureList({
             titleStyles={titleStyles}
             illustrationContainerStyle={illustrationContainerStyle}
             contentPaddingOnLargeScreens={contentPaddingOnLargeScreens}
+            renderSubtitle={renderSubtitle}
         >
             <View style={styles.flex1}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
@@ -122,30 +119,18 @@ function FeatureList({
                         </View>
                     ))}
                 </View>
-                {!!secondaryButtonText && (
+                {!!ctaText && (
                     <Button
-                        text={secondaryButtonText}
-                        onPress={onSecondaryButtonPress}
-                        accessibilityLabel={secondaryButtonAccessibilityLabel}
-                        style={[styles.w100, styles.mb3]}
+                        text={ctaText}
+                        onPress={onCtaPress}
+                        accessibilityLabel={ctaAccessibilityLabel}
+                        style={styles.w100}
+                        success
+                        isDisabled={isButtonDisabled}
                         large
                     />
                 )}
-                {!!ctaErrorMessage && (
-                    <DotIndicatorMessage
-                        style={styles.mb1}
-                        messages={{error: ctaErrorMessage}}
-                        type="error"
-                    />
-                )}
-                <Button
-                    text={ctaText}
-                    onPress={onCtaPress}
-                    accessibilityLabel={ctaAccessibilityLabel}
-                    style={styles.w100}
-                    success
-                    large
-                />
+                {!!footer && footer}
             </View>
         </Section>
     );

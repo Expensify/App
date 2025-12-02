@@ -1,10 +1,11 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -15,7 +16,7 @@ import Tooltip from './Tooltip';
 
 type MessagesRowProps = {
     /** The messages to display */
-    messages: Record<string, string | ReceiptError>;
+    messages: Record<string, string | ReceiptError | TranslationKeyError>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
     type: 'error' | 'success';
@@ -26,11 +27,17 @@ type MessagesRowProps = {
     /** Additional style object for the container */
     containerStyles?: StyleProp<ViewStyle>;
 
+    /** Additional style object for the error text */
+    errorTextStyles?: StyleProp<TextStyle>;
+
     /** Whether we can dismiss the messages */
     canDismiss?: boolean;
+
+    /** A function to dismiss error */
+    dismissError?: () => void;
 };
 
-function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, canDismiss = true}: MessagesRowProps) {
+function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, canDismiss = true, dismissError = () => {}, errorTextStyles}: MessagesRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -42,7 +49,9 @@ function MessagesRow({messages = {}, type, onClose = () => {}, containerStyles, 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
             <DotIndicatorMessage
+                dismissError={dismissError}
                 style={styles.flex1}
+                textStyles={errorTextStyles}
                 messages={messages}
                 type={type}
             />

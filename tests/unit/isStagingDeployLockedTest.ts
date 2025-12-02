@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import * as core from '@actions/core';
 import run from '../../.github/actions/javascript/isStagingDeployLocked/isStagingDeployLocked';
 import GithubUtils from '../../.github/libs/GithubUtils';

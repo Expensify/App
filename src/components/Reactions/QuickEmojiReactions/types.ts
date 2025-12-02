@@ -3,9 +3,9 @@ import type {TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
-import type {Locale, ReportAction, ReportActionReactions} from '@src/types/onyx';
+import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 
-type PickerRefElement = RefObject<TextInput | View>;
+type PickerRefElement = RefObject<TextInput | View | null>;
 
 type OpenPickerCallback = (element?: PickerRefElement, anchorOrigin?: AnchorOrigin) => void;
 
@@ -37,18 +37,7 @@ type BaseReactionsProps = {
     setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
-type BaseQuickEmojiReactionsOnyxProps = {
-    /** All the emoji reactions for the report action. */
-    emojiReactions: OnyxEntry<ReportActionReactions>;
-
-    /** The user's preferred locale. */
-    preferredLocale: OnyxEntry<Locale>;
-
-    /** The user's preferred skin tone. */
-    preferredSkinTone: OnyxEntry<string | number>;
-};
-
-type BaseQuickEmojiReactionsProps = BaseReactionsProps & BaseQuickEmojiReactionsOnyxProps;
+type BaseQuickEmojiReactionsProps = BaseReactionsProps;
 
 type QuickEmojiReactionsProps = BaseReactionsProps & {
     /**
@@ -60,4 +49,4 @@ type QuickEmojiReactionsProps = BaseReactionsProps & {
     setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
-export type {BaseQuickEmojiReactionsProps, BaseQuickEmojiReactionsOnyxProps, QuickEmojiReactionsProps, OpenPickerCallback, CloseContextMenuCallback, PickerRefElement};
+export type {BaseQuickEmojiReactionsProps, QuickEmojiReactionsProps, OpenPickerCallback, CloseContextMenuCallback, PickerRefElement};

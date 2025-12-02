@@ -1,13 +1,15 @@
 import {useFocusEffect} from '@react-navigation/native';
-import lodashIsEqual from 'lodash/isEqual';
-import type {ForwardedRef, MutableRefObject, ReactNode, RefAttributes} from 'react';
-import React, {createRef, forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {deepEqual} from 'fast-equals';
+import type {ForwardedRef, ReactNode, RefObject} from 'react';
+import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import {useInputBlurContext} from '@components/InputBlurContext';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import {isSafari} from '@libs/Browser';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
@@ -18,6 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
@@ -50,7 +53,7 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
 
     /** Callback to validate the form */
-    validate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
+    validate?: (values: FormOnyxValues<TFormID>, translate: LocalizedTranslate) => FormInputErrors<TFormID>;
 
     /** Should validate function be called when input loose focus */
     shouldValidateOnBlur?: boolean;
@@ -73,33 +76,67 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Whether HTML is allowed in form inputs */
     allowHTML?: boolean;
 
+    /** Whether to render the submit button above the footer. */
+    shouldRenderFooterAboveSubmit?: boolean;
+
     /** Whether the form is loading */
     isLoading?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addBottomSafeAreaPadding?: boolean;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** Whether the submit button should stick to the bottom of the screen. */
+    shouldSubmitButtonStickToBottom?: boolean;
+
+    /** Fires at most once per frame during scrolling. */
+    onScroll?: () => void;
+
+    /** Use stricter HTML-like tag validation (e.g. blocks <✓>, <123>). */
+    shouldUseStrictHtmlTagValidation?: boolean;
+
+    /** Prevents the submit button from triggering blur on mouse down. */
+    shouldPreventDefaultFocusOnPressSubmit?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<FormRef>;
 };
 
-function FormProvider(
-    {
-        formID,
-        validate,
-        shouldValidateOnBlur = true,
-        shouldValidateOnChange = true,
-        children,
-        enabledWhenOffline = false,
-        onSubmit,
-        shouldTrimValues = true,
-        allowHTML = false,
-        isLoading = false,
-        ...rest
-    }: FormProviderProps,
-    forwardedRef: ForwardedRef<FormRef>,
-) {
-    const [network] = useOnyx(ONYXKEYS.NETWORK);
-    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
-    const [draftValues] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`);
+function FormProvider({
+    formID,
+    validate,
+    shouldValidateOnBlur = true,
+    shouldValidateOnChange = true,
+    children,
+    enabledWhenOffline = false,
+    onSubmit,
+    shouldTrimValues = true,
+    allowHTML = false,
+    isLoading = false,
+    shouldRenderFooterAboveSubmit = false,
+    shouldUseStrictHtmlTagValidation = false,
+    shouldPreventDefaultFocusOnPressSubmit = false,
+    ref,
+    ...rest
+}: FormProviderProps) {
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
+    const [draftValues, draftValuesMetadata] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`, {canBeMissing: true});
     const {preferredLocale, translate} = useLocalize();
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
+    const isLoadingDraftValues = isLoadingOnyxValue(draftValuesMetadata);
+    const prevIsLoadingDraftValues = usePrevious(isLoadingDraftValues);
+
+    useEffect(() => {
+        if (isLoadingDraftValues || !prevIsLoadingDraftValues) {
+            return;
+        }
+        setInputValues({...draftValues});
+    }, [isLoadingDraftValues, draftValues, prevIsLoadingDraftValues]);
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
     const {setIsBlurred} = useInputBlurContext();
@@ -113,24 +150,25 @@ function FormProvider(
             }
             clearErrorFields(formID);
 
-            const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues) ?? {};
+            const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues, translate) ?? {};
 
             if (!allowHTML) {
                 // Validate the input for html tags. It should supersede any other error
-                Object.entries(trimmedStringValues).forEach(([inputID, inputValue]) => {
+                for (const [inputID, inputValue] of Object.entries(trimmedStringValues)) {
                     // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
                     if (!inputValue || typeof inputValue !== 'string') {
-                        return;
+                        continue;
                     }
-                    const foundHtmlTagIndex = inputValue.search(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
-                    const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADINGSPACES_HTML_TAG_REGEX);
+                    const validateForHtmlTagRegex = shouldUseStrictHtmlTagValidation ? CONST.STRICT_VALIDATE_FOR_HTML_TAG_REGEX : CONST.VALIDATE_FOR_HTML_TAG_REGEX;
+                    const foundHtmlTagIndex = inputValue.search(validateForHtmlTagRegex);
+                    const leadingSpaceIndex = inputValue.search(CONST.VALIDATE_FOR_LEADING_SPACES_HTML_TAG_REGEX);
 
                     // Return early if there are no HTML characters
                     if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
-                        return;
+                        continue;
                     }
 
-                    const matchedHtmlTags = inputValue.match(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+                    const matchedHtmlTags = inputValue.match(validateForHtmlTagRegex);
                     let isMatch = CONST.WHITELISTED_TAGS.some((regex) => regex.test(inputValue));
                     // Check for any matches that the original regex (foundHtmlTagIndex) matched
                     if (matchedHtmlTags) {
@@ -144,12 +182,12 @@ function FormProvider(
                     }
 
                     if (isMatch && leadingSpaceIndex === -1) {
-                        return;
+                        continue;
                     }
 
                     // Add a validation error here because it is a string value that contains HTML characters
                     validateErrors[inputID] = translate('common.error.invalidCharacter');
-                });
+                }
             }
 
             if (typeof validateErrors !== 'object') {
@@ -158,13 +196,13 @@ function FormProvider(
 
             const touchedInputErrors = Object.fromEntries(Object.entries(validateErrors).filter(([inputID]) => touchedInputs.current[inputID]));
 
-            if (!lodashIsEqual(errors, touchedInputErrors)) {
+            if (!deepEqual(errors, touchedInputErrors)) {
                 setErrors(touchedInputErrors);
             }
 
             return touchedInputErrors;
         },
-        [shouldTrimValues, formID, validate, errors, translate, allowHTML],
+        [shouldTrimValues, formID, validate, errors, translate, allowHTML, shouldUseStrictHtmlTagValidation],
     );
 
     // When locales change from another session of the same account,
@@ -205,7 +243,9 @@ function FormProvider(
             const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
 
             // Touches all form inputs, so we can validate the entire form
-            Object.keys(inputRefs.current).forEach((inputID) => (touchedInputs.current[inputID] = true));
+            for (const inputID of Object.keys(inputRefs.current)) {
+                touchedInputs.current[inputID] = true;
+            }
 
             // Validate form and return early if any errors are found
             if (!isEmptyObject(onValidate(trimmedStringValues))) {
@@ -238,7 +278,7 @@ function FormProvider(
 
     const resetForm = useCallback(
         (optionalValue: FormOnyxValues) => {
-            Object.keys(inputValues).forEach((inputID) => {
+            for (const inputID of Object.keys(inputValues)) {
                 setInputValues((prevState) => {
                     const copyPrevState = {...prevState};
 
@@ -247,7 +287,7 @@ function FormProvider(
 
                     return copyPrevState;
                 });
-            });
+            }
             setErrors({});
         },
         [inputValues],
@@ -269,15 +309,16 @@ function FormProvider(
         [errors, formID],
     );
 
-    useImperativeHandle(forwardedRef, () => ({
+    useImperativeHandle(ref, () => ({
         resetForm,
         resetErrors,
         resetFormFieldError,
+        submit,
     }));
 
     const registerInput = useCallback<RegisterInput>(
         (inputID, shouldSubmitForm, inputProps) => {
-            const newRef: MutableRefObject<InputComponentBaseProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
+            const newRef: RefObject<InputComponentBaseProps> = inputRefs.current[inputID] ?? inputProps.ref ?? createRef();
             if (inputRefs.current[inputID] !== newRef) {
                 inputRefs.current[inputID] = newRef;
             }
@@ -306,7 +347,7 @@ function FormProvider(
             return {
                 ...inputProps,
                 ...(shouldSubmitForm && {
-                    onSubmitEditing: (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
+                    onSubmitEditing: (event: TextInputSubmitEditingEvent) => {
                         submit();
 
                         inputProps.onSubmitEditing?.(event);
@@ -326,12 +367,11 @@ function FormProvider(
                 value: inputValues[inputID],
                 // As the text input is controlled, we never set the defaultValue prop
                 // as this is already happening by the value prop.
-                defaultValue: undefined,
+                // If it's uncontrolled, then we set the `defaultValue` prop to actual value
+                defaultValue: inputProps.uncontrolled ? inputProps.defaultValue : undefined,
                 onTouched: (event) => {
                     if (!inputProps.shouldSetTouchedOnBlurOnly) {
-                        setTimeout(() => {
-                            setTouchedInput(inputID);
-                        }, VALIDATE_DELAY);
+                        setTouchedInput(inputID);
                     }
                     inputProps.onTouched?.(event);
                 },
@@ -380,6 +420,7 @@ function FormProvider(
                     }
                     inputProps.onBlur?.(event);
                     if (isSafari()) {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
                             setIsBlurred(true);
                         });
@@ -421,6 +462,8 @@ function FormProvider(
                 errors={errors}
                 isLoading={isLoading}
                 enabledWhenOffline={enabledWhenOffline}
+                shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
+                shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}
             >
                 {typeof children === 'function' ? children({inputValues}) : children}
             </FormWrapper>
@@ -430,6 +473,6 @@ function FormProvider(
 
 FormProvider.displayName = 'Form';
 
-export default forwardRef(FormProvider) as <TFormID extends OnyxFormKey>(props: FormProviderProps<TFormID> & RefAttributes<FormRef>) => ReactNode;
+export default FormProvider as <TFormID extends OnyxFormKey>(props: FormProviderProps<TFormID>) => ReactNode;
 
 export type {FormProviderProps};

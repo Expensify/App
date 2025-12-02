@@ -28,6 +28,8 @@ type ThemeColors = {
     textSupporting: Color;
     text: Color;
     textColorfulBackground: Color;
+    textReceiptDropZone: Color;
+    textAttachmentDropZone: Color;
     syntax: Color;
     link: Color;
     linkHover: Color;
@@ -73,7 +75,14 @@ type ThemeColors = {
     heroCard: Color;
     uploadPreviewActivityIndicator: Color;
     dropUIBG: Color;
+    dropWrapperBG: Color;
     fileDropUIBG: Color;
+    attachmentDropUIBG: Color;
+    attachmentDropUIBGActive: Color;
+    attachmentDropBorderColorActive: Color;
+    receiptDropUIBG: Color;
+    receiptDropUIBGActive: Color;
+    receiptDropBorderColorActive: Color;
     checkBox: Color;
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
@@ -100,7 +109,16 @@ type ThemeColors = {
     transparentWhite: Color;
     emptyFolderBG: Color;
     travelBG: Color;
+    todoBG: Color;
     trialTimer: Color;
+
+    reportStatusBadge: Record<
+        'draft' | 'outstanding' | 'paid' | 'approved' | 'closed',
+        {
+            backgroundColor: Color;
+            textColor: Color;
+        }
+    >;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 
@@ -109,7 +127,8 @@ type ThemeColors = {
     // e.g. the StatusBar displays either "light-content" or "dark-content" based on the theme
     statusBarStyle: StatusBarStyle;
     navigationBarButtonsStyle: NavBarButtonStyle;
+    translucentNavigationBarBackgroundColor: Color;
     colorScheme: ColorScheme;
 };
 
-export {type ThemePreference, type ThemePreferenceWithoutSystem, type ThemeColors, type Color};
+export {type ThemePreferenceWithoutSystem, type ThemeColors, type Color};

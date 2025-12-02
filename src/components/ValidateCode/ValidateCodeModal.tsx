@@ -1,13 +1,13 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ExpensifyWordmark from '@components/ExpensifyWordmark';
 import Icon from '@components/Icon';
-import {MagicCode} from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,8 +27,10 @@ type ValidateCodeModalProps = {
 function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const signInHere = useCallback(() => signInWithValidateCode(accountID, code), [accountID, code]);
+    const illustrations = useMemoizedLazyIllustrations(['MagicCode'] as const);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const signInHere = useCallback(() => signInWithValidateCode(accountID, code, preferredLocale), [accountID, code, preferredLocale]);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -50,7 +52,7 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
                         <Icon
                             width={variables.modalTopIconWidth}
                             height={variables.modalTopIconHeight}
-                            src={MagicCode}
+                            src={illustrations.MagicCode}
                         />
                     </View>
                     <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.title')}</Text>

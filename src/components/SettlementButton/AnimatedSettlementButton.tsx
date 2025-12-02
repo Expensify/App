@@ -1,6 +1,8 @@
-import React, {useCallback, useEffect} from 'react';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
-import Text from '@components/Text';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+import Button from '@components/Button';
+import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -12,114 +14,115 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isPaidAnimationRunning: boolean;
     onAnimationFinish: () => void;
     isApprovedAnimationRunning: boolean;
+    shouldAddTopMargin?: boolean;
     canIOUBePaid: boolean;
 };
 
 function AnimatedSettlementButton({
     isPaidAnimationRunning,
-    onAnimationFinish,
     isApprovedAnimationRunning,
+    onAnimationFinish,
+    shouldAddTopMargin = false,
     isDisabled,
     canIOUBePaid,
+    wrapperStyle,
     ...settlementButtonProps
 }: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const buttonScale = useSharedValue(1);
-    const buttonOpacity = useSharedValue(1);
-    const paymentCompleteTextScale = useSharedValue(0);
-    const paymentCompleteTextOpacity = useSharedValue(1);
+
+    const isAnimationRunning = isPaidAnimationRunning || isApprovedAnimationRunning;
+    const buttonDuration = isPaidAnimationRunning ? CONST.ANIMATION_PAID_DURATION : CONST.ANIMATION_THUMBS_UP_DURATION;
+    const buttonDelay = CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
+    const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
+    const buttonMarginTop = useSharedValue<number>(gap);
     const height = useSharedValue<number>(variables.componentSizeNormal);
-    const buttonMarginTop = useSharedValue<number>(styles.expenseAndReportPreviewTextButtonContainer.gap);
-    const buttonStyles = useAnimatedStyle(() => ({
-        transform: [{scale: buttonScale.get()}],
-        opacity: buttonOpacity.get(),
-    }));
-    const paymentCompleteTextStyles = useAnimatedStyle(() => ({
-        transform: [{scale: paymentCompleteTextScale.get()}],
-        opacity: paymentCompleteTextOpacity.get(),
-        position: 'absolute',
-        alignSelf: 'center',
-    }));
+    const [canShow, setCanShow] = React.useState(true);
+    const [minWidth, setMinWidth] = React.useState<number>(0);
+    const viewRef = useRef<HTMLElement | null>(null);
+
     const containerStyles = useAnimatedStyle(() => ({
         height: height.get(),
         justifyContent: 'center',
-        overflow: 'hidden',
-        marginTop: buttonMarginTop.get(),
+        ...(shouldAddTopMargin && {marginTop: buttonMarginTop.get()}),
     }));
-    const buttonDisabledStyle =
-        isPaidAnimationRunning || isApprovedAnimationRunning
-            ? {
-                  opacity: 1,
-                  ...styles.cursorDefault,
-              }
-            : undefined;
 
-    const resetAnimation = useCallback(() => {
-        buttonScale.set(1);
-        buttonOpacity.set(1);
-        paymentCompleteTextScale.set(0);
-        paymentCompleteTextOpacity.set(1);
-        height.set(variables.componentSizeNormal);
-        buttonMarginTop.set(styles.expenseAndReportPreviewTextButtonContainer.gap);
-    }, [buttonScale, buttonOpacity, paymentCompleteTextScale, paymentCompleteTextOpacity, height, buttonMarginTop, styles.expenseAndReportPreviewTextButtonContainer.gap]);
+    const willShowPaymentButton = canIOUBePaid && isApprovedAnimationRunning;
+    const stretchOutY = useCallback(() => {
+        'worklet';
 
-    useEffect(() => {
-        if (!isApprovedAnimationRunning && !isPaidAnimationRunning) {
-            resetAnimation();
+        if (shouldAddTopMargin) {
+            buttonMarginTop.set(withTiming(willShowPaymentButton ? gap : 0, {duration: buttonDuration}));
+        }
+        if (willShowPaymentButton) {
+            scheduleOnRN(onAnimationFinish);
             return;
         }
-        buttonScale.set(withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
-        buttonOpacity.set(withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
-        paymentCompleteTextScale.set(withTiming(1, {duration: CONST.ANIMATION_PAID_DURATION}));
+        height.set(withTiming(0, {duration: buttonDuration}, () => scheduleOnRN(onAnimationFinish)));
+    }, [buttonDuration, buttonMarginTop, gap, height, onAnimationFinish, shouldAddTopMargin, willShowPaymentButton]);
 
-        // Wait for the above animation + 1s delay before hiding the component
-        const totalDelay = CONST.ANIMATION_PAID_DURATION + CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
-        const willShowPaymentButton = canIOUBePaid && isApprovedAnimationRunning;
-        height.set(
-            withDelay(
-                totalDelay,
-                withTiming(willShowPaymentButton ? variables.componentSizeNormal : 0, {duration: CONST.ANIMATION_PAID_DURATION}, () => runOnJS(onAnimationFinish)()),
-            ),
-        );
-        buttonMarginTop.set(withDelay(totalDelay, withTiming(willShowPaymentButton ? styles.expenseAndReportPreviewTextButtonContainer.gap : 0, {duration: CONST.ANIMATION_PAID_DURATION})));
-        buttonMarginTop.set(withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION})));
-        paymentCompleteTextOpacity.set(withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION})));
-    }, [
-        isPaidAnimationRunning,
-        isApprovedAnimationRunning,
-        onAnimationFinish,
-        buttonOpacity,
-        buttonScale,
-        height,
-        paymentCompleteTextOpacity,
-        paymentCompleteTextScale,
-        buttonMarginTop,
-        resetAnimation,
-        canIOUBePaid,
-        styles.expenseAndReportPreviewTextButtonContainer.gap,
-    ]);
+    const buttonAnimation = useMemo(
+        () =>
+            new Keyframe({
+                from: {
+                    opacity: 1,
+                    transform: [{scale: 1}],
+                },
+                to: {
+                    opacity: 0,
+                    transform: [{scale: 0}],
+                },
+            })
+                .delay(buttonDelay)
+                .duration(buttonDuration)
+                .withCallback(stretchOutY),
+        [buttonDelay, buttonDuration, stretchOutY],
+    );
+
+    let icon;
+    if (isApprovedAnimationRunning) {
+        icon = Expensicons.ThumbsUp;
+    } else if (isPaidAnimationRunning) {
+        icon = Expensicons.Checkmark;
+    }
+
+    useEffect(() => {
+        if (!isAnimationRunning) {
+            setMinWidth(0);
+            setCanShow(true);
+            height.set(variables.componentSizeNormal);
+            buttonMarginTop.set(shouldAddTopMargin ? gap : 0);
+            return;
+        }
+        setMinWidth(viewRef.current?.getBoundingClientRect?.().width ?? 0);
+        const timer = setTimeout(() => setCanShow(false), CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY);
+        return () => clearTimeout(timer);
+    }, [buttonMarginTop, gap, height, isAnimationRunning, shouldAddTopMargin]);
 
     return (
-        <Animated.View style={containerStyles}>
-            {isPaidAnimationRunning && (
-                <Animated.View style={paymentCompleteTextStyles}>
-                    <Text style={[styles.buttonMediumText]}>{translate('iou.paymentComplete')}</Text>
+        <Animated.View style={[containerStyles, wrapperStyle, {minWidth}]}>
+            {isAnimationRunning && canShow && (
+                <Animated.View
+                    ref={(el) => {
+                        viewRef.current = el as HTMLElement | null;
+                    }}
+                    exiting={buttonAnimation}
+                >
+                    <Button
+                        text={isApprovedAnimationRunning ? translate('iou.approved') : translate('iou.paymentComplete')}
+                        success
+                        icon={icon}
+                    />
                 </Animated.View>
             )}
-            {isApprovedAnimationRunning && (
-                <Animated.View style={paymentCompleteTextStyles}>
-                    <Text style={[styles.buttonMediumText]}>{translate('iou.approved')}</Text>
-                </Animated.View>
-            )}
-            <Animated.View style={buttonStyles}>
+            {!isAnimationRunning && (
                 <SettlementButton
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...settlementButtonProps}
-                    isDisabled={isPaidAnimationRunning || isApprovedAnimationRunning || isDisabled}
-                    disabledStyle={buttonDisabledStyle}
+                    wrapperStyle={wrapperStyle}
+                    isDisabled={isAnimationRunning || isDisabled}
                 />
-            </Animated.View>
+            )}
         </Animated.View>
     );
 }

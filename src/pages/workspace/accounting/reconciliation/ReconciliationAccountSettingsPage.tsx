@@ -1,63 +1,79 @@
-import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import React, {useCallback, useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
+import RenderHTML from '@components/RenderHTML';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import useDefaultFundID from '@hooks/useDefaultFundID';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as AccountingUtils from '@libs/AccountingUtils';
+import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import * as CardUtils from '@libs/CardUtils';
+import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import * as Card from '@userActions/Card';
+import {updateSettlementAccount} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ReconciliationAccountSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS>;
 
+type ReconciliationAccountSettingsPageRouteParams = {
+    backTo?: Route;
+};
+
 function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSettingsPageProps) {
     const {policyID, connection} = route.params;
+    const {backTo} = route.params as ReconciliationAccountSettingsPageRouteParams;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
-    const connectionName = AccountingUtils.getConnectionNameFromRouteParam(connection);
+    const connectionName = getConnectionNameFromRouteParam(connection);
+    const defaultFundID = useDefaultFundID(policyID);
 
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
+    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
 
-    const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID.toString()], [paymentBankAccountID, bankAccountList]);
-    const bankAccountNumber = useMemo(() => selectedBankAccount?.accountData?.accountNumber ?? '', [selectedBankAccount]);
+    const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID?.toString() ?? ''], [paymentBankAccountID, bankAccountList]);
+    const bankAccountNumber = useMemo(() => selectedBankAccount?.accountData?.accountNumber ?? '', [selectedBankAccount?.accountData?.accountNumber]);
     const settlementAccountEnding = getLastFourDigits(bankAccountNumber);
+    const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
+    const {environmentURL} = useEnvironment();
 
-    const sections = useMemo(() => {
+    const options = useMemo(() => {
         if (!bankAccountList || isEmptyObject(bankAccountList)) {
             return [];
         }
-        const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountList);
+        const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList);
 
-        const data = eligibleBankAccounts.map((bankAccount) => ({
+        return eligibleBankAccounts.map((bankAccount, index) => ({
             text: bankAccount.title,
             value: bankAccount.accountData?.bankAccountID,
-            keyForList: bankAccount.accountData?.bankAccountID?.toString(),
+            keyForList: bankAccount.accountData?.bankAccountID?.toString() ?? `${bankAccount.title}-${index}`,
             isSelected: bankAccount.accountData?.bankAccountID === paymentBankAccountID,
+            alternateText:
+                bankAccount.description ??
+                (bankAccount.accountData?.accountNumber ? `${translate('bankAccount.accountEnding')} ${getLastFourDigits(bankAccount.accountData.accountNumber)}` : ''),
         }));
-        return [{data}];
-    }, [bankAccountList, paymentBankAccountID]);
+    }, [bankAccountList, paymentBankAccountID, translate]);
+
+    const goBack = useCallback(() => {
+        Navigation.goBack(backTo ?? ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection));
+    }, [policyID, backTo, connection]);
 
     const selectBankAccount = (newBankAccountID?: number) => {
-        Card.updateSettlementAccount(workspaceAccountID, policyID, newBankAccountID, paymentBankAccountID);
-        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection));
+        updateSettlementAccount(domainName, defaultFundID, policyID, newBankAccountID, paymentBankAccountID);
+        goBack();
     };
 
     return (
@@ -70,22 +86,23 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             contentContainerStyle={[styles.flex1, styles.pb2]}
             connectionName={connectionName}
             shouldUseScrollView={false}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection))}
+            onBackButtonPress={goBack}
         >
             <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>{translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}</Text>
             <Text style={[styles.textNormal, styles.mb6, styles.ph5]}>
-                {translate('workspace.accounting.chooseReconciliationAccount.accountMatches')}
-                <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID))}>
-                    {translate('workspace.accounting.chooseReconciliationAccount.settlementAccount')}
-                </TextLink>
-                {translate('workspace.accounting.chooseReconciliationAccount.reconciliationWorks', {lastFourPAN: settlementAccountEnding})}
+                <RenderHTML
+                    html={translate('workspace.accounting.chooseReconciliationAccount.settlementAccountReconciliation', {
+                        settlementAccountUrl: `${environmentURL}/${ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute())}`,
+                        lastFourPAN: settlementAccountEnding,
+                    })}
+                />
             </Text>
 
             <SelectionList
-                sections={sections}
+                data={options}
                 onSelectRow={({value}) => selectBankAccount(value)}
                 ListItem={RadioListItem}
-                initiallyFocusedOptionKey={paymentBankAccountID.toString()}
+                initiallyFocusedItemKey={paymentBankAccountID?.toString()}
             />
         </ConnectionLayout>
     );

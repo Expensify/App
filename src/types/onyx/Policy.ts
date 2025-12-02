@@ -59,6 +59,9 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Subrates of the given rate */
         subRates?: Subrate[];
+
+        /** Sort order index for displaying rates */
+        index?: number;
     },
     keyof TaxRateAttributes
 >;
@@ -119,6 +122,75 @@ type CompanyAddress = {
     /** Country code */
     country: Country | '';
 };
+
+/**
+ * Uber Receipt Partner
+ */
+type UberReceiptPartner = {
+    /**
+     * form data for uber partner
+     */
+    connectFormData: string;
+    /**
+     * auto invite for uber connection
+     */
+    autoInvite?: boolean;
+    /**
+     * auto remove for uber connection
+     */
+    autoRemove?: boolean;
+    /**
+     * Whether uber is enabled for user
+     */
+    enabled?: boolean;
+    /**
+     * organization id for connected uber
+     */
+    organizationID?: string;
+    /**
+     * name of the organization in uber
+     */
+    organizationName?: string;
+    /**
+     * account to import the receipts to
+     */
+    centralBillingAccountEmail?: string;
+
+    /**
+     * Mapping of workspace member email to Uber employee status
+     */
+    employees?: Record<
+        string,
+        OnyxCommon.OnyxValueWithOfflineFeedback<{
+            /**
+             * status of the employee
+             */
+            status?: string;
+            /** A list of errors keyed by microtime */
+            errors?: OnyxCommon.Errors | null;
+        }>
+    >;
+    /**
+     * Whether credentials are invalid
+     */
+    error?: string;
+    /**
+     * Collection of errors coming from BE
+     */
+    errors?: OnyxCommon.Errors;
+    /**
+     * Collection of form field errors
+     */
+    errorFields?: OnyxCommon.ErrorFields;
+};
+
+/** Policy Receipt partners */
+type ReceiptPartners = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Whether receipt partners are enabled */
+        enabled?: boolean;
+    } & Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>
+>;
 
 /** Policy disabled fields */
 type DisabledFields = {
@@ -468,7 +540,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Configuration of the export */
     export: {
         /** E-mail of the exporter */
-        exporter: string;
+        exporter?: string;
     };
 
     /** Collections of form field errors */
@@ -476,6 +548,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Credentials of the current QBO connection */
     credentials: QBOCredentials;
+
+    /** The accounting Method for NetSuite connection config */
+    accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 }>;
 
 /**
@@ -566,9 +641,7 @@ type XeroConnectionData = {
 type XeroMappingType = {
     /** TODO: Will be handled in another issue */
     customer: string;
-} & {
-    [key in `trackingCategory_${string}`]: string;
-};
+} & Record<`trackingCategory_${string}`, string>;
 
 /** Xero auto synchronization configs */
 type XeroAutoSyncConfig = {
@@ -597,7 +670,7 @@ type XeroExportConfig = {
     billable: ExpenseTypesValues;
 
     /** The e-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** TODO: Will be handled in another issue */
     nonReimbursable: ExpenseTypesValues;
@@ -607,6 +680,9 @@ type XeroExportConfig = {
 
     /** TODO: Will be handled in another issue */
     reimbursable: ExpenseTypesValues;
+
+    /** The accounting Method for Xero connection config */
+    accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 /** TODO: Will be handled in another issue */
@@ -965,7 +1041,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoCreateEntities: boolean;
 
         /** The account to run auto export */
-        exporter: string;
+        exporter?: string;
 
         /** The transaction date to set upon export */
         exportDate?: NetSuiteExportDateOptions;
@@ -982,7 +1058,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The Item record to associate with lines on an invoice created via Expensify */
         invoiceItem?: string;
 
-        /** The internaID of the selected subsidiary in NetSuite */
+        /** The internalID of the selected subsidiary in NetSuite */
         subsidiaryID?: string;
 
         /** The default vendor to use for Transactions in NetSuite */
@@ -1009,7 +1085,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether this account is using the newer version of tax in NetSuite, SuiteTax */
         suiteTaxEnabled?: boolean;
 
-        /** The accounting Method for NetSuite conenction config */
+        /** The accounting Method for NetSuite connection config */
         accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 
         /** Collection of errors coming from BE */
@@ -1123,10 +1199,10 @@ type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>
  * Sage Intacct dimension type
  */
 type SageIntacctDimension = {
-    /** Name of user defined dimention */
+    /** Name of user defined dimension */
     dimension: string;
 
-    /** Mapping value for user defined dimention */
+    /** Mapping value for user defined dimension */
     mapping: typeof CONST.SAGE_INTACCT_MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_MAPPING_VALUE.REPORT_FIELD;
 };
 
@@ -1150,7 +1226,7 @@ type SageIntacctMappingType = {
     /** Mapping type for Sage Intacct */
     projects: SageIntacctMappingValue;
 
-    /** User defined dimention type for Sage Intacct */
+    /** User defined dimension type for Sage Intacct */
     dimensions: SageIntacctDimension[];
 };
 
@@ -1175,7 +1251,7 @@ type SageIntacctExportConfig = {
     exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
 
     /** The e-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** Defines how non-reimbursable expenses are exported */
     nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
@@ -1194,6 +1270,9 @@ type SageIntacctExportConfig = {
 
     /** Default vendor of reimbursable bill */
     reimbursableExpenseReportDefaultVendor: string;
+
+    /** Accounting method for Sage Intacct */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 /**
@@ -1281,69 +1360,80 @@ type QBDConnectionData = {
 };
 
 /**
+ * Export config for QuickBooks Desktop
+ */
+type QBDExportConfig = {
+    /** E-mail of the exporter */
+    exporter?: string;
+
+    /** Defines how reimbursable expenses are exported */
+    reimbursable: QBDReimbursableExportAccountType;
+
+    /** Account that receives the reimbursable expenses */
+    reimbursableAccount: string;
+
+    /** Export date type */
+    exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+
+    /** Defines how non-reimbursable expenses are exported */
+    nonReimbursable: QBDNonReimbursableExportAccountType;
+
+    /** Account that receives the non reimbursable expenses */
+    nonReimbursableAccount: string;
+
+    /** Default vendor of non reimbursable bill */
+    nonReimbursableBillDefaultVendor: string;
+
+    /** Accounting method for QBD */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+};
+
+/**
  * User configuration for the QuickBooks Desktop accounting integration.
  */
-type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** API provider */
-    apiProvider: string;
+type QBDConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** API provider */
+        apiProvider: string;
 
-    /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
-    autoSync: {
-        /** Job ID of the synchronization */
-        jobID: string;
+        /** Configuration of automatic synchronization from QuickBooks Desktop to the app */
+        autoSync: {
+            /** Job ID of the synchronization */
+            jobID: string;
 
-        /** Whether changes made in QuickBooks Desktop should be reflected into the app automatically */
-        enabled: boolean;
-    };
+            /** Whether changes made in QuickBooks Desktop should be reflected into the app automatically */
+            enabled: boolean;
+        };
 
-    /** Whether a check to be printed */
-    markChecksToBePrinted: boolean;
+        /** Whether a check to be printed */
+        markChecksToBePrinted: boolean;
 
-    /** Determines if a vendor should be automatically created */
-    shouldAutoCreateVendor: boolean;
+        /** Determines if a vendor should be automatically created */
+        shouldAutoCreateVendor: boolean;
 
-    /** Whether items is imported */
-    importItems: boolean;
+        /** Whether items is imported */
+        importItems: boolean;
 
-    /** Configuration of the export */
-    export: {
-        /** E-mail of the exporter */
-        exporter: string;
+        /** Configuration of the export */
+        export: QBDExportConfig;
 
-        /** Defines how reimbursable expenses are exported */
-        reimbursable: QBDReimbursableExportAccountType;
+        /** Configuration of import settings from QuickBooks Desktop to the app */
+        mappings: {
+            /** How QuickBooks Desktop classes displayed as */
+            classes: IntegrationEntityMap;
 
-        /** Account that receives the reimbursable expenses */
-        reimbursableAccount: string;
+            /** How QuickBooks Desktop customers displayed as */
+            customers: IntegrationEntityMap;
+        };
 
-        /** Export date type */
-        exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+        /** Whether new categories are enabled in chart of accounts */
+        enableNewCategories: boolean;
 
-        /** Defines how non-reimbursable expenses are exported */
-        nonReimbursable: QBDNonReimbursableExportAccountType;
-
-        /** Account that receives the non reimbursable expenses */
-        nonReimbursableAccount: string;
-
-        /** Default vendor of non reimbursable bill */
-        nonReimbursableBillDefaultVendor: string;
-    };
-
-    /** Configuration of import settings from QuickBooks Desktop to the app */
-    mappings: {
-        /** How QuickBooks Desktop classes displayed as */
-        classes: IntegrationEntityMap;
-
-        /** How QuickBooks Desktop customers displayed as */
-        customers: IntegrationEntityMap;
-    };
-
-    /** Whether new categories are enabled in chart of accounts */
-    enableNewCategories: boolean;
-
-    /** Collections of form field errors */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
+        /** Collections of form field errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    keyof QBDExportConfig
+>;
 
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
@@ -1419,7 +1509,28 @@ type ACHAccount = {
 
     /** E-mail of the reimburser */
     reimburser: string;
+
+    /** Bank account state */
+    state?: string;
 };
+
+/** Prohibited expense types */
+type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Whether the policy prohibits alcohol expenses */
+    alcohol?: boolean;
+
+    /** Whether the policy prohibits hotel incidental expenses */
+    hotelIncidentals?: boolean;
+
+    /** Whether the policy prohibits gambling expenses */
+    gambling?: boolean;
+
+    /** Whether the policy prohibits tobacco expenses */
+    tobacco?: boolean;
+
+    /** Whether the policy prohibits adult entertainment expenses */
+    adultEntertainment?: boolean;
+}>;
 
 /** Day of the month to schedule submission  */
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
@@ -1462,7 +1573,7 @@ type PolicyReportField = {
     /** list of externalIDs, this are either imported from the integrations or auto generated by us, each externalID */
     externalIDs: string[];
 
-    /** Collection of flags that state whether droplist field options are disabled */
+    /** Collection of flags that state whether drop down field options are disabled */
     disabledOptions: boolean[];
 
     /** Is this a tax user defined report field */
@@ -1653,6 +1764,12 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
 
+        /** The set reimburser for the policy */
+        reimburser?: string;
+
+        /** The set exporter for the policy */
+        exporter?: string;
+
         /** Detailed settings for the autoReimbursement */
         autoReimbursement?: OnyxCommon.OnyxValueWithOfflineFeedback<
             {
@@ -1687,11 +1804,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             'limit' | 'auditRate'
         >;
 
-        /**
-         * Whether the custom report name options are enabled in the policy rules
-         */
-        shouldShowCustomReportTitleOption?: boolean;
-
         /** Whether to leave the calling account as an admin on the policy */
         makeMeAdmin?: boolean;
 
@@ -1716,6 +1828,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether transactions should be billable by default */
         defaultBillable?: boolean;
 
+        /** Whether transactions should be reimbursable by default */
+        defaultReimbursable?: boolean;
+
         /** The workspace description */
         description?: string;
 
@@ -1727,6 +1842,11 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether new transactions need to be categorized */
         requiresCategory?: boolean;
+
+        /**
+         * Policy Receipt Partners
+         */
+        receiptPartners?: ReceiptPartners;
 
         /** Whether the workspace has multiple levels of tags enabled */
         hasMultipleTagLists?: boolean;
@@ -1750,14 +1870,17 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of tax rates attached to a policy */
         taxRates?: TaxRatesWithDefault;
 
-        /** A set of rules related to the workpsace */
+        /** A set of rules related to the workspace */
         rules?: {
-            /** A set of rules related to the workpsace approvals */
+            /** A set of rules related to the workspace approvals */
             approvalRules?: ApprovalRule[];
 
-            /** A set of rules related to the workpsace expenses */
+            /** A set of rules related to the workspace expenses */
             expenseRules?: ExpenseRule[];
         };
+
+        /** A set of custom rules defined with natural language */
+        customRules?: string;
 
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
@@ -1813,6 +1936,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the eReceipts are enabled */
         eReceipts?: boolean;
 
+        /** Settings for the Policy's prohibited expenses */
+        prohibitedExpenses?: ProhibitedExpenses;
+
         /** Indicates if the Policy is in loading state */
         isLoading?: boolean;
 
@@ -1825,7 +1951,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the Policy ownership change is failed */
         isChangeOwnerFailed?: boolean;
 
-        /** Object containing all policy information necessary to connect with Spontana */
+        /** Object containing all policy information necessary to connect with Spotnana */
         travelSettings?: WorkspaceTravelSettings;
 
         /** Indicates if the policy is pending an upgrade */
@@ -1861,8 +1987,17 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             email: string;
         };
 
+        /** Email address of the technical contact */
+        technicalContact?: string;
+
         /** Indicate whether the Workspace plan can be downgraded */
         canDowngrade?: boolean;
+
+        /** Policy level user created in-app export templates */
+        exportLayouts?: Record<string, OnyxTypes.ExportTemplate>;
+
+        /** Whether Attendee Tracking is enabled */
+        isAttendeeTrackingEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
@@ -1902,13 +2037,14 @@ export type {
     IntegrationEntityMap,
     PolicyFeatureName,
     PolicyDetailsForNonMembers,
-    PendingJoinRequestPolicy,
     PolicyConnectionName,
     PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
     Connections,
     SageIntacctOfflineStateKeys,
     ConnectionName,
+    ReceiptPartners,
+    UberReceiptPartner,
     AllConnectionName,
     Tenant,
     Account,
@@ -1923,13 +2059,11 @@ export type {
     NetSuiteSubsidiary,
     NetSuiteCustomList,
     NetSuiteCustomSegment,
-    NetSuiteCustomListSource,
     NetSuiteCustomFieldMapping,
     NetSuiteAccount,
     NetSuiteVendor,
     InvoiceItem,
     NetSuiteTaxAccount,
-    NetSuiteCustomFormIDOptions,
     NetSuiteCustomFormID,
     SageIntacctMappingValue,
     SageIntacctMappingType,
@@ -1946,4 +2080,5 @@ export type {
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,
+    ProhibitedExpenses,
 };

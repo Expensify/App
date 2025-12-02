@@ -1,6 +1,6 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import AccountUtils from '@libs/AccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,6 +23,7 @@ type DelegateNoAccessWrapperProps = {
     accessDeniedVariants?: AccessDeniedVariants[];
     shouldForceFullScreen?: boolean;
     children?: (() => React.ReactNode) | React.ReactNode;
+    onBackButtonPress?: () => void;
 };
 
 function isDelegate(account: OnyxEntry<Account>) {
@@ -35,7 +36,7 @@ function isSubmitter(account: OnyxEntry<Account>) {
     return isDelegateOnlySubmitter;
 }
 
-function DelegateNoAccessWrapper({accessDeniedVariants = [], shouldForceFullScreen, ...props}: DelegateNoAccessWrapperProps) {
+function DelegateNoAccessWrapper({accessDeniedVariants = [], shouldForceFullScreen, onBackButtonPress, ...props}: DelegateNoAccessWrapperProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isPageAccessDenied = accessDeniedVariants.reduce((acc, variant) => {
         const accessDeniedFunction = DENIED_ACCESS_VARIANTS[variant];
@@ -49,6 +50,10 @@ function DelegateNoAccessWrapper({accessDeniedVariants = [], shouldForceFullScre
                 shouldShow
                 shouldForceFullScreen={shouldForceFullScreen}
                 onBackButtonPress={() => {
+                    if (onBackButtonPress) {
+                        onBackButtonPress();
+                        return;
+                    }
                     if (shouldUseNarrowLayout) {
                         Navigation.dismissModal();
                         return;

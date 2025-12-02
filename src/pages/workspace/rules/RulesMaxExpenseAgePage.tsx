@@ -14,7 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as PolicyActions from '@userActions/Policy/Policy';
+import {setPolicyMaxExpenseAge} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -39,7 +39,7 @@ function RulesMaxExpenseAgePage({
 
     const onChangeMaxExpenseAge = useCallback((newValue: string) => {
         // replace all characters that are not spaces or digits
-        let validMaxExpenseAge = newValue.replace(/[^0-9]/g, '');
+        let validMaxExpenseAge = newValue.replaceAll(/[^0-9]/g, '');
         validMaxExpenseAge = validMaxExpenseAge.match(/(?:\d *){1,5}/)?.[0] ?? '';
         setMaxExpenseAgeValue(validMaxExpenseAge);
     }, []);
@@ -51,7 +51,7 @@ function RulesMaxExpenseAgePage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={RulesMaxExpenseAgePage.displayName}
             >
@@ -63,11 +63,13 @@ function RulesMaxExpenseAgePage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM}
                     onSubmit={({maxExpenseAge}) => {
-                        PolicyActions.setPolicyMaxExpenseAge(policyID, maxExpenseAge);
+                        setPolicyMaxExpenseAge(policyID, maxExpenseAge);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

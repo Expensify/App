@@ -1,9 +1,10 @@
-import lodashSortBy from 'lodash/sortBy';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, TaxRate, TaxRates, Transaction} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import * as TransactionUtils from './TransactionUtils';
+import tokenizedSearch from './tokenizedSearch';
+import {transformedTaxRates} from './TransactionUtils';
 
 type TaxRatesOption = {
     text?: string;
@@ -31,9 +32,9 @@ type TaxSection = {
 /**
  * Sorts tax rates alphabetically by name.
  */
-function sortTaxRates(taxRates: TaxRates): TaxRate[] {
-    const sortedtaxRates = lodashSortBy(taxRates, (taxRate) => taxRate.name);
-    return sortedtaxRates;
+function sortTaxRates(taxRates: TaxRates, localeCompare: LocaleContextProps['localeCompare']): TaxRate[] {
+    const sortedTaxRates = Object.values(taxRates).sort((a, b) => localeCompare(a.name, b.name));
+    return sortedTaxRates;
 }
 
 /**
@@ -58,38 +59,40 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[]
 function getTaxRatesSection({
     policy,
     searchValue,
+    localeCompare,
     selectedOptions = [],
     transaction,
 }: {
     policy: OnyxEntry<Policy> | undefined;
     searchValue: string;
+    localeCompare: LocaleContextProps['localeCompare'];
     selectedOptions?: Tax[];
     transaction?: OnyxEntry<Transaction>;
 }): TaxSection[] {
     const policyRatesSections = [];
 
-    const taxes = TransactionUtils.transformedTaxRates(policy, transaction);
+    const taxes = transformedTaxRates(policy, transaction);
 
-    const sortedTaxRates = sortTaxRates(taxes);
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.modifiedName);
+    const sortedTaxRates = sortTaxRates(taxes, localeCompare);
+    const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.modifiedName));
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
-    const enabledTaxRatesNames = enabledTaxRates.map((tax) => tax.modifiedName);
-    const enabledTaxRatesWithoutSelectedOptions = enabledTaxRates.filter((tax) => tax.modifiedName && !selectedOptionNames.includes(tax.modifiedName));
+    const enabledTaxRatesNames = new Set(enabledTaxRates.map((tax) => tax.modifiedName));
+    const enabledTaxRatesWithoutSelectedOptions = enabledTaxRates.filter((tax) => tax.modifiedName && !selectedOptionNames.has(tax.modifiedName));
     const selectedTaxRateWithDisabledState: Tax[] = [];
     const numberOfTaxRates = enabledTaxRates.length;
 
-    selectedOptions.forEach((tax) => {
-        if (enabledTaxRatesNames.includes(tax.modifiedName)) {
+    for (const tax of selectedOptions) {
+        if (enabledTaxRatesNames.has(tax.modifiedName)) {
             selectedTaxRateWithDisabledState.push({...tax, isDisabled: false, isSelected: true});
-            return;
+            continue;
         }
         selectedTaxRateWithDisabledState.push({...tax, isDisabled: true, isSelected: true});
-    });
+    }
 
     // If all tax are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
         policyRatesSections.push({
-            // "Selected" sectiong
+            // "Selected" section
             title: '',
             shouldShow: false,
             data: getTaxRatesOptions(selectedTaxRateWithDisabledState),
@@ -99,9 +102,10 @@ function getTaxRatesSection({
     }
 
     if (searchValue) {
-        const enabledSearchTaxRates = enabledTaxRatesWithoutSelectedOptions.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchValue.toLowerCase()));
-        const selectedSearchTags = selectedTaxRateWithDisabledState.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchValue.toLowerCase()));
-        const taxesForSearch = [...selectedSearchTags, ...enabledSearchTaxRates];
+        const taxesForSearch = [
+            ...tokenizedSearch(selectedTaxRateWithDisabledState, searchValue, (taxRate) => [taxRate.modifiedName ?? '']),
+            ...tokenizedSearch(enabledTaxRatesWithoutSelectedOptions, searchValue, (taxRate) => [taxRate.modifiedName ?? '']),
+        ];
 
         policyRatesSections.push({
             // "Search" section
@@ -143,5 +147,5 @@ function getTaxRatesSection({
     return policyRatesSections;
 }
 
-export {getTaxRatesSection, sortTaxRates, getTaxRatesOptions};
-export type {TaxRatesOption, Tax, TaxSection};
+export {getTaxRatesSection, getTaxRatesOptions};
+export type {TaxRatesOption, Tax};

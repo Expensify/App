@@ -9,7 +9,7 @@ import {getAdminPoliciesConnectedToNetSuite} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -29,8 +29,8 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
             title: policy.name,
             key: policy.id,
             avatarID: policy.id,
-            icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-            iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
+            icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+            iconType: CONST.ICON_TYPE_WORKSPACE,
             description: date
                 ? translate('workspace.common.lastSyncDate', {
                       connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite,
@@ -56,7 +56,6 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
             shouldLoadForEmptyConnection
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
-            shouldIncludeSafeAreaPaddingBottom
         >
             <View style={[styles.flex1]}>
                 <MenuItemList

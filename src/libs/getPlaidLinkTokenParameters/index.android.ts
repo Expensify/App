@@ -1,8 +1,8 @@
-import CONST from '@src/CONST';
+import DeviceInfo from 'react-native-device-info';
 import type GetPlaidLinkTokenParameters from './types';
 
 const getPlaidLinkTokenParameters: GetPlaidLinkTokenParameters = () => ({
-    androidPackage: CONST.ANDROID_PACKAGE_NAME,
+    androidPackage: DeviceInfo.getBundleId(),
 });
 
 export default getPlaidLinkTokenParameters;

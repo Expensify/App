@@ -8,9 +8,6 @@ type DismissedReferralBanners = {
     /** Is 'Start chat' referral dismissed */
     [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]?: boolean;
 
-    /** Is 'Pay someone' referral dismissed */
-    [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE]?: boolean;
-
     /** Is 'Refer friend' referral dismissed */
     [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]?: boolean;
 

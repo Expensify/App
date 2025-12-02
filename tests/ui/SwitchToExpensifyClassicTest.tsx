@@ -1,8 +1,6 @@
 import * as NativeNavigation from '@react-navigation/native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {act} from 'react-test-renderer';
-import * as Localize from '@libs/Localize';
 import App from '@src/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
@@ -14,7 +12,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const USER_A_ACCOUNT_ID = 1;
 const USER_A_EMAIL = 'user_a@test.com';
 
-jest.setTimeout(60000);
+jest.setTimeout(120000);
 
 jest.mock('@react-navigation/native');
 
@@ -22,7 +20,7 @@ TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
 
 function navigateToSetting() {
-    const hintText = Localize.translateLocal('sidebarScreen.buttonMySettings');
+    const hintText = TestHelper.translateLocal('sidebarScreen.buttonMySettings');
     const mySettingButton = screen.queryByAccessibilityHint(hintText);
     if (mySettingButton) {
         fireEvent(mySettingButton, 'press');
@@ -31,7 +29,7 @@ function navigateToSetting() {
 }
 
 function navigateToExpensifyClassicFlow() {
-    const hintText = Localize.translateLocal('exitSurvey.goToExpensifyClassic');
+    const hintText = TestHelper.translateLocal('exitSurvey.goToExpensifyClassic');
     const switchToExpensifyClassicBtn = screen.queryByAccessibilityHint(hintText);
     if (switchToExpensifyClassicBtn) {
         fireEvent(switchToExpensifyClassicBtn, 'press');
@@ -44,14 +42,14 @@ function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
     return waitForBatchedUpdatesWithAct()
         .then(async () => {
             await waitForBatchedUpdatesWithAct();
-            const hintText = Localize.translateLocal('loginForm.loginForm');
+            const hintText = TestHelper.translateLocal('loginForm.loginForm');
             const loginForm = screen.queryAllByLabelText(hintText);
             expect(loginForm).toHaveLength(1);
 
             await act(async () => {
                 await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
             });
-            await Onyx.set(ONYXKEYS.NVP_TRYNEWDOT, {
+            await Onyx.set(ONYXKEYS.NVP_TRY_NEW_DOT, {
                 classicRedirect: {
                     dismissed: dismissedValue,
                 },
@@ -59,8 +57,8 @@ function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
             await waitForBatchedUpdates();
             return navigateToSetting();
         })
-        .then(async () => {
-            await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+        .then(() => {
+            act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
             return navigateToExpensifyClassicFlow();
         });
 }
@@ -74,15 +72,9 @@ describe('Switch to Expensify Classic flow', () => {
         PusherHelper.teardown();
     });
 
-    test('Should navigate to BookACall when dismissed is false', () => {
-        signInAppAndEnterTestFlow(false).then(() => {
-            expect(screen.getAllByText(Localize.translateLocal('exitSurvey.bookACallTitle')).at(0)).toBeOnTheScreen();
-        });
-    });
-
-    test('Should navigate to ConfirmPage when dismissed is true', () => {
+    test('Should navigate to exit survey reason page', () => {
         signInAppAndEnterTestFlow(true).then(() => {
-            expect(screen.getAllByText(Localize.translateLocal('exitSurvey.goToExpensifyClassic')).at(0)).toBeOnTheScreen();
+            expect(screen.getAllByText(TestHelper.translateLocal('exitSurvey.reasonPage.subtitle')).at(0)).toBeOnTheScreen();
         });
     });
 });

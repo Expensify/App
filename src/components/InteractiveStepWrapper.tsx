@@ -1,4 +1,5 @@
-import React, {forwardRef} from 'react';
+import type {ForwardedRef} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,33 +36,55 @@ type InteractiveStepWrapperProps = {
     // Should show offline indicator
     shouldShowOfflineIndicator?: boolean;
 
+    // Should show offline indicator in wide screen
+    shouldShowOfflineIndicatorInWideScreen?: boolean;
+
     // Should enable picker avoiding
     shouldEnablePickerAvoiding?: boolean;
 
-    // Call task ID for the guides
-    guidesCallTaskID?: string;
-
     // Offline indicator style
     offlineIndicatorStyle?: StyleProp<ViewStyle>;
+
+    /**
+     * Whether the KeyboardAvoidingView should compensate for the bottom safe area padding.
+     * The KeyboardAvoidingView will use a negative keyboardVerticalOffset.
+     */
+    shouldKeyboardOffsetBottomSafeAreaPadding?: boolean;
+
+    /**
+     * Temporary flag to disable safe area bottom spacing in the ScreenWrapper and to allow edge-to-edge content
+     * The ScreenWrapper should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
+     * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
+     */
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
+
+    /**
+     * Callback to be called when the screen entry transition ends.
+     */
+    onEntryTransitionEnd?: () => void;
+
+    // Reference to the outer element
+    ref?: ForwardedRef<View>;
 };
 
-function InteractiveStepWrapper(
-    {
-        children,
-        wrapperID,
-        handleBackButtonPress,
-        headerTitle,
-        headerSubtitle,
-        startStepIndex,
-        stepNames,
-        shouldEnableMaxHeight,
-        shouldShowOfflineIndicator,
-        shouldEnablePickerAvoiding = false,
-        guidesCallTaskID,
-        offlineIndicatorStyle,
-    }: InteractiveStepWrapperProps,
-    ref: React.ForwardedRef<View>,
-) {
+function InteractiveStepWrapper({
+    children,
+    wrapperID,
+    handleBackButtonPress,
+    headerTitle,
+    headerSubtitle,
+    startStepIndex,
+    stepNames,
+    shouldEnableMaxHeight,
+    shouldShowOfflineIndicator,
+    shouldShowOfflineIndicatorInWideScreen,
+    shouldEnablePickerAvoiding = false,
+    offlineIndicatorStyle,
+    shouldKeyboardOffsetBottomSafeAreaPadding,
+    enableEdgeToEdgeBottomSafeAreaPadding,
+    onEntryTransitionEnd,
+    ref,
+}: InteractiveStepWrapperProps) {
     const styles = useThemeStyles();
 
     return (
@@ -69,16 +92,19 @@ function InteractiveStepWrapper(
             ref={ref}
             testID={wrapperID}
             includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
             shouldEnablePickerAvoiding={shouldEnablePickerAvoiding}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
             offlineIndicatorStyle={offlineIndicatorStyle}
+            shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
+            onEntryTransitionEnd={onEntryTransitionEnd}
         >
             <HeaderWithBackButton
                 title={headerTitle}
                 subtitle={headerSubtitle}
                 onBackButtonPress={handleBackButtonPress}
-                guidesCallTaskID={guidesCallTaskID}
             />
             {!!stepNames && (
                 <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
@@ -95,4 +121,4 @@ function InteractiveStepWrapper(
 
 InteractiveStepWrapper.displayName = 'InteractiveStepWrapper';
 
-export default forwardRef(InteractiveStepWrapper);
+export default InteractiveStepWrapper;

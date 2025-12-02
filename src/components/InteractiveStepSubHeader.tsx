@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useImperativeHandle, useState} from 'react';
+import React, {useImperativeHandle, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,6 +20,9 @@ type InteractiveStepSubHeaderProps = {
 
     /** The index of the step to start with */
     startStepIndex?: number;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<InteractiveStepSubHeaderHandle>;
 };
 
 type InteractiveStepSubHeaderHandle = {
@@ -28,12 +31,15 @@ type InteractiveStepSubHeaderHandle = {
 
     /** Move to the previous step */
     movePrevious: () => void;
+
+    /** Move to a specific step */
+    moveTo: (step: number) => void;
 };
 
 const MIN_AMOUNT_FOR_EXPANDING = 3;
 const MIN_AMOUNT_OF_STEPS = 2;
 
-function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected}: InteractiveStepSubHeaderProps, ref: ForwardedRef<InteractiveStepSubHeaderHandle>) {
+function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected, ref}: InteractiveStepSubHeaderProps) {
     const styles = useThemeStyles();
     const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
 
@@ -50,6 +56,9 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
             },
             movePrevious: () => {
                 setCurrentStep((actualStep) => actualStep - 1);
+            },
+            moveTo: (step: number) => {
+                setCurrentStep(step);
             },
         }),
         [],
@@ -117,4 +126,4 @@ InteractiveStepSubHeader.displayName = 'InteractiveStepSubHeader';
 
 export type {InteractiveStepSubHeaderProps, InteractiveStepSubHeaderHandle};
 
-export default forwardRef(InteractiveStepSubHeader);
+export default InteractiveStepSubHeader;

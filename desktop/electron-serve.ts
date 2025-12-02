@@ -1,26 +1,20 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+
 /* eslint-disable @typescript-eslint/no-misused-promises */
 
 /* eslint-disable rulesdir/no-negated-variables */
-
-/* eslint-disable @lwc/lwc/no-async-await */
 
 /**
  * This file is a modified version of the electron-serve package.
  * We keep the same interface, but instead of file protocol we use buffer protocol (with support of JS self profiling).
  */
-import type {BrowserWindow, Protocol} from 'electron';
+import type {BrowserWindow} from 'electron';
 import {app, protocol, session} from 'electron';
 import fs from 'fs';
 import mime from 'mime-types';
 import path from 'path';
 
-type RegisterBufferProtocol = Protocol['registerBufferProtocol'];
-type HandlerType = Parameters<RegisterBufferProtocol>[1];
-type Optional<T> = T | null | undefined;
-
-const FILE_NOT_FOUND = -6;
-
-const getPath = async (filePath: string): Promise<Optional<string>> => {
+const getPath = async (filePath: string): Promise<string | undefined> => {
     try {
         const result = await fs.promises.stat(filePath);
 
@@ -33,7 +27,7 @@ const getPath = async (filePath: string): Promise<Optional<string>> => {
             return getPath(path.join(filePath, 'index.html'));
         }
     } catch {
-        return null;
+        return undefined;
     }
 };
 
@@ -53,7 +47,7 @@ export default function electronServe(options: ServeOptions) {
         hostname: '-',
         file: 'index',
         ...options,
-    };
+    } satisfies ServeOptions;
 
     if (!mandatoryOptions.directory) {
         throw new Error('The `directory` option is required');
@@ -61,23 +55,21 @@ export default function electronServe(options: ServeOptions) {
 
     mandatoryOptions.directory = path.resolve(app.getAppPath(), mandatoryOptions.directory);
 
-    const handler: HandlerType = async (request, callback) => {
+    const handler = async (request: Request) => {
         const filePath = path.join(mandatoryOptions.directory, decodeURIComponent(new URL(request.url).pathname));
         const resolvedPath = (await getPath(filePath)) ?? path.join(mandatoryOptions.directory, `${mandatoryOptions.file}.html`);
         const mimeType = mime.lookup(resolvedPath) || 'application/octet-stream';
 
         try {
             const data = await fs.promises.readFile(resolvedPath);
-            callback({
-                mimeType,
-                data: Buffer.from(data),
+            return new Response(Buffer.from(data), {
                 headers: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'content-type': mimeType,
                     'Document-Policy': 'js-profiling',
                 },
             });
-        } catch (error) {
-            callback({error: FILE_NOT_FOUND});
+        } catch {
+            return new Response('', {status: 404});
         }
     };
 
@@ -96,8 +88,7 @@ export default function electronServe(options: ServeOptions) {
 
     app.on('ready', () => {
         const partitionSession = mandatoryOptions.partition ? session.fromPartition(mandatoryOptions.partition) : session.defaultSession;
-
-        partitionSession.protocol.registerBufferProtocol(mandatoryOptions.scheme, handler);
+        partitionSession.protocol.handle(mandatoryOptions.scheme, handler);
     });
 
     // eslint-disable-next-line @typescript-eslint/naming-convention

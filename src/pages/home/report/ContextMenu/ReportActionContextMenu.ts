@@ -4,11 +4,10 @@ import type {RefObject} from 'react';
 import type {GestureResponderEvent, Text as RNText, TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type {ContextMenuAction} from './ContextMenuActions';
-
-type OnHideCallback = () => void;
 
 type OnConfirm = () => void;
 
@@ -18,38 +17,56 @@ type ContextMenuType = ValueOf<typeof CONST.CONTEXT_MENU_TYPES>;
 
 type ContextMenuAnchor = View | RNText | TextInput | HTMLDivElement | null | undefined;
 
-type ShowContextMenu = (
-    type: ContextMenuType,
-    event: GestureResponderEvent | MouseEvent,
-    selection: string,
-    contextMenuAnchor: ContextMenuAnchor,
-    reportID?: string,
-    reportActionID?: string,
-    originalReportID?: string,
-    draftMessage?: string,
-    onShow?: () => void,
-    onHide?: () => void,
-    isArchivedRoom?: boolean,
-    isChronosReport?: boolean,
-    isPinnedChat?: boolean,
-    isUnreadChat?: boolean,
-    disabledOptions?: ContextMenuAction[],
-    shouldCloseOnTarget?: boolean,
-    setIsEmojiPickerActive?: (state: boolean) => void,
-    isOverflowMenu?: boolean,
-    isThreadReportParentAction?: boolean,
-) => void;
+type ShowContextMenuParams = {
+    type: ContextMenuType;
+    event: GestureResponderEvent | MouseEvent;
+    selection: string;
+    contextMenuAnchor: ContextMenuAnchor;
+    report?: {
+        reportID?: string;
+        originalReportID?: string;
+        isArchivedRoom?: boolean;
+        isChronos?: boolean;
+        isPinnedChat?: boolean;
+        isUnreadChat?: boolean;
+    };
+    reportAction?: {
+        reportActionID?: string;
+        draftMessage?: string;
+        isThreadReportParentAction?: boolean;
+    };
+    callbacks?: {
+        onShow?: () => void;
+        onHide?: () => void;
+        setIsEmojiPickerActive?: (state: boolean) => void;
+    };
+    disabledOptions?: ContextMenuAction[];
+    shouldCloseOnTarget?: boolean;
+    isOverflowMenu?: boolean;
+    withoutOverlay?: boolean;
+};
+
+type ShowContextMenu = (params: ShowContextMenuParams) => void;
+
+type HideContextMenuParams = {
+    callbacks?: {
+        onHide?: () => void;
+    };
+};
+type HideContextMenu = (params?: HideContextMenuParams) => void;
 
 type ReportActionContextMenu = {
     showContextMenu: ShowContextMenu;
-    hideContextMenu: (callback?: OnHideCallback) => void;
+    hideContextMenu: HideContextMenu;
     showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) => void;
     hideDeleteModal: () => void;
     isActiveReportAction: (accountID: string | number) => boolean;
-    instanceID: string;
+    instanceIDRef: RefObject<string>;
     runAndResetOnPopoverHide: () => void;
     clearActiveReportAction: () => void;
-    contentRef: RefObject<View>;
+    contentRef: RefObject<View | null>;
+    isContextMenuOpening: boolean;
+    composerToRefocusOnCloseEmojiPicker?: ComposerType;
 };
 
 const contextMenuRef = React.createRef<ReportActionContextMenu>();
@@ -60,25 +77,34 @@ const contextMenuRef = React.createRef<ReportActionContextMenu>();
  * @param [shouldDelay] - whether the menu should close after a delay
  * @param [onHideCallback] - Callback to be called after Context Menu is completely hidden
  */
-function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}) {
+function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}, params?: HideContextMenuParams) {
     if (!contextMenuRef.current) {
         return;
     }
+
+    const paramsWithCallback = {
+        callbacks: {
+            ...params?.callbacks,
+            onHide: onHideCallback,
+        },
+        ...params,
+    };
+
     if (!shouldDelay) {
-        contextMenuRef.current.hideContextMenu(onHideCallback);
+        contextMenuRef.current.hideContextMenu(paramsWithCallback);
         return;
     }
 
     // Save the active instanceID for which hide action was called.
     // If menu is being closed with a delay, check that whether the same instance exists or a new was created.
     // If instance is not same, cancel the hide action
-    const instanceID = contextMenuRef.current.instanceID;
+    const instanceID = contextMenuRef.current.instanceIDRef.current;
     setTimeout(() => {
-        if (contextMenuRef.current?.instanceID !== instanceID) {
+        if (contextMenuRef.current?.instanceIDRef.current !== instanceID) {
             return;
         }
 
-        contextMenuRef.current.hideContextMenu(onHideCallback);
+        contextMenuRef.current.hideContextMenu(paramsWithCallback);
     }, 800);
 }
 
@@ -91,8 +117,8 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}) {
  * @param contextMenuAnchor - popoverAnchor
  * @param reportID - Active Report Id
  * @param reportActionID - ReportActionID for ContextMenu
- * @param originalReportID - The currrent Report Id of the reportAction
- * @param draftMessage - ReportAction Draftmessage
+ * @param originalReportID - The current Report Id of the reportAction
+ * @param draftMessage - ReportAction draft message
  * @param [onShow=() => {}] - Run a callback when Menu is shown
  * @param [onHide=() => {}] - Run a callback when Menu is hidden
  * @param isArchivedRoom - Whether the provided report is an archived room
@@ -100,57 +126,17 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}) {
  * @param isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
  * @param isUnreadChat - Flag to check if the chat has unread messages in the LHN. Used for the Mark as Read/Unread action
  */
-function showContextMenu(
-    type: ContextMenuType,
-    event: GestureResponderEvent | MouseEvent,
-    selection: string,
-    contextMenuAnchor: ContextMenuAnchor,
-    reportID: string | undefined = undefined,
-    reportActionID: string | undefined = undefined,
-    originalReportID: string | undefined = undefined,
-    draftMessage: string | undefined = undefined,
-    onShow = () => {},
-    onHide = () => {},
-    isArchivedRoom = false,
-    isChronosReport = false,
-    isPinnedChat = false,
-    isUnreadChat = false,
-    disabledActions: ContextMenuAction[] = [],
-    shouldCloseOnTarget = false,
-    setIsEmojiPickerActive = () => {},
-    isOverflowMenu = false,
-    isThreadReportParentAction = false,
-) {
+function showContextMenu(showContextMenuParams: ShowContextMenuParams) {
     if (!contextMenuRef.current) {
         return;
     }
     const show = () => {
-        contextMenuRef.current?.showContextMenu(
-            type,
-            event,
-            selection,
-            contextMenuAnchor,
-            reportID,
-            reportActionID,
-            originalReportID,
-            draftMessage,
-            onShow,
-            onHide,
-            isArchivedRoom,
-            isChronosReport,
-            isPinnedChat,
-            isUnreadChat,
-            disabledActions,
-            shouldCloseOnTarget,
-            setIsEmojiPickerActive,
-            isOverflowMenu,
-            isThreadReportParentAction,
-        );
+        contextMenuRef.current?.showContextMenu(showContextMenuParams);
     };
 
     // If there is an already open context menu, close it first before opening
     // a new one.
-    if (contextMenuRef.current.instanceID) {
+    if (contextMenuRef.current.instanceIDRef.current) {
         hideContextMenu(false, show);
         return;
     }
@@ -197,4 +183,4 @@ function clearActiveReportAction() {
 }
 
 export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};
-export type {ContextMenuType, ShowContextMenu, ReportActionContextMenu, ContextMenuAnchor};
+export type {ContextMenuType, ReportActionContextMenu, ContextMenuAnchor};

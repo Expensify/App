@@ -1,67 +1,50 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {SectionListData} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Badge from '@components/Badge';
-import BlockingView from '@components/BlockingViews/BlockingView';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import type {SelectionListApprover} from '@components/ApproverSelectionList';
+import ApproverSelectionList from '@components/ApproverSelectionList';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {Section} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import useDebouncedState from '@hooks/useDebouncedState';
+import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {setApprovalWorkflowMembers} from '@libs/actions/Workflow';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getMemberAccountIDsForWorkspace, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import variables from '@styles/variables';
-import * as Workflow from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Member} from '@src/types/onyx/ApprovalWorkflow';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-type SelectionListMember = {
-    text: string;
-    alternateText: string;
-    keyForList: string;
-    isSelected: boolean;
-    login: string;
-    rightElement?: React.ReactNode;
-    icons?: Icon[];
-};
-
-type MembersSection = SectionListData<SelectionListMember, Section<SelectionListMember>>;
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenLoadingProps &
-    PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM>;
+    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM>;
 
 function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsExpensesFromPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
-    const [selectedMembers, setSelectedMembers] = useState<SelectionListMember[]>([]);
+    const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+
+    const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
+    const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
+    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
-    const shouldShowListEmptyContent = approvalWorkflow && approvalWorkflow.availableMembers.length === 0;
-    const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
+    const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow && approvalWorkflow.availableMembers.length === 0;
+    const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
+
+    const personalDetailLogins = useDeepCompareRef(Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])));
 
     useEffect(() => {
         if (!approvalWorkflow?.members) {
@@ -70,68 +53,66 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
         setSelectedMembers(
             approvalWorkflow.members.map((member) => {
-                const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
+                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
-                const isAdmin = policy?.employeeList?.[member.email]?.role === CONST.REPORT.ROLE.ADMIN;
+                const login = personalDetailLogins?.[accountID];
 
                 return {
-                    text: member.displayName,
+                    text: Str.removeSMSDomain(member.displayName),
                     alternateText: member.email,
                     keyForList: member.email,
                     isSelected: true,
                     login: member.email,
-                    icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}],
-                    rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
+                    icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
+                    rightElement: (
+                        <MemberRightIcon
+                            role={policy?.employeeList?.[member.email]?.role}
+                            owner={policy?.owner}
+                            login={login}
+                        />
+                    ),
                 };
             }),
         );
-    }, [approvalWorkflow?.members, policy?.employeeList, translate]);
+    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate]);
 
     const approversEmail = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email), [approvalWorkflow?.approvers]);
-    const sections: MembersSection[] = useMemo(() => {
-        const members: SelectionListMember[] = [...selectedMembers];
+    const allApprovers = useMemo(() => {
+        const members: SelectionListApprover[] = [...selectedMembers];
 
-        if (approvalWorkflow?.availableMembers) {
-            const availableMembers = approvalWorkflow.availableMembers
-                .map((member) => {
-                    const isAdmin = policy?.employeeList?.[member.email]?.role === CONST.REPORT.ROLE.ADMIN;
-                    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
-                    const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
-
-                    return {
-                        text: member.displayName,
-                        alternateText: member.email,
-                        keyForList: member.email,
-                        isSelected: false,
-                        login: member.email,
-                        icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: member.displayName, id: accountID}],
-                        rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
-                    };
-                })
-                .filter(
-                    (member) => (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) && !selectedMembers.some((selectedOption) => selectedOption.login === member.login),
-                );
-
-            members.push(...availableMembers);
+        if (!approvalWorkflow?.availableMembers) {
+            return members;
         }
+        const availableMembers = approvalWorkflow.availableMembers
+            .map((member) => {
+                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
+                const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
+                const login = personalDetailLogins?.[accountID];
 
-        const filteredMembers =
-            debouncedSearchTerm !== ''
-                ? members.filter((option) => {
-                      const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-                      const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-                      return isPartOfSearchTerm;
-                  })
-                : members;
+                return {
+                    text: Str.removeSMSDomain(member.displayName),
+                    alternateText: member.email,
+                    keyForList: member.email,
+                    isSelected: false,
+                    login: member.email,
+                    icons: [{source: member.avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
+                    rightElement: (
+                        <MemberRightIcon
+                            role={policy?.employeeList?.[member.email]?.role}
+                            owner={policy?.owner}
+                            login={login}
+                        />
+                    ),
+                };
+            })
+            .filter(
+                (member) => (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) && !selectedMembers.some((selectedOption) => selectedOption.login === member.login),
+            );
 
-        return [
-            {
-                title: undefined,
-                data: OptionsListUtils.sortAlphabetically(filteredMembers, 'text'),
-                shouldShow: true,
-            },
-        ];
-    }, [approvalWorkflow?.availableMembers, debouncedSearchTerm, policy?.preventSelfApproval, policy?.employeeList, selectedMembers, translate, approversEmail]);
+        members.push(...availableMembers);
+
+        return members;
+    }, [selectedMembers, approvalWorkflow?.availableMembers, policy?.employeeList, policy?.owner, policy?.preventSelfApproval, personalDetailLogins, approversEmail]);
 
     const goBack = useCallback(() => {
         let backTo;
@@ -144,20 +125,15 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     }, [isInitialCreationFlow, route.params.policyID, firstApprover, approvalWorkflow?.action]);
 
     const nextStep = useCallback(() => {
-        const members: Member[] = selectedMembers.map((member) => ({displayName: member.text, avatar: member.icons?.[0]?.source, email: member.login}));
-        Workflow.setApprovalWorkflowMembers(members);
+        const members: Member[] = selectedMembers.map((member) => ({displayName: member.text, avatar: member.icons.at(0)?.source, email: member.login}));
+        setApprovalWorkflowMembers(members);
 
-        if (route.params.backTo) {
-            Navigation.navigate(route.params.backTo);
-            return;
-        }
-
-        if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
+        if (isInitialCreationFlow) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
         } else {
-            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
+            goBack();
         }
-    }, [approvalWorkflow?.action, firstApprover, route.params.backTo, route.params.policyID, selectedMembers]);
+    }, [route.params.policyID, selectedMembers, isInitialCreationFlow, goBack]);
 
     const button = useMemo(() => {
         let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
@@ -177,66 +153,34 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         );
     }, [isInitialCreationFlow, nextStep, selectedMembers.length, shouldShowListEmptyContent, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
 
-    const toggleMember = (member: SelectionListMember) => {
-        const isAlreadySelected = selectedMembers.some((selectedOption) => selectedOption.login === member.login);
-        setSelectedMembers(isAlreadySelected ? selectedMembers.filter((selectedOption) => selectedOption.login !== member.login) : [...selectedMembers, {...member, isSelected: true}]);
-    };
-
-    const headerMessage = useMemo(() => (searchTerm && !sections.at(0)?.data?.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
-
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={Illustrations.TurtleInShell}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workflowsPage.emptyContent.title')}
-                subtitle={translate('workflowsPage.emptyContent.expensesFromSubtitle')}
-                subtitleStyle={styles.textSupporting}
-                containerStyle={styles.pb10}
-                contentFitImage="contain"
-            />
-        ),
-        [translate, styles.textSupporting, styles.pb10],
-    );
+    const toggleMember = (members: SelectionListApprover[]) => setSelectedMembers(members);
 
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <ScreenWrapper testID={WorkspaceWorkflowsApprovalsExpensesFromPage.displayName}>
-                <FullPageNotFoundView
-                    shouldShow={shouldShowNotFoundView}
-                    subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-                >
-                    <HeaderWithBackButton
-                        title={translate('workflowsExpensesFromPage.title')}
-                        onBackButtonPress={goBack}
-                    />
-
-                    {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !shouldShowListEmptyContent && (
-                        <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsExpensesFromPage.header')}</Text>
-                    )}
-                    <SelectionList
-                        canSelectMultiple
-                        sections={sections}
-                        ListItem={InviteMemberListItem}
-                        textInputLabel={shouldShowListEmptyContent ? undefined : translate('selectionList.findMember')}
-                        textInputValue={searchTerm}
-                        onChangeText={setSearchTerm}
-                        headerMessage={headerMessage}
-                        onSelectRow={toggleMember}
-                        showScrollIndicator
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                        footerContent={button}
-                        listEmptyContent={listEmptyContent}
-                        shouldShowListEmptyContent={shouldShowListEmptyContent}
-                    />
-                </FullPageNotFoundView>
-            </ScreenWrapper>
+            <ApproverSelectionList
+                testID={WorkspaceWorkflowsApprovalsExpensesFromPage.displayName}
+                headerTitle={translate('workflowsExpensesFromPage.title')}
+                onBackButtonPress={goBack}
+                subtitle={
+                    approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE &&
+                    !shouldShowListEmptyContent && <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsExpensesFromPage.header')}</Text>
+                }
+                isLoadingReportData={isLoadingReportData}
+                policy={policy}
+                shouldShowNotFoundViewLink
+                shouldShowListEmptyContent={shouldShowListEmptyContent}
+                shouldShowNotFoundView={shouldShowNotFoundView}
+                allApprovers={allApprovers}
+                listEmptyContentSubtitle={translate('workflowsPage.emptyContent.expensesFromSubtitle')}
+                allowMultipleSelection
+                onSelectApprover={toggleMember}
+                footerContent={button}
+                shouldShowLoadingPlaceholder={isLoadingApprovalWorkflow}
+                shouldEnableHeaderMaxHeight
+            />
         </AccessOrNotFoundWrapper>
     );
 }

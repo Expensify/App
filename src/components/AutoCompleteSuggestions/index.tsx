@@ -7,7 +7,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import AutoCompleteSuggestionsPortal from './AutoCompleteSuggestionsPortal';
 import type {AutoCompleteSuggestionsProps, MeasureParentContainerAndCursor} from './types';
@@ -63,8 +63,8 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const [containerState, setContainerState] = React.useState(initialContainerState);
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
-    const {keyboardHeight} = useKeyboardState();
-    const {paddingBottom: bottomInset, paddingTop: topInset} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
+    const {keyboardHeight, isKeyboardAnimatingRef} = useKeyboardState();
+    const {paddingBottom: bottomInset, paddingTop: topInset} = StyleUtils.getPlatformSafeAreaPadding(insets ?? undefined);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -72,7 +72,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             return () => {};
         }
         container.onpointerdown = (e) => {
-            if (DeviceCapabilities.hasHoverSupport()) {
+            if (hasHoverSupport()) {
                 return;
             }
             e.preventDefault();
@@ -83,7 +83,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const suggestionsLength = props.suggestions.length;
 
     useEffect(() => {
-        if (!measureParentContainerAndReportCursor) {
+        if (!measureParentContainerAndReportCursor || isKeyboardAnimatingRef.current) {
             return;
         }
 
@@ -103,8 +103,20 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
             const widthValue = shouldUseNarrowLayout ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
-            const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight: contentMaxHeight, topInset});
-            const isEnoughSpaceToRenderMenuAboveForSmall = isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight: contentMinHeight, topInset});
+            const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({
+                y,
+                cursorCoordinates,
+                scrollValue,
+                contentHeight: contentMaxHeight,
+                topInset,
+            });
+            const isEnoughSpaceToRenderMenuAboveForSmall = isEnoughSpaceToRenderMenuAboveCursor({
+                y,
+                cursorCoordinates,
+                scrollValue,
+                contentHeight: contentMinHeight,
+                topInset,
+            });
 
             const newLeftOffset = shouldUseNarrowLayout ? x : bigScreenLeftOffset;
             // If the suggested word is longer than 150 (approximately half the width of the suggestion popup), then adjust a new position of popup
@@ -137,11 +149,13 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 cursorCoordinates,
             });
         });
-    }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, shouldUseNarrowLayout, suggestionsLength, bottomInset, topInset]);
+    }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, shouldUseNarrowLayout, suggestionsLength, bottomInset, topInset, isKeyboardAnimatingRef]);
 
-    if ((containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) || (containerState.cursorCoordinates.x === 0 && containerState.cursorCoordinates.y === 0)) {
+    // Prevent rendering if container dimensions are not set or if we have no suggestions
+    if ((containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) || !suggestionsLength) {
         return null;
     }
+
     return (
         <AutoCompleteSuggestionsPortal
             // eslint-disable-next-line react/jsx-props-no-spreading

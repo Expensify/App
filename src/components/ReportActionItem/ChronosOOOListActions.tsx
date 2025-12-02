@@ -22,7 +22,7 @@ type ChronosOOOListActionsProps = {
 function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
     const styles = useThemeStyles();
 
-    const {translate, preferredLocale} = useLocalize();
+    const {translate, getLocalDateFromDatetime} = useLocalize();
 
     const events = getOriginalMessage(action)?.events ?? [];
 
@@ -38,8 +38,8 @@ function ChronosOOOListActions({reportID, action}: ChronosOOOListActionsProps) {
         <OfflineWithFeedback pendingAction={action.pendingAction}>
             <View style={styles.chatItemMessage}>
                 {events.map((event) => {
-                    const start = DateUtils.getLocalDateFromDatetime(preferredLocale, event?.start?.date ?? '');
-                    const end = DateUtils.getLocalDateFromDatetime(preferredLocale, event?.end?.date ?? '');
+                    const start = getLocalDateFromDatetime(event?.start?.date ?? '');
+                    const end = getLocalDateFromDatetime(event?.end?.date ?? '');
                     return (
                         <View
                             key={event.id}

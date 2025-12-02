@@ -11,7 +11,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MapboxAccessToken, Network} from '@src/types/onyx';
 
 let authToken: string | undefined;
-Onyx.connect({
+// Use connectWithoutView since this is only for auth token and don't affect to any UI
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         authToken = value?.authToken;
@@ -64,7 +65,8 @@ const init = () => {
     }
 
     // When the token changes in Onyx, the expiration needs to be checked so a new token can be retrieved.
-    tokenConnection = Onyx.connect({
+    // Use connectWithoutView since this is only for mapbox token and don't affect to any UI
+    tokenConnection = Onyx.connectWithoutView({
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
         callback: (token) => {
             // Only the leader should be in charge of the mapbox token, or else when you have multiple tabs open, the Onyx connection fires multiple times
@@ -119,7 +121,8 @@ const init = () => {
 
     if (!networkConnection) {
         let network: Network | undefined;
-        networkConnection = Onyx.connect({
+        // Use connectWithoutView since the network state and don't affect to any UI
+        networkConnection = Onyx.connectWithoutView({
             key: ONYXKEYS.NETWORK,
             callback: (value) => {
                 // When the network reconnects, check if the token has expired. If it has, then clearing the token will

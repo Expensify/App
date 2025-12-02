@@ -1,10 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertAmountToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencySymbol} from '@libs/CurrencyUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -12,7 +14,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import EReceiptThumbnail from './EReceiptThumbnail';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 type PerDiemEReceiptProps = {
@@ -51,7 +52,10 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {
+        canBeMissing: true,
+    });
 
     // Get receipt colorway, or default to Yellow.
     const {backgroundColor: primaryColor, color: secondaryColor} = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction)) ?? {};
@@ -106,7 +110,7 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
                         width={variables.eReceiptWordmarkWidth}
                         height={variables.eReceiptWordmarkHeight}
                         fill={secondaryColor}
-                        src={Expensicons.ExpensifyWordmark}
+                        src={icons.ExpensifyWordmark}
                     />
                     <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
                 </View>

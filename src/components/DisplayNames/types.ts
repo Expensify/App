@@ -1,5 +1,6 @@
 import type {StyleProp, TextStyle} from 'react-native';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 type DisplayNameWithTooltip = {
     /** The name to display in bold */
@@ -15,7 +16,7 @@ type DisplayNameWithTooltip = {
     avatar?: AvatarSource;
 };
 
-type DisplayNamesProps = {
+type DisplayNamesProps = ForwardedFSClassProps & {
     /** The full title of the DisplayNames component (not split up) */
     fullTitle: string;
 
@@ -40,8 +41,14 @@ type DisplayNamesProps = {
     /** If the full title needs to be displayed */
     shouldUseFullTitle?: boolean;
 
+    /** If we should add an ellipsis after the participants list */
+    shouldAddEllipsis?: boolean;
+
     /** Additional Text component to render after the displayNames */
     renderAdditionalText?: () => React.ReactNode;
+
+    /** TestID indicating order */
+    testID?: number;
 };
 
 export default DisplayNamesProps;

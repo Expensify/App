@@ -1,15 +1,22 @@
-/*
- * The KeyboardAvoidingView stub implementation for web and other platforms where the keyboard is handled automatically.
- */
-import React from 'react';
-import {View} from 'react-native';
+import React, {useMemo} from 'react';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import BaseKeyboardAvoidingView from './BaseKeyboardAvoidingView';
 import type {KeyboardAvoidingViewProps} from './types';
 
-function KeyboardAvoidingView(props: KeyboardAvoidingViewProps) {
-    const {behavior, contentContainerStyle, enabled, keyboardVerticalOffset, ...rest} = props;
+function KeyboardAvoidingView({shouldOffsetBottomSafeAreaPadding = false, keyboardVerticalOffset: keyboardVerticalOffsetProp, ...restProps}: KeyboardAvoidingViewProps) {
+    const {paddingBottom} = useSafeAreaPaddings(true);
+
+    const keyboardVerticalOffset = useMemo(
+        () => (keyboardVerticalOffsetProp ?? 0) + (shouldOffsetBottomSafeAreaPadding ? -paddingBottom : 0),
+        [keyboardVerticalOffsetProp, paddingBottom, shouldOffsetBottomSafeAreaPadding],
+    );
+
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <View {...rest} />
+        <BaseKeyboardAvoidingView
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...restProps}
+            keyboardVerticalOffset={keyboardVerticalOffset}
+        />
     );
 }
 

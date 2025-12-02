@@ -1,23 +1,25 @@
-import type {FlashList} from '@shopify/flash-list';
+import type {FlashListRef} from '@shopify/flash-list';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import emojis from '@assets/emojis';
-import {useFrequentlyUsedEmojis} from '@components/OnyxProvider';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as EmojiUtils from '@libs/EmojiUtils';
+import type {EmojiPickerList, EmojiPickerListItem} from '@libs/EmojiUtils';
+import {getHeaderEmojis, getSpacersIndexes, mergeEmojisWithFrequentlyUsedEmojis, processFrequentlyUsedEmojis, suggestEmojis} from '@libs/EmojiUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const useEmojiPickerMenu = () => {
-    const emojiListRef = useRef<FlashList<EmojiUtils.EmojiPickerListItem>>(null);
-    const frequentlyUsedEmojis = useFrequentlyUsedEmojis();
+    const emojiListRef = useRef<FlashListRef<EmojiPickerListItem>>(null);
+    const [frequentlyUsedEmojis] = useOnyx(ONYXKEYS.FREQUENTLY_USED_EMOJIS, {canBeMissing: true});
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), [frequentlyUsedEmojis]);
-    const headerEmojis = useMemo(() => EmojiUtils.getHeaderEmojis(allEmojis), [allEmojis]);
+    const allEmojis = useMemo(() => mergeEmojisWithFrequentlyUsedEmojis(emojis, processFrequentlyUsedEmojis(frequentlyUsedEmojis)), [frequentlyUsedEmojis]);
+    const headerEmojis = useMemo(() => getHeaderEmojis(allEmojis), [allEmojis]);
     const headerRowIndices = useMemo(() => headerEmojis.map((headerEmoji) => headerEmoji.index), [headerEmojis]);
-    const spacersIndexes = useMemo(() => EmojiUtils.getSpacersIndexes(allEmojis), [allEmojis]);
-    const [filteredEmojis, setFilteredEmojis] = useState<EmojiUtils.EmojiPickerList>(allEmojis);
+    const spacersIndexes = useMemo(() => getSpacersIndexes(allEmojis), [allEmojis]);
+    const [filteredEmojis, setFilteredEmojis] = useState<EmojiPickerList>(allEmojis);
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
     const isListFiltered = allEmojis.length !== filteredEmojis.length;
     const {preferredLocale} = useLocalize();
@@ -45,14 +47,14 @@ const useEmojiPickerMenu = () => {
     /**
      * Suggest emojis based on the search term
      */
-    const suggestEmojis = useCallback(
+    const suggestEmojisCallback = useCallback(
         (searchTerm: string) => {
             const normalizedSearchTerm = searchTerm.toLowerCase().trim().replaceAll(':', '');
-            const emojisSuggestions = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, allEmojis.length);
+            const emojisSuggestions = suggestEmojis(`:${normalizedSearchTerm}`, preferredLocale, allEmojis.length);
 
             return [normalizedSearchTerm, emojisSuggestions] as const;
         },
-        [allEmojis, preferredLocale],
+        [allEmojis.length, preferredLocale],
     );
 
     return {
@@ -64,7 +66,7 @@ const useEmojiPickerMenu = () => {
         setFilteredEmojis,
         setHeaderIndices,
         isListFiltered,
-        suggestEmojis,
+        suggestEmojis: suggestEmojisCallback,
         preferredSkinTone,
         listStyle,
         emojiListRef,

@@ -22,6 +22,8 @@ const darkTheme = {
     textSupporting: colors.productDark800,
     text: colors.productDark900,
     textColorfulBackground: colors.ivory,
+    textReceiptDropZone: colors.green700,
+    textAttachmentDropZone: colors.blue700,
     syntax: colors.productDark800,
     link: colors.blue300,
     linkHover: colors.blue100,
@@ -43,7 +45,7 @@ const darkTheme = {
     // Additional keys
     overlay: colors.productDark400,
     inverse: colors.productDark900,
-    shadow: colors.black,
+    shadow: '0px 4px 12px 0px rgba(2,18,4,0.24)',
     componentBG: colors.productDark100,
     hoverComponentBG: colors.productDark300,
     messageHighlightBG: colors.messageHighlightDark,
@@ -68,7 +70,14 @@ const darkTheme = {
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.productDark200,
     dropUIBG: 'rgba(6,27,9,0.92)',
+    dropWrapperBG: 'rgba(26, 61, 50, 0.72)',
     fileDropUIBG: 'rgba(3, 212, 124, 0.84)',
+    attachmentDropUIBG: 'rgba(90, 176, 255, 0.8)',
+    attachmentDropUIBGActive: 'rgba(90, 176, 255, 96)',
+    attachmentDropBorderColorActive: colors.blue100,
+    receiptDropUIBG: 'rgba(3, 212, 124, 0.8)',
+    receiptDropUIBGActive: 'rgba(3, 212, 124, 96)',
+    receiptDropBorderColorActive: colors.green100,
     checkBox: colors.green400,
     imageCropBackgroundColor: colors.productDark700,
     fallbackIconColor: colors.green700,
@@ -95,6 +104,7 @@ const darkTheme = {
     transparentWhite: `${colors.white}51`,
     emptyFolderBG: colors.yellow600,
     travelBG: colors.blue600,
+    todoBG: colors.blue800,
     trialTimer: colors.green500,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
@@ -118,7 +128,7 @@ const darkTheme = {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.SETTINGS.WORKSPACES]: {
+        [SCREENS.WORKSPACES_LIST]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -131,10 +141,6 @@ const darkTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.ROOT]: {
-            backgroundColor: colors.productDark100,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
-        [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -152,8 +158,32 @@ const darkTheme = {
         },
     },
 
+    reportStatusBadge: {
+        draft: {
+            backgroundColor: colors.blue700,
+            textColor: colors.blue200,
+        },
+        outstanding: {
+            backgroundColor: colors.tangerine700,
+            textColor: colors.tangerine200,
+        },
+        approved: {
+            backgroundColor: colors.ice700,
+            textColor: colors.ice200,
+        },
+        paid: {
+            backgroundColor: colors.green700,
+            textColor: colors.green200,
+        },
+        closed: {
+            backgroundColor: colors.pink700,
+            textColor: colors.pink200,
+        },
+    },
+
     statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
     navigationBarButtonsStyle: CONST.NAVIGATION_BAR_BUTTONS_STYLE.LIGHT,
+    translucentNavigationBarBackgroundColor: `${colors.productDark100}CD`, // CD is 80% opacity (80% of 0xFF)
     colorScheme: CONST.COLOR_SCHEME.DARK,
 } satisfies ThemeColors;
 

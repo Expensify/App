@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,7 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy/Policy';
+import {setPolicyBillableMode} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -28,6 +29,7 @@ function RulesBillableDefaultPage({
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {environmentURL} = useEnvironment();
 
     const billableModes = [
         {
@@ -48,14 +50,13 @@ function RulesBillableDefaultPage({
 
     const initiallyFocusedOptionKey = policy?.defaultBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
 
-    const handleOnPressTagsLink = () => {
+    const tagsPageLink = useMemo(() => {
         if (policy?.areTagsEnabled) {
-            Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-            return;
+            return `${environmentURL}/${ROUTES.WORKSPACE_TAGS.getRoute(policyID)}`;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
-    };
+        return `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
+    }, [environmentURL, policy?.areTagsEnabled, policyID]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -64,7 +65,7 @@ function RulesBillableDefaultPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={RulesBillableDefaultPage.displayName}
             >
@@ -72,26 +73,19 @@ function RulesBillableDefaultPage({
                     title={translate('workspace.rules.individualExpenseRules.billableDefault')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb5]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.billableDefaultDescription')}</Text>{' '}
-                    <TextLink
-                        style={styles.link}
-                        onPress={handleOnPressTagsLink}
-                    >
-                        {translate('workspace.common.tags').toLowerCase()}
-                    </TextLink>
-                    .
-                </Text>
+                <View style={[styles.flexRow, styles.renderHTML, styles.mt3, styles.mh5, styles.mb5]}>
+                    <RenderHTML html={translate('workspace.rules.individualExpenseRules.billableDefaultDescription', {tagsPageLink})} />
+                </View>
                 <SelectionList
-                    sections={[{data: billableModes}]}
+                    data={billableModes}
                     ListItem={RadioListItem}
                     onSelectRow={(item) => {
-                        Policy.setPolicyBillableMode(policyID, item.value);
+                        setPolicyBillableMode(policyID, item.value);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     shouldSingleExecuteRowSelect
-                    containerStyle={[styles.pt3]}
-                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

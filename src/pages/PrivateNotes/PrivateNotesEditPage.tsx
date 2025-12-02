@@ -3,34 +3,37 @@ import {Str} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PrivateNotesNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import * as ReportUtils from '@libs/ReportUtils';
+import {goBackFromPrivateNotes, goBackToDetailsPage} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {WithReportAndPrivateNotesOrNotFoundProps} from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import withReportAndPrivateNotesOrNotFound from '@pages/home/report/withReportAndPrivateNotesOrNotFound';
 import variables from '@styles/variables';
-import * as ReportActions from '@userActions/Report';
+import {clearPrivateNotesError, handleUserDeletedLinksInHtml, savePrivateNotesDraft, updatePrivateNotes} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PrivateNotesForm';
 import type {Report} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Note} from '@src/types/onyx/Report';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
     PlatformStackScreenProps<PrivateNotesNavigatorParamList, typeof SCREENS.PRIVATE_NOTES.EDIT> & {
@@ -38,16 +41,19 @@ type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
         report: Report;
     };
 
-function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPageProps) {
+type PrivateNotesEditPageInternalProps = PrivateNotesEditPageProps & {
+    /** Draft private note */
+    privateNoteDraft: string;
+};
+
+function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraft}: PrivateNotesEditPageInternalProps) {
     const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const personalDetailsList = usePersonalDetails();
 
     // We need to edit the note in markdown format, but display it in HTML format
-    const [privateNote, setPrivateNote] = useState(
-        () => ReportActions.getDraftPrivateNote(report.reportID).trim() || Parser.htmlToMarkdown(report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '').trim(),
-    );
+    const [privateNote, setPrivateNote] = useState(() => privateNoteDraft || Parser.htmlToMarkdown(report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '').trim());
 
     /**
      * Save the draft of the private note. This debounced so that we're not ceaselessly saving your edit. Saving the draft
@@ -56,7 +62,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
     const debouncedSavePrivateNote = useMemo(
         () =>
             lodashDebounce((text: string) => {
-                ReportActions.savePrivateNotesDraft(report.reportID, text);
+                savePrivateNotesDraft(report.reportID, text);
             }, 1000),
         [report.reportID],
     );
@@ -85,39 +91,56 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
         const originalNote = report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '';
         let editedNote = '';
         if (privateNote.trim() !== originalNote.trim()) {
-            editedNote = ReportActions.handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote).trim());
-            ReportActions.updatePrivateNotes(report.reportID, Number(route.params.accountID), editedNote);
+            editedNote = handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote).trim());
+            updatePrivateNotes(report.reportID, Number(route.params.accountID), editedNote);
         }
 
         // We want to delete saved private note draft after saving the note
         debouncedSavePrivateNote('');
 
         Keyboard.dismiss();
-        if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note)) {
-            ReportUtils.navigateToDetailsPage(report, backTo);
+
+        const hasNewNoteBeenAdded = !originalNote && editedNote;
+        if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note) || hasNewNoteBeenAdded) {
+            goBackToDetailsPage(report, backTo, true);
         } else {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo)));
         }
     };
 
+    const validate = useCallback((): Errors => {
+        const errors: Errors = {};
+        const privateNoteLength = privateNote.trim().length;
+        if (privateNoteLength > CONST.MAX_COMMENT_LENGTH) {
+            errors.privateNotes = translate('common.error.characterLimitExceedCounter', {
+                length: privateNoteLength,
+                limit: CONST.MAX_COMMENT_LENGTH,
+            });
+        }
+
+        return errors;
+    }, [privateNote, translate]);
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={PrivateNotesEditPage.displayName}
+            testID={PrivateNotesEditPageInternal.displayName}
         >
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
-                onBackButtonPress={() => ReportUtils.goBackFromPrivateNotes(report, accountID, backTo)}
+                onBackButtonPress={() => goBackFromPrivateNotes(report, accountID, backTo)}
                 shouldShowBackButton
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
                 onSubmit={savePrivateNote}
+                validate={validate}
                 style={[styles.flexGrow1, styles.ph5]}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <Text style={[styles.mb5]}>
                     {translate(
@@ -130,7 +153,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                     errors={{
                         ...(report?.privateNotes?.[Number(route.params.accountID)]?.errors ?? ''),
                     }}
-                    onClose={() => ReportActions.clearPrivateNotesError(report.reportID, Number(route.params.accountID))}
+                    onClose={() => clearPrivateNotesError(report.reportID, Number(route.params.accountID))}
                     style={[styles.mb3]}
                 >
                     <InputWrapper
@@ -140,7 +163,6 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                         label={translate('privateNotes.composerLabel')}
                         accessibilityLabel={translate('privateNotes.title')}
                         autoCompleteType="off"
-                        maxLength={CONST.MAX_COMMENT_LENGTH}
                         autoCorrect={false}
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
@@ -150,7 +172,7 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                             debouncedSavePrivateNote(text);
                             setPrivateNote(text);
                         }}
-                        ref={(el: AnimatedTextInputRef) => {
+                        ref={(el: AnimatedTextInputRef | null) => {
                             if (!el) {
                                 return;
                             }
@@ -159,11 +181,32 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                             }
                             privateNotesInput.current = el;
                         }}
-                        isMarkdownEnabled
+                        type="markdown"
                     />
                 </OfflineWithFeedback>
             </FormProvider>
         </ScreenWrapper>
+    );
+}
+
+PrivateNotesEditPageInternal.displayName = 'PrivateNotesEditPageInternal';
+
+function PrivateNotesEditPage({report, ...rest}: PrivateNotesEditPageProps) {
+    const [privateNoteDraft, privateNoteDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${report.reportID}`, {canBeMissing: true});
+
+    if (isLoadingOnyxValue(privateNoteDraftMetadata)) {
+        return null;
+    }
+
+    // We have used HOC component approach here as we need the correct value from `useOnyx` hook for initial useState value
+    // and onyx value might not available immediately in the mount cycle of the component.
+    return (
+        <PrivateNotesEditPageInternal
+            report={report}
+            privateNoteDraft={privateNoteDraft ?? ''}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
+        />
     );
 }
 

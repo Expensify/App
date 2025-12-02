@@ -8,8 +8,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
-import shouldDelayFocus from '@libs/shouldDelayFocus';
+import {getBrowser} from '@libs/Browser';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import PDFInfoMessage from './PDFInfoMessage';
@@ -44,7 +43,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
     const [shouldShowForm, setShouldShowForm] = useState(false);
     const textInputRef = useRef<BaseTextInputRef>(null);
 
-    const focusTimeoutRef = useRef<NodeJS.Timeout>();
+    const focusTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     const errorText = useMemo(() => {
         if (isPasswordInvalid) {
@@ -121,7 +120,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
                  * This is a workaround to bypass Safari's autofill odd behaviour.
                  * This tricks the browser not to fill the username somewhere else and still fill the password correctly.
                  */
-                autoComplete={Browser.getBrowser() === CONST.BROWSER.SAFARI ? 'username' : 'off'}
+                autoComplete={getBrowser() === CONST.BROWSER.SAFARI ? 'username' : 'off'}
                 autoCorrect={false}
                 textContentType="password"
                 onChangeText={updatePassword}
@@ -131,7 +130,6 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
                 onFocus={() => onPasswordFieldFocused?.(true)}
                 onBlur={() => onPasswordFieldFocused?.(false)}
                 autoFocus
-                shouldDelayFocus={shouldDelayFocus}
                 secureTextEntry
             />
             <Button

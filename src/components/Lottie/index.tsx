@@ -2,23 +2,24 @@ import {NavigationContainerRefContext, NavigationContext} from '@react-navigatio
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
-import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
+import {getBrowser, isMobile} from '@libs/Browser';
+import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 
 type Props = {
     source: DotLottieAnimation;
     shouldLoadAfterInteractions?: boolean;
+    ref?: ForwardedRef<LottieView>;
 } & Omit<LottieViewProps, 'source'>;
 
-function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props, forwardedRef: ForwardedRef<LottieView>) {
+function Lottie({source, webStyle, shouldLoadAfterInteractions, ref, ...props}: Props) {
     const animationRef = useRef<LottieView | null>(null);
     const appState = useAppState();
     const {splashScreenState} = useSplashScreenStateContext();
@@ -39,6 +40,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });
@@ -51,7 +53,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
 
-    const browser = Browser.getBrowser();
+    const browser = getBrowser();
     const [hasNavigatedAway, setHasNavigatedAway] = React.useState(false);
     const navigationContainerRef = useContext(NavigationContainerRefContext);
     const navigator = useContext(NavigationContext);
@@ -74,7 +76,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
         const unsubscribeNavigationBlur = navigator.addListener('blur', () => {
             const state = navigationContainerRef.getRootState();
             const targetRouteName = state?.routes?.[state?.index ?? 0]?.name;
-            if (!isSideModalNavigator(targetRouteName)) {
+            if (!isSideModalNavigator(targetRouteName) || isMobile()) {
                 setHasNavigatedAway(true);
             }
         });
@@ -94,8 +96,20 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
     // we'll just render an empty view as the fallback to prevent
     // 1. heavy rendering, see issues: https://github.com/Expensify/App/issues/34696 and https://github.com/Expensify/App/issues/47273
     // 2. lag on react navigation transitions, see issue: https://github.com/Expensify/App/issues/44812
-    if (isError || appState.isBackground || !animationFile || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || (!isInteractionComplete && shouldLoadAfterInteractions)) {
-        return <View style={[aspectRatioStyle, props.style]} />;
+    if (
+        isError ||
+        appState.isBackground ||
+        !animationFile ||
+        hasNavigatedAway ||
+        splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN ||
+        (!isInteractionComplete && shouldLoadAfterInteractions)
+    ) {
+        return (
+            <View
+                style={[aspectRatioStyle, props.style]}
+                testID={CONST.LOTTIE_VIEW_TEST_ID}
+            />
+        );
     }
 
     return (
@@ -103,22 +117,24 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             source={animationFile}
-            ref={(ref) => {
-                if (typeof forwardedRef === 'function') {
-                    forwardedRef(ref);
-                } else if (forwardedRef && 'current' in forwardedRef) {
+            key={`${hasNavigatedAway}`}
+            ref={(newRef) => {
+                if (typeof ref === 'function') {
+                    ref(newRef);
+                } else if (ref && 'current' in ref) {
                     // eslint-disable-next-line no-param-reassign
-                    forwardedRef.current = ref;
+                    ref.current = newRef;
                 }
-                animationRef.current = ref;
+                animationRef.current = newRef;
             }}
             style={[aspectRatioStyle, props.style]}
             webStyle={{...aspectRatioStyle, ...webStyle}}
             onAnimationFailure={() => setIsError(true)}
+            testID={CONST.LOTTIE_VIEW_TEST_ID}
         />
     );
 }
 
 Lottie.displayName = 'Lottie';
 
-export default forwardRef(Lottie);
+export default Lottie;

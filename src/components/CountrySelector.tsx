@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {forwardRef, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
 import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
@@ -27,9 +27,12 @@ type CountrySelectorProps = {
 
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
-function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur}: CountrySelectorProps, ref: ForwardedRef<View>) {
+function CountrySelector({errorText = '', value: countryCode, onInputChange = () => {}, onBlur, ref}: CountrySelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {country: countryFromUrl} = useGeographicalStateAndCountryFromRoute();
@@ -37,12 +40,12 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
     const title = countryCode ? translate(`allCountries.${countryCode}`) : '';
     const countryTitleDescStyle = title.length === 0 ? styles.textNormal : null;
 
-    const didOpenContrySelector = useRef(false);
+    const didOpenCountrySelector = useRef(false);
     const isFocused = useIsFocused();
     useEffect(() => {
         // Check if the country selector was opened and no value was selected, triggering onBlur to display an error
-        if (isFocused && didOpenContrySelector.current) {
-            didOpenContrySelector.current = false;
+        if (isFocused && didOpenCountrySelector.current) {
+            didOpenCountrySelector.current = false;
             if (!countryFromUrl) {
                 onBlur?.();
             }
@@ -76,7 +79,7 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
             errorText={errorText}
             onPress={() => {
                 const activeRoute = Navigation.getActiveRoute();
-                didOpenContrySelector.current = true;
+                didOpenCountrySelector.current = true;
                 Navigation.navigate(ROUTES.SETTINGS_ADDRESS_COUNTRY.getRoute(countryCode ?? '', activeRoute));
             }}
         />
@@ -85,4 +88,4 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
 
 CountrySelector.displayName = 'CountrySelector';
 
-export default forwardRef(CountrySelector);
+export default CountrySelector;

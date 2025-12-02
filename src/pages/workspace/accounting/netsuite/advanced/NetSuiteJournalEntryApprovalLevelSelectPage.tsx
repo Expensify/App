@@ -1,20 +1,20 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteExportJournalsTo} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -24,9 +24,9 @@ type MenuListItem = ListItem & {
 
 function NetSuiteJournalEntryApprovalLevelSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL).map((approvalType) => ({
         value: approvalType,
         text: translate(`workspace.netsuite.advancedConfig.exportJournalsTo.values.${approvalType}`),
@@ -45,8 +45,8 @@ function NetSuiteJournalEntryApprovalLevelSelectPage({policy}: WithPolicyConnect
 
     const selectJournalApprovalLevel = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== config?.syncOptions.exportJournalsTo) {
-                Connections.updateNetSuiteExportJournalsTo(policyID, row.value, config?.syncOptions.exportJournalsTo ?? CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED_NONE);
+            if (row.value !== config?.syncOptions.exportJournalsTo && policyID) {
+                updateNetSuiteExportJournalsTo(policyID, row.value, config?.syncOptions.exportJournalsTo ?? CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED_NONE);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
         },
@@ -72,9 +72,9 @@ function NetSuiteJournalEntryApprovalLevelSelectPage({policy}: WithPolicyConnect
                 config?.nonreimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY
             }
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_JOURNALS_TO], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_JOURNALS_TO)}
+            errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_JOURNALS_TO)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_JOURNALS_TO)}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.EXPORT_JOURNALS_TO)}
         />
     );
 }

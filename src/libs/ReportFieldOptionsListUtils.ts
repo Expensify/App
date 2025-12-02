@@ -1,6 +1,7 @@
-import * as Localize from './Localize';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Option} from './OptionsListUtils';
-import type * as ReportUtils from './ReportUtils';
+import type {OptionData} from './ReportUtils';
+import tokenizedSearch from './tokenizedSearch';
 
 /**
  * Transforms the provided report field options into option objects.
@@ -25,18 +26,20 @@ function getReportFieldOptionsSection({
     recentlyUsedOptions,
     selectedOptions,
     searchValue,
+    translate,
 }: {
     options: string[];
     recentlyUsedOptions: string[];
-    selectedOptions: Array<Partial<ReportUtils.OptionData>>;
+    selectedOptions: Array<Partial<OptionData>>;
     searchValue: string;
+    translate: LocalizedTranslate;
 }) {
     const reportFieldOptionsSections = [];
     const selectedOptionKeys = selectedOptions.map(({text, keyForList, name}) => text ?? keyForList ?? name ?? '').filter((o) => !!o);
     let indexOffset = 0;
 
     if (searchValue) {
-        const searchOptions = options.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
+        const searchOptions = tokenizedSearch(options, searchValue, (option) => [option]);
 
         reportFieldOptionsSections.push({
             // "Search" section
@@ -67,7 +70,7 @@ function getReportFieldOptionsSection({
     if (filteredRecentlyUsedOptions.length > 0) {
         reportFieldOptionsSections.push({
             // "Recent" section
-            title: Localize.translateLocal('common.recent'),
+            title: translate('common.recent'),
             shouldShow: true,
             indexOffset,
             data: getReportFieldOptions(filteredRecentlyUsedOptions),
@@ -78,7 +81,7 @@ function getReportFieldOptionsSection({
 
     reportFieldOptionsSections.push({
         // "All" section when items amount more than the threshold
-        title: Localize.translateLocal('common.all'),
+        title: translate('common.all'),
         shouldShow: true,
         indexOffset,
         data: getReportFieldOptions(filteredOptions),

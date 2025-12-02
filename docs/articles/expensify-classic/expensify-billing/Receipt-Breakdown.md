@@ -1,37 +1,99 @@
 ---
-title: Receipts Breakdown
-description: This article goes over the Expensify receipt for billing owners.
+title: receipts-breakdown.md
+description: This article explains how to read your Expensify receipt, including billing charges, discounts, and activity by workspace.
+keywords: billing receipt, receipt breakdown, billing history, expensify invoice, billing owner, discounts, expensify card, activity breakdown
 ---
-**Your receipt is broken up into the following sections:**
-- A high-level summary of your total Expensify bill
-- Ways to reduce your bill and get paid to use Expensify
-- A billing breakdown that covers all activity and discounts
-- An activity breakdown by workspace
 
-## A high-level summary
+This article explains how to understand your monthly Expensify receipt as a billing owner—including what you’re being charged for, where discounts are applied, and how to identify savings.
 
-- The top section will show the total amount you paid as the billing owner of Expensify Workspaces and give you a breakdown of the price per member.
-- Every member of your workspace(s) can store data, review data, and access free features like Expensify Chat.
-- We show the total price and then calculate the price per member by using the number of members across all of the workspaces you own.
-- Further down in the receipt, there's a breakdown of the members who generated billable activity.
+# Receipt Sections
 
-## Reduce your bill and get paid to use Expensify
-Chances are you can actually get paid to use Expensify with the Expensify Card. In this section of the receipt, we outline how much money you're leaving on the table by not using the Expensify Card. You can click `Get started` to connect with your account manager (if you have one) or Concierge, both of whom can help get you started with the card.  
+Your receipt includes the following:
 
-_Note: Currently, we offer Expensify Cards to companies with US bank accounts._ 
+- **High-level summary** – Total cost and per-member pricing.
+- **Savings opportunities** – Discounts and cash back from using the Expensify Card.
+- **Billing breakdown** – Line-by-line charges, discounts, and activity.
+- **Workspace activity** – Billing details by workspace.
 
-## The billing breakdown 
-Your receipt will have a detailed breakdown of activity and discounts across all workspaces. Here's a description of items that may appear on your bill:
-- **[Number of] Inactive workspace members @ $0.00:** All inactive members from any of your workspaces.
-- **[Number of] Chat-only members @ $0.00:** Any workspace members who chatted but didn't generate any other billable activity. Learn more about [chatting for free.](https://help.expensify.com/new-expensify/hubs/chat/) 
-- **[Number of] Annual Control members @ $18.00:** Any members included in your annual subscription on the Control plan. 
-- **[Number of] Pay-per-use Control members @ $36.00:** Any members above your annual subscription size on the Control plan. They're billed at the pay-per-use rate. 
-- **[Number of] Annual Collect members @ $10.00:** Any members included in your annual subscription on the Collect plan. 
-- **[Number of] Pay-per-use Collect members @ $20.00:** Any members above your annual subscription size on the Collect plan. These members are billed at the pay-per-use rate.
-- **X% Expensify Card discount with $Y spend:** The % discount you're getting based on total settled US purchases across your Expensify Cards.
-- **X% Expensify Card cash back credit for $Y spend:** The amount of cash back you've earned based on total settled US purchases across your Expensify Cards.
-- **50% ExpensifyApproved! partner discount:** If you're part of an accounting firm, you get an additional discount for being our partner -- learn more about our ExpensifyApproved! accountant program [here](https://use.expensify.com/accountants-program).
-- **Total:** The sum of all the line items above.
-                                                                                                                                                                                                                                                                    
-## The activity breakdown
-This section will list all of your workspaces alongside their IDs and break down the billing for each of them.     
+---
+
+# High-Level Summary
+
+- Shows the **total amount paid** across all workspaces under your billing ownership.
+- Displays the **price per member**, based on total active members.
+- Lists which members generated **billable activity** for the month.
+
+---
+
+# Save Money & Earn Cash Back
+
+Use the **Expensify Card** and an **annual subscription** to lower your costs and earn rewards.
+
+This section of your receipt highlights:
+- **Estimated savings** from using the Expensify Card.
+- A button to **Get started**, which connects you with Concierge or your account manager for help setting up.
+
+**Note:** [Expensify Cards](https://use.expensify.com/company-credit-card) are only available to companies with a **US business bank account**.
+
+---
+
+# Billing Breakdown
+
+This section outlines all charges and credits applied to your account:
+
+- **Inactive workspace members @ $0.00** – Users who didn’t generate billable activity.
+- **Chat-only members @ $0.00** – Users who only used Expensify Chat.  
+  [Learn more](https://help.expensify.com/new-expensify/hubs/chat/)
+- **Annual Control members @ $18.00** – Members on an annual Control Plan.
+- **Pay-per-use Control members @ $36.00** – Extra Control members billed individually.
+- **Annual Collect members @ $10.00** – Members on an annual Collect Plan.
+- **Pay-per-use Collect members @ $5.00** – Intro rate for new users; conditions apply. 
+- **Pay-per-use Collect members @ $20.00** – Extra Collect members billed individually.
+- **X% Expensify Card discount with $Y spend** – Discount applied for total settled US purchases.  
+- **X% Expensify Card cash back credit for $Y spend** – Cash back earned on total settled US purchases.  
+- **ExpensifyApproved! discount** – 50% off for approved accounting firms.  
+  [Learn more](https://use.expensify.com/accountants-program)
+- **Total** – Final amount after all charges and credits.
+
+---
+
+# Workspace Activity Breakdown
+
+This section lists each **workspace name** with its **unique ID**, along with billing details such as:
+
+- Number of billable members
+- Total amount charged for that workspace
+- Plan type (Collect or Control)
+- Any applied discounts
+
+---
+
+# Billable Activity
+
+This section explains **what is considered billable activity** and how active members are defined.
+
+- **Billable activity** is defined by **active members**.  
+- An **active member** is anyone who takes actions on a report, including when you:
+
+  - Create  
+  - Edit (such as adding expenses, updating expenses, or switching policy)  
+  - Delete  
+  - Submit  
+  - Retract  
+  - Approve or Unapprove  
+  - Forward  
+  - Share or Unshare  
+  - Reject  
+  - Comment on  
+  - Close  
+  - Reopen  
+  - Reimburse/Pay  
+  - Export  
+
+**Important:** If you are acting as a **Copilot**, both you and the person you are acting on behalf of will count as active members when performing any of the actions listed above.  
+
+In addition, you’ll also be considered an **active member** if you send more than **2 total messages** in a given month:  
+
+- To **Concierge** or your **Account Manager**  
+- Within your **workspace rooms**
+

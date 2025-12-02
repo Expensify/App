@@ -3,21 +3,34 @@ require('dotenv').config();
 const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
 
 const ReactCompilerConfig = {
-    target: '18',
+    target: '19',
     environment: {
         enableTreatRefLikeIdentifiersAsRefs: true,
     },
-    // We exclude 'tests' directory from compilation, but still compile components imported in test files.
     sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/'),
 };
+
+/**
+ * Custom plugin that prints a file name when it's being processed by babel.
+ * Disabled by default. To enable, set DEBUG_BABEL_TRACE=true in the environment.
+ */
+function traceTransformer() {
+    return {
+        visitor: {
+            Program(path, state) {
+                console.log('🔧 Transforming file:', state.filename);
+            },
+        },
+    };
+}
 
 /**
  * Setting targets to node 20 to reduce JS bundle size
  * It is also recommended by babel:
  * https://babeljs.io/docs/options#no-targets
  */
-const defaultPresets = ['@babel/preset-react', ['@babel/preset-env', {targets: {node: 20}}], '@babel/preset-flow', '@babel/preset-typescript'];
-const defaultPlugins = [
+const defaultPresetsForWebpack = ['@babel/preset-react', ['@babel/preset-env', {targets: {node: 20}}], '@babel/preset-flow', '@babel/preset-typescript'];
+const defaultPluginsForWebpack = [
     ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
     ['react-native-web'],
@@ -29,27 +42,31 @@ const defaultPlugins = [
     // We use `@babel/plugin-transform-class-properties` for transforming ReactNative libraries and do not use it for our own
     // source code transformation as we do not use class property assignment.
     '@babel/plugin-transform-class-properties',
-
+    '@babel/plugin-proposal-export-namespace-from',
     // Keep it last
-    'react-native-reanimated/plugin',
+    'react-native-worklets/plugin',
+    '@babel/plugin-transform-export-namespace-from',
 ];
 
 // The Fullstory annotate plugin generated a few errors when executed in Electron. Let's
 // ignore it for desktop builds.
 if (!process.env.ELECTRON_ENV && process.env.npm_lifecycle_event !== 'desktop') {
     console.debug('This is not a desktop build, adding babel-plugin-annotate-react');
-    defaultPlugins.push([
+    defaultPluginsForWebpack.push([
         '@fullstory/babel-plugin-annotate-react',
         {
-            'react-native-web': true,
             native: true,
         },
     ]);
 }
 
+if (process.env.DEBUG_BABEL_TRACE) {
+    defaultPluginsForWebpack.push(traceTransformer);
+}
+
 const webpack = {
-    presets: defaultPresets,
-    plugins: defaultPlugins,
+    presets: defaultPresetsForWebpack,
+    plugins: defaultPluginsForWebpack,
 };
 
 const metro = {
@@ -64,8 +81,6 @@ const metro = {
         ['@babel/plugin-proposal-class-properties', {loose: true}],
         ['@babel/plugin-proposal-private-methods', {loose: true}],
         ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
-        // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
-        'react-native-reanimated/plugin',
 
         /* Fullstory */
         '@fullstory/react-native',
@@ -105,15 +120,20 @@ const metro = {
                     '@libs': './src/libs',
                     '@navigation': './src/libs/Navigation',
                     '@pages': './src/pages',
+                    '@prompts': './prompts',
                     '@styles': './src/styles',
                     // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                     '@src': './src',
                     '@userActions': './src/libs/actions',
                     '@desktop': './desktop',
                     '@github': './.github',
+                    '@selectors': './src/selectors',
                 },
             },
         ],
+        '@babel/plugin-transform-export-namespace-from',
+        // The worklets babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
+        'react-native-worklets/plugin',
     ],
     env: {
         production: {
@@ -122,6 +142,10 @@ const metro = {
         },
     },
 };
+
+if (process.env.DEBUG_BABEL_TRACE) {
+    metro.plugins.push(traceTransformer);
+}
 
 /*
  * We use <React.Profiler> and react-native-performance to capture/monitor stats

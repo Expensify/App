@@ -16,7 +16,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
-import * as DistanceRate from '@userActions/Policy/DistanceRate';
+import {updateDistanceTaxClaimableValue} from '@userActions/Policy/DistanceRate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -46,7 +46,7 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
         if (!customUnit || !rate) {
             return;
         }
-        DistanceRate.updateDistanceTaxClaimableValue(policyID, customUnit, [
+        updateDistanceTaxClaimableValue(policyID, customUnit, [
             {
                 ...rate,
                 attributes: {
@@ -58,7 +58,10 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
         Navigation.goBack();
     };
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => validateTaxClaimableValue(values, rate), [rate]);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT_FORM>) => validateTaxClaimableValue(values, rate, translate),
+        [rate, translate],
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -67,7 +70,7 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={PolicyDistanceRateTaxReclaimableEditPage.displayName}
                 shouldEnableMaxHeight
@@ -86,11 +89,12 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
                     shouldHideFixErrorsAlert
                     submitFlexEnabled={false}
                     submitButtonStyles={[styles.mh5, styles.mt0]}
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapperWithRef
                         InputComponent={AmountForm}
                         inputID={INPUT_IDS.TAX_CLAIMABLE_VALUE}
-                        fixedDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                        decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                         defaultValue={currentTaxReclaimableOnValue?.toString() ?? ''}
                         isCurrencyPressable={false}
                         currency={currency}

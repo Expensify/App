@@ -1,16 +1,20 @@
 import React, {useRef} from 'react';
 import type {View} from 'react-native';
+import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
+import QRShare from '@components/QRShare';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openExternalLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as Link from '@userActions/Link';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -21,6 +25,7 @@ type DownloadMenuItem = MenuItemProps & {
 };
 
 function AppDownloadLinksPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const popoverAnchor = useRef<View>(null);
@@ -29,29 +34,29 @@ function AppDownloadLinksPage() {
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
             action: () => {
-                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID);
+                openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID);
             },
             link: CONST.APP_DOWNLOAD_LINKS.ANDROID,
             icon: Expensicons.Android,
-            iconRight: Expensicons.NewWindow,
+            iconRight: icons.NewWindow,
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.ios.label',
             action: () => {
-                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true);
+                openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS, true);
             },
             link: CONST.APP_DOWNLOAD_LINKS.IOS,
             icon: Expensicons.Apple,
-            iconRight: Expensicons.NewWindow,
+            iconRight: icons.NewWindow,
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
             action: () => {
-                Link.openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP, true);
+                openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP, true);
             },
             link: CONST.APP_DOWNLOAD_LINKS.DESKTOP,
             icon: Expensicons.Monitor,
-            iconRight: Expensicons.NewWindow,
+            iconRight: icons.NewWindow,
         },
     ];
 
@@ -61,12 +66,30 @@ function AppDownloadLinksPage() {
                 title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
+
+            <QRShare
+                url={CONST.EXPENSIFY_MOBILE_URL}
+                logo={expensifyLogo}
+                logoRatio={CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO}
+                logoMarginRatio={CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO}
+                shouldShowExpensifyLogo={false}
+                additionalStyles={[styles.qrCodeAppDownloadLinksStyles, styles.shareCodeContainerDownloadPadding]}
+                size={CONST.QR_CODE_SIZE.APP_DOWNLOAD_LINKS}
+            />
+
             <ScrollView style={[styles.mt3]}>
                 {menuItems.map((item: DownloadMenuItem) => (
                     <MenuItem
                         key={item.translationKey}
                         onPress={item.action}
-                        onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current)}
+                        onSecondaryInteraction={(e) =>
+                            showContextMenu({
+                                type: CONST.CONTEXT_MENU_TYPES.LINK,
+                                event: e,
+                                selection: item.link,
+                                contextMenuAnchor: popoverAnchor.current,
+                            })
+                        }
                         ref={popoverAnchor}
                         title={translate(item.translationKey)}
                         icon={item.icon}

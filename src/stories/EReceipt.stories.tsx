@@ -2,7 +2,7 @@
 import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import type {EReceiptOnyxProps, EReceiptProps} from '@components/EReceipt';
+import type {EReceiptProps} from '@components/EReceipt';
 import EReceipt from '@components/EReceipt';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
@@ -153,6 +153,7 @@ const transactionData = {
     },
 } as CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
 
+// @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
 Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactionData);
 Onyx.merge('cardList', {
     4: {bank: 'Expensify Card', lastFourPAN: '1000'},
@@ -169,7 +170,7 @@ const story: Meta<typeof EReceipt> = {
     component: EReceipt,
 };
 
-function Template(props: Omit<EReceiptProps, keyof EReceiptOnyxProps>) {
+function Template(props: EReceiptProps) {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <EReceipt {...props} />;
 }

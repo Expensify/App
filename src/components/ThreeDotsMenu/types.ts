@@ -1,4 +1,4 @@
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
@@ -19,13 +19,10 @@ type ThreeDotsMenuProps = {
     iconFill?: string;
 
     /** Function to call on icon press */
-    onIconPress?: () => void;
+    onIconPress?: (() => void) | ((e?: GestureResponderEvent | KeyboardEvent | undefined) => void);
 
     /** menuItems that'll show up on toggle of the popup menu */
     menuItems: PopoverMenuItem[];
-
-    /** The anchor position of the menu */
-    anchorPosition: AnchorPosition;
 
     /** The anchor alignment of the menu */
     anchorAlignment?: AnchorAlignment;
@@ -47,6 +44,44 @@ type ThreeDotsMenuProps = {
 
     /** Should we render the tooltip */
     shouldShowProductTrainingTooltip?: boolean;
+
+    /** Is the menu nested? This prop is used to omit html warning when we are nesting a button inside another button */
+    isNested?: boolean;
+
+    /** Ref to the menu */
+    threeDotsMenuRef?: React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean} | null>;
 };
 
-export default ThreeDotsMenuProps;
+type ThreeDotsMenuWithOptionalAnchorProps =
+    | (ThreeDotsMenuProps & {
+          /** The anchor position of the menu */
+          anchorPosition: AnchorPosition;
+
+          /** A callback to get the anchor position dynamically */
+          getAnchorPosition?: never;
+
+          /** Whether the three dot menu handles its positioning logic internally. */
+          shouldSelfPosition?: false;
+      })
+    | (ThreeDotsMenuProps & {
+          /** The anchor position of the menu */
+          anchorPosition?: never;
+
+          /** A callback to get the anchor position dynamically */
+          getAnchorPosition: () => Promise<AnchorPosition>;
+
+          /** Whether the three dot menu handles its positioning logic internally. */
+          shouldSelfPosition?: false;
+      })
+    | (ThreeDotsMenuProps & {
+          /** The anchor position of the menu */
+          anchorPosition?: never;
+
+          /** A callback to get the anchor position dynamically */
+          getAnchorPosition?: never;
+
+          /** Whether the three dot menu handles its positioning logic internally. */
+          shouldSelfPosition: true;
+      });
+
+export default ThreeDotsMenuWithOptionalAnchorProps;

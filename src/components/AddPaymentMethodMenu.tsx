@@ -2,16 +2,19 @@ import type {RefObject} from 'react';
 import React, {useEffect, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {completePaymentOnboarding} from '@libs/actions/IOU';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
+import {isExpenseReport, isIOUReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 import type {Report} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
 import type BaseModalProps from './Modal/types';
@@ -37,7 +40,7 @@ type AddPaymentMethodMenuProps = {
     anchorAlignment?: AnchorAlignment;
 
     /** Popover anchor ref */
-    anchorRef: RefObject<View | HTMLDivElement>;
+    anchorRef: RefObject<View | HTMLDivElement | null>;
 
     /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption?: boolean;
@@ -56,29 +59,30 @@ function AddPaymentMethodMenu({
     onItemSelected,
     shouldShowPersonalBankAccountOption = false,
 }: AddPaymentMethodMenuProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Building'] as const);
     const {translate} = useLocalize();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [introSelected, introSelectedStatus] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
     // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
-    const isIOUReport = ReportUtils.isIOUReport(iouReport);
-    const canUseBusinessBankAccount =
-        ReportUtils.isExpenseReport(iouReport) || (isIOUReport && !ReportActionsUtils.hasRequestFromCurrentAccount(iouReport?.reportID ?? '-1', session?.accountID ?? -1));
+    const isIOU = isIOUReport(iouReport);
+    const canUseBusinessBankAccount = isExpenseReport(iouReport) || (isIOU && !hasRequestFromCurrentAccount(iouReport?.reportID, session?.accountID ?? CONST.DEFAULT_NUMBER_ID));
 
-    const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport;
+    const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOU;
 
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 
     // We temporarily disabled P2P debit cards so we will automatically select the personal bank account option if there is no other option to select.
     useEffect(() => {
-        if (!isVisible || !isPersonalOnlyOption) {
+        if (!isVisible || !isPersonalOnlyOption || isLoadingOnyxValue(introSelectedStatus)) {
             return;
         }
 
-        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA);
+        completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected);
         onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
-    }, [isPersonalOnlyOption, isVisible, onItemSelected]);
+    }, [introSelected, introSelectedStatus, introSelectedStatus.status, isPersonalOnlyOption, isVisible, onItemSelected]);
 
     if (isPersonalOnlyOption) {
         return null;
@@ -105,7 +109,7 @@ function AddPaymentMethodMenu({
                               text: translate('common.personalBankAccount'),
                               icon: Expensicons.Bank,
                               onSelected: () => {
-                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA);
+                                  completePaymentOnboarding(CONST.PAYMENT_SELECTED.PBA, introSelected);
                                   onItemSelected(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
                               },
                           },
@@ -115,7 +119,7 @@ function AddPaymentMethodMenu({
                     ? [
                           {
                               text: translate('common.businessBankAccount'),
-                              icon: Expensicons.Building,
+                              icon: icons.Building,
                               onSelected: () => {
                                   onItemSelected(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
                               },
@@ -131,7 +135,6 @@ function AddPaymentMethodMenu({
                 //     },
                 // ],
             ]}
-            withoutOverlay
             shouldEnableNewFocusManagement
             restoreFocusType={restoreFocusType}
         />

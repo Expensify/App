@@ -1,5 +1,5 @@
-import type {Spread, ValueOf} from 'type-fest';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {ValueOf} from 'type-fest';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
@@ -76,10 +76,20 @@ type Message = {
     currency?: string;
 
     /** resolution for actionable mention whisper */
-    resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION> | null;
+    resolution?:
+        | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>
+        | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>
+        | ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>
+        | null;
 
     /** The time this report action was deleted */
     deleted?: string;
+
+    /** The bank account id that was used to pay the invoice */
+    bankAccountID?: number | undefined;
+
+    /** Whether the invoice was paid with business account or not */
+    payAsBusiness?: boolean;
 };
 
 /** Model of image */
@@ -295,9 +305,6 @@ type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionB
     previousMessage?: (OriginalMessage<T> & Message) | Array<Message | undefined>;
 };
 
-/** */
-type ReportActionChangeLog = ReportAction<ValueOf<Spread<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG, typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>>>;
-
 /** Record of report actions, indexed by report action ID */
 type ReportActions = Record<string, ReportAction>;
 
@@ -305,4 +312,4 @@ type ReportActions = Record<string, ReportAction>;
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;
-export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportActionChangeLog, OldDotReportAction, Person};
+export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, OldDotReportAction};

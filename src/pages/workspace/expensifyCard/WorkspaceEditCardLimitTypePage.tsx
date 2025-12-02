@@ -1,43 +1,49 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {updateExpensifyCardLimitType} from '@libs/actions/Card';
+import {openPolicyEditCardLimitTypePage} from '@libs/actions/Policy/Policy';
+import {filterInactiveCards} from '@libs/CardUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getApprovalWorkflow} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Card from '@userActions/Card';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
-type WorkspaceEditCardLimitTypePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE>;
+type WorkspaceEditCardLimitTypePageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE
+>;
 
 function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageProps) {
-    const {policyID, cardID} = route.params;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const {policyID, cardID, backTo} = route.params;
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const policy = usePolicy(policyID);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const defaultFundID = useDefaultFundID(policyID);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards, canBeMissing: true});
 
     const card = cardsList?.[cardID];
-    const areApprovalsConfigured = PolicyUtils.getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultLimitType = areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
     const initialLimitType = card?.nameValuePairs?.limitType ?? defaultLimitType;
     const promptTranslationKey =
@@ -48,10 +54,19 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const [typeSelected, setTypeSelected] = useState(initialLimitType);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
-    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID)), [policyID, cardID]);
+    const currency = useCurrencyForExpensifyCard({policyID});
+    const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE;
+
+    const goBack = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
+    }, [backTo, isWorkspaceRhp, policyID, cardID]);
 
     const fetchCardLimitTypeData = useCallback(() => {
-        Policy.openPolicyEditCardLimitTypePage(policyID, Number(cardID));
+        openPolicyEditCardLimitTypePage(policyID, Number(cardID));
     }, [policyID, cardID]);
 
     useFocusEffect(fetchCardLimitTypeData);
@@ -59,7 +74,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const updateCardLimitType = () => {
         setIsConfirmModalVisible(false);
 
-        Card.updateExpensifyCardLimitType(workspaceAccountID, Number(cardID), typeSelected, card?.nameValuePairs?.limitType);
+        updateExpensifyCardLimitType(defaultFundID, Number(cardID), typeSelected, card?.nameValuePairs?.limitType);
 
         goBack();
     };
@@ -137,7 +152,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
         }
 
         return options;
-    }, [areApprovalsConfigured, card, initialLimitType, translate, typeSelected]);
+    }, [areApprovalsConfigured, card?.totalSpend, card?.nameValuePairs?.unapprovedExpenseLimit, initialLimitType, translate, typeSelected]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -154,21 +169,21 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                     title={translate('workspace.card.issueNewCard.limitType')}
                     onBackButtonPress={goBack}
                 />
-                <FullPageOfflineBlockingView>
+                <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                     <SelectionList
                         ListItem={RadioListItem}
                         onSelectRow={({value}) => setTypeSelected(value)}
-                        sections={[{data}]}
+                        data={data}
                         shouldUpdateFocusedIndex
-                        isAlternateTextMultilineSupported
-                        initiallyFocusedOptionKey={typeSelected}
+                        alternateNumberOfSupportedLines={2}
+                        initiallyFocusedItemKey={typeSelected}
                     />
                     <ConfirmModal
                         title={translate('workspace.expensifyCard.changeCardLimitType')}
                         isVisible={isConfirmModalVisible}
                         onConfirm={updateCardLimitType}
                         onCancel={() => setIsConfirmModalVisible(false)}
-                        prompt={translate(promptTranslationKey, {limit: CurrencyUtils.convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, CONST.CURRENCY.USD)})}
+                        prompt={translate(promptTranslationKey, {limit: convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency)})}
                         confirmText={translate('workspace.expensifyCard.changeLimitType')}
                         cancelText={translate('common.cancel')}
                         danger

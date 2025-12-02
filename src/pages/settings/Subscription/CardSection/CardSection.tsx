@@ -1,15 +1,18 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,61 +34,110 @@ import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner
 import TrialEndedBillingBanner from './BillingBanner/TrialEndedBillingBanner';
 import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner';
 import CardSectionActions from './CardSectionActions';
+import CardSectionButton from './CardSectionButton';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
+import getSectionSubtitle from './CardSectionSubtitle';
 import RequestEarlyCancellationMenuItem from './RequestEarlyCancellationMenuItem';
 import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
 
 function CardSection() {
     const [isRequestRefundModalVisible, setIsRequestRefundModalVisible] = useState(false);
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
-    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes'] as const);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const privateSubscription = usePrivateSubscription();
+    const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
+    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [purchaseList] = useOnyx(ONYXKEYS.PURCHASE_LIST, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPlan = useSubscriptionPlan();
-    const [subscriptionRetryBillingStatusPending] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING);
-    const [subscriptionRetryBillingStatusSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL);
-    const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED);
+    const [subscriptionRetryBillingStatusPending] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING, {canBeMissing: true});
+    const [subscriptionRetryBillingStatusSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, {canBeMissing: true});
+    const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
-    const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
-
+    const cardMonth = useMemo(() => DateUtils.getMonthNames()[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth]);
+    const hasFailedLastBilling = useMemo(
+        () => purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_STRIPE_FAILED_AUTHENTICATION || purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_FAILED_2018,
+        [purchaseList],
+    );
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const requestRefund = useCallback(() => {
         requestRefundByUser();
         setIsRequestRefundModalVisible(false);
-        Navigation.resetToHome();
+        Navigation.goBackToHome();
     }, []);
 
     const viewPurchases = useCallback(() => {
         const query = buildQueryStringFromFilterFormValues({merchant: CONST.EXPENSIFY_MERCHANT});
-        Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
     }, []);
 
-    const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() => CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
+    const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
+        CardSectionUtils.getBillingStatus({
+            translate,
+            stripeCustomerId: privateStripeCustomerID,
+            accountData: defaultCard?.accountData ?? {},
+            purchase: purchaseList?.[0],
+            retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
+            billingDisputePending,
+            retryBillingFailed: subscriptionRetryBillingStatusFailed,
+            creditCardEyesIcon: illustrations.CreditCardEyes,
+        }),
+    );
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
-    const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
+    const sectionSubtitle = getSectionSubtitle({
+        translate,
+        hasDefaultCard: !!defaultCard,
+        nextPaymentDate,
+    });
 
     useEffect(() => {
-        setBillingStatus(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
-    }, [subscriptionRetryBillingStatusPending, subscriptionRetryBillingStatusSuccessful, subscriptionRetryBillingStatusFailed, translate, defaultCard?.accountData, privateStripeCustomerID]);
+        setBillingStatus(
+            CardSectionUtils.getBillingStatus({
+                translate,
+                stripeCustomerId: privateStripeCustomerID,
+                accountData: defaultCard?.accountData ?? {},
+                purchase: purchaseList?.[0],
+                retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
+                billingDisputePending,
+                retryBillingFailed: subscriptionRetryBillingStatusFailed,
+                creditCardEyesIcon: illustrations.CreditCardEyes,
+            }),
+        );
+    }, [
+        subscriptionRetryBillingStatusPending,
+        subscriptionRetryBillingStatusSuccessful,
+        subscriptionRetryBillingStatusFailed,
+        translate,
+        defaultCard?.accountData,
+        privateStripeCustomerID,
+        purchaseList,
+        billingDisputePending,
+        illustrations.CreditCardEyes,
+    ]);
 
     const handleRetryPayment = () => {
         clearOutstandingBalance();
     };
 
     useEffect(() => {
-        if (!authenticationLink || privateStripeCustomerID?.status !== CONST.STRIPE_GBP_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED) {
+        if (!authenticationLink || (privateStripeCustomerID?.status !== CONST.STRIPE_SCA_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED && !hasFailedLastBilling)) {
             return;
         }
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
-    }, [authenticationLink, privateStripeCustomerID?.status]);
+    }, [authenticationLink, privateStripeCustomerID?.status, hasFailedLastBilling]);
 
     const handleAuthenticatePayment = () => {
         verifySetupIntent(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, false);
@@ -96,13 +148,13 @@ function CardSection() {
     };
 
     let BillingBanner: React.ReactNode | undefined;
-    if (shouldShowDiscountBanner()) {
+    if (shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID)) {
         BillingBanner = <EarlyDiscountBanner isSubscriptionPage />;
-    } else if (shouldShowPreTrialBillingBanner()) {
+    } else if (shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial, lastDayFreeTrial)) {
         BillingBanner = <PreTrialBillingBanner />;
-    } else if (isUserOnFreeTrial()) {
+    } else if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
         BillingBanner = <TrialStartedBillingBanner />;
-    } else if (hasUserFreeTrialEnded()) {
+    } else if (hasUserFreeTrialEnded(lastDayFreeTrial)) {
         BillingBanner = <TrialEndedBillingBanner />;
     }
     if (billingStatus) {
@@ -139,7 +191,7 @@ function CardSection() {
                                 medium
                             />
                             <View style={styles.flex1}>
-                                <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData)}</Text>
+                                <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData, translate)}</Text>
                                 <Text style={styles.mutedNormalTextLabel}>
                                     {translate('subscription.cardSection.cardInfo', {
                                         name: defaultCard?.accountData?.addressName ?? '',
@@ -155,7 +207,7 @@ function CardSection() {
 
                 <View style={styles.mb3}>{isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}</View>
                 {billingStatus?.isRetryAvailable !== undefined && (
-                    <Button
+                    <CardSectionButton
                         text={translate('subscription.cardSection.retryPaymentButton')}
                         isDisabled={isOffline || !billingStatus?.isRetryAvailable}
                         isLoading={subscriptionRetryBillingStatusPending}
@@ -164,8 +216,8 @@ function CardSection() {
                         large
                     />
                 )}
-                {hasCardAuthenticatedError() && (
-                    <Button
+                {hasCardAuthenticatedError(privateStripeCustomerID) && (
+                    <CardSectionButton
                         text={translate('subscription.cardSection.authenticatePayment')}
                         isDisabled={isOffline || !billingStatus?.isAuthenticationRequired}
                         isLoading={subscriptionRetryBillingStatusPending}
@@ -207,12 +259,7 @@ function CardSection() {
                     isVisible={isRequestRefundModalVisible}
                     onConfirm={requestRefund}
                     onCancel={() => setIsRequestRefundModalVisible(false)}
-                    prompt={
-                        <>
-                            <Text style={styles.mb4}>{translate('subscription.cardSection.requestRefundModal.phrase1')}</Text>
-                            <Text>{translate('subscription.cardSection.requestRefundModal.phrase2')}</Text>
-                        </>
-                    }
+                    prompt={<RenderHTML html={translate('subscription.cardSection.requestRefundModal.full')} />}
                     confirmText={translate('subscription.cardSection.requestRefundModal.confirm')}
                     cancelText={translate('common.cancel')}
                     danger

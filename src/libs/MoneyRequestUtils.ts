@@ -1,31 +1,28 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
-import type {SelectedTabRequest} from '@src/types/onyx';
 
 /**
  * Strip comma from the amount
  */
 function stripCommaFromAmount(amount: string): string {
-    return amount.replace(/,/g, '');
+    return amount.replaceAll(',', '');
 }
 
 /**
  * Strip spaces from the amount
  */
 function stripSpacesFromAmount(amount: string): string {
-    return amount.replace(/\s+/g, '');
+    return amount.replaceAll(/\s+/g, '');
 }
 
 function replaceCommasWithPeriod(amount: string): string {
-    return amount.replace(/,+/g, '.');
+    return amount.replaceAll(/,+/g, '.');
 }
 
 /**
  * Strip decimals from the amount
  */
 function stripDecimalsFromAmount(amount: string): string {
-    return amount.replace(/\.\d*$/, '');
+    return amount.replaceAll(/\.\d*$/g, '');
 }
 
 /**
@@ -83,23 +80,22 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
 }
 
 /**
- * Check if distance expense or not
+ * Handles negative amount flipping by toggling the negative state and removing the '-' prefix
+ * @param amount - The amount string to process
+ * @param allowFlippingAmount - Whether flipping amount is allowed
+ * @param toggleNegative - Function to toggle negative state
+ * @returns The processed amount string without the '-' prefix
  */
-function isDistanceRequest(iouType: IOUType, selectedTab: OnyxEntry<SelectedTabRequest>): boolean {
-    return (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && selectedTab === CONST.TAB_REQUEST.DISTANCE;
-}
-
-/**
- * Check if scan expense or not
- */
-function isScanRequest(selectedTab: SelectedTabRequest): boolean {
-    return selectedTab === CONST.TAB_REQUEST.SCAN;
+function handleNegativeAmountFlipping(amount: string, allowFlippingAmount: boolean, toggleNegative?: () => void): string {
+    if (allowFlippingAmount && amount.startsWith('-')) {
+        toggleNegative?.();
+        return amount.slice(1);
+    }
+    return amount;
 }
 
 export {
     addLeadingZero,
-    isDistanceRequest,
-    isScanRequest,
     replaceAllDigits,
     stripCommaFromAmount,
     stripDecimalsFromAmount,
@@ -107,4 +103,5 @@ export {
     replaceCommasWithPeriod,
     validateAmount,
     validatePercentage,
+    handleNegativeAmountFlipping,
 };

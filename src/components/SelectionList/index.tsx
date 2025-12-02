@@ -1,23 +1,23 @@
-import React, {forwardRef, useEffect, useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {Keyboard} from 'react-native';
-import * as Browser from '@libs/Browser';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import React, {useEffect, useState} from 'react';
+import {isMobileChrome} from '@libs/Browser';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import BaseSelectionList from './BaseSelectionList';
-import type {BaseSelectionListProps, ListItem, SelectionListHandle} from './types';
+import type {ListItem} from './ListItem/types';
+import type {SelectionListProps} from './types';
 
-function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelectionListProps<TItem>, ref: ForwardedRef<SelectionListHandle>) {
+function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListProps<TItem>) {
     const [isScreenTouched, setIsScreenTouched] = useState(false);
+    const [shouldDebounceScrolling, setShouldDebounceScrolling] = useState(false);
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
 
     const touchStart = () => setIsScreenTouched(true);
     const touchEnd = () => setIsScreenTouched(false);
 
     useEffect(() => {
-        if (!DeviceCapabilities.canUseTouchScreen()) {
+        if (!canUseTouchScreen()) {
             return;
         }
-
         // We're setting `isScreenTouched` in this listener only for web platforms with touchscreen (mWeb) where
         // we want to dismiss the keyboard only when the list is scrolled by the user and not when it's scrolled programmatically.
         document.addEventListener('touchstart', touchStart);
@@ -29,13 +29,10 @@ function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelecti
         };
     }, []);
 
-    const [shouldDebounceScrolling, setShouldDebounceScrolling] = useState(false);
-
-    const checkShouldDebounceScrolling = (event: KeyboardEvent) => {
+    const handleKeyboardScrollDebounce = (event: KeyboardEvent) => {
         if (!event) {
             return;
         }
-
         // Moving through items using the keyboard triggers scrolling by the browser, so we debounce programmatic scrolling to prevent jittering.
         if (
             event.key === CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey ||
@@ -47,38 +44,59 @@ function SelectionList<TItem extends ListItem>({onScroll, ...props}: BaseSelecti
     };
 
     useEffect(() => {
-        document.addEventListener('keydown', checkShouldDebounceScrolling, {passive: true});
-        document.addEventListener('keyup', checkShouldDebounceScrolling, {passive: true});
+        document.addEventListener('keydown', handleKeyboardScrollDebounce, {passive: true});
+        document.addEventListener('keyup', handleKeyboardScrollDebounce, {passive: true});
 
         return () => {
-            document.removeEventListener('keydown', checkShouldDebounceScrolling);
-            document.removeEventListener('keyup', checkShouldDebounceScrolling);
+            document.removeEventListener('keydown', handleKeyboardScrollDebounce);
+            document.removeEventListener('keyup', handleKeyboardScrollDebounce);
         };
     }, []);
 
-    // In SearchPageBottomTab we use useAnimatedScrollHandler from reanimated(for performance reasons) and it returns object instead of function. In that case we cannot change it to a function call, that's why we have to choose between onScroll and defaultOnScroll.
-    const defaultOnScroll = () => {
-        // Only dismiss the keyboard whenever the user scrolls the screen
-        if (!isScreenTouched) {
+    useEffect(() => {
+        if (canUseTouchScreen()) {
             return;
         }
-        Keyboard.dismiss();
-    };
+
+        let lastClientX = 0;
+        let lastClientY = 0;
+        const mouseMoveHandler = (event: MouseEvent) => {
+            // On Safari, scrolling can also trigger a mousemove event,
+            // so this comparison is needed to filter out cases where the mouse hasn't actually moved.
+            if (event.clientX === lastClientX && event.clientY === lastClientY) {
+                return;
+            }
+
+            lastClientX = event.clientX;
+            lastClientY = event.clientY;
+
+            setShouldDisableHoverStyle(false);
+        };
+        const wheelHandler = () => setShouldDisableHoverStyle(false);
+
+        document.addEventListener('mousemove', mouseMoveHandler, {passive: true});
+        document.addEventListener('wheel', wheelHandler, {passive: true});
+        return () => {
+            document.removeEventListener('mousemove', mouseMoveHandler);
+            document.removeEventListener('wheel', wheelHandler);
+        };
+    }, []);
 
     return (
         <BaseSelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
-            onScroll={onScroll ?? defaultOnScroll}
             // Ignore the focus if it's caused by a touch event on mobile chrome.
             // For example, a long press will trigger a focus event on mobile chrome.
-            shouldIgnoreFocus={Browser.isMobileChrome() && isScreenTouched}
+            shouldIgnoreFocus={isMobileChrome() && isScreenTouched}
             shouldDebounceScrolling={shouldDebounceScrolling}
+            shouldDisableHoverStyle={shouldDisableHoverStyle}
+            setShouldDisableHoverStyle={setShouldDisableHoverStyle}
         />
     );
 }
 
 SelectionList.displayName = 'SelectionList';
 
-export default forwardRef(SelectionList);
+export default SelectionList;

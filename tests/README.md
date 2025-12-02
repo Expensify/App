@@ -7,7 +7,7 @@
 - Much of the logic in the app is asynchronous in nature. [`react-native-onyx`](https://github.com/expensify/react-native-onyx) writes data async before updating subscribers.
 - [Actions](https://github.com/Expensify/App#actions) do not typically return a `Promise` and therefore can't always be "awaited" before running an assertion.
 - To test a result after some asynchronous code has run we can use [`Onyx.connect()`](https://github.com/Expensify/react-native-onyx/blob/2c94a94e51fab20330f7bd5381b72ea6c25553d9/lib/Onyx.js#L217-L231) and the helper method [`waitForBatchedUpdates()`](https://github.com/Expensify/ReactNativeChat/blob/ca2fa88a5789b82463d35eddc3d57f70a7286868/tests/utils/waitForBatchedUpdates.js#L1-L9) which returns a `Promise` and will ensure that all other `Promises` have finished running before resolving.
-- **Important Note:** When writing any asynchronous Jest test it's very important that your test itself **return a `Promise`**.
+- **Important Note:** When writing any asynchronous Jest test it's very important that your test itself **return a `Promise`**. In hooks like BeforeEach, BeforeAll, AfterAll, etc., you also need to return a promise or use async/await if they perform any asynchronous calls.
 
 ## Mocking Network Requests
 
@@ -20,7 +20,7 @@
 When unit testing an interface with Jest/performance testing with Reassure you might need to work with collections of data. These often get tricky to generate and maintain. To help with this we have a few helper methods located in `tests/utils/collections/`.
 
 - `createCollection()` - Creates a collection of data (`Record<string, T>`) with a given number of items (default=500). This is useful for eg. testing the performance of a component with a large number of items. You can use it to populate Onyx.
-- `createRandom*()` - like `createRandomPolicy`, these functions are responsible for generating a randomised object of the given type. You can use them as your defaults when calling `createCollection()` or as standalone utilities.
+- `createRandom*()` - like `createRandomPolicy`, these functions are responsible for generating a randomized object of the given type. You can use them as your defaults when calling `createCollection()` or as standalone utilities.
 
 Basic example:
 ```ts
@@ -145,3 +145,125 @@ If you are using Visual Studio Code, it's easy to debug a test you are writing o
 }
 ```
 You should now be able to set breakpoints anywhere in the code and run your test from within Visual Studio Code.
+
+## Reducing Console Errors in Tests
+
+### Background
+
+Our test suite currently produces thousands of console errors across test files, mostly React `act()` warnings. While all tests pass, the cluttered output makes it hard to identify legitimate issues during development. When developers run tests to validate their changes, the overwhelming volume of console errors obscures real issues, which prevents us from quickly identifying legitimate bugs and reduces developer confidence in our testing feedback.
+
+### Common Console Errors and How to Fix Them
+
+#### React `act()` Warnings
+
+**Problem:** `Warning: An update to Component was not wrapped in act(...)`
+
+**Solution:** Wrap Onyx operations and state updates in `act()` calls:
+
+```typescript
+import {act} from '@testing-library/react-native';
+
+// Before
+Onyx.merge('key', {data: 'value'});
+await waitForBatchedUpdates();
+
+// After
+await act(async () => {
+    Onyx.merge('key', {data: 'value'});
+    await waitForBatchedUpdates();
+});
+```
+
+#### Async Operation Warnings
+
+**Problem:** Unresolved promises or async operations continuing after test completion
+
+**Solution:** Improve async handling in tests:
+
+```typescript
+// Ensure all async operations complete before test ends
+afterEach(async () => {
+    await act(async () => {
+        await waitForBatchedUpdates();
+    });
+});
+```
+
+### Best Practices for Writing Clean Tests
+
+#### 1. Wrap State Updates in `act()`
+
+Always wrap operations that cause state changes in React components:
+
+```typescript
+// Good
+await act(async () => {
+    Onyx.merge('session', {email: 'test@expensify.com'});
+    await waitForBatchedUpdates();
+});
+
+// Bad
+Onyx.merge('session', {email: 'test@expensify.com'});
+await waitForBatchedUpdates();
+```
+
+#### 2. Proper Cleanup
+
+Ensure tests clean up after themselves:
+
+```typescript
+afterEach(async () => {
+    await act(async () => {
+        Onyx.clear();
+        await waitForBatchedUpdates();
+    });
+});
+```
+
+#### 3. Use Proper Async/Await Patterns
+
+Wait for all async operations to complete:
+
+```typescript
+// Good
+it('should update user data', async () => {
+    await act(async () => {
+        User.updateProfile({displayName: 'New Name'});
+        await waitForBatchedUpdates();
+    });
+    
+    expect(/* assertion */);
+});
+```
+
+#### 4. Mock Time-Sensitive Operations
+
+Use Jest timers for operations involving timeouts:
+
+```typescript
+beforeEach(() => {
+    jest.useFakeTimers();
+});
+
+afterEach(() => {
+    jest.useRealTimers();
+});
+
+// In test
+act(() => {
+    jest.advanceTimersByTime(1000);
+});
+```
+
+### Ongoing Cleanup Effort
+
+We're implementing a batch-audit approach where related test files are grouped and fixed together. This keeps PRs manageable while avoiding overwhelming maintainers with too many submissions.
+
+**Current Progress:** Reduced console errors from 8,559 → ~3,167 (63% reduction)
+
+**How You Can Help:**
+- When writing new tests, follow the best practices above to avoid introducing new console errors
+- If you encounter console errors in existing tests while working in that area, consider fixing them as part of your PR
+- Pick up batches of related test files for cleanup when contributing to the codebase
+
+**Note:** We intentionally avoid excessive mocking that could weaken test reliability. The goal is to reduce noise while maintaining test quality and effectiveness.

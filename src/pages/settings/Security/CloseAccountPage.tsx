@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,18 +11,23 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {formatE164PhoneNumber, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
-import * as CloseAccount from '@userActions/CloseAccount';
-import * as User from '@userActions/User';
+import {clearError} from '@userActions/CloseAccount';
+import {closeAccount} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/CloseAccountForm';
 
 function CloseAccountPage() {
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {
+        canBeMissing: false,
+    });
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -35,14 +39,14 @@ function CloseAccountPage() {
     // nothing runs on mount and we pass empty dependencies to prevent this from running on every re-render.
     // TODO: We should refactor this so that the data in instead passed directly as a prop instead of "side loading" the data
     // here, we left this as is during refactor to limit the breaking changes.
-    useEffect(() => () => CloseAccount.clearError(), []);
+    useEffect(() => () => clearError(), []);
 
     const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
     };
 
     const onConfirm = () => {
-        User.closeAccount(reasonForLeaving);
+        closeAccount(reasonForLeaving);
         hideConfirmModal();
     };
 
@@ -51,31 +55,49 @@ function CloseAccountPage() {
         setReasonForLeaving(values.reasonForLeaving);
     };
 
+    const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
+
     /**
      * Removes spaces and transform the input string to lowercase.
      * @param phoneOrEmail - The input string to be sanitized.
      * @returns The sanitized string
      */
-    const sanitizePhoneOrEmail = (phoneOrEmail: string): string => phoneOrEmail.replace(/\s+/g, '').toLowerCase();
+    const sanitizePhoneOrEmail = (phoneOrEmail: string): string => phoneOrEmail.replaceAll(/\s+/g, '').toLowerCase();
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM> => {
-        const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
-        const errors = ValidationUtils.getFieldRequiredErrors(values, ['phoneOrEmail']);
+        const errors = getFieldRequiredErrors(values, ['phoneOrEmail']);
 
-        if (values.phoneOrEmail && userEmailOrPhone && sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
-            errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
+        if (values.phoneOrEmail && userEmailOrPhone) {
+            let isValid = false;
+
+            if (Str.isValidEmail(userEmailOrPhone)) {
+                // Email comparison - use existing sanitization
+                isValid = sanitizePhoneOrEmail(userEmailOrPhone) === sanitizePhoneOrEmail(values.phoneOrEmail);
+            } else {
+                // Phone number comparison - normalize to E.164
+                const storedE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(userEmailOrPhone), countryCode);
+                const inputE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(values.phoneOrEmail), countryCode);
+
+                // Only compare if both numbers could be formatted to E.164
+                if (storedE164Phone && inputE164Phone) {
+                    isValid = storedE164Phone === inputE164Phone;
+                }
+            }
+
+            if (!isValid) {
+                errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
+            }
         }
+
         return errors;
     };
-
-    const userEmailOrPhone = session?.email ? formatPhoneNumber(session.email) : null;
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID={CloseAccountPage.displayName}
         >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}>
                 <HeaderWithBackButton
                     title={translate('closeAccountPage.closeAccount')}
                     onBackButtonPress={() => Navigation.goBack()}
@@ -88,7 +110,10 @@ function CloseAccountPage() {
                     style={[styles.flexGrow1, styles.mh5]}
                     isSubmitActionDangerous
                 >
-                    <View style={[styles.flexGrow1]}>
+                    <View
+                        fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                        style={[styles.flexGrow1]}
+                    >
                         <Text>{translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
@@ -99,6 +124,7 @@ function CloseAccountPage() {
                             aria-label={translate('closeAccountPage.enterMessageHere')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mt5]}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
                         />
                         <Text style={[styles.mt5]}>
                             {translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
@@ -113,6 +139,7 @@ function CloseAccountPage() {
                             containerStyles={[styles.mt5]}
                             autoCorrect={false}
                             inputMode={userEmailOrPhone && Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
                         />
                         <ConfirmModal
                             danger

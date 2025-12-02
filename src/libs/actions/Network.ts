@@ -4,14 +4,18 @@ import type {NetworkStatus} from '@libs/NetworkConnection';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionChanges} from '@src/types/onyx/Network';
 
-function setIsOffline(isOffline: boolean, reason = '') {
+function setNetworkLastOffline(lastOfflineAt: string) {
+    Onyx.merge(ONYXKEYS.NETWORK, {lastOfflineAt});
+}
+
+function setIsOffline(isNetworkOffline: boolean, reason = '') {
     if (reason) {
         let textToLog = '[Network] Client is';
-        textToLog += isOffline ? ' entering offline mode' : ' back online';
+        textToLog += isNetworkOffline ? ' entering offline mode' : ' back online';
         textToLog += ` because: ${reason}`;
         Log.info(textToLog);
     }
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline});
+    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: isNetworkOffline});
 }
 
 function setNetWorkStatus(status: NetworkStatus) {
@@ -50,4 +54,14 @@ function setConnectionChanges(connectionChanges: ConnectionChanges) {
     Onyx.merge(ONYXKEYS.NETWORK, {connectionChanges});
 }
 
-export {setIsOffline, setShouldForceOffline, setConnectionChanges, setShouldSimulatePoorConnection, setPoorConnectionTimeoutID, setShouldFailAllRequests, setTimeSkew, setNetWorkStatus};
+export {
+    setIsOffline,
+    setShouldForceOffline,
+    setConnectionChanges,
+    setShouldSimulatePoorConnection,
+    setPoorConnectionTimeoutID,
+    setShouldFailAllRequests,
+    setTimeSkew,
+    setNetWorkStatus,
+    setNetworkLastOffline,
+};

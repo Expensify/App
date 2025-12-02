@@ -1,9 +1,9 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
-import type {IOURequestType} from '@libs/actions/IOU';
+import type {CreateTrackExpenseParams, IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
-import type {Attendee, Participant, Split} from './IOU';
+import type {Accountant, Attendee, Participant, Split, SplitExpense} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type {Unit} from './Policy';
 import type RecentWaypoint from './RecentWaypoint';
@@ -18,7 +18,7 @@ type Waypoint = {
     /** The full address of the waypoint */
     address?: string;
 
-    /** The lattitude of the waypoint */
+    /** The latitude of the waypoint */
     lat?: number;
 
     /** The longitude of the waypoint */
@@ -54,6 +54,9 @@ type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
 
 /** Model of transaction comment */
 type Comment = {
+    /** Selected attendees */
+    attendees?: Attendee[];
+
     /** Content of the transaction comment */
     comment?: string;
 
@@ -65,6 +68,9 @@ type Comment = {
 
     /** Whether the transaction comment is loading */
     isLoading?: boolean;
+
+    /** Whether the transaction comment is a demo transaction */
+    isDemoTransaction?: boolean;
 
     /** Type of the transaction */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
@@ -81,8 +87,17 @@ type Comment = {
     /** In split transactions this is a collection of participant split data */
     splits?: Split[];
 
+    /** Collection of split expenses */
+    splitExpenses?: SplitExpense[];
+
+    /** Total that the user currently owes for splitExpenses */
+    splitExpensesTotal?: number;
+
     /** Violations that were dismissed */
-    dismissedViolations?: Record<ViolationName, Record<string, string | number>>;
+    dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
+
+    /** Defines the type of liability for the transaction */
+    liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
 };
 
 /** Model of transaction custom unit */
@@ -132,7 +147,7 @@ type TransactionCustomUnit = {
         name: string;
 
         /** Custom unit rate */
-        rate?: number;
+        rate: number;
     }>;
 };
 
@@ -149,7 +164,7 @@ type Geometry = {
 };
 
 /** Accepted receipt paths */
-type ReceiptSource = string;
+type ReceiptSource = string | number;
 
 /** Model of receipt */
 type Receipt = {
@@ -173,6 +188,12 @@ type Receipt = {
 
     /** Collection of reservations */
     reservationList?: Reservation[];
+
+    /** Receipt is manager_mctest@expensify.com testing receipt */
+    isTestReceipt?: true;
+
+    /** Receipt is Test Drive testing receipt */
+    isTestDriveReceipt?: true;
 };
 
 /** Model of route */
@@ -194,31 +215,16 @@ type ReceiptError = {
 
     /** Name of the receipt file */
     filename: string;
+
+    /** Action that caused the error */
+    action: string;
+
+    /** Parameters required to retry the failed action */
+    retryParams: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
 };
 
 /** Collection of receipt errors, indexed by a UNIX timestamp of when the error occurred */
 type ReceiptErrors = Record<string, ReceiptError>;
-
-/** Tax rate data */
-type TaxRateData = {
-    /** Tax rate percentage */
-    value: string;
-
-    /** Tax rate code */
-    code?: string;
-};
-
-/** Model of tax rate */
-type TaxRate = {
-    /** Default name of the tax rate */
-    text: string;
-
-    /** Key of the tax rate to index it on options list */
-    keyForList: string;
-
-    /** Data of the tax rate */
-    data?: TaxRateData;
-};
 
 /** This represents the details of the traveler */
 type TravelerPersonalDetails = {
@@ -259,7 +265,7 @@ type Reservation = {
     numPassengers?: number;
 
     /** In flight reservations, this represents the flight duration in seconds */
-    duration: number;
+    duration?: number;
 
     /** In hotel reservations, this represents the number of rooms reserved */
     numberOfRooms?: number;
@@ -291,11 +297,11 @@ type Reservation = {
     /** Payment type of the reservation */
     paymentType?: string;
 
+    /** Departure gate details */
+    departureGate?: Gate;
+
     /** Arrival gate details */
-    arrivalGate?: {
-        /** Arrival terminal number */
-        terminal: string;
-    };
+    arrivalGate?: Gate;
 
     /** Coach number for rail */
     coachNumber?: string;
@@ -305,6 +311,21 @@ type Reservation = {
 
     /** This represents the details of the traveler */
     travelerPersonalInfo?: TravelerPersonalDetails;
+
+    /** Type or category of purchased fare */
+    fareType?: string;
+
+    /** leg id */
+    legId?: number;
+};
+
+/** Model of gate for flight reservation */
+type Gate = {
+    /** Terminal number */
+    terminal: string;
+
+    /** Specific gate number */
+    gate: string;
 };
 
 /** Model of trip reservation time details */
@@ -382,14 +403,20 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The original transaction amount */
         amount: number;
 
-        /** Selected attendees */
-        attendees?: Attendee[];
+        /** Selected accountant */
+        accountant?: Accountant;
+
+        /** The transaction converted amount in report's currency */
+        convertedAmount?: number;
 
         /** The transaction tax amount */
         taxAmount?: number;
 
         /** The transaction tax code */
         taxCode?: string;
+
+        /** The transaction tax value */
+        taxValue?: string | undefined;
 
         /** Whether the expense is billable */
         billable?: boolean;
@@ -414,6 +441,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The name of the file used for a receipt (formerly receiptFilename) */
         filename?: string;
+
+        /** The transaction converted amount in `groupCurrency` currency */
+        groupAmount?: number;
+
+        /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
+        groupCurrency?: string;
 
         /** Used during the creation flow before the transaction is saved to the server */
         iouRequestType?: IOURequestType;
@@ -454,6 +487,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
 
+        /** The name of iouReport associated with the transaction */
+        reportName?: string;
+
         /** Existing routes */
         routes?: Routes;
 
@@ -467,7 +503,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         isFromGlobalCreate?: boolean;
 
         /** The transaction tax rate */
-        taxRate?: TaxRate;
+        taxRate?: string | undefined;
 
         /** Card Transactions */
 
@@ -503,9 +539,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Holds individual shares of a split keyed by accountID, only used locally */
         splitShares?: SplitShares;
-
-        /** Holds the accountIDs of accounts who paid the split, for now only supports a single payer */
-        splitPayerAccountIDs?: number[];
 
         /** Whether the user input should be kept */
         shouldShowOriginalAmount?: boolean;
@@ -551,6 +584,9 @@ type AdditionalTransactionChanges = {
     /** Collection of modified waypoints */
     waypoints?: WaypointCollection;
 
+    /** Collection of modified attendees */
+    attendees?: Attendee[];
+
     /** The ID of the distance rate */
     customUnitRateID?: string;
 
@@ -559,6 +595,9 @@ type AdditionalTransactionChanges = {
 
     /** Previous currency before changes */
     oldCurrency?: string;
+
+    /** Previous distance before changes */
+    distance?: number;
 };
 
 /** Model of transaction changes  */
@@ -566,6 +605,12 @@ type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
 /** Collection of mock transactions, indexed by `transactions_${transactionID}` */
 type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
+
+/** Transaction that is not associated with any report */
+type UnreportedTransaction = Omit<Transaction, 'reportID'> & {
+    /** The ID of the report that this transaction is associated with. */
+    reportID: '0';
+};
 
 export default Transaction;
 export type {
@@ -578,13 +623,12 @@ export type {
     ReceiptErrors,
     TransactionPendingFieldsKey,
     TransactionChanges,
-    TaxRate,
     Reservation,
     ReservationTimeDetails,
     ReservationType,
     ReceiptSource,
     TransactionCollectionDataSet,
-    SplitShare,
     SplitShares,
     TransactionCustomUnit,
+    UnreportedTransaction,
 };

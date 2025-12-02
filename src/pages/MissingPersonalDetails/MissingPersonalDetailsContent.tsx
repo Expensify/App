@@ -1,24 +1,23 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FormActions from '@libs/actions/FormActions';
-import {requestValidateCodeAction} from '@libs/actions/User';
+import {clearDraftValues} from '@libs/actions/FormActions';
+import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
+import MissingPersonalDetailsMagicCodeModal from './MissingPersonalDetailsMagicCodeModal';
 import Address from './substeps/Address';
 import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
@@ -30,21 +29,24 @@ import {getInitialSubstep, getSubstepValues} from './utils';
 type MissingPersonalDetailsContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
     draftValues: OnyxEntry<PersonalDetailsForm>;
+
+    /** Optional custom header title */
+    headerTitle?: string;
+
+    /** Optional custom completion handler */
+    onComplete?: (values: PersonalDetailsForm, validateCode: string) => void;
 };
 
 const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
 
-function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: MissingPersonalDetailsContentProps) {
+function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const primaryLogin = account?.primaryLogin ?? '';
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
-    const values = useMemo(() => getSubstepValues(privatePersonalDetails, draftValues), [privatePersonalDetails, draftValues]);
+    const values = useMemo(() => normalizeCountryCode(getSubstepValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
     const startFrom = useMemo(() => getInitialSubstep(values), [values]);
 
@@ -52,8 +54,12 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         if (!values) {
             return;
         }
+        if (!onComplete) {
+            Navigation.navigate(ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE);
+            return;
+        }
         setIsValidateCodeActionModalVisible(true);
-    }, [values]);
+    }, [onComplete, values]);
 
     const {
         componentToRender: SubStep,
@@ -63,17 +69,20 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         screenIndex,
         moveTo,
         goToTheLastStep,
+        lastScreenIndex,
     } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep});
 
     const handleBackButtonPress = () => {
         if (isEditing) {
             goToTheLastStep();
+            ref.current?.moveTo(lastScreenIndex);
+
             return;
         }
 
         // Clicking back on the first screen should dismiss the modal
         if (screenIndex === CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME) {
-            FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
             Navigation.goBack();
             return;
         }
@@ -81,31 +90,33 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
         prevScreen();
     };
 
-    const handleValidateCodeEntered = useCallback(
+    const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            PersonalDetails.updatePersonalDetailsAndShipExpensifyCards(values, validateCode);
-            FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-            Navigation.goBack();
+            if (!onComplete) {
+                return;
+            }
+            onComplete(values, validateCode);
         },
-        [values],
+        [values, onComplete],
     );
-
-    const sendValidateCode = () => {
-        if (validateCodeAction?.validateCodeSent) {
-            return;
-        }
-
-        requestValidateCodeAction();
-    };
 
     const handleNextScreen = useCallback(() => {
         if (isEditing) {
             goToTheLastStep();
+            ref.current?.moveTo(lastScreenIndex);
             return;
         }
         ref.current?.moveNext();
         nextScreen();
-    }, [goToTheLastStep, isEditing, nextScreen]);
+    }, [goToTheLastStep, isEditing, nextScreen, lastScreenIndex]);
+
+    const handleMoveTo = useCallback(
+        (step: number) => {
+            ref.current?.moveTo(step);
+            moveTo(step);
+        },
+        [moveTo],
+    );
 
     return (
         <ScreenWrapper
@@ -114,7 +125,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
             testID={MissingPersonalDetailsContent.displayName}
         >
             <HeaderWithBackButton
-                title={translate('workspace.expensifyCard.addShippingDetails')}
+                title={headerTitle ?? translate('workspace.expensifyCard.addShippingDetails')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
@@ -127,20 +138,14 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: Mi
             <SubStep
                 isEditing={isEditing}
                 onNext={handleNextScreen}
-                onMove={moveTo}
+                onMove={handleMoveTo}
                 screenIndex={screenIndex}
                 personalDetailsValues={values}
             />
-
-            <ValidateCodeActionModal
-                handleSubmitForm={handleValidateCodeEntered}
-                sendValidateCode={sendValidateCode}
-                clearError={() => {}}
+            <MissingPersonalDetailsMagicCodeModal
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
-                isVisible={isValidateCodeActionModalVisible}
-                title={translate('cardPage.validateCardTitle')}
-                descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
-                hasMagicCodeBeenSent={!!validateCodeAction?.validateCodeSent}
+                isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
+                handleSubmitForm={handleSubmitForm}
             />
         </ScreenWrapper>
     );

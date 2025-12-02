@@ -1,17 +1,16 @@
-import type {ForwardedRef} from 'react';
 import React, {useEffect, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
+import {isMobileChrome} from '@libs/Browser';
 import DomUtils from '@libs/DomUtils';
 import Visibility from '@libs/Visibility';
 import BaseTextInput from './BaseTextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from './BaseTextInput/types';
+import type {BaseTextInputProps} from './BaseTextInput/types';
 import * as styleConst from './styleConst';
 
 type RemoveVisibilityListener = () => void;
 
-function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef>) {
+function TextInput({ref, ...props}: BaseTextInputProps) {
     const styles = useThemeStyles();
     const textInputRef = useRef<HTMLFormElement | null>(null);
     const removeVisibilityListenerRef = useRef<RemoveVisibilityListener>(null);
@@ -27,7 +26,7 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
         }
 
         removeVisibilityListener = Visibility.onVisibilityChange(() => {
-            if (!Browser.isMobileChrome() || !Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
+            if (!isMobileChrome() || !Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
                 return;
             }
             textInputRef.current.blur();
@@ -73,11 +72,11 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
                 ref.current = element;
             }}
             inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, props.inputStyle]}
-            textInputContainerStyles={[labelAnimationStyle as StyleProp<ViewStyle>, props.textInputContainerStyles]}
+            textInputContainerStyles={[labelAnimationStyle as StyleProp<ViewStyle>, props.textInputContainerStyles, styles.cursorText]}
         />
     );
 }
 
 TextInput.displayName = 'TextInput';
 
-export default React.forwardRef(TextInput);
+export default TextInput;

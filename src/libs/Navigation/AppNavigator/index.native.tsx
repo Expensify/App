@@ -1,7 +1,7 @@
-import React, {memo, useContext, useEffect} from 'react';
-import {NativeModules} from 'react-native';
-import {InitialURLContext} from '@components/InitialURLContextProvider';
-import Navigation from '@libs/Navigation/Navigation';
+import React, {memo, useMemo} from 'react';
+import useOnyx from '@hooks/useOnyx';
+import CONFIG from '@src/CONFIG';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 type AppNavigatorProps = {
@@ -10,20 +10,17 @@ type AppNavigatorProps = {
 };
 
 function AppNavigator({authenticated}: AppNavigatorProps) {
-    const {initialURL, setInitialURL} = useContext(InitialURLContext);
+    const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP, {canBeMissing: true});
 
-    useEffect(() => {
-        if (!NativeModules.HybridAppModule || !initialURL) {
-            return;
+    const shouldShowAuthScreens = useMemo(() => {
+        if (!CONFIG.IS_HYBRID_APP) {
+            return authenticated;
         }
 
-        Navigation.isNavigationReady().then(() => {
-            Navigation.navigate(Navigation.parseHybridAppUrl(initialURL));
-            setInitialURL(undefined);
-        });
-    }, [initialURL, setInitialURL]);
+        return authenticated && hybridApp?.readyToShowAuthScreens;
+    }, [hybridApp?.readyToShowAuthScreens, authenticated]);
 
-    if (authenticated) {
+    if (shouldShowAuthScreens) {
         const AuthScreens = require<ReactComponentModule>('./AuthScreens').default;
 
         // These are the protected screens and only accessible when an authToken is present

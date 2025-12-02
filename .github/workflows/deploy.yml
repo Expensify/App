@@ -5,47 +5,40 @@ on:
     branches: [staging, production]
 
 env:
-  SHOULD_DEPLOY_PRODUCTION: ${{ github.ref == 'refs/heads/production' }}
+  IS_APP_REPO: ${{ github.repository == 'Expensify/App' }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  validateActor:
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    outputs:
-      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' || github.actor == 'os-botify[bot]' }}
-    steps:
-      - name: Check if user is deployer
-        id: isUserDeployer
-        run: |
-          if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
-            echo "IS_DEPLOYER=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "IS_DEPLOYER=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-
   prep:
-    needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     outputs:
       APP_VERSION: ${{ steps.getAppVersion.outputs.VERSION }}
+      TAG: ${{ steps.getTagName.outputs.TAG }}
+      # Is this deploy for a cherry-pick?
+      IS_CHERRY_PICK: ${{ steps.isCherryPick.outputs.IS_CHERRY_PICK }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          submodules: true
+
+      - name: Validate actor
+        id: validateActor
+        uses: ./.github/actions/composite/validateActor
+        with:
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
       - name: Setup git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotifyApp
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
         id: setupGitForOSBotify
         with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
 
@@ -53,11 +46,32 @@ jobs:
         id: getAppVersion
         run: echo "VERSION=$(jq -r .version < package.json)" >> "$GITHUB_OUTPUT"
 
+      - name: Get tag
+        id: getTagName
+        run: echo "TAG=${{ github.ref == 'refs/heads/production' && steps.getAppVersion.outputs.VERSION || format('{0}-staging', steps.getAppVersion.outputs.VERSION) }}" >> "$GITHUB_OUTPUT"
+
       - name: Create and push tag
-        if: ${{ github.ref == 'refs/heads/staging' }}
         run: |
-          git tag ${{ steps.getAppVersion.outputs.VERSION }}
+          git tag ${{ steps.getTagName.outputs.TAG }}
           git push origin --tags
+          cd Mobile-Expensify
+          git tag ${{ steps.getTagName.outputs.TAG }}
+          git push origin --tags
+
+        # We use JS here instead of bash/jq because inlining potentially large json into a bash command is non-trivial.
+        # JS is better at handling JSON: https://stackoverflow.com/questions/72953526/github-actions-how-to-pass-tojson-result-to-shell-commands
+      - name: Check if this deploy was triggered by a cherry-pick
+        id: isCherryPick
+        uses: actions/github-script@e7aeb8c663f696059ebb5f9ab1425ed2ef511bdb
+        with:
+          script: |
+            const commitMessages = context.payload.commits.map((commit) => commit.message);
+            const isCherryPick = commitMessages.some((message) => /.*\(cherry-picked to .* by .*\)$/.test(message));
+            console.log('Is cherry pick?', isCherryPick);
+            core.setOutput(
+                'IS_CHERRY_PICK',
+                isCherryPick,
+            );
 
   # Note: we're updating the checklist before running the deploys and assuming that it will succeed on at least one platform
   deployChecklist:
@@ -67,69 +81,19 @@ jobs:
     needs: prep
     secrets: inherit
 
-  buildAndroid:
-    name: Build Android app
-    uses: ./.github/workflows/buildAndroid.yml
-    if: ${{ github.ref == 'refs/heads/staging' }}
-    needs: prep
-    secrets: inherit
-    with:
-      type: release
-      ref: staging
-
-  uploadAndroid:
-    name: Upload Android build to Google Play Store
-    needs: buildAndroid
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
-        with:
-          bundler-cache: true
-
-      - name: Download Android build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: /tmp/artifacts
-          pattern: android-*-artifact
-          merge-multiple: true
-
-      - name: Log downloaded artifact paths
-        run: ls -R /tmp/artifacts
-
-      - name: Decrypt json w/ Google Play credentials
-        run: gpg --batch --yes --decrypt --passphrase="${{ secrets.LARGE_SECRET_PASSPHRASE }}" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
-        working-directory: android/app
-
-      - name: Upload Android app to Google Play
-        run: bundle exec fastlane android upload_google_play_internal
-        env:
-          aabPath: /tmp/artifacts/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}
-
-      - name: Upload Android build to Browser Stack
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/tmp/artifacts/${{ needs.buildAndroid.outputs.AAB_FILE_NAME }}"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
-  android_hybrid:
+  android:
     name: Build and deploy Android HybridApp
     needs: prep
     runs-on: ubuntu-latest-xl
+    env:
+      SHOULD_BUILD_APP: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     steps:
       - name: Checkout App and Mobile-Expensify repo
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           submodules: true
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          # fetch-depth: 0 is required in order to fetch the correct submodule branch
-          fetch-depth: 0
-
-      - name: Update submodule to match main
-        run: |
-          git submodule update --init --remote
 
       - name: Configure MapBox SDK
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
@@ -146,13 +110,15 @@ jobs:
             npm run grunt:build:shared
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        # v4
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: 'oracle'
           java-version: '17'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.190.0
+        # v1.229.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
         with:
           bundler-cache: true
 
@@ -160,122 +126,152 @@ jobs:
         run: bundle install
 
       - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
+        # v1
+        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
 
       - name: Load files from 1Password
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op read op://Mobile-Deploy-CI/firebase.json/firebase.json --force --out-file ./firebase.json
-          op read op://Mobile-Deploy-CI/upload-key.keystore/upload-key.keystore --force --out-file ./upload-key.keystore
-          op read op://Mobile-Deploy-CI/android-fastlane-json-key.json/android-fastlane-json-key.json --force --out-file ./android-fastlane-json-key.json
+          op read "op://${{ vars.OP_VAULT }}/firebase.json/firebase.json" --force --out-file ./firebase.json
+          op read "op://${{ vars.OP_VAULT }}/upload-key.keystore/upload-key.keystore" --force --out-file ./upload-key.keystore
+          op read "op://${{ vars.OP_VAULT }}/android-fastlane-json-key.json/android-fastlane-json-key.json" --force --out-file ./android-fastlane-json-key.json
+
           # Copy the keystore to the Android directory for Fullstory
           cp ./upload-key.keystore Mobile-Expensify/Android 
 
       - name: Load Android upload keystore credentials from 1Password
         id: load-credentials
-        uses: 1password/load-secrets-action@v2
+        # v2
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
         with:
           export-env: false
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
-          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
-          ANDROID_UPLOAD_KEY_PASSWORD: op://Mobile-Deploy-CI/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_PASSWORD
+          ANDROID_UPLOAD_KEYSTORE_ALIAS: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEYSTORE_ALIAS
+          ANDROID_UPLOAD_KEY_PASSWORD: op://${{ vars.OP_VAULT }}/Repository-Secrets/ANDROID_UPLOAD_KEY_PASSWORD
+          APPLAUSE_API_KEY: op://${{ vars.OP_VAULT }}/Applause-API-Key/password
 
       - name: Get Android native version
         id: getAndroidVersion
         run: echo "VERSION_CODE=$(grep -oP 'android:versionCode="\K[0-9]+' Mobile-Expensify/Android/AndroidManifest.xml)" >> "$GITHUB_OUTPUT"
 
       - name: Build Android app
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         run: bundle exec fastlane android build_hybrid
         env:
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
           ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
+          ANDROID_BUILD_TYPE: ${{ vars.ANDROID_BUILD_TYPE }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Upload Android app to Google Play
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android upload_google_play_internal_hybrid
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
+        run: bundle exec fastlane android ${{ vars.ANDROID_UPLOAD_COMMAND }}
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
+          ANDROID_PACKAGE_NAME: ${{ vars.ANDROID_PACKAGE_NAME }}
 
       - name: Get current Android rollout percentage
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ github.ref == 'refs/heads/production' }}
         id: getAndroidRolloutPercentage
         uses: ./.github/actions/javascript/getAndroidRolloutPercentage
         with:
           GOOGLE_KEY_FILE: ./android-fastlane-json-key.json
           PACKAGE_NAME: org.me.mobiexpensifyg
 
-      - name: Submit production build for Google Play review and a slow rollout
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: |
-          # Complete the previous version rollout if the current rollout percentage is not -1 or 1
-          if [[ ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '-1' && ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '1' ]]; then
-              echo "Completing the previous version rollout"
-              bundle exec fastlane android complete_hybrid_rollout
-          else
-              echo "Skipping the completion of the previous version rollout"
-          fi
+      # Complete the previous version rollout if the current rollout percentage is not -1 (no rollout in progress) or 1 (fully rolled out)
+      - name: Submit previous production build to 100%
+        if: ${{ github.ref == 'refs/heads/production' && !contains(fromJSON('["1", "-1"]'), steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE) }}
+        run: bundle exec fastlane android complete_hybrid_rollout
+        continue-on-error: true
 
-          # Submit the new version for review and slow rollout when it's approved
-          bundle exec fastlane android upload_google_play_production_hybrid_rollout
+      - name: Submit production build for Google Play review and a slow rollout
+        if: ${{ github.ref == 'refs/heads/production' }}
+        run: bundle exec fastlane android upload_google_play_production_hybrid_rollout
         env:
           VERSION: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
 
       - name: Upload Android build to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && (github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK)) }}
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.aabPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
-      - name: Generate APK from AAB
+      - name: Install bundletool
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         run: |
-          json=$(curl -s https://api.github.com/repos/google/bundletool/releases/latest)
-          downloadUrl=$(echo "$json" | jq -r ".assets | .[].browser_download_url")
-          curl "$downloadUrl" -4 -sL -o 'bundletool.jar'
+          readonly BUNDLETOOL_VERSION="1.18.1"
+          readonly BUNDLETOOL_URL="https://github.com/google/bundletool/releases/download/${BUNDLETOOL_VERSION}/bundletool-all-${BUNDLETOOL_VERSION}.jar"
+
+          # Download jar from GitHub Release
+          curl -L -o bundletool.jar "$BUNDLETOOL_URL"
+
+          # Validate checksum
+          readonly EXPECTED_SHA="675786493983787ffa11550bdb7c0715679a44e1643f3ff980a529e9c822595c"
+          SHA="$(sha256sum bundletool.jar | cut -d ' ' -f1)"
+          if [[ "$SHA" != "$EXPECTED_SHA" ]]; then
+            echo "SHA mismatch: expected $EXPECTED_SHA but got $ACTUAL_SHA"
+            exit 1
+          fi
+
+      - name: Generate APK from AAB
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
+        run: |
+          # Generate apks using bundletool
           java -jar bundletool.jar build-apks --bundle=${{ env.aabPath }} --output=Expensify.apks \
             --mode=universal \
             --ks=upload-key.keystore \
             --ks-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }} \
             --ks-key-alias=${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }} \
             --key-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
-          
+
+          # Unzip just the universal apk
           unzip -p Expensify.apks universal.apk > Expensify.apk
 
+      - name: Upload Android build to Applause
+        if: ${{ fromJSON(env.IS_APP_REPO) && github.ref == 'refs/heads/staging' && !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+        run: |
+          APPLAUSE_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')
+          curl -F "file=@Expensify.apk" \
+            "https://api.applause.com/v2/builds?name=Expensify_$APPLAUSE_VERSION&productId=36008" \
+            -H "X-Api-Key: ${{ steps.load-credentials.outputs.APPLAUSE_API_KEY }}"
+
       - name: Upload Android APK build artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: android-hybrid-apk-artifact
+          name: android-apk-artifact
           path: Expensify.apk
 
-      - name: Upload Android build to Firebase distribution
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane android upload_firebase_distribution
-
       - name: Upload Android build artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: android-hybrid-build-artifact
+          name: android-build-artifact
           path: ${{ env.aabPath }}
 
       - name: Upload Android sourcemap artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: android-hybrid-sourcemap-artifact
+          name: android-sourcemap-artifact
           path: /home/runner/work/App/App/Mobile-Expensify/Android/build/generated/sourcemaps/react/release/index.android.bundle.map
 
       - name: Set current App version in Env
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
 
       - name: Warn deployers if Android production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: 8398a7/action-slack@v3
+        if: ${{ failure() && github.ref == 'refs/heads/production' }}
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
         with:
           status: custom
           custom_payload: |
@@ -284,196 +280,30 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Android HybridApp production deploy failed. Please manually submit ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store>. 💥`,
+                text: `💥 Android HybridApp production <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy run> failed. Please <https://stackoverflowteams.com/c/expensify/questions/5738|manually submit> ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store> 💥`,
               }]
             }
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
-  desktop:
-    name: Build and deploy Desktop
-    needs: prep
-    runs-on: macos-14-large
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Decrypt Developer ID Certificate
-        run: cd desktop && gpg --quiet --batch --yes --decrypt --passphrase="$DEVELOPER_ID_SECRET_PASSPHRASE" --output developer_id.p12 developer_id.p12.gpg
-        env:
-          DEVELOPER_ID_SECRET_PASSPHRASE: ${{ secrets.DEVELOPER_ID_SECRET_PASSPHRASE }}
-
-      - name: Build desktop app
-        run: |
-          if [[ ${{ env.SHOULD_DEPLOY_PRODUCTION }} == 'true' ]]; then
-            npm run desktop-build
-          else
-            npm run desktop-build-staging
-          fi
-        env:
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          GCP_GEOLOCATION_API_KEY: $${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
-
-      - name: Upload desktop sourcemaps artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'desktop-sourcemaps-artifact' || 'desktop-staging-sourcemaps-artifact' }}
-          path: ./desktop/dist/www/merged-source-map.js.map
-
-      - name: Upload desktop build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'desktop-build-artifact' || 'desktop-staging-build-artifact' }}
-          path: ./desktop-build/NewExpensify.dmg
-
-  iOS:
-    name: Build and deploy iOS
-    needs: prep
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
-    runs-on: macos-15-xlarge
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Configure MapBox SDK
-        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
-
-      - name: Setup Node
-        id: setup-node
-        uses: ./.github/actions/composite/setupNode
-
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.204.0
-        with:
-          bundler-cache: true
-
-      - name: Cache Pod dependencies
-        uses: actions/cache@v4
-        id: pods-cache
-        with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
-
-      - name: Compare Podfile.lock and Manifest.lock
-        id: compare-podfile-and-manifest
-        run: echo "IS_PODFILE_SAME_AS_MANIFEST=${{ hashFiles('ios/Podfile.lock') == hashFiles('ios/Pods/Manifest.lock') }}" >> "$GITHUB_OUTPUT"
-
-      - name: Install cocoapods
-        uses: nick-fields/retry@3f757583fb1b1f940bc8ef4bf4734c8dc02a5847
-        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          command: scripts/pod-install.sh
-
-      - name: Decrypt AppStore profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt AppStore Notification Service profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore_Notification_Service.mobileprovision NewApp_AppStore_Notification_Service.mobileprovision.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt certificate
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt App Store Connect API key
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output ios-fastlane-json-key.json ios-fastlane-json-key.json.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Get iOS native version
-        id: getIOSVersion
-        run: echo "IOS_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')" >> "$GITHUB_OUTPUT"
-
-      - name: Build iOS release app
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios build
-
-      - name: Upload release build to TestFlight
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios upload_testflight
-        env:
-          APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
-          APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
-          APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
-          APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
-
-      - name: Upload iOS build to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@/Users/runner/work/App/App/New Expensify.ipa"
-        env:
-          BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
-
-      - name: Upload iOS sourcemaps artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-sourcemaps-artifact
-          path: ./main.jsbundle.map
-
-      - name: Upload iOS build artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-build-artifact
-          path: /Users/runner/work/App/App/New\ Expensify.ipa
-
-      - name: Warn deployers if iOS production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 iOS production deploy failed. Please manually submit ${{ steps.getIOSVersion.outputs.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/1530278510/appstore|App Store>. 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
-  iOS_hybrid:
+  ios:
     name: Build and deploy iOS HybridApp
     needs: prep
     runs-on: macos-15-xlarge
     env:
-      DEVELOPER_DIR: /Applications/Xcode_16.2.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
+      SHOULD_BUILD_APP: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           submodules: true
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          # fetch-depth: 0 is required in order to fetch the correct submodule branch
-          fetch-depth: 0
-
-      - name: Update submodule
-        run: |
-          git submodule update --init --remote
 
       - name: Configure MapBox SDK
-        run: |
-          ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+        run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
         id: setup-node
@@ -482,7 +312,8 @@ jobs:
           IS_HYBRID_BUILD: 'true'
 
       - name: Setup Ruby
-        uses: ruby/setup-ruby@v1.204.0
+        # v1.229.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
         with:
           bundler-cache: true
 
@@ -490,7 +321,8 @@ jobs:
         run: bundle install
 
       - name: Cache Pod dependencies
-        uses: actions/cache@v4
+        # v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
         id: pods-cache
         with:
           path: Mobile-Expensify/iOS/Pods
@@ -509,36 +341,29 @@ jobs:
           command: npm run pod-install
 
       - name: Install 1Password CLI
-        uses: 1password/install-cli-action@v1
+        # v1
+        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
 
       - name: Load files from 1Password
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
-          op read op://Mobile-Deploy-CI/firebase.json/firebase.json --force --out-file ./firebase.json
-          op read op://Mobile-Deploy-CI/OldApp_AppStore/OldApp_AppStore.mobileprovision --force --out-file ./OldApp_AppStore.mobileprovision
-          op read op://Mobile-Deploy-CI/OldApp_AppStore_Share_Extension/OldApp_AppStore_Share_Extension.mobileprovision --force --out-file ./OldApp_AppStore_Share_Extension.mobileprovision
-          op read op://Mobile-Deploy-CI/OldApp_AppStore_Notification_Service/OldApp_AppStore_Notification_Service.mobileprovision --force --out-file ./OldApp_AppStore_Notification_Service.mobileprovision
+          op read "op://${{ vars.OP_VAULT }}/firebase.json/firebase.json" --force --out-file ./firebase.json
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore/${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Share_Extension/${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}
+          op read "op://${{ vars.OP_VAULT }}/OldApp_AppStore_Notification_Service/${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}" --force --out-file ./${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}
+          op read "op://${{ vars.OP_VAULT }}/ios-fastlane-json-key.json/ios-fastlane-json-key.json" --force --out-file ./ios-fastlane-json-key.json
+          op read "op://${{ vars.OP_VAULT }}/New Expensify Distribution Certificate/Certificates.p12" --force --out-file ./Certificates.p12
 
-      - name: Decrypt AppStore profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore.mobileprovision NewApp_AppStore.mobileprovision.gpg
+      - name: Load iOS credentials from 1Password
+        id: load-credentials
+        # v2
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        with:
+          export-env: false
         env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt AppStore Notification Service profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output NewApp_AppStore_Notification_Service.mobileprovision NewApp_AppStore_Notification_Service.mobileprovision.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt certificate
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output Certificates.p12 Certificates.p12.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Decrypt App Store Connect API key
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output ios-fastlane-json-key.json ios-fastlane-json-key.json.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          APPLAUSE_API_KEY: op://${{ vars.OP_VAULT }}/Applause-API-Key/password
 
       - name: Set current App version in Env
         run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
@@ -548,56 +373,78 @@ jobs:
         run: echo "IOS_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')" >> "$GITHUB_OUTPUT"
 
       - name: Build iOS HybridApp
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         run: bundle exec fastlane ios build_hybrid
+        env:
+          APPLE_ID: ${{ vars.APPLE_ID }}
+          APPLE_STORE_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_STORE_PROVISIONING_PROFILE_FILE }}
+          APPLE_STORE_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_STORE_PROVISIONING_PROFILE_NAME }}
+          APPLE_SHARE_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_FILE }}
+          APPLE_SHARE_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_NAME }}
+          APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}
+          APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Upload release build to TestFlight
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
         run: bundle exec fastlane ios upload_testflight_hybrid
         env:
           APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
           APPLE_CONTACT_PHONE: ${{ secrets.APPLE_CONTACT_PHONE }}
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
+          APPLE_ID: ${{ vars.APPLE_ID }}
+
+      - name: Upload DSYMs to Firebase for HybridApp
+        if: ${{ fromJSON(env.IS_APP_REPO) && fromJSON(env.SHOULD_BUILD_APP) }}
+        run: bundle exec fastlane ios upload_dsyms_hybrid
+
+      - name: Submit previous production build to 100%
+        if: ${{ github.ref == 'refs/heads/production' }}
+        run: bundle exec fastlane ios complete_hybrid_rollout
+        continue-on-error: true
 
       - name: Submit production build for App Store review and a slow rollout
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: |
-          # Complete the previous version rollout
-          bundle exec fastlane ios complete_hybrid_rollout
-
-          # Submit the new version for review and phased rollout when it's approved
-          bundle exec fastlane ios submit_hybrid_for_rollout
+        if: ${{ github.ref == 'refs/heads/production' }}
+        run: bundle exec fastlane ios submit_hybrid_for_rollout
         env:
           VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
+          APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Upload iOS build to Browser Stack
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ fromJSON(env.IS_APP_REPO) && fromJSON(env.SHOULD_BUILD_APP) }}
         run: curl -u "$BROWSERSTACK" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@${{ env.ipaPath }}"
         env:
           BROWSERSTACK: ${{ secrets.BROWSERSTACK }}
 
-      - name: Upload iOS build to Firebase distribution
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: bundle exec fastlane ios upload_firebase_distribution
+      - name: Upload iOS build to Applause
+        if: ${{ fromJSON(env.IS_APP_REPO) && github.ref == 'refs/heads/staging' && !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+        run: |
+          APPLAUSE_VERSION=$(echo '${{ needs.prep.outputs.APP_VERSION }}' | tr '-' '.')
+          curl -F "file=@${{ env.ipaPath }}" \
+            "https://api.applause.com/v2/builds?name=Expensify_$APPLAUSE_VERSION&productId=36005" \
+            -H "X-Api-Key: ${{ steps.load-credentials.outputs.APPLAUSE_API_KEY }}"
 
       - name: Upload iOS build artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ios-hybrid-build-artifact
+          name: ios-build-artifact
           path: ${{ env.ipaPath }}
 
       - name: Upload iOS sourcemap artifact
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: actions/upload-artifact@v4
+        if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ios-hybrid-sourcemap-artifact
+          name: ios-sourcemap-artifact
           path: /Users/runner/work/App/App/Mobile-Expensify/main.jsbundle.map
 
       - name: Warn deployers if iOS production deploy failed
-        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        uses: 8398a7/action-slack@v3
+        if: ${{ failure() && github.ref == 'refs/heads/production' }}
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
         with:
           status: custom
           custom_payload: |
@@ -606,7 +453,7 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 iOS HybridApp production deploy failed. Please manually submit ${{ steps.getIOSVersion.outputs.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/471713959/appstore|App Store>. 💥`,
+                text: `💥 iOS HybridApp production deploy failed. Please <https://stackoverflowteams.com/c/expensify/questions/5740|manually submit> ${{ steps.getIOSVersion.outputs.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/471713959/appstore|App Store>. 💥`,
               }]
             }
         env:
@@ -619,7 +466,8 @@ jobs:
     runs-on: ubuntu-latest-xl
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -628,7 +476,8 @@ jobs:
         run: pip3 install cloudflare==2.19.0
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        # v4
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -636,7 +485,7 @@ jobs:
 
       - name: Build web
         run: |
-          if [[ ${{ env.SHOULD_DEPLOY_PRODUCTION }} == 'true' ]]; then
+          if [[ '${{ github.ref }}' == 'refs/heads/production' ]]; then
             npm run build
           else
             npm run build-staging
@@ -645,7 +494,7 @@ jobs:
       - name: Build storybook docs
         continue-on-error: true
         run: |
-          if [[ ${{ env.SHOULD_DEPLOY_PRODUCTION }} == 'true' ]]; then
+          if [[ ${{ github.ref }} == 'refs/heads/production' ]]; then
             npm run storybook-build
           else
             npm run storybook-build-staging
@@ -657,25 +506,26 @@ jobs:
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_URL }}/.well-known/apple-app-site-association ${{ env.S3_URL }}/.well-known/apple-app-site-association
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_URL }}/.well-known/apple-app-site-association ${{env.S3_URL }}/apple-app-site-association
         env:
-          S3_URL: s3://${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging-' || '' }}expensify-cash
+          S3_URL: s3://${{ github.ref == 'refs/heads/staging' && 'staging-' || '' }}${{ vars.PRODUCTION_S3_BUCKET }}
 
       - name: Purge Cloudflare cache
-        run: /home/runner/.local/bin/cli4 --verbose --delete hosts=["${{ env.SHOULD_DEPLOY_PRODUCTION != 'true' && 'staging.' || '' }}new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
+        run: |
+          /home/runner/.local/bin/cli4 --verbose --delete hosts=["$HOST"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
+          HOST: ${{ github.ref == 'refs/heads/production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
-      - name: Verify staging deploy
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: ./.github/scripts/verifyDeploy.sh staging ${{ needs.prep.outputs.APP_VERSION }}
-
-      - name: Verify production deploy
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: ./.github/scripts/verifyDeploy.sh production ${{ needs.prep.outputs.APP_VERSION }}
+      - name: Verify deploy
+        run: |
+          ./.github/scripts/verifyDeploy.sh "$HOST" "${{ needs.prep.outputs.APP_VERSION }}"
+        env:
+          HOST: ${{ github.ref == 'refs/heads/production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
       - name: Upload web sourcemaps artifact
-        uses: actions/upload-artifact@v4
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'web' || 'web-staging' }}-sourcemaps-artifact
+          name: web-sourcemaps-artifact
           path: ./dist/merged-source-map.js.map
 
       - name: Compress web build .tar.gz and .zip
@@ -684,25 +534,28 @@ jobs:
           zip -r webBuild.zip dist
 
       - name: Upload .tar.gz web build artifact
-        uses: actions/upload-artifact@v4
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'web' || 'web-staging' }}-build-tar-gz-artifact
+          name: web-build-tar-gz-artifact
           path: ./webBuild.tar.gz
 
       - name: Upload .zip web build artifact
-        uses: actions/upload-artifact@v4
+        # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'web' || 'web-staging' }}-build-zip-artifact
+          name: web-build-zip-artifact
           path: ./webBuild.zip
 
   postSlackMessageOnFailure:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: ubuntu-latest
     if: ${{ failure() }}
-    needs: [buildAndroid, uploadAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web]
+    needs: [android, ios, web]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
       - name: Post Slack message on failure
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
@@ -714,21 +567,15 @@ jobs:
     outputs:
       IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
-    needs: [buildAndroid, uploadAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web]
+    needs: [android, ios, web]
     if: ${{ always() }}
     steps:
       - name: Check deployment success on at least one platform
         id: checkDeploymentSuccessOnAtLeastOnePlatform
         run: |
           isAtLeastOnePlatformDeployed="false"
-          if [ "${{ needs.uploadAndroid.result }}" == "success" ]; then
-            isAtLeastOnePlatformDeployed="true"
-          fi
-
           if [ "${{ needs.iOS.result }}" == "success" ] || \
-            [ "${{ needs.iOS_hybrid.result }}" == "success" ] || \
-            [ "${{ needs.android_hybrid.result }}" == "success" ] || \
-            [ "${{ needs.desktop.result }}" == "success" ] || \
+            [ "${{ needs.android.result }}" == "success" ] || \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAtLeastOnePlatformDeployed="true"
           fi
@@ -740,144 +587,90 @@ jobs:
         run: |
           isAllPlatformsDeployed="false"
           if [ "${{ needs.iOS.result }}" == "success" ] && \
-            [ "${{ needs.iOS_hybrid.result }}" == "success" ] && \
-            [ "${{ needs.android_hybrid.result }}" == "success" ] && \
-            [ "${{ needs.desktop.result }}" == "success" ] && \
+            [ "${{ needs.android.result }}" == "success" ] && \
             [ "${{ needs.web.result }}" == "success" ]; then
             isAllPlatformsDeployed="true"
-          fi
-
-          if [ "${{ needs.uploadAndroid.result }}" != "success" ]; then
-            isAllPlatformsDeployed="false"
           fi
 
           echo "IS_ALL_PLATFORMS_DEPLOYED=$isAllPlatformsDeployed" >> "$GITHUB_OUTPUT"
           echo "IS_ALL_PLATFORMS_DEPLOYED is $isAllPlatformsDeployed"
 
-  createPrerelease:
+  createRelease:
     runs-on: ubuntu-latest
-    if: ${{ always() && github.ref == 'refs/heads/staging' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, checkDeploymentSuccess]
     steps:
+      # v4.2.1
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
 
-      - name: 🚀 Create prerelease 🚀
-        run: |
-          gh release create ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --title ${{ needs.prep.outputs.APP_VERSION }} --generate-notes --prerelease --target staging
-          RETRIES=0
-          MAX_RETRIES=10
-          until [[ $(gh release view ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }}) || $RETRIES -ge $MAX_RETRIES ]]; do
-            echo "release not found, retrying $((MAX_RETRIES - RETRIES++)) times"
-            sleep 1
-          done
+      - name: Get last production release
+        id: get_last_prod_version
+        run: echo "LAST_PROD_VERSION=$(gh release list --repo ${{ github.repository }} --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Rename web and desktop sourcemaps artifacts before assets upload in order to have unique ReleaseAsset.name
+      - name:  🚀 Create release 🚀
+        run: |
+          # Check if the release already exists
+          if gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" &> /dev/null; then
+            echo "Release ${{ needs.prep.outputs.TAG }} already exists, skipping creating it again."
+          else
+            echo "Release ${{ needs.prep.outputs.TAG }} does not exist, creating it now."
+            gh release create "${{ needs.prep.outputs.TAG }}" ${{ github.ref == 'refs/heads/staging' && '--prerelease' || '' }} \
+              --repo "${{ github.repository }}" \
+              --title "${{ needs.prep.outputs.TAG }}" \
+              ${{ github.ref == 'refs/heads/production' && format('--notes-start-tag {0}', steps.get_last_prod_version.outputs.LAST_PROD_VERSION) || '' }} \
+              --generate-notes \
+              --verify-tag \
+              --target "${{ github.ref }}"
+
+            RETRIES=0
+            readonly MAX_RETRIES=10
+            until [[ $(gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}") || $RETRIES -ge $MAX_RETRIES ]]; do
+              echo "Release ${{ needs.prep.outputs.TAG }} not yet visible after creation. Retrying... ($((MAX_RETRIES - RETRIES++)) attempts left)"
+              sleep 1
+            done
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Rename web sourcemaps artifacts before assets upload in order to have unique ReleaseAsset.name
         continue-on-error: true
         run: |
-          mv ./desktop-staging-sourcemaps-artifact/merged-source-map.js.map ./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map
-          mv ./web-staging-sourcemaps-artifact/merged-source-map.js.map ./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map
-
-      - name: Upload artifacts to GitHub Release
-        continue-on-error: true
-        run: |
-          # Release asset name should follow the template: [platform]-[hybrid, staging, production or blank]-[sourcemap or blank].[file extension]
-          files=(
-            "./android-sourcemaps-artifact/index.android.bundle.map#android-sourcemap.js.map"
-            "./android-aab-artifact/app-production-release.aab#android.aab"
-            "./android-hybrid-build-artifact/Expensify-release.aab#android-hybrid.aab"
-            "./android-hybrid-apk-artifact/Expensify.apk#android-hybrid.apk"
-            "./android-hybrid-sourcemap-artifact/index.android.bundle.map#android-hybrid-sourcemap.js.map"
-            "./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap.js.map"
-            "./desktop-staging-build-artifact/NewExpensify.dmg#desktop-staging.dmg"
-            "./ios-sourcemaps-artifact/main.jsbundle.map#ios-sourcemap.js.map"
-            "./ios-build-artifact/New Expensify.ipa#ios.ipa"
-            "./ios-hybrid-build-artifact/Expensify.ipa#ios-hybrid.ipa"
-            "./ios-hybrid-sourcemap-artifact/main.jsbundle.map#ios-hybrid-sourcemap.js.map"
-            "./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map#web-staging-sourcemap.js.map"
-            "./web-staging-build-tar-gz-artifact/webBuild.tar.gz#web-staging.tar.gz"
-            "./web-staging-build-zip-artifact/webBuild.zip#web-staging.zip"
-          )
-
-          # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
-          for file_entry in "${files[@]}"; do
-            gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber "$file_entry" || {
-              echo "Failed to upload $file_entry. Continuing with the next file."
-              continue
-            }
-            echo "Successfully uploaded $file_entry."
-          done
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Warn deployers if staging deploy failed
-        if: ${{ failure() }}
-        uses: 8398a7/action-slack@v3
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 NewDot staging deploy failed. 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
-  finalizeRelease:
-    runs-on: ubuntu-latest
-    if: ${{ always() && github.ref == 'refs/heads/production' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, checkDeploymentSuccess]
-    steps:
-      - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v4
-
-      - name: 🚀 Edit the release to be no longer a prerelease 🚀
-        run: |
-          LATEST_RELEASE="$(gh release list --repo ${{ github.repository }} --exclude-pre-releases --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName')"
-          gh api --method POST /repos/Expensify/App/releases/generate-notes -f "tag_name=${{ needs.prep.outputs.APP_VERSION }}" -f "previous_tag_name=$LATEST_RELEASE" | jq -r '.body' >> releaseNotes.md
-          gh release edit ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --prerelease=false --latest --notes-file releaseNotes.md
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Rename web and desktop sourcemaps artifacts before assets upload in order to have unique ReleaseAsset.name
-        continue-on-error: true
-        run: |
-          mv ./desktop-sourcemaps-artifact/merged-source-map.js.map ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map
           mv ./web-sourcemaps-artifact/merged-source-map.js.map ./web-sourcemaps-artifact/web-merged-source-map.js.map
 
       - name: Upload artifacts to GitHub Release
         continue-on-error: true
         run: |
-          # Release asset name should follow the template: [platform]-[hybrid, staging, production or blank]-[sourcemap or blank].[file extension]
-          files=(
-            "./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-production-sourcemap.js.map"
-            "./desktop-build-artifact/NewExpensify.dmg#desktop-production.dmg"
-            "./web-sourcemaps-artifact/web-merged-source-map.js.map#web-production-sourcemap.js.map"
-            "./web-build-tar-gz-artifact/webBuild.tar.gz#web-production.tar.gz"
-            "./web-build-zip-artifact/webBuild.zip#web-production.zip"
-          )
+          # Release asset name should follow the template: fileNameOnRunner#fileNameInRelease
+          files="
+            ./android-build-artifact/Expensify-release.aab#android.aab
+            ./android-apk-artifact/Expensify.apk#android.apk
+            ./android-sourcemap-artifact/index.android.bundle.map#android-sourcemap.js.map
+            ./ios-build-artifact/Expensify.ipa#ios.ipa
+            ./ios-sourcemap-artifact/main.jsbundle.map#ios-sourcemap.js.map
+            ./web-sourcemaps-artifact/web-merged-source-map.js.map#web-sourcemap.js.map
+            ./web-build-tar-gz-artifact/webBuild.tar.gz#web.tar.gz
+            ./web-build-zip-artifact/webBuild.zip#web.zip
+          "
 
           # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
-          for file_entry in "${files[@]}"; do
-            gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber "$file_entry" || {
-              echo "Failed to upload $file_entry. Continuing with the next file."
-              continue
-            }
-            echo "Successfully uploaded $file_entry."
-          done
+          # Note: Not all of these files are present for production releases, because we don't build the native apps for prod deploys. That's expected.
+          echo -e "$files" | xargs -I {} --max-procs=4 bash -c '
+            if gh release upload ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }} --clobber {}; then
+              echo "✅ Successfully uploaded {}"
+            else
+              echo "❌ Failed to upload {}"
+            fi
+          '
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Warn deployers if production deploy failed
+      - name: Warn deployers if deploy failed
         if: ${{ failure() }}
-        uses: 8398a7/action-slack@v3
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
         with:
           status: custom
           custom_payload: |
@@ -886,21 +679,39 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 NewDot production deploy failed. 💥`,
+                text: `💥 NewDot ${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }} deploy failed. 💥`,
               }]
             }
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
+  # Why is this necessary for CP-to-prod? Consider this scenario:
+  #   1. You close a checklist and we create a new staging version `9.0.34-0` and a new checklist
+  #   2. You then CP a PR to production, and in the process create `9.0.35-0`
+  #   3. You close the new checklist, and we try to ship `9.0.34-0` to production. This won't work, because we already submitted a higher version `9.0-35-0`
+  #
+  # To address this, we'll:
+  #   1. Bump the version on main again
+  #   2. CP that version bump to staging
+  cherryPickExtraVersionBump:
+    needs: [prep, checkDeploymentSuccess]
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+    uses: ./.github/workflows/cherryPick.yml
+    secrets: inherit
+    with:
+      # Note: by omitting PULL_REQUEST_URL, we are just doing a version bump and CP'ing it to staging
+      TARGET: staging
+
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, buildAndroid, uploadAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, android, ios, web, checkDeploymentSuccess, createRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
-        uses: 8398a7/action-slack@v3
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
         with:
           status: custom
           custom_payload: |
@@ -908,7 +719,7 @@ jobs:
               channel: '#announce',
               attachments: [{
                 color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.APP_VERSION }}|${{ needs.prep.outputs.APP_VERSION }}> to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.TAG }}|${{ needs.prep.outputs.TAG }}> to ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }} 🎉️`,
               }]
             }
         env:
@@ -916,7 +727,8 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: 'Announces the deploy in the #deployer Slack room'
-        uses: 8398a7/action-slack@v3
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
         with:
           status: custom
           custom_payload: |
@@ -924,7 +736,7 @@ jobs:
               channel: '#deployer',
               attachments: [{
                 color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.APP_VERSION }}|${{ needs.prep.outputs.APP_VERSION }}> to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.TAG }}|${{ needs.prep.outputs.TAG }}> to ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }} 🎉️`,
               }]
             }
         env:
@@ -932,8 +744,9 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: 'Announces a production deploy in the #expensify-open-source Slack room'
-        uses: 8398a7/action-slack@v3
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        if: ${{ github.ref == 'refs/heads/production' }}
         with:
           status: custom
           custom_payload: |
@@ -941,7 +754,7 @@ jobs:
               channel: '#expensify-open-source',
               attachments: [{
                 color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.APP_VERSION }}|${{ needs.prep.outputs.APP_VERSION }}> to production 🎉️`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.TAG }}|${{ needs.prep.outputs.TAG }}> to production 🎉️`,
               }]
             }
         env:
@@ -951,13 +764,11 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, buildAndroid, uploadAndroid, android_hybrid, desktop, iOS, iOS_hybrid, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, android, ios, web, checkDeploymentSuccess, createRelease]
+    secrets: inherit
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
-      android: ${{ github.ref == 'refs/heads/production' || needs.uploadAndroid.result }}
-      android_hybrid: ${{ needs.android_hybrid.result }}
-      ios: ${{ needs.iOS.result }}
-      ios_hybrid: ${{ needs.iOS_hybrid.result }}
+      android: ${{ needs.android.result }}
+      ios: ${{ needs.ios.result }}
       web: ${{ needs.web.result }}
-      desktop: ${{ needs.desktop.result }}

@@ -8,8 +8,9 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
+import {doesContainReservedWord, getFieldRequiredErrors, isRequiredFulfilled, isValidLegalName} from '@libs/ValidationUtils';
+import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
+import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -49,6 +50,9 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
 
     /** Custom label of the last name input */
     customLastNameLabel?: string;
+
+    /** Whether to show the Patriot Act help link (EnablePayments-only) */
+    shouldShowPatriotActLink?: boolean;
 };
 
 function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -64,19 +68,20 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldShowHelpLinks = true,
     customFirstNameLabel,
     customLastNameLabel,
+    shouldShowPatriotActLink = false,
 }: FullNameStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
+            const errors = getFieldRequiredErrors(values, stepFields);
 
             const firstName = values[firstNameInputID as keyof FormOnyxValues<TFormID>] as string;
-            if (!ValidationUtils.isRequiredFulfilled(firstName)) {
+            if (!isRequiredFulfilled(firstName)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[firstNameInputID] = translate('common.error.fieldRequired');
-            } else if (!ValidationUtils.isValidLegalName(firstName)) {
+            } else if (!isValidLegalName(firstName)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[firstNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
             } else if (firstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
@@ -87,11 +92,16 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                 });
             }
 
+            if (doesContainReservedWord(firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                // @ts-expect-error type mismatch to be fixed
+                errors[firstNameInputID] = translate('personalDetails.error.containsReservedWord');
+            }
+
             const lastName = values[lastNameInputID as keyof FormOnyxValues<TFormID>] as string;
-            if (!ValidationUtils.isRequiredFulfilled(lastName)) {
+            if (!isRequiredFulfilled(lastName)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[lastNameInputID] = translate('common.error.fieldRequired');
-            } else if (!ValidationUtils.isValidLegalName(lastName)) {
+            } else if (!isValidLegalName(lastName)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[lastNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
             } else if (lastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
@@ -100,6 +110,11 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     length: lastName.length,
                     limit: CONST.LEGAL_NAME.MAX_LENGTH,
                 });
+            }
+
+            if (doesContainReservedWord(lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+                // @ts-expect-error type mismatch to be fixed
+                errors[lastNameInputID] = translate('personalDetails.error.containsReservedWord');
             }
             return errors;
         },
@@ -113,6 +128,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
             validate={customValidate ?? validate}
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
+            enabledWhenOffline
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{formTitle}</Text>
@@ -136,7 +152,12 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
                 />
-                {shouldShowHelpLinks && <HelpLinks />}
+                {shouldShowHelpLinks && (
+                    <>
+                        <HelpLinks />
+                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                    </>
+                )}
             </View>
         </FormProvider>
     );

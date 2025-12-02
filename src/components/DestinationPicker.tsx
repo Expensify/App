@@ -1,17 +1,17 @@
 import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PerDiemRequestUtils from '@libs/PerDiemRequestUtils';
+import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import {getDestinationListSections} from '@libs/PerDiemRequestUtils';
 import type {Destination} from '@libs/PerDiemRequestUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/RadioListItem';
-import type {ListItem} from './SelectionList/types';
+import SelectionList from './SelectionListWithSections';
+import RadioListItem from './SelectionListWithSections/RadioListItem';
+import type {ListItem} from './SelectionListWithSections/types';
 
 type DestinationPickerProps = {
     policyID: string;
@@ -21,8 +21,8 @@ type DestinationPickerProps = {
 
 function DestinationPicker({selectedDestination, policyID, onSubmit}: DestinationPickerProps) {
     const policy = usePolicy(policyID);
-    const customUnit = PolicyUtils.getPerDiemCustomUnit(policy);
-    const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
+    const customUnit = getPerDiemCustomUnit(policy);
+    const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`, {canBeMissing: true});
 
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -49,26 +49,24 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
     }, [customUnit?.rates, selectedDestination]);
 
     const [sections, headerMessage, shouldShowTextInput] = useMemo(() => {
-        const destinationOptions = PerDiemRequestUtils.getDestinationListSections({
+        const destinationOptions = getDestinationListSections({
             searchValue: debouncedSearchValue,
             selectedOptions,
             destinations: Object.values(customUnit?.rates ?? {}),
             recentlyUsedDestinations: policyRecentlyUsedDestinations,
+            translate,
         });
 
         const destinationData = destinationOptions?.at(0)?.data ?? [];
-        const header = OptionsListUtils.getHeaderMessageForNonUserList(destinationData.length > 0, debouncedSearchValue);
+        const header = getHeaderMessageForNonUserList(destinationData.length > 0, debouncedSearchValue);
         const destinationsCount = Object.values(customUnit?.rates ?? {}).length;
         const isDestinationsCountBelowThreshold = destinationsCount < CONST.STANDARD_LIST_ITEM_LIMIT;
         const showInput = !isDestinationsCountBelowThreshold;
 
         return [destinationOptions, header, showInput];
-    }, [debouncedSearchValue, selectedOptions, customUnit?.rates, policyRecentlyUsedDestinations]);
+    }, [debouncedSearchValue, selectedOptions, customUnit?.rates, policyRecentlyUsedDestinations, translate]);
 
-    const selectedOptionKey = useMemo(
-        () => (sections?.at(0)?.data ?? []).filter((destination) => destination.keyForList === selectedDestination).at(0)?.keyForList,
-        [sections, selectedDestination],
-    );
+    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).find((destination) => destination.keyForList === selectedDestination)?.keyForList, [sections, selectedDestination]);
 
     return (
         <SelectionList
@@ -80,7 +78,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            isRowMultilineSupported
+            shouldHideKeyboardOnScroll={false}
         />
     );
 }

@@ -1,0 +1,22 @@
+name: 🧙 Check spell
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+
+jobs:
+  spellcheck:
+    runs-on: ubuntu-latest
+    name: 🔍 spellcheck
+    steps:
+      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - uses: streetsidesoftware/cspell-action@72ae91e90fa38f2335a60e233a847a6d00a9f221
+        with:
+          files: "**/*"
+          root: "."
+          config: "./cspell.json"
+          inline: error
+          strict: true
+          use_cspell_files: false
+          incremental_files_only: true

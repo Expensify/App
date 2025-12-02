@@ -1,25 +1,31 @@
+import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Section, {CARD_LAYOUT} from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrevious from '@hooks/usePrevious';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
-import * as PaymentMethods from '@userActions/PaymentMethods';
+import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -27,41 +33,50 @@ import ROUTES from '@src/ROUTES';
 function AddPaymentCard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
+    const privateSubscription = usePrivateSubscription();
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
 
     const subscriptionPlan = useSubscriptionPlan();
     const subscriptionPrice = useSubscriptionPrice();
     const preferredCurrency = usePreferredCurrency();
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
 
     const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
+    const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
+    const subscriptionPricingInfo =
+        hasTeam2025Pricing && isCollect
+            ? translate('subscription.yourPlan.pricePerMemberPerMonth', {price: convertToShortDisplayString(subscriptionPrice, preferredCurrency)})
+            : translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
+                  lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
+                  upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
+              });
 
     useEffect(() => {
-        PaymentMethods.clearPaymentCardFormErrorAndSubmit();
+        clearPaymentCardFormErrorAndSubmit();
 
         return () => {
-            PaymentMethods.clearPaymentCardFormErrorAndSubmit();
+            clearPaymentCardFormErrorAndSubmit();
         };
     }, []);
 
     const addPaymentCard = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
             const cardData = {
-                cardNumber: CardUtils.getMCardNumberString(values.cardNumber),
-                cardMonth: CardUtils.getMonthFromExpirationDateString(values.expirationDate),
-                cardYear: CardUtils.getYearFromExpirationDateString(values.expirationDate),
+                cardNumber: getMCardNumberString(values.cardNumber),
+                cardMonth: getMonthFromExpirationDateString(values.expirationDate),
+                cardYear: getYearFromExpirationDateString(values.expirationDate),
                 cardCVV: values.securityCode,
                 addressName: values.nameOnCard,
                 addressZip: values.addressZipCode,
                 currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
             };
-            PaymentMethods.addSubscriptionPaymentCard(accountID ?? 0, cardData);
+            addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData);
         },
         [accountID],
     );
 
-    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {canBeMissing: true});
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
 
     useEffect(() => {
@@ -69,7 +84,7 @@ function AddPaymentCard() {
             return;
         }
 
-        PaymentMethods.continueSetup();
+        Navigation.goBack();
     }, [prevFormDataSetupComplete, formData?.setupComplete]);
 
     return (
@@ -88,7 +103,7 @@ function AddPaymentCard() {
                         footerContent={
                             <>
                                 <Section
-                                    icon={Illustrations.ShieldYellow}
+                                    icon={ShieldYellow}
                                     cardLayout={CARD_LAYOUT.ICON_ON_LEFT}
                                     iconContainerStyles={styles.mr4}
                                     containerStyles={[styles.mh0, styles.mt5]}
@@ -104,12 +119,7 @@ function AddPaymentCard() {
                                         </Text>
                                     )}
                                 />
-                                <Text style={[styles.textMicroSupporting, styles.mt3, styles.textAlignCenter, styles.mr5, styles.ml5]}>
-                                    {translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
-                                        lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
-                                        upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
-                                    })}
-                                </Text>
+                                <Text style={[styles.textMicroSupporting, styles.mt3, styles.textAlignCenter, styles.mr5, styles.ml5]}>{subscriptionPricingInfo}</Text>
                             </>
                         }
                     />

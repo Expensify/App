@@ -1,5 +1,7 @@
-import type {NativeSyntheticEvent, StyleProp, TextInputProps, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
-import type {FileObject} from '@components/AttachmentModal';
+import type {Ref} from 'react';
+import type {StyleProp, TextInput, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type TextSelection = {
     start: number;
@@ -7,7 +9,7 @@ type TextSelection = {
     positionX?: number;
     positionY?: number;
 };
-type CustomSelectionChangeEvent = NativeSyntheticEvent<TextInputSelectionChangeEventData> & {
+type CustomSelectionChangeEvent = TextInputSelectionChangeEvent & {
     positionX?: number;
     positionY?: number;
 };
@@ -35,7 +37,7 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
     onChangeText?: (numberOfLines: string) => void;
 
     /** Callback method to handle pasting a file */
-    onPasteFile?: (file: FileObject) => void;
+    onPasteFile?: (files: FileObject | FileObject[]) => void;
 
     /** General styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types
@@ -60,7 +62,7 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
     /** Function to check whether composer is covered up or not */
     checkComposerVisibility?: () => boolean;
 
-    /** Whether the sull composer is open */
+    /** Whether the full composer is open */
     isComposerFullSize?: boolean;
 
     /** Should make the input only scroll inside the element avoid scroll out to parent */
@@ -69,8 +71,8 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> & {
     /** Indicates whether the composer is in a group policy report. Used for disabling report mentioning style in markdown input */
     isGroupPolicyReport?: boolean;
 
-    /** Whether to show the keyboard on focus */
-    showSoftInputOnFocus?: boolean;
+    /** Ref exposing imperative methods on the underlying text input */
+    ref?: Ref<TextInput | HTMLInputElement | HTMLTextAreaElement | AnimatedMarkdownTextInputRef>;
 };
 
 export type {TextSelection, ComposerProps, CustomSelectionChangeEvent};

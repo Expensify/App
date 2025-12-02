@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -9,15 +10,27 @@ import Tooltip from '@components/Tooltip';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {hideContextMenu, showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {BaseAnchorForCommentsOnlyProps, LinkProps} from './types';
 
 /*
  * This is a default anchor component for regular links.
  */
-function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', target = '', children = null, style, onPress, linkHasImage, ...rest}: BaseAnchorForCommentsOnlyProps) {
+function BaseAnchorForCommentsOnly({
+    onPressIn,
+    onPressOut,
+    href = '',
+    rel = '',
+    target = '',
+    children = null,
+    style,
+    onPress,
+    linkHasImage,
+    wrapperStyle,
+    ...rest
+}: BaseAnchorForCommentsOnlyProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const linkRef = useRef<RNText>(null);
@@ -25,7 +38,7 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
 
     useEffect(
         () => () => {
-            ReportActionContextMenu.hideContextMenu();
+            hideContextMenu();
         },
         [],
     );
@@ -38,9 +51,10 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
     } else {
         linkProps.href = href;
     }
-    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || shouldUseNarrowLayout ? {} : {...styles.userSelectText, ...styles.cursorPointer};
-    const isEmail = Str.isValidEmail(href.replace(/mailto:/i, ''));
+    const defaultTextStyle = canUseTouchScreen() || shouldUseNarrowLayout ? {} : {...styles.userSelectText, ...styles.cursorPointer};
+    const isEmail = Str.isValidEmail(href.replaceAll(/mailto:/gi, ''));
     const linkHref = !linkHasImage ? href : undefined;
+    const isFocused = useIsFocused();
 
     return (
         <PressableWithSecondaryInteraction
@@ -48,7 +62,12 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
             suppressHighlighting
             style={[styles.cursorDefault, !!flattenStyle.fontSize && StyleUtils.getFontSizeStyle(flattenStyle.fontSize)]}
             onSecondaryInteraction={(event) => {
-                ReportActionContextMenu.showContextMenu(isEmail ? CONST.CONTEXT_MENU_TYPES.EMAIL : CONST.CONTEXT_MENU_TYPES.LINK, event, href, linkRef.current);
+                showContextMenu({
+                    type: isEmail ? CONST.CONTEXT_MENU_TYPES.EMAIL : CONST.CONTEXT_MENU_TYPES.LINK,
+                    event,
+                    selection: href,
+                    contextMenuAnchor: linkRef.current,
+                });
             }}
             onPress={(event) => {
                 if (!linkProps.onPress) {
@@ -62,8 +81,12 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
             onPressOut={onPressOut}
             role={CONST.ROLE.LINK}
             accessibilityLabel={href}
+            wrapperStyle={wrapperStyle}
         >
-            <Tooltip text={linkHref}>
+            <Tooltip
+                text={linkHref}
+                isFocused={isFocused}
+            >
                 <Text
                     ref={linkRef}
                     style={StyleSheet.flatten([style, defaultTextStyle])}

@@ -1,40 +1,37 @@
 import React, {useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderPageLayout from '@components/HeaderPageLayout';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PaymentHands} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openExternalLink} from '@libs/actions/Link';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReferralDetailsNavigatorParamList} from '@libs/Navigation/types';
-import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Account} from '@src/types/onyx';
-import * as ReportActionContextMenu from './home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from './home/report/ContextMenu/ReportActionContextMenu';
 
-type ReferralDetailsPageOnyxProps = {
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
-};
+type ReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
 
-type ReferralDetailsPageProps = ReferralDetailsPageOnyxProps & PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
-
-function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
+function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['PaymentHands'] as const);
     const {translate} = useLocalize();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const popoverAnchor = useRef(null);
     const {isExecuting, singleExecution} = useSingleExecution();
     let {contentType} = route.params;
@@ -55,7 +52,7 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
             title={translate('common.referral')}
             headerContent={
                 <Icon
-                    src={PaymentHands}
+                    src={illustrations.PaymentHands}
                     width={589}
                     height={232}
                 />
@@ -91,11 +88,18 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
                 title={translate('requestorStep.learnMore')}
                 icon={Expensicons.QuestionMark}
                 shouldShowRightIcon
-                iconRight={Expensicons.NewWindow}
+                iconRight={icons.NewWindow}
                 disabled={isExecuting}
                 shouldBlockSelection
-                onPress={singleExecution(() => Link.openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}
-                onSecondaryInteraction={(e) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, e, CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK, popoverAnchor.current)}
+                onPress={singleExecution(() => openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}
+                onSecondaryInteraction={(e) =>
+                    showContextMenu({
+                        type: CONST.CONTEXT_MENU_TYPES.LINK,
+                        event: e,
+                        selection: CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK,
+                        contextMenuAnchor: popoverAnchor.current,
+                    })
+                }
             />
         </HeaderPageLayout>
     );
@@ -103,6 +107,4 @@ function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
 
 ReferralDetailsPage.displayName = 'ReferralDetailsPage';
 
-export default withOnyx<ReferralDetailsPageProps, ReferralDetailsPageOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-})(ReferralDetailsPage);
+export default ReferralDetailsPage;

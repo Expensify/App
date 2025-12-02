@@ -2,30 +2,37 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 
 type GenericFeaturesViewProps = {
     buttonDisabled?: boolean;
     loading?: boolean;
     onUpgrade: () => void;
+    formattedPrice: string;
     policyID?: string;
+    backTo?: Route;
 };
 
-function GenericFeaturesView({onUpgrade, buttonDisabled, loading, policyID}: GenericFeaturesViewProps) {
+function GenericFeaturesView({onUpgrade, buttonDisabled, loading, formattedPrice, backTo, policyID}: GenericFeaturesViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
+    const learnMoreMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute())}`;
+    const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
-    const preferredCurrency = usePreferredCurrency();
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
 
     const benefits = [
         translate('workspace.upgrade.commonFeatures.benefits.benefit1'),
@@ -34,22 +41,16 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, policyID}: Gen
         translate('workspace.upgrade.commonFeatures.benefits.benefit4'),
     ];
 
-    const formattedPrice = React.useMemo(() => {
-        const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
-        const upgradePrice = CONST.SUBSCRIPTION_PRICES[upgradeCurrency][CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL];
-        return `${convertToShortDisplayString(upgradePrice, upgradeCurrency)} `;
-    }, [preferredCurrency]);
-
     return (
-        <View style={[styles.m5, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
+        <View style={[styles.m5, styles.highlightBG, styles.br4, styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})]}>
             <View style={[styles.mb3]}>
                 <Icon
-                    src={Illustrations.ShieldYellow}
+                    src={ShieldYellow}
                     width={48}
                     height={48}
                 />
             </View>
-            <View style={styles.mb5}>
+            <View style={policyID ? styles.mb5 : styles.mb4}>
                 <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.upgrade.commonFeatures.title')}</Text>
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate('workspace.upgrade.commonFeatures.note')}</Text>
                 {benefits.map((benefit) => (
@@ -57,23 +58,22 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, policyID}: Gen
                         key={benefit}
                         style={[styles.pl2, styles.flexRow]}
                     >
-                        <Text style={[styles.textNormal, styles.textSupporting]}>• </Text>
+                        <Text style={[styles.textNormal, styles.textSupporting, styles.mr1]}>•</Text>
                         <Text style={[styles.textNormal, styles.textSupporting]}>{benefit}</Text>
                     </View>
                 ))}
                 <Text style={[styles.textNormal, styles.textSupporting, styles.mt4]}>
-                    {translate('workspace.upgrade.commonFeatures.benefits.startsAt')}
-                    <Text style={[styles.textSupporting, styles.textBold]}>{formattedPrice}</Text>
-                    {translate('workspace.upgrade.commonFeatures.benefits.perMember')}{' '}
-                    <TextLink
-                        style={[styles.link]}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
-                    >
-                        {translate('workspace.upgrade.commonFeatures.benefits.learnMore')}
-                    </TextLink>{' '}
-                    {translate('workspace.upgrade.commonFeatures.benefits.pricing')}
+                    <RenderHTML html={translate('workspace.upgrade.commonFeatures.benefits.startsAtFull', {learnMoreMethodsRoute, formattedPrice, hasTeam2025Pricing})} />
                 </Text>
             </View>
+            {!policyID && (
+                <Text style={[styles.mb5, styles.textNormal, styles.textSupporting]}>
+                    <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.upgrade.commonFeatures.benefits.toUpgrade')}</Text>{' '}
+                    <Text style={[styles.textBold, styles.textSupporting]}>{translate('workspace.common.goToWorkspaces')}</Text>,{' '}
+                    <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.upgrade.commonFeatures.benefits.selectWorkspace')}</Text>{' '}
+                    <Text style={[styles.textBold, styles.textSupporting]}>{translate('workspace.type.control')}</Text>.
+                </Text>
+            )}
             {policyID ? (
                 <Button
                     isLoading={loading}
@@ -87,7 +87,7 @@ function GenericFeaturesView({onUpgrade, buttonDisabled, loading, policyID}: Gen
                 <Button
                     text={translate('workspace.common.goToWorkspaces')}
                     success
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES, CONST.NAVIGATION.TYPE.UP)}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
                     large
                 />
             )}

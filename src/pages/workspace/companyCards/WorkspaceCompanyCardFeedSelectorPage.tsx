@@ -1,24 +1,39 @@
+import {Str} from 'expensify-common';
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import useCardFeeds from '@hooks/useCardFeeds';
+import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
+import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, getSelectedFeed} from '@libs/CardUtils';
+import {
+    checkIfFeedConnectionIsBroken,
+    filterInactiveCards,
+    getCardFeedIcon,
+    getCompanyFeeds,
+    getCustomOrFormattedFeedName,
+    getDomainOrWorkspaceAccountID,
+    getPlaidInstitutionIconUrl,
+    getSelectedFeed,
+} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {updateSelectedFeed} from '@userActions/Card';
-import {checkIfFeedConnectionIsBroken, clearAddNewCardFlow} from '@userActions/CompanyCards';
+import {clearAddNewCardFlow} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -26,38 +41,60 @@ import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 
 type CardFeedListItem = ListItem & {
+    /** Combined feed key */
+    value: CompanyCardFeedWithDomainID;
+
     /** Card feed value */
-    value: CompanyCardFeed;
+    feed: CompanyCardFeed;
 };
 
 type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
 
 function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedSelectorPageProps) {
     const {policyID} = route.params;
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const policy = usePolicy(policyID);
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {translate} = useLocalize();
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
     const styles = useThemeStyles();
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const illustrations = useThemeIllustrations();
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const companyFeeds = getCompanyFeeds(cardFeeds);
+    const {isBlockedToAddNewFeeds} = useIsBlockedToAddFeed(policyID);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus'] as const);
 
-    const feeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((feed) => {
-        const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`]);
+    const feeds: CardFeedListItem[] = (Object.entries(companyFeeds) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([key, feedSettings]) => {
+        const filteredFeedCards = filterInactiveCards(
+            allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getDomainOrWorkspaceAccountID(workspaceAccountID, feedSettings)}_${feedSettings.feed}`],
+        );
+        const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
+        const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);
+        const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feedSettings.domainID}`];
+        const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
+
         return {
-            value: feed,
-            text: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames),
-            keyForList: feed,
-            isSelected: feed === selectedFeed,
-            isDisabled: companyFeeds[feed]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            pendingAction: companyFeeds[feed]?.pendingAction,
+            value: key,
+            feed: feedSettings.feed,
+            alternateText: domainName ?? policy?.name,
+            text: getCustomOrFormattedFeedName(feedSettings.feed, feedSettings.customFeedName),
+            keyForList: key,
+            isSelected: key === selectedFeed,
+            isDisabled: feedSettings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: feedSettings.pendingAction,
             brickRoadIndicator: isFeedConnectionBroken ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             canShowSeveralIndicators: isFeedConnectionBroken,
-            leftElement: (
+            leftElement: plaidUrl ? (
+                <PlaidCardFeedIcon
+                    plaidUrl={plaidUrl}
+                    style={styles.mr3}
+                />
+            ) : (
                 <Icon
-                    src={getCardFeedIcon(feed)}
+                    src={getCardFeedIcon(feedSettings.feed, illustrations)}
                     height={variables.cardIconHeight}
                     width={variables.cardIconWidth}
                     additionalStyles={[styles.mr3, styles.cardIcon]}
@@ -66,7 +103,18 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         };
     });
 
-    const goBack = () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+    const onAddCardsPress = () => {
+        clearAddNewCardFlow();
+        if (isBlockedToAddNewFeeds) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)),
+            );
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID));
+    };
+
+    const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
 
     const selectFeed = (feed: CardFeedListItem) => {
         updateSelectedFeed(feed.value, policyID);
@@ -82,6 +130,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 testID={WorkspaceCompanyCardFeedSelectorPage.displayName}
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('workspace.companyCards.selectCards')}
@@ -90,18 +139,15 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 <SelectionList
                     ListItem={RadioListItem}
                     onSelectRow={selectFeed}
-                    sections={[{data: feeds}]}
-                    shouldUpdateFocusedIndex
-                    isAlternateTextMultilineSupported
-                    initiallyFocusedOptionKey={selectedFeed}
+                    data={feeds}
+                    alternateNumberOfSupportedLines={2}
+                    initiallyFocusedItemKey={selectedFeed}
+                    addBottomSafeAreaPadding
                     listFooterContent={
                         <MenuItem
                             title={translate('workspace.companyCards.addCards')}
-                            icon={Expensicons.Plus}
-                            onPress={() => {
-                                clearAddNewCardFlow();
-                                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.getRoute(policyID));
-                            }}
+                            icon={icons.Plus}
+                            onPress={onAddCardsPress}
                         />
                     }
                 />

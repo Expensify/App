@@ -2,18 +2,18 @@ import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type Navigation from '@libs/Navigation/Navigation';
+import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
-import OnyxProvider from '@src/components/OnyxProvider';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionsList from '@src/pages/home/report/ReportActionsList';
-import {ReportAttachmentsProvider} from '@src/pages/home/report/ReportAttachmentsContext';
 import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -24,16 +24,6 @@ type LazyLoadLHNTestUtils = {
 };
 
 const mockedNavigate = jest.fn();
-
-// Mock Fullstory library dependency
-jest.mock('@libs/Fullstory', () => ({
-    default: {
-        consentAndIdentify: jest.fn(),
-    },
-    getFSAttributes: jest.fn(),
-    getChatFSAttributes: jest.fn().mockReturnValue(['mockTestID', 'mockFSClass']),
-    parseFSAttributes: jest.fn(),
-}));
 
 jest.mock('@components/withCurrentUserPersonalDetails', () => {
     // Lazy loading of LHNTestUtils
@@ -73,7 +63,7 @@ jest.mock('@src/components/ConfirmedRoute.tsx');
 beforeAll(() =>
     Onyx.init({
         keys: ONYXKEYS,
-        safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
     }),
 );
 
@@ -89,7 +79,7 @@ const signUpWithTestUser = () => {
     TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
 };
 
-const report = createRandomReport(1);
+const report = createRandomReport(1, undefined);
 const parentReportAction = createRandomReportAction(1);
 
 beforeEach(() => {
@@ -106,7 +96,7 @@ afterEach(() => {
 function ReportActionsListWrapper() {
     const reportActions = ReportTestUtils.getMockedSortedReportActions(500);
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportAttachmentsProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider]}>
             <ReactionListContext.Provider value={mockRef}>
                 <ActionListContext.Provider value={mockRef}>
                     <ReportActionsList
@@ -117,7 +107,6 @@ function ReportActionsListWrapper() {
                         report={report}
                         onLayout={mockOnLayout}
                         onScroll={mockOnScroll}
-                        onContentSizeChange={() => {}}
                         listID={1}
                         loadOlderChats={mockLoadChats}
                         loadNewerChats={mockLoadChats}

@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import type {FileObject} from '@components/AttachmentModal';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 type PickerOptions = {
     /** A callback that will be called with the selected file. */

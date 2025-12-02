@@ -26,6 +26,7 @@ function TextBlock({color, textStyles, text}: TextBlockProps) {
                 <Text
                     color={color}
                     style={textStyles}
+                    key={word}
                 >
                     {word}
                 </Text>

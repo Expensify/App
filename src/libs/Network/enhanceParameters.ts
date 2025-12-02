@@ -4,12 +4,14 @@ import getPlatform from '@libs/getPlatform';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../../package.json';
-import * as NetworkStore from './NetworkStore';
+import {getAuthToken, getCurrentUserEmail} from './NetworkStore';
 
 // For all requests, we'll send the lastUpdateID that is applied to this client. This will
 // allow us to calculate previousUpdateID faster.
 let lastUpdateIDAppliedToClient = -1;
-Onyx.connect({
+// `lastUpdateIDAppliedToClient` is not dependent on any changes on the UI,
+// so it is okay to use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (value) => {
         if (value) {
@@ -22,10 +24,22 @@ Onyx.connect({
 
 // Check if the user is logged in as a delegate and send that if so
 let delegate = '';
-Onyx.connect({
+// To enhance the API parameters, we do not need to depend on the UI,
+// so it is okay to use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (val) => {
         delegate = val?.delegatedAccess?.delegate ?? '';
+    },
+});
+
+let stashedSupportLogin = '';
+// To enhance the API parameters, we do not need to depend on the UI,
+// so it is okay to use `connectWithoutView` here.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.STASHED_CREDENTIALS,
+    callback: (val) => {
+        stashedSupportLogin = val?.login ?? '';
     },
 });
 
@@ -43,7 +57,7 @@ export default function enhanceParameters(command: string, parameters: Record<st
     const finalParameters = {...parameters};
 
     if (isAuthTokenRequired(command) && !parameters.authToken) {
-        finalParameters.authToken = NetworkStore.getAuthToken() ?? null;
+        finalParameters.authToken = getAuthToken() ?? null;
     }
 
     finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
@@ -58,16 +72,15 @@ export default function enhanceParameters(command: string, parameters: Record<st
     finalParameters.api_setCookie = false;
 
     // Include current user's email in every request and the server logs
-    finalParameters.email = parameters.email ?? NetworkStore.getCurrentUserEmail();
-
+    finalParameters.email = parameters.email ?? getCurrentUserEmail();
     finalParameters.isFromDevEnv = Environment.isDevelopment();
-
     finalParameters.appversion = pkg.version;
-
     finalParameters.clientUpdateID = lastUpdateIDAppliedToClient;
-
     if (delegate) {
         finalParameters.delegate = delegate;
+    }
+    if (stashedSupportLogin) {
+        finalParameters.stashedSupportLogin = stashedSupportLogin;
     }
 
     return finalParameters;

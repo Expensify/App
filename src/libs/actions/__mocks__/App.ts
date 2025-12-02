@@ -9,7 +9,6 @@ jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 const AppImplementation = jest.requireActual<typeof AppImport>('@libs/actions/App');
 const {
     setLocale,
-    setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     redirectThirdPartyDesktopSignIn,
@@ -52,7 +51,7 @@ const getMissingOnyxUpdates = jest.fn((updateIDFrom: number, updateIDTo: number)
     }
 
     let chain = Promise.resolve();
-    updates.forEach((update) => {
+    for (const update of updates) {
         chain = chain.then(() => {
             if (!OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(update.previousUpdateID)})) {
                 return OnyxUpdates.apply(update).then(() => undefined);
@@ -61,7 +60,7 @@ const getMissingOnyxUpdates = jest.fn((updateIDFrom: number, updateIDTo: number)
             OnyxUpdates.saveUpdateInformation(update);
             return Promise.resolve();
         });
-    });
+    }
 
     return chain;
 });
@@ -73,7 +72,6 @@ export {
 
     // Actual App implementation
     setLocale,
-    setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     redirectThirdPartyDesktopSignIn,

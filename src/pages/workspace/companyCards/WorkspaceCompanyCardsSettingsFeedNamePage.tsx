@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -10,16 +9,18 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as CompanyCards from '@userActions/CompanyCards';
+import {setWorkspaceCompanyCardFeedName} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,19 +40,27 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? -1;
-    const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [cardFeeds, cardFeedsResult] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const feedName = CardUtils.getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const [lastSelectedFeed, lastSelectedFeedResult] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+    const [cardFeeds, cardFeedsResult] = useCardFeeds(policyID);
+    const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
+    const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
+    const companyFeeds = getCompanyFeeds(cardFeeds);
+    const feedName = selectedFeed ? getCustomOrFormattedFeedName(feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed ? companyFeeds[selectedFeed] : undefined);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME> = {};
             const value = values[INPUT_IDS.NAME];
 
-            if (!ValidationUtils.isRequiredFulfilled(value)) {
+            if (!isRequiredFulfilled(value)) {
                 errors.name = translate('workspace.moreFeatures.companyCards.error.feedNameRequired');
+            } else if (value.length > CONST.NAME.MAX_LENGTH) {
+                errors.name = translate('common.error.characterLimitExceedCounter', {
+                    length: value.length,
+                    limit: CONST.NAME.MAX_LENGTH,
+                });
             }
 
             return errors;
@@ -60,8 +69,8 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     );
 
     const submit = ({name}: WorkspaceCompanyCardFeedName) => {
-        if (selectedFeed) {
-            CompanyCards.setWorkspaceCompanyCardFeedName(policyID, workspaceAccountID, selectedFeed, name);
+        if (feed) {
+            setWorkspaceCompanyCardFeedName(policyID, domainOrWorkspaceAccountID, feed, name);
         }
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
     };
@@ -77,7 +86,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceCompanyCardsSettingsFeedNamePage.displayName}
                 style={styles.defaultModalContainer}
@@ -94,6 +103,8 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
                     enabledWhenOffline
                     validate={validate}
                     onSubmit={submit}
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -103,7 +114,6 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                             defaultValue={feedName}
-                            maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             multiline={false}
                             ref={inputCallbackRef}
                         />

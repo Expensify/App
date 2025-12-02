@@ -1,11 +1,11 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
-import * as Report from '@userActions/Report';
+import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
+import {subscribeToReportTypingEvents, unsubscribeFromReportChannel} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -15,11 +15,11 @@ type UserTypingEventListenerProps = {
     report: OnyxTypes.Report;
 };
 function UserTypingEventListener({report}: UserTypingEventListenerProps) {
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {selector: (path) => path ?? ''});
+    const [lastVisitedPath = ''] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
     const didSubscribeToReportTypingEvents = useRef(false);
     const reportID = report.reportID;
     const isFocused = useIsFocused();
-    const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
 
     useEffect(
         () => () => {
@@ -29,8 +29,9 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
 
             // unsubscribe from report typing events when the component unmounts
             didSubscribeToReportTypingEvents.current = false;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                Report.unsubscribeFromReportChannel(reportID);
+                unsubscribeFromReportChannel(reportID);
             });
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -42,6 +43,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
         if (route?.params?.reportID !== reportID) {
             return;
         }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | null = null;
         if (isFocused) {
             // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -51,8 +53,9 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
             const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
 
             if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 interactionTask = InteractionManager.runAfterInteractions(() => {
-                    Report.subscribeToReportTypingEvents(reportID);
+                    subscribeToReportTypingEvents(reportID);
                     didSubscribeToReportTypingEvents.current = true;
                 });
             }
@@ -61,8 +64,9 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
 
             if (topmostReportId !== reportID && didSubscribeToReportTypingEvents.current) {
                 didSubscribeToReportTypingEvents.current = false;
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
-                    Report.unsubscribeFromReportChannel(reportID);
+                    unsubscribeFromReportChannel(reportID);
                 });
             }
         }
@@ -72,7 +76,7 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
             }
             interactionTask.cancel();
         };
-    }, [isFocused, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID, route]);
+    }, [isFocused, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID, route?.params?.reportID]);
 
     return null;
 }

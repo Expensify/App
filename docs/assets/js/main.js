@@ -2,21 +2,21 @@
 function toggleHeaderMenu() {
     const lhn = document.getElementById('lhn');
     const lhnContent = document.getElementById('lhn-content');
-    const anguleUpIcon = document.getElementById('angle-up-icon');
+    const angleUpIcon = document.getElementById('angle-up-icon');
     const barsIcon = document.getElementById('bars-icon');
     if (lhnContent.className === 'expanded') {
         // Collapse the LHN in mobile
         lhn.className = '';
         lhnContent.className = '';
         barsIcon.classList.remove('hide');
-        anguleUpIcon.classList.add('hide');
+        angleUpIcon.classList.add('hide');
         document.body.classList.remove('disable-scrollbar');
     } else {
         // Expand the LHN in mobile
         lhn.className = 'expanded';
         lhnContent.className = 'expanded';
         barsIcon.classList.add('hide');
-        anguleUpIcon.classList.remove('hide');
+        angleUpIcon.classList.remove('hide');
         document.body.classList.add('disable-scrollbar');
     }
 }
@@ -70,8 +70,8 @@ function navigateBack() {
     setTimeout(toggleHeaderMenu, 250);
 }
 
-function injectFooterCopywrite() {
-    const footer = document.getElementById('footer-copywrite-date');
+function injectFooterCopyright() {
+    const footer = document.getElementById('footer-copyright-date');
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
@@ -121,7 +121,7 @@ function openSidebar() {
 // Function to adapt & fix cropped SVG viewBox from Google based on viewport (Mobile or Tablet-Desktop)
 function changeSVGViewBoxGoogle() {
     // Get all inline Google SVG elements on the page
-    const svgsGoogle = document.querySelectorAll('svg');
+    const svgsGoogle = document.querySelectorAll('svg[data-source]:not(.logo), .gsc-search-button.gsc-search-button-v2 svg');
 
     Array.from(svgsGoogle).forEach((svg) => {
         // Set the viewBox attribute to '0 0 13 13' to make the svg fit in the mobile view
@@ -235,37 +235,8 @@ mobileBreakpoint.addEventListener('change', handleBreakpointChange);
 // Initial check
 handleBreakpointChange();
 
-function selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
-    newExpensifyTab.classList.add('active');
-    newExpensifyContent.classList.remove('hidden');
-
-    if (expensifyClassicTab && expensifyClassicContent) {
-        expensifyClassicTab.classList.remove('active');
-        expensifyClassicContent.classList.add('hidden');
-    }
-    window.tocbot.refresh({
-        ...tocbotOptions,
-        contentSelector: '#new-expensify',
-    });
-}
-
-function selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
-    expensifyClassicTab.classList.add('active');
-    expensifyClassicContent.classList.remove('hidden');
-
-    if (newExpensifyTab && newExpensifyContent) {
-        newExpensifyTab.classList.remove('active');
-        newExpensifyContent.classList.add('hidden');
-    }
-
-    window.tocbot.refresh({
-        ...tocbotOptions,
-        contentSelector: '#expensify-classic',
-    });
-}
-
 window.addEventListener('DOMContentLoaded', () => {
-    injectFooterCopywrite();
+    injectFooterCopyright();
 
     // Handle open & close the sidebar
     const buttonOpenSidebar = document.getElementById('toggle-search-open');
@@ -278,37 +249,12 @@ window.addEventListener('DOMContentLoaded', () => {
         buttonCloseSidebar.addEventListener('click', closeSidebar);
     }
 
-    const expensifyClassicTab = document.getElementById('platform-tab-expensify-classic');
-    const newExpensifyTab = document.getElementById('platform-tab-new-expensify');
-
-    const expensifyClassicContent = document.getElementById('expensify-classic');
-    const newExpensifyContent = document.getElementById('new-expensify');
-
-    let contentSelector = '.article-toc-content';
-    if (expensifyClassicContent) {
-        contentSelector = '#expensify-classic';
-        selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
-    } else if (newExpensifyContent) {
-        contentSelector = '#new-expensify';
-        selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
-    }
-
     if (window.tocbot) {
         window.tocbot.init({
             ...tocbotOptions,
-            contentSelector,
+            contentSelector: '.article-toc-content',
         });
     }
-
-    // eslint-disable-next-line es/no-optional-chaining
-    expensifyClassicTab?.addEventListener('click', () => {
-        selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
-    });
-
-    // eslint-disable-next-line es/no-optional-chaining
-    newExpensifyTab?.addEventListener('click', () => {
-        selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
-    });
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
 
@@ -349,3 +295,71 @@ window.addEventListener('DOMContentLoaded', () => {
         document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
     });
 });
+
+if (window.location.hash) {
+    const lowerCaseHash = window.location.hash.toLowerCase();
+    const element = document.getElementById(lowerCaseHash.slice(1));
+
+    if (element) {
+        element.scrollIntoView({
+            behavior: 'smooth',
+        });
+    }
+}
+
+// Handle hash changes (like back/forward navigation)
+window.addEventListener('hashchange', () => {
+    if (!window.location.hash) {
+        return;
+    }
+    const lowerCaseHash = window.location.hash.toLowerCase();
+    document.getElementById(lowerCaseHash.slice(1))?.scrollIntoView({
+        behavior: 'smooth',
+    });
+});
+
+// We need to pass the results from readyCallback to renderedCallback so we make two part callback here to customize the results from GCSE API
+const makeTwoPartCallback = () => {
+    let customResults = [];
+    const readyCallback = (name, q, promos, results, resultsDiv) => {
+        customResults = [];
+        results.forEach((result) => {
+            const {ogUrl, ogSiteName} = result.richSnippet.metatags;
+
+            let newOgSiteName;
+            if (ogUrl.includes('expensify-classic')) {
+                newOgSiteName = 'Expensify Classic';
+            } else if (ogUrl.includes('travel')) {
+                newOgSiteName = 'Expensify Travel';
+            } else {
+                newOgSiteName = 'New Expensify';
+            }
+
+            result.title = result.title.replace(`- ${ogSiteName}`, `• ${newOgSiteName}`);
+            result.titleNoFormatting = result.titleNoFormatting.replace(`- ${ogSiteName}`, `• ${newOgSiteName}`);
+            if (!result.title.endsWith(` • ${newOgSiteName}`)) {
+                result.title = result.title + ` • ${newOgSiteName}`;
+            }
+            customResults.push(result);
+        });
+    };
+    const renderedCallback = (name, q, promos, results) => {
+        for (let i = 0; i < results.length; ++i) {
+            const div = results[i];
+            const result = customResults[i];
+            const titleElement = div.querySelector('a.gs-title');
+            titleElement.innerHTML = result.title;
+        }
+    };
+    return {readyCallback, renderedCallback};
+};
+
+const {readyCallback: webResultsReadyCallback, renderedCallback: webResultsRenderedCallback} = makeTwoPartCallback();
+
+window.__gcse || (window.__gcse = {});
+window.__gcse.searchCallbacks = {
+    web: {
+        ready: webResultsReadyCallback,
+        rendered: webResultsRenderedCallback,
+    },
+};

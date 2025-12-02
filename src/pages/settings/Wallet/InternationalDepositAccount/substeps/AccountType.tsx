@@ -1,48 +1,39 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
+import ValuePicker from '@components/ValuePicker';
+import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {Option} from '@libs/searchOptions';
-import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
-import {setDraftValues} from '@userActions/FormActions';
+import {setDraftValues} from '@libs/actions/FormActions';
+import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function AccountType({isEditing, onNext, formValues, fieldsMap}: CustomSubStepProps) {
+function AccountType({isEditing, onNext, fieldsMap}: CustomSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [currentAccountType, setCurrentAccountType] = useState(formValues[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]);
-    const [error, setError] = useState<TranslationPaths | undefined>(undefined);
+    const formRef = useRef<FormRef>(null);
 
     const fieldData = fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE]?.[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY] ?? {};
 
-    const onAccountTypeSelected = useCallback(() => {
-        setError(undefined);
-        if (isEditing && formValues[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY] === currentAccountType) {
-            onNext();
-            return;
-        }
-        if (fieldData.isRequired && !currentAccountType) {
-            setError('common.error.pleaseSelectOne');
-            return;
-        }
-        setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: currentAccountType});
-        onNext();
-    }, [currentAccountType, fieldData.isRequired, formValues, isEditing, onNext]);
+    const handleSubmit = useInternationalBankAccountFormSubmit({
+        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE]),
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
 
-    const onSelectionChange = useCallback(
-        (country: Option) => {
-            if (!isEditing) {
-                setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: country.value});
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
+            if (!fieldData.isRequired || values[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]) {
+                return {};
             }
-            setCurrentAccountType(country.value);
+            return {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: translate('common.error.pleaseSelectOne')};
         },
-        [isEditing],
+        [fieldData.isRequired, translate],
     );
 
     const options = useMemo(
@@ -50,46 +41,44 @@ function AccountType({isEditing, onNext, formValues, fieldsMap}: CustomSubStepPr
             (fieldData.valueSet ?? []).map((item) => {
                 return {
                     value: item.id,
-                    keyForList: item.id,
-                    text: item.text,
-                    isSelected: currentAccountType === item.id,
-                    searchValue: item.text,
+                    label: item.text,
                 };
             }),
-        [fieldData.valueSet, currentAccountType],
+        [fieldData.valueSet],
     );
 
-    const button = useMemo(() => {
-        const buttonText = isEditing ? translate('common.confirm') : translate('common.next');
-        return (
-            <FormAlertWithSubmitButton
-                message={error ? translate(error) : ''}
-                isAlertVisible={!!error}
-                buttonText={buttonText}
-                onSubmit={onAccountTypeSelected}
-                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                enabledWhenOffline
-            />
-        );
-    }, [error, isEditing, onAccountTypeSelected, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
-
     return (
-        <>
+        <FormProvider
+            formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
+            submitButtonText={translate('common.confirm')}
+            onSubmit={handleSubmit}
+            validate={validate}
+            style={[styles.flexGrow1, styles.mt3]}
+            submitButtonStyles={[styles.ph5, styles.mb0]}
+            enabledWhenOffline
+            ref={formRef}
+            isSubmitButtonVisible={!isEditing}
+        >
             <View style={styles.ph5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountTypeStepHeader')}</Text>
             </View>
-            <SelectionList
-                sections={[{data: options}]}
-                onSelectRow={onSelectionChange}
-                ListItem={RadioListItem}
-                initiallyFocusedOptionKey={currentAccountType}
-                footerContent={button}
-                shouldSingleExecuteRowSelect
-                shouldStopPropagation
-                shouldUseDynamicMaxToRenderPerBatch
-                shouldUpdateFocusedIndex
+            <InputWrapper
+                InputComponent={ValuePicker}
+                inputID={fieldData.id}
+                label={fieldData.label}
+                items={options}
+                shouldSaveDraft={!isEditing}
+                shouldShowModal={false}
+                onValueChange={(value) => {
+                    if (!isEditing) {
+                        return;
+                    }
+                    setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {[CONST.CORPAY_FIELDS.ACCOUNT_TYPE_KEY]: value}).then(() => {
+                        onNext();
+                    });
+                }}
             />
-        </>
+        </FormProvider>
     );
 }
 

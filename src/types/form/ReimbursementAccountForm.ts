@@ -1,5 +1,5 @@
-import type {FileObject} from '@components/AttachmentModal';
 import type {Country} from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type Form from './Form';
 
@@ -37,6 +37,7 @@ const INPUT_IDS = {
         INCORPORATION_TYPE: 'incorporationType',
         INCORPORATION_DATE: 'incorporationDate',
         INCORPORATION_STATE: 'incorporationState',
+        INCORPORATION_CODE: 'industryCode',
         HAS_NO_CONNECTION_TO_CANNABIS: 'hasNoConnectionToCannabis',
     },
     COMPLETE_VERIFICATION: {
@@ -49,24 +50,66 @@ const INPUT_IDS = {
         HAS_OTHER_BENEFICIAL_OWNERS: 'hasOtherBeneficialOwners',
         BENEFICIAL_OWNERS: 'beneficialOwners',
     },
+    SIGNER_INFO_STEP: {
+        SIGNER_FULL_NAME: 'signerFullName',
+        SIGNER_DATE_OF_BIRTH: 'signerDateOfBirth',
+        SIGNER_JOB_TITLE: 'signerJobTitle',
+        SIGNER_EMAIL: 'signerEmail',
+        SIGNER_CITY: 'signer_city',
+        SIGNER_STREET: 'signer_street',
+        SIGNER_STATE: 'signer_state',
+        SIGNER_ZIP_CODE: 'signer_zipCode',
+        SIGNER_COUNTRY: 'signer_nationality',
+        SIGNER_COPY_OF_ID: 'signerCopyOfID',
+        SIGNER_ADDRESS_PROOF: 'signerAddressProof',
+        SIGNER_CODICE_FISCALE: 'signerCodiceFiscale',
+        PROOF_OF_DIRECTORS: 'proofOfDirectors',
+        DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
+        SECOND_SIGNER_EMAIL: 'secondSignerEmail',
+    },
     AMOUNT1: 'amount1',
     AMOUNT2: 'amount2',
     AMOUNT3: 'amount3',
+    /** Some pairs are send under certain key and saved under different key by BE.
+     * This is forced on BE side which is asking us to send it under certain keys
+     * but then saves it and returns under different keys */
     ADDITIONAL_DATA: {
+        /** This pair is send under 1ST key but saved under 2nd key */
         ACCOUNT_HOLDER_NAME: 'accountHolderName',
+        ADDRESS_NAME: 'addressName',
+
+        /** This pair is send under 1ST key but saved under 2nd key */
+        ACCOUNT_HOLDER_ADDRESS_1: 'accountHolderAddress1',
         ADDRESS_STREET: 'addressStreet',
+
+        /** This pair is send under 1ST key but saved under 2nd key */
+        ACCOUNT_HOLDER_CITY: 'accountHolderCity',
         ADDRESS_CITY: 'addressCity',
+
+        /** This pair is send under 1ST key but saved under 2nd key */
+        ACCOUNT_HOLDER_REGION: 'accountHolderRegion',
         ADDRESS_STATE: 'addressState',
+
+        /** This pair is send under 1ST key but saved under 2nd key */
+        ACCOUNT_HOLDER_POSTAL: 'accountHolderPostal',
         ADDRESS_ZIP_CODE: 'addressZipCode',
+
+        /** 2nd key from pair with ROUTING_NUMBER (shares it with SWIFT/BIC code) */
+        ROUTING_CODE: 'routingCode',
         COUNTRY: 'country',
         CORPAY: {
             ACCOUNT_HOLDER_COUNTRY: 'accountHolderCountry',
-            SWIFT_CODE: 'swiftCode',
+            /** 2nd key from pair with ROUTING_NUMBER  (shares it with routing code) */
+            SWIFT_BIC_CODE: 'swiftBicCode',
             BANK_NAME: 'bankName',
             BANK_CITY: 'bankCity',
-            BANK_ADDRESS_LINE_1: 'bankAddress',
-            BANK_STATEMENT: 'bankStatement',
+            BANK_REGION: 'bankRegion',
+            BANK_POSTAL: 'bankPostal',
+            BANK_ADDRESS_LINE_1: 'bankAddressLine1',
+            BANK_COUNTRY: 'bankCountry',
+            BANK_CURRENCY: 'bankCurrency',
             COMPANY_NAME: 'companyName',
+            COMPANY_WEBSITE: 'websiteUrl',
             COMPANY_STREET: 'companyStreetAddress',
             COMPANY_CITY: 'companyCity',
             COMPANY_STATE: 'companyState',
@@ -80,6 +123,7 @@ const INPUT_IDS = {
             COUNTRY_CODE: 'countryCode',
             TAX_ID_EIN_NUMBER: 'taxIDEINNumber',
             BUSINESS_CATEGORY: 'natureOfBusiness',
+            BUSINESS_TYPE_ID: 'businessTypeId',
             APPLICANT_TYPE_ID: 'applicantTypeId',
             PURPOSE_OF_TRANSACTION_ID: 'purposeOfTransactionID',
             PREFERRED_METHOD: 'preferredMethod',
@@ -89,9 +133,12 @@ const INPUT_IDS = {
             OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
             ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE: 'anyIndividualOwn25PercentOrMore',
             BENEFICIAL_OWNERS: 'beneficialOwners',
-            ENTITY_CHART: 'entityChart',
             FUND_DESTINATION_COUNTRIES: 'fundDestinationCountries',
             FUND_SOURCE_COUNTRIES: 'fundSourceCountries',
+            PROVIDE_TRUTHFUL_INFORMATION: 'provideTruthfulInformation',
+            AGREE_TO_TERMS_AND_CONDITIONS: 'agreeToTermsAndConditions',
+            CONSENT_TO_PRIVACY_NOTICE: 'consentToPrivacyNotice',
+            AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: 'authorizedToBindClientToAgreement',
             COMPANY_DIRECTORS_FULL_NAME: 'companyDirectorsFullName',
             COMPANY_DIRECTORS_JOB_TITLE: 'companyDirectorsJobTitle',
             COMPANY_DIRECTORS_OCCUPATION: 'companyDirectorsOccupation',
@@ -100,25 +147,13 @@ const INPUT_IDS = {
             SIGNER_JOB_TITLE: 'signerJobTitle',
             SIGNER_EMAIL: 'signerEmail',
             SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
+            DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
+            ACH_AUTHORIZATION_FORM: 'achAuthorizationForm',
+            SECOND_SIGNER_EMAIL: 'secondSignerEmail',
             SECOND_SIGNER_FULL_NAME: 'secondSignerFullName',
             SECOND_SIGNER_DATE_OF_BIRTH: 'secondSignerDateOfBirth',
             SECOND_SIGNER_JOB_TITLE: 'secondSignerJobTitle',
-            SECOND_SIGNER_EMAIL: 'secondSignerEmail',
             SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'secondSignerCompleteResidentialAddress',
-            SIGNER_PROOF_OF_DIRECTOR: 'signerProofOfDirector',
-            SIGNER_COPY_OF_ID: 'signerCopyOfID',
-            SIGNER_ADDRESS_PROOF: 'signerAddressProof',
-            SIGNER_TAX_ID: 'signerTaxID',
-            SIGNER_PDS_AND_FSG: 'signerPDSAndFSG',
-            SECOND_SIGNER_PROOF_OF_DIRECTOR: 'secondSignerProofOfDirector',
-            SECOND_SIGNER_COPY_OF_ID: 'secondSignerCopyOfID',
-            SECOND_SIGNER_ADDRESS_PROOF: 'secondSignerAddressProof',
-            SECOND_SIGNER_TAX_ID: 'secondSignerTaxID',
-            SECOND_SIGNER_PDS_AND_FSG: 'secondSignerPDSAndFSG',
-            PROVIDE_TRUTHFUL_INFORMATION: 'provideTruthfulInformation',
-            AGREE_TO_TERMS_AND_CONDITIONS: 'agreeToTermsAndConditions',
-            CONSENT_TO_PRIVACY_NOTICE: 'consentToPrivacyNotice',
-            AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: 'authorizedToBindClientToAgreement',
         },
     },
 } as const;
@@ -136,7 +171,7 @@ type BeneficialOwnerDataKey = `beneficialOwner_${string}_${string}`;
 type ReimbursementAccountFormExtraProps = BeneficialOwnersStepExtraProps & {bankAccountID?: number};
 
 type BeneficialOwnersStepExtraProps = {
-    [key: BeneficialOwnerDataKey]: string;
+    [key: BeneficialOwnerDataKey]: string | FileObject[];
     beneficialOwnerKeys?: string[];
 };
 
@@ -161,6 +196,7 @@ type CompanyStepProps = {
     [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_TYPE]: string;
     [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE]: string;
     [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_STATE]: string;
+    [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_CODE]: string;
     [INPUT_IDS.BUSINESS_INFO_STEP.HAS_NO_CONNECTION_TO_CANNABIS]: boolean;
 };
 
@@ -192,6 +228,24 @@ type ReimbursementAccountProps = {
     [INPUT_IDS.AMOUNT3]: string;
 };
 
+type SignerInfoStepProps = {
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_FULL_NAME]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_DATE_OF_BIRTH]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_JOB_TITLE]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_EMAIL]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_CITY]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_STREET]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_STATE]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_ZIP_CODE]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_COUNTRY]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.DOWNLOADED_PDS_AND_FSG]: boolean;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_COPY_OF_ID]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_ADDRESS_PROOF]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_CODICE_FISCALE]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.PROOF_OF_DIRECTORS]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.SECOND_SIGNER_EMAIL]: FileObject[];
+};
+
 /** Additional props for non-USD reimbursement account */
 type NonUSDReimbursementAccountAdditionalProps = {
     /** Country of the bank */
@@ -202,12 +256,32 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Name of the account holder */
     [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_NAME]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_NAME]: string;
+
+    /** Street of the account holder */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_ADDRESS_1]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STREET]: string;
+
+    /** City of the account holder */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_CITY]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_CITY]: string;
+
+    /** State of the account holder */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_REGION]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_STATE]: string;
+
+    /** Postal code of the account holder */
+    [INPUT_IDS.ADDITIONAL_DATA.ACCOUNT_HOLDER_POSTAL]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.ADDRESS_ZIP_CODE]: string;
+
+    /** Routing code */
+    [INPUT_IDS.ADDITIONAL_DATA.ROUTING_CODE]: string;
 
     /** Country of the account holder */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACCOUNT_HOLDER_COUNTRY]: Country | '';
 
     /** SWIFT code */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_CODE]: string;
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SWIFT_BIC_CODE]: string;
 
     /** Bank name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_NAME]: string;
@@ -215,14 +289,26 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Bank city */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_CITY]: string;
 
+    /** Bank region */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_REGION]: string;
+
+    /** Bank postal code */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_POSTAL]: string;
+
+    /** Bank country */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_COUNTRY]: string;
+
+    /** Bank currency */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_CURRENCY]: string;
+
     /** Bank address line 1 */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_ADDRESS_LINE_1]: string;
 
-    /** Bank statement file */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]: FileObject[];
-
     /** Company name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME]: string;
+
+    /** Company website */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_WEBSITE]: string;
 
     /** Company street */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STREET]: string;
@@ -263,6 +349,9 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Business category */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_CATEGORY]: string;
 
+    /** Business type ID */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BUSINESS_TYPE_ID]: string;
+
     /** Applicant type ID */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.APPLICANT_TYPE_ID]: string;
 
@@ -286,9 +375,6 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Beneficial owners */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.BENEFICIAL_OWNERS]: string;
-
-    /** Entity chart */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ENTITY_CHART]: FileObject[];
 
     /** Fund destination countries */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.FUND_DESTINATION_COUNTRIES]: string;
@@ -320,6 +406,9 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Signer complete residential address */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
 
+    /** Second signer email */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL]: string;
+
     /** Second signer full name */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_FULL_NAME]: string;
 
@@ -329,41 +418,8 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Second signer job title */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_JOB_TITLE]: string;
 
-    /** Second signer email */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL]: string;
-
     /** Second signer complete residential address */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
-
-    /** Signer proof of director */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PROOF_OF_DIRECTOR]: FileObject[];
-
-    /** Signer copy of ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COPY_OF_ID]: FileObject[];
-
-    /** Signer address proof */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_ADDRESS_PROOF]: FileObject[];
-
-    /** Signer tax ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_TAX_ID]: string;
-
-    /** Signer PDS and FSG */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PDS_AND_FSG]: string;
-
-    /** Second signer proof of director */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_PROOF_OF_DIRECTOR]: FileObject[];
-
-    /** Second signer copy of ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COPY_OF_ID]: FileObject[];
-
-    /** Second signer address proof */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_ADDRESS_PROOF]: FileObject[];
-
-    /** Second signer tax ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_TAX_ID]: string;
-
-    /** Second signer PDS and FSG */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_PDS_AND_FSG]: string;
 
     /** Provide truthful information */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION]: boolean;
@@ -376,12 +432,16 @@ type NonUSDReimbursementAccountAdditionalProps = {
 
     /** Authorized to bind client to agreement */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT]: boolean;
+
+    /** Powerform required for US and CA workspaces */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACH_AUTHORIZATION_FORM]: FileObject[];
 };
 
 type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
     Form<
         InputID,
         BeneficialOwnersStepBaseProps &
+            SignerInfoStepProps &
             BankAccountStepProps &
             CompanyStepProps &
             RequestorStepProps &
@@ -397,9 +457,9 @@ export type {
     CompanyStepProps,
     RequestorStepProps,
     BeneficialOwnersStepProps,
+    SignerInfoStepProps,
     ACHContractStepProps,
     ReimbursementAccountProps,
-    NonUSDReimbursementAccountAdditionalProps,
     InputID,
 };
 export default INPUT_IDS;

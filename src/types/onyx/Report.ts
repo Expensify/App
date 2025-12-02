@@ -4,6 +4,7 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type * as OnyxCommon from './OnyxCommon';
 import type {PolicyReportField} from './Policy';
+import type {TripData} from './TripData';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -58,11 +59,35 @@ type InvoiceReceiverType = InvoiceReceiver['type'];
 /** Record of report participants, indexed by their accountID */
 type Participants = Record<number, Participant>;
 
+/** Report next step */
+type ReportNextStep = {
+    /** The message key */
+    messageKey: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>;
+
+    /** The icon */
+    icon: ValueOf<typeof CONST.NEXT_STEP.ICONS>;
+
+    /** The account ID of the user who is required to take action. This could be -1 which translates to "an admin" */
+    actorAccountID?: number;
+
+    /** The ETA (if applicable, e.g. expected reimbursement date) */
+    eta?: {
+        /** The ETA key */
+        etaKey?: ValueOf<typeof CONST.NEXT_STEP.ETA_KEY>;
+
+        /** The ETA date time */
+        dateTime?: string;
+    };
+};
+
 /** Model of report data */
 type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The URL of the Group Chat report custom avatar */
         avatarUrl?: string;
+
+        /** The date the report was created */
+        created?: string;
 
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
@@ -142,6 +167,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 
+        /** Number of transactions in the report */
+        transactionCount?: number;
+
         /** ID of the parent report of the current report, if it exists */
         parentReportID?: string;
 
@@ -193,6 +221,18 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report is cancelled */
         isCancelledIOU?: boolean;
 
+        /** Whether the report has been retracted */
+        hasReportBeenRetracted?: boolean;
+
+        /** Whether the report has been reopened */
+        hasReportBeenReopened?: boolean;
+
+        /** Whether the report has been exported to integration */
+        isExportedToIntegration?: boolean;
+
+        /** Whether the report has any export errors */
+        hasExportError?: boolean;
+
         /** The ID of the IOU report */
         iouReportID?: string;
 
@@ -214,19 +254,25 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The trip data for a trip room */
         tripData?: {
             /** The start date of a trip */
-            startDate: string;
+            startDate?: string;
 
             /** The end date of a trip */
-            endDate: string;
+            endDate?: string;
 
             /** The trip ID in spotnana */
             tripID: string;
+
+            /** The trip data */
+            payload?: TripData;
         };
 
         /** The report's welcome message */
         welcomeMessage?: string;
+
+        /** The report's next step */
+        nextStep?: ReportNextStep;
     },
-    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview'
+    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport'
 >;
 
 /** Collection of reports, indexed by report_{reportID} */
@@ -234,4 +280,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, Participant, Participants, InvoiceReceiver, InvoiceReceiverType};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, Participant, Participants, InvoiceReceiver, InvoiceReceiverType, ReportNextStep};

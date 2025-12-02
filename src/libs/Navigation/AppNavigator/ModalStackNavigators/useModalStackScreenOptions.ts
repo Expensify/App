@@ -1,42 +1,56 @@
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
+import type {ParamListBase} from '@react-navigation/native';
 import {CardStyleInterpolators} from '@react-navigation/stack';
-import {useMemo} from 'react';
+import {useCallback, useContext} from 'react';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isSafari} from '@libs/Browser';
+import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceCardStyleInterpolator';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
-import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import useModalCardStyleInterpolator from '@navigation/AppNavigator/useModalCardStyleInterpolator';
-import type {ThemeStyles} from '@src/styles';
+import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 
-type GetModalStackScreenOptions = (styles: ThemeStyles) => PlatformStackNavigationOptions;
-
-function useModalStackScreenOptions(getScreenOptions?: GetModalStackScreenOptions) {
+function useModalStackScreenOptions() {
     const styles = useThemeStyles();
-    const customInterpolator = useModalCardStyleInterpolator();
 
-    let cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
+    // We have to use isSmallScreenWidth, otherwise the content of RHP 'jumps' on Safari - its width is set to size of screen and only after rerender it is set to the correct value
+    // It works as intended on other browsers
+    // https://github.com/Expensify/App/issues/63747
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useContext(WideRHPContext);
 
-    if (isSafari()) {
-        cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator({props});
-    }
+    return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
+        ({route}) => {
+            let cardStyleInterpolator;
 
-    const defaultSubRouteOptions = useMemo(
-        (): PlatformStackNavigationOptions => ({
-            ...hideKeyboardOnSwipe,
-            headerShown: false,
-            native: {
-                contentStyle: styles.navigationScreenCardStyle,
-            },
-            web: {
-                cardStyle: styles.navigationScreenCardStyle,
-                cardStyleInterpolator,
-            },
-        }),
-        [cardStyleInterpolator, styles.navigationScreenCardStyle],
+            if (superWideRHPRouteKeys.includes(route.key) && !isSmallScreenWidth) {
+                cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
+                    cardStyle: styles.superWideRHPExtendedCardInterpolatorStyles,
+                });
+            } else if (wideRHPRouteKeys.includes(route.key) && !isSmallScreenWidth) {
+                // We need to use interpolator styles instead of regular card styles so we can use animated value for width.
+                // It is necessary to have responsive width of the wide RHP for range 800px to 840px.
+                cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
+                    cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
+                });
+            } else {
+                cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
+            }
+
+            return {
+                ...hideKeyboardOnSwipe,
+                headerShown: false,
+                animationTypeForReplace: 'pop',
+                native: {
+                    contentStyle: styles.navigationScreenCardStyle,
+                },
+                web: {
+                    cardStyle: styles.navigationScreenCardStyle,
+                    cardStyleInterpolator,
+                },
+            };
+        },
+        [isSmallScreenWidth, styles, superWideRHPRouteKeys, wideRHPRouteKeys],
     );
-
-    return getScreenOptions?.(styles) ?? defaultSubRouteOptions;
 }
 
 export default useModalStackScreenOptions;
-export type {GetModalStackScreenOptions};

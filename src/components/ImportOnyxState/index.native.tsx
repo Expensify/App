@@ -1,18 +1,17 @@
 import React, {useState} from 'react';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import Onyx, {useOnyx} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
-import {KEYS_TO_PRESERVE, setIsUsingImportedState, setPreservedUserSession} from '@libs/actions/App';
+import useOnyx from '@hooks/useOnyx';
+import {setIsUsingImportedState, setPreservedUserSession} from '@libs/actions/App';
 import {setShouldForceOffline} from '@libs/actions/Network';
+import {rollbackOngoingRequest} from '@libs/actions/PersistedRequests';
+import {cleanAndTransformState, importState} from '@libs/ImportOnyxStateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {FileObject} from '@src/types/utils/Attachment';
 import BaseImportOnyxState from './BaseImportOnyxState';
 import type ImportOnyxStateProps from './types';
-import {cleanAndTransformState} from './utils';
-
-const CHUNK_SIZE = 100;
 
 function readOnyxFile(fileUri: string) {
     const filePath = decodeURIComponent(fileUri.replace('file://', ''));
@@ -25,30 +24,9 @@ function readOnyxFile(fileUri: string) {
     });
 }
 
-function chunkArray<T>(array: T[], size: number): T[][] {
-    const result = [];
-    for (let i = 0; i < array.length; i += size) {
-        result.push(array.slice(i, i + size));
-    }
-    return result;
-}
-
-function applyStateInChunks(state: OnyxValues) {
-    const entries = Object.entries(state);
-    const chunks = chunkArray(entries, CHUNK_SIZE);
-
-    let promise = Promise.resolve();
-    chunks.forEach((chunk) => {
-        const partialOnyxState = Object.fromEntries(chunk) as Partial<OnyxValues>;
-        promise = promise.then(() => Onyx.multiSet(partialOnyxState));
-    });
-
-    return promise;
-}
-
 export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const handleFileRead = (file: FileObject) => {
         if (!file.uri) {
@@ -58,19 +36,23 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
         setIsLoading(true);
         readOnyxFile(file.uri)
             .then((fileContent: string) => {
+                rollbackOngoingRequest();
                 const transformedState = cleanAndTransformState<OnyxValues>(fileContent);
                 const currentUserSessionCopy = {...session};
                 setPreservedUserSession(currentUserSessionCopy);
                 setShouldForceOffline(true);
-                Onyx.clear(KEYS_TO_PRESERVE).then(() => {
-                    applyStateInChunks(transformedState).then(() => {
-                        setIsUsingImportedState(true);
-                        Navigation.navigate(ROUTES.HOME);
-                    });
-                });
+                return importState(transformedState);
             })
-            .catch(() => {
+            .then(() => {
+                setIsUsingImportedState(true);
+                Navigation.navigate(ROUTES.HOME);
+            })
+            .catch((error) => {
+                console.error('Error importing state:', error);
                 setIsErrorModalVisible(true);
+            })
+            .finally(() => {
+                setIsLoading(false);
             });
     };
 

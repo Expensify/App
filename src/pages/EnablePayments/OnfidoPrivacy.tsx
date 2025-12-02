@@ -2,7 +2,6 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -12,10 +11,9 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {openOnfidoFlow} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletOnfido} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -28,12 +26,10 @@ const DEFAULT_WALLET_ONFIDO_DATA = {
     hasAcceptedPrivacyPolicy: false,
 };
 
-type OnfidoPrivacyOnyxProps = {
+type OnfidoPrivacyProps = {
     /** Stores various information used to build the UI and call any APIs */
     walletOnfidoData: OnyxEntry<WalletOnfido>;
 };
-
-type OnfidoPrivacyProps = OnfidoPrivacyOnyxProps;
 
 function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPrivacyProps) {
     const {translate} = useLocalize();
@@ -44,11 +40,7 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
     }
     const {isLoading = false, hasAcceptedPrivacyPolicy} = walletOnfidoData;
 
-    const openOnfidoFlow = () => {
-        BankAccounts.openOnfidoFlow();
-    };
-
-    const onfidoError = ErrorUtils.getLatestErrorMessage(walletOnfidoData) ?? '';
+    const onfidoError = getLatestErrorMessage(walletOnfidoData) ?? '';
     const onfidoFixableErrors = walletOnfidoData?.fixableErrors ?? [];
     if (Array.isArray(onfidoError)) {
         onfidoError[0] += !isEmptyObject(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
@@ -92,11 +84,4 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
 
 OnfidoPrivacy.displayName = 'OnfidoPrivacy';
 
-export default withOnyx<OnfidoPrivacyProps, OnfidoPrivacyOnyxProps>({
-    walletOnfidoData: {
-        key: ONYXKEYS.WALLET_ONFIDO,
-
-        // Let's get a new onfido token each time the user hits this flow (as it should only be once)
-        initWithStoredValues: false,
-    },
-})(OnfidoPrivacy);
+export default OnfidoPrivacy;

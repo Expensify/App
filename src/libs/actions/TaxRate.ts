@@ -1,6 +1,7 @@
-import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     CreatePolicyTaxParams,
@@ -11,26 +12,20 @@ import type {
     UpdatePolicyTaxValueParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getFieldRequiredErrors, isExistingTaxCode, isExistingTaxName, isValidPercentage} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
-import * as ErrorUtils from '@src/libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@src/libs/ErrorUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 // eslint-disable-next-line import/no-named-default
 import {default as INPUT_IDS_TAX_CODE} from '@src/types/form/WorkspaceTaxCodeForm';
 import type {Policy, TaxRate, TaxRates} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {Rate} from '@src/types/onyx/Policy';
+import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
 
 /**
  * Get tax value with percentage
@@ -47,10 +42,17 @@ function covertTaxNameToID(name: string) {
  *  Function to validate tax name
  */
 const validateTaxName = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM>) => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
+    const errors = getFieldRequiredErrors(values, [INPUT_IDS.NAME]);
 
     const name = values[INPUT_IDS.NAME];
-    if (policy?.taxRates?.taxes && ValidationUtils.isExistingTaxName(name, policy.taxRates.taxes)) {
+    if (name.length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        errors[INPUT_IDS.NAME] = translateLocal('common.error.characterLimitExceedCounter', {
+            length: name.length,
+            limit: CONST.TAX_RATES.NAME_MAX_LENGTH,
+        });
+    } else if (policy?.taxRates?.taxes && isExistingTaxName(name, policy.taxRates.taxes)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[INPUT_IDS.NAME] = translateLocal('workspace.taxes.error.taxRateAlreadyExists');
     }
 
@@ -58,10 +60,17 @@ const validateTaxName = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.
 };
 
 const validateTaxCode = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CODE_FORM>) => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS_TAX_CODE.TAX_CODE]);
+    const errors = getFieldRequiredErrors(values, [INPUT_IDS_TAX_CODE.TAX_CODE]);
 
     const taxCode = values[INPUT_IDS_TAX_CODE.TAX_CODE];
-    if (policy?.taxRates?.taxes && ValidationUtils.isExistingTaxCode(taxCode, policy.taxRates.taxes)) {
+    if (taxCode.length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        errors[INPUT_IDS_TAX_CODE.TAX_CODE] = translateLocal('common.error.characterLimitExceedCounter', {
+            length: taxCode.length,
+            limit: CONST.TAX_RATES.NAME_MAX_LENGTH,
+        });
+    } else if (policy?.taxRates?.taxes && isExistingTaxCode(taxCode, policy.taxRates.taxes)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[INPUT_IDS_TAX_CODE.TAX_CODE] = translateLocal('workspace.taxes.error.taxCodeAlreadyExists');
     }
 
@@ -72,10 +81,11 @@ const validateTaxCode = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.
  *  Function to validate tax value
  */
 const validateTaxValue = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM>) => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.VALUE]);
+    const errors = getFieldRequiredErrors(values, [INPUT_IDS.VALUE]);
 
     const value = values[INPUT_IDS.VALUE];
-    if (!ValidationUtils.isValidPercentage(value)) {
+    if (!isValidPercentage(value)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[INPUT_IDS.VALUE] = translateLocal('workspace.taxes.error.valuePercentageRange');
     }
 
@@ -146,7 +156,7 @@ function createPolicyTax(policyID: string, taxRate: TaxRate) {
                     taxRates: {
                         taxes: {
                             [taxRate.code]: {
-                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.createFailureMessage'),
+                                errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.createFailureMessage'),
                             },
                         },
                     },
@@ -207,15 +217,18 @@ function clearTaxRateError(policyID: string, taxID: string, pendingAction?: Onyx
 
 type TaxRateEnabledMap = Record<string, Pick<TaxRate, 'isDisabled' | 'errors' | 'pendingAction' | 'pendingFields' | 'errorFields'>>;
 
-function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isEnabled: boolean) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const originalTaxes = {...policy?.taxRates?.taxes};
+function setPolicyTaxesEnabled(policy: OnyxEntry<Policy>, taxesIDsToUpdate: string[], isEnabled: boolean) {
+    if (!policy) {
+        return;
+    }
+
+    const originalTaxes = {...policy.taxRates?.taxes};
 
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                 value: {
                     taxRates: {
                         taxes: taxesIDsToUpdate.reduce<TaxRateEnabledMap>((acc, taxID) => {
@@ -234,7 +247,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                 value: {
                     taxRates: {
                         taxes: taxesIDsToUpdate.reduce<TaxRateEnabledMap>((acc, taxID) => {
@@ -248,7 +261,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                 value: {
                     taxRates: {
                         taxes: taxesIDsToUpdate.reduce<TaxRateEnabledMap>((acc, taxID) => {
@@ -256,7 +269,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
                                 isDisabled: !!originalTaxes[taxID].isDisabled,
                                 pendingFields: {isDisabled: null},
                                 pendingAction: null,
-                                errorFields: {isDisabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
+                                errorFields: {isDisabled: getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             };
                             return acc;
                         }, {}),
@@ -267,7 +280,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
     };
 
     const parameters = {
-        policyID,
+        policyID: policy.id,
         taxFieldsArray: JSON.stringify(taxesIDsToUpdate.map((taxID) => ({taxCode: taxID, enabled: isEnabled}))),
     } satisfies SetPolicyTaxesEnabledParams;
 
@@ -282,14 +295,13 @@ type TaxRateDeleteMap = Record<
     | null
 >;
 
-function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], localeCompare: LocaleContextProps['localeCompare']) {
     const policyTaxRates = policy?.taxRates?.taxes;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const firstTaxID = Object.keys(policyTaxRates ?? {})
-        .sort((a, b) => a.localeCompare(b))
+        .sort((a, b) => localeCompare(a, b))
         .at(0);
-    const distanceRateCustomUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
+    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = distanceRateCustomUnit?.customUnitID;
     const ratesToUpdate = Object.values(distanceRateCustomUnit?.rates ?? {}).filter(
         (rate) => !!rate.attributes?.taxRateExternalID && taxesToDelete.includes(rate.attributes?.taxRateExternalID),
@@ -306,7 +318,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     const successRates: Record<string, NullishDeep<Rate>> = {};
     const failureRates: Record<string, NullishDeep<Rate>> = {};
 
-    ratesToUpdate.forEach((rate) => {
+    for (const rate of ratesToUpdate) {
         const rateID = rate.customUnitRateID;
         optimisticRates[rateID] = {
             attributes: {
@@ -323,17 +335,18 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
             attributes: {...rate?.attributes},
             pendingFields: {taxRateExternalID: null, taxClaimablePercentage: null},
             errorFields: {
-                taxRateExternalID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                taxClaimablePercentage: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                taxRateExternalID: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                taxClaimablePercentage: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         };
-    });
+    }
 
     const onyxData: OnyxData = {
         optimisticData: [
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                 value: {
                     taxRates: {
                         pendingFields: {foreignTaxDefault: isForeignTaxRemoved ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null},
@@ -353,9 +366,10 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
             },
         ],
         successData: [
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                 value: {
                     taxRates: {
                         pendingFields: {foreignTaxDefault: null},
@@ -374,16 +388,17 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
             },
         ],
         failureData: [
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                 value: {
                     taxRates: {
                         pendingFields: {foreignTaxDefault: null},
                         taxes: taxesToDelete.reduce<TaxRateDeleteMap>((acc, taxID) => {
                             acc[taxID] = {
                                 pendingAction: null,
-                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.deleteFailureMessage'),
+                                errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.deleteFailureMessage'),
                                 isDisabled: !!policyTaxRates?.[taxID]?.isDisabled,
                             };
                             return acc;
@@ -401,16 +416,14 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     };
 
     const parameters = {
-        policyID,
+        policyID: policy.id,
         taxNames: JSON.stringify(taxesToDelete.map((taxID) => policyTaxRates[taxID].name)),
     } satisfies DeletePolicyTaxesParams;
 
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAXES, parameters, onyxData);
 }
 
-function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const originalTaxRate = {...policy?.taxRates?.taxes[taxID]};
+function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number, originalTaxRate: TaxRate) {
     const stringTaxValue = `${taxValue}%`;
 
     const onyxData: OnyxData = {
@@ -456,7 +469,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
                                 value: originalTaxRate.value,
                                 pendingFields: {value: null},
                                 pendingAction: null,
-                                errorFields: {value: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
+                                errorFields: {value: getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             },
                         },
                     },
@@ -474,9 +487,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAX_VALUE, parameters, onyxData);
 }
 
-function renamePolicyTax(policyID: string, taxID: string, newName: string) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const originalTaxRate = {...policy?.taxRates?.taxes[taxID]};
+function renamePolicyTax(policyID: string, taxID: string, newName: string, originalTaxRate: TaxRate) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -520,7 +531,7 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
                                 name: originalTaxRate.name,
                                 pendingFields: {name: null},
                                 pendingAction: null,
-                                errorFields: {name: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
+                                errorFields: {name: getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             },
                         },
                     },
@@ -538,28 +549,35 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAX, parameters, onyxData);
 }
 
-function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: string) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-    const originalTaxRate = {...policy?.taxRates?.taxes[oldTaxCode]};
-    const distanceRateCustomUnit = PolicyUtils.getDistanceRateCustomUnit(policy);
+function setPolicyTaxCode(
+    policyID: string,
+    oldTaxCode: string,
+    newTaxCode: string,
+    originalTaxRate: TaxRate,
+    oldForeignTaxDefault: string | undefined,
+    oldDefaultExternalID: string | undefined,
+    distanceRateCustomUnit: CustomUnit | undefined,
+) {
     const optimisticDistanceRateCustomUnit = distanceRateCustomUnit && {
         ...distanceRateCustomUnit,
         rates: {
-            ...Object.keys(distanceRateCustomUnit.rates).reduce((rates, rateID) => {
-                if (distanceRateCustomUnit.rates[rateID].attributes?.taxRateExternalID === oldTaxCode) {
-                    // eslint-disable-next-line no-param-reassign
-                    rates[rateID] = {
-                        attributes: {
-                            taxRateExternalID: newTaxCode,
-                        },
-                    };
-                }
-                return rates;
-            }, {} as Record<string, NullishDeep<Rate>>),
+            ...Object.keys(distanceRateCustomUnit.rates).reduce(
+                (rates, rateID) => {
+                    if (distanceRateCustomUnit.rates[rateID].attributes?.taxRateExternalID === oldTaxCode) {
+                        // eslint-disable-next-line no-param-reassign
+                        rates[rateID] = {
+                            attributes: {
+                                taxRateExternalID: newTaxCode,
+                            },
+                        };
+                    }
+                    return rates;
+                },
+                {} as Record<string, NullishDeep<Rate>>,
+            ),
         },
     };
-    const oldDefaultExternalID = policy?.taxRates?.defaultExternalID;
-    const oldForeignTaxDefault = policy?.taxRates?.foreignTaxDefault;
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -621,7 +639,7 @@ function setPolicyTaxCode(policyID: string, oldTaxCode: string, newTaxCode: stri
                                 code: originalTaxRate.code,
                                 pendingFields: {...originalTaxRate.pendingFields, code: null},
                                 pendingAction: null,
-                                errorFields: {code: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
+                                errorFields: {code: getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             },
                         },
                     },

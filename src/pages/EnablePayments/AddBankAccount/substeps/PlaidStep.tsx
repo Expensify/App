@@ -1,41 +1,28 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {clearPersonalBankAccountSetupType, updateAddPersonalBankAccountDraft, validatePlaidSelection} from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalBankAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
-import type {PlaidData} from '@src/types/onyx';
-
-type PlaidOnyxProps = {
-    /** The draft values of the bank account being setup */
-    personalBankAccountDraft: OnyxEntry<PersonalBankAccountForm>;
-
-    /** Contains plaid data */
-    plaidData: OnyxEntry<PlaidData>;
-};
-
-type PlaidStepProps = PlaidOnyxProps & SubStepProps;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
-function PlaidStep({personalBankAccountDraft, onNext, plaidData}: PlaidStepProps) {
+function PlaidStep({onNext}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
+    const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
     const selectedPlaidAccountID = personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
 
     const handleNextPress = useCallback(() => {
-        const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find(
-            (account) => account.plaidAccountID === personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? null,
-        );
+        const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find((account) => account.plaidAccountID === personalBankAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]);
 
         const bankAccountData = {
             [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: selectedPlaidBankAccount?.[BANK_INFO_STEP_KEYS.ROUTING_NUMBER],
@@ -47,12 +34,12 @@ function PlaidStep({personalBankAccountDraft, onNext, plaidData}: PlaidStepProps
             [BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN]: plaidData?.[BANK_INFO_STEP_KEYS.PLAID_ACCESS_TOKEN] ?? '',
         };
 
-        BankAccounts.updateAddPersonalBankAccountDraft(bankAccountData);
+        updateAddPersonalBankAccountDraft(bankAccountData);
         onNext();
     }, [onNext, personalBankAccountDraft, plaidData]);
 
     const handleSelectPlaidAccount = (plaidAccountID: string) => {
-        BankAccounts.updateAddPersonalBankAccountDraft({plaidAccountID});
+        updateAddPersonalBankAccountDraft({plaidAccountID});
     };
 
     useEffect(() => {
@@ -60,25 +47,26 @@ function PlaidStep({personalBankAccountDraft, onNext, plaidData}: PlaidStepProps
         if (isFocused || plaidBankAccounts.length) {
             return;
         }
-        BankAccounts.clearPersonalBankAccountSetupType();
-    }, [isFocused, plaidData]);
+        clearPersonalBankAccountSetupType();
+    }, [isFocused, plaidData?.bankAccounts]);
 
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM}
-            validate={BankAccounts.validatePlaidSelection}
+            validate={validatePlaidSelection}
             onSubmit={handleNextPress}
             scrollContextEnabled
             submitButtonText={translate('common.next')}
             style={[styles.mh5, styles.flexGrow1]}
             isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
+            shouldHideFixErrorsAlert
         >
             <InputWrapper
                 InputComponent={AddPlaidBankAccount}
                 text={translate('walletPage.chooseAccountBody')}
                 onSelect={handleSelectPlaidAccount}
                 plaidData={plaidData}
-                onExitPlaid={BankAccounts.clearPersonalBankAccountSetupType}
+                onExitPlaid={clearPersonalBankAccountSetupType}
                 allowDebit
                 isDisplayedInWalletFlow
                 selectedPlaidAccountID={selectedPlaidAccountID}
@@ -91,11 +79,4 @@ function PlaidStep({personalBankAccountDraft, onNext, plaidData}: PlaidStepProps
 
 PlaidStep.displayName = 'PlaidStep';
 
-export default withOnyx<PlaidStepProps, PlaidOnyxProps>({
-    personalBankAccountDraft: {
-        key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
-    },
-    plaidData: {
-        key: ONYXKEYS.PLAID_DATA,
-    },
-})(PlaidStep);
+export default PlaidStep;

@@ -1,20 +1,19 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback} from 'react';
-import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as EmojiUtils from '@libs/EmojiUtils';
+import type {EmojiPickerList, EmojiPickerListItem} from '@libs/EmojiUtils';
+import {getRemovedSkinToneEmoji} from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
@@ -22,7 +21,7 @@ import type EmojiPickerMenuProps from './types';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, ref: ForwardedRef<BaseTextInputRef>) {
+function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -44,10 +43,11 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     } = useEmojiPickerMenu();
     const StyleUtils = useStyleUtils();
 
-    const updateEmojiList = (emojiData: EmojiUtils.EmojiPickerList | Emoji[], headerData: number[] = []) => {
+    const updateEmojiList = (emojiData: EmojiPickerList | Emoji[], headerData: number[] = []) => {
         setFilteredEmojis(emojiData);
         setHeaderIndices(headerData);
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
@@ -68,17 +68,20 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
         }
     }, 300);
 
-    const scrollToHeader = (headerIndex: number) => {
-        const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
-        emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
-    };
+    const scrollToHeader = useCallback(
+        (headerIndex: number) => {
+            const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
+            emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
+        },
+        [emojiListRef],
+    );
 
     /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
      */
-    const renderItem: ListRenderItem<EmojiUtils.EmojiPickerListItem> = useCallback(
+    const renderItem: ListRenderItem<EmojiPickerListItem> = useCallback(
         ({item, target}) => {
             const code = item.code;
             const types = 'types' in item ? item.types : undefined;
@@ -96,7 +99,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             }
 
             const emojiCode = typeof preferredSkinTone === 'number' && preferredSkinTone !== -1 && types?.at(preferredSkinTone) ? types.at(preferredSkinTone) : code;
-            const shouldEmojiBeHighlighted = !!activeEmoji && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji);
+            const shouldEmojiBeHighlighted = !!activeEmoji && getRemovedSkinToneEmoji(emojiCode) === getRemovedSkinToneEmoji(activeEmoji);
 
             return (
                 <EmojiPickerMenuItem
@@ -116,7 +119,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
 
     return (
         <View style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout)]}>
-            <View style={[styles.ph4, styles.pb1, styles.pt2]}>
+            <View style={[styles.p4, styles.pb3]}>
                 <TextInput
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
@@ -147,4 +150,4 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
 }
 
 EmojiPickerMenu.displayName = 'EmojiPickerMenu';
-export default React.forwardRef(EmojiPickerMenu);
+export default EmojiPickerMenu;

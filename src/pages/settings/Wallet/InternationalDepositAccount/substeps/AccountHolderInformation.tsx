@@ -4,13 +4,13 @@ import AddressSearch from '@components/AddressSearch';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import PushRowWithModal from '@components/PushRowWithModal';
 import TextInput from '@components/TextInput';
-import TextPicker from '@components/TextPicker';
 import ValuePicker from '@components/ValuePicker';
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
+import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
@@ -29,7 +29,7 @@ function getInputComponent(field: CorpayFormField) {
         return AddressSearch;
     }
     if (field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY) {
-        return TextPicker;
+        return PushRowWithModal;
     }
     return TextInput;
 }
@@ -103,8 +103,9 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
                                 label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
                                 description={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? field.label : undefined}
                                 items={getItems(field)}
-                                disabled={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY}
-                                interactive={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? false : undefined}
+                                shouldAllowChange={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? false : undefined}
+                                optionsList={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? CONST.ALL_COUNTRIES : undefined}
+                                value={field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? formValues.bankCountry : undefined}
                                 shouldSaveDraft={!isEditing}
                                 renamedInputKeys={{
                                     street: isEmptyObject(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION]?.accountHolderAddress1) ? '' : 'accountHolderAddress1',

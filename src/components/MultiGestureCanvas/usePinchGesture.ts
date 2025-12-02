@@ -2,7 +2,8 @@
 import {useCallback, useEffect, useState} from 'react';
 import type {PinchGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
+import {useAnimatedReaction, useSharedValue, withSpring} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import {SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
 
@@ -49,7 +50,7 @@ const usePinchGesture = ({
     const pinchTranslateX = useSharedValue(0);
     const pinchTranslateY = useSharedValue(0);
 
-    // In order to keep track of the "bounce" effect when "overzooming"/"underzooming",
+    // In order to keep track of the "bounce" effect when "over-zooming"/"under-zooming",
     // we need to have extra "bounce" translation variables
     const pinchBounceTranslateX = useSharedValue(0);
     const pinchBounceTranslateY = useSharedValue(0);
@@ -61,7 +62,7 @@ const usePinchGesture = ({
             return;
         }
 
-        runOnJS(onScaleChanged)(zoomScale.get());
+        scheduleOnRN(onScaleChanged, zoomScale.get());
     };
 
     // Update the total (pinch) translation based on the regular pinch + bounce
@@ -104,6 +105,11 @@ const usePinchGesture = ({
         .enabled(pinchEnabled)
         // The first argument is not used, but must be defined
         .onTouchesDown((_evt, state) => {
+            // react-compiler optimization unintentionally make all the callbacks run on the JS thread.
+            // Adding the worklet directive here will make all the callbacks run on UI thread back.
+
+            'worklet';
+
             // We don't want to activate pinch gesture when we are swiping in the pager
             if (!shouldDisableTransformationGestures.get()) {
                 return;
@@ -120,10 +126,12 @@ const usePinchGesture = ({
             pinchOrigin.y.set(adjustedFocal.y);
         })
         .onChange((evt) => {
+            'worklet';
+
             // Disable the pinch gesture if one finger is released,
             // to prevent the content from shaking/jumping
             if (evt.numberOfPointers !== 2) {
-                runOnJS(setPinchEnabled)(false);
+                scheduleOnRN(setPinchEnabled, false);
                 return;
             }
 
@@ -142,7 +150,7 @@ const usePinchGesture = ({
             const newPinchTranslateY = adjustedFocal.y + currentPinchScale.get() * pinchOrigin.y.get() * -1;
 
             // If the zoom scale is within the zoom range, we perform the regular pinch translation
-            // Otherwise it means that we are "overzoomed" or "underzoomed", so we need to bounce back
+            // Otherwise it means that we are "over-zoomed" or "under-zoomed", so we need to bounce back
             if (zoomScale.get() >= zoomRange.min && zoomScale.get() <= zoomRange.max) {
                 pinchTranslateX.set(newPinchTranslateX);
                 pinchTranslateY.set(newPinchTranslateY);
@@ -161,7 +169,7 @@ const usePinchGesture = ({
             pinchTranslateY.set(0);
             currentPinchScale.set(1);
 
-            // If the content was "overzoomed" or "underzoomed", we need to bounce back with an animation
+            // If the content was "over-zoomed" or "under-zoomed", we need to bounce back with an animation
             if (pinchBounceTranslateX.get() !== 0 || pinchBounceTranslateY.get() !== 0) {
                 pinchBounceTranslateX.set(withSpring(0, SPRING_CONFIG));
                 pinchBounceTranslateY.set(withSpring(0, SPRING_CONFIG));

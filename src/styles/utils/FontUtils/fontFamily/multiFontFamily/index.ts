@@ -24,14 +24,24 @@ const fontFamily: FontFamilyStyles = {
         fontStyle: 'normal',
         fontWeight: fontWeight.bold,
     },
+    MONOSPACE_ITALIC: {
+        fontFamily: 'Expensify Mono, Segoe UI Emoji, Noto Color Emoji',
+        fontStyle: 'italic',
+        fontWeight: fontWeight.normal,
+    },
+    MONOSPACE_BOLD_ITALIC: {
+        fontFamily: 'Expensify Mono, Segoe UI Emoji, Noto Color Emoji',
+        fontStyle: 'italic',
+        fontWeight: fontWeight.bold,
+    },
 
     EXP_NEUE: {
-        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji, Custom Emoji Font',
         fontStyle: 'normal',
         fontWeight: fontWeight.normal,
     },
     EXP_NEUE_BOLD: {
-        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify Neue, Segoe UI Emoji, Noto Color Emoji, Custom Emoji Font',
         fontStyle: 'normal',
         fontWeight: fontWeight.bold,
     },
@@ -47,7 +57,7 @@ const fontFamily: FontFamilyStyles = {
     },
 
     EXP_NEW_KANSAS_MEDIUM: {
-        fontFamily: 'Expensify New Kansas, Segoe UI Emoji, Noto Color Emoji',
+        fontFamily: 'Expensify New Kansas, Segoe UI Emoji, Noto Color Emoji, Custom Emoji Font',
         fontStyle: 'normal',
         fontWeight: fontWeight.medium,
     },
@@ -56,12 +66,15 @@ const fontFamily: FontFamilyStyles = {
         fontStyle: 'italic',
         fontWeight: fontWeight.medium,
     },
+    CUSTOM_EMOJI_FONT: {
+        fontFamily: 'Custom Emoji Font',
+    },
 };
 
 if (getOperatingSystem() === CONST.OS.WINDOWS) {
-    Object.keys(fontFamily).forEach((key) => {
+    for (const key of Object.keys(fontFamily)) {
         fontFamily[key as keyof FontFamilyStyles].fontFamily = fontFamily[key as keyof FontFamilyStyles].fontFamily.replace('Segoe UI Emoji', 'Windows Segoe UI Emoji');
-    });
+    }
 }
 
 export default fontFamily;

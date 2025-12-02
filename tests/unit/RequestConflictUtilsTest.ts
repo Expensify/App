@@ -1,5 +1,11 @@
 import Onyx from 'react-native-onyx';
-import {resolveCommentDeletionConflicts, resolveDuplicationConflictAction, resolveEditCommentWithNewAddCommentRequest} from '@libs/actions/RequestConflictUtils';
+import {
+    enablePolicyFeatureCommand,
+    resolveCommentDeletionConflicts,
+    resolveDuplicationConflictAction,
+    resolveEditCommentWithNewAddCommentRequest,
+    resolveEnableFeatureConflicts,
+} from '@libs/actions/RequestConflictUtils';
 import type {WriteCommand} from '@libs/API/types';
 
 describe('RequestConflictUtils', () => {
@@ -131,6 +137,26 @@ describe('RequestConflictUtils', () => {
                 type: 'replace',
                 index: addCommentIndex,
                 request: {command: 'AddComment', data: {reportID: '1', reportActionID, reportComment: 'new edit comment'}},
+            },
+        });
+    });
+
+    it.each(enablePolicyFeatureCommand)('resolveEnableFeatureConflicts should return push when the same enable feature API is not found', (commandName) => {
+        const persistedRequests = [{command: commandName, data: {policyID: '1', enabled: true}}];
+        const parameters = {policyID: '2', enabled: false};
+        const result = resolveEnableFeatureConflicts(commandName, persistedRequests, parameters);
+        expect(result).toEqual({conflictAction: {type: 'push'}});
+    });
+
+    it.each(enablePolicyFeatureCommand)('resolveEnableFeatureConflicts should return delete when the same enable feature API is found', (commandName) => {
+        const persistedRequests = [{command: commandName, data: {policyID: '1', enabled: true}}];
+        const parameters = {policyID: '1', enabled: false};
+        const result = resolveEnableFeatureConflicts(commandName, persistedRequests, parameters);
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'delete',
+                indices: [0],
+                pushNewRequest: false,
             },
         });
     });

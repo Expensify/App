@@ -1,6 +1,5 @@
 /* eslint-disable react-compiler/react-compiler */
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {Keyboard} from 'react-native';
 import E2EClient from '@libs/E2E/client';
@@ -19,14 +18,14 @@ function IncrementRenderCount() {
     return null;
 }
 
-function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: ForwardedRef<ComposerRef>) {
+function ComposerWithSuggestionsE2e({ref, ...props}: ComposerWithSuggestionsProps) {
     'use no memo';
 
     // we rely on waterfall rendering in react, so we intentionally disable compiler
     // for this component. This file is only used for e2e tests, so it's okay to
     // disable compiler for this file.
 
-    const textInputRef = useRef<ComposerRef | null>();
+    const textInputRef = useRef<ComposerRef | null>(null);
     const hasFocusBeenRequested = useRef(false);
     const onLayout = useCallback((event: LayoutChangeEvent) => {
         const testConfig = E2EClient.getCurrentActiveTestConfig();
@@ -78,7 +77,7 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
             }}
             onLayout={onLayout}
         >
-            {/* Important: 
+            {/* Important:
                     this has to be a child, as this container might not
                     re-render while the actual ComposerWithSuggestions will.
             */}
@@ -89,5 +88,5 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
 
 ComposerWithSuggestionsE2e.displayName = 'ComposerWithSuggestionsE2e';
 
-export default forwardRef(ComposerWithSuggestionsE2e);
+export default ComposerWithSuggestionsE2e;
 export {getRerenderCount, resetRerenderCount};

@@ -4,7 +4,7 @@ import type {Mock} from 'jest-mock';
 import type {OnyxEntry} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
 import TestToolMenu from '@components/TestToolMenu';
-import * as App from '@libs/actions/App';
+import {confirmReadyToOpenApp, reconnectApp} from '@libs/actions/App';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import CONST from '@src/CONST';
 import * as NetworkActions from '@src/libs/actions/Network';
@@ -24,6 +24,7 @@ import type {Session as OnyxSession} from '@src/types/onyx';
 import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 type OnResolved = (params: {jsonCode?: string | number}) => void;
 
@@ -136,6 +137,7 @@ describe('NetworkTests', () => {
 
         // Sign in test user and wait for updates
         await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         await waitForBatchedUpdates();
 
         const initialAuthToken = sessionState?.authToken;
@@ -165,8 +167,8 @@ describe('NetworkTests', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
         // Trigger reconnect which will fail due to expired token
-        App.confirmReadyToOpenApp();
-        App.reconnectApp();
+        confirmReadyToOpenApp();
+        reconnectApp();
         await waitForBatchedUpdates();
 
         // 4. First API Call Verification - Check ReconnectApp
@@ -183,8 +185,8 @@ describe('NetworkTests', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
         // 7.Trigger another reconnect due to network change
-        App.confirmReadyToOpenApp();
-        App.reconnectApp();
+        confirmReadyToOpenApp();
+        reconnectApp();
 
         // 8. Now fail the pending authentication request
         resolveAuthRequest(Promise.reject(new Error('Network request failed')));
@@ -249,9 +251,9 @@ describe('NetworkTests', () => {
             .then(() => {
                 // We should expect to see the three calls to OpenApp, but only one call to Authenticate.
                 // And we should also see the reconnection callbacks triggered.
-                const callsToopenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
+                const callsToOpenPublicProfilePage = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'OpenPublicProfilePage');
                 const callsToAuthenticate = (HttpUtils.xhr as Mock).mock.calls.filter(([command]) => command === 'Authenticate');
-                expect(callsToopenPublicProfilePage.length).toBe(3);
+                expect(callsToOpenPublicProfilePage.length).toBe(3);
                 expect(callsToAuthenticate.length).toBe(1);
                 expect(reconnectionCallbacksSpy.mock.calls.length).toBe(3);
             });
@@ -408,7 +410,7 @@ describe('NetworkTests', () => {
 
         // When the connection simulation is turned on
         NetworkActions.setShouldSimulatePoorConnection(true, undefined);
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then the connection status change log should be displayed as well Simulate poor internet connection toggle should be checked
         expect(logSpy).toHaveBeenCalledWith(expect.stringMatching(/\[NetworkConnection\] Set connection status "(online|offline)" for (\d+(?:\.\d+)?) sec/));
@@ -416,11 +418,11 @@ describe('NetworkTests', () => {
 
         // And the setShouldForceOffline and setShouldFailAllRequests should not be called as the Force offline and Simulate failing network requests toggles are disabled
         fireEvent.press(screen.getByAccessibilityHint('Force offline'));
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
         expect(setShouldForceOfflineSpy).not.toHaveBeenCalled();
 
         fireEvent.press(screen.getByAccessibilityHint('Simulate failing network requests'));
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
         expect(setShouldFailAllRequestsSpy).not.toHaveBeenCalled();
     });
 
@@ -429,10 +431,11 @@ describe('NetworkTests', () => {
 
         // Given tracked connection changes started at least an hour ago
         Onyx.merge(ONYXKEYS.NETWORK, {connectionChanges: {amount: 5, startTime: dateSubtract(new Date(), {hours: 1}).getTime()}});
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // When the connection is changed one more time
         NetworkConnection.setOfflineStatus(true);
+        await waitForBatchedUpdatesWithAct();
 
         // Then the log with information about connection changes since the start time should be shown
         expect(logSpy).toHaveBeenCalledWith('[NetworkConnection] Connection has changed 6 time(s) for the last 1 hour(s). Poor connection simulation is turned off');

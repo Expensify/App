@@ -2,6 +2,7 @@
 // action would likely cause confusion about which one to use. But most other API methods should happen inside an action file.
 
 /* eslint-disable rulesdir/no-api-in-views */
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Logger} from 'expensify-common';
 import AppLogs from 'react-native-app-logs';
 import Onyx from 'react-native-onyx';
@@ -18,7 +19,7 @@ import requireParameters from './requireParameters';
 let timeout: NodeJS.Timeout;
 let shouldCollectLogs = false;
 
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_STORE_LOGS,
     callback: (val) => {
         if (!val) {
@@ -79,15 +80,18 @@ const Log = new Logger({
             }
         });
     },
+    maxLogLinesBeforeFlush: 150,
     isDebug: true,
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
-AppLogs.configure({appGroupName: 'group.com.expensify.new', interval: -1});
+// eslint-disable-next-line no-restricted-properties
+const appGroupName = HybridAppModule.isHybridApp() ? 'group.com.expensify' : 'group.com.expensify.new';
+AppLogs.configure({appGroupName, interval: -1});
 AppLogs.registerHandler({
     filter: '[NotificationService]',
     handler: ({filter, logs}) => {
-        logs.forEach((log) => {
+        for (const log of logs) {
             // Both native and JS logs are captured by the filter so we replace the filter before logging to avoid an infinite loop
             const message = `[PushNotification] ${log.message.replace(filter, 'NotificationService -')}`;
 
@@ -96,7 +100,7 @@ AppLogs.registerHandler({
             } else {
                 Log.info(message);
             }
-        });
+        }
     },
 });
 

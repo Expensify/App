@@ -7,6 +7,7 @@ import TravelAndPlaces from '@assets/images/emojiCategoryIcons/plane.svg';
 import AnimalsAndNature from '@assets/images/emojiCategoryIcons/plant.svg';
 import Activities from '@assets/images/emojiCategoryIcons/soccer-ball.svg';
 import FrequentlyUsed from '@assets/images/history.svg';
+import CONST from '@src/CONST';
 import type {HeaderEmoji, PickerEmojis} from './types';
 
 const skinTones = [
@@ -7861,6 +7862,10 @@ const emojis: PickerEmojis = [
     {
         name: 'wales',
         code: '🏴󠁧󠁢󠁷󠁬󠁳󠁿',
+    },
+    {
+        name: 'global_create',
+        code: CONST.CUSTOM_EMOJIS.GLOBAL_CREATE,
     },
 ];
 

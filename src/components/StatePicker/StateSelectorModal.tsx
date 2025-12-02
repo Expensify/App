@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,6 +38,7 @@ type StateSelectorModalProps = {
 function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, label, onBackdropPress}: StateSelectorModalProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const styles = useThemeStyles();
 
     const countryStates = useMemo(
         () =>
@@ -57,9 +58,16 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     );
 
     const searchResults = searchOptions(debouncedSearchValue, countryStates);
-    const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
-    const styles = useThemeStyles();
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+            value: searchValue,
+            label: translate('common.search'),
+            onChangeText: setSearchValue,
+        }),
+        [debouncedSearchValue, searchResults.length, searchValue, setSearchValue, translate],
+    );
 
     return (
         <Modal
@@ -67,8 +75,6 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
             onBackdropPress={onBackdropPress}
         >
             <ScreenWrapper
@@ -83,17 +89,14 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    headerMessage={headerMessage}
-                    sections={[{data: searchResults}]}
-                    textInputValue={searchValue}
-                    textInputLabel={translate('common.search')}
-                    onChangeText={setSearchValue}
-                    onSelectRow={onStateSelected}
+                    data={searchResults}
                     ListItem={RadioListItem}
-                    initiallyFocusedOptionKey={currentState}
+                    onSelectRow={onStateSelected}
+                    textInputOptions={textInputOptions}
+                    initiallyFocusedItemKey={currentState}
+                    disableMaintainingScrollPosition
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
-                    shouldUseDynamicMaxToRenderPerBatch
                 />
             </ScreenWrapper>
         </Modal>

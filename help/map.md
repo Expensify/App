@@ -11,7 +11,7 @@ Lost in the app?  Let this map guide you!
     * Chat selector
         * Special chats:
             * Concierge
-            * Workspace chat
+            * Expense chat
             * #announce
             * #admins
             * Personal chat
@@ -90,7 +90,7 @@ Lost in the app?  Let this map guide you!
             * Share
                 * QR Code
                 * Copy URL
-                * Get $250
+                * Refer a Friend
         * Private
             * Legal name
             * Date of birth

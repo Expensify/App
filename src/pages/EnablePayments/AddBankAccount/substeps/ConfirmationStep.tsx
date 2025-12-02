@@ -1,7 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -9,35 +7,28 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalBankAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
-import type {PersonalBankAccount} from '@src/types/onyx';
 
-type ConfirmationOnyxProps = {
-    /** The draft values of the bank account being setup */
-    personalBankAccountDraft: OnyxEntry<PersonalBankAccountForm>;
-
-    /** The user's bank account */
-    personalBankAccount: OnyxEntry<PersonalBankAccount>;
-};
-
-type ConfirmationStepProps = ConfirmationOnyxProps & SubStepProps;
+type ConfirmationStepProps = SubStepProps;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 const BANK_INFO_STEP_INDEXES = CONST.WALLET.SUBSTEP_INDEXES.BANK_ACCOUNT;
 
-function ConfirmationStep({personalBankAccount, personalBankAccountDraft, onNext, onMove}: ConfirmationStepProps) {
+function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
 
     const isLoading = personalBankAccount?.isLoading ?? false;
-    const error = ErrorUtils.getLatestErrorMessage(personalBankAccount ?? {});
+    const error = getLatestErrorMessage(personalBankAccount ?? {});
 
     const handleModifyAccountNumbers = () => {
         onMove(BANK_INFO_STEP_INDEXES.ACCOUNT_NUMBERS);
@@ -80,15 +71,4 @@ function ConfirmationStep({personalBankAccount, personalBankAccountDraft, onNext
 
 ConfirmationStep.displayName = 'ConfirmationStep';
 
-export default withOnyx<ConfirmationStepProps, ConfirmationOnyxProps>({
-    personalBankAccountDraft: {
-        key: ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT,
-    },
-    // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
-    personalBankAccount: {
-        key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-    },
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-    },
-})(ConfirmationStep);
+export default ConfirmationStep;

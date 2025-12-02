@@ -2,14 +2,14 @@ import React, {useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetails from '@userActions/PersonalDetails';
+import {updateSelectedTimezone} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import TIMEZONES from '@src/TIMEZONES';
@@ -39,7 +39,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     const [timezoneOptions, setTimezoneOptions] = useState(allTimezones);
 
     const saveSelectedTimezone = ({text}: {text: string}) => {
-        PersonalDetails.updateSelectedTimezone(text as SelectedTimezone);
+        updateSelectedTimezone(text as SelectedTimezone, currentUserPersonalDetails.accountID);
     };
 
     const filterShownTimezones = (searchText: string) => {
@@ -50,7 +50,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 searchWords.every((word) =>
                     tz.text
                         .toLowerCase()
-                        .replace(/[^a-z0-9]/g, ' ')
+                        .replaceAll(/[^a-z0-9]/g, ' ')
                         .includes(word),
                 ),
             ),

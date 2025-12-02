@@ -2,18 +2,22 @@ import React, {useEffect, useState} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
 import type {LocationPermissionModalProps} from './types';
 
-function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: LocationPermissionModalProps) {
+function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker' as IllustrationName));
 
     useEffect(() => {
         if (!startPermissionFlow) {
@@ -21,6 +25,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         }
 
         getLocationPermission().then((status) => {
+            onInitialGetLocationCompleted?.();
             if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                 return onGrant();
             }
@@ -32,6 +37,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     }, [startPermissionFlow]);
 
     const handledBlockedPermission = (cb: () => void) => () => {
+        setIsLoading(true);
         if (hasError && Linking.openSettings) {
             Linking.openSettings();
             setShowModal(false);
@@ -43,18 +49,22 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     };
 
     const grantLocationPermission = handledBlockedPermission(() => {
-        requestLocationPermission().then((status) => {
-            if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
-                onGrant();
-            } else if (status === RESULTS.BLOCKED) {
-                setHasError(true);
-                return;
-            } else {
-                onDeny();
-            }
-            setShowModal(false);
-            setHasError(false);
-        });
+        requestLocationPermission()
+            .then((status) => {
+                if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
+                    onGrant();
+                } else if (status === RESULTS.BLOCKED) {
+                    setHasError(true);
+                    return;
+                } else {
+                    onDeny();
+                }
+                setShowModal(false);
+                setHasError(false);
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     });
 
     const skipLocationPermission = () => {
@@ -81,12 +91,13 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             title={translate(hasError ? 'receipt.locationErrorTitle' : 'receipt.locationAccessTitle')}
             titleContainerStyles={[styles.mt2, styles.mb0]}
             titleStyles={[styles.textHeadline]}
-            iconSource={Illustrations.ReceiptLocationMarker}
+            iconSource={ReceiptLocationMarker}
             iconFill={false}
             iconWidth={140}
             iconHeight={120}
             shouldCenterIcon
             shouldReverseStackedButtons
+            isConfirmLoading={isLoading}
         />
     );
 }

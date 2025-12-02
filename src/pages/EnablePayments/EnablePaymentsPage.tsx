@@ -1,17 +1,15 @@
 import React, {useEffect} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
-import * as Wallet from '@userActions/Wallet';
+import {openEnablePaymentsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {UserWallet} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ActivateStep from './ActivateStep';
 import AdditionalDetailsStep from './AdditionalDetailsStep';
@@ -20,16 +18,15 @@ import FailedKYC from './FailedKYC';
 import OnfidoStep from './OnfidoStep';
 import TermsStep from './TermsStep';
 
-type EnablePaymentsPageOnyxProps = {
-    /** The user's wallet */
-    userWallet: OnyxEntry<UserWallet>;
-};
-
-type EnablePaymentsPageProps = EnablePaymentsPageOnyxProps;
-
-function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
+function EnablePaymentsPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {
+        canBeMissing: true,
+        // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
+        // stored values here.
+        initWithStoredValues: false,
+    });
 
     const {isPendingOnfidoResult, hasFailedOnfido} = userWallet ?? {};
 
@@ -40,11 +37,11 @@ function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (isPendingOnfidoResult || hasFailedOnfido) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET, CONST.NAVIGATION.TYPE.UP);
+            Navigation.navigate(ROUTES.SETTINGS_WALLET, {forceReplace: true});
             return;
         }
 
-        Wallet.openEnablePaymentsPage();
+        openEnablePaymentsPage();
     }, [isOffline, isPendingOnfidoResult, hasFailedOnfido]);
 
     if (isEmptyObject(userWallet)) {
@@ -56,6 +53,7 @@ function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
             shouldShowOfflineIndicator={userWallet?.currentStep !== CONST.WALLET.STEP.ONFIDO}
             includeSafeAreaPaddingBottom
             testID={EnablePaymentsPage.displayName}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         >
             {() => {
                 if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {
@@ -92,12 +90,4 @@ function EnablePaymentsPage({userWallet}: EnablePaymentsPageProps) {
 
 EnablePaymentsPage.displayName = 'EnablePaymentsPage';
 
-export default withOnyx<EnablePaymentsPageProps, EnablePaymentsPageOnyxProps>({
-    userWallet: {
-        key: ONYXKEYS.USER_WALLET,
-
-        // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
-        // stored values here.
-        initWithStoredValues: false,
-    },
-})(EnablePaymentsPage);
+export default EnablePaymentsPage;

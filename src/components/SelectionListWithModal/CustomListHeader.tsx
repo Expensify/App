@@ -8,9 +8,11 @@ type CustomListHeaderProps = {
     canSelectMultiple: boolean | undefined;
     leftHeaderText?: string | undefined;
     rightHeaderText?: string | undefined;
+    rightHeaderMinimumWidth?: number;
+    shouldShowRightCaret?: boolean;
 };
 
-function CustomListHeader({canSelectMultiple, leftHeaderText = '', rightHeaderText = ''}: CustomListHeaderProps) {
+function CustomListHeader({canSelectMultiple, leftHeaderText = '', rightHeaderText = '', rightHeaderMinimumWidth = 60, shouldShowRightCaret = false}: CustomListHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -24,9 +26,9 @@ function CustomListHeader({canSelectMultiple, leftHeaderText = '', rightHeaderTe
                 canSelectMultiple && styles.pl3,
             ]}
         >
-            <Text style={styles.searchInputStyle}>{leftHeaderText}</Text>
-            <View style={[StyleUtils.getMinimumWidth(60)]}>
-                <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{rightHeaderText}</Text>
+            <Text style={styles.textMicroSupporting}>{leftHeaderText}</Text>
+            <View style={[StyleUtils.getMinimumWidth(rightHeaderMinimumWidth), shouldShowRightCaret && styles.mr6]}>
+                <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{rightHeaderText}</Text>
             </View>
         </View>
     );

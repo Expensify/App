@@ -1,16 +1,22 @@
 import {beforeEach, jest, test} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as App from '@libs/actions/App';
+import {confirmReadyToOpenApp, openApp, reconnectApp} from '@libs/actions/App';
+import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
+import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
+// eslint-disable-next-line no-restricted-syntax
+import * as SignInRedirect from '@libs/actions/SignInRedirect';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import asyncOpenURL from '@libs/asyncOpenURL';
 import HttpUtils from '@libs/HttpUtils';
 import PushNotification from '@libs/Notification/PushNotification';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import '@libs/Notification/PushNotification/subscribePushNotification';
-import * as PersistedRequests from '@userActions/PersistedRequests';
+import '@libs/Notification/PushNotification/subscribeToPushNotifications';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as SessionUtil from '@src/libs/actions/Session';
+import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials, Session} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
@@ -22,6 +28,16 @@ HttpUtils.xhr = jest.fn<typeof HttpUtils.xhr>();
 
 // Mocked to ensure push notifications are subscribed/unsubscribed as the session changes
 jest.mock('@libs/Notification/PushNotification');
+
+// Mocked to check SignOutAndRedirectToSignIn behavior
+jest.mock('@libs/asyncOpenURL');
+
+jest.mock('@libs/actions/Link', () => {
+    return {
+        buildOldDotURL: jest.fn(() => Promise.resolve('mockOldDotURL')),
+        openExternalLink: jest.fn(),
+    };
+});
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -77,7 +93,7 @@ describe('Session', () => {
                 }),
             )
 
-            // The next call should be Authenticate since we are reauthenticating
+            // The next call should be Authenticate since we are re-authenticating
             .mockImplementationOnce(() =>
                 Promise.resolve({
                     jsonCode: CONST.JSON_CODE.SUCCESS,
@@ -88,8 +104,8 @@ describe('Session', () => {
             );
 
         // When we attempt to fetch the initial app data via the API
-        App.confirmReadyToOpenApp();
-        App.openApp();
+        confirmReadyToOpenApp();
+        openApp();
         await waitForBatchedUpdates();
 
         // Then it should fail and reauthenticate the user adding the new authToken to the session
@@ -100,108 +116,222 @@ describe('Session', () => {
     test('Push notifications are subscribed after signing in', async () => {
         await TestHelper.signInWithTestUser();
         await waitForBatchedUpdates();
-        expect(PushNotification.register).toBeCalled();
+        expect(PushNotification.register).toHaveBeenCalled();
     });
 
     test('Push notifications are unsubscribed after signing out', async () => {
         await TestHelper.signInWithTestUser();
         await TestHelper.signOutTestUser();
-        expect(PushNotification.deregister).toBeCalled();
+        expect(PushNotification.deregister).toHaveBeenCalled();
     });
 
     test('ReconnectApp should push request to the queue', async () => {
         await TestHelper.signInWithTestUser();
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        App.confirmReadyToOpenApp();
-        App.reconnectApp();
+        confirmReadyToOpenApp();
+        reconnectApp();
 
         await waitForBatchedUpdates();
 
-        expect(PersistedRequests.getAll().length).toBe(1);
-        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
+        expect(getAllPersistedRequests().length).toBe(1);
+        expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
         await waitForBatchedUpdates();
 
-        expect(PersistedRequests.getAll().length).toBe(0);
+        expect(getAllPersistedRequests().length).toBe(0);
+    });
+
+    test('ReconnectApp should open if app is not loaded', async () => {
+        await TestHelper.signInWithTestUser();
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, false);
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+        confirmReadyToOpenApp();
+        reconnectApp();
+
+        await waitForBatchedUpdates();
+
+        expect(getAllPersistedRequests().length).toBe(1);
+        expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+
+        await waitForBatchedUpdates();
+
+        expect(getAllPersistedRequests().length).toBe(0);
     });
 
     test('ReconnectApp should replace same requests from the queue', async () => {
         await TestHelper.signInWithTestUser();
+        await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        App.confirmReadyToOpenApp();
-        App.reconnectApp();
-        App.reconnectApp();
-        App.reconnectApp();
-        App.reconnectApp();
+        confirmReadyToOpenApp();
+        reconnectApp();
+        reconnectApp();
+        reconnectApp();
+        reconnectApp();
 
         await waitForBatchedUpdates();
 
-        expect(PersistedRequests.getAll().length).toBe(1);
-        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
+        expect(getAllPersistedRequests().length).toBe(1);
+        expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        expect(PersistedRequests.getAll().length).toBe(0);
+        expect(getAllPersistedRequests().length).toBe(0);
     });
 
     test('OpenApp should push request to the queue', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        App.openApp();
+        openApp();
 
         await waitForBatchedUpdates();
 
-        expect(PersistedRequests.getAll().length).toBe(1);
-        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
+        expect(getAllPersistedRequests().length).toBe(1);
+        expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
         await waitForBatchedUpdates();
 
-        expect(PersistedRequests.getAll().length).toBe(0);
+        expect(getAllPersistedRequests().length).toBe(0);
     });
 
     test('OpenApp should replace same requests from the queue', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        App.openApp();
-        App.openApp();
-        App.openApp();
-        App.openApp();
+        openApp();
+        openApp();
+        openApp();
+        openApp();
 
         await waitForBatchedUpdates();
 
-        expect(PersistedRequests.getAll().length).toBe(1);
-        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
+        expect(getAllPersistedRequests().length).toBe(1);
+        expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        expect(PersistedRequests.getAll().length).toBe(0);
+        expect(getAllPersistedRequests().length).toBe(0);
     });
 
-    test('LogOut should replace same requests from the queue instead of adding new one', async () => {
+    test('SignOut should return a promise with response containing hasOldDotAuthCookies', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        SessionUtil.signOut();
-        SessionUtil.signOut();
-        SessionUtil.signOut();
-        SessionUtil.signOut();
-        SessionUtil.signOut();
+        (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
+            // This will make the call to OpenApp below return with an expired session code
+            .mockImplementationOnce(() =>
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.SUCCESS,
+                    hasOldDotAuthCookies: true,
+                }),
+            );
 
-        await waitForBatchedUpdates();
+        const signOutPromise = SessionUtil.signOut();
 
-        expect(PersistedRequests.getAll().length).toBe(1);
-        expect(PersistedRequests.getAll().at(0)?.command).toBe(WRITE_COMMANDS.LOG_OUT);
+        expect(signOutPromise).toBeInstanceOf(Promise);
+
+        expect(await signOutPromise).toStrictEqual({
+            jsonCode: CONST.JSON_CODE.SUCCESS,
+            hasOldDotAuthCookies: true,
+        });
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        expect(PersistedRequests.getAll().length).toBe(0);
+        expect(getAllPersistedRequests().length).toBe(0);
+    });
+
+    describe('SignOutAndRedirectToSignIn', () => {
+        test('SignOutAndRedirectToSignIn should redirect to OldDot when LogOut returns truthy hasOldDotAuthCookies', async () => {
+            await TestHelper.signInWithTestUser();
+            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+            (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
+                // This will make the call to OpenApp below return with an expired session code
+                .mockImplementationOnce(() =>
+                    Promise.resolve({
+                        jsonCode: CONST.JSON_CODE.SUCCESS,
+                        hasOldDotAuthCookies: true,
+                    }),
+                );
+
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            signOutAndRedirectToSignIn();
+
+            await waitForBatchedUpdates();
+
+            expect(asyncOpenURL).toHaveBeenCalledWith(expect.any(Promise), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
+            expect(redirectToSignInSpy).toHaveBeenCalled();
+            jest.clearAllMocks();
+        });
+
+        test('SignOutAndRedirectToSignIn should not redirect to OldDot when LogOut return falsy hasOldDotAuthCookies', async () => {
+            await TestHelper.signInWithTestUser();
+            await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+            (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
+                // This will make the call to OpenApp below return with an expired session code
+                .mockImplementationOnce(() =>
+                    Promise.resolve({
+                        jsonCode: CONST.JSON_CODE.SUCCESS,
+                    }),
+                );
+
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+            signOutAndRedirectToSignIn();
+
+            await waitForBatchedUpdates();
+
+            expect(asyncOpenURL).not.toHaveBeenCalled();
+            expect(redirectToSignInSpy).toHaveBeenCalled();
+            jest.clearAllMocks();
+        });
+
+        test('SignOutAndRedirectToSignIn should restore stashed session and redirect to OldDot supportal of supportal agent', async () => {
+            jest.spyOn(SessionUtil, 'isSupportAuthToken').mockReturnValue(true);
+            jest.spyOn(SessionUtil, 'hasStashedSession').mockReturnValue(true);
+            jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
+            jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
+            jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+
+            const testStashedCredentials = {login: 'stashed@expensify.com', autoGeneratedLogin: 'stashedAutoLogin', autoGeneratedPassword: 'stashedAutoPassword'};
+            const testStashedSession = {authToken: 'stashedAuthToken', email: 'stashed@expensify.com', accountID: 123, creationDate: new Date().getTime()};
+
+            await Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, testStashedCredentials);
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, testStashedSession);
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+
+            await waitForBatchedUpdates();
+
+            const onyxClearSpy = Onyx.clear as jest.Mock;
+            const onyxMultiSetSpy = Onyx.multiSet as jest.Mock;
+
+            signOutAndRedirectToSignIn(false, false, true, true);
+
+            await waitForBatchedUpdates();
+
+            expect(SessionUtil.signOut).not.toHaveBeenCalled();
+
+            expect(onyxClearSpy).toHaveBeenCalledWith(KEYS_TO_PRESERVE_SUPPORTAL);
+
+            expect(onyxMultiSetSpy).toHaveBeenCalledWith({
+                [ONYXKEYS.CREDENTIALS]: testStashedCredentials,
+                [ONYXKEYS.SESSION]: testStashedSession,
+            });
+
+            expect(buildOldDotURL).toHaveBeenCalledWith(CONST.OLDDOT_URLS.SUPPORTAL_RESTORE_STASHED_LOGIN);
+            expect(openExternalLink).toHaveBeenCalledWith('mockOldDotURL', undefined, true);
+        });
     });
 });

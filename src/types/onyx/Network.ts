@@ -34,6 +34,9 @@ type Network = {
 
     /** The network's status */
     networkStatus?: NetworkStatus;
+
+    /** The time when network change from online to offline */
+    lastOfflineAt?: string;
 };
 
 export default Network;

@@ -1,48 +1,53 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {importPolicyTags} from '@libs/actions/Policy/Tag';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import {getTagLists, isControlPolicy} from '@libs/PolicyUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type ImportedTagsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORTED>;
+type ImportedTagsPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORTED>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORTED>;
 
 function ImportedTagsPage({route}: ImportedTagsPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [isImportingTags, setIsImportingTags] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
-    const isQuickSettingsFlow = !!backTo;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORTED;
+
+    const {setIsClosing} = useCloseImportPage();
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
         roles.push(
             {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
             {text: translate('common.name'), value: CONST.CSV_IMPORT_COLUMNS.NAME, isRequired: true},
-            {text: translate('common.enabled'), value: CONST.CSV_IMPORT_COLUMNS.ENABLED, isRequired: true},
+            {text: translate('common.enabled'), value: CONST.CSV_IMPORT_COLUMNS.ENABLED},
         );
 
         if (isControlPolicy(policy)) {
@@ -60,23 +65,25 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Errors = {};
 
-        if (!requiredColumns.every((requiredColumn) => columns.includes(requiredColumn.value))) {
-            // eslint-disable-next-line rulesdir/prefer-early-return
-            requiredColumns.forEach((requiredColumn) => {
-                if (!columns.includes(requiredColumn.value)) {
-                    errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: requiredColumn.text});
-                }
-            });
+        const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
+        if (missingRequiredColumns) {
+            errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: missingRequiredColumns.text});
         } else {
             const duplicate = findDuplicate(columns);
+            const tagsNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
+            const tagsNames = tagsNamesColumn !== -1 ? spreadsheet?.data[tagsNamesColumn] : [];
+            const containsEmptyName = tagsNames?.some((name, index) => (!containsHeader || index > 0) && !name?.toString().trim());
+
             if (duplicate) {
                 errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicate});
+            } else if (containsEmptyName) {
+                errors.emptyNames = translate('spreadsheet.emptyMappedField', {fieldName: translate('common.name')});
             } else {
                 errors = {};
             }
         }
         return errors;
-    }, [requiredColumns, spreadsheet?.columns, translate]);
+    }, [requiredColumns, spreadsheet?.columns, translate, containsHeader, spreadsheet?.data]);
 
     const importTags = useCallback(() => {
         setIsValidationEnabled(true);
@@ -100,7 +107,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
                 name,
                 enabled: tagsEnabledColumn !== -1 ? tagsEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                'GL Code': tagsGLCodeColumn !== -1 ? tagsGLCode?.[containsHeader ? index + 1 : index] ?? '' : existingGLCodeOrDefault,
+                'GL Code': tagsGLCodeColumn !== -1 ? (tagsGLCode?.[containsHeader ? index + 1 : index] ?? '') : existingGLCodeOrDefault,
             };
         });
 
@@ -110,21 +117,26 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         }
     }, [validate, spreadsheet, containsHeader, policyTagLists, policyID]);
 
-    const spreadsheetColumns = spreadsheet?.data;
-    if (!spreadsheetColumns) {
+    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
     }
 
+    const spreadsheetColumns = spreadsheet?.data;
+    if (!spreadsheetColumns) {
+        return <NotFoundPage />;
+    }
+
     const closeImportPageAndModal = () => {
+        setIsClosing(true);
         setIsImportingTags(false);
-        closeImportPage();
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS.getRoute(policyID));
     };
 
     return (
         <ScreenWrapper
             testID={ImportedTagsPage.displayName}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.tags.importTags')}
@@ -140,14 +152,9 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}
             />
 
-            <ConfirmModal
+            <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                title={spreadsheet?.importFinalModal?.title ?? ''}
-                prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={closeImportPageAndModal}
-                onCancel={closeImportPageAndModal}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
+                closeImportPageAndModal={closeImportPageAndModal}
             />
         </ScreenWrapper>
     );

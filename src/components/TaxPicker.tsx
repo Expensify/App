@@ -1,19 +1,19 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
-import * as IOUUtils from '@libs/IOUUtils';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import useOnyx from '@hooks/useOnyx';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
+import type {Tax, TaxRatesOption} from '@libs/TaxOptionsListUtils';
+import {getEnabledTaxRateCount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/RadioListItem';
+import SelectionList from './SelectionListWithSections';
+import RadioListItem from './SelectionListWithSections/RadioListItem';
 
 type TaxPickerProps = {
     /** The selected tax rate of an expense */
@@ -25,14 +25,8 @@ type TaxPickerProps = {
     /** ID of the transaction */
     transactionID?: string;
 
-    /**
-     * Safe area insets required for reflecting the portion of the view,
-     * that is not covered by navigation bars, tab bars, toolbars, and other ancestor views.
-     */
-    insets?: EdgeInsets;
-
     /** Callback to fire when a tax is pressed */
-    onSubmit: (tax: TaxOptionsListUtils.TaxRatesOption) => void;
+    onSubmit: (tax: TaxRatesOption) => void;
 
     /** The action to take */
     action?: IOUAction;
@@ -41,22 +35,27 @@ type TaxPickerProps = {
     iouType?: ValueOf<typeof CONST.IOU.TYPE>;
 
     onDismiss: () => void;
+
+    /**
+     * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
+     */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-function TaxPicker({selectedTaxRate = '', policyID, transactionID, insets, onSubmit, action, iouType, onDismiss}: TaxPickerProps) {
-    const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, action, iouType, onDismiss = Navigation.goBack, addBottomSafeAreaPadding}: TaxPickerProps) {
+    const {translate, localeCompare} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [transaction] = useOnyx(
         (() => {
-            if (IOUUtils.shouldUseTransactionDraft(action)) {
+            if (shouldUseTransactionDraft(action)) {
                 return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
             }
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         })(),
+        {canBeMissing: true},
     );
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -64,12 +63,12 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, insets, onSub
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
 
     const taxRates = policy?.taxRates;
-    const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates?.taxes ?? {});
+    const taxRatesCount = getEnabledTaxRateCount(taxRates?.taxes ?? {});
     const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
-    const selectedOptions = useMemo<TaxOptionsListUtils.Tax[]>(() => {
+    const selectedOptions = useMemo<Tax[]>(() => {
         if (!selectedTaxRate) {
             return [];
         }
@@ -85,21 +84,22 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, insets, onSub
 
     const sections = useMemo(
         () =>
-            TaxOptionsListUtils.getTaxRatesSection({
+            getTaxRatesSection({
                 policy,
                 searchValue,
+                localeCompare,
                 selectedOptions,
                 transaction: currentTransaction,
             }),
-        [searchValue, selectedOptions, policy, currentTransaction],
+        [searchValue, selectedOptions, policy, currentTransaction, localeCompare],
     );
 
-    const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue);
+    const headerMessage = getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue);
 
     const selectedOptionKey = useMemo(() => sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
 
     const handleSelectRow = useCallback(
-        (newSelectedOption: TaxOptionsListUtils.TaxRatesOption) => {
+        (newSelectedOption: TaxRatesOption) => {
             if (selectedOptionKey === newSelectedOption.keyForList) {
                 onDismiss();
                 return;
@@ -119,8 +119,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, insets, onSub
             onSelectRow={handleSelectRow}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            isRowMultilineSupported
-            containerStyle={{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />
     );
 }

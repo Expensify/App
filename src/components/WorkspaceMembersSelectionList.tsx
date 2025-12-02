@@ -1,20 +1,21 @@
 import React, {useMemo} from 'react';
-import type {SectionListData} from 'react-native';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
+import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import Badge from './Badge';
 import {FallbackAvatar} from './Icon/Expensicons';
-import {usePersonalDetails} from './OnyxProvider';
+import {usePersonalDetails} from './OnyxListItemProvider';
 import SelectionList from './SelectionList';
-import InviteMemberListItem from './SelectionList/InviteMemberListItem';
-import type {Section} from './SelectionList/types';
+import InviteMemberListItem from './SelectionList/ListItem/InviteMemberListItem';
 
 type SelectionListApprover = {
     text: string;
@@ -24,8 +25,8 @@ type SelectionListApprover = {
     login: string;
     rightElement?: React.ReactNode;
     icons: Icon[];
+    value?: number;
 };
-type ApproverSection = SectionListData<SelectionListApprover, Section<SelectionListApprover>>;
 
 type WorkspaceMembersSelectionListProps = {
     policyID: string;
@@ -34,28 +35,28 @@ type WorkspaceMembersSelectionListProps = {
 };
 
 function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}: WorkspaceMembersSelectionListProps) {
-    const {translate} = useLocalize();
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const {translate, localeCompare} = useLocalize();
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const personalDetails = usePersonalDetails();
     const policy = usePolicy(policyID);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
-    const sections: ApproverSection[] = useMemo(() => {
+    const orderedApprovers = useMemo(() => {
         const approvers: SelectionListApprover[] = [];
 
         if (policy?.employeeList) {
             const availableApprovers = Object.values(policy.employeeList)
                 .map((employee): SelectionListApprover | null => {
-                    const isAdmin = employee?.role === CONST.REPORT.ROLE.ADMIN;
                     const email = employee.email;
 
                     if (!email) {
                         return null;
                     }
 
-                    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
+                    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                     const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
-                    const {avatar, displayName = email} = personalDetails?.[accountID] ?? {};
+                    const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
 
                     return {
                         text: displayName,
@@ -64,7 +65,13 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
                         isSelected: selectedApprover === email,
                         login: email,
                         icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
-                        rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
+                        rightElement: (
+                            <MemberRightIcon
+                                role={employee.role}
+                                owner={policy?.owner}
+                                login={login}
+                            />
+                        ),
                     };
                 })
                 .filter((approver): approver is SelectionListApprover => !!approver);
@@ -72,44 +79,40 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             approvers.push(...availableApprovers);
         }
 
-        const filteredApprovers =
-            debouncedSearchTerm !== ''
-                ? approvers.filter((option) => {
-                      const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-                      const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-                      return isPartOfSearchTerm;
-                  })
-                : approvers;
+        const filteredApprovers = tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (approver) => [approver.text ?? '', approver.login ?? '']);
 
-        return [
-            {
-                title: undefined,
-                data: OptionsListUtils.sortAlphabetically(filteredApprovers, 'text'),
-                shouldShow: true,
-            },
-        ];
-    }, [debouncedSearchTerm, personalDetails, policy?.employeeList, selectedApprover, translate]);
+        return sortAlphabetically(filteredApprovers, 'text', localeCompare);
+    }, [policy?.employeeList, policy?.owner, debouncedSearchTerm, countryCode, localeCompare, personalDetails, selectedApprover]);
 
     const handleOnSelectRow = (approver: SelectionListApprover) => {
         setApprover(approver.login);
     };
 
-    const headerMessage = useMemo(() => (searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('selectionList.nameEmailOrPhoneNumber'),
+            value: searchTerm,
+            headerMessage: searchTerm && !orderedApprovers.length ? translate('common.noResultsFound') : '',
+            onChangeText: setSearchTerm,
+        }),
+        [searchTerm, orderedApprovers.length, setSearchTerm, translate],
+    );
 
     return (
         <SelectionList
-            sections={sections}
+            data={orderedApprovers}
             ListItem={InviteMemberListItem}
-            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-            textInputValue={searchTerm}
-            onChangeText={setSearchTerm}
-            headerMessage={headerMessage}
             onSelectRow={handleOnSelectRow}
-            showScrollIndicator
+            textInputOptions={textInputOptions}
             showLoadingPlaceholder={!didScreenTransitionEnd}
-            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+            disableMaintainingScrollPosition
+            addBottomSafeAreaPadding
+            showScrollIndicator
         />
     );
 }
+
+export type {SelectionListApprover};
 
 export default WorkspaceMembersSelectionList;

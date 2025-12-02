@@ -1,5 +1,7 @@
 import {useRoute} from '@react-navigation/native';
+import type {ForwardedRef} from 'react';
 import React, {useEffect} from 'react';
+import type {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -21,9 +23,15 @@ type DateTimeSelectorProps = {
     /** inputID used by the Form component */
     // eslint-disable-next-line react/no-unused-prop-types
     inputID: string;
+
+    // The ref is required by InputWrapper, even though it's not used in this component yet.
+    ref?: ForwardedRef<View>;
 };
 
-function DateTimeSelector({errorText = '', name, value, onInputChange}: DateTimeSelectorProps) {
+function DateTimeSelector(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    {errorText = '', name, value, onInputChange, ref}: DateTimeSelectorProps,
+) {
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {

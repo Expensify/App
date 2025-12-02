@@ -1,14 +1,15 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import * as Illustrations from '@components/Icon/Illustrations';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {clearIssueNewCardFlow, setIssueNewCardStepAndData} from '@libs/actions/Card';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,12 +17,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 type CardTypeStepProps = {
     /** ID of the policy */
     policyID: string | undefined;
+
+    /** Array of step names */
+    stepNames: readonly string[];
+
+    /** Start from step index */
+    startStepIndex: number;
 };
 
-function CardTypeStep({policyID}: CardTypeStepProps) {
+function CardTypeStep({policyID, stepNames, startStepIndex}: CardTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const illustrations = useMemoizedLazyIllustrations(['HandCard', 'VirtualCard'] as const);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
 
     const isEditing = issueNewCard?.isEditing;
 
@@ -41,6 +49,11 @@ function CardTypeStep({policyID}: CardTypeStepProps) {
             setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
             return;
         }
+        if (issueNewCard?.isChangeAssigneeDisabled) {
+            Navigation.goBack();
+            clearIssueNewCardFlow(policyID);
+            return;
+        }
         setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.ASSIGNEE, policyID});
     };
 
@@ -52,13 +65,14 @@ function CardTypeStep({policyID}: CardTypeStepProps) {
             offlineIndicatorStyle={styles.mtAuto}
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={1}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startStepIndex}
+            stepNames={stepNames}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseCardType')}</Text>
             <View style={styles.mh5}>
                 <MenuItem
-                    icon={Illustrations.HandCard}
+                    icon={illustrations.HandCard}
                     title={translate('workspace.card.issueNewCard.physicalCard')}
                     description={translate('workspace.card.issueNewCard.physicalCardDescription')}
                     shouldShowRightIcon
@@ -70,7 +84,7 @@ function CardTypeStep({policyID}: CardTypeStepProps) {
                     wrapperStyle={styles.purposeMenuItem}
                 />
                 <MenuItem
-                    icon={Illustrations.VirtualCard}
+                    icon={illustrations.VirtualCard}
                     title={translate('workspace.card.issueNewCard.virtualCard')}
                     description={translate('workspace.card.issueNewCard.virtualCardDescription')}
                     shouldShowRightIcon

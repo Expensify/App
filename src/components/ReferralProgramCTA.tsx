@@ -7,18 +7,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import {getButtonRole} from './Button/utils';
 import Icon from './Icon';
 import {Close} from './Icon/Expensicons';
 import {PressableWithoutFeedback} from './Pressable';
-import Text from './Text';
+import RenderHTML from './RenderHTML';
 import Tooltip from './Tooltip';
 
 type ReferralProgramCTAProps = {
-    referralContentType:
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE
-        | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND;
+    referralContentType: typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE | typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT;
     style?: StyleProp<ViewStyle>;
     onDismiss?: () => void;
 };
@@ -53,18 +50,11 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                 Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(referralContentType, Navigation.getActiveRouteWithoutParams()));
             }}
             style={[styles.br2, styles.highlightBG, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, {gap: 10, padding: 10}, styles.pl5, style]}
+            isNested
             accessibilityLabel="referral"
-            role={CONST.ROLE.BUTTON}
+            role={getButtonRole(true)}
         >
-            <Text>
-                {translate(`referralProgram.${referralContentType}.buttonText1`)}
-                <Text
-                    color={theme.success}
-                    style={styles.textStrong}
-                >
-                    {translate(`referralProgram.${referralContentType}.buttonText2`)}
-                </Text>
-            </Text>
+            <RenderHTML html={translate(`referralProgram.${referralContentType}.buttonText`)} />
             <Tooltip text={translate('common.close')}>
                 <PressableWithoutFeedback
                     onPress={handleDismissCallToAction}

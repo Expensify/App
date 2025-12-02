@@ -40,6 +40,7 @@ function BaseGenericTooltip({
     shouldTeleportPortalToModalLayer = false,
     isEducationTooltip = false,
     onTooltipPress = () => {},
+    computeHorizontalShiftForNative = false,
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
@@ -73,6 +74,7 @@ function BaseGenericTooltip({
                 wrapperStyle,
                 shouldAddHorizontalPadding: false,
                 isEducationTooltip,
+                computeHorizontalShiftForNative,
             }),
         [
             StyleUtils,
@@ -90,6 +92,7 @@ function BaseGenericTooltip({
             anchorAlignment,
             wrapperStyle,
             isEducationTooltip,
+            computeHorizontalShiftForNative,
         ],
     );
 
@@ -103,12 +106,13 @@ function BaseGenericTooltip({
 
     let content;
     if (renderTooltipContent) {
-        content = <View>{renderTooltipContent()}</View>;
+        content = <View fsClass={CONST.FULLSTORY.CLASS.UNMASK}>{renderTooltipContent()}</View>;
     } else {
         content = (
             <Text
                 numberOfLines={numberOfLines}
                 style={textStyle}
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 <Text style={textStyle}>{text}</Text>
             </Text>

@@ -1,13 +1,13 @@
 import React, {useContext, useEffect} from 'react';
-import {NativeModules} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
+import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as SessionUtils from '@libs/SessionUtils';
+import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
-import * as SessionActions from '@userActions/Session';
+import {signInWithShortLivedAuthToken, signInWithSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -22,24 +22,25 @@ type LogOutPreviousUserPageProps = PlatformStackScreenProps<AuthScreensParamList
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
     const {initialURL} = useContext(InitialURLContext);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isAccountLoading = account?.isLoading;
+    const {authTokenType, shortLivedAuthToken = '', exitTo} = route?.params ?? {};
 
     useEffect(() => {
         const sessionEmail = session?.email;
-        const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
-        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
-        const isSupportalLogin = route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
+        const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
+        const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
+        const isSupportalLogin = authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
         if (isLoggingInAsNewUser) {
             // We don't want to close react-native app in this particular case.
-            SessionActions.signOutAndRedirectToSignIn(false, isSupportalLogin, false);
+            signOutAndRedirectToSignIn(false, isSupportalLogin);
             return;
         }
 
         if (isSupportalLogin) {
-            SessionActions.signInWithSupportAuthToken(route.params.shortLivedAuthToken ?? '');
+            signInWithSupportAuthToken(shortLivedAuthToken);
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
@@ -48,34 +49,28 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
             return;
         }
 
-        // We need to signin and fetch a new authToken, if a user was already authenticated in NewDot, and was redirected to OldDot
-        // and their authToken stored in Onyx becomes invalid.
-        // This workflow is triggered while setting up VBBA. User is redirected from NewDot to OldDot to set up 2FA, and then redirected back to NewDot
-        // On Enabling 2FA, authToken stored in Onyx becomes expired and hence we need to fetch new authToken
-        const shouldForceLogin = route.params.shouldForceLogin === 'true';
-        if (shouldForceLogin) {
-            const shortLivedAuthToken = route.params.shortLivedAuthToken ?? '';
-            SessionActions.signInWithShortLivedAuthToken(shortLivedAuthToken);
-        }
+        // Even if the user was already authenticated in NewDot, we need to reauthenticate them with shortLivedAuthToken,
+        // because the old authToken stored in Onyx may be invalid.
+        signInWithShortLivedAuthToken(shortLivedAuthToken);
+
         // We only want to run this effect once on mount (when the page first loads after transitioning from OldDot)
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [initialURL]);
 
     useEffect(() => {
-        const exitTo = route.params.exitTo as Route | null;
         const sessionEmail = session?.email;
-        const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
-        const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
+        const transitionURL = CONFIG.IS_HYBRID_APP ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
+        const isLoggingInAsNewUser = isLoggingInAsNewUserSessionUtils(transitionURL ?? undefined, sessionEmail);
         // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
         // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
         // which is already called when AuthScreens mounts.
         // For HybridApp we have separate logic to handle transitions.
-        if (!NativeModules.HybridAppModule && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingInAsNewUser) {
+        if (!CONFIG.IS_HYBRID_APP && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingInAsNewUser) {
             Navigation.isNavigationReady().then(() => {
                 // remove this screen and navigate to exit route
                 Navigation.goBack();
                 if (exitTo) {
-                    Navigation.navigate(exitTo);
+                    Navigation.navigate(exitTo as Route);
                 }
             });
         }

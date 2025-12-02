@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -18,7 +18,7 @@ import type SCREENS from '@src/SCREENS';
 
 type CountrySelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS_COUNTRY>;
 
-function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
+function CountrySelectionPage({route}: CountrySelectionPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
     const currentCountry = route.params.country;
@@ -44,25 +44,22 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
     const selectCountry = useCallback(
         (option: Option) => {
             const backTo = route.params.backTo ?? '';
-            // Check the navigation state and "backTo" parameter to decide navigation behavior
-            if (navigation.getState().routes.length === 1 && !backTo) {
-                // If there is only one route and "backTo" is empty, go back in navigation
+
+            // Check the "backTo" parameter to decide navigation behavior
+            if (!backTo) {
                 Navigation.goBack();
-            } else if (!!backTo && navigation.getState().routes.length === 1) {
-                // If "backTo" is not empty and there is only one route, go back to the specific route defined in "backTo" with a country parameter
-                Navigation.goBack(appendParam(backTo, 'country', option.value));
             } else {
-                // Otherwise, navigate to the specific route defined in "backTo" with a country parameter
-                Navigation.navigate(appendParam(backTo, 'country', option.value));
+                // Set compareParams to false because we want to go back to this particular screen and update params (country).
+                Navigation.goBack(appendParam(backTo, 'country', option.value), {compareParams: false});
             }
         },
-        [route, navigation],
+        [route.params.backTo],
     );
 
     return (
         <ScreenWrapper
             testID={CountrySelectionPage.displayName}
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('common.country')}
@@ -70,7 +67,7 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
                 onBackButtonPress={() => {
                     const backTo = route.params.backTo ?? '';
                     const backToRoute = backTo ? `${backTo}?country=${currentCountry}` : '';
-                    Navigation.goBack(backToRoute as Route);
+                    Navigation.goBack(backToRoute as Route, {compareParams: false});
                 }}
             />
 
@@ -85,6 +82,7 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentCountry}
                 shouldUseDynamicMaxToRenderPerBatch
+                addBottomSafeAreaPadding
             />
         </ScreenWrapper>
     );

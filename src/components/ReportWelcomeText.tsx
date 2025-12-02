@@ -1,19 +1,20 @@
+import {createPersonalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getPolicy} from '@libs/PolicyUtils';
 import {
-    getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     getReportName,
-    isArchivedNonExpenseReport,
     isChatRoom as isChatRoomReportUtils,
     isConciergeChatReport,
     isInvoiceRoom as isInvoiceRoomReportUtils,
@@ -28,7 +29,7 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 import UserDetailsTooltip from './UserDetailsTooltip';
@@ -41,28 +42,48 @@ type ReportWelcomeTextProps = {
     policy: OnyxEntry<Policy>;
 };
 
+const personalDetailSelector = (personalDetail: OnyxInputOrEntry<PersonalDetails>): OnyxInputOrEntry<PersonalDetails> =>
+    personalDetail && {
+        accountID: personalDetail.accountID,
+        login: personalDetail.login,
+        avatar: personalDetail.avatar,
+        pronouns: personalDetail.pronouns,
+    };
+
+const personalDetailsSelector = (personalDetail: OnyxEntry<PersonalDetailsList>) => createPersonalDetailsSelector(personalDetail, personalDetailSelector);
+
 function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const {environmentURL} = useEnvironment();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector, canBeMissing: false});
+    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || undefined}`);
-    const isArchivedRoom = isArchivedNonExpenseReport(report, reportNameValuePairs);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`, {canBeMissing: true});
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const isChatRoom = isChatRoomReportUtils(report);
     const isSelfDM = isSelfDMReportUtils(report);
     const isInvoiceRoom = isInvoiceRoomReportUtils(report);
     const isSystemChat = isSystemChatReportUtils(report);
-    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true);
+    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat);
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
     const isMultipleParticipant = participantAccountIDs.length > 1;
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
-    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
+        getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails as OnyxInputOrEntry<PersonalDetailsList>),
+        isMultipleParticipant,
+        localeCompare,
+    );
+    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, isReportArchived, isRestrictedToPreferredPolicy);
+    const policyName = getPolicyName({report});
 
     const filteredOptions = moneyRequestOptions.filter(
-        (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE> =>
-            item !== CONST.IOU.TYPE.INVOICE,
+        (
+            item,
+        ): item is Exclude<
+            IOUType,
+            typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE
+        > => item !== CONST.IOU.TYPE.INVOICE,
     );
     const additionalText = filteredOptions
         .map(
@@ -74,19 +95,18 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         .join(', ');
     const reportName = getReportName(report);
     const shouldShowUsePlusButtonText =
-        (moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
-            moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
-            moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
-            moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)) &&
-        !isPolicyExpenseChat;
+        moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
+        moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
+        moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
+        moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
 
-    const navigateToReport = () => {
+    const reportDetailsLink = useMemo(() => {
         if (!report?.reportID) {
-            return;
+            return '';
         }
 
-        Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()));
-    };
+        return `${environmentURL}/${ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, Navigation.getReportRHPActiveRoute())}`;
+    }, [environmentURL, report?.reportID]);
 
     const welcomeHeroText = useMemo(() => {
         if (isInvoiceRoom) {
@@ -105,8 +125,17 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
             return reportName;
         }
 
+        if (isPolicyExpenseChat) {
+            return translate('reportActionsView.welcomeToRoom', {roomName: policyName});
+        }
+
         return translate('reportActionsView.sayHello');
-    }, [isChatRoom, isInvoiceRoom, isSelfDM, isSystemChat, translate, reportName]);
+    }, [isChatRoom, isInvoiceRoom, isPolicyExpenseChat, isSelfDM, isSystemChat, translate, policyName, reportName]);
+    const participantAccountIDsExcludeCurrentUser = getParticipantsAccountIDsForDisplay(report, undefined, undefined, true);
+    const participantPersonalDetailListExcludeCurrentUser = Object.values(
+        getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails as OnyxInputOrEntry<PersonalDetailsList>),
+    );
+    const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy, participantPersonalDetailListExcludeCurrentUser, localeCompare, isReportArchived, reportDetailsLink);
 
     return (
         <>
@@ -114,70 +143,20 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 <Text style={[styles.textHero]}>{welcomeHeroText}</Text>
             </View>
             <View style={[styles.mt3, styles.mw100]}>
-                {isPolicyExpenseChat &&
-                    (welcomeMessage?.messageHtml ? (
-                        <View style={[styles.renderHTML, styles.cursorText]}>
-                            <RenderHTML html={welcomeMessage.messageHtml} />
-                        </View>
-                    ) : (
-                        <Text>
-                            <Text>{welcomeMessage.phrase1}</Text>
-                            <Text style={[styles.textStrong]}>{getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
-                            <Text>{welcomeMessage.phrase2}</Text>
-                            <Text style={[styles.textStrong]}>{getPolicyName(report)}</Text>
-                            <Text>{welcomeMessage.phrase3}</Text>
-                        </Text>
-                    ))}
-                {isInvoiceRoom &&
-                    !isArchivedRoom &&
-                    (welcomeMessage?.messageHtml ? (
-                        <View style={[styles.renderHTML, styles.cursorText]}>
-                            <RenderHTML html={welcomeMessage.messageHtml} />
-                        </View>
-                    ) : (
-                        <Text>
-                            <Text>{welcomeMessage.phrase1}</Text>
-                            <Text>
-                                {report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL ? (
-                                    <Text style={[styles.textStrong]}>{getDisplayNameForParticipant(report?.invoiceReceiver?.accountID)}</Text>
-                                ) : (
-                                    <Text style={[styles.textStrong]}>{getPolicy(report?.invoiceReceiver?.policyID)?.name}</Text>
-                                )}
-                            </Text>
-                            <Text>{` ${translate('common.and')} `}</Text>
-                            <Text style={[styles.textStrong]}>{getPolicyName(report)}</Text>
-                            <Text>{welcomeMessage.phrase2}</Text>
-                        </Text>
-                    ))}
-                {isChatRoom &&
-                    (!isInvoiceRoom || isArchivedRoom) &&
-                    (welcomeMessage?.messageHtml ? (
-                        <View style={styles.renderHTML}>
-                            <RenderHTML html={welcomeMessage.messageHtml} />
-                        </View>
-                    ) : (
-                        <Text>
-                            <Text>{welcomeMessage.phrase1}</Text>
-                            {welcomeMessage.showReportName && (
-                                <Text
-                                    style={[styles.textStrong]}
-                                    onPress={navigateToReport}
-                                    suppressHighlighting
-                                >
-                                    {getReportName(report)}
-                                </Text>
-                            )}
-                            {welcomeMessage.phrase2 !== undefined && <Text>{welcomeMessage.phrase2}</Text>}
-                        </Text>
-                    ))}
+                {(isChatRoom || isPolicyExpenseChat) && !!welcomeMessage.messageHtml && (
+                    <View style={[styles.renderHTML, styles.cursorText]}>
+                        <RenderHTML html={welcomeMessage.messageHtml} />
+                    </View>
+                )}
                 {isSelfDM && (
                     <Text>
-                        <Text>{welcomeMessage.phrase1}</Text>
+                        <Text>{welcomeMessage.messageText}</Text>
+                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
                     </Text>
                 )}
                 {isSystemChat && (
                     <Text>
-                        <Text>{welcomeMessage.phrase1}</Text>
+                        <Text>{welcomeMessage.messageText}</Text>
                     </Text>
                 )}
                 {isDefault && displayNamesWithTooltips.length > 0 && (
@@ -192,7 +171,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                     ) : (
                                         <Text
                                             style={[styles.textStrong]}
-                                            onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getReportRHPActiveRoute()))}
+                                            onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
                                             suppressHighlighting
                                         >
                                             {displayName}
@@ -200,14 +179,14 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                                     )}
                                 </UserDetailsTooltip>
                                 {index === displayNamesWithTooltips.length - 1 && <Text>.</Text>}
-                                {index === displayNamesWithTooltips.length - 2 && <Text>{` ${translate('common.and')} `}</Text>}
+                                {index === displayNamesWithTooltips.length - 2 && <Text>{`${displayNamesWithTooltips.length > 2 ? ',' : ''} ${translate('common.and')} `}</Text>}
                                 {index < displayNamesWithTooltips.length - 2 && <Text>, </Text>}
                             </Text>
                         ))}
+                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
+                        {isConciergeChatReport(report) && <Text>{translate('reportActionsView.askConcierge')}</Text>}
                     </Text>
                 )}
-                {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
-                {isConciergeChatReport(report) && <Text>{translate('reportActionsView.askConcierge')}</Text>}
             </View>
         </>
     );

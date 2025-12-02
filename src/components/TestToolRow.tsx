@@ -15,10 +15,10 @@ function TestToolRow({title, children}: TestToolRowProps) {
     const styles = useThemeStyles();
     return (
         <View style={styles.testRowContainer}>
-            <View style={styles.flex2}>
+            <View style={[styles.flexGrow1, styles.flexShrink1]}>
                 <Text>{title}</Text>
             </View>
-            <View style={[styles.flex1, styles.alignItemsEnd]}>{children}</View>
+            <View style={[styles.flexGrow0, styles.flexShrink0, styles.alignItemsEnd]}>{children}</View>
         </View>
     );
 }

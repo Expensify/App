@@ -1,59 +1,89 @@
 import React, {useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import type {CombinedCardFeed} from '@hooks/useCardFeeds';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsList from '@hooks/useCardsList';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getCompanyFeeds, getCustomOrFormattedFeedName, getFilteredCardList, hasOnlyOneCardToAssign, isSelectedFeedExpired} from '@libs/CardUtils';
+import {
+    getCardFeedIcon,
+    getCompanyCardFeed,
+    getCompanyFeeds,
+    getCustomOrFormattedFeedName,
+    getDomainOrWorkspaceAccountID,
+    getFilteredCardList,
+    getPlaidInstitutionIconUrl,
+    hasOnlyOneCardToAssign,
+    isCustomFeed,
+    isExpensifyCardFullySetUp,
+    isSelectedFeedExpired,
+} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getPolicy, getWorkspaceAccountID} from '@libs/PolicyUtils';
+import {getPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import variables from '@styles/variables';
 import {setIssueNewCardStepAndData} from '@userActions/Card';
-import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {openAssignFeedCardPage, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 
 type CardFeedListItem = ListItem & {
+    /** Combined feed key */
+    value: CompanyCardFeedWithDomainID;
+
     /** Card feed value */
-    value: string;
+    feed: CompanyCardFeed;
 };
 
 type WorkspaceMemberNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_NEW_CARD>;
 
 function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNewCardPageProps) {
     const {policyID} = route.params;
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const lazyIllustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage'] as const);
+    const illustrations = useThemeIllustrations();
+    const [cardFeeds, , defaultFeed] = useCardFeeds(policyID);
     const [selectedFeed, setSelectedFeed] = useState('');
     const [shouldShowError, setShouldShowError] = useState(false);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
 
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const memberName = personalDetails?.[accountID]?.firstName ? personalDetails?.[accountID]?.firstName : personalDetails?.[accountID]?.login;
-    const companyFeeds = getCompanyFeeds(cardFeeds);
-    const isFeedExpired = isSelectedFeedExpired((selectedFeed as CompanyCardFeed) ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed] : undefined);
+    const companyFeeds = getCompanyFeeds(cardFeeds, false, true);
+    const currentFeed = selectedFeed ? cardFeeds?.[selectedFeed as CompanyCardFeedWithDomainID] : undefined;
+    const isFeedExpired = isSelectedFeedExpired(currentFeed);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeed);
 
-    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed]);
+    const [list] = useCardsList(selectedFeed as CompanyCardFeedWithDomainID);
+    const filteredCardList = getFilteredCardList(list, currentFeed?.accountList, workspaceCardFeeds);
+
+    const shouldShowExpensifyCard = isExpensifyCardFullySetUp(policy, cardSettings);
 
     const handleSubmit = () => {
         if (!selectedFeed) {
@@ -67,13 +97,14 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                     assigneeEmail: memberLogin,
                 },
                 isEditing: false,
+                isChangeAssigneeDisabled: true,
                 policyID,
             });
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)));
         } else {
             const data: Partial<AssignCardData> = {
                 email: memberLogin,
-                bankName: selectedFeed,
+                bankName: getCompanyCardFeed(selectedFeed as CompanyCardFeedWithDomainID),
                 cardName: `${memberName}'s card`,
             };
             let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
@@ -97,48 +128,64 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
         }
     };
 
-    const handleSelectFeed = (feed: CardFeedListItem) => {
-        setSelectedFeed(feed.value);
+    const handleSelectFeed = ({value, feed}: CardFeedListItem) => {
+        setSelectedFeed(value);
+        const workspaceCards = workspaceCardFeeds?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`] ?? {};
+        const hasAllCardsData = !!workspaceCards.cardList;
+        if (isCustomFeed(feed) && !hasAllCardsData) {
+            openAssignFeedCardPage(policyID, feed, domainOrWorkspaceAccountID);
+        }
         setShouldShowError(false);
     };
 
-    const companyCardFeeds: CardFeedListItem[] = (Object.keys(companyFeeds) as CompanyCardFeed[]).map((key) => ({
-        value: key,
-        text: getCustomOrFormattedFeedName(key, cardFeeds?.settings?.companyCardNicknames),
-        keyForList: key,
-        isDisabled: companyFeeds[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        pendingAction: companyFeeds[key]?.pendingAction,
-        isSelected: selectedFeed === key,
-        leftElement: (
-            <Icon
-                src={getCardFeedIcon(key)}
-                height={variables.cardIconHeight}
-                width={variables.cardIconWidth}
-                additionalStyles={[styles.mr3, styles.cardIcon]}
-            />
-        ),
-    }));
+    const companyCardFeeds: CardFeedListItem[] = (Object.entries(companyFeeds) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([key, value]) => {
+        const plaidUrl = getPlaidInstitutionIconUrl(value.feed);
 
-    const feeds =
-        workspaceAccountID && policy?.areExpensifyCardsEnabled
-            ? [
-                  ...companyCardFeeds,
-                  {
-                      value: CONST.EXPENSIFY_CARD.NAME,
-                      text: translate('workspace.common.expensifyCard'),
-                      keyForList: CONST.EXPENSIFY_CARD.NAME,
-                      isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
-                      leftElement: (
-                          <Icon
-                              src={ExpensifyCardImage}
-                              width={variables.cardIconWidth}
-                              height={variables.cardIconHeight}
-                              additionalStyles={[styles.cardIcon, styles.mr3]}
-                          />
-                      ),
-                  },
-              ]
-            : companyCardFeeds;
+        return {
+            value: key,
+            feed: value.feed,
+            text: getCustomOrFormattedFeedName(value.feed, value.customFeedName),
+            keyForList: key,
+            isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: value.pendingAction,
+            isSelected: selectedFeed === key,
+
+            leftElement: plaidUrl ? (
+                <PlaidCardFeedIcon
+                    plaidUrl={plaidUrl}
+                    style={styles.mr3}
+                />
+            ) : (
+                <Icon
+                    src={getCardFeedIcon(value.feed, illustrations)}
+                    height={variables.cardIconHeight}
+                    width={variables.cardIconWidth}
+                    additionalStyles={[styles.mr3, styles.cardIcon]}
+                />
+            ),
+        };
+    });
+
+    const feeds = shouldShowExpensifyCard
+        ? [
+              ...companyCardFeeds,
+              {
+                  value: CONST.EXPENSIFY_CARD.NAME as CompanyCardFeedWithDomainID,
+                  feed: CONST.EXPENSIFY_CARD.NAME as CompanyCardFeed,
+                  text: translate('workspace.common.expensifyCard'),
+                  keyForList: CONST.EXPENSIFY_CARD.NAME,
+                  isSelected: selectedFeed === CONST.EXPENSIFY_CARD.NAME,
+                  leftElement: (
+                      <Icon
+                          src={lazyIllustrations.ExpensifyCardImage}
+                          width={variables.cardIconWidth}
+                          height={variables.cardIconHeight}
+                          additionalStyles={[styles.cardIcon, styles.mr3]}
+                      />
+                  ),
+              },
+          ]
+        : companyCardFeeds;
 
     const goBack = () => Navigation.goBack();
 
@@ -157,11 +204,11 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                     onBackButtonPress={goBack}
                 />
                 <SelectionList
+                    data={feeds}
                     ListItem={RadioListItem}
                     onSelectRow={handleSelectFeed}
-                    sections={[{data: feeds}]}
                     shouldUpdateFocusedIndex
-                    isAlternateTextMultilineSupported
+                    alternateNumberOfSupportedLines={2}
                 />
                 <FormAlertWithSubmitButton
                     containerStyles={styles.p5}
@@ -169,6 +216,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
                     onSubmit={handleSubmit}
                     message={translate('common.error.pleaseSelectOne')}
                     buttonText={translate('common.next')}
+                    isLoading={!!defaultFeed?.isLoading}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

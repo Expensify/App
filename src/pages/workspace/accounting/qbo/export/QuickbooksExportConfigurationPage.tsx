@@ -1,19 +1,20 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -32,36 +33,43 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
         () => qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
         [qboConfig?.nonReimbursableExpensesExportDestination],
     );
-    const shouldGoBackToSpecificRoute = shouldShowVendorMenuItems && backTo;
+
+    const goBack = useCallback(() => {
+        return goBackFromExportConnection(shouldShowVendorMenuItems, backTo);
+    }, [backTo, shouldShowVendorMenuItems]);
 
     const menuItems = [
         {
             description: translate('workspace.accounting.preferredExporter'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID, Navigation.getActiveRoute())),
             title: qboConfig?.export?.exporter ?? policyOwner,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORT],
         },
         {
             description: translate('workspace.qbo.date'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             title: qboConfig?.exportDate ? translate(`workspace.qbo.exportDate.values.${qboConfig?.exportDate}.label`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.EXPORT_DATE],
         },
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
+            onPress: !policyID
+                ? undefined
+                : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID, Navigation.getActiveRoute())),
             title: qboConfig?.reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.reimbursableExpensesExportDestination}`) : undefined,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT],
         },
         {
             description: translate('workspace.qbo.exportInvoices'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             title: qboConfig?.receivableAccount?.name,
             subscribedSettings: [CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT],
         },
         {
             description: translate('workspace.accounting.exportCompanyCard'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)),
+            onPress: !policyID
+                ? undefined
+                : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute())),
             brickRoadIndicator: qboConfig?.errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: qboConfig?.nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${qboConfig?.nonReimbursableExpensesExportDestination}`) : undefined,
             subscribedSettings: [
@@ -86,7 +94,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             title="workspace.qbo.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
-            onBackButtonPress={shouldGoBackToSpecificRoute ? () => Navigation.navigate(backTo) : undefined}
+            onBackButtonPress={goBack}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
@@ -103,19 +111,19 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
                         description={menuItem.description}
                         shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                         onPress={menuItem?.onPress}
-                        brickRoadIndicator={areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={
+                            areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ||
+                            (menuItem.subscribedSettings?.some((setting) => setting === CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION) &&
+                                shouldShowQBOReimbursableExportDestinationAccountError(policy))
+                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                : undefined
+                        }
                     />
                 </OfflineWithFeedback>
             ))}
-            <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, styles.mt2]}>
-                <Text style={[styles.mutedNormalTextLabel]}>{`${translate('workspace.qbo.deepDiveExpensifyCard')} `}</Text>
-                <TextLink
-                    onPress={() => openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
-                    style={[styles.mutedNormalTextLabel, styles.link]}
-                >
-                    {translate('workspace.qbo.deepDiveExpensifyCardIntegration')}
-                </TextLink>
-            </Text>
+            <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.mt2]}>
+                <RenderHTML html={translate('workspace.common.deepDiveExpensifyCard')} />
+            </View>
         </ConnectionLayout>
     );
 }

@@ -1,21 +1,21 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteCollectionAccount} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getNetSuiteCollectionAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -23,9 +23,10 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
+    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
 
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const netsuiteCollectionAccountOptions = useMemo<SelectorType[]>(
         () => getNetSuiteCollectionAccountOptions(policy ?? undefined, config?.collectionAccount),
         [config?.collectionAccount, policy],
@@ -35,8 +36,8 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
 
     const updateCollectionAccount = useCallback(
         ({value}: SelectorType) => {
-            if (config?.collectionAccount !== value) {
-                Connections.updateNetSuiteCollectionAccount(policyID, value, config?.collectionAccount);
+            if (config?.collectionAccount !== value && policyID) {
+                updateNetSuiteCollectionAccount(policyID, value, config?.collectionAccount);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
         },
@@ -46,7 +47,7 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.netsuite.noAccountsFound')}
@@ -54,7 +55,7 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10],
     );
 
     const headerContent = useMemo(
@@ -83,9 +84,9 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT)}
+            errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT)}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT)}
         />
     );
 }

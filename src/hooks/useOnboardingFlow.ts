@@ -1,14 +1,22 @@
-import {useEffect} from 'react';
-import {InteractionManager, NativeModules} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Navigation from '@libs/Navigation/Navigation';
-import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import * as Session from '@userActions/Session';
-import * as OnboardingFlow from '@userActions/Welcome/OnboardingFlow';
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
+import {emailSelector} from '@selectors/Session';
+import {useEffect, useMemo, useRef} from 'react';
+import {InteractionManager} from 'react-native';
+import {startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
+import getCurrentUrl from '@libs/Navigation/currentUrl';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {getDefaultActionableSearchMenuItem} from '@libs/SearchUIUtils';
+import {isLoggingInAsNewUser} from '@libs/SessionUtils';
+import isProductTrainingElementDismissed from '@libs/TooltipUtils';
+import CONFIG from '@src/CONFIG';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import useOnyx from './useOnyx';
+import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
@@ -16,40 +24,83 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
  * Warning: This hook should be used only once in the app
  */
 function useOnboardingFlowRouter() {
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
-    const [isOnboardingCompleted, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasCompletedGuidedSetupFlowSelector,
+    const currentUrl = getCurrentUrl();
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        canBeMissing: true,
     });
-    const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
+    const [currentOnboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
+    const [currentOnboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
+    const [onboardingInitialPath, onboardingInitialPathMetadata] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, {canBeMissing: true});
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const isOnboardingLoading = isLoadingOnyxValue(onboardingInitialPathMetadata, accountMetadata);
+
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
+    const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
+    const startedOnboardingFlowRef = useRef(false);
+    const started2FAFlowRef = useRef(false);
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
+        canBeMissing: true,
     });
     const {isHybridAppOnboardingCompleted, hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
 
-    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
-    const isPrivateDomain = Session.isUserOnPrivateDomain();
+    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
+    const {typeMenuSections} = useSearchTypeMenuSections();
+    const shouldShowRequire2FAPage = useMemo(
+        () => (!!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth) || (!!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlowSelector(onboardingValues)),
+        [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth, account?.twoFactorAuthSetupInProgress, onboardingValues],
+    );
 
-    const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            if (isLoadingApp !== false) {
+            // Prevent starting the onboarding flow if we are logging in as a new user with short lived token
+            if (currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS) && isLoggingInAsNewSessionUser) {
                 return;
             }
 
-            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
+            if (isLoadingApp !== false || isOnboardingLoading) {
                 return;
             }
 
-            if (NativeModules.HybridAppModule && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
+            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotMetadata, dismissedProductTrainingMetadata)) {
                 return;
             }
 
-            if (hasBeenAddedToNudgeMigration && !dismissedProductTraining?.migratedUserWelcomeModal) {
-                const defaultCannedQuery = SearchQueryUtils.buildCannedSearchQuery();
-                const query = defaultCannedQuery;
-                Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute({query}));
-                Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL);
+            if (CONFIG.IS_HYBRID_APP && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
+                return;
+            }
+
+            if (currentUrl.endsWith('/r')) {
+                // Don't trigger onboarding if we are in the middle of a redirect to a report
+                return;
+            }
+
+            if (shouldShowRequire2FAPage) {
+                if (started2FAFlowRef.current) {
+                    startedOnboardingFlowRef.current = false;
+                    return;
+                }
+                started2FAFlowRef.current = true;
+                Navigation.navigate(ROUTES.REQUIRE_TWO_FACTOR_AUTH);
+                return;
+            }
+
+            if (hasBeenAddedToNudgeMigration && !isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)) {
+                const navigationState = navigationRef.getRootState();
+                const lastRoute = navigationState.routes.at(-1);
+                // Prevent duplicate navigation if the migrated user modal is already shown.
+                if (lastRoute?.name !== NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR) {
+                    const flattenedMenuItems = typeMenuSections.flatMap((section) => section.menuItems);
+                    const defaultActionableSearchQuery =
+                        getDefaultActionableSearchMenuItem(flattenedMenuItems)?.searchQuery ?? flattenedMenuItems.at(0)?.searchQuery ?? typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultActionableSearchQuery ?? buildCannedSearchQuery()}));
+                    Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute(true));
+                }
                 return;
             }
 
@@ -57,7 +108,9 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            if (NativeModules.HybridAppModule) {
+            const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues) && onboardingValues?.testDriveModalDismissed !== false;
+
+            if (CONFIG.IS_HYBRID_APP) {
                 // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
                 if (isSingleNewDotEntry) {
                     return;
@@ -70,32 +123,64 @@ function useOnboardingFlowRouter() {
 
                 // But if the hybrid app onboarding is completed, but NewDot onboarding is not completed, we start NewDot onboarding flow
                 // This is a special case when user created an account from NewDot without finishing the onboarding flow and then logged in from OldDot
-                if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false) {
-                    OnboardingFlow.startOnboardingFlow(isPrivateDomain);
+                if (isHybridAppOnboardingCompleted === true && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
+                    startedOnboardingFlowRef.current = true;
+                    startOnboardingFlow({
+                        onboardingValuesParam: onboardingValues,
+                        isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                        hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                        currentOnboardingCompanySize,
+                        currentOnboardingPurposeSelected,
+                        onboardingInitialPath,
+                        onboardingValues,
+                    });
                 }
             }
 
             // If the user is not transitioning from OldDot to NewDot, we should start NewDot onboarding flow if it's not completed yet
-            if (!NativeModules.HybridAppModule && isOnboardingCompleted === false) {
-                OnboardingFlow.startOnboardingFlow(isPrivateDomain);
+            if (!CONFIG.IS_HYBRID_APP && isOnboardingCompleted === false && !startedOnboardingFlowRef.current) {
+                startedOnboardingFlowRef.current = true;
+                startOnboardingFlow({
+                    onboardingValuesParam: onboardingValues,
+                    isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                    hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                    currentOnboardingCompanySize,
+                    currentOnboardingPurposeSelected,
+                    onboardingInitialPath,
+                    onboardingValues,
+                });
             }
         });
     }, [
         isLoadingApp,
-        isOnboardingCompleted,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,
-        tryNewDotdMetadata,
+        tryNewDotMetadata,
         isSingleNewDotEntryMetadata,
         isSingleNewDotEntry,
         hasBeenAddedToNudgeMigration,
         dismissedProductTrainingMetadata,
         dismissedProductTraining?.migratedUserWelcomeModal,
+        onboardingValues,
         dismissedProductTraining,
-        isPrivateDomain,
+        account?.isFromPublicDomain,
+        account?.hasAccessibleDomainPolicies,
+        currentUrl,
+        isLoggingInAsNewSessionUser,
+        currentOnboardingCompanySize,
+        currentOnboardingPurposeSelected,
+        onboardingInitialPath,
+        isOnboardingLoading,
+        typeMenuSections,
+        shouldShowRequire2FAPage,
     ]);
 
-    return {isOnboardingCompleted, isHybridAppOnboardingCompleted};
+    return {
+        isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues),
+        isHybridAppOnboardingCompleted,
+        shouldShowRequire2FAPage,
+        isOnboardingLoading: !!onboardingValues?.isLoading,
+    };
 }
 
 export default useOnboardingFlowRouter;

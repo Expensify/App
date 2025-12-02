@@ -1,32 +1,24 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
-import AnimatedStepProvider from '@components/AnimatedStep/AnimatedStepProvider';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
-import ScreenWrapper from '@components/ScreenWrapper';
-import CONST from '@src/CONST';
+import useOnyx from '@hooks/useOnyx';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import TwoFactorAuthSteps from './TwoFactorAuthSteps';
+import type SCREENS from '@src/SCREENS';
+import CopyCodesPage from './CopyCodesPage';
+import EnabledPage from './EnabledPage';
 
-function TwoFactorAuthPage() {
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
-    if (isActingAsDelegate) {
-        return (
-            <ScreenWrapper
-                testID={TwoFactorAuthPage.displayName}
-                includeSafeAreaPaddingBottom={false}
-                shouldEnablePickerAvoiding={false}
-            >
-                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
-            </ScreenWrapper>
-        );
+type TwoFactorAuthPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.ROOT>;
+
+function TwoFactorAuthPage(props: TwoFactorAuthPageProps) {
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+
+    if (account?.requiresTwoFactorAuth) {
+        return <EnabledPage />;
     }
-    return (
-        <AnimatedStepProvider>
-            <TwoFactorAuthSteps />
-        </AnimatedStepProvider>
-    );
+
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <CopyCodesPage {...props} />;
 }
 
-TwoFactorAuthPage.displayName = 'TwoFactorAuthPage';
-
 export default TwoFactorAuthPage;
+export type {TwoFactorAuthPageProps};

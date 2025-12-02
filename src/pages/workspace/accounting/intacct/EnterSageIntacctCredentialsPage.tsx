@@ -11,7 +11,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {connectToSageIntacct} from '@libs/actions/connections/SageIntacct';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -41,21 +41,21 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM> = {};
 
-            formItems.forEach((formItem) => {
+            for (const formItem of formItems) {
                 if (values[formItem]) {
-                    return;
+                    continue;
                 }
-                ErrorUtils.addErrorMessage(errors, formItem, translate('common.error.fieldRequired'));
-            });
+                addErrorMessage(errors, formItem, translate('common.error.fieldRequired'));
+            }
             return errors;
         },
         [formItems, translate],
     );
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID={EnterSageIntacctCredentialsPage.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.intacct.sageIntacctSetup')}
@@ -70,6 +70,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
                 enabledWhenOffline
                 shouldValidateOnBlur
                 shouldValidateOnChange
+                addBottomSafeAreaPadding
             >
                 <Text style={[styles.textHeadlineH1, styles.pb5, styles.pt3]}>{translate('workspace.intacct.enterCredentials')}</Text>
                 {formItems.map((formItem, index) => (

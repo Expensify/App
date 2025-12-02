@@ -1,31 +1,23 @@
 import {differenceInMinutes, isValid, parseISO} from 'date-fns';
-import isObject from 'lodash/isObject';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {
-    RemovePolicyConnectionParams,
-    SyncPolicyToQuickbooksDesktopParams,
-    UpdateManyPolicyConnectionConfigurationsParams,
-    UpdatePolicyConnectionConfigParams,
-} from '@libs/API/parameters';
+import type {RemovePolicyConnectionParams, SyncPolicyToQuickbooksDesktopParams, UpdateManyPolicyConnectionConfigurationsParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, Connections, PolicyConnectionName, PolicyConnectionSyncProgress} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
 
-type Nullable<T> = {
-    [P in keyof T]: T[P] | null;
-};
+function removePolicyConnection(policy: Policy, connectionName: PolicyConnectionName) {
+    const policyID = policy.id;
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-function removePolicyConnection(policyID: string, connectionName: PolicyConnectionName) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -41,11 +33,20 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
             key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
             value: null,
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
+            value: null,
+        },
     ];
 
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
-    const policy = PolicyUtils.getPolicy(policyID);
     const supportedConnections: PolicyConnectionName[] = [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO];
 
     if (PolicyUtils.isCollectPolicy(policy) && supportedConnections.includes(connectionName)) {
@@ -89,107 +90,8 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
     API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData, successData, failureData});
 }
 
-function createPendingFields<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
-    settingName: TSettingName,
-    settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
-    pendingValue: OnyxCommon.PendingAction,
-) {
-    if (!isObject(settingValue)) {
-        return {[settingName]: pendingValue};
-    }
-
-    return Object.keys(settingValue).reduce<Record<string, OnyxCommon.PendingAction>>((acc, setting) => {
-        acc[setting] = pendingValue;
-        return acc;
-    }, {});
-}
-
-function createErrorFields<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
-    settingName: TSettingName,
-    settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
-    errorValue: OnyxCommon.Errors | null,
-) {
-    if (!isObject(settingValue)) {
-        return {[settingName]: errorValue};
-    }
-
-    return Object.keys(settingValue).reduce<OnyxCommon.ErrorFields>((acc, setting) => {
-        acc[setting] = errorValue;
-        return acc;
-    }, {});
-}
-
-function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
-    policyID: string,
-    connectionName: TConnectionName,
-    settingName: TSettingName,
-    settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
-    oldSettingValue?: Nullable<Partial<Connections[TConnectionName]['config'][TSettingName]>>,
-) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [connectionName]: {
-                        config: {
-                            [settingName]: settingValue ?? null,
-                            pendingFields: createPendingFields(settingName, settingValue, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
-                            errorFields: createErrorFields(settingName, settingValue, null),
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [connectionName]: {
-                        config: {
-                            [settingName]: oldSettingValue ?? null,
-                            pendingFields: createPendingFields(settingName, settingValue, null),
-                            errorFields: createErrorFields(settingName, settingValue, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')),
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    [connectionName]: {
-                        config: {
-                            pendingFields: createPendingFields(settingName, settingValue, null),
-                            errorFields: createErrorFields(settingName, settingValue, null),
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const parameters: UpdatePolicyConnectionConfigParams = {
-        policyID,
-        connectionName,
-        settingName: String(settingName),
-        settingValue: JSON.stringify(settingValue),
-        idempotencyKey: String(settingName),
-    };
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
-}
 /**
- * This method returns read command and stage in progres for a given accounting integration.
+ * This method returns read command and stage in progress for a given accounting integration.
  *
  * @param policyID - ID of the policy for which the sync is needed
  * @param connectionName - Name of the connection, QBO/Xero
@@ -219,14 +121,15 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
 /**
  * This method helps in syncing policy to the connected accounting integration.
  *
- * @param policyID - ID of the policy for which the sync is needed
+ * @param policy - Policy for which the sync is needed
  * @param connectionName - Name of the connection, QBO/Xero
  * @param forceDataRefresh - If true, it will trigger a full data refresh
  */
-function syncConnection(policyID: string, connectionName: PolicyConnectionName | undefined, forceDataRefresh = false) {
-    if (!connectionName) {
+function syncConnection(policy: Policy | undefined, connectionName: PolicyConnectionName | undefined, forceDataRefresh = false) {
+    if (!connectionName || !policy) {
         return;
     }
+    const policyID = policy.id;
     const syncConnectionData = getSyncConnectionParameters(connectionName);
 
     if (!syncConnectionData) {
@@ -268,11 +171,14 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
 }
 
 function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
-    policyID: string,
+    policyID: string | undefined,
     connectionName: TConnectionName,
     configUpdate: TConfigUpdate,
     configCurrentData: TConfigUpdate,
 ) {
+    if (!policyID) {
+        return;
+    }
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -436,7 +342,6 @@ function isConnectionInProgress(connectionSyncProgress: OnyxEntry<PolicyConnecti
 
 export {
     removePolicyConnection,
-    updatePolicyConnectionConfig,
     updateManyPolicyConnectionConfigs,
     isAuthenticationError,
     syncConnection,

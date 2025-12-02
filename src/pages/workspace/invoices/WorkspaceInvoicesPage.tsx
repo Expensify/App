@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FullScreenNavigatorParamList} from '@navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
@@ -14,11 +14,12 @@ import WorkspaceInvoiceBalanceSection from './WorkspaceInvoiceBalanceSection';
 import WorkspaceInvoiceVBASection from './WorkspaceInvoiceVBASection';
 import WorkspaceInvoicingDetailsSection from './WorkspaceInvoicingDetailsSection';
 
-type WorkspaceInvoicesPageProps = PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES>;
+type WorkspaceInvoicesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES>;
 function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const illustrations = useMemoizedLazyIllustrations(['InvoiceBlue'] as const);
 
     return (
         <AccessOrNotFoundWrapper
@@ -29,11 +30,11 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
             <WorkspacePageWithSections
                 shouldUseScrollView
                 headerText={translate('workspace.common.invoices')}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INVOICES}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldSkipVBBACall={false}
                 route={route}
-                icon={Illustrations.InvoiceBlue}
+                icon={illustrations.InvoiceBlue}
+                addBottomSafeAreaPadding
             >
                 {(_hasVBA?: boolean, policyID?: string) => (
                     <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

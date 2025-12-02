@@ -1,34 +1,26 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TimePicker from '@components/TimePicker/TimePicker';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as User from '@libs/actions/User';
+import {updateStatusDraftCustomClearAfterDate} from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
 
-type SetTimePageOnyxProps = {
-    customStatus: OnyxEntry<OnyxTypes.CustomStatusDraft>;
-};
-
-type SetTimePageProps = SetTimePageOnyxProps;
-
-function SetTimePage({customStatus}: SetTimePageProps) {
+function SetTimePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const clearAfter = customStatus?.clearAfter ?? '';
+    const [statusDraftCustomClearAfterDate] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE, {canBeMissing: true});
+    const customStatusClearAfterDate = statusDraftCustomClearAfterDate ?? '';
 
     const onSubmit = (time: string) => {
-        const timeToUse = DateUtils.combineDateAndTime(time, clearAfter);
+        updateStatusDraftCustomClearAfterDate(DateUtils.combineDateAndTime(time, customStatusClearAfterDate));
 
-        User.updateDraftCustomStatus({clearAfter: timeToUse});
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
@@ -43,7 +35,7 @@ function SetTimePage({customStatus}: SetTimePageProps) {
             />
             <View style={styles.flex1}>
                 <TimePicker
-                    defaultValue={clearAfter}
+                    defaultValue={customStatusClearAfterDate}
                     onSubmit={onSubmit}
                 />
             </View>
@@ -53,8 +45,4 @@ function SetTimePage({customStatus}: SetTimePageProps) {
 
 SetTimePage.displayName = 'SetTimePage';
 
-export default withOnyx<SetTimePageProps, SetTimePageOnyxProps>({
-    customStatus: {
-        key: ONYXKEYS.CUSTOM_STATUS_DRAFT,
-    },
-})(SetTimePage);
+export default SetTimePage;

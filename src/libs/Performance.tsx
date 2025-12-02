@@ -1,14 +1,14 @@
-import isEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import isObject from 'lodash/isObject';
 import lodashTransform from 'lodash/transform';
-import React, {forwardRef, Profiler} from 'react';
+import React, {Profiler} from 'react';
 import {Alert, InteractionManager} from 'react-native';
 import performance, {PerformanceObserver, setResourceLoggingEnabled} from 'react-native-performance';
 import type {PerformanceEntry, PerformanceMark, PerformanceMeasure} from 'react-native-performance';
 import CONST from '@src/CONST';
 import isE2ETestSession from './E2E/isE2ETestSession';
 import getComponentDisplayName from './getComponentDisplayName';
-import * as Metrics from './Metrics';
+import canCapturePerformanceMetrics from './Metrics';
 
 /**
  * Deep diff between two objects. Useful for figuring out what changed about an object from one render to the next so
@@ -17,7 +17,7 @@ import * as Metrics from './Metrics';
 function diffObject(object: Record<string, unknown>, base: Record<string, unknown>): Record<string, unknown> {
     function changes(obj: Record<string, unknown>, comparisonObject: Record<string, unknown>): Record<string, unknown> {
         return lodashTransform(obj, (result, value, key) => {
-            if (isEqual(value, comparisonObject[key])) {
+            if (deepEqual(value, comparisonObject[key])) {
                 return;
             }
 
@@ -45,6 +45,7 @@ function measureFailSafe(measureName: string, startOrMeasureOptions: string, end
  */
 function measureTTI(endMark?: string): void {
     // Make sure TTI is captured when the app is really usable
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         requestAnimationFrame(() => {
             measureFailSafe('TTI', 'nativeLaunchStart', endMark);
@@ -52,7 +53,7 @@ function measureTTI(endMark?: string): void {
             // We don't want an alert to show:
             // - on builds with performance metrics collection disabled by a feature flag
             // - e2e test sessions
-            if (!Metrics.canCapturePerformanceMetrics() || isE2ETestSession()) {
+            if (!canCapturePerformanceMetrics() || isE2ETestSession()) {
                 return;
             }
 
@@ -65,7 +66,7 @@ function measureTTI(endMark?: string): void {
  * Monitor native marks that we want to put on the timeline
  */
 const nativeMarksObserver = new PerformanceObserver((list, _observer) => {
-    list.getEntries().forEach((entry) => {
+    for (const entry of list.getEntries()) {
         if (entry.name === 'nativeLaunchEnd') {
             measureFailSafe('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
         }
@@ -88,7 +89,7 @@ const nativeMarksObserver = new PerformanceObserver((list, _observer) => {
         if (entry.name === 'runJsBundleEnd' || entry.name === 'downloadEnd') {
             _observer.disconnect();
         }
-    });
+    }
 });
 
 function setNativeMarksObserverEnabled(enabled = false): void {
@@ -105,10 +106,10 @@ function setNativeMarksObserverEnabled(enabled = false): void {
  * Monitor for "_end" marks and capture "_start" to "_end" measures, including events recorded in the native layer before the app fully initializes.
  */
 const customMarksObserver = new PerformanceObserver((list) => {
-    list.getEntriesByType('mark').forEach((mark) => {
+    for (const mark of list.getEntriesByType('mark')) {
         if (mark.name.endsWith('_end')) {
             const end = mark.name;
-            const name = end.replace(/_end$/, '');
+            const name = end.replaceAll(/_end$/g, '');
             const start = `${name}_start`;
             measureFailSafe(name, start, end);
         }
@@ -118,7 +119,7 @@ const customMarksObserver = new PerformanceObserver((list) => {
             measureFailSafe('contentAppeared_To_screenTTI', 'contentAppeared', mark.name);
             measureTTI(mark.name);
         }
-    });
+    }
 });
 
 function setCustomMarksObserverEnabled(enabled = false): void {
@@ -164,6 +165,7 @@ function printPerformanceMetrics(): void {
 
 function subscribeToMeasurements(callback: (entry: PerformanceEntry) => void): () => void {
     const observer = new PerformanceObserver((list) => {
+        // eslint-disable-next-line unicorn/no-array-for-each
         list.getEntriesByType('measure').forEach(callback);
     });
 
@@ -197,9 +199,8 @@ type Phase = 'mount' | 'update' | 'nested-update';
  * @param baseDuration estimated time to render the entire subtree without memoization
  * @param startTime when React began rendering this update
  * @param commitTime when React committed this update
- * @param interactions the Set of interactions belonging to this update
  */
-function traceRender(id: string, phase: Phase, actualDuration: number, baseDuration: number, startTime: number, commitTime: number, interactions: Set<unknown>): PerformanceMeasure {
+function traceRender(id: string, phase: Phase, actualDuration: number, baseDuration: number, startTime: number, commitTime: number): PerformanceMeasure {
     return performance.measure(id, {
         start: startTime,
         duration: actualDuration,
@@ -207,7 +208,6 @@ function traceRender(id: string, phase: Phase, actualDuration: number, baseDurat
             phase,
             baseDuration,
             commitTime,
-            interactions,
         },
     });
 }
@@ -218,23 +218,24 @@ type WrappedComponentConfig = {id: string};
  * A HOC that captures render timings of the Wrapped component
  */
 function withRenderTrace({id}: WrappedComponentConfig) {
-    if (!Metrics.canCapturePerformanceMetrics()) {
+    if (!canCapturePerformanceMetrics()) {
         return <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P> => WrappedComponent;
     }
 
-    return <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P & React.RefAttributes<unknown>> => {
-        const WithRenderTrace: React.ComponentType<P & React.RefAttributes<unknown>> = forwardRef((props: P, ref) => (
-            <Profiler
-                id={id}
-                onRender={traceRender}
-            >
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    ref={ref}
-                />
-            </Profiler>
-        ));
+    return <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P> => {
+        function WithRenderTrace(props: P) {
+            return (
+                <Profiler
+                    id={id}
+                    onRender={traceRender}
+                >
+                    <WrappedComponent
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                    />
+                </Profiler>
+            );
+        }
 
         WithRenderTrace.displayName = `withRenderTrace(${getComponentDisplayName(WrappedComponent as React.ComponentType)})`;
         return WithRenderTrace;

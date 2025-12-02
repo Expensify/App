@@ -1,45 +1,45 @@
+import {useRoute} from '@react-navigation/native';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateQuickbooksDesktopShouldAutoCreateVendor} from '@libs/actions/connections/QuickbooksDesktop';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {settingsPendingAction} from '@libs/PolicyUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 function QuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ADVANCED>>();
+    const accountingMethod = qbdConfig?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
 
     const qbdToggleSettingItems = [
-        {
-            title: translate('workspace.accounting.autoSync'),
-            subtitle: translate('workspace.qbd.advancedConfig.autoSyncDescription'),
-            switchAccessibilityLabel: translate('workspace.qbd.advancedConfig.autoSyncDescription'),
-            isActive: !!qbdConfig?.autoSync?.enabled,
-            onToggle: (isOn: boolean) => QuickbooksDesktop.updateQuickbooksDesktopAutoSync(policyID, isOn),
-            subscribedSetting: CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC,
-            errors: ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC),
-            pendingAction: settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC], qbdConfig?.pendingFields),
-        },
         {
             title: translate('workspace.qbd.advancedConfig.createEntities'),
             subtitle: translate('workspace.qbd.advancedConfig.createEntitiesDescription'),
             switchAccessibilityLabel: translate('workspace.qbd.advancedConfig.createEntitiesDescription'),
             isActive: !!qbdConfig?.shouldAutoCreateVendor,
             onToggle: (isOn: boolean) => {
-                QuickbooksDesktop.updateQuickbooksDesktopShouldAutoCreateVendor(policyID, isOn);
+                updateQuickbooksDesktopShouldAutoCreateVendor(policyID, isOn);
             },
             subscribedSetting: CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR,
-            errors: ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR),
+            errors: getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR),
             pendingAction: settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR], qbdConfig?.pendingFields),
         },
     ];
@@ -53,8 +53,29 @@ function QuickbooksDesktopAdvancedPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
         >
+            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC, CONST.QUICKBOOKS_CONFIG.ACCOUNTING_METHOD], qbdConfig?.pendingFields)}>
+                <MenuItemWithTopDescription
+                    title={qbdConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled')}
+                    description={translate('workspace.accounting.autoSync')}
+                    shouldShowRightIcon
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC.getRoute(policyID))}
+                    brickRoadIndicator={
+                        areSettingsInErrorFields([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC, CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD], qbdConfig?.errorFields)
+                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                            : undefined
+                    }
+                    hintText={(() => {
+                        if (!qbdConfig?.autoSync?.enabled) {
+                            return undefined;
+                        }
+                        return translate(`workspace.qbd.accountingMethods.alternateText.${accountingMethod}` as TranslationPaths);
+                    })()}
+                />
+            </OfflineWithFeedback>
+
             {qbdToggleSettingItems.map((item) => (
                 <ToggleSettingOptionRow
                     key={item.title}

@@ -11,6 +11,8 @@ type CompleteSplitBillParams = {
     taxCode?: string;
     taxAmount?: number;
     billable?: boolean;
+    reimbursable?: boolean;
+    description?: string;
 };
 
 export default CompleteSplitBillParams;

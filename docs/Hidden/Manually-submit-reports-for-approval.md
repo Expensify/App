@@ -2,7 +2,6 @@
 title: Manually submit reports for approval
 description: Submit a report before the submission date
 ---
-<div id="new-expensify" markdown="1">
 
 By default, reports are automatically submitted for approval every Sunday. However, if it is ready for early submission, you can manually submit your report for approval.
 
@@ -40,4 +39,3 @@ The reimbursement options depend on the workspace’s settings.
 - You can receive reimbursements with your Expensify Wallet or outside of Expensify.
 {% include faq-end.md %}
 
-</div>

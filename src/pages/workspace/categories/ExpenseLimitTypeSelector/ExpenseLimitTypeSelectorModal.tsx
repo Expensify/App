@@ -3,7 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -44,13 +44,12 @@ function ExpenseLimitTypeSelectorModal({isVisible, currentExpenseLimitType, onEx
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={ExpenseLimitTypeSelectorModal.displayName}
             >
                 <HeaderWithBackButton
@@ -59,14 +58,14 @@ function ExpenseLimitTypeSelectorModal({isVisible, currentExpenseLimitType, onEx
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    sections={[{data: expenseLimitTypes}]}
+                    data={expenseLimitTypes}
                     ListItem={RadioListItem}
                     onSelectRow={(item) => onExpenseLimitTypeSelected(item.value)}
                     shouldSingleExecuteRowSelect
-                    containerStyle={[styles.pt3]}
-                    initiallyFocusedOptionKey={currentExpenseLimitType}
-                    isAlternateTextMultilineSupported
-                    alternateTextNumberOfLines={3}
+                    style={{containerStyle: [styles.pt3]}}
+                    initiallyFocusedItemKey={currentExpenseLimitType}
+                    alternateNumberOfSupportedLines={3}
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </Modal>

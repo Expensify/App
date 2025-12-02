@@ -35,6 +35,7 @@ const addressComponents: GooglePlacesUtils.AddressComponent[] = [
     },
 ];
 
+// cspell:disable
 const bigObjectToFind: GooglePlacesUtils.FieldsToExtract = {
     sublocality: 'long_name',
     administrative_area_level_1: 'short_name',
@@ -141,6 +142,7 @@ const bigObjectToFind: GooglePlacesUtils.FieldsToExtract = {
     p25ostal_code: 'long_name',
     '25doesnt-exist': 'long_name',
 };
+// cspell:enable
 
 /**
  * This function will be executed 20 times and the average time will be used on the comparison.

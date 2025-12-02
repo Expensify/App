@@ -1,16 +1,14 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {isInstantSubmitEnabled, isPolicyAdmin as isPolicyAdminPolicyUtils} from '@libs/PolicyUtils';
-import {isCurrentUserSubmitter, isProcessingReport, isReportApproved, isReportManuallyReimbursed} from '@libs/ReportUtils';
-import Navigation from '@navigation/Navigation';
+import useTransactionViolations from '@hooks/useTransactionViolations';
+import {isPolicyAdmin as isPolicyAdminPolicyUtils} from '@libs/PolicyUtils';
+import {isCurrentUserSubmitter, isReportApproved, isReportManuallyReimbursed} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
-import TextLink from './TextLink';
+import RenderHTML from './RenderHTML';
 
 type BrokenConnectionDescriptionProps = {
     /** Transaction id of the corresponding report */
@@ -24,13 +22,14 @@ type BrokenConnectionDescriptionProps = {
 };
 
 function BrokenConnectionDescription({transactionID, policy, report}: BrokenConnectionDescriptionProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const transactionViolations = useTransactionViolations(transactionID);
+    const {environmentURL} = useEnvironment();
 
     const brokenConnection530Error = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530);
     const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
+    const workspaceCompanyCardRoute = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id)}`;
 
     if (!brokenConnection530Error && !brokenConnectionError) {
         return '';
@@ -40,20 +39,11 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
         return translate('violations.brokenConnection530Error');
     }
 
-    if (isPolicyAdmin && !isCurrentUserSubmitter(report?.reportID)) {
-        return (
-            <>
-                {`${translate('violations.adminBrokenConnectionError')}`}
-                <TextLink
-                    style={[styles.textLabelSupporting, styles.link]}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policy?.id))}
-                >{`${translate('workspace.common.companyCards')}`}</TextLink>
-                .
-            </>
-        );
+    if (isPolicyAdmin && !isCurrentUserSubmitter(report)) {
+        return <RenderHTML html={translate('violations.adminBrokenConnectionError', {workspaceCompanyCardRoute})} />;
     }
 
-    if (isReportApproved(report) || isReportManuallyReimbursed(report) || (isProcessingReport(report) && !isInstantSubmitEnabled(policy))) {
+    if (isReportApproved({report}) || isReportManuallyReimbursed(report)) {
         return translate('violations.memberBrokenConnectionError');
     }
 

@@ -1,11 +1,12 @@
 import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SafeString from '@src/utils/SafeString';
 
 type DateOfBirthProps = SubStepProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
@@ -16,7 +17,7 @@ function DateOfBirth({onNext, isEditing, onMove, isUserEnteringHisOwnData, owner
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const dobInputID = `${PREFIX}_${ownerBeingModifiedID}_${DOB}` as const;
-    const dobDefaultValue = reimbursementAccountDraft?.[dobInputID] ?? '';
+    const dobDefaultValue = SafeString(reimbursementAccountDraft?.[dobInputID]);
     const formTitle = translate(isUserEnteringHisOwnData ? 'ownershipInfoStep.whatsYourDOB' : 'ownershipInfoStep.whatsTheOwnersDOB');
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({

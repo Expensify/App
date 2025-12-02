@@ -1,15 +1,18 @@
 import type {ValueOf} from 'type-fest';
 import type {SearchStatus} from '@components/Search/types';
-import type ChatListItem from '@components/SelectionList/ChatListItem';
-import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
-import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
+import type TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
+import type TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
-import type {ACHAccount, ApprovalRule, ExpenseRule} from './Policy';
+import type PersonalDetails from './PersonalDetails';
+import type Policy from './Policy';
 import type {InvoiceReceiver, Participants} from './Report';
-import type ReportActionName from './ReportActionName';
+import type ReportAction from './ReportAction';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type {TransactionViolation} from './TransactionViolation';
 
@@ -20,27 +23,17 @@ type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 type ListItemType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? typeof ChatListItem
     : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-    ? typeof TransactionListItem
-    : typeof ReportListItem;
+      ? typeof TransactionListItem
+      : typeof TransactionGroupListItem;
 
 /** Model of search list item data type */
 type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? ReportActionListItemType[]
-    : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-    ? TransactionListItemType[]
-    : ReportListItemType[];
-
-/** Model of columns to show for search results */
-type ColumnsToShow = {
-    /** Whether the category column should be shown */
-    shouldShowCategoryColumn: boolean;
-
-    /** Whether the tag column should be shown */
-    shouldShowTagColumn: boolean;
-
-    /** Whether the tax column should be shown */
-    shouldShowTaxColumn: boolean;
-};
+    : C extends typeof CONST.SEARCH.DATA_TYPES.TASK
+      ? TaskListItemType[]
+      : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
+        ? TransactionListItemType[]
+        : TransactionGroupListItemType[];
 
 /** Model of search result state */
 type SearchResultsInfo = {
@@ -63,29 +56,23 @@ type SearchResultsInfo = {
     /** Whether the search results are currently loading */
     isLoading: boolean;
 
-    /** The optional columns that should be shown according to policy settings */
-    columnsToShow: ColumnsToShow;
-};
+    /** The number of results */
+    count?: number;
 
-/** Model of personal details search result */
-type SearchPersonalDetails = {
-    /** ID of user account */
-    accountID: number;
+    /** The total spend */
+    total?: number;
 
-    /** User's avatar URL */
-    avatar: string;
-
-    /** User's display name */
-    displayName?: string;
-
-    /** User's email */
-    login?: string;
+    /** The currency of the total spend */
+    currency?: string;
 };
 
 /** The action that can be performed for the transaction */
 type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 
-/** Model of report search result */
+/** Model of report search result
+ *
+ * @deprecated - Use Report instead
+ */
 type SearchReport = {
     /** The ID of the report */
     reportID: string;
@@ -108,29 +95,17 @@ type SearchReport = {
     /** The accountID of the report manager */
     managerID?: number;
 
-    /** The accountID of the user who created the report  */
-    accountID?: number;
-
     /** The policyID of the report */
     policyID?: string;
 
     /** The date the report was created */
     created?: string;
 
-    /** The action that can be performed for the report */
-    action?: SearchTransactionAction;
-
     /** The type of chat if this is a chat report */
     chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
     /** Invoice room receiver data */
     invoiceReceiver?: InvoiceReceiver;
-
-    /** Whether the report has a single transaction */
-    isOneTransactionReport?: boolean;
-
-    /** Whether the report is policyExpenseChat */
-    isPolicyExpenseChat?: boolean;
 
     /** Whether the report is waiting on a bank account */
     isWaitingOnBankAccount?: boolean;
@@ -147,117 +122,47 @@ type SearchReport = {
     /** The status of the current report */
     statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
+    /** Number of transactions in the report */
+    transactionCount?: number;
+
     /** For expense reports, this is the total amount requested */
     unheldTotal?: number;
-
-    /** Whether the report is archived */
-    private_isArchived?: string;
-
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
 
     /** Whether the report has violations or errors */
     errors?: OnyxCommon.Errors;
 
     /** Collection of report participants, indexed by their accountID */
     participants?: Participants;
-};
 
-/** Model of report action search result */
-type SearchReportAction = {
-    /** The report action sender ID */
-    accountID: number;
+    /** ID of the parent report of the current report, if it exists */
+    parentReportID?: string;
 
-    /** The name (or type) of the action */
-    actionName: ReportActionName;
+    /** ID of the parent report action of the current report, if it exists */
+    parentReportActionID?: string;
 
-    /** The report action created date */
-    created: string;
+    /** Whether the report has a child that is an outstanding expense that is awaiting action from the current user */
+    hasOutstandingChildRequest?: boolean;
 
-    /** report action message */
-    message: Array<{
-        /** The type of the action item fragment. Used to render a corresponding component */
-        type: string;
+    /** Whether the user is not an admin of policyExpenseChat chat */
+    isOwnPolicyExpenseChat?: boolean;
 
-        /** The text content of the fragment. */
-        text: string;
+    /** The policy name to use for an archived report */
+    oldPolicyName?: string;
 
-        /** The html content of the fragment. */
-        html: string;
-
-        /** Collection of accountIDs of users mentioned in message */
-        whisperedTo?: number[];
-    }>;
-
-    /** The ID of the report action */
-    reportActionID: string;
-
-    /** The ID of the report */
-    reportID: string;
-};
-
-/** Model of policy search result */
-type SearchPolicy = {
-    /** The policy type */
-    type: ValueOf<typeof CONST.POLICY.TYPE>;
-
-    /** Whether the auto reporting is enabled */
-    autoReporting?: boolean;
-
-    /** Whether the rules feature is enabled */
-    areRulesEnabled?: boolean;
-
-    /**
-     * The scheduled submit frequency set up on this policy.
-     * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
-     * "manual" really means "immediate" (aka "daily") && harvesting.enabled === false
-     */
-    autoReportingFrequency?: Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL>;
-
-    /** The approval mode set up on this policy */
-    approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
-
-    /** The reimbursement choice for policy */
-    reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
-
-    /** The maximum report total allowed to trigger auto reimbursement */
-    autoReimbursementLimit?: number;
-
-    /** The verified bank account linked to the policy */
-    achAccount?: ACHAccount;
-
-    /** The current user's role in the policy */
-    role: ValueOf<typeof CONST.POLICY.ROLE>;
-
-    /** The employee list of the policy */
-    employeeList?: Record<string, Record<string, string>>;
-
-    /** Detailed settings for the autoReimbursement */
-    autoReimbursement?: {
-        /** The auto reimbursement limit */
-        limit: number;
+    /** Pending fields for the report */
+    pendingFields?: {
+        /** Pending action for the preview */
+        preview?: OnyxCommon.PendingAction;
     };
 
-    /** Whether the self approval or submitting is enabled */
-    preventSelfApproval?: boolean;
-
-    /** The email of the policy owner */
-    owner: string;
-
-    /** The approver of the policy */
-    approver?: string;
-
-    /** A set of rules related to the workpsace */
-    rules?: {
-        /** A set of rules related to the workpsace approvals */
-        approvalRules?: ApprovalRule[];
-
-        /** A set of rules related to the workpsace expenses */
-        expenseRules?: ExpenseRule[];
-    };
+    /** Pending action for the report */
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
-/** Model of transaction search result */
+/** Model of transaction search result
+ *
+ * @deprecated - Use Transaction instead
+ */
 type SearchTransaction = {
     /** The ID of the transaction */
     transactionID: string;
@@ -273,12 +178,6 @@ type SearchTransaction = {
 
     /** If the transaction can be deleted */
     canDelete: boolean;
-
-    /** If the transaction can be put on hold */
-    canHold: boolean;
-
-    /** If the transaction can be removed from hold */
-    canUnhold: boolean;
 
     /** The edited transaction amount */
     modifiedAmount: number;
@@ -302,6 +201,9 @@ type SearchTransaction = {
 
         /** State of the receipt */
         state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
+
+        /** The name of the file of the receipt */
+        filename?: string;
     };
 
     /** The transaction tag */
@@ -311,19 +213,13 @@ type SearchTransaction = {
     comment?: {
         /** Content of the transaction description */
         comment?: string;
+
+        /** The HOLD report action ID if the transaction is on hold */
+        hold?: string;
     };
 
     /** The transaction category */
     category: string;
-
-    /** The type of request */
-    transactionType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
-    /** The type of report the transaction is associated with */
-    reportType: string;
-
-    /** The ID of the policy the transaction is associated with */
-    policyID: string;
 
     /** The ID of the parent of the transaction */
     parentTransactionID?: string;
@@ -331,17 +227,8 @@ type SearchTransaction = {
     /** If the transaction has an Ereceipt */
     hasEReceipt?: boolean;
 
-    /** The transaction description */
-    description?: string;
-
-    /** The transaction sender ID */
-    accountID: number;
-
-    /** The transaction recipient ID */
-    managerID: number;
-
-    /** If the transaction has violations */
-    hasViolation?: boolean;
+    /** Used during the creation flow before the transaction is saved to the server */
+    iouRequestType?: IOURequestType;
 
     /** The transaction tax amount */
     taxAmount?: number;
@@ -349,11 +236,11 @@ type SearchTransaction = {
     /** The ID of the report the transaction is associated with */
     reportID: string;
 
+    /** The name of the file used for a receipt */
+    filename?: string;
+
     /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
-
-    /** The action that can be performed for the transaction */
-    action: SearchTransactionAction;
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -364,25 +251,131 @@ type SearchTransaction = {
     /** The ID of the money request reportAction associated with the transaction */
     moneyRequestReportActionID?: string;
 
-    /** Whether the transaction report has only a single transaction */
-    isFromOneTransactionReport?: boolean;
-
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
-
     /** Whether the transaction has violations or errors */
     errors?: OnyxCommon.Errors;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** The CC for this transaction */
+    cardID?: number;
+
+    /** The display name of the purchaser card, if any */
+    cardName?: string;
+
+    /** The transaction converted amount in `groupCurrency` currency */
+    groupAmount?: number;
+
+    /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
+    groupCurrency?: string;
 };
 
-/** Types of searchable transactions */
-type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
+/** Model of tasks search result */
+type SearchTask = {
+    /** The type of the response */
+    type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
+
+    /** The account ID of the user who created the task */
+    accountID: number;
+
+    /** When the task was created */
+    created: string;
+
+    /** The description of the task that needs to be done */
+    description: string;
+
+    /** The person the task was assigned to */
+    managerID: number;
+
+    /** The chat report that the task was created in */
+    parentReportID: string;
+
+    /** The ID of the report that the task is associated with */
+    reportID: string;
+
+    /** The title of the task */
+    reportName: string;
+
+    /** The state of the task */
+    stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM>;
+
+    /** The status of the task */
+    statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+};
+
+/** Model of member grouped search result */
+type SearchMemberGroup = {
+    /** Account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
+/** Model of card grouped search result */
+type SearchCardGroup = {
+    /** Cardholder account ID */
+    accountID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
+    /** Bank name */
+    bank: string;
+
+    /** Card name */
+    cardName: string;
+
+    /** Card ID */
+    cardID: number;
+
+    /** Last four Primary Account Number digits */
+    lastFourPAN: string;
+};
+
+/** Model of withdrawal ID grouped search result */
+type SearchWithdrawalIDGroup = {
+    /** Withdrawal ID */
+    entryID: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
+    /** Masked account number */
+    accountNumber: string;
+
+    /** Bank name */
+    bankName: BankName;
+
+    /** When the withdrawal completed */
+    debitPosted: string;
+
+    /** Settlement state (5/6/7=failed, 8=cleared, others=pending) */
+    state: number;
+};
 
 /**
  * A utility type that creates a record where all keys are strings that start with a specified prefix.
  */
-type PrefixedRecord<Prefix extends string, ValueType> = {
-    [Key in `${Prefix}${string}`]: ValueType;
-};
+type PrefixedRecord<Prefix extends string, ValueType> = Record<`${Prefix}${string}`, ValueType>;
 
 /** Model of search results */
 type SearchResults = {
@@ -390,16 +383,22 @@ type SearchResults = {
     search: SearchResultsInfo;
 
     /** Search results data */
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
-        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, SearchPersonalDetails>> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
+        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails>> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
+        PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup>;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
+
+    /** Whether search data fetch has failed */
+    errors?: OnyxCommon.Errors;
 };
 
 export default SearchResults;
@@ -407,12 +406,15 @@ export default SearchResults;
 export type {
     ListItemType,
     ListItemDataType,
+    SearchTask,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchTransaction,
-    SearchTransactionType,
     SearchTransactionAction,
-    SearchPersonalDetails,
     SearchDataTypes,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchReport,
-    SearchReportAction,
-    SearchPolicy,
+    SearchResultsInfo,
+    SearchMemberGroup,
+    SearchCardGroup,
+    SearchWithdrawalIDGroup,
 };

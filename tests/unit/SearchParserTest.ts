@@ -1,5 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
-import * as searchParser from '@libs/SearchParser/searchParser';
+import {parse} from '@libs/SearchParser/searchParser';
+import CONST from '@src/CONST';
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 
 const tests = [
@@ -7,7 +8,7 @@ const tests = [
         query: parserCommonTests.simple,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: null,
@@ -17,7 +18,7 @@ const tests = [
         query: parserCommonTests.userFriendlyNames,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -46,7 +47,7 @@ const tests = [
                 right: {
                     operator: 'eq',
                     left: 'reportID',
-                    right: 'report',
+                    right: '1234',
                 },
             },
         },
@@ -55,7 +56,7 @@ const tests = [
         query: parserCommonTests.oldNames,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -84,7 +85,7 @@ const tests = [
                 right: {
                     operator: 'eq',
                     left: 'reportID',
-                    right: 'report',
+                    right: '1234',
                 },
             },
         },
@@ -93,7 +94,7 @@ const tests = [
         query: parserCommonTests.complex,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -139,7 +140,7 @@ const tests = [
         query: parserCommonTests.quotesIOS,
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -153,7 +154,7 @@ const tests = [
         query: ',',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -167,7 +168,7 @@ const tests = [
         query: 'currency:,',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -181,7 +182,7 @@ const tests = [
         query: 'tag:,,travel,',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -195,7 +196,7 @@ const tests = [
         query: 'category:',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -209,7 +210,7 @@ const tests = [
         query: 'in:123333 currency:USD merchant:marriott',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -239,7 +240,7 @@ const tests = [
         query: 'date>2024-01-01 date<2024-06-01 merchant:"McDonald\'s"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -269,7 +270,7 @@ const tests = [
         query: 'from:usera@user.com to:userb@user.com date>2024-01-01',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -296,10 +297,10 @@ const tests = [
         },
     },
     {
-        query: 'amount>100 amount<200 from:usera@user.com tax-rate:1234 card:1234 reportid:12345 tag:ecx date>2023-01-01',
+        query: 'amount>100 amount<200 from:usera@user.com tax-rate:1234 card:1234 report-id:12345 tag:ecx date>2023-01-01',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -369,7 +370,7 @@ const tests = [
         query: 'amount>200 las vegas',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -388,10 +389,20 @@ const tests = [
         },
     },
     {
+        query: 'status:all',
+        expected: {
+            type: 'expense',
+            status: '',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: null,
+        },
+    },
+    {
         query: 'amount>200 las vegas category:"Hotel : Marriott"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -421,7 +432,7 @@ const tests = [
         query: 'amount>200 las vegas category:"Hotel : Marriott" date:2024-01-01,2024-02-01 merchant:"Expensify, Inc." tag:hotel,travel,"meals & entertainment"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -471,6 +482,174 @@ const tests = [
             },
         },
     },
+    {
+        query: 'type:expense withdrawal-type:expensify-card',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+                right: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD,
+            },
+        },
+    },
+    {
+        query: 'type:expense withdrawal-id:1234567890',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
+                right: '1234567890',
+            },
+        },
+    },
+    {
+        query: 'type:expense withdrawn:last-month',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+                right: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:read',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: CONST.SEARCH.IS_VALUES.READ,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:unread',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: CONST.SEARCH.IS_VALUES.UNREAD,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:pinned',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: CONST.SEARCH.IS_VALUES.PINNED,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:pinned,read,unread',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: [CONST.SEARCH.IS_VALUES.PINNED, CONST.SEARCH.IS_VALUES.READ, CONST.SEARCH.IS_VALUES.UNREAD],
+            },
+        },
+    },
+    {
+        query: 'type:chat has:attachment',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                right: CONST.SEARCH.HAS_VALUES.ATTACHMENT,
+            },
+        },
+    },
+    {
+        query: 'type:chat has:link',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                right: CONST.SEARCH.HAS_VALUES.LINK,
+            },
+        },
+    },
+    {
+        query: 'type:chat has:link,attachment',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                right: [CONST.SEARCH.HAS_VALUES.LINK, CONST.SEARCH.HAS_VALUES.ATTACHMENT],
+            },
+        },
+    },
+    {
+        query: 'type:chat is:READ',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: 'READ', // Case is preserved as-is
+            },
+        },
+    },
+    {
+        query: 'type:chat is:PINNED',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: 'PINNED', // Case is preserved as-is
+            },
+        },
+    },
 ];
 
 /*
@@ -482,7 +661,7 @@ const keywordTests = [
         query: '" " "  "', // Multiple whitespaces wrapped in quotes
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -496,7 +675,7 @@ const keywordTests = [
         query: '"https://expensify.com" "https://new.expensify.com"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -510,7 +689,7 @@ const keywordTests = [
         query: '""https://expensify.com"" to ""https://new.expensify.com""', // Nested quotes with a colon
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -524,7 +703,7 @@ const keywordTests = [
         query: '"""https://expensify.com" to "https://new.expensify.com"""', // Mismatched quotes
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -538,7 +717,7 @@ const keywordTests = [
         query: 'date>2024-01-01 from:usera@user.com "https://expensify.com" "https://new.expensify.com"',
         expected: {
             type: 'expense',
-            status: 'all',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             filters: {
@@ -564,18 +743,54 @@ const keywordTests = [
             },
         },
     },
+    {
+        query: 'from:““Rag” Dog”,"Bag ”Dog“",email@gmail.com,1605423 to:"""Unruly"" “““Glad””” """Dog"""',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'and',
+                left: {
+                    operator: 'eq',
+                    left: 'from',
+                    right: ['“Rag” Dog', 'Bag ”Dog“', 'email@gmail.com', '1605423'],
+                },
+                right: {
+                    operator: 'eq',
+                    left: 'to',
+                    right: '""Unruly"" “““Glad””” """Dog""',
+                },
+            },
+        },
+    },
+    {
+        query: 'expense-type:per-diem',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            filters: {
+                operator: 'eq',
+                left: 'expenseType',
+                right: 'perDiem',
+            },
+        },
+    },
 ];
 
 describe('search parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
-        const result = searchParser.parse(query) as SearchQueryJSON;
-        expect(result).toEqual(expected);
+        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
+        expect(resultWithoutRawFilters).toEqual(expected);
     });
 });
 
 describe('Testing search parser with special characters and wrapped in quotes.', () => {
     test.each(keywordTests)(`parsing: $query`, ({query, expected}) => {
-        const result = searchParser.parse(query) as SearchQueryJSON;
-        expect(result).toEqual(expected);
+        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
+        expect(resultWithoutRawFilters).toEqual(expected);
     });
 });

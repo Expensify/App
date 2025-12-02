@@ -1,6 +1,5 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import AmountPicker from '@components/AmountPicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
@@ -8,7 +7,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,10 +14,12 @@ import {createPolicyTax, getNextTaxCode, getTaxValueWithPercentage, validateTaxN
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {hasAccountingConnections} from '@libs/PolicyUtils';
+import {isExistingTaxName} from '@libs/ValidationUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -36,7 +36,26 @@ function WorkspaceCreateTaxPage({
 }: WorkspaceCreateTaxPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
+
+    const validateTaxNameCustom = useCallback(
+        (inputID: string) => {
+            return (values: Record<string, string>) => {
+                const errors: Record<string, string> = {};
+                const name = values[inputID];
+
+                if (name && policy?.taxRates?.taxes && isExistingTaxName(name, policy.taxRates.taxes)) {
+                    errors[inputID] = translate('workspace.taxes.error.taxRateAlreadyExists');
+                }
+
+                return errors;
+            };
+        },
+        // Note: We need the entire taxes object as isExistingTaxName requires it to check for duplicates
+        // This callback will recreate when taxes change, which is necessary for accurate validation
+        [policy?.taxRates?.taxes, translate],
+    );
+
+    const customValidateForName = useMemo(() => validateTaxNameCustom(INPUT_IDS.NAME), [validateTaxNameCustom]);
 
     const submitForm = useCallback(
         ({value, ...values}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM>) => {
@@ -72,10 +91,13 @@ function WorkspaceCreateTaxPage({
         >
             <ScreenWrapper
                 testID={WorkspaceCreateTaxPage.displayName}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
             >
-                <FullPageNotFoundView shouldShow={PolicyUtils.hasAccountingConnections(policy)}>
+                <FullPageNotFoundView
+                    shouldShow={hasAccountingConnections(policy)}
+                    addBottomSafeAreaPadding
+                >
                     <View style={[styles.h100, styles.flex1, styles.justifyContentBetween]}>
                         <HeaderWithBackButton title={translate('workspace.taxes.addRate')} />
                         <FormProvider
@@ -86,7 +108,7 @@ function WorkspaceCreateTaxPage({
                             submitButtonText={translate('common.save')}
                             enabledWhenOffline
                             shouldValidateOnBlur={false}
-                            disablePressOnEnter={!!modal?.isVisible}
+                            addBottomSafeAreaPadding
                         >
                             <View style={styles.mhn5}>
                                 <InputWrapper
@@ -99,6 +121,8 @@ function WorkspaceCreateTaxPage({
                                     maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}
+                                    required
+                                    customValidate={customValidateForName}
                                 />
                                 <InputWrapper
                                     InputComponent={AmountPicker}
@@ -106,12 +130,16 @@ function WorkspaceCreateTaxPage({
                                     title={(v) => (v ? getTaxValueWithPercentage(v) : '')}
                                     description={translate('workspace.taxes.value')}
                                     rightLabel={translate('common.required')}
-                                    hideCurrencySymbol
-                                    // The default currency uses 2 decimal places, so we substract it
-                                    extraDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES - 2}
-                                    // We increase the amount max length to support the extra decimals.
-                                    amountMaxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
-                                    extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
+                                    decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                                    maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
+                                    isSymbolPressable={false}
+                                    symbol="%"
+                                    symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
+                                    autoGrowExtraSpace={variables.w80}
+                                    autoGrowMarginSide="left"
+                                    style={[styles.iouAmountTextInput, styles.textAlignRight]}
+                                    containerStyle={styles.iouAmountTextInputContainer}
+                                    touchableInputWrapperStyle={styles.heightUndefined}
                                 />
                             </View>
                         </FormProvider>

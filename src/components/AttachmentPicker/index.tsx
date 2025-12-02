@@ -1,16 +1,16 @@
 import React, {useRef} from 'react';
 import type {ValueOf} from 'type-fest';
-import type {FileObject} from '@components/AttachmentModal';
-import * as Browser from '@libs/Browser';
+import {isMobileChrome} from '@libs/Browser';
 import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type AttachmentPickerProps from './types';
 
 /**
  * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE
  */
 function getAcceptableFileTypes(type: string): string | undefined {
-    if (type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE || Browser.isMobileChrome()) {
+    if (type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE || isMobileChrome()) {
         return;
     }
 
@@ -47,7 +47,7 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
     const fileInput = useRef<HTMLInputElement>(null);
     const onPicked = useRef<(files: FileObject[]) => void>(() => {});
     const onCanceled = useRef<() => void>(() => {});
-
+    const isPickingRef = useRef(false);
     return (
         <>
             <input
@@ -55,13 +55,20 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
                 type="file"
                 ref={fileInput}
                 onChange={(e) => {
+                    isPickingRef.current = false;
                     if (!e.target.files) {
                         return;
                     }
 
-                    const file = e.target.files[0];
-
-                    if (file) {
+                    if (allowMultiple && e.target.files.length > 1) {
+                        const files = Array.from(e.target.files).map((currentFile) => {
+                            // eslint-disable-next-line no-param-reassign
+                            currentFile.uri = URL.createObjectURL(currentFile);
+                            return currentFile as FileObject;
+                        });
+                        onPicked.current(files);
+                    } else if (e.target.files[0]) {
+                        const file = e.target.files[0];
                         file.uri = URL.createObjectURL(file);
                         onPicked.current([file]);
                     }
@@ -82,6 +89,7 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
                     fileInput.current.addEventListener(
                         'cancel',
                         () => {
+                            isPickingRef.current = false;
                             // For Android Chrome, the cancel event happens before the page is visible on physical devices,
                             // which makes it unreliable for us to show the keyboard, while on emulators it happens after the page is visible.
                             // So here we can delay calling the onCanceled.current function based on visibility in order to reliably show the keyboard.
@@ -103,6 +111,10 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
             {/* eslint-disable-next-line react-compiler/react-compiler */}
             {children({
                 openPicker: ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {
+                    if (isPickingRef.current) {
+                        return;
+                    }
+                    isPickingRef.current = true;
                     onPicked.current = newOnPicked;
                     fileInput.current?.click();
                     onCanceled.current = newOnCanceled;

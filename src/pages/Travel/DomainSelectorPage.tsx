@@ -1,31 +1,42 @@
+import type {StackScreenProps} from '@react-navigation/stack';
+import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import TravelDomainListItem from '@components/SelectionList/TravelDomainListItem';
+import TravelDomainListItem from '@components/SelectionList/ListItem/TravelDomainListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {provisionDomain} from '@libs/actions/Travel';
+import {cleanupTravelProvisioningSession, setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import Navigation from '@libs/Navigation/Navigation';
+import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type DomainItem = ListItem & {
     value: string;
     isRecommended: boolean;
 };
 
-function DomainSelectorPage() {
+type DomainSelectorPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DOMAIN_SELECTOR>;
+
+function DomainSelectorPage({route}: DomainSelectorPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
     const [selectedDomain, setSelectedDomain] = useState<string | undefined>();
 
     const domains = useMemo(() => getAdminsPrivateEmailDomains(policy), [policy]);
@@ -43,17 +54,41 @@ function DomainSelectorPage() {
         });
     }, [domains, recommendedDomain, selectedDomain]);
 
+    const provisionTravelForDomain = () => {
+        const domain = selectedDomain ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+        // Always validate OTP first before proceeding to address details or terms acceptance
+        if (!isUserValidated) {
+            // Determine where to redirect after OTP validation
+            const nextStep = isEmptyObject(policy?.address) ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()) : ROUTES.TRAVEL_TCS.getRoute(domain);
+            setTravelProvisioningNextStep(nextStep);
+            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
+            return;
+        }
+        if (isEmptyObject(policy?.address)) {
+            // Spotnana requires an address anytime an entity is created for a policy
+            Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()));
+        } else {
+            cleanupTravelProvisioningSession();
+            Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
+        }
+    };
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
             testID={DomainSelectorPage.displayName}
         >
-            <HeaderWithBackButton title={translate('travel.domainSelector.title')} />
+            <HeaderWithBackButton
+                title={translate('travel.domainSelector.title')}
+                onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+            />
             <Text style={[styles.mt3, styles.mr5, styles.mb5, styles.ml5]}>{translate('travel.domainSelector.subtitle')}</Text>
+            <View style={[styles.optionsListSectionHeader]}>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('travel.domainSelector.title')}</Text>
+            </View>
             <SelectionList
                 onSelectRow={(option) => setSelectedDomain(option.value)}
-                sections={[{title: translate('travel.domainSelector.title'), data}]}
-                canSelectMultiple
+                data={data}
                 ListItem={TravelDomainListItem}
                 shouldShowTooltips
                 footerContent={
@@ -62,7 +97,7 @@ function DomainSelectorPage() {
                         success
                         large
                         style={[styles.w100]}
-                        onPress={() => provisionDomain(selectedDomain ?? CONST.TRAVEL.DEFAULT_DOMAIN)}
+                        onPress={provisionTravelForDomain}
                         text={translate('common.continue')}
                     />
                 }

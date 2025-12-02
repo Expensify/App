@@ -1,29 +1,31 @@
 import {useRoute} from '@react-navigation/native';
+import {addDays, format} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {Info} from '@components/Icon/Expensicons';
 import Popover from '@components/Popover';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import type {FullScreenNavigatorParamList} from '@navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
-import * as Report from '@userActions/Report';
+import {queueExpensifyCardForBilling} from '@userActions/Card';
+import {requestExpensifyCardLimitIncrease} from '@userActions/Policy/Policy';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -40,25 +42,29 @@ type WorkspaceCardsListLabelProps = {
 };
 
 function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelProps) {
-    const route = useRoute<PlatformStackRouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
-    const policy = usePolicy(route.params.policyID);
+    const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>>();
+    const policyID = route.params.policyID;
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [isVisible, setVisible] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
     const anchorRef = useRef(null);
 
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(route.params.policyID);
-    const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const defaultFundID = useDefaultFundID(policyID);
+
+    const settlementCurrency = useCurrencyForExpensifyCard({policyID});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: true});
+    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${defaultFundID}`, {canBeMissing: true});
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
 
+    const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
+
     const isConnectedWithPlaid = useMemo(() => {
-        const bankAccountData = bankAccountList?.[paymentBankAccountID ?? 0]?.accountData;
+        const bankAccountData = bankAccountList?.[paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID]?.accountData;
 
         // TODO: remove the extra check when plaidAccountID storing is aligned in https://github.com/Expensify/App/issues/47944
         // Right after adding a bank account plaidAccountID is stored inside the accountData and not in the additionalData
@@ -80,34 +86,57 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     }, [isVisible, windowWidth]);
 
     const requestLimitIncrease = () => {
-        Policy.requestExpensifyCardLimitIncrease(cardSettings?.paymentBankAccountID);
+        requestExpensifyCardLimitIncrease(cardSettings?.paymentBankAccountID);
         setVisible(false);
-        Report.navigateToConciergeChat();
+        navigateToConciergeChat();
+    };
+
+    const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
+    const isSettleBalanceButtonDisplayed = !!cardSettings?.isMonthlySettlementAllowed && !cardManualBilling && isCurrentBalanceType;
+    const isSettleDateTextDisplayed = !!cardManualBilling && isCurrentBalanceType;
+
+    const settlementDate = isSettleDateTextDisplayed ? format(addDays(new Date(), 1), CONST.DATE.FNS_FORMAT_STRING) : '';
+
+    const handleSettleBalanceButtonClick = () => {
+        queueExpensifyCardForBilling(CONST.COUNTRY.US, defaultFundID);
     };
 
     return (
         <View style={styles.flex1}>
-            <View
-                ref={anchorRef}
-                style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, style]}
-            >
-                <Text style={[styles.mutedNormalTextLabel, styles.mr1]}>{translate(`workspace.expensifyCard.${type}`)}</Text>
-                <PressableWithFeedback
-                    accessibilityLabel={translate(`workspace.expensifyCard.${type}`)}
-                    accessibilityRole={CONST.ROLE.BUTTON}
-                    onPress={() => setVisible(true)}
+            <View style={styles.flex1}>
+                <View
+                    ref={anchorRef}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.mb1, style]}
                 >
-                    <Icon
-                        src={Expensicons.Info}
-                        width={variables.iconSizeExtraSmall}
-                        height={variables.iconSizeExtraSmall}
-                        fill={theme.icon}
-                    />
-                </PressableWithFeedback>
+                    <Text style={[styles.mutedNormalTextLabel, styles.mr1]}>{translate(`workspace.expensifyCard.${type}`)}</Text>
+                    <PressableWithFeedback
+                        accessibilityLabel={translate(`workspace.expensifyCard.${type}`)}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        onPress={() => setVisible(true)}
+                    >
+                        <Icon
+                            src={Info}
+                            width={variables.iconSizeExtraSmall}
+                            height={variables.iconSizeExtraSmall}
+                            fill={theme.icon}
+                        />
+                    </PressableWithFeedback>
+                </View>
+                <View style={[styles.flexRow, styles.flexWrap]}>
+                    <Text style={[styles.shortTermsHeadline, isSettleBalanceButtonDisplayed && [styles.mb2, styles.mr3]]}>{convertToDisplayString(value, settlementCurrency)}</Text>
+                    {isSettleBalanceButtonDisplayed && (
+                        <View style={[styles.mr2, isLessThanMediumScreen && styles.mb3]}>
+                            <Button
+                                onPress={handleSettleBalanceButtonClick}
+                                text={translate('workspace.expensifyCard.settleBalance')}
+                                innerStyles={[styles.buttonSmall]}
+                                textStyles={[styles.buttonSmallText]}
+                            />
+                        </View>
+                    )}
+                </View>
             </View>
-
-            <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(value, policyCurrency)}</Text>
-
+            {isSettleDateTextDisplayed && <Text style={[styles.mutedNormalTextLabel, styles.mt1]}>{translate('workspace.expensifyCard.balanceWillBeSettledOn', {settlementDate})}</Text>}
             <Popover
                 onClose={() => setVisible(false)}
                 isVisible={isVisible}

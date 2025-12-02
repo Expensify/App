@@ -26,6 +26,7 @@ describe('Url', () => {
                     // eslint-disable-next-line max-len
                     'https://www.expensify.com/_devportal/tools/logSearch/#query=request_id:(%22Ufjjim%22)+AND+timestamp:[2021-01-08T03:48:10.389Z+TO+2021-01-08T05:48:10.389Z]&index=logs_expensify-008878)',
                 ),
+                // cspell:disable-next-line
             ).toEqual('_devportal/tools/logSearch/#query=request_id:(%22Ufjjim%22)+AND+timestamp:[2021-01-08T03:48:10.389Z+TO+2021-01-08T05:48:10.389Z]&index=logs_expensify-008878)');
             expect(Url.getPathFromURL('http://necolas.github.io/react-native-web/docs/?path=/docs/components-pressable--disabled ')).toEqual(
                 'react-native-web/docs/?path=/docs/components-pressable--disabled',
@@ -97,6 +98,18 @@ describe('Url', () => {
             it('It should work correctly with  www', () => {
                 expect(Url.hasSameExpensifyOrigin('https://expensify.com/action/1234', 'https://www.new.expensify.com/action/123')).toBe(false);
             });
+        });
+    });
+    describe('getUrlWithParams', () => {
+        it.each([
+            ['adds params to URL without existing query', '/search', {q: 'hello world', page: 2}, '/search?q=hello+world&page=2'],
+            ['merges with existing query params', '/search?q=old', {page: 2, q: 'new'}, '/search?q=new&page=2'],
+            ['works with absolute URL', 'https://example.com/items?sort=asc', {page: 5}, 'https://example.com/items?sort=asc&page=5'],
+            ['encodes special characters', '/search', {q: 'hello & world'}, '/search?q=hello+%26+world'],
+            ['returns same URL if no params', '/search', {}, '/search'],
+            ['returns same URL if params are undefined', '/search', {q: undefined}, '/search'],
+        ])('%s', (_, baseUrl, params, expected) => {
+            expect(Url.getUrlWithParams(baseUrl, params)).toBe(expected);
         });
     });
 });

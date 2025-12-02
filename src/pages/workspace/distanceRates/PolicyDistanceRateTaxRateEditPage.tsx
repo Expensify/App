@@ -4,16 +4,16 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateDistanceTaxRate} from '@libs/actions/Policy/DistanceRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
-import type * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
+import {getWorkspaceTaxesSettingsName} from '@libs/TransactionUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
-import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -28,9 +28,9 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
     const customUnit = getDistanceRateCustomUnit(policy);
     const rate = customUnit?.rates[rateID];
     const taxRateExternalID = rate?.attributes?.taxRateExternalID;
-    const selectedTaxRate = taxRateExternalID ? TransactionUtils.getWorkspaceTaxesSettingsName(policy, taxRateExternalID) : undefined;
+    const selectedTaxRate = taxRateExternalID ? getWorkspaceTaxesSettingsName(policy, taxRateExternalID) : undefined;
 
-    const onTaxRateChange = (newTaxRate: TaxOptionsListUtils.TaxRatesOption) => {
+    const onTaxRateChange = (newTaxRate: TaxRatesOption) => {
         if (taxRateExternalID === newTaxRate.code) {
             Navigation.goBack();
             return;
@@ -38,7 +38,7 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
         if (!customUnit || !rate) {
             return;
         }
-        DistanceRate.updateDistanceTaxRate(policyID, customUnit, [
+        updateDistanceTaxRate(policyID, customUnit, [
             {
                 ...rate,
                 attributes: {
@@ -47,11 +47,11 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
                 },
             },
         ]);
-        Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rateID));
+        Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rateID));
     };
 
     const dismiss = () => {
-        Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
+        Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rateID));
     };
 
     return (
@@ -61,26 +61,22 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 shouldEnableMaxHeight
                 testID={PolicyDistanceRateTaxRateEditPage.displayName}
             >
-                {({insets}) => (
-                    <>
-                        <HeaderWithBackButton
-                            title={translate('workspace.taxes.taxRate')}
-                            shouldShowBackButton
-                        />
-                        <TaxPicker
-                            selectedTaxRate={selectedTaxRate}
-                            policyID={policyID}
-                            insets={insets}
-                            onSubmit={onTaxRateChange}
-                            onDismiss={dismiss}
-                        />
-                    </>
-                )}
+                <HeaderWithBackButton
+                    title={translate('workspace.taxes.taxRate')}
+                    shouldShowBackButton
+                />
+                <TaxPicker
+                    selectedTaxRate={selectedTaxRate}
+                    policyID={policyID}
+                    onSubmit={onTaxRateChange}
+                    onDismiss={dismiss}
+                    addBottomSafeAreaPadding
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

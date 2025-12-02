@@ -33,6 +33,7 @@
     - [Functions](#functions)
     - [`var`, `const` and `let`](#var-const-and-let)
 - [Object / Array Methods](#object--array-methods)
+- [Asynchronous code](#asynchronous-code)
 - [Accessing Object Properties and Default Values](#accessing-object-properties-and-default-values)
 - [JSDocs](#jsdocs)
 - [Component props](#component-props)
@@ -258,7 +259,7 @@ function logObject(object: Record<string, unknown>) {
 
 ### Prop Types
 
-Don't use `ComponentProps` to grab a component's prop types. Go to the source file for the component and export prop types from there. Import and use the exported prop types. 
+Don't use `ComponentProps` to grab a component's prop types. Go to the source file for the component and export prop types from there. Import and use the exported prop types.
 
 > Why? Importing prop type from the component file is more common and readable. Using `ComponentProps` might cause problems in some cases (see [related GitHub issue](https://github.com/piotrwitek/react-redux-typescript-guide/issues/170)). Each component with props has it's prop  type defined in the file anyway, so it's easy to export it when required.
 
@@ -419,7 +420,7 @@ The example above results in the most narrow type possible, also the values are 
 
 Always use the `type` keyword when importing/exporting types
 
-> Why? In order to improve code clarity and consistency and reduce bundle size after typescript transpilation, we enforce the all type imports/exports to contain the `type` keyword. This way, TypeScript can automatically remove those imports from the transpiled JavaScript bundle 
+> Why? In order to improve code clarity and consistency and reduce bundle size after typescript transpilation, we enforce the all type imports/exports to contain the `type` keyword. This way, TypeScript can automatically remove those imports from the transpiled JavaScript bundle
 
 Imports:
 ```ts
@@ -439,7 +440,7 @@ import someVariable from './a'
 // BAD
 export {SomeType}
 export someVariable
-// or 
+// or
 export {someVariable, SomeOtherType}
 
 // GOOD
@@ -451,7 +452,7 @@ export someVariable
 
 Avoid using HTML elements while declaring refs. Please use React Native components where possible. React Native Web handles the references on its own. It also extends React Native components with [Interaction API](https://necolas.github.io/react-native-web/docs/interactions/) which should be used to handle Pointer and Mouse events. Exception of this rule is when we explicitly need to use functions available only in DOM and not in React Native, e.g. `getBoundingClientRect`. Then please declare ref type as `union` of React Native component and HTML element. When passing it to React Native component assert it as soon as possible using utility methods declared in `src/types/utils`.
 
-Normal usage: 
+Normal usage:
 ```tsx
 const ref = useRef<View>();
 
@@ -535,13 +536,13 @@ We need to change the `getRoute()` `policyID` argument type to allow `undefined`
 
 ```diff
 WORKSPACE_PROFILE_ADDRESS: {
-    route: 'settings/workspaces/:policyID/profile/address',
--   getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
+    route: 'workspaces/:policyID/profile/address',
+-   getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/profile/address` as const, backTo),
 +   getRoute: (policyID: string | undefined, backTo?: string) => {
 +       if (!policyID) {
 +           Log.warn("Invalid policyID is used to build the WORKSPACE_PROFILE_ADDRESS route")
 +       }
-+       return getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo);
++       return getUrlWithBackToParam(`workspaces/${policyID}/profile/address` as const, backTo);
 +   },
 },
 ```
@@ -605,7 +606,7 @@ type Data = {
 
 function foo(param1: string, param2: Data) {...};
 
-// GOOD 
+// GOOD
 type Callback = (value: string) => void
 
 function foo(param1: string, param2: Callback) {...};
@@ -768,8 +769,8 @@ You can still use arrow function for declarations or simple logics to keep them 
 randomList.push({
      onSelected: Utils.checkIfAllowed(function checkTask() { return Utils.canTeamUp(people); }),
 });
-routeList.filter(function checkIsActive(route) { 
-    return route.isActive; 
+routeList.filter(function checkIsActive(route) {
+    return route.isActive;
 });
 
 // Good
@@ -814,6 +815,21 @@ if (someCondition) {
 }
 ```
 
+## Function Parameters
+- When a function has 5 or less parameters it’s best to pass them directly instead of nesting them into an object, for simplicity.
+- When a function has more than 5 parameters, consider refactoring it to use a parameter object. Doing so makes it easy to re-order parameters, add new parameters, and document the structure and relationships in the data.
+- When there are 10+ parameters, the function must be refactored to use a parameter object.
+  - These numbers are arbitrary but provide a helpful and consistent standard.
+
+### When using a parameter object keep the following points in mind:
+- Group parameters into sensible sub-objects and leave any other fields at the top level.
+- Sub-fields should not have the same prefix as the object name, except that it should match the column name in the backend database.
+  - For example: `params.chat.reportActionID` instead of `params.chat.chatReportActionID` because we shouldn't use the same prefix as the object name, and `params.report.reportID` instead of `params.report.id` because `reportID` matches the column name.
+  - Ask an Expensify engineer with a dev environment to check the column name if needed.
+
+#### Example
+Check out [ConvertTrackedExpenseToRequestParams](https://github.com/Expensify/App/blob/b3ac1398b65d9c030919e643f731910f88657864/src/libs/actions/IOU.ts#L4510-L4540)
+
 ## Object / Array Methods
 
 We have standardized on using the native [Array instance methods](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#instance_methods) instead of [lodash](https://lodash.com/) methods for objects and collections. As the vast majority of code is written in TypeScript, we can safely use the native methods.
@@ -843,6 +859,13 @@ const modifiedArray = _.chain(someArray)
 const modifiedArray = someArray.filter(filterFunc).map(mapFunc);
 ```
 
+## Asynchronous code
+
+- Prefer `async/await` over `.then/.catch` across the codebase. Use raw `Promise` only when wrapping callbacks or implementing deferred signals.
+- Use `Promise.all(...)` (or `Promise.allSettled(...)`) for work that can run in parallel.
+- In UI code, start unrelated async tasks at the same time (don’t wait for one to finish before starting another), and let the UI render immediately with loading states ([see data-binding](./philosophies/DATA-BINDING.md)). 
+- See the detailed [async philosophy document](./philosophies/ASYNC.md)
+
 ## Accessing Object Properties and Default Values
 
 Use optional chaining (`?.`) to safely access object properties and nullish coalescing (`??`) to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. Don't use the `lodashGet()` function. eslint: [`no-restricted-imports`](https://eslint.org/docs/latest/rules/no-restricted-imports)
@@ -863,7 +886,7 @@ const name = user?.name ?? "default name";
 
 - Omit comments that are redundant with TypeScript. Do not declare types in `@param` or `@return` blocks. Do not write `@implements`, `@enum`, `@private`, `@override`. eslint: [`jsdoc/no-types`](https://github.com/gajus/eslint-plugin-jsdoc/blob/main/.README/rules/no-types.md)
 - Only document params/return values if their names are not enough to fully understand their purpose. Not all parameters or return values need to be listed in the JSDoc comment. If there is no comment accompanying the parameter or return value, omit it.
-- When specifying a return value use `@returns` instead of `@return`. 
+- When specifying a return value use `@returns` instead of `@return`.
 - Avoid descriptions that don't add any additional information. Method descriptions should only be added when it's behavior is unclear.
 - Do not use block tags other than `@param` and `@returns` (e.g. `@memberof`, `@constructor`, etc).
 - Do not document default parameters. They are already documented by adding them to a declared function's arguments.
@@ -991,10 +1014,6 @@ JavaScript is always changing. We are excited whenever it does! However, we tend
 
 So, if a new language feature isn't something we have agreed to support it's off the table. Sticking to just one way to do things reduces cognitive load in reviews and also makes sure our knowledge of language features progresses at the same pace. If a new language feature will cause considerable effort for everyone to adapt to or we're just not quite sold on the value of it yet, we won't support it.
 
-Here are a couple of things we would ask that you *avoid* to help maintain consistency in our codebase:
-
-- **Async/Await** - Use the native `Promise` instead
-
 ## React Coding Standards
 
 ### Code Documentation
@@ -1081,7 +1100,7 @@ type ComponentProps = {
 
 #### Important Note:
 
-In React Native, one **must not** attempt to falsey-check a string for an inline ternary. Even if it's in curly braces, React Native will try to render it as a `<Text>` node and most likely throw an error about trying to render text outside of a `<Text>` component. Use `!!` instead.
+In React Native, one **must not** attempt to falsy-check a string for an inline ternary. Even if it's in curly braces, React Native will try to render it as a `<Text>` node and most likely throw an error about trying to render text outside of a `<Text>` component. Use `!!` instead.
 
 ```tsx
 // Bad! This will cause a breaking an error on native platforms
@@ -1142,7 +1161,7 @@ export default React.forwardRef(FancyInput)
 
 If the ref handle is not available (e.g. `useImperativeHandle` is used) you can define a custom handle type above the component.
 
-```tsx 
+```tsx
 import type {ForwarderRef} from 'react';
 import {useImperativeHandle} from 'react';
 
@@ -1170,44 +1189,6 @@ export default React.forwardRef(FancyInput)
 Use hooks whenever possible, avoid using HOCs.
 
 > Why? Hooks are easier to use (can be used inside the function component), and don't need nesting or `compose` when exporting the component. It also allows us to remove `compose` completely in some components since it has been bringing up some issues with TypeScript. Read the [`compose` usage](#compose-usage) section for further information about the TypeScript issues with `compose`.
-
-Onyx now provides a `useOnyx` hook that should be used over `withOnyx` HOC.
-
-```tsx
-// BAD
-type ComponentOnyxProps = {
-    session: OnyxEntry<Session>;
-};
-
-type ComponentProps = ComponentOnyxProps & {
-    someProp: string;
-};
-
-function Component({session, someProp}: ComponentProps) {
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const {translate} = useLocalize();
-    // component's code
-}
-
-export default withOnyx<ComponentProps, ComponentOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(Component);
-
-// GOOD
-type ComponentProps = {
-    someProp: string;
-};
-
-function Component({someProp}: ComponentProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION)
-
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const {translate} = useLocalize();
-    // component's code
-}
-```
 
 ### Stateless components vs Pure Components vs Class based components vs Render Props - When to use what?
 
@@ -1254,16 +1235,32 @@ The correct approach is avoid using `ScrollView`. You can add props like `listHe
 </ScrollView>
 ```
 
-### Correct Approach (Using `SelectionList`)
+### Correct Approach 
+The correct approach is to use the list component's built-in header and footer props instead of wrapping in a `ScrollView`:
 
+- Using `SelectionList`
 ```jsx
-<SelectionList 
-    sections={[{item}]} 
-    ListItem={RadioListItem} 
+<SelectionList
+    sections={[{item}]}
+    ListItem={RadioListItem}
     onSelectRow={handleSelect}
     listHeaderComponent={<Text>Header Content</Text>}
     listFooterComponent={<Button title="Submit" onPress={handleSubmit} />}
 />
+```
+
+- If you can't switch to `SelectionList` or `FlatList`, you can use `FlashList` as an alternative approach:
+```jsx
+<ScrollView>
+    <Text>Header Content</Text>
+    <FlashList
+        data={data}
+        renderItem={RadioListItem}
+        estimatedItemSize={variables.optionRowHeight}
+        keyExtractor={keyExtractor}
+    />
+    <Button title="Submit" onPress={handleSubmit} />
+</ScrollView>
 ```
 
 This ensures optimal performance and avoids layout issues.

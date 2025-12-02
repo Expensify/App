@@ -1,12 +1,24 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+import Parser from '@libs/Parser';
+import StringUtils from '@libs/StringUtils';
 import DisplayNamesWithoutTooltip from './DisplayNamesWithoutTooltip';
 import DisplayNamesWithToolTip from './DisplayNamesWithTooltip';
 import type DisplayNamesProps from './types';
 
-function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, shouldUseFullTitle, displayNamesWithTooltips, renderAdditionalText}: DisplayNamesProps) {
+function DisplayNames({
+    fullTitle,
+    tooltipEnabled,
+    textStyles,
+    numberOfLines,
+    shouldAddEllipsis,
+    shouldUseFullTitle,
+    displayNamesWithTooltips,
+    renderAdditionalText,
+    forwardedFSClass,
+}: DisplayNamesProps) {
     const {translate} = useLocalize();
-    const title = fullTitle || translate('common.hidden');
+    const title = StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden');
 
     if (!tooltipEnabled) {
         return (
@@ -15,6 +27,7 @@ function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, sho
                 numberOfLines={numberOfLines}
                 fullTitle={title}
                 renderAdditionalText={renderAdditionalText}
+                forwardedFSClass={forwardedFSClass}
             />
         );
     }
@@ -27,6 +40,7 @@ function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, sho
                 textStyles={textStyles}
                 numberOfLines={numberOfLines}
                 renderAdditionalText={renderAdditionalText}
+                forwardedFSClass={forwardedFSClass}
             />
         );
     }
@@ -36,8 +50,10 @@ function DisplayNames({fullTitle, tooltipEnabled, textStyles, numberOfLines, sho
             fullTitle={title}
             displayNamesWithTooltips={displayNamesWithTooltips}
             textStyles={textStyles}
+            shouldAddEllipsis={shouldAddEllipsis}
             numberOfLines={numberOfLines}
             renderAdditionalText={renderAdditionalText}
+            forwardedFSClass={forwardedFSClass}
         />
     );
 }

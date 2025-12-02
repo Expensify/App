@@ -1,95 +1,120 @@
 ---
-title: Reimburse Reports
-description: 
+title: How to Reimburse Reports in Expensify
+description: Learn how to reimburse employee reports in Expensify using direct deposit, global transfers, Venmo, ABA files, or manual methods.
+keywords: [Expensify Classic, reimburse reports, direct deposit, ACH, global reimbursement, Venmo, ABA file, locked account, failed debits, unlock]
 ---
-<div id="expensify-classic" markdown="1">
 
-Once a report is submitted and approved, you can reimburse the expenses directly via direct deposit or global reimbursement, use an indirect reimbursement method (such as a third-party payment processor), or mark the report as reimbursed outside of Expensify (if your organization bundles reimbursements in payroll, for instance).
- 
-## Direct Deposit - USD
+You can reimburse submitted and approved reports in Expensify using direct deposit (USD or international), third-party payment tools like Venmo, or manual methods such as payroll tracking or ABA batch files.
 
-Before a report can be reimbursed via direct deposit:
-- The reimburser must [connect a verified business bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account)
-- The recipient must [connect a personal bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-US-Bank-Account)
+# How to reimburse reports via direct deposit (USD)
 
-To reimburse a report via direct deposit (USD):
-1. Open the report.
-2. Click the **Reimburse** button and select **Via Direct Deposit**.
-3. Confirm that the correct bank account is listed in the dropdown menu.
-4. Click **Accept Terms & Pay**. 
+## Setup requirements
+- **Reimburser** must [connect a verified business bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account).
+- **Recipient** must [connect a personal bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-US-Bank-Account).
 
-If the reimbursement is less than $200, it will typically be deposited into the employee's bank account immediately. If the reimbursement is more than $200, the deposit will be processed within one to five business days. 
+> Only verified business accounts can issue reimbursement payments. Deposit-only accounts can receive funds but cannot initiate them.
 
-## Direct Deposit - Global Reimbursement
-Before a report can be reimbursed via global reimbursement:
-- A workspace admin must [set up global reimbursements](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Enable-Global-Reimbursements)
-- Employees must [connect a deposit account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-US-Bank-Account)
-
-To reimburse a report via global reimbursement:
-1. Open the report.
-2. Click the **Reimburse** button and select **Via Direct Deposit**.
-3. Confirm that the correct bank account is listed in the dropdown menu.
+## Steps
+1. Open the approved report.
+2. Click **Reimburse** > **via direct deposit**.
+3. Confirm the bank account.
 4. Click **Accept Terms & Pay**.
 
-The reimbursement should be processed within five business days. If the payment hasn't been processed within that timeframe, reach out to Expensify Support for assistance.
+## Deposit timing
 
-## Indirect Reimbursement
-If you are reimbursing reports outside of Expensify via paper check or payroll, you’ll want to manually mark the report as paid to track the payment history.
+### Rapid Reimbursement
+- Available for USD ACH reimbursements from verified U.S. business bank accounts
+- Applies to reports under $100
+- Funds are usually deposited the same day or next business day
+- Works with any U.S. bank account type (including deposit-only)
+- Maximum daily limit: $10,000 per business account
 
-To label a report as Reimbursed after sending a payment outside of Expensify:
-1. Open the report
-2. Click **Reimburse**.
-3. Select **I’ll do it manually - just mark it as reimbursed**. This changes the report status to Reimbursed.
+> **Tip:** Concierge will add a comment to the report showing the estimated reimbursement date once payment is initiated.
 
-Once the recipient has received the payment, the submitter can return to the report and click **Confirm**. This will change the report status to **`Reimbursed: CONFIRMED`**.
+### Standard Reimbursement
+- Applies to reports over $100 or if the daily $10,000 limit is exceeded
+- Deposits typically take 1–5 business days
 
-### Reimburse a report via a third-party payment provider
+> **Tip:** The Concierge comment on the report includes expected deposit timing and payment details.
 
-If both the reimburser and the payment recipient have Venmo accounts, you can [connect them directly to Expensify](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Third-Party-Payments) to send and receive reimbursements. 
+# Reimburse via Global Reimbursement
 
-### Reimburse a report via ABA batch file
-Workspace Admins can reimburse AUD expense reports by downloading an ABA file containing the accounts needing payment and uploading the file to the bank. This can be done for a single report or for a batch of payments.
+For international bank transfers.
 
-More information on reimbursing reports via ABA batch file can be found **[here](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Reimburse-Australian-Reports)**.
+## Setup requirements
+- A Workspace Admin must [enable global reimbursements](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Enable-Global-Reimbursements).
+- Recipients must [connect a deposit account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-US-Bank-Account).
 
-{% include faq-begin.md %}
+> Only verified business accounts can send global reimbursements.
 
-## Is there a maximum report total?
+## Steps
+1. Open the approved report.
+2. Click **Reimburse** > **via direct deposit**.
+3. Confirm the recipient’s bank account.
+4. Click **Accept Terms & Pay**.
 
-Expensify cannot process a reimbursement for any single report over $20,000. If you have a report with expenses exceeding $20,000 we recommend splitting the expenses into multiple reports.
+Funds are typically deposited within five business days. If delayed, reach out to Concierge.
+
+> **Tip:** Concierge adds a comment with the estimated deposit date once payment is triggered.
+
+# Reimburse via Manual or Third-Party Methods
+
+## Manual reimbursement (e.g., payroll or check)
+To mark a report as reimbursed manually:
+
+1. Open the report.
+2. Click **Reimburse** > **I’ll do it manually – just mark it as reimbursed**.
+
+The report status will update to **Reimbursed**.
+
+Once the employee confirms receipt:
+- Click **Confirm** to update the status to **Reimbursed: CONFIRMED**.
+
+## Reimburse via Venmo
+If both parties have Venmo accounts, [connect them to Expensify](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Third-Party-Payments) to send payments directly.
+
+## Reimburse via ABA batch file (Australia)
+Admins can generate an ABA file to reimburse AUD reports via bank upload. This supports one or multiple reports.
+
+[Learn more about ABA reimbursements](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Reimburse-Australian-Reports)
+
+# FAQ
+
+## Is there a maximum reimbursement amount per report?
+Yes. Expensify cannot process reimbursements over $20,000. To reimburse a larger amount, split the expenses across multiple reports.
 
 ## Why is my business bank account locked?
+Your account may be locked due to a failed withdrawal (e.g., insufficient funds or direct debit not enabled).
 
-When you reimburse a report, you authorize Expensify to withdraw the funds from your account and send them to the person requesting reimbursement. If your bank rejects Expensify’s withdrawal request, your verified bank account is locked until the issue is resolved.
-
-Withdrawal requests can be rejected if the bank account has not been enabled for direct debit or due to insufficient funds. If you need to enable direct debits from your verified bank account, your bank will require the following details:
-- The ACH CompanyIDs: 1270239450 and 4270239450
-- The ACH Originator Name: Expensify 
-
-Once resolved, you can request to unlock the bank account by completing the following steps: 
-1. Hover over **Settings**, then click **Account**. 
-2. Click the **Payments** tab. 
-3. Click **Bank Accounts**. 
-4. Next to the bank account, click **Fix**. 
-
-Our support team will review and process the request within 4-5 business days.
+### To fix it:
+- Make sure your bank authorizes direct debits:
+  - **ACH Company IDs:** 1270239450 and 4270239450  
+  - **ACH Originator Name:** Expensify
+- Then:
+  1. Go to **Settings > Account > Wallet**
+  2. Click **Fix** next to the locked account
+  3. Concierge will review and update the account within 4–5 business days
+ 
+> **Note:** If a reimbursement debit fails, we must wait for the bank to return the attempt before another debit can be retried. We cannot manually trigger a new debit while the previous one is still pending.
 
 ## Who can reimburse reports?
+Only Workspace Admins with a verified business bank account can reimburse reports.
 
-Only a Workspace Admin who has added a verified business bank account connected to their Expensify account can reimburse employee reports.
+## How do I add another employee as a reimburser?
+1. Add them as a Workspace Admin:  
+   **Settings > Workspaces > [Workspace Name] > Members**
+2. Share the business bank account:  
+   **Settings > Account > Wallet** > Click **Share**
+3. The employee enters test deposits to verify access.
+4. Once verified, they can reimburse reports.
+5. To set them as the default reimburser:  
+   **Settings > Workspaces > [Workspace Name] > Workflows > Make or track payments**
 
-## How can I add another employee as a reimburser?
+## Can I reimburse reports in bulk?
+Not directly. However, you can set a threshold to automate reimbursements.
 
-You can give another employee access to reimburse reports by doing the following:
-1. If they're not already a workspace admin, add them as one under **Settings > Workspaces > [Workspace Name] > Members**.
-2. Share the business bank account with them by heading to **Settings > Account > Payments** and clicking **Share**.
-3. The new reimburser will need to validate the shared bank connection by entering the test deposits that Expensify sends to the bank account.
-4. Once validated, the employee will have access to reimburse reports. You can make them the default reimburser for all reports submitted on a specific workspace by selecting them from the dropdown menu under **Settings > Workspaces > [Workspace Name] > Reimbursements > Reimburser**.
+To configure this:
+**Settings > Workspaces > [Workspace Name] > Workflows > Make or track payments**
 
-## Why can’t I trigger direct ACH reimbursements in bulk?
+Reports that are Final Approved and under the threshold will auto-reimburse. Reports over the threshold require manual reimbursement.
 
-Expensify does not offer bulk reimbursement, but you can automate reimbursements by setting a threshold amount under **Settings > Workspaces > [Workspace Name] > Reimbursement**. After setting a threshold amount, an employee's reimbursement is triggered once a report is **Final Approved**. If the total of a report is more than the threshold amount, the reimbursement will need to be manually triggered.
-
-{% include faq-end.md %}
-
-</div>

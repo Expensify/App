@@ -3,9 +3,10 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -62,6 +63,8 @@ function BillingBanner({
 }: BillingBannerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
 
     const rightIconComponent = useMemo(() => {
         if (rightIcon) {
@@ -88,12 +91,12 @@ function BillingBanner({
         return (
             !!brickRoadIndicator && (
                 <Icon
-                    src={Expensicons.DotIndicator}
+                    src={expensifyIcons.DotIndicator}
                     fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
                 />
             )
         );
-    }, [brickRoadIndicator, onRightIconPress, rightIcon, rightIconAccessibilityLabel, styles.touchableButtonImage, theme.danger, theme.icon, theme.success]);
+    }, [brickRoadIndicator, onRightIconPress, rightIcon, rightIconAccessibilityLabel, styles.touchableButtonImage, theme.danger, theme.icon, theme.success, expensifyIcons.DotIndicator]);
 
     return (
         <View style={[styles.pv4, styles.ph5, styles.flexRow, styles.flexWrap, styles.gap3, styles.w100, styles.alignItemsCenter, styles.trialBannerBackgroundColor, style]}>
@@ -105,10 +108,19 @@ function BillingBanner({
 
             <View style={[styles.flex1, styles.justifyContentCenter]}>
                 {typeof title === 'string' ? <Text style={[styles.textStrong, titleStyle]}>{title}</Text> : title}
-                {typeof subtitle === 'string' ? <Text style={subtitleStyle}>{subtitle}</Text> : subtitle}
+                {!!subtitle && (typeof subtitle === 'string' ? <Text style={subtitleStyle}>{subtitle}</Text> : subtitle)}
             </View>
-            {!!rightComponent && rightComponent}
-            {rightIconComponent}
+            {shouldUseNarrowLayout ? (
+                <>
+                    {rightIconComponent}
+                    {!!rightComponent && rightComponent}
+                </>
+            ) : (
+                <>
+                    {!!rightComponent && rightComponent}
+                    {rightIconComponent}
+                </>
+            )}
         </View>
     );
 }

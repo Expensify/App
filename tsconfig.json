@@ -2,7 +2,6 @@
     "$schema": "https://json.schemastore.org/tsconfig",
     "extends": "expo/tsconfig.base",
     "compilerOptions": {
-        "module": "commonjs",
         "types": ["react-native", "react-native-web", "jest", "node"],
         "lib": ["DOM", "DOM.Iterable", "ESNext"],
         "isolatedModules": true,
@@ -19,11 +18,37 @@
             "@libs/*": ["./src/libs/*"],
             "@navigation/*": ["./src/libs/Navigation/*"],
             "@pages/*": ["./src/pages/*"],
+            "@prompts/*": ["./prompts/*"],
+            "@scripts/*": ["./scripts/*", "./.github/scripts/*"],
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
-            "@userActions/*": ["./src/libs/actions/*"]
+            "@userActions/*": ["./src/libs/actions/*"],
+            "@selectors/*": ["./src/selectors/*"]
         }
     },
-    "include": ["src", "desktop", "web", "website", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*", "scripts"],
+    "ts-node": {
+        "compilerOptions": {
+            "module": "commonjs",
+            "moduleResolution": "node"
+        }
+    },
+    "include": [
+        "src",
+        "web",
+        "website",
+        "docs",
+        "assets",
+        "config",
+        "tests",
+        "jest",
+        "prompts",
+        "__mocks__",
+        ".github/**/*",
+        ".storybook/**/*",
+        "scripts",
+        "modules",
+        "**/*.nitro/*.ts",
+        "**/*.nitro/*.tsx"
+    ],
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"]
 }

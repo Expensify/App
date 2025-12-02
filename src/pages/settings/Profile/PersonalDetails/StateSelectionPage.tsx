@@ -1,12 +1,11 @@
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import {CONST as COMMON_CONST} from 'expensify-common';
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import searchOptions from '@libs/searchOptions';
@@ -25,7 +24,6 @@ type RouteParams = {
 
 function StateSelectionPage() {
     const route = useRoute();
-    const navigation = useNavigation();
     const {translate} = useLocalize();
 
     const [searchValue, setSearchValue] = useState('');
@@ -57,32 +55,33 @@ function StateSelectionPage() {
         (option: Option) => {
             const backTo = params?.backTo ?? '';
 
-            // Determine navigation action based on "backTo" presence and route stack length.
-            if (navigation.getState()?.routes.length === 1) {
-                // If this is the only page in the navigation stack (examples include direct navigation to this page via URL or page reload).
-                if (isEmpty(backTo)) {
-                    // No "backTo": default back navigation.
-                    Navigation.goBack();
-                } else {
-                    // "backTo" provided: navigate back to "backTo" with state parameter.
-                    Navigation.goBack(appendParam(backTo, 'state', option.value));
-                }
-            } else if (!isEmpty(backTo)) {
-                // Most common case: Navigation stack has multiple routes and "backTo" is defined: navigate to "backTo" with state parameter.
-                Navigation.navigate(appendParam(backTo, 'state', option.value));
-            } else {
-                // This is a fallback block and should never execute if StateSelector is correctly appending the "backTo" route.
-                // Navigation stack has multiple routes but no "backTo" defined: default back navigation.
+            // Check the "backTo" parameter to decide navigation behavior
+            if (!backTo) {
                 Navigation.goBack();
+            } else {
+                // Set compareParams to false because we want to goUp to this particular screen and update params (state).
+                Navigation.goBack(appendParam(backTo, 'state', option.value), {compareParams: false});
             }
         },
-        [navigation, params?.backTo],
+        [params?.backTo],
+    );
+
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage,
+            // Label can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            label: label || translate('common.state'),
+            value: searchValue,
+            onChangeText: setSearchValue,
+        }),
+        [headerMessage, label, searchValue, translate],
     );
 
     return (
         <ScreenWrapper
             testID={StateSelectionPage.displayName}
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 // Label can be an empty string
@@ -102,20 +101,15 @@ function StateSelectionPage() {
             />
             {/* This empty, non-harmful view fixes the issue with SelectionList scrolling and shouldUseDynamicMaxToRenderPerBatch. It can be removed without consequences if a solution for SelectionList is found. See comment https://github.com/Expensify/App/pull/36770#issuecomment-2017028096 */}
             <View />
-
             <SelectionList
-                onSelectRow={selectCountryState}
-                shouldSingleExecuteRowSelect
-                headerMessage={headerMessage}
-                // Label can be an empty string
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                textInputLabel={label || translate('common.state')}
-                textInputValue={searchValue}
-                sections={[{data: searchResults}]}
-                onChangeText={setSearchValue}
-                initiallyFocusedOptionKey={currentState}
-                shouldUseDynamicMaxToRenderPerBatch
+                data={searchResults}
                 ListItem={RadioListItem}
+                onSelectRow={selectCountryState}
+                textInputOptions={textInputOptions}
+                initiallyFocusedItemKey={currentState}
+                shouldSingleExecuteRowSelect
+                disableMaintainingScrollPosition
+                addBottomSafeAreaPadding
             />
         </ScreenWrapper>
     );

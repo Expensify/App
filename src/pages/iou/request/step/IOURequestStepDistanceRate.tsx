@@ -1,18 +1,22 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as IOU from '@libs/actions/IOU';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, updateMoneyRequestDistanceRate} from '@libs/actions/IOU';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceRateCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {isReportInGroupPolicy} from '@libs/ReportUtils';
+import {calculateTaxAmount, getCurrency, getDistanceInMeters, getRateID, getTaxValue, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -31,73 +35,90 @@ function IOURequestStepDistanceRate({
     report,
     reportDraft,
     route: {
-        params: {action, reportID, backTo, transactionID},
+        params: {action, reportID, backTo, transactionID, iouType, reportActionID},
     },
     transaction,
 }: IOURequestStepDistanceRateProps) {
-    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft) ?? '-1'}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`, {canBeMissing: true});
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID || '-1'}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID || '-1'}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID || '-1'}`);
+    const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: true});
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
-    const policy = policyReal ?? policyDraft;
+    const policy: OnyxEntry<OnyxTypes.Policy> = policyReal ?? policyDraft;
 
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit} = useLocalize();
-    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
-    const isPolicyExpenseChat = ReportUtils.isReportInGroupPolicy(report);
+    const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+    const isPolicyExpenseChat = isReportInGroupPolicy(report);
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
-    const currentRateID = TransactionUtils.getRateID(transaction) ?? '-1';
-
-    const transactionCurrency = TransactionUtils.getCurrency(transaction);
+    const currentRateID = getRateID(transaction);
+    const transactionCurrency = getCurrency(transaction);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
+    const sortedRates = useMemo(() => Object.values(rates).sort((a, b) => localeCompare(a.name ?? '', b.name ?? '')), [rates, localeCompare]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
-    const sections = Object.values(rates)
-        .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
-        .map((rate) => {
-            const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
-            const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE;
-            const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
-            return {
-                text: rate.name ?? rateForDisplay,
-                alternateText: rate.name ? rateForDisplay : '',
-                keyForList: rate.customUnitRateID,
-                value: rate.customUnitRateID,
-                isDisabled: !rate.enabled,
-                isSelected,
-            };
-        });
+    const options = sortedRates.map((rate) => {
+        const unit = transaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID ? DistanceRequestUtils.getDistanceUnit(transaction, rate) : rate.unit;
+        const isSelected = currentRateID ? currentRateID === rate.customUnitRateID : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
+        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate.rate, isSelected ? transactionCurrency : rate.currency, translate, toLocaleDigit);
+        return {
+            text: rate.name ?? rateForDisplay,
+            alternateText: rate.name ? rateForDisplay : '',
+            keyForList: rate.customUnitRateID ?? rateForDisplay,
+            value: rate.customUnitRateID,
+            isDisabled: !rate.enabled,
+            isSelected,
+        };
+    });
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
-    const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
+    const initiallyFocusedOption = options.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
         let taxAmount;
         let taxRateExternalID;
         if (shouldShowTax) {
             const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID ?? '-1';
+            taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID;
             const unit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
-            const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, TransactionUtils.getDistanceInMeters(transaction, unit));
-            const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
-            taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, rates[customUnitRateID].currency ?? CONST.CURRENCY.USD));
-            IOU.setMoneyRequestTaxAmount(transactionID, taxAmount);
-            IOU.setMoneyRequestTaxRate(transactionID, taxRateExternalID);
+            const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, unit));
+            const taxPercentage = taxRateExternalID ? getTaxValue(policy, transaction, taxRateExternalID) : undefined;
+            taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, taxableAmount, rates[customUnitRateID].currency ?? CONST.CURRENCY.USD));
+            setMoneyRequestTaxAmount(transactionID, taxAmount);
+            setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null);
         }
 
         if (currentRateID !== customUnitRateID) {
-            IOU.setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy?.id ?? '-1', !isEditing);
+            setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, shouldUseTransactionDraft(action));
 
-            if (isEditing) {
-                IOU.updateMoneyRequestDistanceRate(transaction?.transactionID ?? '-1', reportID, customUnitRateID, policy, policyTags, policyCategories, taxAmount, taxRateExternalID);
+            if (isEditing && transaction?.transactionID) {
+                updateMoneyRequestDistanceRate({
+                    transactionID: transaction.transactionID,
+                    transactionThreadReportID: reportID,
+                    rateID: customUnitRateID,
+                    policy,
+                    policyTagList: policyTags,
+                    policyCategories,
+                    currentUserAccountIDParam,
+                    currentUserEmailParam,
+                    isASAPSubmitBetaEnabled,
+                    updatedTaxAmount: taxAmount,
+                    updatedTaxCode: taxRateExternalID,
+                });
             }
         }
 
@@ -110,15 +131,16 @@ function IOURequestStepDistanceRate({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepDistanceRate.displayName}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <Text style={[styles.mh5, styles.mv4]}>{translate('iou.chooseARate')}</Text>
 
             <SelectionList
-                sections={[{data: sections}]}
+                data={options}
                 ListItem={RadioListItem}
                 onSelectRow={({value}) => selectDistanceRate(value ?? '')}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={initiallyFocusedOption}
+                initiallyFocusedItemKey={initiallyFocusedOption}
             />
         </StepScreenWrapper>
     );

@@ -1,5 +1,7 @@
+import {act} from '@testing-library/react-native';
 import {addDays, addMinutes, format as formatDate, getUnixTime, subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
@@ -8,13 +10,17 @@ import {
     hasUserFreeTrialEnded,
     isUserOnFreeTrial,
     PAYMENT_STATUS,
+    shouldCalculateBillNewDot,
     shouldRestrictUserBillableActions,
     shouldShowDiscountBanner,
+    shouldShowPreTrialBillingBanner,
 } from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BillingGraceEndPeriod, BillingStatus, FundList, StripeCustomerID} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, BillingStatus, FundList, IntroSelected, StripeCustomerID} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
+import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const billingGraceEndPeriod: BillingGraceEndPeriod = {
     value: 0,
@@ -24,12 +30,8 @@ const GRACE_PERIOD_DATE = new Date().getTime() + 1000 * 3600;
 const GRACE_PERIOD_DATE_OVERDUE = new Date().getTime() - 1000;
 
 const AMOUNT_OWED = 100;
-const STRIPE_CUSTOMER_ID: StripeCustomerID = {
-    paymentMethodID: '1',
-    intentsID: '2',
-    currency: 'USD',
-    status: 'authentication_required',
-};
+const stripeCustomerId = STRIPE_CUSTOMER_ID;
+
 const BILLING_STATUS_INSUFFICIENT_FUNDS: BillingStatus = {
     action: 'action',
     periodMonth: 'periodMonth',
@@ -65,22 +67,24 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return 0 if the Onyx key is not set', () => {
-            expect(calculateRemainingFreeTrialDays()).toBe(0);
+            expect(calculateRemainingFreeTrialDays(undefined)).toBe(0);
         });
 
         it('should return 0 if the current date is after the free trial end date', async () => {
             await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(subDays(new Date(), 8), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
-            expect(calculateRemainingFreeTrialDays()).toBe(0);
+            expect(calculateRemainingFreeTrialDays(undefined)).toBe(0);
         });
 
         it('should return 1 if the current date is on the same day of the free trial end date, but some minutes earlier', async () => {
-            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(addMinutes(new Date(), 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
-            expect(calculateRemainingFreeTrialDays()).toBe(1);
+            const lastDayFreeTrial = formatDate(addMinutes(new Date(), 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, lastDayFreeTrial);
+            expect(calculateRemainingFreeTrialDays(lastDayFreeTrial)).toBe(1);
         });
 
         it('should return the remaining days if the current date is before the free trial end date', async () => {
-            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
-            expect(calculateRemainingFreeTrialDays()).toBe(5);
+            const lastDayFreeTrial = formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, lastDayFreeTrial);
+            expect(calculateRemainingFreeTrialDays(lastDayFreeTrial)).toBe(5);
         });
     });
 
@@ -94,52 +98,60 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return false if the Onyx keys are not set', () => {
-            expect(isUserOnFreeTrial()).toBeFalsy();
+            expect(isUserOnFreeTrial(undefined, undefined)).toBeFalsy();
         });
 
         it('should return false if the current date is before the free trial start date', async () => {
+            const firstDayFreeTrial = formatDate(addDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 4), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
 
-            expect(isUserOnFreeTrial()).toBeFalsy();
+            expect(isUserOnFreeTrial(firstDayFreeTrial, undefined)).toBeFalsy();
         });
 
         it('should return false if the current date is after the free trial end date', async () => {
+            const firstDayFreeTrial = formatDate(subDays(new Date(), 4), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 4), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
 
-            expect(isUserOnFreeTrial()).toBeFalsy();
+            expect(isUserOnFreeTrial(firstDayFreeTrial, undefined)).toBeFalsy();
         });
 
         it('should return true if the current date is on the same date of free trial start date', async () => {
+            const firstDayFreeTrial = formatDate(new Date(), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const lastDayFreeTrial = formatDate(addDays(new Date(), 3), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(new Date(), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
-                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 3), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: lastDayFreeTrial,
             });
 
-            expect(isUserOnFreeTrial()).toBeTruthy();
+            expect(isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)).toBeTruthy();
         });
 
         it('should return true if the current date is on the same date of free trial end date, but some minutes earlier', async () => {
+            const firstDayFreeTrial = formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const lastDayFreeTrial = formatDate(addMinutes(new Date(), 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
-                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addMinutes(new Date(), 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: lastDayFreeTrial,
             });
 
-            expect(isUserOnFreeTrial()).toBeTruthy();
+            expect(isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)).toBeTruthy();
         });
 
         it('should return true if the current date is between the free trial start and end dates', async () => {
+            const firstDayFreeTrial = formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const lastDayFreeTrial = formatDate(addDays(new Date(), 3), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
-                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 3), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: lastDayFreeTrial,
             });
 
-            expect(isUserOnFreeTrial()).toBeTruthy();
+            expect(isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)).toBeTruthy();
         });
     });
 
@@ -153,17 +165,18 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return false if the Onyx key is not set', () => {
-            expect(hasUserFreeTrialEnded()).toBeFalsy();
+            expect(hasUserFreeTrialEnded(undefined)).toBeFalsy();
         });
 
         it('should return false if the current date is before the free trial end date', async () => {
             await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(addDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
-            expect(hasUserFreeTrialEnded()).toBeFalsy();
+            expect(hasUserFreeTrialEnded(undefined)).toBeFalsy();
         });
 
         it('should return true if the current date is after the free trial end date', async () => {
-            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
-            expect(hasUserFreeTrialEnded()).toBeTruthy();
+            const lastDayFreeTrial = formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, lastDayFreeTrial);
+            expect(hasUserFreeTrialEnded(lastDayFreeTrial)).toBeTruthy();
         });
     });
 
@@ -176,12 +189,12 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return false if the Onyx key is not set', () => {
-            expect(doesUserHavePaymentCardAdded()).toBeFalsy();
+            expect(doesUserHavePaymentCardAdded(undefined)).toBeFalsy();
         });
 
         it('should return true if the Onyx key is set', async () => {
             await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, 8010);
-            expect(doesUserHavePaymentCardAdded()).toBeTruthy();
+            expect(doesUserHavePaymentCardAdded(8010)).toBeTruthy();
         });
     });
 
@@ -339,7 +352,9 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return undefined by default', () => {
-            expect(getSubscriptionStatus()).toBeUndefined();
+            const stripeCustomerIdForDefault: Partial<OnyxEntry<StripeCustomerID>> = {};
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForDefault)).toBeUndefined();
         });
 
         it('should return POLICY_OWNER_WITH_AMOUNT_OWED status', async () => {
@@ -348,7 +363,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined)).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
                 isError: true,
             });
@@ -360,7 +375,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined)).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
                 isError: true,
             });
@@ -372,7 +387,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined)).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
                 isError: true,
             });
@@ -383,7 +398,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined)).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
                 isError: true,
             });
@@ -395,7 +410,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 1,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, 1, undefined)).toEqual({
                 status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
                 isError: true,
             });
@@ -408,7 +423,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: STRIPE_CUSTOMER_ID,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, 0, undefined)).toEqual({
                 status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
                 isError: true,
             });
@@ -421,7 +436,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: BILLING_STATUS_INSUFFICIENT_FUNDS,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined)).toEqual({
                 status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
                 isError: true,
             });
@@ -432,7 +447,14 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: BILLING_STATUS_EXPIRED_CARD,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            const stripeCustomerIdForCardExpired: Partial<OnyxEntry<StripeCustomerID>> = {
+                paymentMethodID: '1',
+                intentsID: '2',
+                currency: 'USD',
+            };
+
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForCardExpired)).toEqual({
                 status: PAYMENT_STATUS.CARD_EXPIRED,
                 isError: true,
             });
@@ -445,7 +467,14 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.FUND_LIST]: FUND_LIST,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            const stripeCustomerIdForCardExpireSoon: Partial<OnyxEntry<StripeCustomerID>> = {
+                paymentMethodID: '1',
+                intentsID: '2',
+                currency: 'USD',
+            };
+
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForCardExpireSoon)).toEqual({
                 status: PAYMENT_STATUS.CARD_EXPIRE_SOON,
             });
         });
@@ -456,7 +485,13 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: true,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            const stripeCustomerIdForRetryBillingSuccess: Partial<OnyxEntry<StripeCustomerID>> = {
+                paymentMethodID: '1',
+                intentsID: '2',
+                currency: 'USD',
+            };
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingSuccess, true)).toEqual({
                 status: PAYMENT_STATUS.RETRY_BILLING_SUCCESS,
                 isError: false,
             });
@@ -469,7 +504,13 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: true,
             });
 
-            expect(getSubscriptionStatus()).toEqual({
+            const stripeCustomerIdForRetryBillingError: Partial<OnyxEntry<StripeCustomerID>> = {
+                paymentMethodID: '1',
+                intentsID: '2',
+                currency: 'USD',
+            };
+            // @ts-expect-error - This is a test case
+            expect(getSubscriptionStatus(stripeCustomerIdForRetryBillingError, false, undefined, true)).toEqual({
                 status: PAYMENT_STATUS.RETRY_BILLING_ERROR,
                 isError: true,
             });
@@ -477,43 +518,100 @@ describe('SubscriptionUtils', () => {
     });
 
     describe('shouldShowDiscountBanner', () => {
+        const ownerAccountID = 234;
+        const policyID = '100012';
         afterEach(async () => {
             await Onyx.clear();
         });
 
         it('should return false if the user is not on a free trial', async () => {
             await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                },
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: null,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null,
             });
-            expect(shouldShowDiscountBanner()).toBeFalsy();
+            expect(shouldShowDiscountBanner(true, 'corporate', undefined, undefined, undefined)).toBeFalsy();
         });
 
         it(`should return false if user has already added a payment method`, async () => {
-            await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, 8010);
-            expect(shouldShowDiscountBanner()).toBeFalsy();
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                },
+                [ONYXKEYS.NVP_BILLING_FUND_ID]: 8010,
+            });
+            expect(shouldShowDiscountBanner(true, 'corporate', undefined, undefined, 8010)).toBeFalsy();
+        });
+
+        it('should return false if the user is on Team plan', async () => {
+            const firstDayFreeTrial = formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                },
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            });
+            expect(shouldShowDiscountBanner(true, 'team', firstDayFreeTrial, undefined, undefined)).toBeFalsy();
         });
 
         it('should return true if the date is before the free trial end date or within the 8 days from the trial start date', async () => {
+            const firstDayFreeTrial = formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const lastDayFreeTrial = formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                },
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: lastDayFreeTrial,
+            });
+            expect(shouldShowDiscountBanner(true, 'corporate', firstDayFreeTrial, lastDayFreeTrial, undefined)).toBeTruthy();
+        });
+
+        it("should return false if user's trial is during the discount period but has no workspaces", async () => {
+            const firstDayFreeTrial = formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
-            expect(shouldShowDiscountBanner()).toBeTruthy();
+            expect(shouldShowDiscountBanner(true, 'corporate', firstDayFreeTrial, undefined, undefined)).toBeFalsy();
         });
     });
 
     describe('getEarlyDiscountInfo', () => {
+        const TEST_DATE = new Date();
+
+        beforeEach(() => {
+            jest.spyOn(Date, 'now').mockImplementation(() => TEST_DATE.getTime());
+        });
+
         afterEach(async () => {
+            jest.spyOn(Date, 'now').mockRestore();
             await Onyx.clear();
         });
         it('should return the discount info if the user is on a free trial and trial was started less than 24 hours before', async () => {
+            const firstDayFreeTrial = formatDate(addMinutes(subDays(new Date(TEST_DATE), 1), 12), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(addMinutes(subDays(new Date(), 1), 12), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
-                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(TEST_DATE), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
 
-            expect(getEarlyDiscountInfo()).toEqual({
+            expect(getEarlyDiscountInfo(firstDayFreeTrial)).toEqual({
                 discountType: 50,
                 days: 0,
                 hours: 0,
@@ -523,12 +621,13 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should return the discount info if the user is on a free trial and trial was started more than 24 hours before', async () => {
+            const firstDayFreeTrial = formatDate(subDays(new Date(TEST_DATE), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
-                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(TEST_DATE), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
 
-            expect(getEarlyDiscountInfo()).toEqual({
+            expect(getEarlyDiscountInfo(firstDayFreeTrial)).toEqual({
                 discountType: 25,
                 days: 6,
                 hours: 0,
@@ -543,7 +642,157 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null,
             });
 
-            expect(getEarlyDiscountInfo()).toBeNull();
+            expect(getEarlyDiscountInfo(undefined)).toBeNull();
+        });
+    });
+    describe('shouldShowPreTrialBillingBanner', () => {
+        it('should return true if the user is NOT on a free trial and trial has not ended', async () => {
+            const firstDayFreeTrial = formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            // Free trial starts in the future → user is not currently on trial
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
+                    [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                });
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            const introSelected: OnyxEntry<IntroSelected> = {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            };
+
+            expect(shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial, undefined)).toBeTruthy();
+        });
+
+        it('should return false if the free trial has ended', async () => {
+            const firstDayFreeTrial = formatDate(subDays(new Date(), 20), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const lastDayFreeTrial = formatDate(subDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: lastDayFreeTrial,
+            });
+
+            const introSelected: OnyxEntry<IntroSelected> = {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            };
+
+            expect(shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial, lastDayFreeTrial)).toBeFalsy();
+        });
+    });
+    describe('shouldCalculateBillNewDot', () => {
+        const testUserAccountID = 1; // A consistent account ID for tests
+        const paidPolicyID = '12345';
+        const freePolicyID = '67890';
+        const secondPaidPolicyID = '98765';
+
+        beforeEach(async () => {
+            // Clear Onyx and set up session for each test
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: 'test@example.com', accountID: testUserAccountID});
+            // Ensure allPolicies is initialized as empty or cleared before each test
+            await Onyx.multiSet({
+                [ONYXKEYS.COLLECTION.POLICY]: null,
+            });
+            // Reset the mock for getOwnedPaidPolicies before each test
+            jest.clearAllMocks();
+        });
+
+        it('should return false if canDowngrade is false (default or explicitly passed)', async () => {
+            // Set up a policy that would normally count as owned and paid
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+                    ...createRandomPolicy(Number(paidPolicyID)),
+                    ownerAccountID: testUserAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+            // Test with canDowngrade as false (explicitly)
+            expect(shouldCalculateBillNewDot(false)).toBeFalsy();
+            // Test with canDowngrade as undefined (defaults to false in the function signature)
+            expect(shouldCalculateBillNewDot(undefined)).toBeFalsy();
+            // Test without passing canDowngrade (defaults to false)
+            expect(shouldCalculateBillNewDot()).toBeFalsy();
+        });
+
+        it('should return false if the user owns zero paid policies', async () => {
+            // Only free policies or no policies at all
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.POLICY}${freePolicyID}` as const]: {
+                    ...createRandomPolicy(Number(freePolicyID)),
+                    ownerAccountID: testUserAccountID,
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                },
+            });
+            expect(shouldCalculateBillNewDot(true)).toBeFalsy();
+        });
+
+        it('should return false if the user owns more than one paid policy', async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+                    ...createRandomPolicy(Number(paidPolicyID)),
+                    ownerAccountID: testUserAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                },
+                [`${ONYXKEYS.COLLECTION.POLICY}${secondPaidPolicyID}` as const]: {
+                    ...createRandomPolicy(Number(secondPaidPolicyID)),
+                    ownerAccountID: testUserAccountID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                },
+            });
+            expect(shouldCalculateBillNewDot(true)).toBeFalsy();
+        });
+
+        it('should return true if canDowngrade is true and the user owns exactly one paid policy', async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+                    ...createRandomPolicy(Number(paidPolicyID)),
+                    ownerAccountID: testUserAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                },
+                [`${ONYXKEYS.COLLECTION.POLICY}${freePolicyID}` as const]: {
+                    // Include a free policy to confirm it's correctly ignored
+                    ...createRandomPolicy(Number(freePolicyID)),
+                    ownerAccountID: testUserAccountID,
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                },
+            });
+            expect(shouldCalculateBillNewDot(true)).toBeTruthy();
+        });
+
+        it('should return false if the user owns exactly one paid policy but is not the owner', async () => {
+            // Set up a paid policy owned by another user
+            const thirdUserAccountID = 2;
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+                    ...createRandomPolicy(Number(paidPolicyID)),
+                    ownerAccountID: thirdUserAccountID, // Owned by someone else
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+            expect(shouldCalculateBillNewDot(true)).toBeFalsy();
+        });
+
+        it('should return true if canDowngrade is true and the single paid policy is a team policy', async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+                    ...createRandomPolicy(Number(paidPolicyID)),
+                    ownerAccountID: testUserAccountID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                },
+            });
+            expect(shouldCalculateBillNewDot(true)).toBeTruthy();
+        });
+
+        it('should return true if canDowngrade is true and the single paid policy is a corporate policy', async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.POLICY}${paidPolicyID}` as const]: {
+                    ...createRandomPolicy(Number(paidPolicyID)),
+                    ownerAccountID: testUserAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+            expect(shouldCalculateBillNewDot(true)).toBeTruthy();
         });
     });
 });

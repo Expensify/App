@@ -1,5 +1,6 @@
+import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as ScrollViewRN} from 'react-native';
@@ -13,8 +14,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {sortAlphabetically} from '@libs/OptionsListUtils';
+import {isControlPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ApprovalWorkflowOnyx, Policy} from '@src/types/onyx';
@@ -33,11 +34,14 @@ type ApprovalWorkflowEditorProps = {
 
     /** The policy ID */
     policyID: string;
+
+    /** Forwarded ref to pass to the ScrollView */
+    ref: ForwardedRef<ScrollViewRN>;
 };
 
-function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID}: ApprovalWorkflowEditorProps, ref: ForwardedRef<ScrollViewRN>) {
+function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID, ref}: ApprovalWorkflowEditorProps) {
     const styles = useThemeStyles();
-    const {translate, toLocaleOrdinal} = useLocalize();
+    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const approverCount = approvalWorkflow.approvers.length;
 
     const approverDescription = useCallback(
@@ -49,6 +53,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         (index: number) => {
             let pendingAction: PendingAction | undefined;
             if (index === 0) {
+                // eslint-disable-next-line unicorn/no-array-for-each
                 approvalWorkflow?.members?.forEach((member) => {
                     pendingAction = pendingAction ?? member.pendingFields?.submitsTo;
                 });
@@ -66,14 +71,14 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
             return translate('workspace.common.everyone');
         }
 
-        return OptionsListUtils.sortAlphabetically(approvalWorkflow.members, 'displayName')
-            .map((m) => m.displayName)
+        return sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
+            .map((m) => Str.removeSMSDomain(m.displayName))
             .join(', ');
-    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate]);
+    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate, localeCompare]);
 
     const approverErrorMessage = useCallback(
         (approver: Approver | undefined, approverIndex: number) => {
-            const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).filter(Boolean).at(-1);
+            const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).findLast(Boolean);
             const error = approvalWorkflow?.errors?.[`approver-${approverIndex}`];
 
             if (!error) {
@@ -85,8 +90,8 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     return;
                 }
                 return translate('workflowsPage.approverCircularReference', {
-                    name1: approver.displayName,
-                    name2: previousApprover.displayName,
+                    name1: Str.removeSMSDomain(approver.displayName),
+                    name2: Str.removeSMSDomain(previousApprover.displayName),
                 });
             }
 
@@ -97,33 +102,37 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     const editMembers = useCallback(() => {
         const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo), CONST.NAVIGATION.ACTION_TYPE.PUSH);
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo));
     }, [approvalWorkflow.action, policyID]);
 
     const editApprover = useCallback(
         (approverIndex: number) => {
             const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, backTo), CONST.NAVIGATION.ACTION_TYPE.PUSH);
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, backTo));
         },
         [approvalWorkflow.action, policyID],
     );
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {
-        if (!PolicyUtils.isControlPolicy(policy) && approverCount > 0) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
+        if (!isControlPolicy(policy) && approverCount > 0) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(
+                    policyID,
+                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
+                    ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount),
+                ),
+            );
             return;
         }
-        Navigation.navigate(
-            ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)),
-            CONST.NAVIGATION.ACTION_TYPE.PUSH,
-        );
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)));
     }, [approverCount, policy, policyID]);
 
     return (
         <ScrollView
             style={[styles.flex1]}
             ref={ref}
+            addBottomSafeAreaPadding
         >
             <View style={[styles.mh5]}>
                 {approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
@@ -152,11 +161,13 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             : undefined;
 
                     return (
-                        <OfflineWithFeedback pendingAction={getApprovalPendingAction(approverIndex)}>
+                        <OfflineWithFeedback
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`approver-${approver?.email}-${approverIndex}`}
+                            pendingAction={getApprovalPendingAction(approverIndex)}
+                        >
                             <MenuItemWithTopDescription
-                                // eslint-disable-next-line react/no-array-index-key
-                                key={`approver-${approver?.email}-${approverIndex}`}
-                                title={approver?.displayName}
+                                title={Str.removeSMSDomain(approver?.displayName ?? '')}
                                 titleStyle={styles.textNormalThemeText}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 description={approverDescription(approverIndex)}
@@ -197,4 +208,4 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
 ApprovalWorkflowEditor.displayName = 'ApprovalWorkflowEditor';
 
-export default forwardRef(ApprovalWorkflowEditor);
+export default ApprovalWorkflowEditor;

@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import {Keyboard} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -9,46 +8,50 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {escapeTagName, getTagList} from '@libs/PolicyUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Tag from '@userActions/Policy/Tag';
+import {createPolicyTag} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
-type CreateTagPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>;
+type WorkspaceCreateTagPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE>;
 
-function CreateTagPage({route}: CreateTagPageProps) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
+function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
+    const policyID = route.params.policyID;
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const backTo = route.params.backTo;
-    const isQuickSettingsFlow = !!backTo;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
-            const tagName = PolicyUtils.escapeTagName(values.tagName.trim());
-            const {tags} = PolicyUtils.getTagList(policyTags, 0);
+            const tagName = escapeTagName(values.tagName.trim());
+            const {tags} = getTagList(policyTags, 0);
 
-            if (!ValidationUtils.isRequiredFulfilled(tagName)) {
+            if (!isRequiredFulfilled(tagName)) {
                 errors.tagName = translate('workspace.tags.tagRequiredError');
             } else if (tagName === '0') {
                 errors.tagName = translate('workspace.tags.invalidTagNameError');
             } else if (tags?.[tagName]) {
                 errors.tagName = translate('workspace.tags.existingTagError');
-            } else if ([...tagName].length > CONST.TAG_NAME_LIMIT) {
+            } else if ([...tagName].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                ErrorUtils.addErrorMessage(errors, 'tagName', translate('common.error.characterLimitExceedCounter', {length: [...tagName].length, limit: CONST.TAG_NAME_LIMIT}));
+                addErrorMessage(errors, 'tagName', translate('common.error.characterLimitExceedCounter', {length: [...tagName].length, limit: CONST.API_TRANSACTION_TAG_MAX_LENGTH}));
             }
 
             return errors;
@@ -58,28 +61,28 @@ function CreateTagPage({route}: CreateTagPageProps) {
 
     const createTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            Tag.createPolicyTag(route.params.policyID, values.tagName.trim());
+            createPolicyTag(policyID, values.tagName.trim(), policyTags);
             Keyboard.dismiss();
-            Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(route.params.policyID, backTo) : undefined);
+            Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
         },
-        [route.params.policyID, isQuickSettingsFlow, backTo],
+        [policyID, policyTags, isQuickSettingsFlow, backTo],
     );
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyID={route.params.policyID}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CreateTagPage.displayName}
+                testID={WorkspaceCreateTagPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.addTag')}
-                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(route.params.policyID, backTo) : undefined)}
+                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined)}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
@@ -88,10 +91,11 @@ function CreateTagPage({route}: CreateTagPageProps) {
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         InputComponent={TextInput}
-                        maxLength={CONST.TAG_NAME_LIMIT}
                         label={translate('common.name')}
                         accessibilityLabel={translate('common.name')}
                         inputID={INPUT_IDS.TAG_NAME}
@@ -104,6 +108,6 @@ function CreateTagPage({route}: CreateTagPageProps) {
     );
 }
 
-CreateTagPage.displayName = 'CreateTagPage';
+WorkspaceCreateTagPage.displayName = 'WorkspaceCreateTagPage';
 
-export default CreateTagPage;
+export default WorkspaceCreateTagPage;

@@ -1,35 +1,48 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearAvatarErrors, getCurrentUserAccountID, updatePolicyRoomAvatar} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
+import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {isDefaultAvatar} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
+import AvatarWithImagePicker from './AvatarWithImagePicker';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import Text from './Text';
 
 type RoomHeaderAvatarsProps = {
     icons: Icon[];
-    reportID: string;
+    report: Report;
+    policy: OnyxEntry<Policy>;
+    participants: number[];
 };
 
-function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
+function RoomHeaderAvatars({icons, report, policy, participants}: RoomHeaderAvatarsProps) {
     const navigateToAvatarPage = (icon: Icon) => {
         if (icon.type === CONST.ICON_TYPE_WORKSPACE && icon.id) {
-            Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(reportID, icon.id.toString()));
+            Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report?.reportID, icon.id.toString()));
             return;
         }
 
         if (icon.id) {
-            Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(Number(icon.id)));
+            Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(Number(icon.id), Navigation.getActiveRoute()));
         }
     };
 
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ImageCropSquareMask'] as const);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const currentUserAccountID = getCurrentUserAccountID();
+    const canEditRoomAvatar = isUserCreatedPolicyRoom(report) && participants.includes(currentUserAccountID) && !!policy && policy.role !== CONST.POLICY.ROLE.AUDITOR;
 
     if (!icons.length) {
         return null;
@@ -40,6 +53,31 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
 
         if (!icon) {
             return;
+        }
+
+        if (canEditRoomAvatar) {
+            return (
+                <AvatarWithImagePicker
+                    source={icon.source || report.avatarUrl}
+                    avatarID={icon.id}
+                    isUsingDefaultAvatar={!report.avatarUrl || isDefaultAvatar(icon.source)}
+                    size={CONST.AVATAR_SIZE.X_LARGE}
+                    avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
+                    onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
+                    onImageRemoved={() => updatePolicyRoomAvatar(report.reportID)}
+                    onImageSelected={(file) => updatePolicyRoomAvatar(report.reportID, file)}
+                    editIcon={Expensicons.Camera}
+                    editIconStyle={styles.smallEditIconAccount}
+                    pendingAction={report.pendingFields?.avatar}
+                    errors={report.errorFields?.avatar ?? null}
+                    errorRowStyles={styles.mt6}
+                    onErrorClose={() => clearAvatarErrors(report.reportID)}
+                    style={[styles.w100, styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
+                    type={icon.type}
+                    editorMaskImage={expensifyIcons.ImageCropSquareMask}
+                    name={icon.name}
+                />
+            );
         }
 
         return (
@@ -53,7 +91,7 @@ function RoomHeaderAvatars({icons, reportID}: RoomHeaderAvatarsProps) {
                 <Avatar
                     source={icon.source}
                     imageStyles={styles.avatarXLarge}
-                    size={CONST.AVATAR_SIZE.XLARGE}
+                    size={CONST.AVATAR_SIZE.X_LARGE}
                     name={icon.name}
                     avatarID={icon.id}
                     type={icon.type}

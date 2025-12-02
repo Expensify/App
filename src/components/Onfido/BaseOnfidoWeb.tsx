@@ -1,6 +1,5 @@
 import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
-import React, {forwardRef, useEffect} from 'react';
-import type {ForwardedRef} from 'react';
+import React, {useEffect} from 'react';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -9,9 +8,10 @@ import type {ThemeColors} from '@styles/theme/types';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import {EXTENDED_LOCALES} from '@src/CONST/LOCALES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import './index.css';
-import type {OnfidoElement, OnfidoError, OnfidoProps} from './types';
+import type {OnfidoProps} from './types';
 
 type InitializeOnfidoProps = OnfidoProps &
     Pick<LocaleContextProps, 'translate' | 'preferredLocale'> & {
@@ -50,9 +50,10 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             colorBorderButtonPrimary: theme.success,
             colorContentButtonSecondaryText: theme.text,
             colorBackgroundButtonSecondary: theme.border,
-            colorBackgroundButtonSecondaryHover: theme.icon,
-            colorBackgroundButtonSecondaryActive: theme.icon,
+            colorBackgroundButtonSecondaryHover: theme.hoverComponentBG,
+            colorBackgroundButtonSecondaryActive: theme.hoverComponentBG,
             colorBorderButtonSecondary: theme.border,
+            colorBorderButtonSecondaryHover: theme.transparent,
             colorBackgroundIcon: theme.transparent,
             colorContentLinkTextHover: theme.appBG,
             colorBorderLinkUnderline: theme.link,
@@ -65,6 +66,17 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             colorBackgroundDocTypeButtonHover: theme.successHover,
             colorBackgroundButtonIconHover: theme.transparent,
             colorBackgroundButtonIconActive: theme.transparent,
+            colorBorderButtonPrimaryFocus: theme.transparent,
+            colorBorderButtonPrimaryActive: theme.transparent,
+            colorBorderButtonSecondaryFocus: theme.transparent,
+            colorBorderButtonSecondaryActive: theme.transparent,
+            colorIcon: theme.icon,
+            colorContentButtonTertiaryText: theme.link,
+            colorBackgroundButtonTertiaryHover: theme.hoverComponentBG,
+            colorBorderButtonTertiaryFocus: theme.transparent,
+            colorInputOutline: theme.borderFocus,
+            colorBackgroundInput: theme.appBG,
+            colorBorderInput: theme.border,
         },
         steps: [
             {
@@ -94,7 +106,7 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             }
             onSuccess(data);
         },
-        onError: (error: OnfidoError) => {
+        onError: (error) => {
             const errorType = error.type;
             const errorMessage: string = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
             Log.hmmm('Onfido error', {errorType, errorMessage});
@@ -106,7 +118,7 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
         },
         language: {
             // We need to use ES_ES as locale key because the key `ES` is not a valid config key for Onfido
-            locale: preferredLocale === CONST.LOCALES.ES ? CONST.LOCALES.ES_ES_ONFIDO : preferredLocale,
+            locale: preferredLocale === CONST.LOCALES.ES ? EXTENDED_LOCALES.ES_ES_ONFIDO : (preferredLocale ?? CONST.LOCALES.DEFAULT),
 
             // Provide a custom phrase for the back button so that the first letter is capitalized,
             // and translate the phrase while we're at it. See the issue and documentation for more context.
@@ -124,7 +136,7 @@ function logOnFidoEvent(event: OnfidoEvent) {
     Log.hmmm('Receiving Onfido analytic event', event.detail);
 }
 
-function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: ForwardedRef<OnfidoElement>) {
+function Onfido({sdkToken, onSuccess, onError, onUserExit, ref}: OnfidoProps) {
     const {preferredLocale, translate} = useLocalize();
     const theme = useTheme();
 
@@ -155,4 +167,4 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: Fo
 
 Onfido.displayName = 'Onfido';
 
-export default forwardRef(Onfido);
+export default Onfido;

@@ -13,7 +13,7 @@ apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.grad
 /* Fullstory settings */
 fullstory {
     org 'o-1WN56P-na1'
-    enabledVariants 'production'
+    enabledVariants 'all'
     logcatLevel 'debug'
     recordOnStart false
 }
@@ -66,8 +66,8 @@ react {
     autolinkLibrariesWithApp()
     // Added by install-expo-modules
     entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", rootDir.getAbsoluteFile().getParentFile().getAbsolutePath(), "android", "absolute"].execute(null, rootDir).text.trim())
-    cliFile = new File(["node", "--print", "require.resolve('@expo/cli')"].execute(null, rootDir).text.trim())
-    bundleCommand = "export:embed"
+    cliFile = file("../../node_modules/rock/dist/src/bin.js")
+    bundleCommand = "bundle"
 }
 
 project.ext.envConfigFiles = [
@@ -89,16 +89,20 @@ def enableProguardInReleaseBuilds = true
  * The preferred build flavor of JavaScriptCore (JSC)
  *
  * For example, to use the international variant, you can use:
- * `def jscFlavor = 'org.webkit:android-jsc-intl:+'`
+ * `def jscFlavor = io.github.react-native-community:jsc-android-intl:2026004.+`
  *
  * The international variant includes ICU i18n library and necessary data
  * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
  * give correct results when using with locales other than en-US. Note that
  * this variant is about 6MiB larger per architecture than default.
  */
-def jscFlavor = 'org.webkit:android-jsc:+'
+def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
+    androidResources {
+      noCompress += ["bundle"]
+    }
+
     ndkVersion rootProject.ext.ndkVersion
 
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -110,8 +114,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1009009000
-        versionName "9.0.90-0"
+        versionCode 1009026706
+        versionName "9.2.67-6"
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"
@@ -196,15 +200,34 @@ android {
 afterEvaluate {
     // As the App is building from source, we need to make sure hermesc is built before the JS bundle is created.
     // Otherwise the release version of the app will fail to build due to missing hermesc.
-    def hermesCTask = gradle.includedBuild("react-native").task(":packages:react-native:ReactAndroid:hermes-engine:buildHermesC")
+    if (reactNativeIncludedBuild != null) {
+        def hermesCTask = rootProject.ext.reactNativeIncludedBuild.task(":packages:react-native:ReactAndroid:hermes-engine:buildHermesC")
+        android.applicationVariants.configureEach { variant ->
+            if (variant.buildType.name == "release" || variant.buildType.name == "adhoc") {
+                def variantName = variant.name.capitalize()
+                def bundleTask = tasks.named("createBundle${variantName}JsAndAssets").getOrNull()
 
-    android.applicationVariants.configureEach { variant ->
-        if (variant.buildType.name == "release" || variant.buildType.name == "adhoc") {
-            def variantName = variant.name.capitalize()
-            def bundleTask = tasks.named("createBundle${variantName}JsAndAssets").getOrNull()
+                if (bundleTask != null) {
+                    bundleTask.dependsOn(hermesCTask)
+                }
+            }
+        }
+    }
 
-            if (bundleTask != null) {
-                bundleTask.dependsOn(hermesCTask)
+    // If we are not building from source, we need to substitute the react-native and react-android dependencies with our patched versions
+    if(!patchedArtifactsConfig.buildFromSource) {
+        def group = "com.expensify.${patchedArtifactsConfig.packageName}"
+        project.rootProject.allprojects { eachProject ->
+                eachProject.configurations.all { configuration ->
+                    configuration.resolutionStrategy {
+                        dependencySubstitution {
+                            substitute(module('com.facebook.react:react-native'))
+                                .using(module("${group}:react-android:${patchedArtifactsConfig.version}"))
+                            substitute(module('com.facebook.react:react-android'))
+                                .using(module("${group}:react-android:${patchedArtifactsConfig.version}"))
+                        }
+                    force "${group}:react-android:${patchedArtifactsConfig.version}"
+                }
             }
         }
     }
@@ -226,8 +249,8 @@ dependencies {
     implementation "com.google.firebase:firebase-crashlytics"
 
     // GIF support
-    implementation 'com.facebook.fresco:fresco:2.5.0'
-    implementation 'com.facebook.fresco:animated-gif:2.5.0'
+    implementation 'com.facebook.fresco:fresco:3.4.0'
+    implementation 'com.facebook.fresco:animated-gif:3.4.0'
 
     // AndroidX support library
     implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'

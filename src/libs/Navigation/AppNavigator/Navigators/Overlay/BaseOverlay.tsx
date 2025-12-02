@@ -5,17 +5,26 @@ import {Animated, View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {OverlayStylesParams} from '@styles/index';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type BaseOverlayProps = {
     /* Callback to close the modal */
     onPress?: () => void;
 
-    /* Returns whether a modal is displayed on the left side of the screen. By default, the modal is displayed on the right */
-    isModalOnTheLeft?: boolean;
+    /* Override the progress from useCardAnimation. Necessary for the secondary overlay */
+    progress?: OverlayStylesParams;
+
+    /* Overlay position from the left edge of the container */
+    positionLeftValue?: number | Animated.Value;
+
+    /* Overlay position from the right edge of the container */
+    positionRightValue?: number | Animated.Value;
 };
 
-function BaseOverlay({onPress, isModalOnTheLeft = false}: BaseOverlayProps) {
+// The default value of positionLeftValue is equal to -2 * variables.sideBarWidth, because we need to stretch the overlay to cover the sidebar and the translate animation distance.
+function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.sideBarWidth, positionRightValue = 0}: BaseOverlayProps) {
     const styles = useThemeStyles();
     const {current} = useCardAnimation();
     const {translate} = useLocalize();
@@ -23,7 +32,7 @@ function BaseOverlay({onPress, isModalOnTheLeft = false}: BaseOverlayProps) {
     return (
         <Animated.View
             id="BaseOverlay"
-            style={styles.overlayStyles(current, isModalOnTheLeft)}
+            style={[styles.pFixed, styles.t0, styles.b0, styles.overlayBackground, styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue, positionRightValue})]}
         >
             <View style={[styles.flex1, styles.flexColumn]}>
                 {/* In the latest Electron version buttons can't be both clickable and draggable.
@@ -31,7 +40,7 @@ function BaseOverlay({onPress, isModalOnTheLeft = false}: BaseOverlayProps) {
              we have 30px draggable ba at the top and the rest of the dimmed area is clickable. On other devices,
              everything behaves normally like one big pressable */}
                 <PressableWithoutFeedback
-                    style={[styles.draggableTopBar, styles.boxShadowNone]}
+                    style={[styles.draggableTopBar, styles.boxShadowNone, styles.cursorAuto]}
                     onPress={onPress}
                     accessibilityLabel={translate('common.close')}
                     role={CONST.ROLE.BUTTON}
@@ -39,7 +48,7 @@ function BaseOverlay({onPress, isModalOnTheLeft = false}: BaseOverlayProps) {
                     tabIndex={-1}
                 />
                 <PressableWithoutFeedback
-                    style={[styles.flex1, styles.boxShadowNone]}
+                    style={[styles.flex1, styles.boxShadowNone, styles.cursorAuto]}
                     onPress={onPress}
                     accessibilityLabel={translate('common.close')}
                     role={CONST.ROLE.BUTTON}

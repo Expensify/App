@@ -1,11 +1,11 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {FocusTrap} from 'focus-trap-react';
 import React, {useMemo} from 'react';
-import BOTTOM_TAB_SCREENS from '@components/FocusTrap/BOTTOM_TAB_SCREENS';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {isSidebarScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import CONST from '@src/CONST';
 import type FocusTrapProps from './FocusTrapProps';
 
@@ -18,8 +18,8 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
         if (typeof focusTrapSettings?.active !== 'undefined') {
             return focusTrapSettings.active;
         }
-        // Focus trap can't be active on bottom tab screens because it would block access to the tab bar.
-        if (BOTTOM_TAB_SCREENS.find((screen) => screen === route.name)) {
+        // Focus trap can't be active on sidebar screens because it would block access to the tab bar.
+        if (isSidebarScreenName(route.name)) {
             return false;
         }
 
@@ -32,7 +32,7 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
         if (WIDE_LAYOUT_INACTIVE_SCREENS.includes(route.name) && !shouldUseNarrowLayout) {
             return false;
         }
-        return true;
+        return isFocused;
     }, [isFocused, shouldUseNarrowLayout, route.name, focusTrapSettings?.active]);
 
     return (
@@ -42,7 +42,11 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
             containerElements={focusTrapSettings?.containerElements?.length ? focusTrapSettings.containerElements : undefined}
             focusTrapOptions={{
                 onActivate: () => {
-                    (document?.activeElement as HTMLElement)?.blur();
+                    const activeElement = document?.activeElement as HTMLElement;
+                    if (activeElement?.nodeName === CONST.ELEMENT_NAME.INPUT || activeElement?.nodeName === CONST.ELEMENT_NAME.TEXTAREA) {
+                        return;
+                    }
+                    activeElement?.blur();
                 },
                 trapStack: sharedTrapStack,
                 allowOutsideClick: true,

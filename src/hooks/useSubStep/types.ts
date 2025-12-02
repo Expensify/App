@@ -8,7 +8,7 @@ type SubStepProps = {
     onNext: (data?: unknown) => void;
 
     /** moves user to passed sub step */
-    onMove: (step: number) => void;
+    onMove: (step: number, turnOnEditMode?: boolean) => void;
 
     /** index of currently displayed sub step */
     screenIndex?: number;
@@ -18,6 +18,9 @@ type SubStepProps = {
 
     /** resets screen index to passed value */
     resetScreenIndex?: (index?: number) => void;
+
+    /** Whether the user is coming from the expensify card */
+    isComingFromExpensifyCard?: boolean;
 };
 
 type UseSubStep<TProps extends SubStepProps> = {

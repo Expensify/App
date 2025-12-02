@@ -1,3 +1,5 @@
+import type {LinkAccount} from 'react-native-plaid-link-sdk';
+import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
@@ -5,8 +7,17 @@ import type * as OnyxCommon from './OnyxCommon';
 /** Card feed */
 type CompanyCardFeed = ValueOf<typeof CONST.COMPANY_CARD.FEED_BANK_NAME>;
 
+/** Company card feed with domain ID */
+type CompanyCardFeedWithDomainID = `${CompanyCardFeed}${typeof CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${string}`;
+
 /** Custom card feed with a number */
-type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}`;
+type CompanyCardFeedWithNumber = CompanyCardFeed | `${CompanyCardFeed}${number}` | CompanyCardFeedWithDomainID;
+
+/** Statement period end */
+type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE>, typeof CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH>;
+
+/** Statement period end day */
+type StatementPeriodEndDay = number;
 
 /** Card feed provider */
 type CardFeedProvider =
@@ -14,6 +25,27 @@ type CardFeedProvider =
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.VISA
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
+
+/** Card feed details */
+type CardFeedDetails = {
+    /** Processor ID */
+    processorID?: string;
+
+    /** Financial institution (bank) ID */
+    bankID?: string;
+
+    /** Financial institution (bank) name */
+    bankName?: string;
+
+    /** Company ID */
+    companyID?: string;
+
+    /** Distribution ID */
+    distributionID?: string;
+
+    /** Delivery file name */
+    deliveryFileName?: string;
+};
 
 /** Custom card feed data */
 type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -32,11 +64,30 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Preferred policy */
     preferredPolicy?: string;
 
+    /** Country associated with this feed (ISO 3166-1 alpha-2 code) */
+    country?: string;
+
+    /** The id of the domain the feed relates to */
+    domainID?: number;
+
     /** Specifies the format for the report title related to this card */
     reportTitleFormat?: string;
 
-    /** Indicates the day when the statement period for this card ends */
-    statementPeriodEndDay?: string;
+    /** Indicates the day when the statement period for this card ends.
+     * The BE returns a unified key which may hold either a preset value (string) or a custom day (integer)
+     */
+    statementPeriodEndDay?: StatementPeriodEnd | StatementPeriodEndDay;
+
+    /** Plaid access token */
+    plaidAccessToken?: string;
+
+    /** Field-specific error messages */
+    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
+
+    /**
+     * Collection of errors coming from BE
+     */
+    errors?: OnyxCommon.Errors;
 }>;
 
 /** Direct card feed data */
@@ -53,8 +104,27 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Defines the type of liability for the card */
     liabilityType?: string;
 
+    /** The id of the domain the feed relates to */
+    domainID?: number;
+
     /** Whether any actions are pending */
     pending?: boolean;
+
+    /** Indicates the day when the statement period for this card ends.
+     * The BE returns a unified key which may hold either a preset value (string) or a custom day (integer)
+     */
+    statementPeriodEndDay?: StatementPeriodEnd | StatementPeriodEndDay;
+
+    /** Plaid access token */
+    plaidAccessToken?: string;
+
+    /** Field-specific error messages */
+    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
+
+    /**
+     * Collection of errors coming from BE
+     */
+    errors?: OnyxCommon.Errors;
 }>;
 
 /** Card feed data */
@@ -66,7 +136,22 @@ type CompanyFeeds = Partial<Record<CompanyCardFeed, CardFeedData>>;
 /** Custom feed names */
 type CompanyCardNicknames = Partial<Record<CompanyCardFeed, string>>;
 
-/** Card feeds model */
+/** Domain settings model */
+type DomainSettings = {
+    /** Domain settings */
+    settings: {
+        /** Whether logging in with SAML is enabled for the domain */
+        samlEnabled?: boolean;
+
+        /** Whether logging in with SAML is required for the domain */
+        samlRequired?: boolean;
+
+        /** Encrypted SCIM token, exists only when Okta is enabled for the domain by support */
+        oktaSCIM?: string;
+    };
+};
+
+/** Card feeds model, including domain settings */
 type CardFeeds = {
     /** Feed settings */
     settings: {
@@ -82,18 +167,27 @@ type CardFeeds = {
 
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
-};
+} & DomainSettings;
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
     /** Card feed provider */
     feedType: CardFeedProvider;
 
+    /** Card feed details */
+    feedDetails?: CardFeedDetails;
+
     /** Name of the card */
     cardTitle: string;
 
+    /** Indicates the day (preset value) when the statement period for this card ends */
+    statementPeriodEnd?: StatementPeriodEnd;
+
+    /** Indicates the day (custom day) when the statement period for this card ends */
+    statementPeriodEndDay?: StatementPeriodEndDay;
+
     /** Selected bank */
-    selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
+    selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
 
     /** Selected feed type */
     selectedFeedType: ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
@@ -103,6 +197,21 @@ type AddNewCardFeedData = {
 
     /** Name of the bank */
     bankName?: string;
+
+    /** Selected country */
+    selectedCountry?: string;
+
+    /** Public token from Plaid connection */
+    publicToken?: string;
+
+    /** Feed from Plaid connection */
+    plaidConnectedFeed?: string;
+
+    /** Feed name from Plaid connection */
+    plaidConnectedFeedName?: string;
+
+    /** Plaid accounts */
+    plaidAccounts?: LinkAccount[] | PlaidAccount[];
 };
 
 /** Issue new card flow steps */
@@ -120,17 +229,26 @@ type AddNewCompanyCardFeed = {
     isEditing: boolean;
 };
 
+/** Card fund ID */
+type FundID = number;
+
 export default CardFeeds;
 export type {
     AddNewCardFeedStep,
     AddNewCompanyCardFeed,
     AddNewCardFeedData,
-    CardFeedData,
-    CustomCardFeedData,
     CompanyCardFeed,
+    CardFeedDetails,
     DirectCardFeedData,
     CardFeedProvider,
+    CardFeedData,
     CompanyFeeds,
+    CompanyCardFeedWithDomainID,
+    CustomCardFeedData,
     CompanyCardNicknames,
     CompanyCardFeedWithNumber,
+    FundID,
+    StatementPeriodEnd,
+    StatementPeriodEndDay,
+    DomainSettings,
 };

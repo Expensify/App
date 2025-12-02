@@ -5,9 +5,10 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
-import type {AvatarSource} from '@libs/UserUtils';
-import * as UserUtils from '@libs/UserUtils';
+import {getAvatarLocal} from '@libs/Avatars/PresetAvatarCatalog';
+import {getDefaultWorkspaceAvatar, getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {getAvatar, getPresetAvatarNameFromURL} from '@libs/UserAvatarUtils';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
@@ -53,6 +54,9 @@ type AvatarProps = {
 
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
     avatarID?: number | string;
+
+    /** Test ID for the Avatar component */
+    testID?: string;
 };
 
 function Avatar({
@@ -67,6 +71,7 @@ function Avatar({
     type,
     name = '',
     avatarID,
+    testID = 'Avatar',
 }: AvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -82,11 +87,17 @@ function Avatar({
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const userAccountID = isWorkspace ? undefined : (avatarID as number);
 
-    const source = isWorkspace ? originalSource : UserUtils.getAvatar(originalSource, userAccountID);
+    const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID: userAccountID});
+    let optimizedSource = source;
+    const maybeDefaultAvatarName = getPresetAvatarNameFromURL(source);
+
+    if (maybeDefaultAvatarName) {
+        optimizedSource = getAvatarLocal(maybeDefaultAvatarName);
+    }
     const useFallBackAvatar = imageError || !source || source === Expensicons.FallbackAvatar;
-    const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
-    const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
-    const avatarSource = useFallBackAvatar ? fallbackAvatar : source;
+    const fallbackAvatar = isWorkspace ? getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
+    const fallbackAvatarTestID = isWorkspace ? getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
+    const avatarSource = useFallBackAvatar ? fallbackAvatar : optimizedSource;
 
     // We pass the color styles down to the SVG for the workspace and fallback avatar.
     const iconSize = StyleUtils.getAvatarSize(size);
@@ -96,20 +107,24 @@ function Avatar({
     let iconColors;
     if (isWorkspace) {
         iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(avatarID?.toString() ?? '');
-    } else if (useFallBackAvatar) {
+        // Assign the icon fill color only for the default fallback avatar
+    } else if (useFallBackAvatar && avatarSource === Expensicons.FallbackAvatar) {
         iconColors = StyleUtils.getBackgroundColorAndFill(theme.buttonHoveredBG, theme.icon);
     } else {
         iconColors = null;
     }
-
     return (
-        <View style={[containerStyles, styles.pointerEventsNone]}>
+        <View
+            style={[containerStyles, styles.pointerEventsNone]}
+            testID={testID}
+        >
             {typeof avatarSource === 'string' ? (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
                     <Image
                         source={{uri: avatarSource}}
                         style={imageStyle}
                         onError={() => setImageError(true)}
+                        cachePolicy="memory-disk"
                     />
                 </View>
             ) : (
@@ -119,7 +134,7 @@ function Avatar({
                         src={avatarSource}
                         height={iconSize}
                         width={iconSize}
-                        fill={imageError ? iconColors?.fill ?? theme.offline : iconColors?.fill ?? fill}
+                        fill={imageError ? (iconColors?.fill ?? theme.offline) : (iconColors?.fill ?? fill)}
                         additionalStyles={[StyleUtils.getAvatarBorderStyle(size, type), iconColors, iconAdditionalStyles]}
                     />
                 </View>
@@ -130,5 +145,5 @@ function Avatar({
 
 Avatar.displayName = 'Avatar';
 
+export type {AvatarProps};
 export default Avatar;
-export {type AvatarProps};

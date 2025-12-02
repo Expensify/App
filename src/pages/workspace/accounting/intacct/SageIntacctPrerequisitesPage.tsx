@@ -2,23 +2,24 @@ import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText} from 'react-native';
-import Computer from '@assets/images/computer.svg';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openExternalLink} from '@libs/actions/Link';
 import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as Link from '@userActions/Link';
+import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -28,39 +29,52 @@ type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNaviga
 function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'NewWindow'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Computer'] as const);
     const popoverAnchor = useRef<View | RNText | null>(null);
     const policyID: string = route.params.policyID;
+    const backTo = route.params.backTo;
 
     const menuItems = useMemo(
         () => [
             {
                 title: translate('workspace.intacct.downloadExpensifyPackage'),
                 key: 'workspace.intacct.downloadExpensifyPackage',
-                icon: Expensicons.Download,
-                iconRight: Expensicons.NewWindow,
+                icon: icons.Download,
+                iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
                 onPress: () => {
                     fileDownload(CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME, '', true);
                 },
                 onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
-                    ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, popoverAnchor.current),
+                    showContextMenu({
+                        type: CONST.CONTEXT_MENU_TYPES.LINK,
+                        event,
+                        selection: CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT,
+                        contextMenuAnchor: popoverAnchor.current,
+                    }),
                 numberOfLinesTitle: 2,
             },
             {
                 title: translate('workspace.intacct.followSteps'),
                 key: 'workspace.intacct.followSteps',
                 icon: Expensicons.Task,
-                iconRight: Expensicons.NewWindow,
+                iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    Link.openExternalLink(CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT);
+                    openExternalLink(CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT);
                 },
                 onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
-                    ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT, popoverAnchor.current),
+                    showContextMenu({
+                        type: CONST.CONTEXT_MENU_TYPES.LINK,
+                        event,
+                        selection: CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT,
+                        contextMenuAnchor: popoverAnchor.current,
+                    }),
                 numberOfLinesTitle: 3,
             },
         ],
-        [translate],
+        [icons.Download, icons.NewWindow, translate],
     );
 
     return (
@@ -68,15 +82,16 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={SageIntacctPrerequisitesPage.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.intacct.sageIntacctSetup')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.dismissModal()}
+                onBackButtonPress={() => Navigation.goBack(backTo)}
             />
             <View style={styles.flex1}>
                 <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer]}>
-                    <ImageSVG src={Computer} />
+                    <ImageSVG src={illustrations.Computer} />
                 </View>
 
                 <Text style={[styles.textHeadlineH1, styles.p5, styles.p6]}>{translate('workspace.intacct.prerequisitesTitle')}</Text>
@@ -85,7 +100,10 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                     shouldUseSingleExecution
                 />
 
-                <FixedFooter style={[styles.mtAuto]}>
+                <FixedFooter
+                    style={[styles.mtAuto]}
+                    addBottomSafeAreaPadding
+                >
                     <Button
                         success
                         text={translate('common.next')}

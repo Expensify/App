@@ -9,8 +9,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Network from '@src/types/onyx/Network';
 import type {ConnectionChanges} from '@src/types/onyx/Network';
-import * as NetworkActions from './actions/Network';
+import {setConnectionChanges, setIsOffline, setNetworkLastOffline, setNetWorkStatus, setPoorConnectionTimeoutID} from './actions/Network';
 import AppStateMonitor from './AppStateMonitor';
+import DateUtils from './DateUtils';
 import Log from './Log';
 
 let isOffline = false;
@@ -40,9 +41,9 @@ const triggerReconnectionCallbacks = throttle(
         }
         setTimeout(() => {
             Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
-            Object.values(reconnectionCallbacks).forEach((callback) => {
+            for (const callback of Object.values(reconnectionCallbacks)) {
                 callback();
-            });
+            }
         }, delay);
     },
     5000,
@@ -55,7 +56,7 @@ const triggerReconnectionCallbacks = throttle(
  */
 function setOfflineStatus(isCurrentlyOffline: boolean, reason = ''): void {
     trackConnectionChanges();
-    NetworkActions.setIsOffline(isCurrentlyOffline, reason);
+    setIsOffline(isCurrentlyOffline, reason);
 
     // When reconnecting, ie, going from offline to online, all the reconnection callbacks
     // are triggered (this is usually Actions that need to re-download data from the server)
@@ -70,12 +71,30 @@ function setOfflineStatus(isCurrentlyOffline: boolean, reason = ''): void {
 let shouldForceOffline = false;
 let isPoorConnectionSimulated: boolean | undefined;
 let connectionChanges: ConnectionChanges | undefined;
-Onyx.connect({
+let isOfflineFlag: boolean | undefined;
+let networkTimeSkew = 0;
+let isNetworkStatusInitialized = false;
+
+// We do not depend on updates on the UI to determine the network status
+// or the offline status, so we can use `connectWithoutView` here.
+Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
     callback: (network) => {
         if (!network) {
             return;
         }
+
+        networkTimeSkew = network?.timeSkew ?? 0;
+        if (!network?.lastOfflineAt) {
+            setNetworkLastOffline(new Date().toISOString());
+        }
+
+        const newIsOffline = network?.isOffline ?? network?.shouldForceOffline;
+        if (newIsOffline && isOfflineFlag === false) {
+            setNetworkLastOffline(new Date().toISOString());
+        }
+        isOfflineFlag = newIsOffline;
+        isNetworkStatusInitialized = true;
 
         simulatePoorConnection(network);
 
@@ -105,16 +124,16 @@ Onyx.connect({
     },
 });
 
-let accountID = 0;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (session) => {
-        if (!session?.accountID) {
-            return;
-        }
-        accountID = session.accountID;
-    },
-});
+/**
+ * Returns the current time plus skew in milliseconds in the format expected by the database
+ */
+function getDBTimeWithSkew(timestamp: string | number = ''): string {
+    if (networkTimeSkew > 0) {
+        const datetime = timestamp ? new Date(timestamp) : new Date();
+        return DateUtils.getDBTime(datetime.valueOf() + networkTimeSkew);
+    }
+    return DateUtils.getDBTime(timestamp);
+}
 
 function simulatePoorConnection(network: Network) {
     // Starts random network status change when shouldSimulatePoorConnection is turned into true
@@ -152,13 +171,13 @@ function setRandomNetworkStatus(initialCall = false) {
     setOfflineStatus(randomStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE);
 
     const timeoutID = setTimeout(setRandomNetworkStatus, randomInterval);
-    NetworkActions.setPoorConnectionTimeoutID(timeoutID);
+    setPoorConnectionTimeoutID(timeoutID);
 }
 
 /** Tracks how many times the connection has changed within the time period */
 function trackConnectionChanges() {
     if (!connectionChanges?.startTime) {
-        NetworkActions.setConnectionChanges({startTime: new Date().getTime(), amount: 1});
+        setConnectionChanges({startTime: new Date().getTime(), amount: 1});
         return;
     }
 
@@ -166,7 +185,7 @@ function trackConnectionChanges() {
     const newAmount = (connectionChanges.amount ?? 0) + 1;
 
     if (diffInHours < 1) {
-        NetworkActions.setConnectionChanges({amount: newAmount});
+        setConnectionChanges({amount: newAmount});
         return;
     }
 
@@ -176,7 +195,7 @@ function trackConnectionChanges() {
         }`,
     );
 
-    NetworkActions.setConnectionChanges({startTime: new Date().getTime(), amount: 0});
+    setConnectionChanges({startTime: new Date().getTime(), amount: 0});
 }
 
 /**
@@ -185,7 +204,7 @@ function trackConnectionChanges() {
  * `disconnected` event which takes about 10-15 seconds to emit.
  * @returns unsubscribe method
  */
-function subscribeToNetInfo(): () => void {
+function subscribeToNetInfo(accountID: number | undefined): () => void {
     // Note: We are disabling the configuration for NetInfo when using the local web API since requests can get stuck in a 'Pending' state and are not reliable indicators for "offline".
     // If you need to test the "recheck" feature then switch to the production API proxy server.
     if (!CONFIG.IS_USING_LOCAL_WEB) {
@@ -194,7 +213,7 @@ function subscribeToNetInfo(): () => void {
             // By default, NetInfo uses `/` for `reachabilityUrl`
             // When App is served locally (or from Electron) this address is always reachable - even offline
             // Using the API url ensures reachability is tested over internet
-            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID || 'unknown'}`,
+            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID ?? 'unknown'}`,
             reachabilityMethod: 'GET',
             reachabilityTest: (response) => {
                 if (!response.ok) {
@@ -228,6 +247,10 @@ function subscribeToNetInfo(): () => void {
     // Subscribe to the state change event via NetInfo so we can update
     // whether a user has internet connectivity or not.
     const unsubscribeNetInfo = NetInfo.addEventListener((state) => {
+        if (!isNetworkStatusInitialized) {
+            return;
+        }
+
         Log.info('[NetworkConnection] NetInfo state change', false, {...state});
         if (shouldForceOffline) {
             Log.info('[NetworkConnection] Not setting offline status because shouldForceOffline = true');
@@ -241,7 +264,7 @@ function subscribeToNetInfo(): () => void {
         } else {
             networkStatus = state.isInternetReachable ? CONST.NETWORK.NETWORK_STATUS.ONLINE : CONST.NETWORK.NETWORK_STATUS.OFFLINE;
         }
-        NetworkActions.setNetWorkStatus(networkStatus);
+        setNetWorkStatus(networkStatus);
     });
 
     // Periodically recheck the network connection
@@ -283,7 +306,9 @@ function onReconnect(callback: () => void): () => void {
  * Delete all queued reconnection callbacks
  */
 function clearReconnectionCallbacks() {
-    Object.keys(reconnectionCallbacks).forEach((key) => delete reconnectionCallbacks[key]);
+    for (const key of Object.keys(reconnectionCallbacks)) {
+        delete reconnectionCallbacks[key];
+    }
 }
 
 /**
@@ -302,5 +327,6 @@ export default {
     triggerReconnectionCallbacks,
     recheckNetworkConnection,
     subscribeToNetInfo,
+    getDBTimeWithSkew,
 };
 export type {NetworkStatus};

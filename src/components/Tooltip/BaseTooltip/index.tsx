@@ -1,17 +1,17 @@
 import {BoundsObserver} from '@react-ng/bounds-observer';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, memo, useCallback, useRef} from 'react';
+import type {HTMLAttributes} from 'react';
+import React, {memo, useCallback, useRef} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import Hoverable from '@components/Hoverable';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type TooltipProps from '@components/Tooltip/types';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
 
 type MouseEvents = {
-    onMouseEnter: (e: MouseEvent) => void | undefined;
+    onMouseEnter: (e: React.MouseEvent) => void | undefined;
 };
 
-const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
+const deviceHasHoverSupport = hasHoverSupport();
 
 /**
  * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
@@ -50,11 +50,11 @@ function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number
     return target.getBoundingClientRect();
 }
 
-function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps, ref: ForwardedRef<BoundsObserver>) {
+function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, ...props}: TooltipProps) {
     const target = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
-    const updateTargetAndMousePosition = useCallback((e: MouseEvent) => {
+    const updateTargetAndMousePosition = useCallback((e: React.MouseEvent) => {
         if (!(e.currentTarget instanceof HTMLElement)) {
             return;
         }
@@ -77,7 +77,7 @@ function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps,
     };
 
     const updateTargetPositionOnMouseEnter = useCallback(
-        (e: MouseEvent) => {
+        (e: React.MouseEvent) => {
             updateTargetAndMousePosition(e);
             if (React.isValidElement(children)) {
                 const onMouseEnter = (children.props as MouseEvents).onMouseEnter;
@@ -88,7 +88,12 @@ function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps,
     );
 
     // Skip the tooltip and return the children if the device does not support hovering
-    if (!hasHoverSupport) {
+    if (!deviceHasHoverSupport) {
+        return children;
+    }
+
+    // Skip the tooltip and return the children if navigation does not focus.
+    if (!isFocused) {
         return children;
     }
 
@@ -111,9 +116,12 @@ function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps,
                             onHoverOut={hideTooltip}
                             shouldHandleScroll={shouldHandleScroll}
                         >
-                            {React.cloneElement(children as React.ReactElement, {
-                                onMouseEnter: updateTargetPositionOnMouseEnter,
-                            })}
+                            {React.cloneElement(
+                                children as React.ReactElement<HTMLAttributes<HTMLElement>>,
+                                {
+                                    onMouseEnter: updateTargetPositionOnMouseEnter,
+                                } as HTMLAttributes<HTMLElement>,
+                            )}
                         </Hoverable>
                     </BoundsObserver>
                 ) : (
@@ -126,4 +134,4 @@ function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps,
 
 Tooltip.displayName = 'Tooltip';
 
-export default memo(forwardRef(Tooltip));
+export default memo(Tooltip);

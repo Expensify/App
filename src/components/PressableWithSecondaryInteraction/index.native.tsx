@@ -1,27 +1,24 @@
 import type {ReactNode} from 'react';
-import React, {forwardRef} from 'react';
+import React from 'react';
 import type {GestureResponderEvent, TextProps} from 'react-native';
-import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import type PressableWithSecondaryInteractionProps from './types';
 
 /** This is a special Pressable that calls onSecondaryInteraction when LongPressed. */
-function PressableWithSecondaryInteraction(
-    {
-        children,
-        onSecondaryInteraction,
-        inline = false,
-        needsOffscreenAlphaCompositing = false,
-        suppressHighlighting = false,
-        activeOpacity = 1,
-        preventDefaultContextMenu,
-        withoutFocusOnSecondaryInteraction,
-        enableLongPressWithHover,
-        ...rest
-    }: PressableWithSecondaryInteractionProps,
-    ref: PressableRef,
-) {
+function PressableWithSecondaryInteraction({
+    children,
+    onSecondaryInteraction,
+    inline = false,
+    needsOffscreenAlphaCompositing = false,
+    suppressHighlighting = false,
+    activeOpacity = 1,
+    preventDefaultContextMenu,
+    withoutFocusOnSecondaryInteraction,
+    enableLongPressWithHover,
+    ref,
+    ...rest
+}: PressableWithSecondaryInteractionProps) {
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
         event.preventDefault();
         onSecondaryInteraction?.(event);
@@ -59,4 +56,4 @@ function PressableWithSecondaryInteraction(
 
 PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 
-export default forwardRef(PressableWithSecondaryInteraction);
+export default PressableWithSecondaryInteraction;

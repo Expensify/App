@@ -1,15 +1,18 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import type {InputModeOptions} from 'react-native';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
+import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
+import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -46,6 +49,24 @@ type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStep
 
     /** Max length of the field */
     maxLength?: number;
+
+    /** Should the submit button be enabled when offline */
+    enabledWhenOffline?: boolean;
+
+    /** Set the default value to the input if there is a valid saved value */
+    shouldUseDefaultValue?: boolean;
+
+    /** Should the input be disabled */
+    disabled?: boolean;
+
+    /** Placeholder displayed inside input */
+    placeholder?: string;
+
+    /** Whether to delay autoFocus to avoid conflicts with navigation animations */
+    shouldDelayAutoFocus?: boolean;
+
+    /** Whether to show the Patriot Act help link (EnablePayments-only) */
+    shouldShowPatriotActLink?: boolean;
 };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -61,9 +82,17 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     isEditing,
     shouldShowHelpLinks = true,
     maxLength,
+    enabledWhenOffline,
+    shouldUseDefaultValue = true,
+    disabled = false,
+    placeholder,
+    shouldDelayAutoFocus = false,
+    shouldShowPatriotActLink = false,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const internalInputRef = useRef<AnimatedTextInputRef>(null);
+    useDelayedAutoFocus(internalInputRef, shouldDelayAutoFocus);
 
     return (
         <FormProvider
@@ -73,10 +102,12 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
+            enabledWhenOffline={enabledWhenOffline}
+            shouldHideFixErrorsAlert
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL]}>{formTitle}</Text>
-                {!!formDisclaimer && <Text style={[styles.textSupporting]}>{formDisclaimer}</Text>}
+                {!!formDisclaimer && <Text style={[styles.textSupporting, styles.mt3]}>{formDisclaimer}</Text>}
                 <View style={[styles.flex1]}>
                     <InputWrapper
                         InputComponent={TextInput}
@@ -89,10 +120,19 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         defaultValue={defaultValue}
                         maxLength={maxLength}
                         shouldSaveDraft={!isEditing}
-                        autoFocus
+                        shouldUseDefaultValue={shouldUseDefaultValue}
+                        disabled={disabled}
+                        placeholder={placeholder}
+                        autoFocus={!shouldDelayAutoFocus}
+                        ref={internalInputRef}
                     />
                 </View>
-                {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}
+                {shouldShowHelpLinks && (
+                    <>
+                        <HelpLinks containerStyles={[styles.mt5]} />
+                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                    </>
+                )}
             </View>
         </FormProvider>
     );

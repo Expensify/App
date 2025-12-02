@@ -1,20 +1,24 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {updateQuickbooksOnlineExportDate} from '@libs/actions/connections/QuickbooksOnline';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 type CardListItem = ListItem & {
     value: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
@@ -22,8 +26,10 @@ type CardListItem = ListItem & {
 function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT>>();
+    const backTo = route.params.backTo;
     const data: CardListItem[] = Object.values(CONST.QUICKBOOKS_EXPORT_DATE).map((dateType) => ({
         value: dateType,
         text: translate(`workspace.qbo.exportDate.values.${dateType}.label`),
@@ -32,16 +38,20 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
         isSelected: qboConfig?.exportDate === dateType,
     }));
 
-    const exportDate = useMemo(() => qboConfig?.exportDate, [qboConfig]);
+    const exportDate = useMemo(() => qboConfig?.exportDate, [qboConfig?.exportDate]);
+
+    const goBack = useCallback(() => {
+        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));
+    }, [policyID, backTo]);
 
     const selectExportDate = useCallback(
         (row: CardListItem) => {
-            if (row.value !== exportDate) {
-                QuickbooksOnline.updateQuickbooksOnlineExportDate(policyID, row.value, exportDate);
+            if (row.value !== exportDate && policyID) {
+                updateQuickbooksOnlineExportDate(policyID, row.value, exportDate);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID));
+            goBack();
         },
-        [policyID, exportDate],
+        [policyID, exportDate, goBack],
     );
 
     return (
@@ -53,13 +63,13 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
             sections={[{data}]}
             listItem={RadioListItem}
             headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDate.description')}</Text>}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID))}
+            onBackButtonPress={goBack}
             onSelectRow={selectExportDate}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             title="workspace.qbo.exportDate.label"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
-            pendingAction={PolicyUtils.settingsPendingAction([CONST.QUICKBOOKS_CONFIG.EXPORT_DATE], qboConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE)}
+            pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.EXPORT_DATE], qboConfig?.pendingFields)}
+            errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.EXPORT_DATE)}
             shouldSingleExecuteRowSelect

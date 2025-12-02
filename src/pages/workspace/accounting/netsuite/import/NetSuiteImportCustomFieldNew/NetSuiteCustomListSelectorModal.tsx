@@ -4,10 +4,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -38,8 +37,10 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const {sections, headerMessage, showTextInput} = useMemo(() => {
-        const customLists = policy?.connections?.netsuite?.options?.data?.customLists ?? [];
+    const rawCustomLists = policy?.connections?.netsuite?.options?.data?.customLists;
+
+    const {options, showTextInput} = useMemo(() => {
+        const customLists = rawCustomLists ?? [];
         const customListData = customLists.map((customListRecord) => ({
             text: customListRecord.name,
             value: customListRecord.name,
@@ -53,19 +54,20 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
         const isEmpty = debouncedSearchValue.trim() && !filteredCustomLists.length;
 
         return {
-            sections: isEmpty
-                ? []
-                : [
-                      {
-                          data: filteredCustomLists,
-                      },
-                  ],
-            headerMessage: isEmpty ? translate('common.noResultsFound') : '',
+            options: isEmpty ? [] : filteredCustomLists,
             showTextInput: customListData.length > CONST.STANDARD_LIST_ITEM_LIMIT,
         };
-    }, [debouncedSearchValue, policy?.connections?.netsuite?.options?.data?.customLists, translate, currentCustomListValue]);
+    }, [debouncedSearchValue, rawCustomLists, currentCustomListValue]);
 
-    const styles = useThemeStyles();
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchValue,
+            label: showTextInput ? translate('common.search') : undefined,
+            onChangeText: setSearchValue,
+            headerMessage: debouncedSearchValue.trim() && options.length === 0 ? translate('common.noResultsFound') : '',
+        }),
+        [searchValue, showTextInput, translate, setSearchValue, debouncedSearchValue, options.length],
+    );
 
     return (
         <Modal
@@ -73,14 +75,12 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
             isVisible={isVisible}
             onClose={onClose}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
             onBackdropPress={onBackdropPress}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
-                style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={NetSuiteCustomListSelectorModal.displayName}
             >
                 <HeaderWithBackButton
@@ -89,18 +89,14 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    sections={sections}
-                    textInputValue={searchValue}
-                    textInputLabel={showTextInput ? translate('common.search') : undefined}
-                    onChangeText={setSearchValue}
+                    data={options}
+                    textInputOptions={textInputOptions}
                     onSelectRow={onCustomListSelected}
-                    headerMessage={headerMessage}
                     ListItem={RadioListItem}
-                    isRowMultilineSupported
-                    initiallyFocusedOptionKey={currentCustomListValue}
+                    initiallyFocusedItemKey={currentCustomListValue}
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
-                    shouldUseDynamicMaxToRenderPerBatch
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </Modal>

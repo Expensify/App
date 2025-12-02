@@ -1,8 +1,10 @@
+import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {ConnectPolicyToSageIntacctParams} from '@libs/API/parameters';
+import type UpdateSageIntacctAccountingMethodParams from '@libs/API/parameters/UpdateSageIntacctAccountingMethodParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -109,7 +111,10 @@ function prepareOnyxDataForMappingUpdate(
     return {optimisticData, failureData, successData};
 }
 
-function updateSageIntacctBillable(policyID: string, enabled: boolean) {
+function updateSageIntacctBillable(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
     const parameters = {
         policyID,
         enabled,
@@ -134,7 +139,10 @@ function getCommandForMapping(mappingName: ValueOf<typeof CONST.SAGE_INTACCT_CON
     }
 }
 
-function updateSageIntacctMappingValue(policyID: string, mappingName: SageIntacctMappingName, mappingValue: SageIntacctMappingValue, oldMappingValue?: SageIntacctMappingValue) {
+function updateSageIntacctMappingValue(policyID: string | undefined, mappingName: SageIntacctMappingName, mappingValue: SageIntacctMappingValue, oldMappingValue?: SageIntacctMappingValue) {
+    if (!policyID) {
+        return;
+    }
     const command = getCommandForMapping(mappingName);
     if (!command) {
         return;
@@ -163,7 +171,86 @@ function changeMappingsValueFromDefaultToTag(policyID: string, mappings?: SageIn
     }
 }
 
-function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolean) {
+function UpdateSageIntacctTaxSolutionID(policyID: string | undefined, taxSolutionID: string) {
+    if (!policyID) {
+        return;
+    }
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            tax: {
+                                taxSolutionID,
+                            },
+                            pendingFields: {
+                                tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                taxSolutionID: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            tax: {
+                                taxSolutionID: null,
+                            },
+                            pendingFields: {
+                                tax: null,
+                            },
+                            errorFields: {
+                                taxSolutionID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            pendingFields: {
+                                tax: null,
+                            },
+                            errorFields: {
+                                taxSolutionID: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_TAX_SOLUTION_ID, {policyID, taxSolutionID}, {optimisticData, failureData, successData});
+}
+
+function updateSageIntacctSyncTaxConfiguration(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -357,11 +444,15 @@ function removeSageIntacctUserDimensions(policyID: string, dimensionName: string
 }
 
 function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof SageIntacctExportConfig, settingValue: string | null, oldSettingValue?: string | null) {
+    const exporterOptimisticData = settingName === CONST.SAGE_INTACCT_CONFIG.EXPORTER ? {exporter: settingValue} : {};
+    const exporterErrorData = settingName === CONST.SAGE_INTACCT_CONFIG.EXPORTER ? {exporter: oldSettingValue} : {};
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...exporterOptimisticData,
                 connections: {
                     intacct: {
                         config: {
@@ -386,6 +477,7 @@ function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof Sag
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...exporterErrorData,
                 connections: {
                     intacct: {
                         config: {
@@ -532,7 +624,7 @@ function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Sag
     }
 }
 
-function clearSageIntacctErrorField(policyID: string, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {
+function clearSageIntacctErrorField(policyID: string | undefined, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {[key]: null}}}}});
 }
 
@@ -760,7 +852,11 @@ function prepareOnyxDataForAutoSyncUpdate(policyID: string, settingName: keyof C
     return {optimisticData, failureData, successData};
 }
 
-function updateSageIntacctAutoSync(policyID: string, enabled: boolean) {
+function updateSageIntacctAutoSync(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
+
     const {optimisticData, failureData, successData} = prepareOnyxDataForAutoSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED, enabled);
     const parameters = {
         policyID,
@@ -770,7 +866,11 @@ function updateSageIntacctAutoSync(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_AUTO_SYNC, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctImportEmployees(policyID: string, enabled: boolean) {
+function updateSageIntacctImportEmployees(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
+
     const {optimisticData, failureData, successData} = prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES, enabled, !enabled);
     const parameters = {
         policyID,
@@ -780,7 +880,11 @@ function updateSageIntacctImportEmployees(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_IMPORT_EMPLOYEES, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctApprovalMode(policyID: string, enabled: boolean) {
+function updateSageIntacctApprovalMode(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
+
     const approvalModeSettingValue = enabled ? CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL : '';
     const oldApprovalModeSettingValue = enabled ? '' : CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL;
     const {optimisticData, failureData, successData} = prepareOnyxDataForConfigUpdate(
@@ -797,7 +901,11 @@ function updateSageIntacctApprovalMode(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_APPROVAL_MODE, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctSyncReimbursedReports(policyID: string, enabled: boolean) {
+function updateSageIntacctSyncReimbursedReports(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
+
     const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS, enabled, !enabled);
     const parameters = {
         policyID,
@@ -807,7 +915,11 @@ function updateSageIntacctSyncReimbursedReports(policyID: string, enabled: boole
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSED_REPORTS, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctSyncReimbursementAccountID(policyID: string, vendorID: string, oldVendorID?: string) {
+function updateSageIntacctSyncReimbursementAccountID(policyID: string | undefined, vendorID: string | undefined, oldVendorID?: string) {
+    if (!policyID || !vendorID) {
+        return;
+    }
+
     const {optimisticData, failureData, successData} = prepareOnyxDataForSyncUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID, vendorID, oldVendorID);
     const parameters = {
         policyID,
@@ -817,12 +929,35 @@ function updateSageIntacctSyncReimbursementAccountID(policyID: string, vendorID:
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSEMENT_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctEntity(policyID: string, entity: string, oldEntity: string) {
+function updateSageIntacctEntity(policyID: string | undefined, entity: string, oldEntity: string) {
+    if (!policyID) {
+        return;
+    }
+
     const parameters = {
         policyID,
         entity,
     };
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ENTITY, parameters, prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.ENTITY, entity, oldEntity));
+}
+
+function updateSageIntacctAccountingMethod(
+    policyID: string | undefined,
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
+    oldAccountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>,
+) {
+    if (!policyID) {
+        return;
+    }
+
+    const parameters: UpdateSageIntacctAccountingMethodParams = {
+        policyID,
+        accountingMethod,
+    };
+
+    const {optimisticData, failureData, successData} = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod);
+
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ACCOUNTING_METHOD, parameters, {optimisticData, failureData, successData});
 }
 
 export {
@@ -848,5 +983,7 @@ export {
     updateSageIntacctSyncReimbursedReports,
     updateSageIntacctSyncReimbursementAccountID,
     updateSageIntacctEntity,
+    updateSageIntacctAccountingMethod,
     changeMappingsValueFromDefaultToTag,
+    UpdateSageIntacctTaxSolutionID,
 };

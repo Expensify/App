@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 let active = false;
 
 /**
- * Debounced function to deactive the TooltipSense after a specific time
+ * Debounced function to deactivate the TooltipSense after a specific time
  */
 const debouncedDeactivate = lodashDebounce(() => {
     active = false;

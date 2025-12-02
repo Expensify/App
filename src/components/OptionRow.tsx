@@ -1,4 +1,4 @@
-import lodashIsEqual from 'lodash/isEqual';
+import {deepEqual} from 'fast-equals';
 import React, {useEffect, useRef, useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {InteractionManager, StyleSheet, View} from 'react-native';
@@ -6,8 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
+import {getDisplayNamesWithTooltips} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import Button from './Button';
@@ -16,37 +16,38 @@ import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
-import MultipleAvatars from './MultipleAvatars';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import ReportActionAvatars from './ReportActionAvatars';
 import SelectCircle from './SelectCircle';
-import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
+
+type OptionDataWithOptionalReportID = Omit<OptionData, 'reportID'> & {reportID?: string};
 
 type OptionRowProps = {
     /** Style for hovered state */
     hoverStyle?: StyleProp<ViewStyle>;
 
     /** Option to allow the user to choose from can be type 'report' or 'user' */
-    option: OptionData;
+    option: OptionDataWithOptionalReportID;
 
     /** Whether this option is currently in focus so we can modify its style */
     optionIsFocused?: boolean;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
-    onSelectRow?: (option: OptionData, refElement: View | HTMLDivElement | null) => void | Promise<void>;
+    onSelectRow?: (option: OptionDataWithOptionalReportID, refElement: View | HTMLDivElement | null) => void | Promise<void>;
 
     /** Whether we should show the selected state */
     showSelectedState?: boolean;
 
-    /** Whether to show a button pill instead of a tickbox */
+    /** Whether to show a button pill instead of a checkbox */
     shouldShowSelectedStateAsButton?: boolean;
 
     /** Text for button pill */
     selectedStateButtonText?: string;
 
-    /** Callback to fire when the multiple selector (tickbox or button) is clicked */
-    onSelectedStatePressed?: (option: OptionData) => void;
+    /** Callback to fire when the multiple selector (checkbox or button) is clicked */
+    onSelectedStatePressed?: (option: OptionDataWithOptionalReportID) => void;
 
     /** Whether we highlight selected option */
     highlightSelected?: boolean;
@@ -110,7 +111,7 @@ function OptionRow({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const pressableRef = useRef<View | HTMLDivElement>(null);
     const [isDisabled, setIsDisabled] = useState(isOptionDisabled);
 
@@ -149,11 +150,18 @@ function OptionRow({
     const firstIcon = option?.icons?.at(0);
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((option.participantsList ?? (option.accountID ? [option] : [])).slice(0, 10), shouldUseShortFormInTooltip);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
+        (option.participantsList ?? (option.accountID ? [option as OptionData] : [])).slice(0, 10),
+        shouldUseShortFormInTooltip,
+        localeCompare,
+    );
     let subscriptColor = theme.appBG;
     if (optionIsFocused) {
         subscriptColor = focusedBackgroundColor;
     }
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const reportID = (option.iouReportID ?? option.reportID) || undefined;
 
     return (
         <Hoverable>
@@ -181,6 +189,7 @@ function OptionRow({
                                 result = Promise.resolve();
                             }
 
+                            // eslint-disable-next-line @typescript-eslint/no-deprecated
                             InteractionManager.runAfterInteractions(() => {
                                 result?.finally(() => setIsDisabled(isOptionDisabled));
                             });
@@ -200,30 +209,23 @@ function OptionRow({
                         accessibilityLabel={option.text ?? ''}
                         role={CONST.ROLE.BUTTON}
                         hoverDimmingValue={1}
-                        hoverStyle={!optionIsFocused ? hoverStyle ?? styles.sidebarLinkHover : undefined}
+                        hoverStyle={!optionIsFocused ? (hoverStyle ?? styles.sidebarLinkHover) : undefined}
                         needsOffscreenAlphaCompositing={(option.icons?.length ?? 0) >= 2}
                         onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (event) => event.preventDefault() : undefined}
                         tabIndex={option.tabIndex ?? 0}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                {!!option.icons?.length &&
-                                    firstIcon &&
-                                    (option.shouldShowSubscript ? (
-                                        <SubscriptAvatar
-                                            mainAvatar={firstIcon}
-                                            secondaryAvatar={option.icons.at(1)}
-                                            backgroundColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
-                                            size={CONST.AVATAR_SIZE.DEFAULT}
-                                        />
-                                    ) : (
-                                        <MultipleAvatars
-                                            icons={option.icons}
-                                            size={CONST.AVATAR_SIZE.DEFAULT}
-                                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
-                                            shouldShowTooltip={showTitleTooltip && OptionsListUtils.shouldOptionShowTooltip(option)}
-                                        />
-                                    ))}
+                                {!!option.icons?.length && !!firstIcon && (
+                                    <ReportActionAvatars
+                                        subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
+                                        reportID={reportID}
+                                        accountIDs={!reportID && option.accountID ? [option.accountID] : []}
+                                        size={CONST.AVATAR_SIZE.DEFAULT}
+                                        secondaryAvatarContainerStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
+                                        shouldShowTooltip={showTitleTooltip && shouldOptionShowTooltip(option as OptionData)}
+                                    />
+                                )}
                                 <View style={contentContainerStyles}>
                                     <DisplayNames
                                         accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
@@ -274,6 +276,7 @@ function OptionRow({
                                         ]}
                                         onAmountChange={option.amountInputProps.onAmountChange}
                                         maxLength={option.amountInputProps.maxLength}
+                                        shouldWrapInputInContainer={false}
                                     />
                                 ) : null}
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
@@ -358,7 +361,7 @@ export default React.memo(
         prevProps.showSelectedState === nextProps.showSelectedState &&
         prevProps.highlightSelected === nextProps.highlightSelected &&
         prevProps.showTitleTooltip === nextProps.showTitleTooltip &&
-        lodashIsEqual(prevProps.option.icons, nextProps.option.icons) &&
+        deepEqual(prevProps.option.icons, nextProps.option.icons) &&
         prevProps.optionIsFocused === nextProps.optionIsFocused &&
         prevProps.option.text === nextProps.option.text &&
         prevProps.option.alternateText === nextProps.option.alternateText &&
@@ -370,7 +373,7 @@ export default React.memo(
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
         prevProps.option.customIcon === nextProps.option.customIcon &&
         prevProps.option.tabIndex === nextProps.option.tabIndex &&
-        lodashIsEqual(prevProps.option.amountInputProps, nextProps.option.amountInputProps),
+        deepEqual(prevProps.option.amountInputProps, nextProps.option.amountInputProps),
 );
 
 export type {OptionRowProps};

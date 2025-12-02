@@ -1,30 +1,56 @@
 import {getUnixTime} from 'date-fns';
+import {deepEqual} from 'fast-equals';
 import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
-import isEqual from 'lodash/isEqual';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {DismissViolationParams, GetRouteParams, MarkAsCashParams} from '@libs/API/parameters';
+import type {ChangeTransactionsReportParams, DismissViolationParams, GetRouteParams, MarkAsCashParams, TransactionThreadInfo} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
+import DateUtils from '@libs/DateUtils';
+import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {buildOptimisticDismissedViolationReportAction} from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {rand64} from '@libs/NumberUtils';
+import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isModifiedExpenseAction} from '@libs/ReportActionsUtils';
+import {
+    buildOptimisticCreatedReportAction,
+    buildOptimisticDismissedViolationReportAction,
+    buildOptimisticMovedTransactionAction,
+    buildOptimisticSelfDMReport,
+    buildOptimisticUnHoldReportAction,
+    buildOptimisticUnreportedTransactionAction,
+    buildTransactionThread,
+    findSelfDMReportID,
+    getReportTransactions,
+    getTransactionDetails,
+    hasViolations as hasViolationsReportUtils,
+    shouldEnableNegative,
+} from '@libs/ReportUtils';
+import {isManagedCardTransaction, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
+import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, RecentWaypoint, ReportAction, ReportActions, ReviewDuplicates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
+import type {
+    PersonalDetails,
+    Policy,
+    PolicyCategories,
+    RecentWaypoint,
+    Report,
+    ReportAction,
+    ReportNextStepDeprecated,
+    ReviewDuplicates,
+    Transaction,
+    TransactionViolation,
+    TransactionViolations,
+} from '@src/types/onyx';
+import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-
-let recentWaypoints: RecentWaypoint[] = [];
-Onyx.connect({
-    key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-    callback: (val) => (recentWaypoints = val ?? []),
-});
+import {getPolicyTagsData} from './Policy/Tag';
+import {getCurrentUserAccountID} from './Report';
 
 const allTransactions: Record<string, Transaction> = {};
 Onyx.connect({
@@ -35,6 +61,27 @@ Onyx.connect({
         }
         const transactionID = CollectionUtils.extractCollectionItemID(key);
         allTransactions[transactionID] = transaction;
+    },
+});
+
+let allTransactionDrafts: OnyxCollection<Transaction> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allTransactionDrafts = value ?? {};
+    },
+});
+
+let allReports: OnyxCollection<Report> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        allReports = value;
     },
 });
 
@@ -56,35 +103,20 @@ Onyx.connect({
     callback: (val) => (allTransactionViolations = val ?? []),
 });
 
-function createInitialWaypoints(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        comment: {
-            waypoints: {
-                waypoint0: {},
-                waypoint1: {},
-            },
-        },
-    });
+// Helper to safely check for a string 'name' property
+function isViolationWithName(violation: unknown): violation is {name: string} {
+    return !!(violation && typeof violation === 'object' && typeof (violation as {name?: unknown}).name === 'string');
 }
 
-/**
- * Add a stop to the transaction
- */
-function addStop(transactionID: string) {
-    const transaction = allTransactions?.[transactionID] ?? {};
-    const existingWaypoints = transaction?.comment?.waypoints ?? {};
-    const newLastIndex = Object.keys(existingWaypoints).length;
+type SaveWaypointProps = {
+    transactionID: string;
+    index: string;
+    waypoint: RecentWaypoint | null;
+    isDraft?: boolean;
+    recentWaypointsList?: RecentWaypoint[];
+};
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        comment: {
-            waypoints: {
-                [`waypoint${newLastIndex}`]: {},
-            },
-        },
-    });
-}
-
-function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isDraft = false) {
+function saveWaypoint({transactionID, index, waypoint, isDraft = false, recentWaypointsList = []}: SaveWaypointProps) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints: {
@@ -123,12 +155,12 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
 
     // If current location is used, we would want to avoid saving it as a recent waypoint. This prevents the 'Your Location'
     // text from showing up in the address search suggestions
-    if (isEqual(waypoint?.address, CONST.YOUR_LOCATION_TEXT)) {
+    if (deepEqual(waypoint?.address, CONST.YOUR_LOCATION_TEXT)) {
         return;
     }
-    const recentWaypointAlreadyExists = recentWaypoints.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
+    const recentWaypointAlreadyExists = recentWaypointsList.find((recentWaypoint) => recentWaypoint?.address === waypoint?.address);
     if (!recentWaypointAlreadyExists && waypoint !== null) {
-        const clonedWaypoints = lodashClone(recentWaypoints);
+        const clonedWaypoints = lodashClone(recentWaypointsList);
         const updatedWaypoint = {...waypoint, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
         clonedWaypoints.unshift(updatedWaypoint);
         Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, clonedWaypoints.slice(0, CONST.RECENT_WAYPOINTS_NUMBER));
@@ -150,7 +182,7 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
         return Promise.resolve();
     }
 
-    const isRemovedWaypointEmpty = removed.length > 0 && !TransactionUtils.waypointHasValidAddress(removed.at(0) ?? {});
+    const isRemovedWaypointEmpty = removed.length > 0 && !waypointHasValidAddress(removed.at(0) ?? {});
 
     // When there are only two waypoints we are adding empty waypoint back
     if (totalWaypoints === 2 && (index === 0 || index === totalWaypoints - 1)) {
@@ -158,9 +190,9 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     }
 
     const reIndexedWaypoints: WaypointCollection = {};
-    waypointValues.forEach((waypoint, idx) => {
+    for (const [idx, waypoint] of waypointValues.entries()) {
         reIndexedWaypoints[`waypoint${idx}`] = waypoint;
-    });
+    }
 
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
@@ -278,11 +310,15 @@ function getOnyxDataForRouteRequest(transactionID: string, transactionState: Tra
  * @returns The sanitized collection of waypoints.
  */
 function sanitizeRecentWaypoints(waypoints: WaypointCollection): WaypointCollection {
-    return Object.entries(waypoints).reduce((acc, [key, waypoint]) => {
-        const {pendingAction, ...rest} = waypoint as RecentWaypoint;
-        acc[key] = rest;
+    return Object.entries(waypoints).reduce((acc: WaypointCollection, [key, waypoint]) => {
+        if ('pendingAction' in waypoint) {
+            const {pendingAction, ...rest} = waypoint;
+            acc[key] = rest;
+        } else {
+            acc[key] = waypoint;
+        }
         return acc;
-    }, {} as WaypointCollection);
+    }, {});
 }
 
 /**
@@ -353,25 +389,102 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
  * Dismisses the duplicate transaction violation for the provided transactionIDs
  * and updates the transaction to include the dismissed violation in the comment.
  */
-function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails) {
+function dismissDuplicateTransactionViolation(
+    transactionIDs: string[],
+    dismissedPersonalDetails: PersonalDetails,
+    expenseReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    isASAPSubmitBetaEnabled: boolean,
+) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
-    const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID, transaction.transactionID));
-    const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() => {
+    const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction.reportID, transaction.transactionID));
+    const optimisticDismissedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
     });
 
     const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
+    if (expenseReport) {
+        const hasOtherViolationsBesideDuplicates = currentTransactionViolations.some(
+            ({violations}) => violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION).length,
+        );
+        // buildOptimisticNextStep is used in parallel
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const optimisticNextStepDeprecated = buildNextStepNew({
+            report: expenseReport,
+            predictedNextStatus: expenseReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            shouldFixViolations: hasOtherViolationsBesideDuplicates,
+            policy,
+            currentUserAccountIDParam: dismissedPersonalDetails.accountID,
+            currentUserEmailParam: dismissedPersonalDetails.login ?? '',
+            hasViolations: hasOtherViolationsBesideDuplicates,
+            isASAPSubmitBetaEnabled,
+        });
+        const optimisticNextStep = buildOptimisticNextStep({
+            report: expenseReport,
+            predictedNextStatus: expenseReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            shouldFixViolations: hasOtherViolationsBesideDuplicates,
+            policy,
+            currentUserAccountIDParam: dismissedPersonalDetails.accountID,
+            currentUserEmailParam: dismissedPersonalDetails.login ?? '',
+            hasViolations: hasOtherViolationsBesideDuplicates,
+            isASAPSubmitBetaEnabled,
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: optimisticNextStepDeprecated,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+            value: null,
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                nextStep: optimisticNextStep,
+                pendingFields: {
+                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                pendingFields: {
+                    nextStep: null,
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                nextStep: expenseReport.nextStep ?? null,
+                pendingFields: {
+                    nextStep: null,
+                },
+            },
+        });
+    }
+
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
-        const optimisticDissmidedViolationReportAction = optimisticDissmidedViolationReportActions.at(index);
+        const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
-            value: optimisticDissmidedViolationReportAction
+            value: optimisticDismissedViolationReportAction
                 ? {
-                      [optimisticDissmidedViolationReportAction.reportActionID]: optimisticDissmidedViolationReportAction as ReportAction,
+                      [optimisticDismissedViolationReportAction.reportActionID]: optimisticDismissedViolationReportAction as ReportAction,
                   }
                 : undefined,
         };
@@ -379,6 +492,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         value: transactionViolations.violations?.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
     }));
 
@@ -394,7 +508,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
                 ...transaction.comment,
                 dismissedViolations: {
                     duplicatedTransaction: {
-                        [dissmissedPersonalDetails.login ?? '']: getUnixTime(new Date()),
+                        [dismissedPersonalDetails.login ?? '']: getUnixTime(new Date()),
                     },
                 },
             },
@@ -406,6 +520,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     const failureDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         value: transactionViolations.violations?.map((violation) => violation),
     }));
 
@@ -417,14 +532,15 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         },
     }));
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
-        const optimisticDissmidedViolationReportAction = optimisticDissmidedViolationReportActions.at(index);
+        const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
-            value: optimisticDissmidedViolationReportAction
+            value: optimisticDismissedViolationReportAction
                 ? {
-                      [optimisticDissmidedViolationReportAction.reportActionID]: null,
+                      [optimisticDismissedViolationReportAction.reportActionID]: null,
                   }
                 : undefined,
         };
@@ -434,18 +550,21 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     failureData.push(...failureDataTransaction);
     failureData.push(...failureReportActions);
 
-    const successData: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
-        const optimisticDissmidedViolationReportAction = optimisticDissmidedViolationReportActions.at(index);
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    const successReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => {
+        const optimisticDismissedViolationReportAction = optimisticDismissedViolationReportActions.at(index);
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID}`,
-            value: optimisticDissmidedViolationReportAction
+            value: optimisticDismissedViolationReportAction
                 ? {
-                      [optimisticDissmidedViolationReportAction.reportActionID]: null,
+                      [optimisticDismissedViolationReportAction.reportActionID]: null,
                   }
                 : undefined,
         };
     });
+    successData.push(...successReportActions);
+
     // We are creating duplicate resolved report actions for each duplicate transactions and all the report actions
     // should be correctly linked with their parent report but the BE is sometimes linking report actions to different
     // parent reports than the one we set optimistically, resulting in duplicate report actions. Therefore, we send the BE
@@ -453,7 +572,8 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     const params: DismissViolationParams = {
         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
         transactionIDList: transactionIDs.join(','),
-        reportActionIDList: optimisticDissmidedViolationReportActions.map(() => NumberUtils.rand64()).join(','),
+        reportActionIDList: optimisticDismissedViolationReportActions.map(() => NumberUtils.rand64()).join(','),
+        reportID: expenseReport?.reportID,
     };
 
     API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {
@@ -478,20 +598,20 @@ function clearError(transactionID: string) {
 }
 
 function getLastModifiedExpense(reportID?: string): OriginalMessageModifiedExpense | undefined {
-    const modifiedExpenseActions = Object.values(ReportActionsUtils.getAllReportActions(reportID)).filter(ReportActionsUtils.isModifiedExpenseAction);
+    const modifiedExpenseActions = Object.values(getAllReportActions(reportID)).filter(isModifiedExpenseAction);
     modifiedExpenseActions.sort((a, b) => Number(a.reportActionID) - Number(b.reportActionID));
-    return ReportActionsUtils.getOriginalMessage(modifiedExpenseActions.at(-1));
+    return getOriginalMessage(modifiedExpenseActions.at(-1));
 }
 
-function revert(transactionID?: string, originalMessage?: OriginalMessageModifiedExpense | undefined) {
-    const transaction = TransactionUtils.getTransaction(transactionID);
-
-    if (transaction && originalMessage?.oldAmount && originalMessage.oldCurrency && 'amount' in originalMessage && 'currency' in originalMessage) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-            modifiedAmount: transaction?.amount && transaction?.amount < 0 ? -Math.abs(originalMessage.oldAmount) : originalMessage.oldAmount,
-            modifiedCurrency: originalMessage.oldCurrency,
-        });
+function revert(transaction?: OnyxEntry<Transaction>, originalMessage?: OriginalMessageModifiedExpense | undefined) {
+    if (!transaction || !originalMessage?.oldAmount || !originalMessage.oldCurrency || !('amount' in originalMessage) || !('currency' in originalMessage)) {
+        return;
     }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, {
+        modifiedAmount: transaction?.amount && transaction?.amount < 0 ? -Math.abs(originalMessage.oldAmount) : originalMessage.oldAmount,
+        modifiedCurrency: originalMessage.oldCurrency,
+    });
 }
 
 function markAsCash(transactionID: string | undefined, transactionThreadReportID: string | undefined) {
@@ -511,13 +631,14 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
             },
             // Optimistically adding the system message indicating we dismissed the violation
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: optimisticReportActions as ReportActions,
+                value: optimisticReportActions,
             },
         ],
         failureData: [
@@ -560,21 +681,715 @@ function openDraftDistanceExpense() {
     API.read(READ_COMMANDS.OPEN_DRAFT_DISTANCE_EXPENSE, null, onyxData);
 }
 
-function getRecentWaypoints() {
-    return recentWaypoints;
+/**
+ * Returns a client generated 16 character hexadecimal value for the transactionID
+ */
+function generateTransactionID(): string {
+    return NumberUtils.generateHexadecimalValue(16);
 }
 
-function getAllTransactionViolationsLength() {
-    return allTransactionViolations.length;
+function setTransactionReport(transactionID: string, transaction: Partial<Transaction>, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 }
 
-function getAllTransactions() {
-    return Object.keys(allTransactions ?? {}).length;
+function changeTransactionsReport(
+    transactionIDs: string[],
+    isASAPSubmitBetaEnabled: boolean,
+    accountID: number,
+    email: string,
+    newReport?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
+    reportNextStep?: OnyxEntry<ReportNextStepDeprecated>,
+    policyCategories?: OnyxEntry<PolicyCategories>,
+) {
+    const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
+
+    const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
+    const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
+    const updatedReportTotals: Record<string, number> = {};
+    const updatedReportNonReimbursableTotals: Record<string, number> = {};
+    const updatedReportUnheldNonReimbursableTotals: Record<string, number> = {};
+
+    // Store current violations for each transaction to restore on failure
+    const currentTransactionViolations: Record<string, TransactionViolation[]> = {};
+    for (const id of transactionIDs) {
+        currentTransactionViolations[id] = allTransactionViolation?.[id] ?? [];
+    }
+
+    const optimisticData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+
+    const existingSelfDMReportID = findSelfDMReportID();
+    let selfDMReport: Report | undefined;
+    let selfDMCreatedReportAction: ReportAction | undefined;
+    const currentUserAccountID = getCurrentUserAccountID();
+
+    if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        const currentTime = DateUtils.getDBTime();
+        selfDMReport = buildOptimisticSelfDMReport(currentTime);
+        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(email ?? '', currentTime);
+
+        // Add optimistic updates for self DM report
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                value: {
+                    ...selfDMReport,
+                    pendingFields: {
+                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                value: {isOptimisticReport: true},
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                value: {
+                    [selfDMCreatedReportAction.reportActionID]: selfDMCreatedReportAction,
+                },
+            },
+        );
+
+        // Add success data for self DM report
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                value: {
+                    pendingFields: {
+                        createChat: null,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                value: {isOptimisticReport: false},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                value: {
+                    [selfDMCreatedReportAction.reportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            },
+        );
+        // Add failure data for self DM report
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
+                value: null,
+            },
+        );
+    }
+
+    let transactionsMoved = false;
+    let shouldFixViolations = false;
+
+    const policyTagList = getPolicyTagsData(policy?.id);
+    const policyHasDependentTags = hasDependentTags(policy, policyTagList);
+
+    for (const transaction of transactions) {
+        const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+
+        const selfDMReportID = existingSelfDMReportID ?? selfDMReport?.reportID;
+
+        const oldIOUAction = getIOUActionForReportID(isUnreportedExpense ? selfDMReportID : transaction.reportID, transaction.transactionID);
+        if (!transaction.reportID || transaction.reportID === reportID) {
+            continue;
+        }
+
+        transactionsMoved = true;
+
+        const oldReportID = transaction.reportID;
+        const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
+
+        // 1. Optimistically change the reportID on the passed transactions
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: {
+                reportID,
+                comment: {
+                    hold: null,
+                },
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: {
+                reportID,
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: {
+                reportID: transaction.reportID,
+                comment: {
+                    hold: transaction.comment?.hold,
+                },
+            },
+        });
+
+        // Optimistically clear all violations for the transaction when moving to self DM report
+        if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            const duplicateViolation = currentTransactionViolations?.[transaction.transactionID]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+            const duplicateTransactionIDs = duplicateViolation?.data?.duplicates;
+            if (duplicateTransactionIDs) {
+                for (const id of duplicateTransactionIDs) {
+                    optimisticData.push({
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                        value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+                    });
+                }
+            }
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                value: null,
+            });
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                value: null,
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                value: currentTransactionViolations[transaction.transactionID],
+            });
+        }
+
+        let transactionReimbursable = transaction.reimbursable;
+        // 2. Calculate transaction violations if moving transaction to a workspace
+        if (isPaidGroupPolicy(policy) && policy?.id) {
+            const violationData = ViolationsUtils.getViolationsOnyxData(
+                transaction,
+                currentTransactionViolations[transaction.transactionID] ?? [],
+                policy,
+                policyTagList,
+                policyCategories ?? {},
+                policyHasDependentTags,
+                false,
+            );
+            optimisticData.push(violationData);
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                value: allTransactionViolation?.[transaction.transactionID],
+            });
+            const transactionHasViolations = Array.isArray(violationData.value) && violationData.value.length > 0;
+            const hasOtherViolationsBesideDuplicates =
+                Array.isArray(violationData.value) &&
+                !violationData.value.every((violation) => {
+                    if (!isViolationWithName(violation)) {
+                        return false;
+                    }
+                    return violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION;
+                });
+            if (transactionHasViolations && hasOtherViolationsBesideDuplicates) {
+                shouldFixViolations = true;
+            }
+            if (policy?.disabledFields?.reimbursable) {
+                transactionReimbursable = policy?.defaultReimbursable;
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    value: {
+                        reimbursable: transactionReimbursable,
+                    },
+                });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    value: {
+                        reimbursable: transaction?.reimbursable,
+                    },
+                });
+            }
+        }
+
+        const allowNegative = shouldEnableNegative(newReport);
+
+        // 3. Keep track of the new report totals
+        const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const targetReportID = isUnreported ? selfDMReportID : reportID;
+        const {amount: transactionAmount = 0, currency: transactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
+        const oldReportTotal = oldReport?.total ?? 0;
+        const updatedReportTotal = transactionAmount < 0 ? oldReportTotal - transactionAmount : oldReportTotal + transactionAmount;
+
+        if (oldReport && oldReport.currency === transactionCurrency) {
+            updatedReportTotals[oldReportID] = updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : updatedReportTotal;
+            updatedReportNonReimbursableTotals[oldReportID] =
+                (updatedReportNonReimbursableTotals[oldReportID] ? updatedReportNonReimbursableTotals[oldReportID] : (oldReport?.nonReimbursableTotal ?? 0)) +
+                (transaction?.reimbursable ? 0 : transactionAmount);
+            updatedReportUnheldNonReimbursableTotals[oldReportID] =
+                (updatedReportUnheldNonReimbursableTotals[oldReportID] ? updatedReportUnheldNonReimbursableTotals[oldReportID] : (oldReport?.unheldNonReimbursableTotal ?? 0)) +
+                (transaction?.reimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
+        }
+
+        if (targetReportID) {
+            const targetReportKey = `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`;
+            const targetReport =
+                allReports?.[targetReportKey] ?? (targetReportID === newReport?.reportID ? newReport : undefined) ?? (targetReportID === selfDMReport?.reportID ? selfDMReport : undefined);
+
+            if (transactionCurrency === targetReport?.currency) {
+                const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
+                updatedReportTotals[targetReportID] = currentTotal - transactionAmount;
+
+                const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[targetReportID] ?? targetReport?.nonReimbursableTotal ?? 0;
+                updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal - (transactionReimbursable ? 0 : transactionAmount);
+
+                const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
+                updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
+            }
+        }
+
+        // 4. Optimistically update the IOU action reportID
+        const optimisticMoneyRequestReportActionID = rand64();
+
+        const originalMessage = getOriginalMessage(oldIOUAction) as OriginalMessageIOU;
+        const newIOUAction = {
+            ...oldIOUAction,
+            originalMessage: {
+                ...originalMessage,
+                IOUReportID: reportID,
+                type: isUnreported ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            },
+            reportActionID: optimisticMoneyRequestReportActionID,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            actionName: oldIOUAction?.actionName ?? CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+            created: oldIOUAction?.created ?? DateUtils.getDBTime(),
+        };
+
+        const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID) : undefined;
+
+        if (oldIOUAction) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+                value: {
+                    [newIOUAction.reportActionID]: newIOUAction,
+                },
+            });
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isUnreportedExpense ? selfDMReportID : oldReportID}`,
+                value: {
+                    [oldIOUAction.reportActionID]: {
+                        previousMessage: oldIOUAction.message,
+                        message: [
+                            {
+                                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                                html: '',
+                                text: '',
+                                isEdited: true,
+                                isDeletedParentAction: false,
+                            },
+                        ],
+                        originalMessage: {
+                            IOUTransactionID: null,
+                        },
+                        errors: undefined,
+                    },
+                    ...(trackExpenseActionableWhisper ? {[trackExpenseActionableWhisper.reportActionID]: null} : {}),
+                },
+            });
+        }
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+            value: {
+                [newIOUAction.reportActionID]: {pendingAction: null},
+            },
+        });
+        if (oldIOUAction) {
+            failureData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+                    value: {
+                        [newIOUAction.reportActionID]: null,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isUnreportedExpense ? selfDMReportID : oldReportID}`,
+                    value: {
+                        [oldIOUAction.reportActionID]: oldIOUAction,
+                        ...(trackExpenseActionableWhisper ? {[trackExpenseActionableWhisper.reportActionID]: trackExpenseActionableWhisper} : {}),
+                    },
+                },
+            );
+        }
+
+        const shouldRemoveOtherParticipants = !isManagedCardTransaction(transaction);
+        const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`];
+        if (childReport) {
+            const participants = childReport.participants;
+            // 5. Optimistically update the transaction thread and all threads in the transaction thread
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
+                value: {
+                    parentReportID: targetReportID,
+                    parentReportActionID: optimisticMoneyRequestReportActionID,
+                    policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
+                    participants: isUnreported && shouldRemoveOtherParticipants ? {[currentUserAccountID]: participants?.[currentUserAccountID]} : participants,
+                },
+            });
+        }
+
+        if (oldIOUAction) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.childReportID}`,
+                value: {
+                    parentReportID: isUnreportedExpense ? selfDMReportID : oldReportID,
+                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+                    optimisticMoneyRequestReportActionID: oldIOUAction.reportActionID,
+                    policyID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.reportActionID}`]?.policyID,
+                },
+            });
+        }
+
+        // 6. (Optional) Create transactionThread if it doesn't exist
+        let transactionThreadReportID = newIOUAction.childReportID;
+        let transactionThreadCreatedReportActionID;
+        if (!transactionThreadReportID) {
+            const optimisticTransactionThread = buildTransactionThread(newIOUAction, reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? undefined : newReport);
+            const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction(email ?? '');
+            transactionThreadReportID = optimisticTransactionThread.reportID;
+            transactionThreadCreatedReportActionID = optimisticCreatedActionForTransactionThread.reportActionID;
+            newIOUAction.childReportID = transactionThreadReportID;
+
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThread.reportID}`,
+                    value: {...optimisticTransactionThread, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
+                    value: {[optimisticCreatedActionForTransactionThread.reportActionID]: optimisticCreatedActionForTransactionThread},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+                    value: {[newIOUAction.reportActionID]: {childReportID: optimisticTransactionThread.reportID}},
+                },
+            );
+
+            successData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThread.reportID}`,
+                    value: {pendingAction: null},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
+                    value: {[optimisticCreatedActionForTransactionThread.reportActionID]: {pendingAction: null}},
+                },
+            );
+
+            failureData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThread.reportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
+                    value: {[optimisticCreatedActionForTransactionThread.reportActionID]: null},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+                    value: {[newIOUAction.reportActionID]: {childReportID: null}},
+                },
+            );
+        }
+
+        // 7. Add MOVED_TRANSACTION or UNREPORTED_TRANSACTION report actions
+        const movedAction =
+            reportID === CONST.REPORT.UNREPORTED_REPORT_ID
+                ? buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID)
+                : buildOptimisticMovedTransactionAction(transactionThreadReportID, reportID);
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {[movedAction?.reportActionID]: movedAction},
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {[movedAction?.reportActionID]: {pendingAction: null}},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {[movedAction?.reportActionID]: null},
+        });
+
+        // Create base transaction data object
+        const baseTransactionData = {
+            movedReportActionID: movedAction.reportActionID,
+            moneyRequestPreviewReportActionID: newIOUAction.reportActionID,
+            ...(oldIOUAction && !oldIOUAction.childReportID
+                ? {
+                      transactionThreadReportID,
+                      transactionThreadCreatedReportActionID,
+                  }
+                : {}),
+        };
+
+        if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID && selfDMReport && selfDMCreatedReportAction) {
+            // Add self DM data to transaction data
+            transactionIDToReportActionAndThreadData[transaction.transactionID] = {
+                ...baseTransactionData,
+                selfDMReportID: selfDMReport.reportID,
+                selfDMCreatedReportActionID: selfDMCreatedReportAction.reportActionID,
+            };
+        } else {
+            transactionIDToReportActionAndThreadData[transaction.transactionID] = baseTransactionData;
+        }
+
+        // Build unhold report action
+        if (isOnHold(transaction)) {
+            const unHoldAction = buildOptimisticUnHoldReportAction();
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[unHoldAction.reportActionID]: unHoldAction},
+            });
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[unHoldAction.reportActionID]: {pendingAction: null}},
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {[unHoldAction.reportActionID]: null},
+            });
+
+            transactionIDToReportActionAndThreadData[transaction.transactionID] = {
+                ...transactionIDToReportActionAndThreadData[transaction.transactionID],
+                unholdReportActionID: unHoldAction.reportActionID,
+            };
+        }
+    }
+
+    if (!transactionsMoved) {
+        return;
+    }
+
+    // 8. Update the report totals
+    for (const [reportIDToUpdate, total] of Object.entries(updatedReportTotals)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {total},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {total: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.total},
+        });
+    }
+
+    for (const [reportIDToUpdate, total] of Object.entries(updatedReportNonReimbursableTotals)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {nonReimbursableTotal: total},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {nonReimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.nonReimbursableTotal},
+        });
+    }
+
+    for (const [reportIDToUpdate, total] of Object.entries(updatedReportUnheldNonReimbursableTotals)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {unheldNonReimbursableTotal: total},
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
+            value: {
+                unheldNonReimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.unheldNonReimbursableTotal,
+            },
+        });
+    }
+
+    const reportTransactions = getReportTransactions(reportID);
+    for (const transaction of reportTransactions) {
+        if (!isPaidGroupPolicy(policy) || !policy?.id) {
+            continue;
+        }
+        const violationData = ViolationsUtils.getViolationsOnyxData(
+            transaction,
+            currentTransactionViolations[transaction.transactionID] ?? [],
+            policy,
+            policyTagList,
+            policyCategories ?? {},
+            policyHasDependentTags,
+            false,
+        );
+        const hasOtherViolationsBesideDuplicates =
+            Array.isArray(violationData.value) &&
+            !violationData.value.every((violation) => {
+                if (!isViolationWithName(violation)) {
+                    return false;
+                }
+                return violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION;
+            });
+        if (Array.isArray(violationData.value) && violationData.value.length > 0 && hasOtherViolationsBesideDuplicates) {
+            shouldFixViolations = true;
+        }
+    }
+
+    // 9. Update next step for report
+    const destinationReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (existingSelfDMReportID ?? selfDMReport?.reportID) : reportID;
+    const destinationReport = destinationReportID
+        ? (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`] ??
+          (destinationReportID === newReport?.reportID ? newReport : undefined) ??
+          (destinationReportID === selfDMReport?.reportID ? selfDMReport : undefined))
+        : undefined;
+    const destinationTotal = (destinationReportID ? updatedReportTotals[destinationReportID] : undefined) ?? destinationReport?.total ?? newReport?.total;
+    const nextStepReport = {
+        ...destinationReport,
+        reportID: destinationReport?.reportID ?? destinationReportID ?? reportID,
+        total: destinationTotal,
+    };
+    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation, accountID, email ?? '');
+
+    // buildOptimisticNextStep is used in parallel
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const optimisticNextStepDeprecated = buildNextStepNew({
+        report: nextStepReport,
+        policy,
+        currentUserAccountIDParam: accountID,
+        currentUserEmailParam: email,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        predictedNextStatus: nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+        shouldFixViolations,
+    });
+    const optimisticNextStep = buildOptimisticNextStep({
+        report: nextStepReport,
+        policy,
+        currentUserAccountIDParam: accountID,
+        currentUserEmailParam: email,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        predictedNextStatus: nextStepReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+        shouldFixViolations,
+    });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+        value: optimisticNextStepDeprecated,
+    });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            nextStep: optimisticNextStep,
+            pendingFields: {
+                nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            pendingFields: {
+                nextStep: null,
+            },
+        },
+    });
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
+        value: reportNextStep,
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+        value: {
+            nextStep: nextStepReport.nextStep ?? null,
+            pendingFields: {
+                nextStep: null,
+            },
+        },
+    });
+
+    const parameters: ChangeTransactionsReportParams = {
+        transactionList: transactionIDs.join(','),
+        reportID,
+        transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
+    };
+
+    API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+function getDraftTransactions(draftTransactions?: OnyxCollection<Transaction>): Transaction[] {
+    return Object.values(draftTransactions ?? allTransactionDrafts ?? {}).filter((transaction): transaction is Transaction => !!transaction);
 }
 
 export {
-    addStop,
-    createInitialWaypoints,
     saveWaypoint,
     removeWaypoint,
     getRoute,
@@ -582,13 +1397,14 @@ export {
     clearError,
     markAsCash,
     dismissDuplicateTransactionViolation,
+    getDraftTransactions,
+    generateTransactionID,
     setReviewDuplicatesKey,
     abandonReviewDuplicateTransactions,
     openDraftDistanceExpense,
-    getRecentWaypoints,
     sanitizeRecentWaypoints,
-    getAllTransactionViolationsLength,
-    getAllTransactions,
     getLastModifiedExpense,
     revert,
+    changeTransactionsReport,
+    setTransactionReport,
 };
