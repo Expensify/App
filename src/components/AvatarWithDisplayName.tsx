@@ -207,7 +207,7 @@ function AvatarWithDisplayName({
         }
         const parentReportAction = parentReportActions?.[report?.parentReportActionID];
         actorAccountID.current = parentReportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    }, [parentReportActions, report]);
+    }, [parentReportActions, report?.parentReportActionID]);
 
     const goToDetailsPage = useCallback(() => {
         navigateToDetailsPage(report, Navigation.getActiveRoute());

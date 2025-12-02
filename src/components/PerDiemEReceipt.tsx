@@ -64,7 +64,7 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
         amount: transactionAmount,
         currency: transactionCurrency,
         merchant: transactionMerchant,
-    } = getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT, undefined, undefined, undefined, preferredLocale) ?? {};
+    } = getTransactionDetails(transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT, undefined, undefined, undefined, undefined, preferredLocale) ?? {};
     const ratesDescription = computeDefaultPerDiemExpenseRates(transaction?.comment?.customUnit ?? {}, transactionCurrency ?? '');
     const datesDescription = getPerDiemDates(transactionMerchant ?? '');
     const destination = getPerDiemDestination(transactionMerchant ?? '');

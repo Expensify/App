@@ -38,7 +38,7 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
         currency: transactionCurrency,
         merchant: transactionMerchant,
         created: transactionDate,
-    } = getTransactionDetails(transaction, CONST.DATE.FNS_FORMAT_STRING, undefined, undefined, undefined, preferredLocale) ?? {};
+    } = getTransactionDetails(transaction, CONST.DATE.FNS_FORMAT_STRING, undefined, undefined, undefined, undefined, preferredLocale) ?? {};
     const formattedTransactionAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const waypoints = useMemo(() => transaction?.comment?.waypoints ?? {}, [transaction?.comment?.waypoints]);

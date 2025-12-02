@@ -64,7 +64,16 @@ describe('getPrimaryAction', () => {
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         expect(
-            getReportPrimaryAction({currentUserEmail: CURRENT_USER_EMAIL, report, chatReport, reportTransactions: [], violations: {}, policy: {} as Policy, isChatReportArchived: false}),
+            getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [],
+                violations: {},
+                policy: {} as Policy,
+                isChatReportArchived: false,
+            }),
         ).toBe('');
     });
 
@@ -87,6 +96,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -120,6 +130,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -153,6 +164,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -187,6 +199,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -224,6 +237,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -259,6 +273,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -299,6 +314,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -340,6 +356,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -370,6 +387,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -408,6 +426,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -444,6 +463,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -480,6 +500,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [],
@@ -542,7 +563,16 @@ describe('getPrimaryAction', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
 
         expect(
-            getReportPrimaryAction({currentUserEmail: CURRENT_USER_EMAIL, report, chatReport, reportTransactions: [transaction], violations: {}, policy, isChatReportArchived: false}),
+            getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy,
+                isChatReportArchived: false,
+            }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD);
     });
 
@@ -593,6 +623,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -632,6 +663,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -668,6 +700,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -705,6 +738,7 @@ describe('getPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport: invoiceChatReport,
                 reportTransactions: [transaction],
@@ -753,7 +787,7 @@ describe('isReviewDuplicatesAction', () => {
             } as TransactionViolation,
         ]);
 
-        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, undefined)).toBe(true);
+        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined)).toBe(true);
     });
 
     it('should return false when report approver has no duplicated transactions', async () => {
@@ -773,7 +807,7 @@ describe('isReviewDuplicatesAction', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
 
-        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, undefined)).toBe(false);
+        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined)).toBe(false);
     });
 
     it('should return false when current user is neither the report submitter nor approver', async () => {
@@ -798,7 +832,7 @@ describe('isReviewDuplicatesAction', () => {
             } as TransactionViolation,
         ]);
 
-        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, undefined)).toBe(false);
+        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined)).toBe(false);
     });
 });
 
@@ -841,7 +875,7 @@ describe('getTransactionThreadPrimaryAction', () => {
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, report, {} as Report, transaction, [], policy as Policy, false)).toBe(
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, {} as Report, transaction, [], policy as Policy, false)).toBe(
             CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD,
         );
     });
@@ -871,7 +905,7 @@ describe('getTransactionThreadPrimaryAction', () => {
             } as TransactionViolation,
         ]);
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, {} as Report, report, transaction, [], policy as Policy, false)).toBe(
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {} as Report, report, transaction, [], policy as Policy, false)).toBe(
             CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES,
         );
     });
@@ -900,7 +934,7 @@ describe('getTransactionThreadPrimaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, {} as Report, report, transaction, [violation], policy as Policy, false)).toBe(
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {} as Report, report, transaction, [violation], policy as Policy, false)).toBe(
             CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH,
         );
     });
@@ -928,7 +962,7 @@ describe('getTransactionThreadPrimaryAction', () => {
             },
         } as unknown as TransactionViolation;
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, {} as Report, report, transaction, [violation], policy as Policy, false)).toBe(
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {} as Report, report, transaction, [violation], policy as Policy, false)).toBe(
             CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_CASH,
         );
     });
@@ -960,6 +994,7 @@ describe('getTransactionThreadPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -998,6 +1033,7 @@ describe('getTransactionThreadPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -1037,6 +1073,7 @@ describe('getTransactionThreadPrimaryAction', () => {
         expect(
             getReportPrimaryAction({
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],
@@ -1191,7 +1228,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 } as unknown as Transaction,
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, reportTransactions, violations, policy);
             expect(result).toBe(true);
         });
 
@@ -1224,7 +1261,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 } as unknown as Transaction,
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
 
@@ -1254,7 +1291,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 } as unknown as Transaction,
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
 
@@ -1284,7 +1321,7 @@ describe('getTransactionThreadPrimaryAction', () => {
                 } as unknown as Transaction,
             ];
 
-            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, report, reportTransactions, violations, policy);
+            const result = isPrimaryMarkAsResolvedAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, report, reportTransactions, violations, policy);
             expect(result).toBe(false);
         });
     });
