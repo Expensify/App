@@ -231,9 +231,10 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
 
         // Preserve the new approvalLimit and overLimitForwardsTo values that were passed in,
         // since calculateApprovers reads from stale policy data
-        if (approvers[approverIndex]) {
+        const existingApprover = approvers.at(approverIndex);
+        if (existingApprover) {
             approvers[approverIndex] = {
-                ...approvers[approverIndex],
+                ...existingApprover,
                 approvalLimit: approver.approvalLimit,
                 overLimitForwardsTo: approver.overLimitForwardsTo,
             };
