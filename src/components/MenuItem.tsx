@@ -955,10 +955,8 @@ function MenuItem({
                                                             styles.pointerEventsAuto,
                                                             StyleUtils.getMenuItemIconStyle(isCompact),
                                                             disabled && !shouldUseDefaultCursorWhenDisabled && styles.cursorDisabled,
-                                                            hasSubMenuItems && styles.opacitySemiTransparent,
                                                             hasSubMenuItems && styles.pl6,
-                                                            !isHovered && styles.opacitySemiTransparent,
-                                                            isHovered && styles.opacity1,
+                                                            isHovered ? styles.opacity1 : styles.opacitySemiTransparent,
                                                         ]}
                                                     >
                                                         <Icon
