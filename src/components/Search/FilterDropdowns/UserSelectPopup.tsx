@@ -42,9 +42,16 @@ type UserSelectPopupProps = {
 
     /** Function to call when changes are applied */
     onChange: (value: string[]) => void;
+
+    /**
+     * Whether the search input should be displayed.
+     * When undefined, defaults to showing search when user count >= CONST.STANDARD_LIST_ITEM_LIMIT (12 users).
+     * Set to true to always show search, or false to never show search regardless of user count.
+     */
+    isSearchable?: boolean;
 };
 
-function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) {
+function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSelectPopupProps) {
     const selectionListRef = useRef<SelectionListHandle | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -183,9 +190,10 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
 
     const isLoadingNewOptions = !!isSearchingForReports;
     const dataLength = sections.flatMap((section) => section.data).length;
+    const shouldShowSearchInput = isSearchable ?? dataLength >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     return (
-        <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
+        <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}>
             <SelectionList
                 ref={selectionListRef}
                 canSelectMultiple
@@ -195,7 +203,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
                 ListItem={UserSelectionListItem}
                 containerStyle={[!shouldUseNarrowLayout && styles.pt4]}
                 contentContainerStyle={[styles.pb2]}
-                textInputLabel={translate('selectionList.searchForSomeone')}
+                textInputLabel={shouldShowSearchInput ? translate('selectionList.searchForSomeone') : undefined}
                 textInputValue={searchTerm}
                 onSelectRow={selectUser}
                 onChangeText={setSearchTerm}

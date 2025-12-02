@@ -16,6 +16,7 @@ import type {
 } from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
+import type AvatarMultiSelectListItem from '@components/Search/FilterDropdowns/AvatarMultiSelectListItem';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -628,6 +629,7 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 };
 
 type ValidListItem =
+    | typeof AvatarMultiSelectListItem
     | typeof RadioListItem
     | typeof UserListItem
     | typeof TableListItem
