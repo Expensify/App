@@ -2176,19 +2176,23 @@ ${amount} für ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Der Genehmiger konnte nicht geändert werden. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.',
-        header: 'An dieses Mitglied zur Genehmigung senden:',
+        title: 'Genehmiger festlegen',
+        description: 'Diese Person wird die Ausgaben genehmigen.',
     },
     workflowsApprovalLimitPage: {
         title: 'Genehmiger',
         header: '(Optional) Möchten Sie ein Genehmigungslimit hinzufügen?',
         description: ({approverName}: {approverName: string}) =>
-            `Fügen Sie einen weiteren Genehmiger hinzu, wenn <strong>${approverName}</strong> Genehmiger ist und der Bericht den folgenden Betrag überschreitet:`,
+            approverName
+                ? `Fügen Sie einen weiteren Genehmiger hinzu, wenn <strong>${approverName}</strong> Genehmiger ist und der Bericht den folgenden Betrag überschreitet:`
+                : 'Fügen Sie einen weiteren Genehmiger hinzu, wenn der Bericht den folgenden Betrag überschreitet:',
         reportAmountLabel: 'Berichtsbetrag',
         additionalApproverLabel: 'Zusätzlicher Genehmiger',
         skip: 'Überspringen',
         next: 'Weiter',
+        removeLimit: 'Limit entfernen',
         enterAmountError: 'Bitte geben Sie einen gültigen Betrag ein',
-        enterApproverError: 'Bitte geben Sie einen Genehmiger ein',
+        enterApproverError: 'Ein Genehmiger ist erforderlich, wenn Sie ein Berichtslimit haben',
         enterBothError: 'Geben Sie einen Berichtsbetrag und einen zusätzlichen Genehmiger ein',
         circularReferenceError: ({approverName}: {approverName: string}) =>
             `<strong>${approverName}</strong> genehmigt bereits Berichte in diesem Workflow. Wählen Sie einen anderen Genehmiger, um einen zirkulären Workflow zu vermeiden.`,

@@ -39,7 +39,7 @@ type Approver = {
     /**
      * If report total is above this limit, the report will be forwarded to 'overLimitForwardsTo' instead of 'forwardsTo'
      */
-    approvalLimit?: number;
+    approvalLimit?: number | null;
 
     /**
      * Email of the user this user forwards all approved reports to when report total is above 'approvalLimit'

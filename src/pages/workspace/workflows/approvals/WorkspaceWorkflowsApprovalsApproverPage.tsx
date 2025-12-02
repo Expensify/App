@@ -140,46 +140,54 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const toggleApprover = useCallback(
         (approvers: SelectionListApprover[]) => {
             const approver = approvers.at(0);
-            if (selectedApproverEmail === approver?.login) {
+            const isRemovingApprover = approvers.length === 0;
+
+            if (isRemovingApprover) {
                 clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow});
-            } else {
-                const newSelectedEmail = approver?.login ?? '';
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
-                const accountID = Number(newSelectedEmail ? policyMemberEmailsToAccountIDs[newSelectedEmail] : '');
-                const {avatar, displayName = newSelectedEmail} = personalDetails?.[accountID] ?? {};
-                setApprovalWorkflowApprover({
-                    approver: {
-                        email: newSelectedEmail,
-                        avatar,
-                        displayName,
-                    },
-                    approverIndex,
-                    currentApprovalWorkflow,
-                    policy,
-                    personalDetailsByEmail,
-                });
+                goBack();
+                return;
             }
 
-            const isRemovingApprover = selectedApproverEmail === approver?.login;
-            if (isInitialCreationFlow) {
-                // Navigate to approval limit page to optionally set a limit, or back to create page if removing
-                if (isRemovingApprover) {
-                    Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
-                } else {
-                    Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex));
-                }
-            } else {
+            const newSelectedEmail = approver?.login ?? '';
+            const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
+            const accountID = Number(newSelectedEmail ? policyMemberEmailsToAccountIDs[newSelectedEmail] : '');
+            const {avatar, displayName = newSelectedEmail} = personalDetails?.[accountID] ?? {};
+            const existingApprover = currentApprovalWorkflow?.approvers?.[approverIndex];
+
+            setApprovalWorkflowApprover({
+                approver: {
+                    email: newSelectedEmail,
+                    avatar,
+                    displayName,
+                    approvalLimit: existingApprover?.approvalLimit,
+                    overLimitForwardsTo: existingApprover?.overLimitForwardsTo,
+                },
+                approverIndex,
+                currentApprovalWorkflow,
+                policy,
+                personalDetailsByEmail,
+            });
+
+            if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
                 goBack();
+                return;
             }
+
+            Navigation.navigate(
+                ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID)),
+            );
         },
-        [selectedApproverEmail, isInitialCreationFlow, approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail],
+        [approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail, approvalWorkflow?.action],
     );
 
     const subtitle = useMemo(
-        () =>
-            approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE &&
-            !shouldShowListEmptyContent && <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApproverPage.header')}</Text>,
-        [approvalWorkflow?.action, shouldShowListEmptyContent, translate, styles.textHeadlineH1, styles.mh5, styles.mv3],
+        () => (
+            <>
+                <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApproverPage.title')}</Text>
+                <Text style={[styles.mh5, styles.mb3, styles.textSupporting]}>{translate('workflowsApproverPage.description')}</Text>
+            </>
+        ),
+        [translate, styles.textHeadlineH1, styles.mh5, styles.mv3, styles.mb3, styles.textSupporting],
     );
 
     return (

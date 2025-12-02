@@ -275,7 +275,7 @@ function convertApprovalWorkflowToPolicyEmployees({
         updatedEmployeeList[approver.email] = {
             email: approver.email,
             forwardsTo,
-            ...(approvalLimit !== undefined ? {approvalLimit} : {}),
+            ...(approvalLimitChanged ? {approvalLimit} : {}),
             ...(overLimitForwardsToChanged ? {overLimitForwardsTo} : {}),
             pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : pendingAction,
             pendingFields: {

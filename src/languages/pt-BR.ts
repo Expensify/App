@@ -2163,18 +2163,23 @@ ${amount} para ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'O aprovador não pôde ser alterado. Por favor, tente novamente ou entre em contato com o suporte.',
-        header: 'Enviar para este membro para aprovação:',
+        title: 'Definir aprovador',
+        description: 'Esta pessoa aprovará as despesas.',
     },
     workflowsApprovalLimitPage: {
         title: 'Aprovador',
         header: '(Opcional) Deseja adicionar um limite de aprovação?',
-        description: ({approverName}: {approverName: string}) => `Adicione outro aprovador quando <strong>${approverName}</strong> for aprovador e o relatório exceder o valor abaixo:`,
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Adicione outro aprovador quando <strong>${approverName}</strong> for aprovador e o relatório exceder o valor abaixo:`
+                : 'Adicione outro aprovador quando o relatório exceder o valor abaixo:',
         reportAmountLabel: 'Valor do relatório',
         additionalApproverLabel: 'Aprovador adicional',
         skip: 'Pular',
         next: 'Próximo',
+        removeLimit: 'Remover limite',
         enterAmountError: 'Por favor, insira um valor válido',
-        enterApproverError: 'Por favor, insira um aprovador',
+        enterApproverError: 'Um aprovador é necessário quando você tem um limite de relatório',
         enterBothError: 'Insira um valor do relatório e um aprovador adicional',
         circularReferenceError: ({approverName}: {approverName: string}) =>
             `<strong>${approverName}</strong> já aprova relatórios neste fluxo de trabalho. Escolha um aprovador diferente para evitar um fluxo circular.`,

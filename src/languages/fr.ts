@@ -2176,19 +2176,23 @@ ${amount} pour ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: "L'approbateur n'a pas pu être modifié. Veuillez réessayer ou contacter le support.",
-        header: 'Envoyer à ce membre pour approbation :',
+        title: "Définir l'approbateur",
+        description: 'Cette personne approuvera les dépenses.',
     },
     workflowsApprovalLimitPage: {
         title: 'Approbateur',
         header: "(Optionnel) Voulez-vous ajouter une limite d'approbation ?",
         description: ({approverName}: {approverName: string}) =>
-            `Ajoutez un autre approbateur lorsque <strong>${approverName}</strong> est approbateur et que le rapport dépasse le montant ci-dessous :`,
+            approverName
+                ? `Ajoutez un autre approbateur lorsque <strong>${approverName}</strong> est approbateur et que le rapport dépasse le montant ci-dessous :`
+                : 'Ajoutez un autre approbateur lorsque le rapport dépasse le montant ci-dessous :',
         reportAmountLabel: 'Montant du rapport',
         additionalApproverLabel: 'Approbateur supplémentaire',
         skip: 'Passer',
         next: 'Suivant',
+        removeLimit: 'Supprimer la limite',
         enterAmountError: 'Veuillez entrer un montant valide',
-        enterApproverError: 'Veuillez entrer un approbateur',
+        enterApproverError: 'Un approbateur est requis lorsque vous avez une limite de rapport',
         enterBothError: 'Entrez un montant de rapport et un approbateur supplémentaire',
         circularReferenceError: ({approverName}: {approverName: string}) =>
             `<strong>${approverName}</strong> approuve déjà des rapports dans ce flux de travail. Choisissez un autre approbateur pour éviter un flux circulaire.`,

@@ -2164,19 +2164,23 @@ ${amount} dla ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Nie można było zmienić zatwierdzającego. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
-        header: 'Wyślij do tego członka do zatwierdzenia:',
+        title: 'Ustaw zatwierdzającego',
+        description: 'Ta osoba zatwierdzi wydatki.',
     },
     workflowsApprovalLimitPage: {
         title: 'Zatwierdzający',
         header: '(Opcjonalnie) Czy chcesz dodać limit zatwierdzenia?',
         description: ({approverName}: {approverName: string}) =>
-            `Dodaj innego zatwierdzającego, gdy <strong>${approverName}</strong> jest zatwierdzającym, a raport przekracza poniższą kwotę:`,
+            approverName
+                ? `Dodaj innego zatwierdzającego, gdy <strong>${approverName}</strong> jest zatwierdzającym, a raport przekracza poniższą kwotę:`
+                : 'Dodaj innego zatwierdzającego, gdy raport przekracza poniższą kwotę:',
         reportAmountLabel: 'Kwota raportu',
         additionalApproverLabel: 'Dodatkowy zatwierdzający',
         skip: 'Pomiń',
         next: 'Dalej',
+        removeLimit: 'Usuń limit',
         enterAmountError: 'Wprowadź prawidłową kwotę',
-        enterApproverError: 'Wprowadź zatwierdzającego',
+        enterApproverError: 'Zatwierdzający jest wymagany, gdy masz limit raportu',
         enterBothError: 'Wprowadź kwotę raportu i dodatkowego zatwierdzającego',
         circularReferenceError: ({approverName}: {approverName: string}) =>
             `<strong>${approverName}</strong> już zatwierdza raporty w tym przepływie pracy. Wybierz innego zatwierdzającego, aby uniknąć cyklicznego przepływu pracy.`,

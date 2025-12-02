@@ -2167,19 +2167,23 @@ ${amount} voor ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'De goedkeurder kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met de ondersteuning.',
-        header: 'Verstuur naar dit lid voor goedkeuring:',
+        title: 'Goedkeurder instellen',
+        description: 'Deze persoon zal de uitgaven goedkeuren.',
     },
     workflowsApprovalLimitPage: {
         title: 'Goedkeurder',
         header: '(Optioneel) Wilt u een goedkeuringslimiet toevoegen?',
         description: ({approverName}: {approverName: string}) =>
-            `Voeg een andere goedkeurder toe wanneer <strong>${approverName}</strong> goedkeurder is en het rapport het onderstaande bedrag overschrijdt:`,
+            approverName
+                ? `Voeg een andere goedkeurder toe wanneer <strong>${approverName}</strong> goedkeurder is en het rapport het onderstaande bedrag overschrijdt:`
+                : 'Voeg een andere goedkeurder toe wanneer het rapport het onderstaande bedrag overschrijdt:',
         reportAmountLabel: 'Rapportbedrag',
         additionalApproverLabel: 'Extra goedkeurder',
         skip: 'Overslaan',
         next: 'Volgende',
+        removeLimit: 'Limiet verwijderen',
         enterAmountError: 'Voer een geldig bedrag in',
-        enterApproverError: 'Voer een goedkeurder in',
+        enterApproverError: 'Een goedkeurder is vereist wanneer u een rapportlimiet heeft',
         enterBothError: 'Voer een rapportbedrag en een extra goedkeurder in',
         circularReferenceError: ({approverName}: {approverName: string}) =>
             `<strong>${approverName}</strong> keurt al rapporten goed in deze workflow. Kies een andere goedkeurder om een circulaire workflow te vermijden.`,

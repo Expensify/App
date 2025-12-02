@@ -117,27 +117,30 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                     shouldRemoveBackground
                 />
 
-                {approvalWorkflow.approvers.map((approver, index) => (
-                    // eslint-disable-next-line react/no-array-index-key
-                    <View key={`approver-${approver.email}-${index}`}>
-                        <View style={styles.workflowApprovalVerticalLine} />
-                        <MenuItem
-                            title={approverTitle(index)}
-                            style={styles.p0}
-                            titleStyle={styles.textLabelSupportingNormal}
-                            descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
-                            description={Str.removeSMSDomain(approver.displayName)}
-                            icon={icons.UserCheck}
-                            iconHeight={20}
-                            iconWidth={20}
-                            numberOfLinesDescription={1}
-                            iconFill={theme.icon}
-                            onPress={onPress}
-                            shouldRemoveBackground
-                            helperText={getApprovalLimitDescription(approver)}
-                        />
-                    </View>
-                ))}
+                {approvalWorkflow.approvers.map((approver, index) => {
+                    const approvalLimitDescription = getApprovalLimitDescription(approver);
+                    return (
+                        // eslint-disable-next-line react/no-array-index-key
+                        <View key={`approver-${approver.email}-${index}`}>
+                            <View style={styles.workflowApprovalVerticalLine} />
+                            <MenuItem
+                                title={approverTitle(index)}
+                                style={styles.p0}
+                                titleStyle={styles.textLabelSupportingNormal}
+                                descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
+                                description={Str.removeSMSDomain(approver.displayName)}
+                                icon={icons.UserCheck}
+                                iconHeight={20}
+                                iconWidth={20}
+                                numberOfLinesDescription={1}
+                                iconFill={theme.icon}
+                                onPress={onPress}
+                                shouldRemoveBackground
+                            />
+                            {!!approvalLimitDescription && <Text style={[styles.textLabelSupporting, styles.workflowApprovalLimitText]}>{approvalLimitDescription}</Text>}
+                        </View>
+                    );
+                })}
             </View>
             <Icon
                 src={expensifyIcons.ArrowRight}

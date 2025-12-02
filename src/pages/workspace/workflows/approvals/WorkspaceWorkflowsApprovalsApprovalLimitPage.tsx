@@ -6,6 +6,8 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {Trashcan} from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -70,11 +72,11 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     }, [selectedApproverEmail, personalDetailsByEmail]);
 
     const isCircularReference = useMemo(() => {
-        if (!selectedApproverEmail || !approvalWorkflow?.approvers) {
+        if (!selectedApproverEmail || !currentApprover?.email) {
             return false;
         }
-        return approvalWorkflow.approvers.some((approver) => approver?.email === selectedApproverEmail);
-    }, [selectedApproverEmail, approvalWorkflow?.approvers]);
+        return currentApprover.email === selectedApproverEmail;
+    }, [selectedApproverEmail, currentApprover?.email]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
@@ -86,25 +88,32 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const onlyAmountEmpty = !hasAmount && hasApprover;
     const onlyApproverEmpty = hasAmount && !hasApprover;
 
-    const bottomErrorMessage = hasSubmitted && bothEmpty ? translate('workflowsApprovalLimitPage.enterBothError') : '';
-    const amountErrorText = hasSubmitted && onlyAmountEmpty ? translate('workflowsApprovalLimitPage.enterAmountError') : undefined;
+    const approverDisplayName = currentApprover ? Str.removeSMSDomain(currentApprover.displayName) : '';
+    const isApproverSelected = isEditFlow ? approverDisplayName.length > 0 : true;
+    const areLimitFieldsDisabled = isEditFlow && !isApproverSelected;
+    const shouldShowRemoveLimitRow = isEditFlow && (hasAmount || hasApprover);
+
+    // In edit mode, user can save with both empty (removes limit). In create mode, show error on submit.
+    const bottomErrorMessage = hasSubmitted && bothEmpty && !isEditFlow ? translate('workflowsApprovalLimitPage.enterBothError') : '';
+    const amountErrorText = onlyAmountEmpty ? translate('workflowsApprovalLimitPage.enterAmountError') : undefined;
     const approverErrorText = useMemo(() => {
         if (isCircularReference) {
             return translate('workflowsApprovalLimitPage.circularReferenceError', {approverName: selectedApproverDisplayName});
         }
-        if (hasSubmitted && onlyApproverEmpty) {
+        if (onlyApproverEmpty) {
             return translate('workflowsApprovalLimitPage.enterApproverError');
         }
         return undefined;
-    }, [hasSubmitted, onlyApproverEmpty, isCircularReference, selectedApproverDisplayName, translate]);
+    }, [onlyApproverEmpty, isCircularReference, selectedApproverDisplayName, translate]);
 
     const handleSkip = useCallback(() => {
-        // Clear any existing approval limit when skipping
-        if (approvalWorkflow && currentApprover && (currentApprover.approvalLimit || currentApprover.overLimitForwardsTo)) {
+        setApprovalLimit('');
+
+        if (approvalWorkflow && currentApprover) {
             setApprovalWorkflowApprover({
                 approver: {
                     ...currentApprover,
-                    approvalLimit: undefined,
+                    approvalLimit: null,
                     overLimitForwardsTo: '',
                 },
                 approverIndex,
@@ -124,11 +133,25 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const handleNext = useCallback(() => {
         setHasSubmitted(true);
 
-        if (!hasAmount || !hasApprover || isCircularReference) {
+        const hasValidationError = isCircularReference || onlyAmountEmpty || onlyApproverEmpty || (!isEditFlow && bothEmpty);
+        if (hasValidationError || !approvalWorkflow || !currentApprover) {
             return;
         }
 
-        if (!approvalWorkflow || !currentApprover) {
+        // In edit mode with both empty, clear the limit (same as Remove limit)
+        if (isEditFlow && bothEmpty) {
+            setApprovalWorkflowApprover({
+                approver: {
+                    ...currentApprover,
+                    approvalLimit: null,
+                    overLimitForwardsTo: '',
+                },
+                approverIndex,
+                currentApprovalWorkflow: approvalWorkflow,
+                policy,
+                personalDetailsByEmail,
+            });
+            Navigation.goBack(backTo);
             return;
         }
 
@@ -151,10 +174,24 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
         }
-    }, [approvalLimit, selectedApproverEmail, isCircularReference, approvalWorkflow, currentApprover, approverIndex, policy, personalDetailsByEmail, isEditFlow, backTo, policyID]);
+    }, [
+        approvalLimit,
+        selectedApproverEmail,
+        isCircularReference,
+        onlyAmountEmpty,
+        onlyApproverEmpty,
+        bothEmpty,
+        isEditFlow,
+        approvalWorkflow,
+        currentApprover,
+        approverIndex,
+        policy,
+        personalDetailsByEmail,
+        backTo,
+        policyID,
+    ]);
 
     const navigateToApproverSelector = useCallback(() => {
-        // Save the current amount to Onyx before navigating so it persists when we come back
         if (approvalWorkflow && currentApprover && approvalLimit) {
             const limitInCents = convertToBackendAmount(Number.parseFloat(approvalLimit));
             setApprovalWorkflowApprover({
@@ -168,12 +205,28 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                 personalDetailsByEmail,
             });
         }
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(policyID, approverIndex));
-    }, [policyID, approverIndex, approvalWorkflow, currentApprover, approvalLimit, policy, personalDetailsByEmail]);
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(policyID, approverIndex, backTo));
+    }, [policyID, approverIndex, approvalWorkflow, currentApprover, approvalLimit, policy, personalDetailsByEmail, backTo]);
+
+    const navigateToApproverChange = useCallback(() => {
+        if (approvalWorkflow && currentApprover) {
+            const limitInCents = approvalLimit ? convertToBackendAmount(Number.parseFloat(approvalLimit)) : currentApprover.approvalLimit;
+            setApprovalWorkflowApprover({
+                approver: {
+                    ...currentApprover,
+                    approvalLimit: limitInCents,
+                    overLimitForwardsTo: selectedApproverEmail || currentApprover.overLimitForwardsTo,
+                },
+                approverIndex,
+                currentApprovalWorkflow: approvalWorkflow,
+                policy,
+                personalDetailsByEmail,
+            });
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, backTo));
+    }, [policyID, approverIndex, backTo, approvalWorkflow, currentApprover, approvalLimit, selectedApproverEmail, policy, personalDetailsByEmail]);
 
     const buttonContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mh5, styles.mb5]});
-
-    const approverDisplayName = currentApprover ? Str.removeSMSDomain(currentApprover.displayName) : '';
 
     return (
         <AccessOrNotFoundWrapper
@@ -192,18 +245,37 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                     addBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
-                        title={translate('workflowsApprovalLimitPage.title')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex))}
+                        title={isEditFlow ? translate('workflowsPage.approver') : translate('workflowsApprovalLimitPage.title')}
+                        onBackButtonPress={() => Navigation.goBack(backTo)}
                     />
                     <ScrollView
                         style={styles.flex1}
                         contentContainerStyle={styles.flexGrow1}
                     >
                         <View style={[styles.mh5, styles.flex1]}>
-                            <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsApprovalLimitPage.header')}</Text>
-                            <View style={styles.mb5}>
-                                <RenderHTML html={translate('workflowsApprovalLimitPage.description', {approverName: approverDisplayName})} />
-                            </View>
+                            {isEditFlow ? (
+                                <>
+                                    <MenuItemWithTopDescription
+                                        title={approverDisplayName}
+                                        titleStyle={styles.textNormalThemeText}
+                                        description={translate('workflowsPage.approver')}
+                                        descriptionTextStyle={approverDisplayName ? styles.textLabelSupportingNormal : undefined}
+                                        onPress={navigateToApproverChange}
+                                        shouldShowRightIcon
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    />
+                                    <View style={[styles.mt3, styles.mb5]}>
+                                        <RenderHTML html={translate('workflowsApprovalLimitPage.description', {approverName: approverDisplayName})} />
+                                    </View>
+                                </>
+                            ) : (
+                                <>
+                                    <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsApprovalLimitPage.header')}</Text>
+                                    <View style={styles.mb5}>
+                                        <RenderHTML html={translate('workflowsApprovalLimitPage.description', {approverName: approverDisplayName})} />
+                                    </View>
+                                </>
+                            )}
 
                             <View style={styles.mb4}>
                                 <AmountForm
@@ -214,6 +286,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                     isCurrencyPressable={false}
                                     displayAsTextInput
                                     errorText={amountErrorText}
+                                    disabled={areLimitFieldsDisabled}
                                 />
                             </View>
 
@@ -228,7 +301,18 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                 brickRoadIndicator={approverErrorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 errorText={approverErrorText}
                                 shouldRenderErrorAsHTML
+                                disabled={areLimitFieldsDisabled}
+                                shouldGreyOutWhenDisabled
                             />
+
+                            {shouldShowRemoveLimitRow && (
+                                <MenuItem
+                                    title={translate('workflowsApprovalLimitPage.removeLimit')}
+                                    icon={Trashcan}
+                                    onPress={handleSkip}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                />
+                            )}
                         </View>
 
                         {!!bottomErrorMessage && (
@@ -241,16 +325,18 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                     </ScrollView>
 
                     <View style={buttonContainerStyle}>
-                        <Button
-                            large
-                            text={translate('workflowsApprovalLimitPage.skip')}
-                            onPress={handleSkip}
-                            style={styles.mb3}
-                        />
+                        {!isEditFlow && (
+                            <Button
+                                large
+                                text={translate('workflowsApprovalLimitPage.skip')}
+                                onPress={handleSkip}
+                                style={styles.mb3}
+                            />
+                        )}
                         <Button
                             large
                             success
-                            text={translate('workflowsApprovalLimitPage.next')}
+                            text={isEditFlow ? translate('common.save') : translate('workflowsApprovalLimitPage.next')}
                             onPress={handleNext}
                         />
                     </View>

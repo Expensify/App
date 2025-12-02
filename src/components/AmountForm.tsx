@@ -43,6 +43,9 @@ type AmountFormProps = {
     /** Whether to hide the currency symbol */
     hideCurrencySymbol?: boolean;
 
+    /** Whether the input should be disabled */
+    disabled?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide'>;
@@ -62,6 +65,7 @@ function AmountForm({
     label,
     decimals: decimalsProp,
     hideCurrencySymbol = false,
+    disabled = false,
     autoFocus,
     autoGrowExtraSpace,
     autoGrowMarginSide,
@@ -99,6 +103,7 @@ function AmountForm({
             autoFocus={autoFocus}
             autoGrowExtraSpace={autoGrowExtraSpace}
             autoGrowMarginSide={autoGrowMarginSide}
+            disabled={disabled}
         />
     );
 }

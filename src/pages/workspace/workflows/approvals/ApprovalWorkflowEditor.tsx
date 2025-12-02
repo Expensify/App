@@ -105,20 +105,19 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo));
     }, [approvalWorkflow.action, policyID]);
 
+    const firstApprover = approvalWorkflow.approvers.at(0)?.email ?? '';
+
     const editApprover = useCallback(
         (approverIndex: number) => {
-            const approver = approvalWorkflow.approvers.at(approverIndex);
-            const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
-
-            // If the approver has an approval limit set, navigate to the approval limit page for editing
-            if (approver?.approvalLimit && approver?.overLimitForwardsTo) {
-                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex, backTo));
-                return;
+            if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)));
+            } else {
+                Navigation.navigate(
+                    ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover)),
+                );
             }
-
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, backTo));
         },
-        [approvalWorkflow.action, approvalWorkflow.approvers, policyID],
+        [approvalWorkflow.action, policyID, firstApprover],
     );
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page

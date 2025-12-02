@@ -2264,18 +2264,23 @@ const translations = {
     },
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
-        header: 'Send to this member for approval:',
+        title: 'Set approver',
+        description: 'This person will approve the expenses.',
     },
     workflowsApprovalLimitPage: {
         title: 'Approver',
         header: '(Optional) Want to add an approval limit?',
-        description: ({approverName}: {approverName: string}) => `Add another approver when <strong>${approverName}</strong> is approver and report exceeds the amount below:`,
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Add another approver when <strong>${approverName}</strong> is approver and report exceeds the amount below:`
+                : 'Add another approver when a report exceeds the amount below:',
         reportAmountLabel: 'Report amount',
         additionalApproverLabel: 'Additional approver',
         skip: 'Skip',
         next: 'Next',
+        removeLimit: 'Remove limit',
         enterAmountError: 'Please enter a valid amount',
-        enterApproverError: 'Please enter an approver',
+        enterApproverError: 'Approver is required when you have a report limit',
         enterBothError: 'Enter a report amount and additional approver',
         circularReferenceError: ({approverName}: {approverName: string}) =>
             `<strong>${approverName}</strong> already approves reports in this workflow. Choose a different approver to avoid a circular workflow.`,

@@ -2160,18 +2160,23 @@ ${date} - ${merchant}に${amount}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: '承認者を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
-        header: 'このメンバーに承認を依頼する:',
+        title: '承認者を設定',
+        description: 'この人が経費を承認します。',
     },
     workflowsApprovalLimitPage: {
         title: '承認者',
         header: '（オプション）承認限度額を追加しますか？',
-        description: ({approverName}: {approverName: string}) => `<strong>${approverName}</strong>が承認者で、レポートが以下の金額を超える場合に別の承認者を追加します：`,
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `<strong>${approverName}</strong>が承認者で、レポートが以下の金額を超える場合に別の承認者を追加します：`
+                : 'レポートが以下の金額を超える場合に別の承認者を追加します：',
         reportAmountLabel: 'レポート金額',
         additionalApproverLabel: '追加の承認者',
         skip: 'スキップ',
         next: '次へ',
+        removeLimit: '制限を削除',
         enterAmountError: '有効な金額を入力してください',
-        enterApproverError: '承認者を入力してください',
+        enterApproverError: 'レポート制限がある場合は承認者が必要です',
         enterBothError: 'レポート金額と追加の承認者を入力してください',
         circularReferenceError: ({approverName}: {approverName: string}) =>
             `<strong>${approverName}</strong>はすでにこのワークフローでレポートを承認しています。循環ワークフローを避けるために別の承認者を選択してください。`,

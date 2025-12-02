@@ -38,6 +38,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
 
     const policyID = route.params.policyID;
     const approverIndex = Number(route.params.approverIndex) ?? 0;
+    const backTo = route.params?.backTo;
     const currentApprover = approvalWorkflow?.approvers?.[approverIndex];
 
     const employeeList = policy?.employeeList;
@@ -81,13 +82,34 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading;
 
     const goBack = useCallback(() => {
-        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex));
-    }, [policyID, approverIndex]);
+        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex, backTo));
+    }, [policyID, approverIndex, backTo]);
 
     const selectApprover = useCallback(
         (approvers: SelectionListApprover[]) => {
             const selectedApprover = approvers.at(0);
-            if (!selectedApprover?.login || !approvalWorkflow || !currentApprover) {
+
+            if (!approvalWorkflow || !currentApprover) {
+                return;
+            }
+
+            // If empty array, the same approver was tapped again to unselect
+            if (approvers.length === 0) {
+                setApprovalWorkflowApprover({
+                    approver: {
+                        ...currentApprover,
+                        overLimitForwardsTo: '',
+                    },
+                    approverIndex,
+                    currentApprovalWorkflow: approvalWorkflow,
+                    policy,
+                    personalDetailsByEmail,
+                });
+                goBack();
+                return;
+            }
+
+            if (!selectedApprover?.login) {
                 return;
             }
 
