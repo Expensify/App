@@ -540,7 +540,7 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
             return;
         }
 
-        for (const [failureKey, failure] of failures) {
+        for (const [failureKey, failure] of addedFileFailuresMap) {
             nonAutoMemoEnforcedFailures.set(failureKey, failure);
         }
     }
