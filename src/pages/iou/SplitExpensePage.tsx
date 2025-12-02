@@ -91,10 +91,11 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return 0;
         }
         if (splitExpenseTransactionID) {
-            return transactionDetails.amount > 0 ? -transactionDetails.amount : Math.abs(transactionDetails.amount);
+            return draftTransaction?.comment?.splitExpensesTotal ?? 0;
         }
         return transactionDetails.amount;
-    }, [transactionDetails?.amount, splitExpenseTransactionID]);
+    }, [transactionDetails.amount, splitExpenseTransactionID, draftTransaction?.comment?.splitExpensesTotal]);
+
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction?.comment?.splitExpenses]);
     const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
     const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
@@ -326,7 +327,20 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 )}
             </View>
         );
-    }, [onAddSplitExpense, onMakeSplitsEven, translate, childTransactions.length, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
+    }, [
+        childTransactions.length,
+        styles.w100,
+        styles.flexColumn,
+        styles.mt1,
+        styles.mb3,
+        styles.ph4,
+        shouldUseNarrowLayout,
+        onAddSplitExpense,
+        translate,
+        icons.Plus,
+        icons.ArrowsLeftRight,
+        onMakeSplitsEven,
+    ]);
 
     const footerContent = useMemo(() => {
         const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
