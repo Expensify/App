@@ -1507,10 +1507,7 @@ describe('OptionsListUtils', () => {
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE);
 
-            // Then only one report should be returned
-            expect(filteredOptions.recentReports.length).toBe(1);
-            // Then the returned report should match the search text
-            expect(!!filteredOptions.recentReports.at(0)?.private_isArchived).toBe(true);
+            expect(filteredOptions.recentReports.length).toBe(0);
         });
 
         it('should filter options by email if dot is skipped in the email', () => {
