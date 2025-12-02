@@ -30,6 +30,7 @@ const mockTransaction = {
     tag: Object.values(mockPolicyTagLists).at(0)?.name,
 };
 
+const expectedReports = [mockIOUReport];
 const expectedTransactionsAndViolations = {
     [mockIOUReport.reportID]: {
         transactions: {
@@ -77,7 +78,7 @@ describe('usePolicyData', () => {
         return waitForBatchedUpdates();
     });
 
-    test('returns data given a policy ID that exists in the onyx', async () => {
+    it('should return the correct data given a policy ID that exists in the onyx', async () => {
         await Onyx.multiSet({
             ...reportsCollection,
             ...reportActionsCollection,
@@ -91,35 +92,24 @@ describe('usePolicyData', () => {
 
         const {result} = renderHook(() => usePolicyData(mockPolicy.id), {wrapper: OnyxListItemProvider});
 
-        await waitForBatchedUpdates();
-
-        expect(result.current.policy).toEqual(mockPolicy);
-        expect(result.current.tags).toEqual(mockPolicyTagLists);
-        expect(result.current.categories).toEqual(mockPolicyCategories);
-
-        expect(result.current.reports).toHaveLength(1);
-        expect(result.current.reports.at(0)).toEqual(mockIOUReport);
-
-        expect(result.current.transactionsAndViolations).toEqual(expectedTransactionsAndViolations);
+        expect(result.current?.policyID).toMatchObject(mockPolicy.id);
+        expect(result.current?.policy).toMatchObject(mockPolicy);
+        expect(result.current?.tags).toMatchObject(mockPolicyTagLists);
+        expect(result.current?.categories).toMatchObject(mockPolicyCategories);
+        expect(result.current?.reports).toMatchObject(expectedReports);
+        expect(result.current?.transactionsAndViolations).toMatchObject(expectedTransactionsAndViolations);
     });
 
-    test('returns default empty values when policy ID does not exist in the onyx', () => {
+    it('should return the default values when policy ID does not exist in the onyx', () => {
+        const policyID = 'non_existent_policy_id';
         const {result} = renderHook(() => usePolicyData('non_existent_policy_id'), {wrapper: OnyxListItemProvider});
 
-        expect(result.current.reports).toEqual([]);
-        expect(result.current.tags).toEqual({});
-        expect(result.current.categories).toEqual({});
-        expect(result.current.policy).toBeUndefined();
-        expect(result.current.transactionsAndViolations).toEqual({});
-    });
+        expect(result.current?.policyID).toMatchObject(policyID);
+        expect(result.current?.policy).toBeUndefined();
+        expect(result.current?.categories).toBeUndefined();
+        expect(result.current?.tags).toBeUndefined();
 
-    test('returns default empty values when policyID is undefined', () => {
-        const {result} = renderHook(() => usePolicyData(undefined), {wrapper: OnyxListItemProvider});
-
-        expect(result.current.reports).toEqual([]);
-        expect(result.current.tags).toEqual({});
-        expect(result.current.categories).toEqual({});
-        expect(result.current.policy).toBeUndefined();
-        expect(result.current.transactionsAndViolations).toEqual({});
+        expect(result.current?.reports).toMatchObject([]);
+        expect(result.current?.transactionsAndViolations).toMatchObject({});
     });
 });

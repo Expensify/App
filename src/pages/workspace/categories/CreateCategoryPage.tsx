@@ -5,7 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
-import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,11 +23,11 @@ type CreateCategoryPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE>;
 
 function CreateCategoryPage({route}: CreateCategoryPageProps) {
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const backTo = route.params?.backTo;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE;
+    const policyData = usePolicyData(route.params.policyID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {
         taskReport: setupCategoryTaskReport,
@@ -38,24 +38,16 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             createPolicyCategory(
-                route.params.policyID,
+                policyData,
                 values.categoryName.trim(),
                 isSetupCategoryTaskParentReportArchived,
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
                 currentUserPersonalDetails.accountID,
             );
-            Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
+            Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyData.policyID, backTo) : undefined);
         },
-        [
-            route.params.policyID,
-            isSetupCategoryTaskParentReportArchived,
-            setupCategoryTaskReport,
-            setupCategoryTaskParentReport,
-            currentUserPersonalDetails.accountID,
-            isQuickSettingsFlow,
-            backTo,
-        ],
+        [policyData, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport, currentUserPersonalDetails.accountID, isQuickSettingsFlow, backTo],
     );
 
     return (
@@ -76,7 +68,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
                 />
                 <CategoryForm
                     onSubmit={createCategory}
-                    policyCategories={policyCategories}
+                    policyCategories={policyData.categories}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
