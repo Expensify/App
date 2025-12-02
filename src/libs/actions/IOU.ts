@@ -1235,11 +1235,8 @@ function setMoneyRequestPendingFields(transactionID: string, pendingFields: Onyx
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
 }
 
-function setMoneyRequestCategory(transactionID: string, category: string, policyID?: string, isMovingFromTrackExpense?: boolean) {
+function setMoneyRequestCategory(transactionID: string, category: string, policyID?: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
-    if (isMovingFromTrackExpense) {
-        return;
-    }
     if (!policyID) {
         setMoneyRequestTaxRate(transactionID, '');
         setMoneyRequestTaxAmount(transactionID, null);
@@ -8837,17 +8834,31 @@ function cleanUpMoneyRequest(
             value: null,
         },
     ];
-    reportActionsOnyxUpdates.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-        value: {
-            [reportAction.reportActionID]: shouldDeleteIOUReport
-                ? null
-                : {
-                      pendingAction: null,
-                  },
-        },
-    });
+    if (shouldDeleteIOUReport) {
+        onyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+            value: {
+                [reportAction.reportActionID]: shouldDeleteIOUReport
+                    ? null
+                    : {
+                          pendingAction: null,
+                      },
+            },
+        });
+    } else {
+        reportActionsOnyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+            value: {
+                [reportAction.reportActionID]: shouldDeleteIOUReport
+                    ? null
+                    : {
+                          pendingAction: null,
+                      },
+            },
+        });
+    }
 
     if (reportPreviewAction?.reportActionID) {
         reportActionsOnyxUpdates.push({
@@ -8886,12 +8897,20 @@ function cleanUpMoneyRequest(
         );
     }
 
-    // added operations to update IOU report and chat report
-    reportActionsOnyxUpdates.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-        value: updatedReportAction,
-    });
+    if (shouldDeleteIOUReport) {
+        onyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+            value: updatedReportAction,
+        });
+    } else {
+        // added operations to update IOU report and chat report
+        reportActionsOnyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+            value: updatedReportAction,
+        });
+    }
     onyxUpdates.push(
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
@@ -8952,13 +8971,18 @@ function cleanUpMoneyRequest(
         );
     }
 
-    clearAllRelatedReportActionErrors(reportID, reportAction);
+    if (!shouldDeleteIOUReport) {
+        clearAllRelatedReportActionErrors(reportID, reportAction);
+    }
 
     // First, update the reportActions to ensure related actions are not displayed.
     Onyx.update(reportActionsOnyxUpdates).then(() => {
         Navigation.goBack(urlToNavigateBack);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
+            if (shouldDeleteIOUReport) {
+                clearAllRelatedReportActionErrors(reportID, reportAction);
+            }
             // After navigation, update the remaining data.
             Onyx.update(onyxUpdates);
         });
@@ -11704,7 +11728,6 @@ function completePaymentOnboarding(
         shouldSkipTestDriveModal: true,
     });
 }
-
 function payMoneyRequest(
     paymentType: PaymentMethodType,
     chatReport: OnyxTypes.Report,
