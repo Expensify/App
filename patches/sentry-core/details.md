@@ -1,0 +1,13 @@
+# `@sentry/core` patches
+
+### [@sentry+core+10.20.0+001+data-label-support.patch](@sentry+core+10.20.0+001+data-label-support.patch)
+
+- Reason: Enhances the `htmlTreeAsString` function to support `data-label` attributes for better element identification in Sentry spans. The patch:
+  - Always includes `data-label` in the list of checked attributes for each DOM element
+  - Searches up to 15 levels up the DOM tree to find a `data-label` attribute
+  - Prefixes the CSS selector with the found `data-label` value (e.g., `[data-label="MyLabel"] div.css-146c3p1.r-1udh08x.r-1udbk01.r-1iln25a > svg`)
+
+  This allows us to identify UI elements by meaningful labels rather than just CSS selectors, making Sentry spans more actionable.
+- Upstream PR/issue: N/A (Expensify-specific enhancement)
+- E/App issue: N/A
+- PR Introducing Patch: TBD

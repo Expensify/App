@@ -1,0 +1,124 @@
+diff --git a/node_modules/@sentry/core/build/cjs/utils/browser.js b/node_modules/@sentry/core/build/cjs/utils/browser.js
+index 3169c25..c267268 100644
+--- a/node_modules/@sentry/core/build/cjs/utils/browser.js
++++ b/node_modules/@sentry/core/build/cjs/utils/browser.js
+@@ -9,8 +9,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
+
+ /**
+  * Given a child DOM element, returns a query-selector statement describing that
+- * and its ancestors
+- * e.g. [HTMLElement] => body > div > input#foo.btn[name=baz]
++ * and its ancestors, prefixed with data-label if found on ancestor
++ * e.g. [HTMLElement] => [data-label="MyLabel"] div.css-146c3p1.r-1udh08x.r-1udbk01.r-1iln25a > svg
+  * @returns generated DOM path
+  */
+ function htmlTreeAsString(
+@@ -53,7 +53,30 @@ function htmlTreeAsString(
+       currentElem = currentElem.parentNode;
+     }
+
+-    return out.reverse().join(separator);
++    const cssSelector = out.reverse().join(separator);
++
++    // If cssSelector already contains data-label, return as is
++    if (cssSelector.includes('[data-label="')) {
++      return cssSelector;
++    }
++
++    // Search for data-label up to 15 levels (beyond the 5 levels of cssSelector)
++    let labelElem = elem;
++    let dataLabel = null;
++    for (let i = 0; i < 15 && labelElem; i++) {
++      // @ts-expect-error WINDOW has HTMLElement
++      if (WINDOW.HTMLElement && labelElem instanceof HTMLElement && labelElem.dataset && labelElem.dataset['label']) {
++        dataLabel = labelElem.dataset['label'];
++        break;
++      }
++      labelElem = labelElem.parentNode;
++    }
++
++    if (dataLabel) {
++      return `[data-label="${dataLabel}"] ${cssSelector}`;
++    }
++
++    return cssSelector;
+   } catch {
+     return '<unknown>';
+   }
+@@ -91,9 +114,11 @@ function _htmlElementAsString(el, keyAttrs) {
+   out.push(elem.tagName.toLowerCase());
+
+   // Pairs of attribute keys defined in `serializeAttribute` and their values on element.
+-  const keyAttrPairs = keyAttrs?.length
+-    ? keyAttrs.filter(keyAttr => elem.getAttribute(keyAttr)).map(keyAttr => [keyAttr, elem.getAttribute(keyAttr)])
+-    : null;
++  // Always include data-label if present
++  const attrsToCheck = keyAttrs?.length ? [...keyAttrs, 'data-label'] : ['data-label'];
++  const keyAttrPairs = attrsToCheck
++    .filter(keyAttr => elem.getAttribute(keyAttr))
++    .map(keyAttr => [keyAttr, elem.getAttribute(keyAttr)]);
+
+   if (keyAttrPairs?.length) {
+     keyAttrPairs.forEach(keyAttrPair => {
+diff --git a/node_modules/@sentry/core/build/esm/utils/browser.js b/node_modules/@sentry/core/build/esm/utils/browser.js
+index 2ad52b0..a3c95ad 100644
+--- a/node_modules/@sentry/core/build/esm/utils/browser.js
++++ b/node_modules/@sentry/core/build/esm/utils/browser.js
+@@ -7,8 +7,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
+
+ /**
+  * Given a child DOM element, returns a query-selector statement describing that
+- * and its ancestors
+- * e.g. [HTMLElement] => body > div > input#foo.btn[name=baz]
++ * and its ancestors, prefixed with data-label if found on ancestor
++ * e.g. [HTMLElement] => [data-label="MyLabel"] div.css-146c3p1.r-1udh08x.r-1udbk01.r-1iln25a > svg
+  * @returns generated DOM path
+  */
+ function htmlTreeAsString(
+@@ -51,7 +51,30 @@ function htmlTreeAsString(
+       currentElem = currentElem.parentNode;
+     }
+
+-    return out.reverse().join(separator);
++    const cssSelector = out.reverse().join(separator);
++
++    // If cssSelector already contains data-label, return as is
++    if (cssSelector.includes('[data-label="')) {
++      return cssSelector;
++    }
++
++    // Search for data-label up to 15 levels (beyond the 5 levels of cssSelector)
++    let labelElem = elem;
++    let dataLabel = null;
++    for (let i = 0; i < 15 && labelElem; i++) {
++      // @ts-expect-error WINDOW has HTMLElement
++      if (WINDOW.HTMLElement && labelElem instanceof HTMLElement && labelElem.dataset && labelElem.dataset['label']) {
++        dataLabel = labelElem.dataset['label'];
++        break;
++      }
++      labelElem = labelElem.parentNode;
++    }
++
++    if (dataLabel) {
++      return `[data-label="${dataLabel}"] ${cssSelector}`;
++    }
++
++    return cssSelector;
+   } catch {
+     return '<unknown>';
+   }
+@@ -89,9 +112,11 @@ function _htmlElementAsString(el, keyAttrs) {
+   out.push(elem.tagName.toLowerCase());
+
+   // Pairs of attribute keys defined in `serializeAttribute` and their values on element.
+-  const keyAttrPairs = keyAttrs?.length
+-    ? keyAttrs.filter(keyAttr => elem.getAttribute(keyAttr)).map(keyAttr => [keyAttr, elem.getAttribute(keyAttr)])
+-    : null;
++  // Always include data-label if present
++  const attrsToCheck = keyAttrs?.length ? [...keyAttrs, 'data-label'] : ['data-label'];
++  const keyAttrPairs = attrsToCheck
++    .filter(keyAttr => elem.getAttribute(keyAttr))
++    .map(keyAttr => [keyAttr, elem.getAttribute(keyAttr)]);
+
+   if (keyAttrPairs?.length) {
+     keyAttrPairs.forEach(keyAttrPair => {
