@@ -64,7 +64,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
