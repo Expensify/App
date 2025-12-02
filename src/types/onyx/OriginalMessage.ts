@@ -782,8 +782,10 @@ type OriginalMessageUnreportedTransaction = {
 
 /** Model of MOVED_TRANSACTION report action */
 type OriginalMessageMovedTransaction = {
-    /** ID of the new report */
-    toReportID: string;
+    /** @Deprecated ID of the new report for backwards compatibility */
+    toReportID?: string;
+    /** ID of the original report */
+    fromReportID: string;
 };
 
 /** Model of `moved` report action */
