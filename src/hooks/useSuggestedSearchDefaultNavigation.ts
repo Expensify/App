@@ -27,6 +27,11 @@ function useSuggestedSearchDefaultNavigation({shouldShowSkeleton, flattenedMenuI
 
         hasShownSkeleton.current = false;
 
+        const isCurrentSearchFromMenu = similarSearchHash === undefined || flattenedMenuItems.some((item) => item.similarSearchHash === similarSearchHash);
+        if (!isCurrentSearchFromMenu) {
+            return;
+        }
+
         const defaultMenuItem = getDefaultActionableSearchMenuItem(flattenedMenuItems);
 
         if (!defaultMenuItem || similarSearchHash === defaultMenuItem.similarSearchHash) {

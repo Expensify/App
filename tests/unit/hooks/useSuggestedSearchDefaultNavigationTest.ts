@@ -193,4 +193,33 @@ describe('useSuggestedSearchDefaultNavigation', () => {
         expect(clearAllFilters).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
+
+    it('does not navigate if the current search does not match any menu item', () => {
+        const clearSelectedTransactions = jest.fn();
+        const approveMenuItem = createApproveMenuItem();
+        const submitMenuItem = createSubmitMenuItem();
+        const expenseMenuItem = createExpenseMenuItem();
+        const expenseReportMenuItem = createExpenseReportMenuItem();
+        const chatMenuItem = createChatMenuItem();
+        const unrelatedSimilarSearchHash = 909;
+
+        const {rerender} = renderHook((props: Parameters<typeof useSuggestedSearchDefaultNavigation>[0]) => useSuggestedSearchDefaultNavigation(props), {
+            initialProps: {
+                shouldShowSkeleton: true,
+                flattenedMenuItems: [approveMenuItem, submitMenuItem, expenseMenuItem, expenseReportMenuItem, chatMenuItem],
+                similarSearchHash: unrelatedSimilarSearchHash,
+                clearSelectedTransactions,
+            },
+        });
+
+        rerender({
+            shouldShowSkeleton: false,
+            flattenedMenuItems: [approveMenuItem, submitMenuItem, expenseMenuItem, expenseReportMenuItem, chatMenuItem],
+            similarSearchHash: unrelatedSimilarSearchHash,
+            clearSelectedTransactions,
+        });
+
+        expect(clearAllFilters).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
 });
