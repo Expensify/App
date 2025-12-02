@@ -6586,6 +6586,15 @@ ${
             message: "Non siamo riusciti a verificare la presenza di un aggiornamento. Riprova tra un po'.",
         },
     },
+    settlement: {
+        status: {
+            pending: 'In sospeso',
+            cleared: 'Liquidato',
+            failed: 'Fallito',
+        },
+        failedError: ({link}: {link: string}) => `Riproveremo questa liquidazione quando <a href="${link}">sblocchi il tuo account</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID prelievo: ${withdrawalID}`,
+    },
     reportLayout: {
         reportLayout: 'Layout del rapporto',
         groupByLabel: 'Raggruppa per:',

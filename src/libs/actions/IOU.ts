@@ -1235,8 +1235,11 @@ function setMoneyRequestPendingFields(transactionID: string, pendingFields: Onyx
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
 }
 
-function setMoneyRequestCategory(transactionID: string, category: string, policyID?: string) {
+function setMoneyRequestCategory(transactionID: string, category: string, policyID?: string, isMovingFromTrackExpense?: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
+    if (isMovingFromTrackExpense) {
+        return;
+    }
     if (!policyID) {
         setMoneyRequestTaxRate(transactionID, '');
         setMoneyRequestTaxAmount(transactionID, null);
@@ -3621,8 +3624,13 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // data. This is a big can of worms to change it to `Onyx.merge()` as explored in https://expensify.slack.com/archives/C05DWUDHVK7/p1692139468252109.
     // I want to clean this up at some point, but it's possible this will live in the code for a while so I've created https://github.com/Expensify/App/issues/25417
     // to remind me to do this.
-    if ((!!isSplitExpense || isDistanceRequest) && existingTransaction) {
+    if (isDistanceRequest && existingTransaction) {
         optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
+    }
+
+    if (isSplitExpense && existingTransaction) {
+        const {convertedAmount: omittedConvertedAmount, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
+        optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
     }
 
     // STEP 4: Build optimistic reportActions. We need:
@@ -6594,7 +6602,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
         customUnitRateID,
         attendees,
     } = transactionData;
-
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
@@ -6816,6 +6823,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         default: {
             const parameters: TrackExpenseParams = {
                 amount,
+                attendees: attendees ? JSON.stringify(attendees) : undefined,
                 currency,
                 comment,
                 distance,
@@ -11679,6 +11687,7 @@ function completePaymentOnboarding(
         shouldSkipTestDriveModal: true,
     });
 }
+
 function payMoneyRequest(
     paymentType: PaymentMethodType,
     chatReport: OnyxTypes.Report,
@@ -13750,6 +13759,30 @@ function prepareRejectMoneyRequestData(
         },
     });
 
+    // Update hasOutstandingChildRequest on the chat report after all optimistic updates
+    if (policyExpenseChat) {
+        const excludedReportID = rejectedToReportID ?? reportID;
+        const shouldHaveOutstandingChildRequest = hasOutstandingChildRequest(policyExpenseChat, excludedReportID, currentUserEmail);
+
+        if (policyExpenseChat.hasOutstandingChildRequest !== shouldHaveOutstandingChildRequest) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
+                value: {
+                    hasOutstandingChildRequest: shouldHaveOutstandingChildRequest,
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
+                value: {
+                    hasOutstandingChildRequest: policyExpenseChat.hasOutstandingChildRequest,
+                },
+            });
+        }
+    }
+
     // Add successData to clear pending actions when the server confirms
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -14350,6 +14383,9 @@ function updateSplitTransactions({
                 pendingAction: splitTransaction ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 pendingFields: splitTransaction ? splitTransaction.pendingFields : undefined,
                 reimbursable: originalTransactionDetails?.reimbursable,
+                taxCode: originalTransactionDetails?.taxCode,
+                taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                billable: originalTransactionDetails?.billable,
             },
             parentChatReport: getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
             existingTransaction: originalTransaction,
@@ -14370,6 +14406,9 @@ function updateSplitTransactions({
                 tag: splitExpense.tags?.[0],
                 attendees: originalTransactionDetails?.attendees as Attendee[],
                 linkedTrackedExpenseReportAction: currentReportAction,
+                taxCode: originalTransactionDetails?.taxCode,
+                taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                billable: originalTransactionDetails?.billable,
             };
             requestMoneyInformation.existingTransaction = undefined;
         }

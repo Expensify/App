@@ -21,15 +21,15 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
+import {createWorkspace, isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
+import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType} from '@libs/PaymentUtils';
-import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
-    getBankAccountRoute,
     hasViolations as hasViolationsReportUtils,
     isBusinessInvoiceRoom,
     isExpenseReport as isExpenseReportUtil,
@@ -100,7 +100,7 @@ function SettlementButton({
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
-    const {accountID, email} = useCurrentUserPersonalDetails();
+    const {accountID, email, localCurrencyCode} = useCurrentUserPersonalDetails();
 
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -123,8 +123,11 @@ function SettlementButton({
 
     const lastBankAccountID = getLastPolicyBankAccountID(policyIDKey, lastPaymentMethods, iouReport?.type as keyof LastPaymentMethodType);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-
+    const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
+    const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
+    const activePolicy = usePolicy(activePolicyID);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const reportID = iouReport?.reportID;
 
@@ -300,12 +303,12 @@ function SettlementButton({
 
         if ((hasMultiplePolicies || hasSinglePolicy) && canUseWallet && !isPersonalOnlyOption) {
             // eslint-disable-next-line unicorn/no-array-for-each
-            activeAdminPolicies.forEach((activePolicy) => {
-                const policyName = activePolicy.name;
+            activeAdminPolicies.forEach((p) => {
+                const policyName = p.name;
                 buttonOptions.push({
                     text: translate('iou.payWithPolicy', {policyName: truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), formattedAmount: ''}),
                     icon: icons.Building,
-                    value: activePolicy.id,
+                    value: p.id,
                     shouldUpdateSelectedIndex: false,
                 });
             });
@@ -319,20 +322,45 @@ function SettlementButton({
         }
 
         if (isInvoiceReport) {
+            const hasActivePolicyAsAdmin = !!activePolicy && isPolicyAdmin(activePolicy) && isPaidGroupPolicy(activePolicy);
+
             const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
+            const isActivePolicyCurrencySupported = isCurrencySupportedForDirectReimbursement(activePolicy?.outputCurrency ?? '');
+            const isUserCurrencySupported = isCurrencySupportedForDirectReimbursement(localCurrencyCode ?? '');
+            const isInvoiceReceiverPolicyCurrencySupported = isCurrencySupportedForDirectReimbursement(invoiceReceiverPolicy?.outputCurrency ?? '');
+
+            const canUseActivePolicy = hasActivePolicyAsAdmin && isActivePolicyCurrencySupported;
+            // For business invoice receivers, we use the receiver policy to pay, so validate the receiver policy's currency
+            // For individual receivers, allow if user has an active admin policy with supported currency OR user's local currency is supported
+            const isPolicyCurrencySupported = invoiceReceiverPolicy ? isInvoiceReceiverPolicyCurrencySupported : canUseActivePolicy || isUserCurrencySupported;
+
             const getInvoicesOptions = (payAsBusiness: boolean) => {
+                const getPolicyID = () => {
+                    if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS) {
+                        return chatReport?.invoiceReceiver?.policyID;
+                    }
+
+                    if (canUseActivePolicy) {
+                        return activePolicy.id;
+                    }
+
+                    return createWorkspace().policyID;
+                };
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
                     icon: Expensicons.Bank,
                     onSelected: () => {
-                        const bankAccountRoute = getBankAccountRoute(chatReport);
-                        Navigation.navigate(bankAccountRoute);
+                        if (payAsBusiness) {
+                            navigateToBankAccountRoute(getPolicyID());
+                        } else {
+                            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT.route);
+                        }
                     },
                     value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 };
                 return [
                     ...(isCurrencySupported ? getPaymentSubitems(payAsBusiness) : []),
-                    ...(isCurrencySupported ? [addBankAccountItem] : []),
+                    ...(isCurrencySupported && isPolicyCurrencySupported ? [addBankAccountItem] : []),
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
                         icon: Expensicons.Cash,

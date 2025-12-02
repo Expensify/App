@@ -6430,6 +6430,15 @@ ${
             message: '我们无法检查更新。请稍后再试。',
         },
     },
+    settlement: {
+        status: {
+            pending: '待处理',
+            cleared: '已结算',
+            failed: '失败',
+        },
+        failedError: ({link}: {link: string}) => `当您<a href="${link}">解锁账户</a>时，我们将重试此结算。`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 提款ID: ${withdrawalID}`,
+    },
     reportLayout: {
         reportLayout: '报告布局',
         groupByLabel: '分组方式：',

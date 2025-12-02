@@ -6554,6 +6554,15 @@ ${
             message: 'Nie udało nam się sprawdzić aktualizacji. Spróbuj ponownie za chwilę.',
         },
     },
+    settlement: {
+        status: {
+            pending: 'Oczekujące',
+            cleared: 'Rozliczone',
+            failed: 'Niepowodzenie',
+        },
+        failedError: ({link}: {link: string}) => `Ponowimy tę rozliczenie, gdy <a href="${link}">odblokujesz swoje konto</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID wypłaty: ${withdrawalID}`,
+    },
     reportLayout: {
         reportLayout: 'Układ raportu',
         groupByLabel: 'Grupuj według:',

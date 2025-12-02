@@ -6320,6 +6320,15 @@ ${amount} para ${merchant} - ${date}`,
             message: 'No hemos podido comprobar si existe una actualización. ¡Inténtalo de nuevo más tarde!.',
         },
     },
+    settlement: {
+        status: {
+            pending: 'Pendiente',
+            cleared: 'Liquidado',
+            failed: 'Fallido',
+        },
+        failedError: ({link}: {link: string}) => `Reintentaremos esta liquidación cuando <a href="${link}">desbloquees tu cuenta</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de retiro: ${withdrawalID}`,
+    },
     reportLayout: {
         reportLayout: 'Diseño del informe',
         groupByLabel: 'Agrupar por:',
