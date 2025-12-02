@@ -523,10 +523,10 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
             continue;
         }
 
-        if (addedFileFailures.has(addedFilePath)) {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            const existingAddedFileFailuresMap = addedFileFailures.get(addedFilePath)!;
+        const existingAddedFileFailuresMap = addedFileFailures.get(addedFilePath);
+        if (existingAddedFileFailuresMap) {
             existingAddedFileFailuresMap.set(failureKey, failure);
+            continue;
         }
 
         addedFileFailures.set(addedFilePath, new Map<string, CompilerFailure>([[failureKey, failure]]));
