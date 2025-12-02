@@ -243,24 +243,27 @@ index e493467..39459ff 100644
  
    @Throws(GeneralSecurityException::class, JSONException::class)
 diff --git a/node_modules/expo-secure-store/build/SecureStore.d.ts b/node_modules/expo-secure-store/build/SecureStore.d.ts
-index d5cd157..d807c8c 100644
+index d5cd157..be9acfe 100644
 --- a/node_modules/expo-secure-store/build/SecureStore.d.ts
 +++ b/node_modules/expo-secure-store/build/SecureStore.d.ts
-@@ -78,6 +78,13 @@ export type SecureStoreOptions = {
+@@ -78,6 +78,16 @@ export type SecureStoreOptions = {
       * @platform ios
       */
      accessGroup?: string;
 +    /**
-+     * On Android, there is often no fallback option if biometrics fail.
-+     * Therefore, we may want to allow the user to authenticate using credentials if they prefer to.
++     * This flag enables users to authenticate using Lock Screen Knowledge Factor (e.g. PIN, pattern or password).
++     * For sensitive apps, it is recommended not having biometric fall back to such factor.
++     * @see: https://developer.android.com/security/fraud-prevention/authentication
 +     *
++     * @default false
 +     * @platform android
++     * @platform ios
 +     */
 +    enableDeviceFallback?: boolean;
  };
  /**
   * Returns whether the SecureStore API is enabled on the current device. This does not check the app
-@@ -148,4 +155,11 @@ export declare function getItem(key: string, options?: SecureStoreOptions): stri
+@@ -148,4 +158,11 @@ export declare function getItem(key: string, options?: SecureStoreOptions): stri
   * @platform ios
   */
  export declare function canUseBiometricAuthentication(): boolean;
@@ -273,7 +276,7 @@ index d5cd157..d807c8c 100644
 +export declare function canUseDeviceCredentialsAuthentication(): boolean;
  //# sourceMappingURL=SecureStore.d.ts.map
 diff --git a/node_modules/expo-secure-store/build/SecureStore.js b/node_modules/expo-secure-store/build/SecureStore.js
-index 4d87b38..74c3126 100644
+index 4d87b38..e11bd94 100644
 --- a/node_modules/expo-secure-store/build/SecureStore.js
 +++ b/node_modules/expo-secure-store/build/SecureStore.js
 @@ -143,6 +143,15 @@ export function getItem(key, options = {}) {
@@ -345,25 +348,28 @@ index 7e3fa4d..c9e843b 100644
 +  var enableDeviceFallback: Bool = false
  }
 diff --git a/node_modules/expo-secure-store/src/SecureStore.ts b/node_modules/expo-secure-store/src/SecureStore.ts
-index ee43e04..17dfce4 100644
+index ee43e04..4f253a1 100644
 --- a/node_modules/expo-secure-store/src/SecureStore.ts
 +++ b/node_modules/expo-secure-store/src/SecureStore.ts
-@@ -102,6 +102,14 @@ export type SecureStoreOptions = {
+@@ -102,6 +102,17 @@ export type SecureStoreOptions = {
     * @platform ios
     */
    accessGroup?: string;
 +
 +  /**
-+   * On Android, there is often no fallback option if biometrics fail.
-+   * Therefore, we may want to allow the user to authenticate using credentials if they prefer to.
++   * This flag enables users to authenticate using Lock Screen Knowledge Factor (e.g. PIN, pattern or password).
++   * For sensitive apps, it is recommended not having biometric fall back to such factor.
++   * @see: https://developer.android.com/security/fraud-prevention/authentication
 +   *
++   * @default false
 +   * @platform android
++   * @platform ios
 +   */
 +  enableDeviceFallback?: boolean;
  };
  
  // @needsAudit
-@@ -226,6 +234,16 @@ export function canUseBiometricAuthentication(): boolean {
+@@ -226,6 +237,16 @@ export function canUseBiometricAuthentication(): boolean {
    return ExpoSecureStore.canUseBiometricAuthentication();
  }
  

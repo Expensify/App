@@ -10,22 +10,26 @@
     Additionally, support for screen locks can be checked using the new 'canUseDeviceCredentialsAuthentication' method. 
     ```
 
-- Upstream PR/issue: ...
-- E/App issue: No issue, this patch adjust the library for our needs.
-- PR introducing patch: ...
+- Upstream PR/issue: TBA
+- E/App issue: https://github.com/Expensify/App/issues/75225
+- PR introducing patch: https://github.com/Expensify/App/pull/76288
 
 ### [expo-secure-store+14.2.4+002+return-auth-type.patch](expo-secure-store+14.2.4+002+return-auth-type.patch)
 
 - Reason:
 
     ```
-    This patch makes the read and write methods return the authentication type used to access the store.
+    This patch adds the `returnUsedAuthenticationType` flag.
+    When this flag is set to true, the get methods of SecureStore will return a two-element array. 
+    The first value will be the original value returned when this flag is set to false.
+    The second value is the authentication type used to read the value from the AUTH_TYPE object.
+    As for the set function, the returned value will simply be AUTH_TYPE.
     It uses a pre-defined constant that mimics an enum and can also be imported directly from the app.
     ```
 
-- Upstream PR/issue: ...
-- E/App issue: No issue, this patch adjust the library for our needs.
-- PR introducing patch: ...
+- Upstream PR/issue: TBA
+- E/App issue: https://github.com/Expensify/App/issues/75225
+- PR introducing patch: https://github.com/Expensify/App/pull/76288
 
 ### [expo-secure-store+14.2.4+003+force-authentication-on-save.patch](expo-secure-store+14.2.4+003+force-authentication-on-save.patch)
 
@@ -37,9 +41,9 @@
     before the value is saved. This only works in the asynchronous version of the save method.
     ```
 
-- Upstream PR/issue: ...
-- E/App issue: No issue, this patch adjust the library for our needs.
-- PR introducing patch: ...
+- Upstream PR/issue: TBA
+- E/App issue: https://github.com/Expensify/App/issues/75225
+- PR introducing patch: https://github.com/Expensify/App/pull/76288
 
 ### [expo-secure-store+14.2.4+004+fail-on-update.patch](expo-secure-store+14.2.4+004+fail-on-update.patch)
 
@@ -50,9 +54,9 @@
     To avoid unexpected behaviour, set the 'failOnUpdate' flag to true to trigger an error when the given key is already in the store.
     ```
 
-- Upstream PR/issue: ...
-- E/App issue: No issue, this patch adjust the library for our needs.
-- PR introducing patch: ...
+- Upstream PR/issue: TBA
+- E/App issue: https://github.com/Expensify/App/issues/75225
+- PR introducing patch: https://github.com/Expensify/App/pull/76288
 
 ### [expo-secure-store+14.2.4+005+force-read-authentication-on-simulators.patch](expo-secure-store+14.2.4+005+force-read-authentication-on-simulators.patch)
 
@@ -66,7 +70,7 @@
     It has no effect on real devices.
     ```
 
-- Upstream PR/issue: ...
-- E/App issue: No issue, this patch adjust the library for our needs.
-- PR introducing patch: ...
+- Upstream PR/issue: TBA
+- E/App issue: https://github.com/Expensify/App/issues/75225
+- PR introducing patch: https://github.com/Expensify/App/pull/76288
 

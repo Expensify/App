@@ -21,7 +21,7 @@ index 4a1a009..980ef0a 100644
  
    private suspend fun openAuthenticationPrompt(
 diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt
-index 3f21552..866d47d 100644
+index 3f21552..d209efc 100644
 --- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt
 +++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt
 @@ -36,23 +36,23 @@ open class SecureStoreModule : Module() {
@@ -29,113 +29,129 @@ index 3f21552..866d47d 100644
      AsyncFunction("setValueWithKeyAsync") Coroutine { value: String?, key: String?, options: SecureStoreOptions ->
        key ?: throw NullKeyException()
 -      return@Coroutine setItemImpl(key, value, options, false)
-+      return@Coroutine setItemImpl(key, value, options, false).ordinal
++      return@Coroutine narrowSecureStoreFeedback(SecureStoreFeedbackAction.SET, setItemImpl(key, value, options, false), options)
      }
  
      AsyncFunction("getValueWithKeyAsync") Coroutine { key: String, options: SecureStoreOptions ->
 -      return@Coroutine getItemImpl(key, options)
-+      return@Coroutine getItemImpl(key, options).values
++      return@Coroutine narrowSecureStoreFeedback(SecureStoreFeedbackAction.GET,getItemImpl(key, options), options)
      }
  
      Function("setValueWithKeySync") { value: String?, key: String?, options: SecureStoreOptions ->
        key ?: throw NullKeyException()
        return@Function runBlocking {
 -        return@runBlocking setItemImpl(key, value, options, keyIsInvalidated = false)
-+        return@runBlocking setItemImpl(key, value, options, keyIsInvalidated = false).ordinal
++        return@runBlocking narrowSecureStoreFeedback(SecureStoreFeedbackAction.SET, setItemImpl(key, value, options, keyIsInvalidated = false), options).value
        }
      }
  
      Function("getValueWithKeySync") { key: String, options: SecureStoreOptions ->
        return@Function runBlocking {
 -        return@runBlocking getItemImpl(key, options)
-+        return@runBlocking getItemImpl(key, options).values
++        return@runBlocking narrowSecureStoreFeedback(SecureStoreFeedbackAction.GET, getItemImpl(key, options), options).value
        }
      }
  
-@@ -94,7 +94,7 @@ open class SecureStoreModule : Module() {
+@@ -94,7 +94,23 @@ open class SecureStoreModule : Module() {
      }
    }
  
 -  private suspend fun getItemImpl(key: String, options: SecureStoreOptions): String? {
-+  private suspend fun getItemImpl(key: String, options: SecureStoreOptions): SecureStoreFeedback<out String?> {
++  private suspend fun <T> narrowSecureStoreFeedback(action: String, feedback: SecureStoreOriginalFeedback<T>, options: SecureStoreOptions): SecureStoreNarrowedFeedback<T> {
++    if (!options.returnUsedAuthenticationType) {
++      return feedback
++    }
++
++    if (action == SecureStoreFeedbackAction.GET) {
++      return SecureStoreGetFeedback(feedback.source, feedback.authenticationResult)
++    }
++
++    if (action == SecureStoreFeedbackAction.SET) {
++      return SecureStoreSetFeedback(feedback.source, feedback.authenticationResult)
++    }
++
++    return feedback
++  }
++
++  private suspend fun getItemImpl(key: String, options: SecureStoreOptions): SecureStoreOriginalFeedback<out String?> {
      // We use a SecureStore-specific shared preferences file, which lets us do things like enumerate
      // its entries or clear all of them
      val prefs: SharedPreferences = getSharedPreferences()
-@@ -104,10 +104,10 @@ open class SecureStoreModule : Module() {
+@@ -104,10 +120,10 @@ open class SecureStoreModule : Module() {
      } else if (prefs.contains(key)) { // For backwards-compatibility try to read using the old key format
        return readJSONEncodedItem(key, prefs, options)
      }
 -    return null
-+    return SecureStoreFeedback(null)
++    return SecureStoreOriginalFeedback(null)
    }
  
 -  private suspend fun readJSONEncodedItem(key: String, prefs: SharedPreferences, options: SecureStoreOptions): String? {
-+  private suspend fun readJSONEncodedItem(key: String, prefs: SharedPreferences, options: SecureStoreOptions): SecureStoreFeedback<out String?> {
++  private suspend fun readJSONEncodedItem(key: String, prefs: SharedPreferences, options: SecureStoreOptions): SecureStoreOriginalFeedback<out String?> {
      val keychainAwareKey = createKeychainAwareKey(key, options.keychainService)
  
      val legacyEncryptedItemString = prefs.getString(key, null)
-@@ -126,7 +126,7 @@ open class SecureStoreModule : Module() {
+@@ -126,7 +142,7 @@ open class SecureStoreModule : Module() {
        ""
      }
  
 -    encryptedItemString ?: return null
-+    encryptedItemString ?: return SecureStoreFeedback(null)
++    encryptedItemString ?: return SecureStoreOriginalFeedback(null)
  
      val encryptedItem: JSONObject = try {
        JSONObject(encryptedItemString)
-@@ -149,13 +149,13 @@ open class SecureStoreModule : Module() {
+@@ -149,13 +165,13 @@ open class SecureStoreModule : Module() {
                  "This situation occurs when the app is reinstalled. The value will be removed to avoid future errors. Returning null"
              )
              deleteItemImpl(key, options)
 -            return null
-+            return SecureStoreFeedback(null)
++            return SecureStoreOriginalFeedback(null)
            }
            return mAESEncryptor.decryptItem(key, encryptedItem, secretKeyEntry, options, authenticationHelper)
          }
          HybridAESEncryptor.NAME -> {
            val privateKeyEntry = getKeyEntryCompat(PrivateKeyEntry::class.java, hybridAESEncryptor, options, requireAuthentication, usesKeystoreSuffix)
 -            ?: return null
-+            ?: return SecureStoreFeedback(null)
++            ?: return SecureStoreOriginalFeedback(null)
            return hybridAESEncryptor.decryptItem(key, encryptedItem, privateKeyEntry, options, authenticationHelper)
          }
          else -> {
-@@ -164,7 +164,7 @@ open class SecureStoreModule : Module() {
+@@ -164,7 +180,7 @@ open class SecureStoreModule : Module() {
        }
      } catch (e: KeyPermanentlyInvalidatedException) {
        Log.w(TAG, "The requested key has been permanently invalidated. Returning null")
 -      return null
-+      return SecureStoreFeedback(null)
++      return SecureStoreOriginalFeedback(null)
      } catch (e: BadPaddingException) {
        // The key from the KeyStore is unable to decode the entry. This is because a new key was generated, but the entries are encrypted using the old one.
        // This usually means that the user has reinstalled the app. We can safely remove the old value and return null as it's impossible to decrypt it.
-@@ -174,7 +174,7 @@ open class SecureStoreModule : Module() {
+@@ -174,7 +190,7 @@ open class SecureStoreModule : Module() {
            "The entry in shared preferences is out of sync with the keystore. It will be removed, returning null."
        )
        deleteItemImpl(key, options)
 -      return null
-+      return SecureStoreFeedback(null)
++      return SecureStoreOriginalFeedback(null)
      } catch (e: GeneralSecurityException) {
        throw (DecryptException(e.message, key, options.keychainService, e))
      } catch (e: CodedException) {
-@@ -184,7 +184,7 @@ open class SecureStoreModule : Module() {
+@@ -184,7 +200,7 @@ open class SecureStoreModule : Module() {
      }
    }
  
 -  private suspend fun setItemImpl(key: String, value: String?, options: SecureStoreOptions, keyIsInvalidated: Boolean) {
-+  private suspend fun setItemImpl(key: String, value: String?, options: SecureStoreOptions, keyIsInvalidated: Boolean): SecureStoreAuthType {
++  private suspend fun setItemImpl(key: String, value: String?, options: SecureStoreOptions, keyIsInvalidated: Boolean): SecureStoreOriginalFeedback<out JSONObject?> {
      val keychainAwareKey = createKeychainAwareKey(key, options.keychainService)
      val prefs: SharedPreferences = getSharedPreferences()
  
-@@ -193,7 +193,7 @@ open class SecureStoreModule : Module() {
+@@ -193,7 +209,7 @@ open class SecureStoreModule : Module() {
        if (!success) {
          throw WriteException("Could not write a null value to SecureStore", key, options.keychainService)
        }
 -      return
-+      return SecureStoreAuthType.NONE
++      return SecureStoreOriginalFeedback(null)
      }
  
      try {
-@@ -210,7 +210,8 @@ open class SecureStoreModule : Module() {
+@@ -210,7 +226,8 @@ open class SecureStoreModule : Module() {
         back a value.
         */
        val secretKeyEntry: SecretKeyEntry = getOrCreateKeyEntry(SecretKeyEntry::class.java, mAESEncryptor, options, options.requireAuthentication)
@@ -145,18 +161,18 @@ index 3f21552..866d47d 100644
        encryptedItem.put(SCHEME_PROPERTY, AESEncryptor.NAME)
        saveEncryptedItem(encryptedItem, prefs, keychainAwareKey, options.requireAuthentication, options.keychainService)
  
-@@ -218,6 +219,9 @@ open class SecureStoreModule : Module() {
+@@ -218,6 +235,9 @@ open class SecureStoreModule : Module() {
        if (prefs.contains(key)) {
          prefs.edit().remove(key).apply()
        }
 +
-+      return encryptResult.authType
++      return encryptResult
 +
      } catch (e: KeyPermanentlyInvalidatedException) {
        if (!keyIsInvalidated) {
          Log.w(TAG, "Key has been invalidated, retrying with the key deleted")
 diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreOptions.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreOptions.kt
-index 0455fd6..d38650c 100644
+index 0455fd6..4e30440 100644
 --- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreOptions.kt
 +++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreOptions.kt
 @@ -1,5 +1,6 @@
@@ -166,9 +182,13 @@ index 0455fd6..d38650c 100644
  import expo.modules.kotlin.records.Field
  import expo.modules.kotlin.records.Record
  import java.io.Serializable
-@@ -11,3 +12,35 @@ class SecureStoreOptions(
+@@ -9,5 +10,58 @@ class SecureStoreOptions(
+   @Field var authenticationPrompt: String = " ",
+   @Field var keychainService: String = SecureStoreModule.DEFAULT_KEYSTORE_ALIAS,
    @Field var requireAuthentication: Boolean = false,
-   @Field var enableDeviceFallback: Boolean = false
+-  @Field var enableDeviceFallback: Boolean = false
++  @Field var enableDeviceFallback: Boolean = false,
++  @Field var returnUsedAuthenticationType: Boolean = false
  ) : Record, Serializable
 +
 +enum class SecureStoreAuthType(index: Int) {
@@ -180,9 +200,16 @@ index 0455fd6..d38650c 100644
 +  NONE(0)
 +}
 +
-+data class SecureStoreFeedback<T>(
-+  val value: T,
-+  val authenticationResult: BiometricPrompt.AuthenticationResult? = null
++open class SecureStoreFeedbackAction {
++  companion object {
++    const val GET = "GET"
++    const val SET = "SET"
++  }
++}
++
++abstract class SecureStoreFeedback<T, R>(
++  val source: T,
++  val authenticationResult: BiometricPrompt.AuthenticationResult?
 +) {
 +  @Field var authType: SecureStoreAuthType = when (authenticationResult?.authenticationType) {
 +    BiometricPrompt.AUTHENTICATION_RESULT_TYPE_UNKNOWN -> {
@@ -198,31 +225,46 @@ index 0455fd6..d38650c 100644
 +      SecureStoreAuthType.NONE
 +    }
 +  }
-+
-+  /** Used to return easily convertible values to JS code */
-+  @Field var values: Pair<T, Int> = Pair(value, authType.ordinal)
++  abstract val value: R
 +}
++
++class SecureStoreGetFeedback<T>(source: T, authenticationResult: BiometricPrompt.AuthenticationResult? = null): SecureStoreFeedback<T, Pair<T, Int>>(source, authenticationResult) {
++  /** Used to return easily convertible values to JS code */
++  @Field override var value: Pair<T, Int> = Pair(source, authType.ordinal)
++}
++
++class SecureStoreSetFeedback<T>(source: T, authenticationResult: BiometricPrompt.AuthenticationResult? = null): SecureStoreFeedback<T, Int>(source, authenticationResult) {
++  @Field override var value: Int = authType.ordinal
++}
++
++class SecureStoreOriginalFeedback<T>(source: T, authenticationResult: BiometricPrompt.AuthenticationResult? = null): SecureStoreFeedback<T, T>(source, authenticationResult) {
++  @Field override var value: T = source
++}
++
++typealias SecureStoreNarrowedFeedback<T> = SecureStoreFeedback<T, out Any?>
 diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/AESEncryptor.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/AESEncryptor.kt
-index 1cd187f..44c84c3 100644
+index 1cd187f..d927ff1 100644
 --- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/AESEncryptor.kt
 +++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/AESEncryptor.kt
-@@ -5,8 +5,10 @@ import android.security.keystore.KeyGenParameterSpec
+@@ -5,10 +5,12 @@ import android.security.keystore.KeyGenParameterSpec
  import android.security.keystore.KeyProperties
  import android.util.Base64
  import androidx.annotation.RequiresApi
 +import androidx.biometric.BiometricPrompt
  import expo.modules.securestore.AuthenticationHelper
  import expo.modules.securestore.DecryptException
-+import expo.modules.securestore.SecureStoreFeedback
  import expo.modules.securestore.SecureStoreModule
  import expo.modules.securestore.SecureStoreOptions
++import expo.modules.securestore.SecureStoreOriginalFeedback
  import org.json.JSONException
+ import org.json.JSONObject
+ import java.nio.charset.StandardCharsets
 @@ -86,15 +88,23 @@ class AESEncryptor : KeyBasedEncryptor<KeyStore.SecretKeyEntry> {
      authenticationPrompt: String,
      authenticationHelper: AuthenticationHelper,
      enableDeviceFallback: Boolean,
 -  ): JSONObject {
-+  ): SecureStoreFeedback<JSONObject> {
++  ): SecureStoreOriginalFeedback<JSONObject> {
      val secretKey = keyStoreEntry.secretKey
      val cipher = Cipher.getInstance(AES_CIPHER)
      cipher.init(Cipher.ENCRYPT_MODE, secretKey)
@@ -231,16 +273,16 @@ index 1cd187f..44c84c3 100644
 -    val authenticatedCipher = authenticationHelper.authenticateCipher(cipher, requireAuthentication, authenticationPrompt, enableDeviceFallback)
 +    var promptResult: BiometricPrompt.AuthenticationResult? = null
 +    val authenticatedCipher: Cipher
- 
--    return createEncryptedItemWithCipher(plaintextValue, authenticatedCipher, gcmSpec)
++
 +    if (requireAuthentication) {
 +      promptResult = authenticationHelper.authenticateCipher(cipher, authenticationPrompt, enableDeviceFallback)
 +      authenticatedCipher = promptResult.cryptoObject?.cipher ?: cipher
 +    } else {
 +      authenticatedCipher = cipher
 +    }
-+
-+    return SecureStoreFeedback(createEncryptedItemWithCipher(plaintextValue, authenticatedCipher, gcmSpec), promptResult)
+ 
+-    return createEncryptedItemWithCipher(plaintextValue, authenticatedCipher, gcmSpec)
++    return SecureStoreOriginalFeedback(createEncryptedItemWithCipher(plaintextValue, authenticatedCipher, gcmSpec), promptResult)
    }
  
    internal fun createEncryptedItemWithCipher(
@@ -249,17 +291,16 @@ index 1cd187f..44c84c3 100644
      options: SecureStoreOptions,
      authenticationHelper: AuthenticationHelper
 -  ): String {
-+  ): SecureStoreFeedback<String> {
++  ): SecureStoreOriginalFeedback<String> {
      val ciphertext = encryptedItem.getString(CIPHERTEXT_PROPERTY)
      val ivString = encryptedItem.getString(IV_PROPERTY)
      val authenticationTagLength = encryptedItem.getInt(GCM_AUTHENTICATION_TAG_LENGTH_PROPERTY)
-@@ -135,8 +145,18 @@ class AESEncryptor : KeyBasedEncryptor<KeyStore.SecretKeyEntry> {
+@@ -135,8 +145,17 @@ class AESEncryptor : KeyBasedEncryptor<KeyStore.SecretKeyEntry> {
        throw DecryptException("Authentication tag length must be at least $MIN_GCM_AUTHENTICATION_TAG_LENGTH bits long", key, options.keychainService)
      }
      cipher.init(Cipher.DECRYPT_MODE, keyStoreEntry.secretKey, gcmSpec)
 -    val unlockedCipher = authenticationHelper.authenticateCipher(cipher, requiresAuthentication, options.authenticationPrompt, options.enableDeviceFallback)
 -    return String(unlockedCipher.doFinal(ciphertextBytes), StandardCharsets.UTF_8)
-+
 +    var promptResult: BiometricPrompt.AuthenticationResult? = null
 +    val unlockedCipher: Cipher
 +
@@ -270,28 +311,28 @@ index 1cd187f..44c84c3 100644
 +      unlockedCipher = cipher
 +    }
 +
-+    return SecureStoreFeedback(String(unlockedCipher.doFinal(ciphertextBytes), StandardCharsets.UTF_8), promptResult)
++    return SecureStoreOriginalFeedback(String(unlockedCipher.doFinal(ciphertextBytes), StandardCharsets.UTF_8), promptResult)
    }
  
    companion object {
 diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/HybridAESEncryptor.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/HybridAESEncryptor.kt
-index 5f8bbfd..0b3ae0a 100644
+index 5f8bbfd..7527001 100644
 --- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/HybridAESEncryptor.kt
 +++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/HybridAESEncryptor.kt
-@@ -7,6 +7,7 @@ import android.util.Base64
- import expo.modules.securestore.AuthenticationHelper
- import expo.modules.securestore.EncryptException
+@@ -9,6 +9,7 @@ import expo.modules.securestore.EncryptException
  import expo.modules.securestore.KeyStoreException
-+import expo.modules.securestore.SecureStoreFeedback
  import expo.modules.securestore.SecureStoreModule
  import expo.modules.securestore.SecureStoreOptions
++import expo.modules.securestore.SecureStoreOriginalFeedback
  import org.json.JSONException
+ import org.json.JSONObject
+ import java.security.GeneralSecurityException
 @@ -71,7 +72,7 @@ class HybridAESEncryptor(private var mContext: Context, private val mAESEncrypto
      authenticationPrompt: String,
      authenticationHelper: AuthenticationHelper,
      enableDeviceFallback: Boolean,
 -  ): JSONObject {
-+  ): SecureStoreFeedback<JSONObject> {
++  ): SecureStoreOriginalFeedback<JSONObject> {
      // This should never be called after we dropped Android SDK 22 support.
      throw EncryptException(
        "HybridAESEncryption should not be used on Android SDK >= 23. This shouldn't happen. " +
@@ -300,28 +341,28 @@ index 5f8bbfd..0b3ae0a 100644
      options: SecureStoreOptions,
      authenticationHelper: AuthenticationHelper
 -  ): String {
-+  ): SecureStoreFeedback<String> {
++  ): SecureStoreOriginalFeedback<String> {
      // Decrypt the encrypted symmetric key
      val encryptedSecretKeyString = encryptedItem.getString(ENCRYPTED_SECRET_KEY_PROPERTY)
      val encryptedSecretKeyBytes = Base64.decode(encryptedSecretKeyString, Base64.DEFAULT)
 diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/KeyBasedEncryptor.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/KeyBasedEncryptor.kt
-index 39459ff..66ba986 100644
+index 39459ff..a531aff 100644
 --- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/KeyBasedEncryptor.kt
 +++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/KeyBasedEncryptor.kt
-@@ -1,6 +1,7 @@
- package expo.modules.securestore.encryptors
+@@ -2,6 +2,7 @@ package expo.modules.securestore.encryptors
  
  import expo.modules.securestore.AuthenticationHelper
-+import expo.modules.securestore.SecureStoreFeedback
  import expo.modules.securestore.SecureStoreOptions
++import expo.modules.securestore.SecureStoreOriginalFeedback
  import org.json.JSONException
  import org.json.JSONObject
+ import java.security.GeneralSecurityException
 @@ -27,7 +28,7 @@ interface KeyBasedEncryptor<E : KeyStore.Entry> {
      authenticationPrompt: String,
      authenticationHelper: AuthenticationHelper,
      enableDeviceFallback: Boolean,
 -  ): JSONObject
-+  ): SecureStoreFeedback<JSONObject>
++  ): SecureStoreOriginalFeedback<JSONObject>
  
    @Throws(GeneralSecurityException::class, JSONException::class)
    suspend fun decryptItem(
@@ -330,19 +371,21 @@ index 39459ff..66ba986 100644
      options: SecureStoreOptions,
      authenticationHelper: AuthenticationHelper
 -  ): String
-+  ): SecureStoreFeedback<String>
++  ): SecureStoreOriginalFeedback<String>
  }
 diff --git a/node_modules/expo-secure-store/build/SecureStore.d.ts b/node_modules/expo-secure-store/build/SecureStore.d.ts
-index db372f6..f6fe5be 100644
+index 835a4d4..d2da8d9 100644
 --- a/node_modules/expo-secure-store/build/SecureStore.d.ts
 +++ b/node_modules/expo-secure-store/build/SecureStore.d.ts
 @@ -1,4 +1,53 @@
++type EmptyObject = Record<string, never>;
++type SecureStoreSetFeedback<R extends SecureStoreOptions> = R['returnUsedAuthenticationType'] extends true ? AuthType : void;
++type SecureStoreGetFeedback<T, R extends SecureStoreOptions> = R['returnUsedAuthenticationType'] extends true ? [T | null, AuthType] : T | null;
  export type KeychainAccessibilityConstant = number;
-+
 +/**
 + * Authentication type returned by the SecureStore after reading item or saving it to the store.
 + */
-+export declare const AUTH_TYPE = {
++export declare const AUTH_TYPE: {
 +    /**
 +     * This is purely for backwards compatibility.
 +     * Although it is not listed as a return value of the getAuthenticationType() method,
@@ -351,102 +394,107 @@ index db372f6..f6fe5be 100644
 +     * @see https://developer.android.com/reference/androidx/biometric/BiometricPrompt#AUTHENTICATION_RESULT_TYPE_UNKNOWN()
 +     * @platform android
 +     */
-+    UNKNOWN: -1,
++    readonly UNKNOWN: -1;
 +    /**
 +     * Returned when the authentication fails
 +     * @platform android
 +     * @platform ios
 +     */
-+    NONE: 0,
++    readonly NONE: 0;
 +    /**
 +     * Generic type, not specified whether it was a passcode or pattern.
 +     * @platform android
 +     * @platform ios
 +     */
-+    CREDENTIALS: 1,
++    readonly CREDENTIALS: 1;
 +    /**
 +     * Generic type, not specified whether it was a face scan or a fingerprint
 +     * @platform android
 +     */
-+    BIOMETRICS: 2,
++    readonly BIOMETRICS: 2;
 +    /**
 +     * FaceID was used to authenticate
 +     * @platform ios
 +     */
-+    FACE_ID: 3,
++    readonly FACE_ID: 3;
 +    /**
 +     * TouchID was used to authenticate
 +     * @platform ios
 +     */
-+    TOUCH_ID: 4,
++    readonly TOUCH_ID: 4;
 +    /**
 +     * OpticID was used to authenticate (reserved by apple, used on Apple Vision Pro, not iOS)
 +     */
-+    OPTIC_ID: 5
-+} as const;
-+
++    readonly OPTIC_ID: 5;
++};
 +type AuthType = (typeof AUTH_TYPE)[keyof typeof AUTH_TYPE];
-+
  /**
   * The data in the keychain item cannot be accessed after a restart until the device has been
   * unlocked once by the user. This may be useful if you need to access the item when the phone
-@@ -79,10 +128,13 @@ export type SecureStoreOptions = {
-      */
-     accessGroup?: string;
-     /**
--     * On Android, there is often no fallback option if biometrics fail.
--     * Therefore, we may want to allow the user to authenticate using credentials if they prefer to.
-+     * This flag enables users to authenticate using Lock Screen Knowledge Factor (e.g. PIN, pattern or password).
-+     * For sensitive apps, it is recommended not having biometric fall back to such factor.
-+     * @see: https://developer.android.com/security/fraud-prevention/authentication
-      *
-+     * @default false
-      * @platform android
-+     * @platform ios
+@@ -88,6 +137,22 @@ export type SecureStoreOptions = {
+      * @platform ios
       */
      enableDeviceFallback?: boolean;
++    /**
++     * When this flag is set to true, the get methods of SecureStore will return a two-element array. The first value will be the original value returned when this flag is set to false.
++     * The second value is the authentication type used to read the value from the AUTH_TYPE object.
++     * As for the set function, the returned value will simply be AUTH_TYPE.
++     *
++     * @warning
++     * If the iOS device supports biometrics and the user falls back to device credentials, it will not be detected.
++     * This is not the case on Android, but we cannot specify the exact type of biometrics (e.g. fingerprint or face scan).
++     * Whether the type is detected correctly depends on the platform and its native implementation.
++     * This should be treated as more of a hint.
++     *
++     * @default false
++     * @platform android
++     * @platform ios
++     */
++    returnUsedAuthenticationType?: boolean;
  };
-@@ -116,7 +168,7 @@ export declare function deleteItemAsync(key: string, options?: SecureStoreOption
+ /**
+  * Returns whether the SecureStore API is enabled on the current device. This does not check the app
+@@ -119,7 +184,7 @@ export declare function deleteItemAsync(key: string, options?: SecureStoreOption
   * > After a key has been invalidated, it becomes impossible to read its value.
   * > This only applies to values stored with `requireAuthentication` set to `true`.
   */
 -export declare function getItemAsync(key: string, options?: SecureStoreOptions): Promise<string | null>;
-+export declare function getItemAsync(key: string, options?: SecureStoreOptions): Promise<[string | null, AuthType]>;
++export declare function getItemAsync<R extends SecureStoreOptions>(key: string, options?: R | EmptyObject): Promise<SecureStoreGetFeedback<string, R>>;
  /**
   * Stores a key–value pair.
   *
-@@ -126,7 +178,7 @@ export declare function getItemAsync(key: string, options?: SecureStoreOptions):
+@@ -129,7 +194,7 @@ export declare function getItemAsync(key: string, options?: SecureStoreOptions):
   *
   * @return A promise that rejects if value cannot be stored on the device.
   */
 -export declare function setItemAsync(key: string, value: string, options?: SecureStoreOptions): Promise<void>;
-+export declare function setItemAsync(key: string, value: string, options?: SecureStoreOptions): Promise<AuthType>;
++export declare function setItemAsync<R extends SecureStoreOptions>(key: string, value: string, options?: R | EmptyObject): Promise<SecureStoreSetFeedback<R>>;
  /**
   * Stores a key–value pair synchronously.
   * > **Note:** This function blocks the JavaScript thread, so the application may not be interactive when the `requireAuthentication` option is set to `true` until the user authenticates.
-@@ -136,7 +188,7 @@ export declare function setItemAsync(key: string, value: string, options?: Secur
+@@ -139,7 +204,7 @@ export declare function setItemAsync(key: string, value: string, options?: Secur
   * @param options An [`SecureStoreOptions`](#securestoreoptions) object.
   *
   */
 -export declare function setItem(key: string, value: string, options?: SecureStoreOptions): void;
-+export declare function setItem(key: string, value: string, options?: SecureStoreOptions): AuthType;
++export declare function setItem<R extends SecureStoreOptions>(key: string, value: string, options?: R | EmptyObject): SecureStoreSetFeedback<R>;
  /**
   * Synchronously reads the stored value associated with the provided key.
   * > **Note:** This function blocks the JavaScript thread, so the application may not be interactive when reading a value with `requireAuthentication`
-@@ -147,7 +199,7 @@ export declare function setItem(key: string, value: string, options?: SecureStor
+@@ -150,7 +215,7 @@ export declare function setItem(key: string, value: string, options?: SecureStor
   * @return Previously stored value. It resolves with `null` if there is no entry
   * for the given key or if the key has been invalidated.
   */
 -export declare function getItem(key: string, options?: SecureStoreOptions): string | null;
-+export declare function getItem(key: string, options?: SecureStoreOptions): [string | null, AuthType];
++export declare function getItem<R extends SecureStoreOptions>(key: string, options?: R | EmptyObject): SecureStoreGetFeedback<string, R>;
  /**
   * Checks if the value can be saved with `requireAuthentication` option enabled.
   * @return `true` if the device supports biometric authentication and the enrolled method is sufficiently secure. Otherwise, returns `false`. Always returns false on tvOS.
 diff --git a/node_modules/expo-secure-store/build/SecureStore.js b/node_modules/expo-secure-store/build/SecureStore.js
-index e11bd94..a12995b 100644
+index e11bd94..940fc61 100644
 --- a/node_modules/expo-secure-store/build/SecureStore.js
 +++ b/node_modules/expo-secure-store/build/SecureStore.js
-@@ -1,6 +1,52 @@
+@@ -1,6 +1,53 @@
  import ExpoSecureStore from './ExpoSecureStore';
  import { byteCountOverLimit, VALUE_BYTES_LIMIT } from './byteCounter';
  // @needsAudit
@@ -494,12 +542,13 @@ index e11bd94..a12995b 100644
 +    /**
 +     * OpticID was used to authenticate (reserved by apple, used on Apple Vision Pro, not iOS)
 +     */
-+    OPTIC_ID: 5
++    OPTIC_ID: 5,
 +};
++// @needsAudit
  /**
   * The data in the keychain item cannot be accessed after a restart until the device has been
   * unlocked once by the user. This may be useful if you need to access the item when the phone
-@@ -102,7 +148,7 @@ export async function setItemAsync(key, value, options = {}) {
+@@ -102,7 +149,7 @@ export async function setItemAsync(key, value, options = {}) {
      if (!isValidValue(value)) {
          throw new Error(`Invalid value provided to SecureStore. Values must be strings; consider JSON-encoding your values if they are serializable.`);
      }
@@ -509,27 +558,31 @@ index e11bd94..a12995b 100644
  /**
   * Stores a key–value pair synchronously.
 diff --git a/node_modules/expo-secure-store/ios/SecureStoreModule.swift b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
-index 1268979..e4c3f2b 100644
+index 1268979..7764c8e 100644
 --- a/node_modules/expo-secure-store/ios/SecureStoreModule.swift
 +++ b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
-@@ -18,28 +18,40 @@ public final class SecureStoreModule: Module {
+@@ -18,28 +18,36 @@ public final class SecureStoreModule: Module {
        "WHEN_UNLOCKED_THIS_DEVICE_ONLY": SecureStoreAccessible.whenUnlockedThisDeviceOnly.rawValue
      ])
  
 -    AsyncFunction("getValueWithKeyAsync") { (key: String, options: SecureStoreOptions) -> String? in
 -      return try get(with: key, options: options)
 +    AsyncFunction("getValueWithKeyAsync") { (key: String, options: SecureStoreOptions) in
-+      return getSecureStoreFeedback(value: try get(with: key, options: options)).values
++      let result = try get(with: key, options: options)
++
++      return wrapResultWithFeedback(action: .get, result: result, options: options).value
      }
  
 -    Function("getValueWithKeySync") { (key: String, options: SecureStoreOptions) -> String? in
 -      return try get(with: key, options: options)
 +    Function("getValueWithKeySync") { (key: String, options: SecureStoreOptions) in
-+      return getSecureStoreFeedback(value: try get(with: key, options: options)).values
++      let result = try get(with: key, options: options)
++
++      return wrapResultWithFeedback(action: .get, result: result, options: options).value
      }
  
 -    AsyncFunction("setValueWithKeyAsync") { (value: String, key: String, options: SecureStoreOptions) -> Bool in
-+    AsyncFunction("setValueWithKeyAsync") { (value: String, key: String, options: SecureStoreOptions) -> Int in
++    AsyncFunction("setValueWithKeyAsync") { (value: String, key: String, options: SecureStoreOptions) in
        guard let key = validate(for: key) else {
          throw InvalidKeyException()
        }
@@ -537,15 +590,11 @@ index 1268979..e4c3f2b 100644
 -      return try set(value: value, with: key, options: options)
 +      let result = try set(value: value, with: key, options: options)
 +
-+      if !result {
-+        return AuthType.none.rawValue
-+      }
-+
-+      return getSecureStoreFeedback(value: true).authType
++      return wrapResultWithFeedback(action: .set, result: result, options: options).value
      }
  
 -    Function("setValueWithKeySync") {(value: String, key: String, options: SecureStoreOptions) -> Bool in
-+    Function("setValueWithKeySync") {(value: String, key: String, options: SecureStoreOptions) -> Int in
++    Function("setValueWithKeySync") {(value: String, key: String, options: SecureStoreOptions) in
        guard let key = validate(for: key) else {
          throw InvalidKeyException()
        }
@@ -553,15 +602,11 @@ index 1268979..e4c3f2b 100644
 -      return try set(value: value, with: key, options: options)
 +      let result = try set(value: value, with: key, options: options)
 +
-+      if !result {
-+        return AuthType.none.rawValue
-+      }
-+
-+      return getSecureStoreFeedback(value: true).authType
++      return wrapResultWithFeedback(action: .set, result: result, options: options).value
      }
  
      AsyncFunction("deleteValueWithKeyAsync") { (key: String, options: SecureStoreOptions) in
-@@ -53,18 +65,7 @@ public final class SecureStoreModule: Module {
+@@ -53,18 +61,7 @@ public final class SecureStoreModule: Module {
      }
  
      Function("canUseBiometricAuthentication") {() -> Bool in
@@ -581,8 +626,8 @@ index 1268979..e4c3f2b 100644
      }
  
      Function("canUseDeviceCredentialsAuthentication") { () -> Bool in
-@@ -72,6 +73,31 @@ public final class SecureStoreModule: Module {
-     }
+@@ -76,6 +73,41 @@ public final class SecureStoreModule: Module {
+     return LAContext().canEvaluatePolicy(LAPolicy.deviceOwnerAuthentication, error: nil)
    }
  
 +  private func getAuthType() -> AuthType {
@@ -598,8 +643,18 @@ index 1268979..e4c3f2b 100644
 +    }
 +  }
 +
-+  private func getSecureStoreFeedback<T>(value: T) -> SecureStoreFeedback<T> {
-+    return SecureStoreFeedback(value: value, authType: getAuthType().rawValue)
++  private func wrapResultWithFeedback<T>(action: SecureStoreFeedbackAction, result: T, options: SecureStoreOptions) -> any SecureStoreFeedback {
++    let authType = getAuthType().rawValue
++
++    if (!options.returnUsedAuthenticationType) {
++      return SecureStoreOriginalFeedback(source: result, authType: authType)
++    }
++
++    if (action == .get) {
++      return SecureStoreGetFeedback(source: result, authType: authType)
++    }
++
++    return SecureStoreSetFeedback(source: result, authType: authType)
 +  }
 +
 +  private func areBiometricsEnabled() -> Bool {
@@ -610,71 +665,21 @@ index 1268979..e4c3f2b 100644
 +    #endif
 +  }
 +
-   private func areDeviceCredentialsEnabled() -> Bool {
-     return LAContext().canEvaluatePolicy(LAPolicy.deviceOwnerAuthentication, error: nil)
-   }
-@@ -96,6 +122,29 @@ public final class SecureStoreModule: Module {
-     return nil
-   }
- 
-+  private func NSFaceIDUsageEntryGuard(options: SecureStoreOptions) throws {
-+    if (options.enableDeviceFallback) {
-+        return;
-+    }
-+
-+    guard let _ = Bundle.main.infoDictionary?["NSFaceIDUsageDescription"] as? String else {
-+      throw MissingPlistKeyException()
-+    }
-+  }
-+
-+  private func getAccessOptions(options: SecureStoreOptions, accessibility: CFString) throws -> SecAccessControl {
-+    var error: Unmanaged<CFError>? = nil
-+
-+    let accessControlFlag: SecAccessControlCreateFlags = options.enableDeviceFallback ? .userPresence : .biometryCurrentSet
-+
-+    guard let accessOptions = SecAccessControlCreateWithFlags(kCFAllocatorDefault, accessibility, accessControlFlag, &error) else {
-+      let errorCode = error.map { CFErrorGetCode($0.takeRetainedValue()) }
-+      throw SecAccessControlError(errorCode)
-+    }
-+
-+    return accessOptions
-+  }
-+
-   private func set(value: String, with key: String, options: SecureStoreOptions) throws -> Bool {
-     var setItemQuery = query(with: key, options: options, requireAuthentication: options.requireAuthentication)
- 
-@@ -107,21 +156,8 @@ public final class SecureStoreModule: Module {
-     if !options.requireAuthentication {
-       setItemQuery[kSecAttrAccessible as String] = accessibility
-     } else {
--      if (!options.enableDeviceFallback) {
--        guard let _ = Bundle.main.infoDictionary?["NSFaceIDUsageDescription"] as? String else {
--          throw MissingPlistKeyException()
--        }
--      }
--
--      var error: Unmanaged<CFError>? = nil
--
--      let accessControlFlag: SecAccessControlCreateFlags = options.enableDeviceFallback ? .userPresence : .biometryCurrentSet
--
--      guard let accessOptions = SecAccessControlCreateWithFlags(kCFAllocatorDefault, accessibility, accessControlFlag, &error) else {
--        let errorCode = error.map { CFErrorGetCode($0.takeRetainedValue()) }
--        throw SecAccessControlError(errorCode)
--      }
--      setItemQuery[kSecAttrAccessControl as String] = accessOptions
-+      try NSFaceIDUsageEntryGuard(options: options)
-+      setItemQuery[kSecAttrAccessControl as String] = try getAccessOptions(options: options, accessibility: accessibility)
-     }
- 
-     let status = SecItemAdd(setItemQuery as CFDictionary, nil)
+   private func get(with key: String, options: SecureStoreOptions) throws -> String? {
+     guard let key = validate(for: key) else {
+       throw InvalidKeyException()
 diff --git a/node_modules/expo-secure-store/ios/SecureStoreOptions.swift b/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
-index c9e843b..13e15be 100644
+index c9e843b..b95eca7 100644
 --- a/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
 +++ b/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
-@@ -19,3 +19,32 @@ internal struct SecureStoreOptions: Record {
+@@ -18,4 +18,71 @@ internal struct SecureStoreOptions: Record {
+ 
    @Field
    var enableDeviceFallback: Bool = false
- }
++
++  @Field
++  var returnUsedAuthenticationType: Bool = false
++}
 +
 +@available(iOS 11.2, *)
 +public enum AuthType: Int, @unchecked Sendable {
@@ -697,65 +702,109 @@ index c9e843b..13e15be 100644
 +  case opticID = 5
 +}
 +
-+struct SecureStoreFeedback<T> {
-+  var value: T
++public enum SecureStoreFeedbackAction: String {
++  case set
++  case get
++}
++
++protocol SecureStoreFeedback {
++  associatedtype Source
++  associatedtype Value
++  var source: Source { get }
++  var authType: Int { get }
++  var value: Value { get }
++}
++
++struct SecureStoreGetFeedback<T>: SecureStoreFeedback {
++  typealias Source = T
++  typealias Value = Array<Any>
++  var source: Source
 +  var authType: Int = AuthType.none.rawValue
-+  var values: Array<Any> {
-+    get { return [value, authType] }
++  var value: Value {
++    get { return [source, authType] }
 +  }
 +}
++
++struct SecureStoreOriginalFeedback<T>: SecureStoreFeedback {
++  typealias Source = T
++  typealias Value = T
++  var source: Source
++  var authType: Int = AuthType.none.rawValue
++  var value: Value {
++    get { return source }
++  }
++}
++
++struct SecureStoreSetFeedback<T>: SecureStoreFeedback {
++  typealias Source = T
++  typealias Value = Int
++  var source: Source
++  var authType: Int = AuthType.none.rawValue
++  var value: Value {
++    get { return authType }
++  }
+ }
 diff --git a/node_modules/expo-secure-store/src/SecureStore.ts b/node_modules/expo-secure-store/src/SecureStore.ts
-index 17dfce4..c1cc118 100644
+index 4f253a1..d44c0bb 100644
 --- a/node_modules/expo-secure-store/src/SecureStore.ts
 +++ b/node_modules/expo-secure-store/src/SecureStore.ts
-@@ -3,6 +3,54 @@ import { byteCountOverLimit, VALUE_BYTES_LIMIT } from './byteCounter';
+@@ -1,8 +1,63 @@
+ import ExpoSecureStore from './ExpoSecureStore';
+ import { byteCountOverLimit, VALUE_BYTES_LIMIT } from './byteCounter';
  
++type EmptyObject = Record<string, never>;
++type SecureStoreSetFeedback<R extends SecureStoreOptions> =
++    R['returnUsedAuthenticationType'] extends true ? AuthType : void;
++type SecureStoreGetFeedback<
++    T,
++    R extends SecureStoreOptions,
++> = R['returnUsedAuthenticationType'] extends true ? [T | null, AuthType] : T | null;
  export type KeychainAccessibilityConstant = number;
  
 +/**
 + * Authentication type returned by the SecureStore after reading item or saving it to the store.
 + */
 +export const AUTH_TYPE = {
-+  /**
-+   * This is purely for backwards compatibility.
-+   * Although it is not listed as a return value of the getAuthenticationType() method,
-+   * it is still present in the Android code.
-+   * @see https://developer.android.com/reference/android/hardware/biometrics/BiometricPrompt.AuthenticationResult#getAuthenticationType()
-+   * @see https://developer.android.com/reference/androidx/biometric/BiometricPrompt#AUTHENTICATION_RESULT_TYPE_UNKNOWN()
-+   * @platform android
-+   */
-+  UNKNOWN: -1,
-+  /**
-+   * Returned when the authentication fails
-+   * @platform android
-+   * @platform ios
-+   */
-+  NONE: 0,
-+  /**
-+   * Generic type, not specified whether it was a passcode or pattern.
-+   * @platform android
-+   * @platform ios
-+   */
-+  CREDENTIALS: 1,
-+  /**
-+   * Generic type, not specified whether it was a face scan or a fingerprint
-+   * @platform android
-+   */
-+  BIOMETRICS: 2,
-+  /**
-+   * FaceID was used to authenticate
-+   * @platform ios
-+   */
-+  FACE_ID: 3,
-+  /**
-+   * TouchID was used to authenticate
-+   * @platform ios
-+   */
-+  TOUCH_ID: 4,
-+  /**
-+   * OpticID was used to authenticate (reserved by apple, used on Apple Vision Pro, not iOS)
-+   */
-+  OPTIC_ID: 5
++    /**
++     * This is purely for backwards compatibility.
++     * Although it is not listed as a return value of the getAuthenticationType() method,
++     * it is still present in the Android code.
++     * @see https://developer.android.com/reference/android/hardware/biometrics/BiometricPrompt.AuthenticationResult#getAuthenticationType()
++     * @see https://developer.android.com/reference/androidx/biometric/BiometricPrompt#AUTHENTICATION_RESULT_TYPE_UNKNOWN()
++     * @platform android
++     */
++    UNKNOWN: -1,
++    /**
++     * Returned when the authentication fails
++     * @platform android
++     * @platform ios
++     */
++    NONE: 0,
++    /**
++     * Generic type, not specified whether it was a passcode or pattern.
++     * @platform android
++     * @platform ios
++     */
++    CREDENTIALS: 1,
++    /**
++     * Generic type, not specified whether it was a face scan or a fingerprint
++     * @platform android
++     */
++    BIOMETRICS: 2,
++    /**
++     * FaceID was used to authenticate
++     * @platform ios
++     */
++    FACE_ID: 3,
++    /**
++     * TouchID was used to authenticate
++     * @platform ios
++     */
++    TOUCH_ID: 4,
++    /**
++     * OpticID was used to authenticate (reserved by apple, used on Apple Vision Pro, not iOS)
++     */
++    OPTIC_ID: 5,
 +} as const;
 +
 +type AuthType = (typeof AUTH_TYPE)[keyof typeof AUTH_TYPE];
@@ -763,41 +812,60 @@ index 17dfce4..c1cc118 100644
  // @needsAudit
  /**
   * The data in the keychain item cannot be accessed after a restart until the device has been
-@@ -104,10 +152,13 @@ export type SecureStoreOptions = {
-   accessGroup?: string;
- 
-   /**
--   * On Android, there is often no fallback option if biometrics fail.
--   * Therefore, we may want to allow the user to authenticate using credentials if they prefer to.
-+   * This flag enables users to authenticate using Lock Screen Knowledge Factor (e.g. PIN, pattern or password).
-+   * For sensitive apps, it is recommended not having biometric fall back to such factor.
-+   * @see: https://developer.android.com/security/fraud-prevention/authentication
-    *
-+   * @default false
-    * @platform android
-+   * @platform ios
+@@ -113,6 +168,23 @@ export type SecureStoreOptions = {
+    * @platform ios
     */
    enableDeviceFallback?: boolean;
++
++  /**
++   * When this flag is set to true, the get methods of SecureStore will return a two-element array. The first value will be the original value returned when this flag is set to false.
++   * The second value is the authentication type used to read the value from the AUTH_TYPE object.
++   * As for the set function, the returned value will simply be AUTH_TYPE.
++   *
++   * @warning
++   * If the iOS device supports biometrics and the user falls back to device credentials, it will not be detected.
++   * This is not the case on Android, but we cannot specify the exact type of biometrics (e.g. fingerprint or face scan).
++   * Whether the type is detected correctly depends on the platform and its native implementation.
++   * This should be treated as more of a hint.
++   *
++   * @default false
++   * @platform android
++   * @platform ios
++   */
++  returnUsedAuthenticationType?: boolean;
  };
-@@ -159,7 +210,7 @@ export async function deleteItemAsync(
- export async function getItemAsync(
+ 
+ // @needsAudit
+@@ -159,10 +231,10 @@ export async function deleteItemAsync(
+  * > After a key has been invalidated, it becomes impossible to read its value.
+  * > This only applies to values stored with `requireAuthentication` set to `true`.
+  */
+-export async function getItemAsync(
++export async function getItemAsync<R extends SecureStoreOptions>(
    key: string,
-   options: SecureStoreOptions = {}
+-  options: SecureStoreOptions = {}
 -): Promise<string | null> {
-+): Promise<[string | null, AuthType]> {
++  options: R | EmptyObject = {}
++): Promise<SecureStoreGetFeedback<string, R>> {
    ensureValidKey(key);
    return await ExpoSecureStore.getValueWithKeyAsync(key, options);
  }
-@@ -178,7 +229,7 @@ export async function setItemAsync(
+@@ -177,11 +249,11 @@ export async function getItemAsync(
+  *
+  * @return A promise that rejects if value cannot be stored on the device.
+  */
+-export async function setItemAsync(
++export async function setItemAsync<R extends SecureStoreOptions>(
    key: string,
    value: string,
-   options: SecureStoreOptions = {}
+-  options: SecureStoreOptions = {}
 -): Promise<void> {
-+): Promise<AuthType> {
++  options: R | EmptyObject = {}
++): Promise<SecureStoreSetFeedback<R>> {
    ensureValidKey(key);
    if (!isValidValue(value)) {
      throw new Error(
-@@ -186,7 +237,7 @@ export async function setItemAsync(
+@@ -189,7 +261,7 @@ export async function setItemAsync(
      );
    }
  
@@ -806,21 +874,28 @@ index 17dfce4..c1cc118 100644
  }
  
  /**
-@@ -198,7 +249,7 @@ export async function setItemAsync(
+@@ -201,7 +273,11 @@ export async function setItemAsync(
   * @param options An [`SecureStoreOptions`](#securestoreoptions) object.
   *
   */
 -export function setItem(key: string, value: string, options: SecureStoreOptions = {}): void {
-+export function setItem(key: string, value: string, options: SecureStoreOptions = {}): AuthType {
++export function setItem<R extends SecureStoreOptions>(
++  key: string,
++  value: string,
++  options: R | EmptyObject = {}
++): SecureStoreSetFeedback<R> {
    ensureValidKey(key);
    if (!isValidValue(value)) {
      throw new Error(
-@@ -219,7 +270,7 @@ export function setItem(key: string, value: string, options: SecureStoreOptions
+@@ -222,7 +298,10 @@ export function setItem(key: string, value: string, options: SecureStoreOptions
   * @return Previously stored value. It resolves with `null` if there is no entry
   * for the given key or if the key has been invalidated.
   */
 -export function getItem(key: string, options: SecureStoreOptions = {}): string | null {
-+export function getItem(key: string, options: SecureStoreOptions = {}): [string | null, AuthType] {
++export function getItem<R extends SecureStoreOptions>(
++  key: string,
++  options: R | EmptyObject = {}
++): SecureStoreGetFeedback<string, R> {
    ensureValidKey(key);
    return ExpoSecureStore.getValueWithKeySync(key, options);
  }

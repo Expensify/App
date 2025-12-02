@@ -1,12 +1,11 @@
 diff --git a/node_modules/expo-secure-store/build/SecureStore.d.ts b/node_modules/expo-secure-store/build/SecureStore.d.ts
-index bf5290c..cc981d3 100644
+index 836958c..29531c5 100644
 --- a/node_modules/expo-secure-store/build/SecureStore.d.ts
 +++ b/node_modules/expo-secure-store/build/SecureStore.d.ts
-@@ -162,6 +162,19 @@ export type SecureStoreOptions = {
+@@ -177,6 +177,18 @@ export type SecureStoreOptions = {
       * @platform android
       */
      failOnUpdate?: boolean;
-+
 +    /**
 +     * The LocalAuthentication behaves slightly differently on iOS simulators.
 +     * In numerous cases, the authentication prompts are skipped on simulators (as opposed to real devices).
@@ -23,7 +22,7 @@ index bf5290c..cc981d3 100644
  /**
   * Returns whether the SecureStore API is enabled on the current device. This does not check the app
 diff --git a/node_modules/expo-secure-store/ios/SecureStoreModule.swift b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
-index 4bfe51f..cbc4615 100644
+index 47282db..dcbe242 100644
 --- a/node_modules/expo-secure-store/ios/SecureStoreModule.swift
 +++ b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
 @@ -19,6 +19,11 @@ public final class SecureStoreModule: Module {
@@ -35,14 +34,14 @@ index 4bfe51f..cbc4615 100644
 +          try await triggerPolicy(options: options)
 +        }
 +      #endif
-       return getSecureStoreFeedback(value: try get(with: key, options: options)).values
-     }
+       let result = try get(with: key, options: options)
  
+       return wrapResultWithFeedback(action: .get, result: result, options: options).value
 diff --git a/node_modules/expo-secure-store/ios/SecureStoreOptions.swift b/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
-index 4c490b1..aee90ed 100644
+index 6a787b0..8f110dd 100644
 --- a/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
 +++ b/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
-@@ -24,6 +24,9 @@ internal struct SecureStoreOptions: Record {
+@@ -27,6 +27,9 @@ internal struct SecureStoreOptions: Record {
  
    @Field
    var failOnUpdate: Bool = false
@@ -53,10 +52,10 @@ index 4c490b1..aee90ed 100644
  
  @available(iOS 11.2, *)
 diff --git a/node_modules/expo-secure-store/src/SecureStore.ts b/node_modules/expo-secure-store/src/SecureStore.ts
-index db64fd2..69541ce 100644
+index 0bedcaa..bae5580 100644
 --- a/node_modules/expo-secure-store/src/SecureStore.ts
 +++ b/node_modules/expo-secure-store/src/SecureStore.ts
-@@ -187,6 +187,19 @@ export type SecureStoreOptions = {
+@@ -211,6 +211,19 @@ export type SecureStoreOptions = {
     * @platform android
     */
    failOnUpdate?: boolean;
