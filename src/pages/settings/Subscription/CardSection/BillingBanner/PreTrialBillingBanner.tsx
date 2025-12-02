@@ -1,6 +1,6 @@
 import React from 'react';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import {View} from 'react-native';
+import RenderHTML from '@components/RenderHTML';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,16 +29,12 @@ function PreTrialBillingBanner() {
         <BillingBanner
             title={translate('subscription.billingBanner.preTrial.title')}
             subtitle={
-                <Text>
-                    {translate('subscription.billingBanner.preTrial.subtitleStart')}
-                    <TextLink
-                        style={styles.link}
-                        onPress={navigateToChat}
-                    >
-                        {translate('subscription.billingBanner.preTrial.subtitleLink')}
-                    </TextLink>
-                    {translate('subscription.billingBanner.preTrial.subtitleEnd')}
-                </Text>
+                <View style={styles.renderHTML}>
+                    <RenderHTML
+                        html={translate('subscription.billingBanner.preTrial.subtitle')}
+                        onLinkPress={navigateToChat}
+                    />
+                </View>
             }
             icon={illustrations.TreasureChest}
         />

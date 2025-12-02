@@ -956,6 +956,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'cardName':
         case 'cardNumber':
         case 'taxValue':
+        case 'groupCurrency':
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
@@ -977,6 +978,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'cardID':
         case 'originalAmount':
         case 'convertedAmount':
+        case 'groupAmount':
             return validateNumber(value);
         case 'iouRequestType':
             return validateConstantEnum(value, CONST.IOU.REQUEST_TYPE);
@@ -1098,6 +1100,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     splitExpensesTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxValue: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     pendingAutoCategorizationTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    groupAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    groupCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
