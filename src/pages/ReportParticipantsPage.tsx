@@ -38,7 +38,6 @@ import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
-    getReportName,
     getReportPersonalDetailsParticipants,
     isArchivedNonExpenseReport,
     isChatRoom,
@@ -50,6 +49,7 @@ import {
     isSelfDM,
     isTaskReport,
 } from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -417,7 +417,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, undefined, undefined, undefined, undefined, reportAttributes))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal
