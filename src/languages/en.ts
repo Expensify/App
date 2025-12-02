@@ -694,6 +694,7 @@ const translations = {
         copyToClipboard: 'Copy to clipboard',
         thisIsTakingLongerThanExpected: 'This is taking longer than expected...',
         domains: 'Domains',
+        actionRequired: 'Action required',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -3040,6 +3041,8 @@ const translations = {
         hasBeenThrottledError: 'An error occurred while adding your bank account. Please wait a few minutes and try again.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please go to <a href="${workspaceRoute}">your workspace settings</a> to set it to USD and try again.`,
+        bbaAdded: 'Business bank account added!',
+        bbaAddedDescription: "It's ready to be used for payments.",
         error: {
             youNeedToSelectAnOption: 'Please select an option to proceed',
             noBankAccountAvailable: "Sorry, there's no bank account available",
@@ -4830,8 +4833,12 @@ const translations = {
             addShippingDetails: 'Add shipping details',
             issuedCard: ({assignee}: AssigneeParams) => `issued ${assignee} an Expensify Card! The card will arrive in 2-3 business days.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `issued ${assignee} an Expensify Card! The card will be shipped once shipping details are confirmed.`,
-            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `issued ${assignee} a virtual ${link}! The card can be used right away.`,
+            issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `issued ${assignee} a virtual Expensify Card! The ${link} can be used right away.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} added shipping details. Expensify Card will arrive in 2-3 business days.`,
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} replaced their Expensify Card. The new card will arrive in 2-3 business days.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} replaced their virtual Expensify Card! The ${link} can be used right away.`,
+            card: 'card',
+            replacementCard: 'replacement card',
             verifyingHeader: 'Verifying',
             bankAccountVerifiedHeader: 'Bank account verified',
             verifyingBankAccount: 'Verifying bank account...',
@@ -5070,7 +5077,7 @@ const translations = {
             customNameWorkspaceNameExample: 'Workspace name: {report:workspacename}',
             customNameReportIDExample: 'Report ID: {report:id}',
             customNameTotalExample: 'Total: {report:total}.',
-            preventMembersFromChangingCustomNamesTitle: 'Prevent members from changing custom report names',
+            preventMembersFromChangingCustomNamesTitle: 'Prevent members from changing custom report titles',
         },
         reportFields: {
             addField: 'Add field',
@@ -6670,6 +6677,15 @@ const translations = {
             title: 'Update check failed',
             message: "We couldn't check for an update. Please try again in a bit.",
         },
+    },
+    settlement: {
+        status: {
+            pending: 'Pending',
+            cleared: 'Cleared',
+            failed: 'Failed',
+        },
+        failedError: ({link}: {link: string}) => `We'll retry this settlement when you <a href="${link}">unlock your account</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Withdrawal ID: ${withdrawalID}`,
     },
     reportLayout: {
         reportLayout: 'Report layout',

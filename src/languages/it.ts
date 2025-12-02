@@ -700,6 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domini',
         reportName: 'Nome del report',
         showLess: 'Mostra meno',
+        actionRequired: 'Azione richiesta',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',
@@ -2913,6 +2914,8 @@ ${
         hasBeenThrottledError: "Si è verificato un errore durante l'aggiunta del tuo conto bancario. Attendi qualche minuto e riprova.",
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Ops! Sembra che la valuta del tuo spazio di lavoro sia impostata su una valuta diversa da USD. Per procedere, vai a <a href="${workspaceRoute}">le impostazioni del tuo spazio di lavoro</a> impostarlo su USD e riprovare.`,
+        bbaAdded: 'Conto bancario aziendale aggiunto!',
+        bbaAddedDescription: 'È pronto per essere utilizzato per i pagamenti.',
         error: {
             youNeedToSelectAnOption: "Seleziona un'opzione per procedere",
             noBankAccountAvailable: 'Spiacente, non è disponibile alcun conto bancario.',
@@ -4732,6 +4735,10 @@ ${
             issuedCard: ({assignee}: AssigneeParams) => `ha emesso a ${assignee} una Expensify Card! La carta arriverà in 2-3 giorni lavorativi.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
                 `È stata emessa una Expensify Card per ${assignee}! La carta verrà spedita una volta confermati i dettagli di spedizione.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} ha sostituito la sua carta virtuale Expensify! ${link} può essere utilizzato subito.`,
+            card: 'carta',
+            replacementCard: 'carta sostitutiva',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} ha sostituito la sua carta Expensify. La nuova carta arriverà entro 2-3 giorni lavorativi.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `ha emesso ${assignee} una ${link} virtuale! La carta può essere utilizzata immediatamente.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} ha aggiunto i dettagli di spedizione. La Expensify Card arriverà in 2-3 giorni lavorativi.`,
             verifyingHeader: 'Verifica in corso',
@@ -6585,6 +6592,15 @@ ${
             title: 'Aggiornamento del controllo fallito',
             message: "Non siamo riusciti a verificare la presenza di un aggiornamento. Riprova tra un po'.",
         },
+    },
+    settlement: {
+        status: {
+            pending: 'In sospeso',
+            cleared: 'Liquidato',
+            failed: 'Fallito',
+        },
+        failedError: ({link}: {link: string}) => `Riproveremo questa liquidazione quando <a href="${link}">sblocchi il tuo account</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID prelievo: ${withdrawalID}`,
     },
     reportLayout: {
         reportLayout: 'Layout del rapporto',
