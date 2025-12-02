@@ -277,6 +277,7 @@ describe('getIcons', () => {
             type: CONST.REPORT.TYPE.IOU,
             ownerAccountID: 1,
             managerID: 2,
+            transactionCount: 1,
         };
 
         // Verify report type conditions
