@@ -683,6 +683,7 @@ describe('getPrimaryAction', () => {
             getReportPrimaryAction({
                 currentUserAccountID: 0,
                 currentUserEmail: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [transaction],

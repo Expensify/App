@@ -1642,8 +1642,8 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
 
         const result = getSecondaryReportActions({
-            currentUserAccountID: 0,
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions,
