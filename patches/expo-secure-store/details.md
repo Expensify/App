@@ -19,7 +19,11 @@
 - Reason:
 
     ```
-    This patch makes the read and write methods return the authentication type used to access the store.
+    This patch adds the `returnUsedAuthenticationType` flag.
+    When this flag is set to true, the get methods of SecureStore will return a two-element array. 
+    The first value will be the original value returned when this flag is set to false.
+    The second value is the authentication type used to read the value from the AUTH_TYPE object.
+    As for the set function, the returned value will simply be AUTH_TYPE.
     It uses a pre-defined constant that mimics an enum and can also be imported directly from the app.
     ```
 
