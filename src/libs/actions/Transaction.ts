@@ -1307,7 +1307,7 @@ function changeTransactionsReport(
         reportID: destinationReport?.reportID ?? destinationReportID ?? reportID,
         total: destinationTotal,
     };
-    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
+    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation, accountID, email ?? '');
 
     // buildOptimisticNextStep is used in parallel
     // eslint-disable-next-line @typescript-eslint/no-deprecated

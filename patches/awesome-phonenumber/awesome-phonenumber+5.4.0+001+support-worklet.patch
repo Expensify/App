@@ -1,0 +1,56 @@
+diff --git a/node_modules/awesome-phonenumber/index-esm.mjs b/node_modules/awesome-phonenumber/index-esm.mjs
+index 803ef1a..880a73b 100644
+--- a/node_modules/awesome-phonenumber/index-esm.mjs
++++ b/node_modules/awesome-phonenumber/index-esm.mjs
+@@ -623,6 +623,8 @@ const {
+ 
+ const parsePhoneNumber = ( ...args ) =>
+ {
++	'worklet';
++
+ 	try
+ 	{
+ 		const ret = index( ...args ).toJSON( );
+diff --git a/node_modules/awesome-phonenumber/index.js b/node_modules/awesome-phonenumber/index.js
+index a677e9e..a5d9ae9 100644
+--- a/node_modules/awesome-phonenumber/index.js
++++ b/node_modules/awesome-phonenumber/index.js
+@@ -1,6 +1,6 @@
+ const exportedName = 'PhoneNumber$$module$src$index';
+ 
+-module.exports =
++const lib =
+ 	require( './lib' )[ exportedName ] ||
+ 	(
+ 		typeof globalThis !== 'undefined' && globalThis
+@@ -20,9 +20,11 @@ Object.defineProperty(
+ 
+ module.exports.parsePhoneNumber = ( ...args ) =>
+ {
++	'worklet';
++
+ 	try
+ 	{
+-		const ret = module.exports( ...args ).toJSON( );
++		const ret = lib( ...args ).toJSON( );
+ 		if ( !ret.valid && !ret.possible )
+ 		{
+ 			ret.possible = false;
+@@ -42,10 +44,10 @@ module.exports.parsePhoneNumber = ( ...args ) =>
+ 	}
+ };
+ 
+-module.exports.getCountryCodeForRegionCode = module.exports.getCountryCodeForRegionCode;
+-module.exports.getRegionCodeForCountryCode = module.exports.getRegionCodeForCountryCode;
+-module.exports.getSupportedCallingCodes = module.exports.getSupportedCallingCodes;
+-module.exports.getSupportedRegionCodes = module.exports.getSupportedRegionCodes;
+-module.exports.getExample = module.exports.getExample;
+-module.exports.getAsYouType = module.exports.getAsYouType;
+-module.exports.getNumberFrom = module.exports.getNumberFrom;
++module.exports.getCountryCodeForRegionCode = lib.getCountryCodeForRegionCode;
++module.exports.getRegionCodeForCountryCode = lib.getRegionCodeForCountryCode;
++module.exports.getSupportedCallingCodes = lib.getSupportedCallingCodes;
++module.exports.getSupportedRegionCodes = lib.getSupportedRegionCodes;
++module.exports.getExample = lib.getExample;
++module.exports.getAsYouType = lib.getAsYouType;
++module.exports.getNumberFrom = lib.getNumberFrom;

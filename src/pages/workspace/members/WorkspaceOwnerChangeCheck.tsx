@@ -34,6 +34,7 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
         buttonText: '',
     });
     const personalDetails = usePersonalDetails();
+    const userPersonalDetails = personalDetails?.[accountID];
 
     const policyID = policy?.id;
 
@@ -43,9 +44,9 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
             return;
         }
 
-        const texts = getOwnershipChecksDisplayText(error, translate, policy, personalDetails?.[accountID]?.login);
+        const texts = getOwnershipChecksDisplayText(error, translate, policy, userPersonalDetails?.login);
         setDisplayTexts(texts);
-    }, [accountID, error, personalDetails, policy, translate]);
+    }, [error, userPersonalDetails?.login, policy, translate]);
 
     useEffect(() => {
         updateDisplayTexts();
@@ -63,8 +64,8 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
             return;
         }
 
-        requestWorkspaceOwnerChange(policyID);
-    }, [accountID, error, policyID]);
+        requestWorkspaceOwnerChange(policyID, accountID, userPersonalDetails?.login ?? '');
+    }, [accountID, error, policyID, userPersonalDetails?.login]);
 
     return (
         <>
