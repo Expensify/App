@@ -9218,6 +9218,118 @@ describe('actions/IOU', () => {
             // Then: Verify API was called
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.RESOLVE_DUPLICATES, expect.objectContaining({}), expect.objectContaining({}));
         });
+
+        it('should update unheldTotal on the IOU report when putting duplicates on hold', async () => {
+            const reportID = 'report123';
+            const mainTransactionID = 'main123';
+            const duplicate1ID = 'dup456';
+            const duplicate2ID = 'dup789';
+            const duplicateTransactionIDs = [duplicate1ID, duplicate2ID];
+            const childReportID1 = 'child456';
+            const childReportID2 = 'child789';
+            const mainChildReportID = 'mainChild123';
+
+            const mainTransaction = {
+                ...createMockTransaction(mainTransactionID, reportID, -15000),
+                currency: CONST.CURRENCY.USD,
+                reimbursable: true,
+            };
+            const duplicateTransaction1 = {
+                ...createMockTransaction(duplicate1ID, reportID, -10000),
+                currency: CONST.CURRENCY.USD,
+                reimbursable: true,
+            };
+            const duplicateTransaction2 = {
+                ...createMockTransaction(duplicate2ID, reportID, -5000),
+                currency: CONST.CURRENCY.USD,
+                reimbursable: false,
+            };
+
+            const mainViolations = createMockViolations();
+            const duplicate1Violations = createMockViolations();
+            const duplicate2Violations = createMockViolations();
+
+            const iouAction1 = createMockIouAction(duplicate1ID, 'action456', childReportID1);
+            const iouAction2 = createMockIouAction(duplicate2ID, 'action789', childReportID2);
+            const mainIouAction = createMockIouAction(mainTransactionID, 'mainAction123', mainChildReportID);
+
+            const iouReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: 1,
+                total: -30000,
+                unheldTotal: -30000,
+                unheldNonReimbursableTotal: -5000,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${mainTransactionID}`, mainTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate1ID}`, duplicateTransaction1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicate2ID}`, duplicateTransaction2);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mainTransactionID}`, mainViolations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate1ID}`, duplicate1Violations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicate2ID}`, duplicate2Violations);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                action456: iouAction1,
+                action789: iouAction2,
+                mainAction123: mainIouAction,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID1}`, {});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID2}`, {});
+            await waitForBatchedUpdates();
+
+            const resolveParams = {
+                transactionID: mainTransactionID,
+                transactionIDList: duplicateTransactionIDs,
+                created: '2024-01-01 12:00:00',
+                merchant: 'Updated Merchant',
+                amount: 15000,
+                currency: CONST.CURRENCY.USD,
+                category: 'Travel',
+                comment: 'Updated comment',
+                billable: true,
+                reimbursable: true,
+                tag: 'UpdatedProject',
+                receiptID: 123,
+                reportID,
+            };
+
+            resolveDuplicates(resolveParams);
+            await waitForBatchedUpdates();
+
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            expect(updatedReport?.unheldTotal).toBe(-15000);
+            expect(updatedReport?.unheldNonReimbursableTotal).toBe(0);
+
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESOLVE_DUPLICATES,
+                expect.objectContaining({
+                    transactionID: mainTransactionID,
+                    transactionIDList: duplicateTransactionIDs,
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                            value: expect.objectContaining({
+                                unheldTotal: -15000,
+                                unheldNonReimbursableTotal: 0,
+                            }),
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                            value: expect.objectContaining({
+                                unheldTotal: -30000,
+                                unheldNonReimbursableTotal: -5000,
+                            }),
+                        }),
+                    ]),
+                }),
+            );
+        });
     });
 
     describe('getPerDiemExpenseInformation', () => {

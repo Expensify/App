@@ -13054,6 +13054,50 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
 
     optimisticData.push(optimisticTransactionData, ...optimisticTransactionViolations, ...optimisticHoldActions, ...optimisticHoldTransactionActions, optimisticReportActionData);
     failureData.push(failureTransactionData, ...failureTransactionViolations, ...failureHoldActions, ...failureHoldTransactionActions, failureReportActionData);
+
+    // Update unheldTotal and unheldNonReimbursableTotal on the iou report for duplicate transactions being put on hold
+    const iouReport = params.reportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`] : undefined;
+    if (iouReport) {
+        const isExpenseReportLocal = isExpenseReport(iouReport);
+        const coefficient = isExpenseReportLocal ? -1 : 1;
+        let totalHeldAmount = 0;
+        let nonReimbursableHeldAmount = 0;
+
+        for (const duplicateTransactionID of params.transactionIDList) {
+            const duplicateTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateTransactionID}`];
+            if (!duplicateTransaction || duplicateTransaction.currency !== iouReport.currency) {
+                continue;
+            }
+
+            const transactionAmount = getAmount(duplicateTransaction, isExpenseReportLocal) * coefficient;
+            totalHeldAmount += transactionAmount;
+
+            if (!duplicateTransaction.reimbursable) {
+                nonReimbursableHeldAmount += transactionAmount;
+            }
+        }
+
+        if (totalHeldAmount !== 0) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                value: {
+                    unheldTotal: (iouReport.unheldTotal ?? 0) - totalHeldAmount,
+                    unheldNonReimbursableTotal: (iouReport.unheldNonReimbursableTotal ?? 0) - nonReimbursableHeldAmount,
+                },
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                value: {
+                    unheldTotal: iouReport.unheldTotal,
+                    unheldNonReimbursableTotal: iouReport.unheldNonReimbursableTotal,
+                },
+            });
+        }
+    }
+
     const {reportID, transactionIDList, receiptID, ...otherParams} = params;
 
     const parameters: ResolveDuplicatesParams = {
