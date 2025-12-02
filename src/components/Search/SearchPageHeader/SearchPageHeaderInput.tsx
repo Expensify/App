@@ -345,16 +345,20 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         [setSelection, setTextInputValue],
     );
 
-    const searchQueryItem = textInputValue
-        ? {
-              text: textInputValue,
-              singleIcon: expensifyIcons.MagnifyingGlass,
-              searchQuery: textInputValue,
-              itemStyle: styles.activeComponentBG,
-              keyForList: 'findItem',
-              searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
-          }
-        : undefined;
+    const searchQueryItem = useMemo(
+        () =>
+            textInputValue
+                ? {
+                      text: textInputValue,
+                      singleIcon: expensifyIcons.MagnifyingGlass,
+                      searchQuery: textInputValue,
+                      itemStyle: styles.activeComponentBG,
+                      keyForList: 'findItem',
+                      searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+                  }
+                : undefined,
+        [textInputValue, expensifyIcons.MagnifyingGlass, styles.activeComponentBG],
+    );
 
     if (displayNarrowHeader) {
         return (
@@ -461,22 +465,24 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             substitutionMap={autocompleteSubstitutions}
                         />
                     </View>
-                    <View style={[styles.mh65vh, !isAutocompleteListVisible && styles.dNone]}>
-                        <SearchAutocompleteList
-                            autocompleteQueryValue={autocompleteQueryValue}
-                            handleSearch={handleSearchAction}
-                            searchQueryItem={searchQueryItem}
-                            onListItemPress={onListItemPress}
-                            setTextQuery={setTextAndUpdateSelection}
-                            updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                            ref={listRef}
-                            shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
-                            personalDetails={personalDetails}
-                            reports={reports}
-                            allCards={allCards}
-                            allFeeds={allFeeds}
-                        />
-                    </View>
+                    {isAutocompleteListVisible && (
+                        <View style={[styles.mh65vh]}>
+                            <SearchAutocompleteList
+                                autocompleteQueryValue={autocompleteQueryValue}
+                                handleSearch={handleSearchAction}
+                                searchQueryItem={searchQueryItem}
+                                onListItemPress={onListItemPress}
+                                setTextQuery={setTextAndUpdateSelection}
+                                updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                                ref={listRef}
+                                shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
+                                personalDetails={personalDetails}
+                                reports={reports}
+                                allCards={allCards}
+                                allFeeds={allFeeds}
+                            />
+                        </View>
+                    )}
                 </View>
             </View>
             <HelpButton style={[styles.mt1Half]} />
