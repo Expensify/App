@@ -104,7 +104,8 @@ import {
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
     getReportActionActorAccountID,
-    getReportLastMessage,
+    getReportLastMessage, 
+    getReportName,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportPreviewMessage,
@@ -134,8 +135,6 @@ import {
     isTaskReport as reportUtilsIsTaskReport,
     shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportName,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
@@ -661,6 +660,7 @@ function getLastMessageTextForReport({
             : undefined;
         // For workspace chats, use the report title
         if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = formatReportLastMessageText(getReportName(iouReport));
         } else {
             const reportPreviewMessage = getReportPreviewMessage(
@@ -919,6 +919,7 @@ function createOption(
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             : getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -965,6 +966,7 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.text = getReportName(report);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
@@ -1014,6 +1016,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.text = getReportName(report);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
