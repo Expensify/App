@@ -29,7 +29,7 @@ const secondOverlayForSingleRHPProgress = new Animated.Value(0);
 const thirdOverlayProgress = new Animated.Value(0);
 
 // This array contains the names of wide and super wide right modals.
-const WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT]);
+const WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_REPORT]);
 const SUPER_WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT]);
 
 // The width of the left panel in Wide RHP where the receipt is displayed
