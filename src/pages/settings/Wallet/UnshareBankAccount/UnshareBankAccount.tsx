@@ -21,7 +21,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import {clearUnshareBankAccount, clearUnshareBankAccountErrors, unshareBankAccount} from '@userActions/BankAccounts';
+import {clearUnshareBankAccountErrors, unshareBankAccount} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,6 +39,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
 
     const [unsharedBankAccountData] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT, {canBeMissing: true});
     const isLoading = unsharedBankAccountData?.isLoading ?? false;
+    const shouldShowSuccess = unsharedBankAccountData?.shouldShowSuccess ?? false;
 
     const [unshareUser, setUnshareUser] = useState<{login?: string | null; text?: string | null} | undefined>(undefined);
 
@@ -51,13 +52,13 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
 
     useEffect(() => {
-        return () => {
-            if (isLoading) {
-                return;
-            }
-            clearUnshareBankAccount();
-        };
-    }, [isLoading]);
+        if (!shouldShowSuccess) {
+            return;
+        }
+        if (!admins?.length) {
+            Navigation.goBack();
+        }
+    }, [admins?.length, shouldShowSuccess]);
 
     const handleUnshare = useCallback(() => {
         if (!bankAccountID || !unshareUser?.login) {

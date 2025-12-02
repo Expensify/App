@@ -11,6 +11,9 @@ type UnshareBankAccount = {
     /** Unshare admin email */
     email?: string;
 
+    /** Whether we should show the view that the bank account was successfully unshared */
+    shouldShowSuccess?: boolean;
+
     /** Whether the form is loading */
     isLoading?: boolean;
 };
