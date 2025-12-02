@@ -400,7 +400,7 @@ function MoneyRequestParticipantsSelector({
 
             onFinish(CONST.IOU.TYPE.SPLIT);
         },
-        [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, selectedOptions],
+        [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, selectedOptions.length],
     );
 
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
@@ -526,7 +526,7 @@ function MoneyRequestParticipantsSelector({
                 isInSearch={false}
             />
         );
-    }, [searchTerm, isSearchingForReports, contactState?.showImportUI, showImportContacts, translate]);
+    }, [searchTerm.length, isSearchingForReports, contactState?.showImportUI, showImportContacts, translate]);
     const EmptySelectionListContentWithPermission = useMemo(() => {
         return (
             <>
