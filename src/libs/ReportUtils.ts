@@ -1208,14 +1208,14 @@ Onyx.connect({
     },
 });
 
-let selfDMReportID: string | undefined;
+let existingSelfDMReportID: string | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.SELF_DM_REPORT_ID,
     callback: (value) => {
         if (!value) {
             return;
         }
-        selfDMReportID = value;
+        existingSelfDMReportID = value;
     },
 });
 
@@ -1869,8 +1869,8 @@ function findSelfDMReportID(): string | undefined {
         return;
     }
 
-    if (selfDMReportID) {
-        return selfDMReportID;
+    if (existingSelfDMReportID) {
+        return existingSelfDMReportID;
     }
 
     const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
@@ -6605,7 +6605,7 @@ function buildOptimisticTaskCommentReportAction(
 
 function buildOptimisticSelfDMReport(created: string): Report {
     return {
-        reportID: selfDMReportID ?? generateReportID(),
+        reportID: existingSelfDMReportID ?? generateReportID(),
         participants: {
             [currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
