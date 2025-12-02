@@ -86,7 +86,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
-    const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction]);
+    const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction?.comment?.splitExpenses]);
     const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
 
     const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
@@ -101,8 +101,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const currentUserLogin = currentUserPersonalDetails.login ?? '';
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const {isBetaEnabled} = usePermissions();
@@ -193,8 +191,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             iouReport,
             firstIOU: iouActions.at(0),
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-            currentUserAccountIDParam: currentUserAccountID,
-            currentUserEmailParam: currentUserLogin,
+            currentUserPersonalDetails,
             transactionViolations,
         });
     }, [
@@ -218,14 +215,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         policyRecentlyUsedCategories,
         iouReport,
         iouActions,
+        currentUserPersonalDetails,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
         transactionDetails?.currency,
         isBetaEnabled,
         transactionViolations,
-        currentUserAccountID,
-        currentUserLogin,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
@@ -321,7 +317,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 )}
             </View>
         );
-    }, [onAddSplitExpense, onMakeSplitsEven, translate, childTransactions, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
+    }, [onAddSplitExpense, onMakeSplitsEven, translate, childTransactions.length, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
 
     const footerContent = useMemo(() => {
         const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
