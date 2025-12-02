@@ -3,10 +3,10 @@ import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import type {ExpenseReportListItemType} from '@components/SelectionListWithSections/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -57,6 +57,7 @@ function ExpenseReportListItemRow({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     const {total, currency} = useMemo(() => {
         let reportTotal = item.total ?? 0;
@@ -208,7 +209,7 @@ function ExpenseReportListItemRow({
             </View>
             <View style={styles.ml2}>
                 <Icon
-                    src={Expensicons.ArrowRight}
+                    src={expensifyIcons.ArrowRight}
                     width={variables.iconSizeSmall}
                     height={variables.iconSizeSmall}
                     fill={theme.icon}

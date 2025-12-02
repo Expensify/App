@@ -1522,9 +1522,9 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getActions(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0)).toStrictEqual(
                 CONST.SEARCH.ACTION_TYPES.VIEW,
             );
-            expect(
-                SearchUIUtils.getActions(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0),
-            ).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0)).toStrictEqual(
+                CONST.SEARCH.ACTION_TYPES.VIEW,
+            );
         });
 
         test('Should return `Paid` action for a manually settled report', () => {
