@@ -487,7 +487,7 @@ function MoneyReportHeader({
                         offset: 0,
                         queryJSON: currentSearchQueryJSON,
                         isOffline,
-                        isLoading: !!currentSearchResults?.search.isLoading,
+                        isLoading: !!currentSearchResults?.search?.isLoading,
                     });
                 }
             }
@@ -507,7 +507,7 @@ function MoneyReportHeader({
             currentSearchQueryJSON,
             currentSearchKey,
             isOffline,
-            currentSearchResults?.search.isLoading,
+            currentSearchResults?.search?.isLoading,
         ],
     );
 
@@ -799,7 +799,7 @@ function MoneyReportHeader({
                             offset: 0,
                             queryJSON: currentSearchQueryJSON,
                             isOffline,
-                            isLoading: !!currentSearchResults?.search.isLoading,
+                            isLoading: !!currentSearchResults?.search?.isLoading,
                         });
                     }
                 }}
