@@ -50,17 +50,19 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, isFocused =
 
         const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling: boolean) => {
             isScrollingRef.current = scrolling;
-            if (scrolling && isHovered) {
+            if (scrolling && isHoveredRef.current) {
+                isHoveredRef.current = false;
                 setIsHovered(false);
                 onHoverOut?.();
             } else if (!scrolling && elementRef.current?.matches(':hover')) {
+                isHoveredRef.current = true;
                 setIsHovered(true);
                 onHoverIn?.();
             }
         });
 
         return () => scrollingListener.remove();
-    }, [shouldHandleScroll, isHovered, onHoverIn, onHoverOut]);
+    }, [shouldHandleScroll, onHoverIn, onHoverOut]);
 
     useEffect(() => {
         const handleVisibilityChange = () => {
