@@ -37,6 +37,7 @@ function Provider({children, reportID}: Props) {
   const [isFocused, setIsFocused] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
+  // Could live on a list-level Provider
   function onPress() {
       // Implement onPress logic here
       console.log('Pressed', reportID);
