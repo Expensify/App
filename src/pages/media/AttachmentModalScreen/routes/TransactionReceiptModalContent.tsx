@@ -120,7 +120,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 setSourceUri(uri);
             })
             .catch(() => setSourceUri(''));
-    }, [source, isLocalFile, session?.encryptedAuthToken, isDraftTransaction]);
+    }, [source, isLocalFile, session?.encryptedAuthToken, isDraftTransaction, isImage]);
 
     const receiptPath = transaction?.receipt?.source;
 
@@ -130,7 +130,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         }
 
         const requestType = getRequestType(transaction);
-        const receiptFilename = getReceiptFilenameFromTransaction(transaction);
         const receiptType = transaction?.receipt?.type;
         navigateToStartStepIfScanFileCannotBeRead(
             receiptFilename,
@@ -224,16 +223,15 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 });
             }
         });
-    }, [transaction, source, isDraftTransaction, receiptURIs.image, sourceUri, isImage, receiptFilename, policyCategories]);
+    }, [transaction?.transactionID, source, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories]);
 
-    const receiptFilenameForRotation = transaction ? getReceiptFilenameFromTransaction(transaction) : undefined;
     const shouldShowRotateReceiptButton =
         shouldShowReplaceReceiptButton &&
         transaction &&
         hasReceiptSource(transaction) &&
         !isEReceipt &&
         !transaction?.receipt?.isTestDriveReceipt &&
-        (receiptFilenameForRotation ? Str.isImage(receiptFilenameForRotation) : false);
+        (receiptFilename ? Str.isImage(receiptFilename) : false);
 
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {

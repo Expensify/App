@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 export default function fetchImage(source: string, authToken: string) {
     // Create a unique filename based on timestamp
     const timestamp = Date.now();
-    const extension = source.split('.').pop()?.split('?')[0] || 'jpg';
+    const extension = source.split('.').pop()?.split('?')?.at(0) ?? 'jpg';
     const filename = `temp_image_${timestamp}.${extension}`;
     const path = `${RNFetchBlob.fs.dirs.CacheDir}/${filename}`;
 
