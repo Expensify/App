@@ -55,7 +55,6 @@ import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
-    getGroupChatName,
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
     getMoneyReportPreviewName,
