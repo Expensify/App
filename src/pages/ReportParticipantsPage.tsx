@@ -417,7 +417,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(computeReportName(report, undefined, undefined, undefined, undefined, reportAttributes))}
+                    subtitle={StringUtils.lineBreaksToSpaces(computeReportName(report))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal
