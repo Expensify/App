@@ -1613,6 +1613,7 @@ describe('ReportUtils', () => {
                             const forceUpgradeAction: ReportAction = {
                                 ...baseParentReportAction,
                                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE,
+                                isAttachmentOnly: false,
                                 message: [
                                     {
                                         type: 'COMMENT',
