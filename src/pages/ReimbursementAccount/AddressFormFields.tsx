@@ -12,6 +12,23 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
+type AddressInputKeys = {
+    street: string;
+    street2?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
+    zipPostCode?: string;
+    addressLine1?: string;
+    addressLine2?: string;
+    lat?: string;
+    lng?: string;
+    zipCode?: string;
+    address?: string;
+    current?: string;
+};
+
 type AddressErrors = Record<keyof Address, boolean>;
 
 type AddressFormProps = {
@@ -28,7 +45,7 @@ type AddressFormProps = {
     errors?: AddressErrors;
 
     /** The map for inputID of the inputs */
-    inputKeys: Address;
+    inputKeys: AddressInputKeys;
 
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;

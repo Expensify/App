@@ -4,6 +4,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
+import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {BillingStatusResult} from '@src/pages/settings/Subscription/CardSection/utils';
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
@@ -16,6 +17,7 @@ function translateMock<TPath extends TranslationPaths>(path: TPath, ...phrasePar
     return path;
 }
 
+const LOCALE = CONST.LOCALES.DEFAULT;
 const AMOUNT_OWED = 100;
 const GRACE_PERIOD_DATE = 1750819200;
 
@@ -49,17 +51,17 @@ describe('getNextBillingDate', () => {
     it('should return the next billing date when initial date is valid', () => {
         const expectedNextBillingDate = 'August 1, 2024';
 
-        expect(CardSectionUtils.getNextBillingDate()).toEqual(expectedNextBillingDate);
+        expect(CardSectionUtils.getNextBillingDate(LOCALE)).toEqual(expectedNextBillingDate);
     });
 
     it('should handle end-of-month edge cases correctly', () => {
-        const nextBillingDate = CardSectionUtils.getNextBillingDate();
+        const nextBillingDate = CardSectionUtils.getNextBillingDate(LOCALE);
         const expectedNextBillingDate = 'August 1, 2024';
         expect(nextBillingDate).toBe(expectedNextBillingDate);
     });
 
     it('should handle date when it at the current month', () => {
-        const nextBillingDate = CardSectionUtils.getNextBillingDate();
+        const nextBillingDate = CardSectionUtils.getNextBillingDate(LOCALE);
         const expectedNextBillingDate = 'August 1, 2024';
         expect(nextBillingDate).toBe(expectedNextBillingDate);
     });
@@ -67,7 +69,7 @@ describe('getNextBillingDate', () => {
     it('should return the next billing date when initial date is invalid', () => {
         const expectedNextBillingDate = 'August 1, 2024';
 
-        expect(CardSectionUtils.getNextBillingDate()).toEqual(expectedNextBillingDate);
+        expect(CardSectionUtils.getNextBillingDate(LOCALE)).toEqual(expectedNextBillingDate);
     });
 });
 

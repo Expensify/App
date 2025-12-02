@@ -16,6 +16,11 @@ function useShowWideRHPVersion(condition: boolean) {
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
     const {showWideRHPVersion, removeWideRHPRouteKey, isReportIDMarkedAsExpense, setIsWideRHPClosing} = useContext(WideRHPContext);
 
+    // When switching between reports using the arrow keys, the transition is completed when the new report screen is mounted.
+    useEffect(() => {
+        setIsWideRHPClosing(false);
+    }, [setIsWideRHPClosing]);
+
     // beforeRemove event is not called when closing nested Wide RHP using the browser back button.
     // This hook removes the route key from the array in the following case.
     useEffect(() => () => removeWideRHPRouteKey(route), [removeWideRHPRouteKey, route]);

@@ -8,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -36,7 +37,7 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
         navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
     };
 
-    const handleItemPress = ({methodID}: PaymentMethodPressHandlerParams) => {
+    const handleItemPress = ({methodID, accountData}: PaymentMethodPressHandlerParams) => {
         const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
         setWorkspaceReimbursement({
             policyID: route.params.policyID,
@@ -46,7 +47,14 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
             lastPaymentMethod: lastPaymentMethod?.[policyID],
             shouldUpdateLastPaymentMethod: true,
         });
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
+
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            if (isBankAccountPartiallySetup(accountData?.state)) {
+                navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+            } else {
+                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
+            }
+        });
     };
 
     return (
@@ -68,6 +76,7 @@ function WorkspaceWorkflowsConnectExistingBankAccountPage({route}: WorkspaceWork
                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                     itemIconRight={Expensicons.ArrowRight}
                     filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
+                    filterCurrency={policy?.outputCurrency ?? ''}
                     shouldHideDefaultBadge
                 />
             </ScrollView>

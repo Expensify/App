@@ -47,6 +47,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the header of list component. */
     customListHeaderContent?: React.JSX.Element | null;
 
+    /** Custom component to render while data is loading */
+    customLoadingPlaceholder?: React.JSX.Element;
+
     /** Custom content to display in the footer */
     footerContent?: React.ReactNode;
 
@@ -147,6 +150,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
 
     /** Whether hover style should be disabled */
     shouldDisableHoverStyle?: boolean;
