@@ -595,6 +595,14 @@ function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] 
         }
     }
 
+    // Sort matches by line number first, then by column number
+    matches.sort((a, b) => {
+        if (a.line !== b.line) {
+            return a.line - b.line;
+        }
+        return a.column - b.column;
+    });
+
     return matches;
 }
 
