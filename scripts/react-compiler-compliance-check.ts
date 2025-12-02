@@ -583,12 +583,12 @@ function enforceNewComponentGuard({failures}: CompilerResults, diffResult: DiffR
 function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] {
     const matches: ManualMemoizationMatch[] = [];
 
-    let regexMatch: RegExpExecArray | null;
     for (const keyword of Object.keys(MANUAL_MEMOIZATION_PATTERNS) as ManualMemoizationKeyword[]) {
         const regex = MANUAL_MEMOIZATION_PATTERNS[keyword];
         regex.lastIndex = 0;
-        regexMatch = regex.exec(source);
-        if (regexMatch) {
+
+        let regexMatch: RegExpExecArray | null;
+        while ((regexMatch = regex.exec(source)) !== null) {
             const matchIndex = regexMatch.index;
             const {line, column} = getLineAndColumnFromIndex(source, matchIndex);
             matches.push({keyword, line, column});
