@@ -161,8 +161,14 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
             op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
         });
+
+        if (!shouldUseNarrowLayout && isRoutePreloaded(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
+            navigationRef.dispatch(StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
+            return;
+        }
+
         Navigation.navigate(ROUTES.HOME);
-    }, [selectedTab]);
+    }, [selectedTab, shouldUseNarrowLayout]);
 
     const navigateToSearch = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SEARCH) {
