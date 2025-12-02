@@ -681,6 +681,7 @@ describe('getPrimaryAction', () => {
 
         expect(
             getReportPrimaryAction({
+                currentUserAccountID: 0,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 report,
                 chatReport,
