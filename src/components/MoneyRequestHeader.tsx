@@ -112,9 +112,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, email, accountID} = useCurrentUserPersonalDetails();
     const isOnHold = isOnHoldTransactionUtils(transaction);
-    const isDuplicate = isDuplicateTransactionUtils(transaction);
+    const isDuplicate = isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, policy);
     const reportID = report?.reportID;
     const {removeTransaction, currentSearchHash} = useSearchContext();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
@@ -169,7 +169,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
             return {icon: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
-        if (shouldShowBrokenConnectionViolation) {
+        if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
             return {
                 icon: getStatusIcon(Expensicons.Hourglass),
                 description: (
@@ -195,8 +195,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         if (!report || !parentReport || !transaction) {
             return '';
         }
-        return getTransactionThreadPrimaryAction(currentUserLogin ?? '', report, parentReport, transaction, transactionViolations, policy, isFromReviewDuplicates);
-    }, [parentReport, policy, report, transaction, transactionViolations, isFromReviewDuplicates, currentUserLogin]);
+        return getTransactionThreadPrimaryAction(currentUserLogin ?? '', accountID, report, parentReport, transaction, transactionViolations, policy, isFromReviewDuplicates);
+    }, [parentReport, policy, report, transaction, transactionViolations, isFromReviewDuplicates, currentUserLogin, accountID]);
 
     const primaryActionImplementation = {
         [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD]: (

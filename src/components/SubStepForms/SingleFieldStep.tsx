@@ -1,4 +1,4 @@
-import React, {forwardRef, useRef} from 'react';
+import React, {useRef} from 'react';
 import type {InputModeOptions} from 'react-native';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -140,4 +140,4 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
 
 SingleFieldStep.displayName = 'SingleFieldStep';
 
-export default forwardRef(SingleFieldStep);
+export default SingleFieldStep;

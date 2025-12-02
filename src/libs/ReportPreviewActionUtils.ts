@@ -2,7 +2,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
-import {getCurrentUserAccountID} from './actions/Report';
 import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPolicyAdmin, isPreferredExporter} from './PolicyUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
@@ -29,7 +28,15 @@ import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isPending, isScanning, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
 
-function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
+function canSubmit(
+    report: Report,
+    violations: OnyxCollection<TransactionViolation[]>,
+    isReportArchived: boolean,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    policy?: Policy,
+    transactions?: Transaction[],
+) {
     if (isReportArchived) {
         return false;
     }
@@ -37,14 +44,15 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenReport(report);
-    const isManager = report.managerID === getCurrentUserAccountID();
+    const isManager = report.managerID === currentUserAccountID;
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 
-    const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations);
+    const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations, currentUserAccountID, currentUserEmail);
+
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
@@ -56,22 +64,33 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !hasAnyViolations && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
-function canApprove(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[], shouldConsiderViolations = true) {
-    const currentUserID = getCurrentUserAccountID();
+function canApprove(
+    report: Report,
+    violations: OnyxCollection<TransactionViolation[]>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    policy: Policy | undefined,
+    transactions: Transaction[],
+    shouldConsiderViolations = true,
+) {
     const isExpense = isExpenseReport(report);
     const isProcessing = isProcessingReport(report);
-    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
-    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserManager = managerID === currentUserID;
-    const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations);
-    const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
-    const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    const managerID = report.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
+
+    // We should consider only visible violations for the approver, invisible violations should not block approval
+    const reportTransactions = transactions.length ? transactions : getReportTransactions(report?.reportID);
+    const hasAnyVisibleViolations =
+        hasMissingSmartscanFields(report.reportID, reportTransactions) ||
+        ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, currentUserAccountID, policy, reportTransactions);
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
         return false;
     }
 
-    if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 
@@ -82,13 +101,15 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
         return false;
     }
 
-    return isExpense && isProcessing && !!isApprovalEnabled && (!hasAnyViolations || !shouldConsiderViolations) && reportTransactions.length > 0 && isCurrentUserManager;
+    return isExpense && isProcessing && !!isApprovalEnabled && (!hasAnyVisibleViolations || !shouldConsiderViolations) && reportTransactions.length > 0 && isCurrentUserManager;
 }
 
 function canPay(
     report: Report,
     violations: OnyxCollection<TransactionViolation[]>,
     isReportArchived: boolean,
+    currentUserAccountID: number,
+    currentUserEmail: string,
     policy?: Policy,
     invoiceReceiverPolicy?: Policy,
     shouldConsiderViolations = true,
@@ -109,7 +130,7 @@ function canPay(
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isReimbursed = isSettled(report);
 
-    const hasAnyViolations = hasAnyViolationsUtil(report.reportID, violations);
+    const hasAnyViolations = hasAnyViolationsUtil(report.reportID, violations, currentUserAccountID, currentUserEmail);
 
     if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && (!hasAnyViolations || !shouldConsiderViolations) && reimbursableSpend !== 0) {
         return true;
@@ -133,13 +154,13 @@ function canPay(
 
     const parentReport = getParentReport(report);
     if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL && reimbursableSpend > 0) {
-        return parentReport?.invoiceReceiver?.accountID === getCurrentUserAccountID();
+        return parentReport?.invoiceReceiver?.accountID === currentUserAccountID;
     }
 
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, currentUserAccountID: number, currentUserEmail: string, policy?: Policy) {
     const isExpense = isExpenseReport(report);
     const isExporter = policy ? isPreferredExporter(policy) : false;
     const isReimbursed = isSettled(report);
@@ -147,7 +168,7 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
     const isApproved = isReportApproved({report});
     const connectedIntegration = getValidConnectedIntegration(policy);
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
-    const hasAnyViolations = hasAnyViolationsUtil(report.reportID, violations);
+    const hasAnyViolations = hasAnyViolationsUtil(report.reportID, violations, currentUserAccountID, currentUserEmail);
 
     if (!connectedIntegration || !isExpense || !isExporter) {
         return false;
@@ -170,9 +191,17 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
     return (isApproved || isReimbursed || isClosed) && !hasAnyViolations;
 }
 
-function canReview(report: Report, violations: OnyxCollection<TransactionViolation[]>, isReportArchived: boolean, currentUserEmail: string, policy?: Policy, transactions?: Transaction[]) {
-    const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations);
-    const hasVisibleViolations = hasAnyViolations && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, policy, transactions);
+function canReview(
+    report: Report,
+    violations: OnyxCollection<TransactionViolation[]>,
+    isReportArchived: boolean,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    policy: Policy | undefined,
+    transactions: Transaction[],
+) {
+    const hasAnyViolations = hasMissingSmartscanFields(report.reportID, transactions) || hasAnyViolationsUtil(report.reportID, violations, currentUserAccountID, currentUserEmail);
+    const hasVisibleViolations = hasAnyViolations && ViolationsUtils.hasVisibleViolationsForUser(report, violations, currentUserEmail, currentUserAccountID, policy, transactions);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenExpenseReport(report);
     const isReimbursed = isSettled(report);
@@ -181,17 +210,16 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
         !hasVisibleViolations ||
         isReimbursed ||
         (!(isSubmitter && isOpen && policy?.areWorkflowsEnabled) &&
-            !canApprove(report, violations, policy, transactions, false) &&
-            !canPay(report, violations, isReportArchived, policy, policy, false))
+            !canApprove(report, violations, currentUserEmail, currentUserAccountID, policy, transactions, false) &&
+            !canPay(report, violations, isReportArchived, currentUserAccountID, currentUserEmail, policy, policy, false))
     ) {
         return false;
     }
 
     // We handle RTER violations independently because those are not configured via policy workflows
     const isAdmin = isPolicyAdmin(policy);
-    const transactionIDs = transactions?.map((transaction) => transaction.transactionID) ?? [];
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations);
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, currentUserEmail, currentUserAccountID, report, policy);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, report, policy, violations, currentUserEmail, currentUserAccountID);
 
     if (hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!isAdmin || isSubmitter) && !isReportApproved({report}) && !isReportManuallyReimbursed(report))) {
         return true;
@@ -209,9 +237,10 @@ function getReportPreviewAction(
     violations: OnyxCollection<TransactionViolation[]>,
     isReportArchived: boolean,
     currentUserEmail: string,
-    report?: Report,
-    policy?: Policy,
-    transactions?: Transaction[],
+    currentUserAccountID: number,
+    report: Report | undefined,
+    policy: Policy | undefined,
+    transactions: Transaction[],
     invoiceReceiverPolicy?: Policy,
     isPaidAnimationRunning?: boolean,
     isApprovedAnimationRunning?: boolean,
@@ -231,29 +260,36 @@ function getReportPreviewAction(
     if (isSubmittingAnimationRunning) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
-    if (isAddExpenseAction(report, transactions ?? [], isReportArchived)) {
+    if (isAddExpenseAction(report, transactions, isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
     // When strict policy rules are enabled and there are violations, show REVIEW button instead of SUBMIT
-    const shouldBlockSubmit = shouldBlockSubmitDueToStrictPolicyRules(report.reportID, violations, areStrictPolicyRulesEnabled ?? false, transactions);
-    if (shouldBlockSubmit && canReview(report, violations, isReportArchived, currentUserEmail, policy, transactions)) {
+    const shouldBlockSubmit = shouldBlockSubmitDueToStrictPolicyRules(
+        report.reportID,
+        violations,
+        areStrictPolicyRulesEnabled ?? false,
+        currentUserAccountID,
+        currentUserEmail,
+        transactions,
+    );
+    if (shouldBlockSubmit && canReview(report, violations, isReportArchived, currentUserEmail, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 
-    if (canSubmit(report, violations, isReportArchived, policy, transactions)) {
+    if (canSubmit(report, violations, isReportArchived, currentUserEmail, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
-    if (canApprove(report, violations, policy, transactions)) {
+    if (canApprove(report, violations, currentUserEmail, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, violations, isReportArchived, policy, invoiceReceiverPolicy)) {
+    if (canPay(report, violations, isReportArchived, currentUserAccountID, currentUserEmail, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, violations, policy)) {
+    if (canExport(report, violations, currentUserAccountID, currentUserEmail, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
-    if (canReview(report, violations, isReportArchived, currentUserEmail, policy, transactions)) {
+    if (canReview(report, violations, isReportArchived, currentUserEmail, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 

@@ -119,6 +119,7 @@ import {
     isCardIssuedAction,
     isChronosOOOListAction,
     isConciergeCategoryOptions,
+    isConciergeDescriptionOptions,
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
@@ -131,6 +132,7 @@ import {
     isReimbursementQueuedAction,
     isRenamedAction,
     isResolvedConciergeCategoryOptions,
+    isResolvedConciergeDescriptionOptions,
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTagModificationAction,
     isTaskAction,
@@ -148,6 +150,7 @@ import {
     getDeletedTransactionMessage,
     getDisplayNamesWithTooltips,
     getDowngradeWorkspaceMessage,
+    getForcedCorporateUpgradeMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
     getPolicyChangeMessage,
@@ -172,7 +175,13 @@ import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {resolveFraudAlert} from '@userActions/Card';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
-import {createTransactionThreadReport, expandURLPreview, resolveActionableMentionConfirmWhisper, resolveConciergeCategoryOptions} from '@userActions/Report';
+import {
+    createTransactionThreadReport,
+    expandURLPreview,
+    resolveActionableMentionConfirmWhisper,
+    resolveConciergeCategoryOptions,
+    resolveConciergeDescriptionOptions,
+} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -696,7 +705,8 @@ function PureReportActionItem({
         },
         [
             draftMessage,
-            action,
+            action.errors,
+            action.reportActionID,
             reportID,
             toggleContextMenuFromActiveReportAction,
             originalReportID,
@@ -773,6 +783,29 @@ function PureReportActionItem({
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
                     resolveConciergeCategoryOptions(reportActionReportID, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                },
+            }));
+        }
+
+        if (isConciergeDescriptionOptions(action)) {
+            const options = getOriginalMessage(action)?.options;
+            if (!options) {
+                return [];
+            }
+
+            if (isResolvedConciergeDescriptionOptions(action)) {
+                return [];
+            }
+
+            if (!reportActionReportID) {
+                return [];
+            }
+
+            return options.map((option, i) => ({
+                text: `${i + 1} - ${option}`,
+                key: `${action.reportActionID}-conciergeDescriptionOptions-${option}`,
+                onPress: () => {
+                    resolveConciergeDescriptionOptions(reportActionReportID, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                 },
             }));
         }
@@ -1137,7 +1170,11 @@ function PureReportActionItem({
         } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
-            children = <ReportActionItemBasicMessage message={modifiedExpenseMessage} />;
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<comment><muted-text>${modifiedExpenseMessage}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
             const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
             if (wasSubmittedViaHarvesting) {
@@ -1224,6 +1261,12 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getRejectedReportMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
             children = <ReportActionItemBasicMessage message={getUpgradeWorkspaceMessage()} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<muted-text>${getForcedCorporateUpgradeMessage()}</muted-text>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
             children = <ReportActionItemBasicMessage message={getDowngradeWorkspaceMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
@@ -1467,8 +1510,15 @@ function PureReportActionItem({
                                     {actionableItemButtons.length > 0 && (
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
-                                            layout={isActionableTrackExpense(action) || isConciergeCategoryOptions(action) || isActionableMentionWhisper(action) ? 'vertical' : 'horizontal'}
-                                            shouldUseLocalization={!isConciergeCategoryOptions(action)}
+                                            layout={
+                                                isActionableTrackExpense(action) ||
+                                                isConciergeCategoryOptions(action) ||
+                                                isConciergeDescriptionOptions(action) ||
+                                                isActionableMentionWhisper(action)
+                                                    ? 'vertical'
+                                                    : 'horizontal'
+                                            }
+                                            shouldUseLocalization={!isConciergeCategoryOptions(action) && !isConciergeDescriptionOptions(action)}
                                         />
                                     )}
                                 </View>

@@ -42,6 +42,7 @@ async function mergeSourceMaps() {
         });
 
         // Add the sources content
+        // eslint-disable-next-line unicorn/no-array-for-each
         consumer.sources.forEach((sourceFile: string) => {
             const content = consumer.sourceContentFor(sourceFile);
             if (content) {

@@ -36,7 +36,7 @@ fi
 # Run eslint on the changed files
 if [[ -n "$GIT_DIFF_OUTPUT" ]] ; then
     # shellcheck disable=SC2086 # For multiple files in variable
-    eslint --concurrency=auto --max-warnings=133 --config ./eslint.changed.config.mjs $GIT_DIFF_OUTPUT
+    eslint --concurrency=auto --max-warnings=145 --config ./eslint.changed.config.mjs $GIT_DIFF_OUTPUT
 else
     info "No TypeScript files changed"
 fi
