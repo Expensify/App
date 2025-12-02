@@ -31,6 +31,7 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import FormHelpMessage from '@components/FormHelpMessage';
 
 type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
@@ -79,11 +80,11 @@ function IOURequestStepDistanceOdometer({
         }
     }, [odometerStart, odometerEnd]);
 
-    // Calculate total distance
+    // Calculate total distance - updated live after every input change
     const totalDistance = useMemo(() => {
         const start = parseFloat(startReading);
         const end = parseFloat(endReading);
-        if (isNaN(start) || isNaN(end)) {
+        if (isNaN(start) || isNaN(end) || !startReading || !endReading) {
             return null;
         }
         return end - start;
@@ -118,12 +119,14 @@ function IOURequestStepDistanceOdometer({
 
     const handleStartReadingChange = useCallback(
         (text: string) => {
-            setStartReading(text);
+            // Only allow digits
+            const digitsOnly = text.replace(/[^0-9]/g, '');
+            setStartReading(digitsOnly);
             if (formError) {
                 setFormError('');
             }
             // Save to transaction immediately
-            const startValue = text ? parseFloat(text) : null;
+            const startValue = digitsOnly ? parseFloat(digitsOnly) : null;
             const endValue = endReading ? parseFloat(endReading) : null;
             if (startValue !== null && !isNaN(startValue)) {
                 setMoneyRequestOdometerReading(transactionID, startValue, endValue ?? null, isTransactionDraft);
@@ -134,13 +137,15 @@ function IOURequestStepDistanceOdometer({
 
     const handleEndReadingChange = useCallback(
         (text: string) => {
-            setEndReading(text);
+            // Only allow digits
+            const digitsOnly = text.replace(/[^0-9]/g, '');
+            setEndReading(digitsOnly);
             if (formError) {
                 setFormError('');
             }
             // Save to transaction immediately
             const startValue = startReading ? parseFloat(startReading) : null;
-            const endValue = text ? parseFloat(text) : null;
+            const endValue = digitsOnly ? parseFloat(digitsOnly) : null;
             if (endValue !== null && !isNaN(endValue)) {
                 setMoneyRequestOdometerReading(transactionID, startValue ?? null, endValue, isTransactionDraft);
             }
@@ -204,113 +209,112 @@ function IOURequestStepDistanceOdometer({
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
         >
-            <View style={[styles.flex1, styles.ph5]}>
-                {/* Start Reading */}
-                <View style={[styles.mb4, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                    <View style={[styles.flex1]}>
-                        <TextInput
-                            ref={startReadingInputRef}
-                            label={translate('distance.odometer.startReading')}
-                            value={startReading}
-                            onChangeText={handleStartReadingChange}
-                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            inputMode={CONST.INPUT_MODE.NUMERIC}
-                            placeholder="0"
-                            errorText={formError && !startReading ? formError : ''}
-                        />
+            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.mb5]}>
+                <View>
+                    {/* Start Reading */}
+                    <View style={[styles.mb4, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                        <View style={[styles.flex1]}>
+                            <TextInput
+                                ref={startReadingInputRef}
+                                label={translate('distance.odometer.startReading')}
+                                value={startReading}
+                                onChangeText={handleStartReadingChange}
+                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                inputMode={CONST.INPUT_MODE.NUMERIC}
+                            />
+                        </View>
+                        <PressableWithFeedback
+                            accessible={false}
+                            onPress={() => handleCaptureImage('start')}
+                            style={[
+                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
+                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                styles.overflowHidden,
+                                StyleUtils.getBackgroundColorStyle(theme.border),
+                            ]}
+                        >
+                            <ReceiptImage
+                                source={startImageSource ? startImageSource : ''}
+                                shouldUseThumbnailImage
+                                thumbnailContainerStyles={styles.bgTransparent}
+                                isAuthTokenRequired
+                                fallbackIcon={Gallery}
+                                fallbackIconSize={20}
+                                fallbackIconColor={theme.icon}
+                                iconSize="x-small"
+                                loadingIconSize="small"
+                                shouldUseInitialObjectPosition
+                            />
+                        </PressableWithFeedback>
                     </View>
-                    <PressableWithFeedback
-                        accessible={false}
-                        onPress={() => handleCaptureImage('start')}
-                        style={[
-                            StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
-                            StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                            styles.overflowHidden,
-                            StyleUtils.getBackgroundColorStyle(theme.border),
-                        ]}
-                    >
-                        <ReceiptImage
-                            source={startImageSource ? startImageSource : ''}
-                            shouldUseThumbnailImage
-                            thumbnailContainerStyles={styles.bgTransparent}
-                            isAuthTokenRequired
-                            fallbackIcon={Gallery}
-                            fallbackIconSize={20}
-                            fallbackIconColor={theme.icon}
-                            iconSize="x-small"
-                            loadingIconSize="small"
-                            shouldUseInitialObjectPosition
-                        />
-                    </PressableWithFeedback>
-                </View>
 
-                {/* End Reading */}
-                <View style={[styles.mb4, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                    <View style={[styles.flex1]}>
-                        <TextInput
-                            ref={endReadingInputRef}
-                            label={translate('distance.odometer.endReading')}
-                            value={endReading}
-                            onChangeText={handleEndReadingChange}
-                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            inputMode={CONST.INPUT_MODE.NUMERIC}
-                            placeholder="0"
-                            errorText={formError && !endReading ? formError : ''}
-                        />
+                    {/* End Reading */}
+                    <View style={[styles.mb4, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                        <View style={[styles.flex1]}>
+                            <TextInput
+                                ref={endReadingInputRef}
+                                label={translate('distance.odometer.endReading')}
+                                value={endReading}
+                                onChangeText={handleEndReadingChange}
+                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                                inputMode={CONST.INPUT_MODE.NUMERIC}
+                            />
+                        </View>
+                        <PressableWithFeedback
+                            accessible={false}
+                            onPress={() => handleCaptureImage('end')}
+                            style={[
+                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
+                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                styles.overflowHidden,
+                                StyleUtils.getBackgroundColorStyle(theme.border),
+                            ]}
+                        >
+                            <ReceiptImage
+                                source={endImageSource ? endImageSource : ''}
+                                shouldUseThumbnailImage
+                                thumbnailContainerStyles={styles.bgTransparent}
+                                isAuthTokenRequired
+                                fallbackIcon={Gallery}
+                                fallbackIconSize={20}
+                                fallbackIconColor={theme.icon}
+                                iconSize="x-small"
+                                loadingIconSize="small"
+                                shouldUseInitialObjectPosition
+                            />
+                        </PressableWithFeedback>
                     </View>
-                    <PressableWithFeedback
-                        accessible={false}
-                        onPress={() => handleCaptureImage('end')}
-                        style={[
-                            StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
-                            StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                            styles.overflowHidden,
-                            StyleUtils.getBackgroundColorStyle(theme.border),
-                        ]}
-                    >
-                        <ReceiptImage
-                            source={endImageSource ? endImageSource : ''}
-                            shouldUseThumbnailImage
-                            thumbnailContainerStyles={styles.bgTransparent}
-                            isAuthTokenRequired
-                            fallbackIcon={Gallery}
-                            fallbackIconSize={20}
-                            fallbackIconColor={theme.icon}
-                            iconSize="x-small"
-                            loadingIconSize="small"
-                            shouldUseInitialObjectPosition
-                        />
-                    </PressableWithFeedback>
-                </View>
 
-                {/* Total Distance Display */}
-                {totalDistance !== null && (
+                    {/* Total Distance Display - always shown, updated live */}
                     <View style={[styles.mb4, styles.p3, styles.borderRadiusComponentNormal, {backgroundColor: theme.componentBG}]}>
                         <Text style={[styles.textStrong]}>
-                            {translate('distance.odometer.totalDistance')}: {roundToTwoDecimalPlaces(totalDistance)}
+                            {translate('distance.odometer.totalDistance')}:{' '}
+                            {totalDistance !== null ? roundToTwoDecimalPlaces(totalDistance) : '—'}
                         </Text>
                     </View>
-                )}
+                </View>
+                <View>
+                    {/* Form Error Message */}
+                    {formError && (
+                        <FormHelpMessage
+                            style={[styles.mb4]}
+                            message={formError}
+                        />
+                    )}
 
-                {/* Error Message */}
-                {formError && totalDistance !== null && totalDistance <= 0 && (
-                    <View style={[styles.mb4]}>
-                        <Text style={[styles.textDanger]}>{formError}</Text>
-                    </View>
-                )}
-
-                {/* Next/Save Button */}
-                <Button
-                    success
-                    allowBubble={!isEditing}
-                    pressOnEnter
-                    medium={isExtraSmallScreenHeight}
-                    large={!isExtraSmallScreenHeight}
-                    style={[styles.w100, styles.mt5]}
-                    onPress={handleNext}
-                    text={buttonText}
-                    testID="next-button"
-                />
+                    {/* Next/Save Button */}
+                    <Button
+                        success
+                        allowBubble={!isEditing}
+                        pressOnEnter
+                        medium={isExtraSmallScreenHeight}
+                        large={!isExtraSmallScreenHeight}
+                        style={[styles.w100]}
+                        onPress={handleNext}
+                        text={buttonText}
+                        testID="next-save-button"
+                    />
+                </View>
             </View>
         </StepScreenWrapper>
     );
