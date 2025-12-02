@@ -267,11 +267,11 @@ type SearchTransaction = {
     /** The display name of the purchaser card, if any */
     cardName?: string;
 
-    /** The converted amount of the transaction, defaults to the active policies currency, or the converted currency if a currency conversion is used */
-    convertedAmount: number;
+    /** The transaction converted amount in `groupCurrency` currency */
+    groupAmount?: number;
 
-    /** The currency that the converted amount is in */
-    convertedCurrency: string;
+    /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
+    groupCurrency?: string;
 };
 
 /** Model of tasks search result */
