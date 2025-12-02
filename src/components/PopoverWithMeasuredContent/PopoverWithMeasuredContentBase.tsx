@@ -6,12 +6,10 @@ import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollV
 import type {PopoverAnchorPosition} from '@components/Modal/types';
 import Popover from '@components/Popover';
 import usePrevious from '@hooks/usePrevious';
-import useSidePanel from '@hooks/useSidePanel';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type PopoverWithMeasuredContentProps from './types';
 
@@ -60,8 +58,7 @@ function PopoverWithMeasuredContentBase({
     const [isContentMeasured, setIsContentMeasured] = useState(popoverWidth > 0 && popoverHeight > 0);
     const prevIsVisible = usePrevious(isVisible);
     const prevAnchorPosition = usePrevious(anchorPosition);
-    const {shouldHideSidePanel} = useSidePanel();
-    const availableWidth = windowWidth - (shouldHideSidePanel ? 0 : variables.sideBarWidth);
+    const availableWidth = windowWidth;
     const prevWindowDimensions = usePrevious({availableWidth, windowHeight});
 
     const hasStaticDimensions = popoverDimensions.width > 0 && popoverDimensions.height > 0;
