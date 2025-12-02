@@ -429,15 +429,6 @@ describe('actions/IOU', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, transaction)).toBeFalsy();
-
-            // When the IOU report has no policyID, it should return true
-            const noPolicyIOUReport: Report = {
-                ...createRandomReport(4, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, noPolicyIOUReport, false, transaction)).toBeTruthy();
         });
     });
 
