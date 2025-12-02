@@ -10,9 +10,16 @@ type UseSuggestedSearchDefaultNavigationParams = {
     flattenedMenuItems: SearchTypeMenuItem[];
     similarSearchHash?: number;
     clearSelectedTransactions: () => void;
+    shouldSkipNavigation?: boolean;
 };
 
-function useSuggestedSearchDefaultNavigation({shouldShowSkeleton, flattenedMenuItems, similarSearchHash, clearSelectedTransactions}: UseSuggestedSearchDefaultNavigationParams) {
+function useSuggestedSearchDefaultNavigation({
+    shouldShowSkeleton,
+    flattenedMenuItems,
+    similarSearchHash,
+    clearSelectedTransactions,
+    shouldSkipNavigation = false,
+}: UseSuggestedSearchDefaultNavigationParams) {
     const hasShownSkeleton = useRef(false);
 
     useEffect(() => {
@@ -27,8 +34,7 @@ function useSuggestedSearchDefaultNavigation({shouldShowSkeleton, flattenedMenuI
 
         hasShownSkeleton.current = false;
 
-        const isCurrentSearchFromMenu = similarSearchHash === undefined || flattenedMenuItems.some((item) => item.similarSearchHash === similarSearchHash);
-        if (!isCurrentSearchFromMenu) {
+        if (shouldSkipNavigation) {
             return;
         }
 
@@ -41,7 +47,7 @@ function useSuggestedSearchDefaultNavigation({shouldShowSkeleton, flattenedMenuI
         clearAllFilters();
         clearSelectedTransactions();
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultMenuItem.searchQuery}));
-    }, [shouldShowSkeleton, flattenedMenuItems, similarSearchHash, clearSelectedTransactions]);
+    }, [shouldShowSkeleton, flattenedMenuItems, similarSearchHash, clearSelectedTransactions, shouldSkipNavigation]);
 }
 
 export default useSuggestedSearchDefaultNavigation;
