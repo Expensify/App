@@ -7189,12 +7189,7 @@ ${
             },
             cardOnDispute: ({amountOwed, cardEnding}: BillingBannerCardOnDisputeParams) =>
                 `U betwistte de ${amountOwed} kosten op de kaart die eindigt op ${cardEnding}. Uw account wordt geblokkeerd totdat het geschil met uw bank is opgelost.`,
-            preTrial: {
-                title: 'Begin een gratis proefperiode',
-                subtitleStart: 'Als een volgende stap,',
-                subtitleLink: 'voltooi uw setupchecklist',
-                subtitleEnd: 'zodat je team kan beginnen met declareren.',
-            },
+            preTrial: {title: 'Begin een gratis proefperiode', subtitle: 'Als volgende stap <a href="#">rond je installatiechecklist af</a> zodat je team kan beginnen met declareren.'},
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Proefversie: ${numOfDays} ${numOfDays === 1 ? 'dag' : 'dagen'} over!`,
                 subtitle: 'Voeg een betaalkaart toe om al je favoriete functies te blijven gebruiken.',
