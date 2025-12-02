@@ -411,7 +411,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 reportsIDsFromUseReportsCount: data.length,
             });
         }
-    }, [data, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
+    }, [data.length, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
