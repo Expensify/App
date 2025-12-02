@@ -699,6 +699,7 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domeinen',
         reportName: 'Rapportnaam',
         showLess: 'Minder weergeven',
+        actionRequired: 'Actie vereist',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -2910,6 +2911,8 @@ ${
         hasBeenThrottledError: 'Er is een fout opgetreden bij het toevoegen van uw bankrekening. Wacht een paar minuten en probeer het opnieuw.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Oeps! Het lijkt erop dat de valuta van uw werkruimte is ingesteld op een andere valuta dan USD. Om verder te gaan, ga naar <a href="${workspaceRoute}">uw werkruimte-instellingen</a> om het in te stellen op USD en het opnieuw te proberen.`,
+        bbaAdded: 'Zakelijke bankrekening toegevoegd!',
+        bbaAddedDescription: 'Het is klaar om gebruikt te worden voor betalingen.',
         error: {
             youNeedToSelectAnOption: 'Selecteer een optie om verder te gaan.',
             noBankAccountAvailable: 'Sorry, er is geen bankrekening beschikbaar',
@@ -4723,6 +4726,10 @@ ${
             addShippingDetails: 'Verzendgegevens toevoegen',
             issuedCard: ({assignee}: AssigneeParams) => `heeft ${assignee} een Expensify Card uitgegeven! De kaart zal binnen 2-3 werkdagen arriveren.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `heeft ${assignee} een Expensify Card uitgegeven! De kaart wordt verzonden zodra de verzendgegevens zijn bevestigd.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} heeft zijn virtuele Expensify-kaart vervangen! ${link} kan direct worden gebruikt.`,
+            card: 'kaart',
+            replacementCard: 'vervangingskaart',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} heeft zijn Expensify-kaart vervangen. De nieuwe kaart komt binnen 2-3 werkdagen aan.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `heeft ${assignee} een virtuele ${link} uitgegeven! De kaart kan direct worden gebruikt.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} heeft verzendgegevens toegevoegd. Expensify Card wordt binnen 2-3 werkdagen bezorgd.`,
             verifyingHeader: 'Verifiëren',
@@ -6564,6 +6571,15 @@ ${
             message: 'We konden niet controleren op een update. Probeer het over een tijdje opnieuw.',
         },
     },
+    settlement: {
+        status: {
+            pending: 'In behandeling',
+            cleared: 'Afgewikkeld',
+            failed: 'Mislukt',
+        },
+        failedError: ({link}: {link: string}) => `We proberen deze afwikkeling opnieuw wanneer je <a href="${link}">je account ontgrendelt</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Opname-ID: ${withdrawalID}`,
+    },
     reportLayout: {
         reportLayout: 'Rapportindeling',
         groupByLabel: 'Groeperen op:',
@@ -7119,12 +7135,7 @@ ${
             },
             cardOnDispute: ({amountOwed, cardEnding}: BillingBannerCardOnDisputeParams) =>
                 `U betwistte de ${amountOwed} kosten op de kaart die eindigt op ${cardEnding}. Uw account wordt geblokkeerd totdat het geschil met uw bank is opgelost.`,
-            preTrial: {
-                title: 'Begin een gratis proefperiode',
-                subtitleStart: 'Als een volgende stap,',
-                subtitleLink: 'voltooi uw setupchecklist',
-                subtitleEnd: 'zodat je team kan beginnen met declareren.',
-            },
+            preTrial: {title: 'Begin een gratis proefperiode', subtitle: 'Als volgende stap <a href="#">rond je installatiechecklist af</a> zodat je team kan beginnen met declareren.'},
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Proefversie: ${numOfDays} ${numOfDays === 1 ? 'dag' : 'dagen'} over!`,
                 subtitle: 'Voeg een betaalkaart toe om al je favoriete functies te blijven gebruiken.',
