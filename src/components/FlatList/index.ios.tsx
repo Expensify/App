@@ -52,6 +52,7 @@ function CustomFlatList<T>({
                 {...restProps}
                 ref={ref}
                 maintainVisibleContentPosition={maintainVisibleContentPosition}
+                // Composer scroll events are emitted in `KeyboardDismissibleFlatList` separately, therefore we pass the `onScroll` prop instead of the `handleScroll` callback.
                 onScroll={onScrollProp}
                 onMomentumScrollBegin={handleScrollBegin}
                 onMomentumScrollEnd={handleScrollEnd}

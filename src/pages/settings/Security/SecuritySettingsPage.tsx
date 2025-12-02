@@ -8,6 +8,8 @@ import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
@@ -55,7 +57,7 @@ type BaseMenuItemType = {
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserPlus'] as const);
     const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -145,7 +147,7 @@ function SecuritySettingsPage() {
             },
             {
                 translationKey: 'mergeAccountsPage.mergeAccount',
-                icon: icons.ArrowCollapse,
+                icon: Expensicons.ArrowCollapse,
                 action: () => {
                     if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
@@ -218,7 +220,6 @@ function SecuritySettingsPage() {
         waitForNavigate,
         translate,
         styles.sectionMenuItemTopDescription,
-        icons.ArrowCollapse,
     ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
@@ -253,11 +254,11 @@ function SecuritySettingsPage() {
                         description: personalDetail?.displayName ? formattedEmail : '',
                         badgeText: translate('delegate.role', {role}),
                         avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                        icon: personalDetail?.avatar ?? icons.FallbackAvatar,
+                        icon: personalDetail?.avatar ?? FallbackAvatar,
                         iconType: CONST.ICON_TYPE_AVATAR,
                         numberOfLinesDescription: 1,
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        iconRight: icons.ThreeDots,
+                        iconRight: Expensicons.ThreeDots,
                         shouldShowRightIcon: true,
                         pendingAction,
                         shouldForceOpacity: !!pendingAction,
@@ -282,7 +283,7 @@ function SecuritySettingsPage() {
                     description: personalDetail?.displayName ? formattedEmail : '',
                     badgeText: translate('delegate.role', {role}),
                     avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    icon: personalDetail?.avatar ?? icons.FallbackAvatar,
+                    icon: personalDetail?.avatar ?? FallbackAvatar,
                     iconType: CONST.ICON_TYPE_AVATAR,
                     numberOfLinesDescription: 1,
                     wrapperStyle: [styles.sectionMenuItemTopDescription],

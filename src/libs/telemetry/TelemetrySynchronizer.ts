@@ -9,7 +9,7 @@ import Onyx from 'react-native-onyx';
 import {getActivePolicies} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Session} from '@src/types/onyx';
+import type {Policy, Session, TryNewDot} from '@src/types/onyx';
 
 /**
  * Connect to Onyx to retrieve information about the user's active policies.
@@ -17,6 +17,7 @@ import type {Policy, Session} from '@src/types/onyx';
 let session: OnyxEntry<Session>;
 let activePolicyID: OnyxEntry<string>;
 let policies: OnyxCollection<Policy>;
+let tryNewDot: OnyxEntry<TryNewDot>;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
@@ -52,6 +53,14 @@ Onyx.connectWithoutView({
     },
 });
 
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_TRY_NEW_DOT,
+    callback: (value) => {
+        tryNewDot = value;
+        sendTryNewDotCohortTag();
+    },
+});
+
 function sendPoliciesContext() {
     if (!policies || !session?.email || !activePolicyID) {
         return;
@@ -59,4 +68,12 @@ function sendPoliciesContext() {
     const activePolicies = getActivePolicies(policies, session.email).map((policy) => policy.id);
     Sentry.setTag(CONST.TELEMETRY.TAG_ACTIVE_POLICY, activePolicyID);
     Sentry.setContext(CONST.TELEMETRY.CONTEXT_POLICIES, {activePolicyID, activePolicies});
+}
+
+function sendTryNewDotCohortTag() {
+    const cohort = tryNewDot?.nudgeMigration?.cohort;
+    if (!cohort) {
+        return;
+    }
+    Sentry.setTag(CONST.TELEMETRY.TAG_NUDGE_MIGRATION_COHORT, cohort);
 }
