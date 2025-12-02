@@ -3,7 +3,7 @@ import {Dimensions, useWindowDimensions} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSafeAreaInsets from '../useSafeAreaInsets';
 
-function useWindowDimensionsForAutoCompleSuggestion() {
+function useWindowDimensionsForAutoCompleteSuggestion() {
     const {width} = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const StyleUtils = useStyleUtils();
@@ -16,4 +16,4 @@ function useWindowDimensionsForAutoCompleSuggestion() {
     return {width, height};
 }
 
-export default useWindowDimensionsForAutoCompleSuggestion;
+export default useWindowDimensionsForAutoCompleteSuggestion;

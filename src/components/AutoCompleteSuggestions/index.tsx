@@ -3,7 +3,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useWindowDimensionsForAutoCompleSuggestion from '@hooks/useWindowDimensionsForAutoCompleSuggestion';
+import useWindowDimensionsForAutoCompleteSuggestion from '@hooks/useWindowDimensionsForAutoCompleteSuggestion';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import AutoCompleteSuggestionsPortal from './AutoCompleteSuggestionsPortal';
@@ -54,7 +54,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const isSuggestionMenuAboveRef = React.useRef<boolean>(false);
     const leftValue = React.useRef<number>(0);
     const prevLeftValue = React.useRef<number>(0);
-    const {height: windowHeight, width: windowWidth} = useWindowDimensionsForAutoCompleSuggestion();
+    const {height: windowHeight, width: windowWidth} = useWindowDimensionsForAutoCompleteSuggestion();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [suggestionHeight, setSuggestionHeight] = React.useState(0);
     const [containerState, setContainerState] = React.useState(initialContainerState);
