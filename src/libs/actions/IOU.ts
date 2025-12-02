@@ -14460,6 +14460,8 @@ function updateSplitTransactions({
         const parsedComment = getParsedComment(Parser.htmlToMarkdown(transactionParams.comment ?? ''));
         transactionParams.comment = parsedComment;
 
+        const reportTotal = splitExpenses.filter((expense) => expense.reportID === splitExpense?.reportID).reduce((acc, curr) => acc - (curr.amount ?? 0), 0);
+
         const {transactionThreadReportID, createdReportActionIDForThread, onyxData, iouAction} = getMoneyRequestInformation({
             participantParams,
             parentChatReport,
@@ -14468,7 +14470,7 @@ function updateSplitTransactions({
             moneyRequestReportID: splitExpense?.reportID,
             existingTransaction,
             existingTransactionID,
-            newReportTotal: calculatedNewReportTotal,
+            newReportTotal: reportTotal,
             newNonReimbursableTotal: (transactionReport?.nonReimbursableTotal ?? 0) - changesInReportTotal,
             isSplitExpense: true,
             currentReportActionID: currentReportAction?.reportActionID,
