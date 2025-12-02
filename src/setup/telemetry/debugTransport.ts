@@ -96,10 +96,8 @@ function processEnvelopeItems(items: unknown[]): void {
 
 function makeDebugTransport(options: BaseTransportOptions): Transport {
     const makeRequest: TransportRequestExecutor = (request: TransportRequest) => {
-        if (DEBUG_SENTRY_ENABLED) {
-            const items = parseEnvelopeBody(request.body);
-            processEnvelopeItems(items);
-        }
+        const items = parseEnvelopeBody(request.body);
+        processEnvelopeItems(items);
 
         return Promise.resolve({
             statusCode: 200,
