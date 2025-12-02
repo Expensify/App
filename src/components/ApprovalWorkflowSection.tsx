@@ -38,7 +38,6 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
     const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
         selector: personalDetailsByEmailSelector,
@@ -143,7 +142,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                 })}
             </View>
             <Icon
-                src={expensifyIcons.ArrowRight}
+                src={Expensicons.ArrowRight}
                 fill={theme.icon}
                 additionalStyles={[styles.alignSelfCenter]}
             />

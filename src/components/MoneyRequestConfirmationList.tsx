@@ -17,6 +17,7 @@ import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import {
     adjustRemainingSplitShares,
     computePerDiemExpenseAmount,
+    isValidPerDiemExpenseAmount,
     resetSplitShares,
     setCustomUnitRateID,
     setIndividualShare,
@@ -453,7 +454,18 @@ function MoneyRequestConfirmationList({
 
         // If none of the above conditions are met, display the rate error
         setFormError(errorKey);
-    }, [isDistanceRequest, isPolicyExpenseChat, transactionID, mileageRate, customUnitRateID, policy, isMovingTransactionFromTrackExpense, setFormError, clearFormErrors]);
+    }, [
+        isDistanceRequest,
+        isPolicyExpenseChat,
+        transactionID,
+        mileageRate.rate,
+        mileageRate.unit,
+        customUnitRateID,
+        policy,
+        isMovingTransactionFromTrackExpense,
+        setFormError,
+        clearFormErrors,
+    ]);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isFirstUpdatedDistanceAmount = useRef(false);
@@ -565,7 +577,7 @@ function MoneyRequestConfirmationList({
             const amountInCents = convertToBackendAmount(value);
             setIndividualShare(transaction?.transactionID, accountID, amountInCents);
         },
-        [transaction],
+        [transaction?.transactionID],
     );
 
     useEffect(() => {
@@ -891,6 +903,11 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
+            if (iouCategory && policyCategories && (!policyCategories[iouCategory] || !policyCategories[iouCategory]?.enabled)) {
+                setFormError('violations.categoryOutOfPolicy');
+                return;
+            }
+
             const transactionTag = getTag(transaction);
             if (transactionTag.length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
                 setFormError('iou.error.invalidTagLength');
@@ -913,6 +930,13 @@ function MoneyRequestConfirmationList({
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !validateAmount(String(iouAmount), decimals, CONST.IOU.DISTANCE_REQUEST_AMOUNT_MAX_LENGTH)) {
                     setFormError('common.error.invalidAmount');
                     return;
+                }
+
+                if (isPerDiemRequest) {
+                    if (!isValidPerDiemExpenseAmount(transaction.comment?.customUnit ?? {}, iouCurrencyCode)) {
+                        setFormError('iou.error.invalidQuantity');
+                        return;
+                    }
                 }
 
                 if (isEditingSplitBill && areRequiredFieldsEmpty(transaction)) {

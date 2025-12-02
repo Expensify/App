@@ -10,6 +10,7 @@ import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
+import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getDefaultApprover} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -293,11 +294,10 @@ function convertApprovalWorkflowToPolicyEmployees({
             continue;
         }
 
-        const previousPendingAction = previousEmployeeList[email]?.pendingAction;
         updatedEmployeeList[email] = {
             ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
             submitsTo,
-            pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : pendingAction,
+            pendingAction,
             pendingFields: {
                 submitsTo: pendingAction,
             },
@@ -308,11 +308,10 @@ function convertApprovalWorkflowToPolicyEmployees({
     // which will set the submitsTo field to the default approver email on backend.
     if (membersToRemove) {
         for (const {email} of membersToRemove) {
-            const previousPendingAction = previousEmployeeList[email]?.pendingAction;
             updatedEmployeeList[email] = {
                 ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
                 submitsTo: defaultApprover,
-                pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : pendingAction,
+                pendingAction,
             };
         }
     }
@@ -321,11 +320,10 @@ function convertApprovalWorkflowToPolicyEmployees({
     // which will reset the forwardsTo on the backend.
     if (approversToRemove) {
         for (const {email} of approversToRemove) {
-            const previousPendingAction = previousEmployeeList[email]?.pendingAction;
             updatedEmployeeList[email] = {
                 ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
                 forwardsTo: '',
-                pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : pendingAction,
+                pendingAction,
             };
         }
     }
@@ -446,13 +444,17 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
 /**
  * Get eligible business bank accounts for the workspace reimbursement workflow
  */
-function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policyCurrency: string | undefined) {
+function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policyCurrency: string | undefined, shouldIncludePartiallySetup?: boolean) {
     if (!bankAccountList || policyCurrency === undefined) {
         return [];
     }
 
     return Object.values(bankAccountList).filter((account) => {
-        return account.bankCurrency === policyCurrency && account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS;
+        return (
+            account.bankCurrency === policyCurrency &&
+            (account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN || (shouldIncludePartiallySetup && isBankAccountPartiallySetup(account.accountData?.state))) &&
+            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS
+        );
     });
 }
 
