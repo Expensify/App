@@ -1869,10 +1869,14 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
-        emptyWorkspaceListIllustrationStyle: {
+        emptyWorkspaceListLottieIllustrationStyle: {
             marginTop: 12,
             marginBottom: -20,
             height: '100%',
+        },
+        emptyWorkspaceListStaticIllustrationStyle: {
+            width: 203,
+            height: 166,
         },
 
         appContent: {
