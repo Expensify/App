@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
-import {resetCreateDomainForm} from '@libs/actions/Domain';
+import {createDomain, resetCreateDomainForm} from '@libs/actions/Domain';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -18,6 +19,22 @@ describe('actions/Domain', () => {
     beforeEach(() => {
         IntlStore.load(CONST.LOCALES.EN);
         return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    describe('createDomain', () => {
+        const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+        createDomain('test.com');
+
+        expect(apiWriteSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.CREATE_DOMAIN,
+            {domainName: 'test.com'},
+            {
+                successData: [expect.objectContaining({value: {hasCreationSucceeded: true}})],
+                optimisticData: [expect.objectContaining({value: {hasCreationSucceeded: null}})],
+            },
+        );
+
+        apiWriteSpy.mockRestore();
     });
 
     describe('resetCreateDomainForm', () => {
