@@ -38,7 +38,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
         [currentReport, policyID],
     );
 
-    const mentionDetails = getReportMentionDetails(htmlAttributeReportID, currentReport, reports, tnode);
+    const mentionDetails = getReportMentionDetails(htmlAttributeReportID, currentReport, reports, tnode, policyID);
     if (!mentionDetails) {
         return null;
     }
