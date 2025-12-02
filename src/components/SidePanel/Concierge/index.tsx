@@ -8,9 +8,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function Concierge({navigation}: Pick<ExtraContentProps, 'navigation'>) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
-    const route = useMemo(() => ({name: 'Report', params: {reportID: conciergeReportID ?? ''}, key: 'Report-Concierge-Key'}) as const, [conciergeReportID]);
+    const route = useMemo(() => !!conciergeReportID && ({name: 'Report', params: {reportID: conciergeReportID}, key: 'Report-Concierge-Key'} as const), [conciergeReportID]);
 
-    if (!conciergeReportID) {
+    if (!route) {
         return null;
     }
 
@@ -25,6 +25,6 @@ function Concierge({navigation}: Pick<ExtraContentProps, 'navigation'>) {
     );
 }
 
-Concierge.displayName = 'Help';
+Concierge.displayName = 'ConciergeSidePanel';
 
 export default Concierge;
