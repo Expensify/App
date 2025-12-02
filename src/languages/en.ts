@@ -4938,13 +4938,14 @@ const translations = {
             },
             companyCards: {
                 title: 'Company cards',
-                subtitle: 'Import spend from existing company cards.',
+                subtitle: 'Connect the cards you already have.',
                 feed: {
                     title: 'Bring your own cards (BYOC)',
+                    subtitle: 'Link the cards you already have for automatic transaction import, receipt matching, and reconciliation.'
                     features: {
                         support: 'Connect cards from 10,000+ banks',
                         assignCards: 'Link your team's existing cards',
-                        automaticImport: 'We'll pull everything in automatically',
+                        automaticImport: 'We'll pull in transactions automatically',
                     },
                 },
                 bankConnectionError: 'Bank connection issue',
