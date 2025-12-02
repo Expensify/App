@@ -83,7 +83,6 @@ import {
     isWhisperAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
@@ -135,6 +134,8 @@ import {
     isTaskReport as reportUtilsIsTaskReport,
     shouldDisplayViolationsRBRInLHN,
     shouldReportBeInOptionList,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getReportName,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
