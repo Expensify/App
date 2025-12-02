@@ -24,12 +24,12 @@ function SearchFiltersGroupByPage() {
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.groupBy);
 
     const listData: Array<ListItem<SearchGroupBy>> = useMemo(() => {
-        return getGroupByOptions().map((groupOption) => ({
+        return getGroupByOptions(translate).map((groupOption) => ({
             text: groupOption.text,
             keyForList: groupOption.value,
             isSelected: selectedItem === groupOption.value,
         }));
-    }, [selectedItem]);
+    }, [translate, selectedItem]);
 
     const updateSelectedItem = useCallback((type: ListItem<SearchGroupBy>) => {
         setSelectedItem(type?.keyForList ?? undefined);

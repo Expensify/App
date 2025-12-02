@@ -7091,12 +7091,7 @@ ${
             },
             cardOnDispute: ({amountOwed, cardEnding}: BillingBannerCardOnDisputeParams) =>
                 `あなたは、${cardEnding}で終わるカードの${amountOwed}の請求を異議申し立てしました。異議が銀行で解決されるまで、あなたのアカウントはロックされます。`,
-            preTrial: {
-                title: '無料トライアルを開始',
-                subtitleStart: '次のステップとして、',
-                subtitleLink: 'セットアップチェックリストを完了する',
-                subtitleEnd: 'あなたのチームが経費精算を始められるように。',
-            },
+            preTrial: {title: '無料トライアルを開始', subtitle: '次のステップとして、チームが経費精算を開始できるよう、<a href="#">セットアップチェックリストを完了</a>してください。'},
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `トライアル: ${numOfDays} ${numOfDays === 1 ? '日' : '日'} 日残り！`,
                 subtitle: 'お気に入りの機能を引き続き利用するために、支払いカードを追加してください。',
