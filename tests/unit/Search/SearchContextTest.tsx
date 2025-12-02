@@ -15,8 +15,8 @@ const mockSelectedTransaction: SelectedTransactionInfo = {
     policyID: '06F34677820A4D07',
     reportID: '515146912679679',
     amount: 0,
-    convertedAmount: 1284,
-    convertedCurrency: 'USD',
+    groupAmount: 1284,
+    groupCurrency: 'USD',
     currency: 'USD',
     ownerAccountID: 1,
 } as const;
@@ -26,8 +26,8 @@ const mockTransaction: TransactionListItemType = {
     amount: 0,
     canDelete: true,
     category: '',
-    convertedAmount: 1284,
-    convertedCurrency: 'USD',
+    groupAmount: 1284,
+    groupCurrency: 'USD',
     created: '2025-09-19',
     currency: 'USD',
     policy: {

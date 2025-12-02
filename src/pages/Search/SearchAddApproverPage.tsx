@@ -23,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function SearchAddApproverPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
@@ -93,7 +93,7 @@ function SearchAddApproverPage() {
                 }
 
                 const {avatar} = personalDetails?.[accountID] ?? {};
-                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails});
+                const displayName = getDisplayNameForParticipant({accountID, formatPhoneNumber, personalDetailsData: personalDetails});
                 return {
                     text: displayName,
                     alternateText: email,
@@ -106,7 +106,7 @@ function SearchAddApproverPage() {
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [allPolicies, allReports, icons.FallbackAvatar, personalDetails, selectedApproverEmail, selectedReports, translate]);
+    }, [allPolicies, allReports, formatPhoneNumber, icons.FallbackAvatar, personalDetails, selectedApproverEmail, selectedReports, translate]);
 
     const addApprover = useCallback(() => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;
@@ -123,7 +123,7 @@ function SearchAddApproverPage() {
                 continue;
             }
 
-            const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations);
+            const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
             addReportApprover(
                 report,
                 selectedApproverEmail,
