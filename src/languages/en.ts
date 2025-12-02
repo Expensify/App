@@ -7673,6 +7673,8 @@ const translations = {
             anyMemberWillBeRequired: 'Any member signed in with a different method will be required to re-authenticate using SAML.',
             enableError: "Couldn't update SAML enablement setting",
             requireError: "Couldn't update SAML requirement setting",
+            turnOffSamlRequired: 'Turn off SAML required',
+            samlRequiredOktaWarning: 'Turning this off will also disable Okta SCIM. Are you sure you wish to proceed?',
         },
         samlConfigurationDetails: {
             title: 'SAML configuration details',
