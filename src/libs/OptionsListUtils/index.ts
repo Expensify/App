@@ -916,11 +916,14 @@ function createOption(
                 ? personalDetail.login
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
         reportName = showPersonalDetails
-            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
+            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), personalDetailsData: personalDetails ?? undefined, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ||
+              formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
             : getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '');
+        reportName =
+            getDisplayNameForParticipant({accountID: accountIDs.at(0), personalDetailsData: personalDetails ?? undefined, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ||
+            formatPhoneNumberPhoneUtils(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs.at(0));
 
         result.alternateText = formatPhoneNumberPhoneUtils(personalDetails?.[accountIDs[0]]?.login ?? '');
