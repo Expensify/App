@@ -144,7 +144,7 @@ async function check({
         generateReport(results, reportFileName);
     }
 
-    const isPassed = results.failures.size === 0 && results.enforcedAddedComponentFailures?.size === 0;
+    const isPassed = results.failures.size === 0 && (results.enforcedAddedComponentFailures?.size ?? 0) === 0;
     return isPassed;
 }
 
