@@ -5,6 +5,14 @@ import type {SecureStoreOptions} from './SecureStore';
 import type {MultifactorAuthenticationKeyType, MultifactorAuthenticationPartialStatus} from './types';
 import VALUES from './VALUES';
 
+const STATIC_OPTIONS = {
+    keychainService: VALUES.KEYCHAIN_SERVICE,
+    keychainAccessible: SECURE_STORE_VALUES.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
+    enableDeviceFallback: true,
+    authenticationPrompt: 'Approve the transaction',
+    returnUsedAuthenticationType: true,
+} as const;
+
 /**
  * SecureStore options that control authentication requirements.
  * Private keys require multifactorial authentication/credential auth, while public keys don't.
@@ -17,16 +25,12 @@ const options = (key: string): SecureStoreOptions => {
         requireAuthentication: isPrivateKey,
         forceAuthenticationOnSave: isPrivateKey,
         forceReadAuthenticationOnSimulators: isPrivateKey,
-        keychainService: VALUES.KEYCHAIN_SERVICE,
-        keychainAccessible: SECURE_STORE_VALUES.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
-        enableDeviceFallback: true,
-        authenticationPrompt: 'Approve the transaction',
     };
 };
 
 const MultifactorAuthenticationStore = {
-    get: (key: string) => SECURE_STORE_METHODS.getItemAsync(key, options(key)),
-    set: (key: string, value: string) => SECURE_STORE_METHODS.setItemAsync(key, value, options(key)),
+    get: (key: string) => SECURE_STORE_METHODS.getItemAsync(key, {...options(key), ...STATIC_OPTIONS}),
+    set: (key: string, value: string) => SECURE_STORE_METHODS.setItemAsync(key, value, {...options(key), ...STATIC_OPTIONS}),
     delete: (key: string) =>
         SECURE_STORE_METHODS.deleteItemAsync(key, {
             keychainService: VALUES.KEYCHAIN_SERVICE,
