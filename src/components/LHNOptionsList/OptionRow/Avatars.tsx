@@ -9,6 +9,8 @@ import CONST from '@src/CONST';
 import {OptionRowContext} from './Provider';
 
 function OptionRowLHNAvatars() {
+    // A component can realize its own, local state without affecting other parts of the tree
+    // const [isAvatarHovered, setIsAvatarHovered] = useState(false);
     const {
         state: {reportID, isFocused, isHovered},
     } = use(OptionRowContext);
