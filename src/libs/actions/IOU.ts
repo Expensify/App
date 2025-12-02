@@ -201,6 +201,7 @@ import {
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     shouldEnableNegative,
     updateReportPreview,
+    isOneTransactionReport,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
@@ -2141,7 +2142,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     const reportActions = fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`] ?? {}, {[iou.action.reportActionID]: iou.action}, true);
-    const isFromOneTransactionReport = !!getOneTransactionThreadReportID(iou.report, chat.report ?? undefined, reportActions, undefined, undefined);
     const searchUpdate = getSearchOnyxUpdate({
         transaction,
         participant,
@@ -2149,7 +2149,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         iouAction: iou.action,
         policy,
         transactionThreadReportID: transactionThreadReport?.reportID,
-        isFromOneTransactionReport,
+        isFromOneTransactionReport: isOneTransactionReport(iou.report),
     });
 
     if (searchUpdate) {
@@ -3620,6 +3620,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         isDemoTransactionParam: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt,
     });
 
+    iouReport.transactionCount = (iouReport.transactionCount ?? 0) + 1;
+
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
         policyTags: getPolicyTagsData(iouReport.policyID),
@@ -3919,6 +3921,8 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             attendees,
         },
     });
+    iouReport.transactionCount = (iouReport.transactionCount ?? 0) + 1;
+
     // This is to differentiate between a normal expense and a per diem expense
     optimisticTransaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
     optimisticTransaction.hasEReceipt = true;
@@ -4236,6 +4240,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             attendees,
         },
     });
+    if (iouReport) {
+        iouReport.transactionCount = (iouReport.transactionCount ?? 0) + 1;
+    }
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
@@ -7277,6 +7284,7 @@ function createSplitsAndOnyxData({
                 source: CONST.IOU.TYPE.SPLIT,
             },
         });
+        oneOnOneIOUReport.transactionCount = (oneOnOneIOUReport.transactionCount ?? 0) + 1;
 
         if (isDistanceRequest) {
             oneOnOneTransaction = fastMerge(existingTransaction, oneOnOneTransaction, false);
@@ -8142,6 +8150,7 @@ function completeSplitBill(
                 filename: getReceiptFilenameFromTransaction(updatedTransaction),
             },
         });
+        oneOnOneIOUReport.transactionCount = (oneOnOneIOUReport.transactionCount ?? 0) + 1;
 
         const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
             buildOptimisticMoneyRequestEntities({
