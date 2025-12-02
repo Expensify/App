@@ -1208,6 +1208,18 @@ Onyx.connect({
     },
 });
 
+let selfDMReportID: string | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SELF_DM_REPORT_ID,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        selfDMReportID = value;
+    },
+});
+
+
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -1856,6 +1868,10 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
 function findSelfDMReportID(): string | undefined {
     if (!allReports) {
         return;
+    }
+
+    if (selfDMReportID) {
+        return selfDMReportID;
     }
 
     const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
@@ -6590,7 +6606,7 @@ function buildOptimisticTaskCommentReportAction(
 
 function buildOptimisticSelfDMReport(created: string): Report {
     return {
-        reportID: generateReportID(),
+        reportID: selfDMReportID ?? generateReportID(),
         participants: {
             [currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
