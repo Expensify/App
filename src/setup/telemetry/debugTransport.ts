@@ -13,7 +13,7 @@ const DEBUG_SENTRY_ENABLED = false;
  * Note: span.op in code corresponds to span.name in Sentry dashboard.
  * Example: ['ui.interaction.click', 'ui.interaction.scroll', 'ui.load', 'navigation']
  */
-const HIGHLIGHTED_SPAN_OPS: string[] = [''];
+const HIGHLIGHTED_SPAN_OPS: string[] = [];
 
 function formatLogPrefix(category: string, op?: string): string {
     if (op) {
