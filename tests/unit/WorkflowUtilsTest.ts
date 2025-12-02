@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import type {OnyxEntry} from 'react-native-onyx';
+import CONST from '@src/CONST';
 import * as WorkflowUtils from '@src/libs/WorkflowUtils';
+import type {Policy} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
@@ -640,6 +643,78 @@ describe('WorkflowUtils', () => {
             });
 
             expect(updateWorkflowDataOnApproverRemoval).toEqual([approvalWorkflow1, {...approvalWorkflow2, removeApprovalWorkflow: true}]);
+        });
+    });
+
+    describe('removeApproveWorkflows', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        // Mock the actions
+        const mockUpdateApprovalWorkflow = jest.fn();
+        const mockRemoveApprovalWorkflowAction = jest.fn();
+
+        // Replace the real imports with mocks
+        jest.spyOn(require('@libs/actions/Workflow'), 'updateApprovalWorkflow').mockImplementation(mockUpdateApprovalWorkflow);
+        jest.spyOn(require('@libs/actions/Workflow'), 'removeApprovalWorkflow').mockImplementation(mockRemoveApprovalWorkflowAction);
+
+        it('should NOT call updateApprovalWorkflow or removeApprovalWorkflowAction when selected employee is NOT an approver', () => {
+            const policy: OnyxEntry<Policy> = {
+                id: 'POLICY123',
+                name: 'Test Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: 'owner@example.com',
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+                employeeList: {
+                    'alice@example.com': {email: 'alice@example.com', submitsTo: 'bob@example.com'},
+                    'bob@example.com': {email: 'bob@example.com', submitsTo: 'owner@example.com'},
+                    'carol@example.com': {email: 'carol@example.com', submitsTo: 'bob@example.com'}, // not an approver
+                },
+                approver: 'owner@example.com',
+            };
+
+            const approvalWorkflows: ApprovalWorkflow[] = [
+                {
+                    members: [{email: 'carol@example.com', displayName: 'Carol', avatar: ''}],
+                    approvers: [{email: 'bob@example.com', displayName: 'Bob', avatar: '', forwardsTo: 'owner@example.com'}],
+                    isDefault: false,
+                },
+                {
+                    members: [],
+                    approvers: [{email: 'owner@example.com', displayName: 'Owner', avatar: ''}],
+                    isDefault: true,
+                },
+            ];
+
+            const localPersonalDetails = {
+                1: {accountID: 1, login: 'owner@example.com', displayName: 'Owner'},
+                2: {accountID: 2, login: 'bob@example.com', displayName: 'Bob'},
+                3: {accountID: 3, login: 'carol@example.com', displayName: 'Carol'},
+            };
+
+            const policyMemberEmailsToAccountIDs: Record<string, number> = {
+                'owner@example.com': 1,
+                'bob@example.com': 2,
+                'carol@example.com': 3,
+            };
+
+            const ownerDetails = localPersonalDetails[1];
+
+            WorkflowUtils.removeApproveWorkflows({
+                policy,
+                selectedEmployees: ['carol@example.com'], // Carol is NOT an approver
+                policyMemberEmailsToAccountIDs,
+                personalDetails,
+                ownerDetails,
+                approvalWorkflows,
+            });
+
+            // Assert - both actions must NOT be called
+            expect(mockUpdateApprovalWorkflow).not.toHaveBeenCalled();
+            expect(mockRemoveApprovalWorkflowAction).not.toHaveBeenCalled();
         });
     });
 });
