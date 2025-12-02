@@ -348,12 +348,12 @@ function AuthScreens() {
                 }
 
                 if (shouldRenderSecondaryOverlayForWideRHP) {
-                    Navigation.closeRHPFlow();
+                    Navigation.dismissToSuperWideRHP();
                     return;
                 }
 
                 if (shouldRenderTertiaryOverlay) {
-                    Navigation.dismissToSecondRHP();
+                    Navigation.dismissToWideRHP();
                     return;
                 }
 

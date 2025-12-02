@@ -369,14 +369,14 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     <Overlay
                         progress={secondOverlayForWideRHPProgress}
                         positionRightValue={animatedWideRHPWidth}
-                        onPress={() => Navigation.closeRHPFlow()}
+                        onPress={Navigation.dismissToSuperWideRHP}
                     />
                 )}
                 {shouldRenderTertiaryOverlay && !shouldUseNarrowLayout && (
                     <Overlay
                         progress={thirdOverlayProgress}
                         positionRightValue={variables.sideBarWidth}
-                        onPress={Navigation.dismissToSecondRHP}
+                        onPress={Navigation.dismissToWideRHP}
                     />
                 )}
             </NoDropZone>
