@@ -225,13 +225,16 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         });
     }, [transaction?.transactionID, source, isDraftTransaction, sourceUri, isImage, receiptFilename, policyCategories]);
 
-    const shouldShowRotateReceiptButton =
-        shouldShowReplaceReceiptButton &&
-        transaction &&
-        hasReceiptSource(transaction) &&
-        !isEReceipt &&
-        !transaction?.receipt?.isTestDriveReceipt &&
-        (receiptFilename ? Str.isImage(receiptFilename) : false);
+    const shouldShowRotateReceiptButton = useMemo(
+        () =>
+            shouldShowReplaceReceiptButton &&
+            transaction &&
+            hasReceiptSource(transaction) &&
+            !isEReceipt &&
+            !transaction?.receipt?.isTestDriveReceipt &&
+            (receiptFilename ? Str.isImage(receiptFilename) : false),
+        [shouldShowReplaceReceiptButton, transaction, isEReceipt, receiptFilename],
+    );
 
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {
