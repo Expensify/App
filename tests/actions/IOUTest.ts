@@ -6660,7 +6660,13 @@ describe('actions/IOU', () => {
                 isWaitingOnBankAccount: true,
                 managerID: RORY_ACCOUNT_ID,
             };
-            expect(canCancelPayment(fakeReport, {accountID: RORY_ACCOUNT_ID})).toBeTruthy();
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(Number('A')),
+                id: 'A',
+            };
+
+            expect(canCancelPayment(fakeReport, {accountID: RORY_ACCOUNT_ID}, fakePolicy)).toBeTruthy();
         });
     });
 
