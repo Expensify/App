@@ -6,8 +6,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import AnimatedCollapsible from '@components/AnimatedCollapsible';
 import {getButtonRole} from '@components/Button/utils';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -22,7 +20,6 @@ import type {
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
-import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -34,9 +31,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
-import {isSettled} from '@libs/ReportUtils';
 import {getSections} from '@libs/SearchUIUtils';
-import {getTransactionViolations} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -72,7 +67,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {formatPhoneNumber, translate} = useLocalize();
+    const {formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -311,29 +306,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             : undefined);
 
-    const hasViolations = transactions.some((transaction) => {
-        const transactionViolations = getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', undefined, undefined);
-        return transactionViolations && transactionViolations.length > 0;
-    });
-
-    const getDescription = useMemo(() => {
-        if (!hasViolations || isSettled(item.reportID)) {
-            return;
-        }
-        return (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, styles.mv1]}>
-                <Icon
-                    src={Expensicons.DotIndicator}
-                    fill={theme.danger}
-                    additionalStyles={[styles.mr1]}
-                    width={12}
-                    height={12}
-                />
-                <Text style={[styles.textMicro, styles.textDanger]}>{translate('reportViolations.reportContainsExpensesWithViolations')}</Text>
-            </View>
-        );
-    }, [hasViolations, item.reportID, styles.alignItemsCenter, styles.flexRow, styles.ml3, styles.mr1, styles.mv1, styles.textDanger, styles.textMicro, theme.danger, translate]);
-
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <PressableWithFeedback
@@ -362,7 +334,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             header={getHeader(hovered)}
                             onPress={onExpandIconPress}
                             expandButtonStyle={styles.pv4Half}
-                            description={getDescription}
                             shouldShowToggleButton={isLargeScreenWidth}
                         >
                             <TransactionGroupListExpandedItem
