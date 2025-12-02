@@ -736,7 +736,7 @@ function getLastMessageTextForReport({
             lastMessageTextFromReport = translateLocal('iou.approvedMessage');
         }
     } else if (isDynamicExternalWorkflowSubmitFailedAction(lastReportAction)) {
-        lastMessageTextFromReport = getOriginalMessage(lastReportAction)?.message ?? '';
+        lastMessageTextFromReport = getOriginalMessage(lastReportAction)?.message ?? translateLocal('iou.error.genericDEWSubmitFailureMessage');
     } else if (isUnapprovedAction(lastReportAction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('iou.unapproved');
