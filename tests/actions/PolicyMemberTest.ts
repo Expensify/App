@@ -7,7 +7,7 @@ import * as Member from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import {type ImportedSpreadsheet, PolicyEmployeeList, type Policy as PolicyType, type Report, type ReportAction, type ReportMetadata} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -589,6 +589,48 @@ describe('actions/PolicyMember', () => {
             expect(failedMember?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             expect(failedMember?.errors).toBeTruthy();
             expect(Object.keys(failedMember?.errors ?? {}).length).toBeGreaterThan(0);
+        });
+
+        // For more details on what a detached member is, see https://github.com/Expensify/App/issues/75514#issuecomment-3568453686
+        it('should remove "detached" members', async () => {
+            const policyID = 'ABCD123456';
+            const ownerEmail = 'owner@gmail.com';
+            const userEmail = 'user@gmail.com';
+            const detachedUserEmail = 'detacheduser@gmail.com';
+            const ownerAccountID = 1;
+            const userAccountID = 4321;
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [ownerAccountID]: {login: ownerEmail},
+                [userAccountID]: {login: userEmail},
+            });
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [userEmail]: {role: CONST.POLICY.ROLE.USER},
+                    [detachedUserEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+            });
+
+            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID});
+
+            await waitForBatchedUpdates();
+
+            const employeeList = await new Promise<PolicyEmployeeList | undefined>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        resolve(policy?.employeeList);
+                    },
+                });
+            });
+
+            expect(employeeList?.[userEmail]).toBeUndefined();
+            expect(employeeList?.[detachedUserEmail]).toBeUndefined();
+            expect(employeeList?.[ownerEmail]).toBeDefined();
         });
     });
 
