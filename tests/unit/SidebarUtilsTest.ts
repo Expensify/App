@@ -1008,6 +1008,66 @@ describe('SidebarUtils', () => {
             expect(result?.alternateText).toBe(`${lastAction.person?.[0].text}: ${getReportActionMessageText(lastAction)}`);
         });
 
+        it('returns the last action message as an alternate text if the action is POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE type', async () => {
+            // When a report has last action of POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE type
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                lastMessageHtml: 'upgraded workspace to Corporate',
+                lastMessageText: 'upgraded workspace to Corporate',
+                lastVisibleActionCreated: '2025-01-20 12:30:03.784',
+                participants: {
+                    '18921695': {
+                        notificationPreference: 'always',
+                    },
+                },
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: `<muted-text>This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.</muted-text>`,
+                        text: `This workspace has been upgraded to the Control plan. Click <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">here</a> for more information.`,
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE,
+                actorAccountID: 18921695,
+                person: [
+                    {
+                        type: 'TEXT',
+                        style: 'strong',
+                        text: 'f50',
+                    },
+                ],
+                originalMessage: undefined,
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                parentReportAction: undefined,
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+            });
+
+            // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
+            expect(result?.alternateText).toBe(`${getReportActionMessageText(lastAction)}`);
+        });
+
         it('returns @Hidden as an alternate text if the last action mentioned account has no name', async () => {
             // When a report has last action with mention of an account that has no name
             const report: Report = {

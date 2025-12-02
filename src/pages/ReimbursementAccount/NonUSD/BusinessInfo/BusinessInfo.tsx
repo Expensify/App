@@ -123,7 +123,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, stepNames}: BusinessInfoProp
         return () => {
             clearReimbursementAccountSaveCorpayOnboardingCompanyDetails();
         };
-    }, [reimbursementAccount, onSubmit]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingCompanyFields, reimbursementAccount?.isSuccess, onSubmit]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom, onFinished: submit});
 
