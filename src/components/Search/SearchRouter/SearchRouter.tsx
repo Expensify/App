@@ -5,6 +5,7 @@ import type {TextInputProps} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -293,7 +294,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             backHistory(() => {
                 onRouterClose();
                 setSearchContext(true);
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+                Navigation.navigate(
+                    ROUTES.SEARCH_ROOT.getRoute({
+                        query: updatedQuery,
+                        rawQuery: queryWithSubstitutions,
+                    }),
+                );
             });
 
             setTextInputValue('');
