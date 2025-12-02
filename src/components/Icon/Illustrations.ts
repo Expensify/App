@@ -25,7 +25,6 @@ import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_l
 import Computer from '@assets/images/computer.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
-import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
@@ -42,6 +41,7 @@ import PinkCar from '@assets/images/simple-illustrations/simple-illustration__ca
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
+import ConciergeBot from '@assets/images/simple-illustrations/simple-illustration__concierge-bot.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
 import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg';
 import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
@@ -60,8 +60,8 @@ import LockClosed from '@assets/images/simple-illustrations/simple-illustration_
 import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
+import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
-import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
@@ -82,6 +82,8 @@ export {
     LaptopWithSecondScreenX,
     LockOpen,
     Luggage,
+    MagnifyingGlassReceipt,
+    ConciergeBot,
     ConciergeBubble,
     HeadSet,
     Hourglass,
@@ -132,6 +134,4 @@ export {
     PlaidCompanyCardDetail,
     EmptyShelves,
     BlueShield,
-    OpenSafe,
-    LaptopOnDeskWithCoffeeAndKey,
 };

@@ -53,7 +53,7 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
                 Navigation.goBack(appendParam(backTo, 'country', option.value), {compareParams: false});
             }
         },
-        [route],
+        [route.params.backTo],
     );
 
     return (
