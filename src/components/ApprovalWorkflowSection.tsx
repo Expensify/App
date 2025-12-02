@@ -51,7 +51,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
 
     const getApprovalLimitDescription = useCallback(
         (approver: Approver): string | undefined => {
-            if (!approver.approvalLimit || !approver.overLimitForwardsTo) {
+            if (approver.approvalLimit == null || !approver.overLimitForwardsTo) {
                 return undefined;
             }
 

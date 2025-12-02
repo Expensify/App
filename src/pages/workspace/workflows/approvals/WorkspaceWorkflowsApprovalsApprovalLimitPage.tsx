@@ -107,8 +107,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     }, [onlyApproverEmpty, isCircularReference, selectedApproverDisplayName, translate]);
 
     const handleSkip = useCallback(() => {
-        setApprovalLimit('');
-
         if (approvalWorkflow && currentApprover) {
             setApprovalWorkflowApprover({
                 approver: {
