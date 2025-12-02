@@ -62,6 +62,8 @@ type PopoverMenuItem = MenuItemProps & {
 
     key?: string;
 
+    value?: string;
+
     /** Whether to keep the modal open after clicking on the menu item */
     shouldKeepModalOpen?: boolean;
 
