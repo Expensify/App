@@ -1,4 +1,7 @@
 import React from 'react';
+import EmptyStateComponent from '@components/EmptyStateComponent';
+import LottieAnimations from '@components/LottieAnimations';
+import WorkspaceRowSkeleton from '@components/Skeletons/WorkspaceRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -9,9 +12,6 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import EmptyStateComponent from './EmptyStateComponent';
-import LottieAnimations from './LottieAnimations';
-import WorkspaceRowSkeleton from './Skeletons/WorkspaceRowSkeleton';
 
 function WorkspacesEmptyStateComponent() {
     const styles = useThemeStyles();
