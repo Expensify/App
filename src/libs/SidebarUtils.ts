@@ -13,6 +13,7 @@ import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {
@@ -93,6 +94,7 @@ import {
     getChatRoomSubtitle,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
+    getForcedCorporateUpgradeMessage,
     getIcons,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
@@ -252,7 +254,7 @@ function getReportsToDisplayInLHN(
     const reportsToDisplay: ReportsToDisplayInLHN = {};
 
     for (const [reportID, report] of Object.entries(allReportsDictValues)) {
-        if (!report) {
+        if (!report?.reportID && report?.pendingFields?.reportID !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
 
@@ -306,7 +308,7 @@ function updateReportsToDisplayInLHN({
     const displayedReportsCopy = {...displayedReports};
     for (const reportID of updatedReportsKeys) {
         const report = reports?.[reportID];
-        if (!report) {
+        if (!report?.reportID && report?.pendingFields?.reportID !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
 
@@ -844,6 +846,8 @@ function getOptionData({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE)) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             result.alternateText = translateLocal('workspaceActions.upgradedWorkspace');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE)) {
+            result.alternateText = Parser.htmlToText(getForcedCorporateUpgradeMessage());
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE)) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             result.alternateText = translateLocal('workspaceActions.downgradedWorkspace');
@@ -899,7 +903,8 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
-            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card});
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate: translateLocal});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             const displayName = (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails)) || lastActorDisplayName;
             result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
@@ -1030,7 +1035,7 @@ function getWelcomeMessage(
         } else {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChat', {
-                submitterDisplayName: getDisplayNameForParticipant({accountID: report?.ownerAccountID}),
+                submitterDisplayName: getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
                 workspaceName: getPolicyName({report}),
             });
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
@@ -1106,7 +1111,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
     } else if (isInvoiceRoom(report)) {
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID})
+                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils})
                 : // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                   // eslint-disable-next-line @typescript-eslint/no-deprecated
                   getPolicy(report?.invoiceReceiver?.policyID)?.name;

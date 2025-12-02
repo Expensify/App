@@ -102,6 +102,7 @@ const report1 = {
     total: -5000,
     type: 'expense',
     unheldTotal: -5000,
+    transactionCount: 1,
 } as const;
 
 const report2 = {
@@ -123,6 +124,7 @@ const report2 = {
     total: -5000,
     type: 'expense',
     unheldTotal: -5000,
+    transactionCount: 1,
 } as const;
 
 const report3 = {
@@ -147,6 +149,7 @@ const report3 = {
     total: 4400,
     type: 'iou',
     unheldTotal: 4400,
+    transactionCount: 2,
 } as const;
 
 const report4 = {
@@ -177,6 +180,7 @@ const report5 = {
     total: 0,
     type: 'expense',
     unheldTotal: 0,
+    transactionCount: 0,
 } as const;
 
 const reportAction1: OnyxTypes.ReportAction = {
@@ -392,7 +396,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2024-12-21',
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: true,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -411,8 +414,8 @@ const searchResults: OnyxTypes.SearchResults = {
             moneyRequestReportActionID: '789',
             errors: undefined,
             filename: undefined,
-            convertedAmount: -5000,
-            convertedCurrency: 'USD',
+            groupAmount: -5000,
+            groupCurrency: 'USD',
         },
         [`transactions_${transactionID2}`]: {
             amount: -5000,
@@ -426,7 +429,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2024-12-21',
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: true,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -445,8 +447,8 @@ const searchResults: OnyxTypes.SearchResults = {
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
-            convertedAmount: -5000,
-            convertedCurrency: 'USD',
+            groupAmount: -5000,
+            groupCurrency: 'USD',
         },
         ...allViolations,
         [`transactions_${transactionID3}`]: {
@@ -461,7 +463,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2025-03-05',
             currency: 'VND',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -480,8 +481,8 @@ const searchResults: OnyxTypes.SearchResults = {
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
-            convertedAmount: -5000,
-            convertedCurrency: 'USD',
+            groupAmount: -5000,
+            groupCurrency: 'USD',
         },
         [`transactions_${transactionID4}`]: {
             amount: 3200,
@@ -495,7 +496,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2025-03-05',
             currency: 'VND',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -514,8 +514,8 @@ const searchResults: OnyxTypes.SearchResults = {
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
-            convertedAmount: -5000,
-            convertedCurrency: 'USD',
+            groupAmount: -5000,
+            groupCurrency: 'USD',
         },
     },
     search: {
@@ -631,6 +631,7 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
             count: 4,
             currency: 'USD',
             total: 40,
+            state: 8,
         },
         [`${CONST.SEARCH.GROUP_PREFIX}${cardID2}` as const]: {
             entryID: entryID2,
@@ -640,6 +641,7 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
             count: 6,
             currency: 'USD',
             total: 20,
+            state: 8,
         },
     },
     search: {
@@ -792,7 +794,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         hasEReceipt: false,
-        isFromOneTransactionReport: true,
         keyForList: '1',
         merchant: 'Expense',
         modifiedAmount: 0,
@@ -818,8 +819,8 @@ const transactionsListItems = [
         errors: undefined,
         filename: undefined,
         violations: [],
-        convertedAmount: -5000,
-        convertedCurrency: 'USD',
+        groupAmount: -5000,
+        groupCurrency: 'USD',
     },
     {
         action: 'review',
@@ -848,7 +849,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         hasEReceipt: false,
-        isFromOneTransactionReport: true,
         keyForList: '2',
         merchant: 'Expense',
         modifiedAmount: 0,
@@ -884,8 +884,8 @@ const transactionsListItems = [
                 type: CONST.VIOLATION_TYPES.VIOLATION,
             },
         ],
-        convertedAmount: -5000,
-        convertedCurrency: 'USD',
+        groupAmount: -5000,
+        groupCurrency: 'USD',
     },
     {
         amount: 1200,
@@ -903,7 +903,6 @@ const transactionsListItems = [
         created: '2025-03-05',
         currency: 'VND',
         hasEReceipt: false,
-        isFromOneTransactionReport: false,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -945,8 +944,8 @@ const transactionsListItems = [
         errors: undefined,
         filename: undefined,
         violations: [],
-        convertedAmount: -5000,
-        convertedCurrency: 'USD',
+        groupAmount: -5000,
+        groupCurrency: 'USD',
     },
     {
         amount: 3200,
@@ -964,7 +963,6 @@ const transactionsListItems = [
         created: '2025-03-05',
         currency: 'VND',
         hasEReceipt: false,
-        isFromOneTransactionReport: false,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -1006,8 +1004,8 @@ const transactionsListItems = [
         errors: undefined,
         filename: undefined,
         violations: [],
-        convertedAmount: -5000,
-        convertedCurrency: 'USD',
+        groupAmount: -5000,
+        groupCurrency: 'USD',
     },
 ] as TransactionListItemType[];
 
@@ -1043,6 +1041,7 @@ const transactionReportGroupListItems = [
         statusNum: 0,
         to: emptyPersonalDetails,
         total: -5000,
+        transactionCount: 1,
         transactions: [
             {
                 action: 'submit',
@@ -1071,7 +1070,6 @@ const transactionReportGroupListItems = [
                     login: adminEmail,
                 },
                 hasEReceipt: false,
-                isFromOneTransactionReport: true,
                 keyForList: '1',
                 merchant: 'Expense',
                 modifiedAmount: 0,
@@ -1097,8 +1095,8 @@ const transactionReportGroupListItems = [
                 errors: undefined,
                 filename: undefined,
                 violations: [],
-                convertedAmount: -5000,
-                convertedCurrency: 'USD',
+                groupAmount: -5000,
+                groupCurrency: 'USD',
             },
         ],
         type: 'expense',
@@ -1140,6 +1138,7 @@ const transactionReportGroupListItems = [
             login: adminEmail,
         },
         total: -5000,
+        transactionCount: 1,
         transactions: [
             {
                 action: 'review',
@@ -1174,7 +1173,6 @@ const transactionReportGroupListItems = [
                         type: CONST.VIOLATION_TYPES.VIOLATION,
                     },
                 ],
-                isFromOneTransactionReport: true,
                 keyForList: '2',
                 merchant: 'Expense',
                 modifiedAmount: 0,
@@ -1204,8 +1202,8 @@ const transactionReportGroupListItems = [
                 pendingAction: undefined,
                 errors: undefined,
                 filename: undefined,
-                convertedAmount: -5000,
-                convertedCurrency: 'USD',
+                groupAmount: -5000,
+                groupCurrency: 'USD',
             },
         ],
         type: 'expense',
@@ -1236,6 +1234,7 @@ const transactionReportGroupListItems = [
         stateNum: 1,
         statusNum: 1,
         total: 4400,
+        transactionCount: 2,
         type: 'iou',
         unheldTotal: 4400,
         action: 'pay',
@@ -1286,6 +1285,7 @@ const transactionReportGroupListItems = [
         statusNum: 0,
         to: emptyPersonalDetails,
         total: 0,
+        transactionCount: 0,
         transactions: [],
         type: 'expense',
         unheldTotal: 0,
@@ -1426,6 +1426,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         count: 4,
         currency: 'USD',
         total: 40,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1438,6 +1439,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         count: 6,
         currency: 'USD',
         total: 20,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1453,6 +1455,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         count: 6,
         currency: 'USD',
         total: 20,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1465,6 +1468,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         count: 4,
         currency: 'USD',
         total: 40,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1654,13 +1658,18 @@ describe('SearchUIUtils', () => {
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `View` action for a transaction in a multi-transaction report', () => {
+            const multiTransactionReportID = 'report_multi';
             const multiTransactionID = 'transaction_multi';
             const localSearchResults = {
                 ...searchResults.data,
+                [`report_${multiTransactionReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    transactionCount: 2,
+                },
                 [`transactions_${multiTransactionID}`]: {
                     ...searchResults.data[`transactions_${transactionID}`],
                     transactionID: multiTransactionID,
-                    isFromOneTransactionReport: false,
+                    reportID: multiTransactionReportID,
                 },
             };
             const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
@@ -1741,15 +1750,15 @@ describe('SearchUIUtils', () => {
 
     describe('Test getSections', () => {
         it('should return getReportActionsSections result when type is CHAT', () => {
-            expect(
-                SearchUIUtils.getSections({
-                    type: CONST.SEARCH.DATA_TYPES.CHAT,
-                    data: searchResults.data,
-                    currentAccountID: 2074551,
-                    currentUserEmail: '',
-                    formatPhoneNumber,
-                }),
-            ).toStrictEqual(reportActionListItems);
+            const [filteredReportActions, allReportActionsLength] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.CHAT,
+                data: searchResults.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                formatPhoneNumber,
+            });
+            expect(filteredReportActions).toStrictEqual(reportActionListItems);
+            expect(allReportActionsLength).toBe(6);
         });
 
         it('should return getTransactionsSections result when groupBy is undefined', () => {
@@ -1760,7 +1769,7 @@ describe('SearchUIUtils', () => {
                     currentAccountID: 20745,
                     currentUserEmail: '',
                     formatPhoneNumber,
-                }),
+                })[0],
             ).toEqual(transactionsListItems);
         });
 
@@ -1784,14 +1793,14 @@ describe('SearchUIUtils', () => {
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            }) as TransactionListItemType[];
+            })[0] as TransactionListItemType[];
 
             const distanceTransaction = result.find((item) => item.transactionID === distanceTransactionID);
 
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 50;
+            const expectedPropertyCount = 49;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1815,7 +1824,7 @@ describe('SearchUIUtils', () => {
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            }) as TransactionGroupListItemType[];
+            })[0] as TransactionGroupListItemType[];
 
             const reportGroup = result.find((group) => group.transactions?.some((transaction) => transaction.transactionID === distanceTransactionID));
 
@@ -1824,7 +1833,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 50;
+            const expectedPropertyCount = 49;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1836,7 +1845,7 @@ describe('SearchUIUtils', () => {
                     currentAccountID: 2074551,
                     currentUserEmail: '',
                     formatPhoneNumber,
-                }),
+                })[0],
             ).toStrictEqual(transactionReportGroupListItems);
         });
 
@@ -1875,14 +1884,14 @@ describe('SearchUIUtils', () => {
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            });
+            })[0];
             const resultReportFirst = SearchUIUtils.getSections({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 data: testDataReportFirst,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            });
+            })[0];
 
             expect(resultTransactionFirst).toBeDefined();
             expect(Array.isArray(resultTransactionFirst)).toBe(true);
@@ -1903,7 +1912,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                }),
+                })[0],
             ).toStrictEqual(transactionMemberGroupListItems);
         });
 
@@ -1916,7 +1925,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
-                }),
+                })[0],
             ).toStrictEqual(transactionCardGroupListItems);
         });
 
@@ -1929,8 +1938,31 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
-                }),
+                })[0],
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
+        });
+
+        it('should filter invalid withdrawal-id entries without accountNumber', () => {
+            const staleCacheData: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2074551` as const]: {
+                    accountID: 2074551,
+                    count: 1,
+                    currency: 'USD',
+                    total: 100,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: staleCacheData,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                formatPhoneNumber,
+                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            }) as [TransactionWithdrawalIDGroupListItemType[], number];
+
+            expect(result).toHaveLength(0);
         });
     });
 
@@ -2419,7 +2451,6 @@ describe('SearchUIUtils', () => {
                         created: '2025-05-26',
                         currency: 'USD',
                         hasEReceipt: false,
-                        isFromOneTransactionReport: true,
                         merchant: '(none)',
                         modifiedAmount: -1000,
                         modifiedCreated: '2025-05-22',
@@ -2435,8 +2466,8 @@ describe('SearchUIUtils', () => {
                         transactionID: '1805965960759424086',
                         transactionThreadReportID: '4139222832581831',
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                        convertedAmount: -5000,
-                        convertedCurrency: 'USD',
+                        groupAmount: -5000,
+                        groupCurrency: 'USD',
                     },
                 },
                 search: {
@@ -2546,7 +2577,6 @@ describe('SearchUIUtils', () => {
                     created: '2025-05-26',
                     currency: 'USD',
                     hasEReceipt: false,
-                    isFromOneTransactionReport: true,
                     merchant: '(none)',
                     modifiedAmount: -1000,
                     modifiedCreated: '2025-05-22',
@@ -2561,8 +2591,8 @@ describe('SearchUIUtils', () => {
                     tag: '',
                     transactionID: '1805965960759424086',
                     transactionThreadReportID: '4139222832581831',
-                    convertedAmount: -5000,
-                    convertedCurrency: 'USD',
+                    groupAmount: -5000,
+                    groupCurrency: 'USD',
                 },
             },
             search: {
