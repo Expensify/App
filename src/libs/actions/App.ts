@@ -462,6 +462,8 @@ type CreateWorkspaceWithPolicyDraftParams = {
     routeToNavigateAfterCreate?: Route;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     activePolicyID: string | undefined;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
 };
 
 /**
@@ -481,6 +483,8 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         routeToNavigateAfterCreate,
         lastUsedPaymentMethod,
         activePolicyID,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -502,8 +506,8 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 lastUsedPaymentMethod,
                 introSelectedParam: introSelected,
                 activePolicyIDParam: activePolicyID,
-                currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                currentUserEmailParam: currentSessionData.email ?? '',
+                currentUserAccountIDParam,
+                currentUserEmailParam,
                 allReportsParam: allReports,
             });
             Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
@@ -604,6 +608,8 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSe
             transitionFromOldDot: true,
             makeMeAdmin,
             activePolicyID,
+            currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            currentUserEmailParam: currentSessionData.email ?? '',
         });
         return;
     }
