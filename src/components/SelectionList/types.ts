@@ -47,6 +47,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the header of list component. */
     customListHeaderContent?: React.JSX.Element | null;
 
+    /** Custom component to render while data is loading */
+    customLoadingPlaceholder?: React.JSX.Element;
+
     /** Custom content to display in the footer */
     footerContent?: React.ReactNode;
 
