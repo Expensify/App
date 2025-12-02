@@ -246,6 +246,7 @@ function getReportPreviewAction(
     isApprovedAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
     areStrictPolicyRulesEnabled?: boolean,
+    hasDEWSubmitFailed?: boolean,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -262,6 +263,11 @@ function getReportPreviewAction(
     }
     if (isAddExpenseAction(report, transactions, isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
+    }
+
+    // If DEW submit failed and report is still open, show REVIEW
+    if (hasDEWSubmitFailed && isOpenReport(report)) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 
     // When strict policy rules are enabled and there are violations, show REVIEW button instead of SUBMIT

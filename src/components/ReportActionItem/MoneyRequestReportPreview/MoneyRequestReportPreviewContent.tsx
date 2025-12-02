@@ -44,6 +44,7 @@ import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportU
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
+import {isDynamicExternalWorkflowSubmitFailedAction} from '@libs/ReportActionsUtils';
 import {getReportPreviewAction} from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
@@ -491,6 +492,10 @@ function MoneyRequestReportPreviewContent({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
+    const hasDEWSubmitFailed = useMemo(() => {
+        return Object.values(reportActions ?? {}).some(isDynamicExternalWorkflowSubmitFailedAction);
+    }, [reportActions]);
+
     const reportPreviewAction = useMemo(() => {
         return getReportPreviewAction(
             violations,
@@ -505,6 +510,7 @@ function MoneyRequestReportPreviewContent({
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
             areStrictPolicyRulesEnabled,
+            hasDEWSubmitFailed,
         );
     }, [
         isPaidAnimationRunning,
@@ -520,6 +526,7 @@ function MoneyRequestReportPreviewContent({
         areStrictPolicyRulesEnabled,
         currentUserDetails.email,
         currentUserDetails.accountID,
+        hasDEWSubmitFailed,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
