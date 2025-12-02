@@ -219,54 +219,29 @@ function IOURequestStepDistanceOdometer({
                             errorText={formError && !startReading ? formError : ''}
                         />
                     </View>
-                    {startImageSource ? (
-                        <PressableWithFeedback
-                            accessible={false}
-                            onPress={() => handleCaptureImage('start')}
-                            style={[
-                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
-                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                                styles.overflowHidden,
-                                StyleUtils.getBackgroundColorStyle(theme.border),
-                            ]}
-                        >
-                            <ReceiptImage
-                                source={startImageSource}
-                                shouldUseThumbnailImage
-                                thumbnailContainerStyles={styles.bgTransparent}
-                                isAuthTokenRequired
-                                fallbackIcon={Gallery}
-                                fallbackIconSize={20}
-                                fallbackIconColor={theme.icon}
-                                iconSize="x-small"
-                                loadingIconSize="small"
-                                shouldUseInitialObjectPosition
-                            />
-                        </PressableWithFeedback>
-                    ) : (
-                        <PressableWithFeedback
-                            accessible={false}
-                            onPress={() => handleCaptureImage('start')}
-                            style={[
-                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
-                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                                styles.overflowHidden,
-                                StyleUtils.getBackgroundColorStyle(theme.border),
-                            ]}
-                        >
-                            <ReceiptImage
-                                source=""
-                                shouldUseThumbnailImage
-                                thumbnailContainerStyles={styles.bgTransparent}
-                                fallbackIcon={Gallery}
-                                fallbackIconSize={20}
-                                fallbackIconColor={theme.icon}
-                                iconSize="x-small"
-                                loadingIconSize="small"
-                                shouldUseInitialObjectPosition
-                            />
-                        </PressableWithFeedback>
-                    )}
+                    <PressableWithFeedback
+                        accessible={false}
+                        onPress={() => handleCaptureImage('start')}
+                        style={[
+                            StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
+                            StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                            styles.overflowHidden,
+                            StyleUtils.getBackgroundColorStyle(theme.border),
+                        ]}
+                    >
+                        <ReceiptImage
+                            source={startImageSource ? startImageSource : ''}
+                            shouldUseThumbnailImage
+                            thumbnailContainerStyles={styles.bgTransparent}
+                            isAuthTokenRequired
+                            fallbackIcon={Gallery}
+                            fallbackIconSize={20}
+                            fallbackIconColor={theme.icon}
+                            iconSize="x-small"
+                            loadingIconSize="small"
+                            shouldUseInitialObjectPosition
+                        />
+                    </PressableWithFeedback>
                 </View>
 
                 {/* End Reading */}
@@ -283,54 +258,29 @@ function IOURequestStepDistanceOdometer({
                             errorText={formError && !endReading ? formError : ''}
                         />
                     </View>
-                    {endImageSource ? (
-                        <PressableWithFeedback
-                            accessible={false}
-                            onPress={() => handleCaptureImage('end')}
-                            style={[
-                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
-                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                                styles.overflowHidden,
-                                StyleUtils.getBackgroundColorStyle(theme.border),
-                            ]}
-                        >
-                            <ReceiptImage
-                                source={endImageSource}
-                                shouldUseThumbnailImage
-                                thumbnailContainerStyles={styles.bgTransparent}
-                                isAuthTokenRequired
-                                fallbackIcon={Gallery}
-                                fallbackIconSize={20}
-                                fallbackIconColor={theme.icon}
-                                iconSize="x-small"
-                                loadingIconSize="small"
-                                shouldUseInitialObjectPosition
-                            />
-                        </PressableWithFeedback>
-                    ) : (
-                        <PressableWithFeedback
-                            accessible={false}
-                            onPress={() => handleCaptureImage('end')}
-                            style={[
-                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
-                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
-                                styles.overflowHidden,
-                                StyleUtils.getBackgroundColorStyle(theme.border),
-                            ]}
-                        >
-                            <ReceiptImage
-                                source=""
-                                shouldUseThumbnailImage
-                                thumbnailContainerStyles={styles.bgTransparent}
-                                fallbackIcon={Gallery}
-                                fallbackIconSize={20}
-                                fallbackIconColor={theme.icon}
-                                iconSize="x-small"
-                                loadingIconSize="small"
-                                shouldUseInitialObjectPosition
-                            />
-                        </PressableWithFeedback>
-                    )}
+                    <PressableWithFeedback
+                        accessible={false}
+                        onPress={() => handleCaptureImage('end')}
+                        style={[
+                            StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
+                            StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                            styles.overflowHidden,
+                            StyleUtils.getBackgroundColorStyle(theme.border),
+                        ]}
+                    >
+                        <ReceiptImage
+                            source={endImageSource ? endImageSource : ''}
+                            shouldUseThumbnailImage
+                            thumbnailContainerStyles={styles.bgTransparent}
+                            isAuthTokenRequired
+                            fallbackIcon={Gallery}
+                            fallbackIconSize={20}
+                            fallbackIconColor={theme.icon}
+                            iconSize="x-small"
+                            loadingIconSize="small"
+                            shouldUseInitialObjectPosition
+                        />
+                    </PressableWithFeedback>
                 </View>
 
                 {/* Total Distance Display */}
