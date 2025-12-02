@@ -1143,6 +1143,7 @@ const translations: TranslationDeepObject<typeof en> = {
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `总金额比原始费用少 ${amount}。`,
         splitExpenseZeroAmount: '请在继续之前输入有效金额。',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `为${merchant}编辑${amount}`,
+        transactionDisplayName: ({amount, merchant}: SplitExpenseEditTitleParams) => `${amount} 给 ${merchant}`,
         splitExpenseOneMoreSplit: '没有添加分割。至少添加一个来保存。',
         splitExpenseCannotBeEditedModalTitle: '此费用无法编辑',
         splitExpenseCannotBeEditedModalDescription: '已批准或已支付的费用无法编辑',
@@ -3617,7 +3618,7 @@ ${
             moreFeatures: '更多功能',
             requested: '请求的',
             distanceRates: '距离费率',
-            defaultDescription: '一个地方管理您所有的收据和费用。',
+            defaultDescription: '一个地���管理您所有的收据和费用。',
             descriptionHint: '与所有成员共享此工作区的信息。',
             welcomeNote: '请使用Expensify提交您的报销收据，谢谢！',
             subscription: '订阅',
@@ -4524,7 +4525,7 @@ ${
                 error: {
                     pleaseSelectProvider: '请在继续之前选择一个卡提供商',
                     pleaseSelectBankAccount: '请在继续之前选择一个银行账户',
-                    pleaseSelectBank: '请在继续之前选择一个银行',
+                    pleaseSelectBank: '请在继续之前选择一个��行',
                     pleaseSelectCountry: '请在继续之前选择一个国家',
                     pleaseSelectFeedType: '请在继续之前选择一个订阅类型',
                 },
@@ -6407,7 +6408,7 @@ ${
         windowMenu: '窗口',
         minimize: '最小化',
         zoom: 'Zoom',
-        front: '全部移到前面',
+        front: '全部移��前面',
         helpMenu: '帮助',
         learnMore: '了解更多',
         documentation: '文档',
@@ -7501,7 +7502,7 @@ ${
         },
         domainVerified: {
             title: '域名已验证',
-            header: '哇哦！您的域名已通过验证',
+            header: '哇哦！您的域名已通过验��',
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>域名 <strong>${domainName}</strong> 已成功验证，您现在可以设置 SAML 和其他安全功能。</centered-text></muted-text>`,
         },

@@ -14,10 +14,10 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {fillMissingReceiptSource, getMergeableDataAndConflictFields, selectTargetAndSourceTransactionsForMerge, shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportName} from '@libs/ReportNameUtils';
-import {getCreated} from '@libs/TransactionUtils';
+import {getAmount, getCreated, getCurrency, getMerchant} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -89,10 +89,15 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: M
     const headerContent = useMemo(
         () => (
             <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow]}>
-                <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName(targetTransactionReport)})} />
+                <RenderHTML
+                    html={translate('iou.transactionDisplayName', {
+                        amount: convertToDisplayString(getAmount(targetTransaction), getCurrency(targetTransaction)),
+                        merchant: getMerchant(targetTransaction),
+                    })}
+                />
             </View>
         ),
-        [targetTransactionReport, translate, styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow],
+        [targetTransaction, translate, styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow],
     );
 
     const subTitleContent = useMemo(() => {

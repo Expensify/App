@@ -1163,6 +1163,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpenseZeroAmount: 'Veuillez entrer un montant valide avant de continuer.',
         splitExpenseOneMoreSplit: 'Aucun partage ajouté. Ajoutez au moins un pour enregistrer.',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `Modifier ${amount} pour ${merchant}`,
+        transactionDisplayName: ({amount, merchant}: SplitExpenseEditTitleParams) => `${amount} pour ${merchant}`,
         splitExpenseCannotBeEditedModalTitle: 'Cette dépense ne peut pas être modifiée',
         splitExpenseCannotBeEditedModalDescription: 'Les dépenses approuvées ou payées ne peuvent pas être modifiées',
         removeSplit: 'Supprimer la division',

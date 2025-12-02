@@ -1159,6 +1159,7 @@ const translations: TranslationDeepObject<typeof en> = {
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `合計金額は元の経費よりも${amount}少なくなっています。`,
         splitExpenseZeroAmount: '続行する前に有効な金額を入力してください。',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `${merchant}の${amount}を編集`,
+        transactionDisplayName: ({amount, merchant}: SplitExpenseEditTitleParams) => `${merchant} に ${amount}`,
         splitExpenseOneMoreSplit: '分割が追加されていません。保存するには少なくとも1つ追加してください。',
         splitExpenseCannotBeEditedModalTitle: 'この経費は編集できません',
         splitExpenseCannotBeEditedModalDescription: '承認済みまたは支払済みの経費は編集できません',
@@ -1193,7 +1194,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `この経費をあなたの<a href="${reportUrl}">個人スペース</a>に移動しました。`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
-                return `<a href="${newParentReportUrl}">${toPolicyName}</a> ワークスペースにこのレポートを移動しました`;
+                return `<a href="${newParentReportUrl}">${toPolicyName}</a> ワークスペ��スにこのレポートを移動しました`;
             }
             return `<a href="${movedReportUrl}">レポート</a> を <a href="${newParentReportUrl}">${toPolicyName}</a> ワークスペースに移動しました`;
         },
@@ -2059,7 +2060,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardDetailsLoadingFailure: 'カードの詳細を読み込む際にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
         validateCardTitle: 'あなたであることを確認しましょう',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `カードの詳細を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
-        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `<a href="${missingDetailsLink}">個人情報を追加</a>してから、もう一度お試しください。`,
+        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `<a href="${missingDetailsLink}">個人情報を追加</a>してから、もう一度お試���ください。`,
         unexpectedError: 'Expensifyカードの詳細を取得しようとしてエラーが発生しました。もう一度お試しください。',
         cardFraudAlert: {
             confirmButtonText: 'はい、そうです。',
@@ -2978,7 +2979,7 @@ ${
     },
     onfidoStep: {
         acceptTerms: 'Expensifyウォレットの有効化リクエストを続行することで、あなたは読んで理解し、受け入れたことを確認します',
-        facialScan: 'Onfidoの顔認識ポリシーとリリース',
+        facialScan: 'Onfidoの顔認��ポリシーとリリース',
         tryAgain: 'もう一度試してください。',
         verifyIdentity: '本人確認を行う',
         letsVerifyIdentity: 'あなたの身元を確認しましょう',
@@ -3877,7 +3878,7 @@ ${
                 },
                 alternateText: {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自己負担の経費は最終承認時にエクスポートされます。',
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担の経費は支払われたときにエクスポートされます。',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担の経費は支払わ��たときにエクスポートされます。',
                 },
             },
         },
@@ -5385,7 +5386,7 @@ ${
                         case 'jobDone':
                             return 'インポートされたデータの読み込みを待っています';
                         case 'xeroSyncImportChartOfAccounts':
-                            return '勘定科目表を同期中';
+                            return '勘定科目��を同期中';
                         case 'xeroSyncImportCategories':
                             return 'カテゴリを同期中';
                         case 'xeroSyncImportCustomers':
@@ -6167,7 +6168,7 @@ ${
             };
         },
         demotedFromWorkspace: ({policyName, oldRole}: DemotedFromWorkspaceParams) =>
-            `${policyName}でのあなたの役割が${oldRole}からユーザーに更新されました。あなた自身のものを除くすべての提出者の経費チャットから削除されました。`,
+            `${policyName}���のあなたの役割が${oldRole}からユーザーに更新されました。あなた自身のものを除くすべての提出者の経費チャットから削除されました。`,
         updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `デフォルト通貨を${newCurrency}に更新しました（以前は${oldCurrency}）`,
         updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
             `自動レポートの頻度を「${newFrequency}」（以前は「${oldFrequency}」）に更新しました。`,
@@ -7079,7 +7080,7 @@ ${
                 subtitle: 'あなたの支払いカードは今月末に期限切れになります。以下の3点メニューをクリックして更新し、お気に入りの機能を引き続きご利用ください。',
             },
             retryBillingSuccess: {
-                title: '成功！',
+                title: '成功���',
                 subtitle: 'あなたのカードは正常に請求されました。',
             },
             retryBillingError: {
@@ -7170,7 +7171,7 @@ ${
         },
         compareModal: {
             comparePlans: 'プランを比較',
-            subtitle: `<muted-text>必要な機能を解放しましょう。あなたに最適なプランを選択してください。<a href="${CONST.PRICING}">料金ページをご覧いただくか</a>、各プランの機能詳細をご確認ください。</muted-text>`,
+            subtitle: `<muted-text>必要な機能を解放しましょう。あなたに最適なプランを選択してください。<a href="${CONST.PRICING}">料金ページをご覧いただくか</a>、各プランの機能詳細をご確��くださ���。</muted-text>`,
         },
         details: {
             title: 'サブスクリプションの詳細',
