@@ -7,7 +7,7 @@ keywords: pay invoice, Expensify invoice, invoice payment, pay as business, mark
 <div id="new-expensify" markdown="1">
 
 {% include info.html %}
-Anyone who receives an invoice from Expensify can pay it—even if they don’t have an Expensify account.
+Anyone who receives an invoice from a client or vendor in Expensify can pay it—even if they don’t have an Expensify account.
 {% include end-info.html %}
 
 When someone sends you an invoice through Expensify, you’ll get an automated email or text notification with a secure link to make a payment.
