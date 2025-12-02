@@ -792,4 +792,134 @@ describe('getReportPreviewAction', () => {
             CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW,
         );
     });
+
+    describe('DEW (Dynamic External Workflow) submit failed', () => {
+        it('should return REVIEW when hasDEWSubmitFailed is true and report is OPEN', async () => {
+            const report: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+            } as unknown as Transaction;
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(
+                getReportPreviewAction(
+                    VIOLATIONS,
+                    isReportArchived.current,
+                    CURRENT_USER_EMAIL,
+                    CURRENT_USER_ACCOUNT_ID,
+                    report,
+                    policy,
+                    [transaction],
+                    undefined,
+                    false,
+                    false,
+                    false,
+                    false,
+                    true,
+                ),
+            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
+        });
+
+        it('should NOT return REVIEW when hasDEWSubmitFailed is true but report is not OPEN', async () => {
+            const report: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.approver = CURRENT_USER_EMAIL;
+            policy.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+            policy.preventSelfApproval = false;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+            } as unknown as Transaction;
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(
+                getReportPreviewAction(
+                    VIOLATIONS,
+                    isReportArchived.current,
+                    CURRENT_USER_EMAIL,
+                    CURRENT_USER_ACCOUNT_ID,
+                    report,
+                    policy,
+                    [transaction],
+                    undefined,
+                    false,
+                    false,
+                    false,
+                    false,
+                    true,
+                ),
+            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+        });
+
+        it('should NOT return REVIEW when hasDEWSubmitFailed is false', async () => {
+            const report: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+            if (policy.harvesting) {
+                policy.harvesting.enabled = false;
+            }
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+            } as unknown as Transaction;
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(
+                getReportPreviewAction(
+                    VIOLATIONS,
+                    isReportArchived.current,
+                    CURRENT_USER_EMAIL,
+                    CURRENT_USER_ACCOUNT_ID,
+                    report,
+                    policy,
+                    [transaction],
+                    undefined,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                ),
+            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+        });
+    });
 });

@@ -1712,6 +1712,84 @@ describe('SearchUIUtils', () => {
             const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
+
+        test('Should return `Review` action when report has DEW_SUBMIT_FAILED action and is still OPEN', async () => {
+            const dewReportID = '999';
+            const dewTransactionID = '9999';
+            const dewReportActionID = '99999';
+
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${dewReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: dewReportID,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                },
+                [`transactions_${dewTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    transactionID: dewTransactionID,
+                    reportID: dewReportID,
+                },
+            };
+
+            const dewReportActions = [
+                {
+                    reportActionID: dewReportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    reportID: dewReportID,
+                    created: '2025-01-01 00:00:00',
+                    originalMessage: {
+                        message: 'DEW submit failed',
+                    },
+                },
+            ] as OnyxTypes.ReportAction[];
+
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '', dewReportActions).at(
+                0,
+            );
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
+
+        test('Should NOT return `Review` action when report has DEW_SUBMIT_FAILED action but is not OPEN', async () => {
+            const dewReportID = '888';
+            const dewTransactionID = '8888';
+            const dewReportActionID = '88888';
+
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${dewReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: dewReportID,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                },
+                [`transactions_${dewTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    transactionID: dewTransactionID,
+                    reportID: dewReportID,
+                },
+            };
+
+            const dewReportActions = [
+                {
+                    reportActionID: dewReportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    reportID: dewReportID,
+                    created: '2025-01-01 00:00:00',
+                    originalMessage: {
+                        message: 'DEW submit failed',
+                    },
+                },
+            ] as OnyxTypes.ReportAction[];
+
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '', dewReportActions).at(
+                0,
+            );
+            expect(action).not.toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+        });
     });
 
     describe('Test getListItem', () => {
