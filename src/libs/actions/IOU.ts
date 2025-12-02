@@ -1829,7 +1829,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                     ...iou.report,
                     ...(!isScanRequest || isTestReceipt ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} : undefined),
                     hasOutstandingChildRequest: false,
-                    nextStep: !isEmptyObject(nextStep) ? nextStep : undefined,
                     lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
                 },
             },
@@ -1875,12 +1874,21 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    // buildOptimisticNextStep is used in parallel
     if (!isEmptyObject(nextStepDeprecated)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
             value: nextStepDeprecated,
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
+            value: {
+                nextStep: nextStep,
+                pendingFields: {
+                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
         });
     }
 
@@ -4883,6 +4891,9 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
                 value: {
                     nextStep: optimisticNextStep,
+                    pendingFields: {
+                        nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
                 },
             });
             failureData.push({
@@ -4894,7 +4905,19 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
                 value: {
-                    nextStep: iouReport?.nextStep,
+                    nextStep: iouReport?.nextStep ?? null,
+                    pendingFields: {
+                        nextStep: null,
+                    },
+                },
+            });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+                value: {
+                    pendingFields: {
+                        nextStep: null,
+                    },
                 },
             });
         }
@@ -11640,7 +11663,11 @@ function cancelPayment(
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
                 isCancelledIOU: false,
-                nextStep: expenseReport.nextStep ?? null,
+                nextStep:
+                    buildOptimisticNextStep({
+                        report: expenseReport,
+                        predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                    }) ?? null,
                 pendingFields: {
                     nextStep: null,
                 },
@@ -11698,16 +11725,6 @@ function cancelPayment(
             report: expenseReport,
             predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
         }),
-    });
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
-        value: {
-            nextStep: buildOptimisticNextStep({
-                report: expenseReport,
-                predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
-            }),
-        },
     });
 
     API.write(
