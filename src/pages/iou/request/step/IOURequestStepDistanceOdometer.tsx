@@ -1,58 +1,39 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {useFocusEffect} from '@react-navigation/native';
-import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {View} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import Button from '@components/Button';
-import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
-import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import Text from '@components/Text';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ReceiptImage from '@components/ReceiptImage';
+import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import {Gallery} from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
-import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    createDistanceRequest,
-    getMoneyRequestParticipantsFromReport,
-    setCustomUnitRateID,
-    setMoneyRequestDistance,
-    setMoneyRequestMerchant,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestPendingFields,
-    trackExpense,
-    updateMoneyRequestDistance,
-} from '@libs/actions/IOU';
-import {setTransactionReport} from '@libs/actions/Transaction';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
+import variables from '@styles/variables';
+import {setMoneyRequestOdometerReading, setMoneyRequestOdometerImage, setMoneyRequestDistance} from '@libs/actions/IOU';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getRateID} from '@libs/TransactionUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
@@ -67,265 +48,152 @@ function IOURequestStepDistanceOdometer({
 }: IOURequestStepDistanceOdometerProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
-
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
-    const textInput = useRef<BaseTextInputRef | null>(null);
-    const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    const startReadingInputRef = useRef<any>(null);
+    const endReadingInputRef = useRef<any>(null);
+
+    const [startReading, setStartReading] = useState<string>('');
+    const [endReading, setEndReading] = useState<string>('');
     const [formError, setFormError] = useState<string>('');
-
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
-    const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
-    const policy = usePolicy(report?.policyID);
-    const personalPolicy = usePersonalPolicy();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const defaultExpensePolicy = useDefaultExpensePolicy();
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
-
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
-    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
-    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
-    const customUnitRateID = getRateID(transaction);
-    const unit = DistanceRequestUtils.getRate({transaction, policy}).unit;
-    const distance = transaction?.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    // Get odometer readings from transaction
+    const odometerStart = transaction?.comment?.odometerStart;
+    const odometerEnd = transaction?.comment?.odometerEnd;
+    const odometerStartImage = transaction?.comment?.odometerStartImage;
+    const odometerEndImage = transaction?.comment?.odometerEndImage;
 
+    // Initialize readings from transaction
     useEffect(() => {
-        if (numberFormRef.current && numberFormRef.current?.getNumber() === distance?.toString()) {
-            return;
+        if (odometerStart !== undefined && odometerStart !== null) {
+            setStartReading(odometerStart.toString());
         }
-        numberFormRef.current?.updateNumber(distance?.toString() ?? '');
-    }, [distance, selectedTab]);
-
-    const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
-            return false;
+        if (odometerEnd !== undefined && odometerEnd !== null) {
+            setEndReading(odometerEnd.toString());
         }
+    }, [odometerStart, odometerEnd]);
 
-        return !(isArchivedReport(reportNameValuePairs) || isPolicyExpenseChatUtils(report));
-    }, [report, skipConfirmation, reportNameValuePairs]);
+    // Calculate total distance
+    const totalDistance = useMemo(() => {
+        const start = parseFloat(startReading);
+        const end = parseFloat(endReading);
+        if (isNaN(start) || isNaN(end)) {
+            return null;
+        }
+        return end - start;
+    }, [startReading, endReading]);
 
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
-            return () => {
-                if (!focusTimeoutRef.current) {
-                    return;
-                }
-                clearTimeout(focusTimeoutRef.current);
-            };
-        }, []),
-    );
+    // Get image source for web (blob URL) or native (URI string)
+    const getImageSource = useCallback((image: File | string | undefined): string | undefined => {
+        if (!image) {
+            return undefined;
+        }
+        // Web: File object, create blob URL
+        if (typeof image !== 'string' && image instanceof File) {
+            return URL.createObjectURL(image);
+        }
+        // Native: URI string, use directly
+        if (typeof image === 'string') {
+            return image;
+        }
+        return undefined;
+    }, []);
+
+    const startImageSource = getImageSource(odometerStartImage);
+    const endImageSource = getImageSource(odometerEndImage);
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
     }, [backTo]);
 
     const buttonText = useMemo(() => {
-        if (shouldSkipConfirmation) {
-            return translate('iou.createExpense');
-        }
+        return isEditing ? translate('common.save') : translate('common.next');
+    }, [isEditing, translate]);
 
-        return isCreatingNewRequest ? translate('common.next') : translate('common.save');
-    }, [shouldSkipConfirmation, translate, isCreatingNewRequest]);
-
-    const navigateToConfirmationPage = useCallback(() => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
-        }
-    }, [iouType, transactionID, reportID, backToReport]);
-
-    const navigateToNextPage = useCallback(
-        (amount: string) => {
-            const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(amount));
-            setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft);
-
-            if (action === CONST.IOU.ACTION.EDIT) {
-                if (distance !== distanceAsFloat) {
-                    updateMoneyRequestDistance({
-                        transactionID: transaction?.transactionID,
-                        transactionThreadReportID: reportID,
-                        distance: distanceAsFloat,
-                        // Not required for manual distance request
-                        transactionBackup: undefined,
-                        policy,
-                        currentUserAccountIDParam,
-                        currentUserEmailParam,
-                        isASAPSubmitBetaEnabled,
-                    });
-                }
-                Navigation.goBack(backTo);
-                return;
+    const handleStartReadingChange = useCallback(
+        (text: string) => {
+            setStartReading(text);
+            if (formError) {
+                setFormError('');
             }
-
-            if (backTo) {
-                Navigation.goBack(backTo);
-                return;
-            }
-
-            if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
-                const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
-                const participants = selectedParticipants.map((participant) => {
-                    const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
-                });
-                if (shouldSkipConfirmation) {
-                    setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
-                    setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
-                    const participant = participants.at(0);
-                    if (iouType === CONST.IOU.TYPE.TRACK && participant) {
-                        trackExpense({
-                            report,
-                            isDraftPolicy: false,
-                            participantParams: {
-                                payeeEmail: currentUserEmailParam,
-                                payeeAccountID: currentUserAccountIDParam,
-                                participant,
-                            },
-                            policyParams: {
-                                policy,
-                            },
-                            transactionParams: {
-                                amount: 0,
-                                distance: distanceAsFloat,
-                                currency: transaction?.currency ?? 'USD',
-                                created: transaction?.created ?? '',
-                                merchant: translate('iou.fieldPending'),
-                                receipt: {},
-                                billable: false,
-                                customUnitRateID,
-                                attendees: transaction?.comment?.attendees,
-                            },
-                            isASAPSubmitBetaEnabled,
-                        });
-                        return;
-                    }
-
-                    const isPolicyExpenseChat = !!participant?.isPolicyExpenseChat;
-
-                    createDistanceRequest({
-                        report,
-                        participants,
-                        currentUserLogin: currentUserEmailParam,
-                        currentUserAccountID: currentUserAccountIDParam,
-                        iouType,
-                        existingTransaction: transaction,
-                        transactionParams: {
-                            amount: 0,
-                            distance: distanceAsFloat,
-                            comment: '',
-                            created: transaction?.created ?? '',
-                            currency: transaction?.currency ?? 'USD',
-                            merchant: translate('iou.fieldPending'),
-                            billable: !!policy?.defaultBillable,
-                            customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({reportID: report.reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates}),
-                            splitShares: transaction?.splitShares,
-                            attendees: transaction?.comment?.attendees,
-                        },
-                        backToReport,
-                        isASAPSubmitBetaEnabled,
-                        transactionViolations,
-                    });
-                    return;
-                }
-                setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
-                    navigateToConfirmationPage();
-                });
-                return;
-            }
-
-            // If there was no reportID, then that means the user started this flow from the global menu
-            // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-            if (
-                iouType === CONST.IOU.TYPE.CREATE &&
-                isPaidGroupPolicy(defaultExpensePolicy) &&
-                defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-                !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
-            ) {
-                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
-                const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-                const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
-                const rateID = DistanceRequestUtils.getCustomUnitRateID({
-                    reportID: transactionReportID,
-                    isPolicyExpenseChat: true,
-                    policy: defaultExpensePolicy,
-                    lastSelectedDistanceRates,
-                });
-                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-                setCustomUnitRateID(transactionID, rateID);
-                setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat, currentUserPersonalDetails.accountID).then(() => {
-                    Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                            CONST.IOU.ACTION.CREATE,
-                            iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
-                            transactionID,
-                            activePolicyExpenseChat?.reportID,
-                        ),
-                    );
-                });
-            } else {
-                navigateToParticipantPage(iouType, transactionID, reportID);
+            // Save to transaction immediately
+            const startValue = text ? parseFloat(text) : null;
+            const endValue = endReading ? parseFloat(endReading) : null;
+            if (startValue !== null && !isNaN(startValue)) {
+                setMoneyRequestOdometerReading(transactionID, startValue, endValue ?? null, isTransactionDraft);
             }
         },
-        [
-            transactionID,
-            isTransactionDraft,
-            action,
-            backTo,
-            report,
-            reportNameValuePairs,
-            iouType,
-            defaultExpensePolicy,
-            distance,
-            transaction,
-            reportID,
-            policy,
-            shouldSkipConfirmation,
-            personalDetails,
-            reportAttributesDerived,
-            translate,
-            currentUserEmailParam,
-            currentUserAccountIDParam,
-            lastSelectedDistanceRates,
-            backToReport,
-            isASAPSubmitBetaEnabled,
-            customUnitRateID,
-            navigateToConfirmationPage,
-            personalPolicy?.autoReporting,
-            transactionViolations,
-        ],
+        [endReading, formError, transactionID, isTransactionDraft],
     );
 
-    const submitAndNavigateToNextPage = useCallback(() => {
-        const value = numberFormRef.current?.getNumber() ?? '';
-        if (!value.length || parseFloat(value) < 0.01) {
-            setFormError(translate('iou.error.invalidDistance'));
+    const handleEndReadingChange = useCallback(
+        (text: string) => {
+            setEndReading(text);
+            if (formError) {
+                setFormError('');
+            }
+            // Save to transaction immediately
+            const startValue = startReading ? parseFloat(startReading) : null;
+            const endValue = text ? parseFloat(text) : null;
+            if (endValue !== null && !isNaN(endValue)) {
+                setMoneyRequestOdometerReading(transactionID, startValue ?? null, endValue, isTransactionDraft);
+            }
+        },
+        [startReading, formError, transactionID, isTransactionDraft],
+    );
+
+    const handleCaptureImage = useCallback(
+        (imageType: 'start' | 'end') => {
+            // Navigate to AttachOdometerReading route
+            // For now, we'll use a placeholder route - this will be implemented in a later step
+            // Navigation.navigate(ROUTES.ODOMETER_IMAGE.getRoute(transactionID, imageType, Navigation.getActiveRouteWithoutParams()));
+        },
+        [transactionID],
+    );
+
+    const handleNext = useCallback(() => {
+        // Validation
+        if (!startReading || !endReading) {
+            setFormError(translate('distance.odometer.readingRequired'));
             return;
         }
 
-        navigateToNextPage(value);
-    }, [navigateToNextPage, translate]);
+        const start = parseFloat(startReading);
+        const end = parseFloat(endReading);
 
-    useEffect(() => {
-        if (isLoadingSelectedTab) {
+        if (isNaN(start) || isNaN(end)) {
+            setFormError(translate('distance.odometer.readingRequired'));
             return;
         }
-        setFormError('');
-    }, [selectedTab, isLoadingSelectedTab]);
+
+        const distance = end - start;
+        if (distance <= 0) {
+            setFormError(translate('distance.odometer.negativeDistanceNotAllowed'));
+            return;
+        }
+
+        // Save readings
+        setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
+        // Calculate and save total distance
+        const distanceAsFloat = roundToTwoDecimalPlaces(distance);
+        setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft);
+
+        if (isEditing) {
+            // Update existing transaction
+            // TODO: Implement update logic similar to updateMoneyRequestDistance
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        // Navigate to confirmation page
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
+    }, [startReading, endReading, transactionID, isTransactionDraft, isEditing, backTo, iouType, reportID, backToReport, translate]);
 
     return (
         <StepScreenWrapper
@@ -336,40 +204,164 @@ function IOURequestStepDistanceOdometer({
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
         >
-            <NumberWithSymbolForm
-                ref={textInput}
-                numberFormRef={numberFormRef}
-                value={distance?.toString()}
-                onInputChange={() => {
-                    if (!formError) {
-                        return;
-                    }
-                    setFormError('');
-                }}
-                decimals={CONST.DISTANCE_DECIMAL_PLACES}
-                symbol={unit}
-                symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
-                isSymbolPressable={false}
-                symbolTextStyle={styles.textSupporting}
-                style={styles.iouAmountTextInput}
-                containerStyle={styles.iouAmountTextInputContainer}
-                autoGrowExtraSpace={variables.w80}
-                errorText={formError}
-                footer={
-                    <Button
-                        success
-                        // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
-                        allowBubble={!isEditing}
-                        pressOnEnter
-                        medium={isExtraSmallScreenHeight}
-                        large={!isExtraSmallScreenHeight}
-                        style={[styles.w100, canUseTouchScreen() ? styles.mt5 : styles.mt0]}
-                        onPress={submitAndNavigateToNextPage}
-                        text={buttonText}
-                        testID="next-button"
-                    />
-                }
-            />
+            <View style={[styles.flex1, styles.ph5]}>
+                {/* Start Reading */}
+                <View style={[styles.mb4, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    <View style={[styles.flex1]}>
+                        <TextInput
+                            ref={startReadingInputRef}
+                            label={translate('distance.odometer.startReading')}
+                            value={startReading}
+                            onChangeText={handleStartReadingChange}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            inputMode={CONST.INPUT_MODE.NUMERIC}
+                            placeholder="0"
+                            errorText={formError && !startReading ? formError : ''}
+                        />
+                    </View>
+                    {startImageSource ? (
+                        <PressableWithFeedback
+                            accessible={false}
+                            onPress={() => handleCaptureImage('start')}
+                            style={[
+                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
+                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                styles.overflowHidden,
+                                StyleUtils.getBackgroundColorStyle(theme.border),
+                            ]}
+                        >
+                            <ReceiptImage
+                                source={startImageSource}
+                                shouldUseThumbnailImage
+                                thumbnailContainerStyles={styles.bgTransparent}
+                                isAuthTokenRequired
+                                fallbackIcon={Gallery}
+                                fallbackIconSize={20}
+                                fallbackIconColor={theme.icon}
+                                iconSize="x-small"
+                                loadingIconSize="small"
+                                shouldUseInitialObjectPosition
+                            />
+                        </PressableWithFeedback>
+                    ) : (
+                        <PressableWithFeedback
+                            accessible={false}
+                            onPress={() => handleCaptureImage('start')}
+                            style={[
+                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
+                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                styles.overflowHidden,
+                                StyleUtils.getBackgroundColorStyle(theme.border),
+                            ]}
+                        >
+                            <ReceiptImage
+                                source=""
+                                shouldUseThumbnailImage
+                                thumbnailContainerStyles={styles.bgTransparent}
+                                fallbackIcon={Gallery}
+                                fallbackIconSize={20}
+                                fallbackIconColor={theme.icon}
+                                iconSize="x-small"
+                                loadingIconSize="small"
+                                shouldUseInitialObjectPosition
+                            />
+                        </PressableWithFeedback>
+                    )}
+                </View>
+
+                {/* End Reading */}
+                <View style={[styles.mb4, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    <View style={[styles.flex1]}>
+                        <TextInput
+                            ref={endReadingInputRef}
+                            label={translate('distance.odometer.endReading')}
+                            value={endReading}
+                            onChangeText={handleEndReadingChange}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            inputMode={CONST.INPUT_MODE.NUMERIC}
+                            placeholder="0"
+                            errorText={formError && !endReading ? formError : ''}
+                        />
+                    </View>
+                    {endImageSource ? (
+                        <PressableWithFeedback
+                            accessible={false}
+                            onPress={() => handleCaptureImage('end')}
+                            style={[
+                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
+                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                styles.overflowHidden,
+                                StyleUtils.getBackgroundColorStyle(theme.border),
+                            ]}
+                        >
+                            <ReceiptImage
+                                source={endImageSource}
+                                shouldUseThumbnailImage
+                                thumbnailContainerStyles={styles.bgTransparent}
+                                isAuthTokenRequired
+                                fallbackIcon={Gallery}
+                                fallbackIconSize={20}
+                                fallbackIconColor={theme.icon}
+                                iconSize="x-small"
+                                loadingIconSize="small"
+                                shouldUseInitialObjectPosition
+                            />
+                        </PressableWithFeedback>
+                    ) : (
+                        <PressableWithFeedback
+                            accessible={false}
+                            onPress={() => handleCaptureImage('end')}
+                            style={[
+                                StyleUtils.getWidthAndHeightStyle(variables.h40, variables.w40),
+                                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusMedium),
+                                styles.overflowHidden,
+                                StyleUtils.getBackgroundColorStyle(theme.border),
+                            ]}
+                        >
+                            <ReceiptImage
+                                source=""
+                                shouldUseThumbnailImage
+                                thumbnailContainerStyles={styles.bgTransparent}
+                                fallbackIcon={Gallery}
+                                fallbackIconSize={20}
+                                fallbackIconColor={theme.icon}
+                                iconSize="x-small"
+                                loadingIconSize="small"
+                                shouldUseInitialObjectPosition
+                            />
+                        </PressableWithFeedback>
+                    )}
+                </View>
+
+                {/* Total Distance Display */}
+                {totalDistance !== null && (
+                    <View style={[styles.mb4, styles.p3, styles.borderRadiusComponentNormal, {backgroundColor: theme.componentBG}]}>
+                        <Text style={[styles.textStrong]}>
+                            {translate('distance.odometer.totalDistance')}: {roundToTwoDecimalPlaces(totalDistance)}
+                        </Text>
+                    </View>
+                )}
+
+                {/* Error Message */}
+                {formError && totalDistance !== null && totalDistance <= 0 && (
+                    <View style={[styles.mb4]}>
+                        <Text style={[styles.textDanger]}>{formError}</Text>
+                    </View>
+                )}
+
+                {/* Next/Save Button */}
+                <Button
+                    success
+                    allowBubble={!isEditing}
+                    pressOnEnter
+                    medium={isExtraSmallScreenHeight}
+                    large={!isExtraSmallScreenHeight}
+                    style={[styles.w100, styles.mt5]}
+                    onPress={handleNext}
+                    text={buttonText}
+                    testID="next-button"
+                />
+            </View>
         </StepScreenWrapper>
     );
 }

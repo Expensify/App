@@ -1074,7 +1074,7 @@ function initMoneyRequest({
     let requestCategory: string | null = null;
 
     // Set up initial distance expense state
-    if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL) {
+    if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
             const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
@@ -1085,13 +1085,18 @@ function initMoneyRequest({
         if (comment.customUnit) {
             comment.customUnit.quantity = null;
         }
-        if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL) {
+        if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
             comment.waypoints = undefined;
         } else {
             comment.waypoints = {
                 waypoint0: {keyForList: 'start_waypoint'},
                 waypoint1: {keyForList: 'stop_waypoint'},
             };
+        }
+        // Initialize Odometer state
+        if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
+            comment.odometerStart = null;
+            comment.odometerEnd = null;
         }
     }
 
@@ -1431,6 +1436,38 @@ function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex:
 
 function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {quantity: distanceAsFloat}}});
+}
+
+/**
+ * Set odometer readings for a transaction
+ * @param transactionID - The transaction ID
+ * @param startReading - The start odometer reading
+ * @param endReading - The end odometer reading
+ * @param isDraft - Whether this is a draft transaction
+ */
+function setMoneyRequestOdometerReading(transactionID: string, startReading: number | null, endReading: number | null, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            odometerStart: startReading,
+            odometerEnd: endReading,
+        },
+    });
+}
+
+/**
+ * Set odometer image for a transaction
+ * @param transactionID - The transaction ID
+ * @param imageType - 'start' or 'end'
+ * @param file - The image file (File object on web, URI string on native)
+ * @param isDraft - Whether this is a draft transaction
+ */
+function setMoneyRequestOdometerImage(transactionID: string, imageType: 'start' | 'end', file: File | string, isDraft: boolean) {
+    const imageKey = imageType === 'start' ? 'odometerStartImage' : 'odometerEndImage';
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            [imageKey]: file,
+        },
+    });
 }
 
 /**
@@ -15015,6 +15052,8 @@ export {
     setMoneyRequestDescription,
     setMoneyRequestDistance,
     setMoneyRequestDistanceRate,
+    setMoneyRequestOdometerReading,
+    setMoneyRequestOdometerImage,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
