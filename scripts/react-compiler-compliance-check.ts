@@ -34,7 +34,7 @@ const MANUAL_MEMOIZATION_PATTERNS = {
 type ManualMemoizationKeyword = keyof typeof MANUAL_MEMOIZATION_PATTERNS;
 
 const MANUAL_MEMOIZATION_FAILURE_MESSAGE = (manualMemoizationKeyword: ManualMemoizationKeyword) =>
-    `Found a manual memoization usage of ${manualMemoizationKeyword}. Newly added React component files must not contain any manual memoization and instead be auto-memoized by React Compiler. Remove ${manualMemoizationKeyword} or disable automatic memoization by adding the \`"use no memo";\` directive at the beginning of the component and give a reason why automatic memoization is not applicable.`;
+    `Found a manual memoization usage of \`${manualMemoizationKeyword}\`. Newly added React component files must not contain any manual memoization and instead be auto-memoized by React Compiler. Remove \`${manualMemoizationKeyword}\` or disable automatic memoization by adding the \`"use no memo";\` directive at the beginning of the component and give a reason why automatic memoization is not applicable.`;
 
 const NO_MANUAL_MEMO_DIRECTIVE_PATTERN = /["']use no memo["']\s*;?/;
 
