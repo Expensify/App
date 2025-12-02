@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useInitial from '@hooks/useInitial';
@@ -45,10 +45,18 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
         clearIssueNewCardFlow(policyID);
     }, [backTo, isSuccessful, policyID, shouldUseBackToParam]);
 
-    const handleSubmit = (validateCode: string) => {
-        // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
-        issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, data);
-    };
+    const handleSubmit = useCallback(
+        (validateCode: string) => {
+            // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
+            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, data);
+        },
+        [isBetaEnabled, data, defaultFundID, policyID],
+    );
+
+    const handleClose = useCallback(() => {
+        resetValidateActionCodeSent();
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, backTo));
+    }, [policyID, backTo]);
 
     return (
         <ValidateCodeActionContent
@@ -60,10 +68,7 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
             handleSubmitForm={handleSubmit}
             validateError={validateError}
             clearError={() => setValidateError({})}
-            onClose={() => {
-                resetValidateActionCodeSent();
-                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, backTo));
-            }}
+            onClose={handleClose}
         />
     );
 }
