@@ -88,6 +88,7 @@ import {
 } from './ReportActionsUtils';
 import {canReview} from './ReportPreviewActionUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {
     canUserPerformWriteAction,
     getIcons,
@@ -1403,6 +1404,7 @@ function getTaskSections(
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const policy = getPolicy(parentReport.policyID);
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const parentReportName = getReportName(parentReport, policy, undefined, undefined, undefined, undefined, undefined, isParentReportArchived);
                 const icons = getIcons(parentReport, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
@@ -1485,6 +1487,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
                     continue;
                 }
 
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 reportActionItems.push({
                     ...reportAction,
                     from,

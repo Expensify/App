@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+
 /* eslint-disable @typescript-eslint/no-deprecated */
 import {beforeAll} from '@jest/globals';
 import {act, renderHook} from '@testing-library/react-native';
