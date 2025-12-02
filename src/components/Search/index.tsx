@@ -382,7 +382,7 @@ function Search({
         if (!prevIsOffline || isOffline) {
             return;
         }
-        openSearch();
+        openSearch({includePartiallySetupBankAccounts: true});
     }, [isOffline, prevIsOffline]);
 
     const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
