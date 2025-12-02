@@ -104,6 +104,7 @@ import {
     isClosedReport,
     isInvoiceReport,
     isMoneyRequestReport,
+    isOneTransactionReport,
     isOpenExpenseReport,
     isOpenReport,
     isSettled,
@@ -940,6 +941,7 @@ function getTransactionViolations(
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     transaction: SearchTransaction,
     currentUserEmail: string,
+    currentUserAccountID: number,
     report: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
 ): OnyxTypes.TransactionViolation[] {
@@ -947,7 +949,7 @@ function getTransactionViolations(
     if (!transactionViolations) {
         return [];
     }
-    return transactionViolations.filter((violation) => !isViolationDismissed(transaction, violation, currentUserEmail, report, policy));
+    return transactionViolations.filter((violation) => !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy));
 }
 
 /**
@@ -1096,7 +1098,7 @@ function getTransactionsSections(
             const reportAction = moneyRequestReportActionsByTransactionID.get(transactionItem.transactionID);
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
-            const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail, report, policy);
+            const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
             // Use Map.get() for faster lookups with default values
             const from = reportAction?.actorAccountID ? (personalDetailsMap.get(reportAction.actorAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
@@ -1283,12 +1285,19 @@ function getActions(
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
     const isChatReportArchived = isArchivedReport(chatReportRNVP);
 
-    const hasAnyViolationsForReport = hasAnyViolations(report.reportID, allViolations, allReportTransactions, currentUserEmail, report, policy);
-    const hasVisibleViolationsForReport = hasAnyViolationsForReport && ViolationsUtils.hasVisibleViolationsForUser(report, allViolations, currentUserEmail, policy, allReportTransactions);
+    const hasAnyViolationsForReport = hasAnyViolations(report.reportID, allViolations, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail, allReportTransactions, report, policy);
+    const hasVisibleViolationsForReport =
+        hasAnyViolationsForReport &&
+        ViolationsUtils.hasVisibleViolationsForUser(report, allViolations, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, policy, allReportTransactions);
 
     // Only check for violations if we need to (when user has permission to review)
     if ((isSubmitter || isApprover || isAdmin) && hasVisibleViolationsForReport) {
-        if (isSubmitter && !isApprover && !isAdmin && !canReview(report, allViolations, isIOUReportArchived || isChatReportArchived, currentUserEmail, policy, allReportTransactions)) {
+        if (
+            isSubmitter &&
+            !isApprover &&
+            !isAdmin &&
+            !canReview(report, allViolations, isIOUReportArchived || isChatReportArchived, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, policy, allReportTransactions)
+        ) {
             allActions.push(CONST.SEARCH.ACTION_TYPES.VIEW);
         } else {
             allActions.push(CONST.SEARCH.ACTION_TYPES.REVIEW);
@@ -1296,7 +1305,7 @@ function getActions(
     }
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
     // If this condition is not met, return early for performance reasons
-    if (isTransaction && !transaction?.isFromOneTransactionReport) {
+    if (isTransaction && !isOneTransactionReport(report)) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
@@ -1602,7 +1611,7 @@ function getReportSections(
             const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] as SearchReport | undefined;
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
-            const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail, report, policy);
+            const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
             const actions = Object.values(reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
             const from = reportAction?.actorAccountID ? (data.personalDetailsList?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
@@ -2372,45 +2381,33 @@ function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes) 
     }
 }
 
-function getHasOptions(type: SearchDataTypes) {
+function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return [
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+                {text: translate('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
+                {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                {text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
+                {text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
             ];
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return [
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                {text: translateLocal('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                {text: translate('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
+                {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
             ];
         default:
             return [];
     }
 }
 
-function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
+function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        {text: translateLocal('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        {text: translateLocal('common.expenseReport'), value: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        {text: translateLocal('common.chat'), value: CONST.SEARCH.DATA_TYPES.CHAT},
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        {text: translateLocal('common.invoice'), value: CONST.SEARCH.DATA_TYPES.INVOICE},
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        {text: translateLocal('common.trip'), value: CONST.SEARCH.DATA_TYPES.TRIP},
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        {text: translateLocal('common.task'), value: CONST.SEARCH.DATA_TYPES.TASK},
+        {text: translate('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
+        {text: translate('common.expenseReport'), value: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        {text: translate('common.chat'), value: CONST.SEARCH.DATA_TYPES.CHAT},
+        {text: translate('common.invoice'), value: CONST.SEARCH.DATA_TYPES.INVOICE},
+        {text: translate('common.trip'), value: CONST.SEARCH.DATA_TYPES.TRIP},
+        {text: translate('common.task'), value: CONST.SEARCH.DATA_TYPES.TASK},
     ];
     const shouldHideInvoiceOption = !canSendInvoice(policies, currentUserLogin) && !hasInvoiceReports();
 
@@ -2418,9 +2415,8 @@ function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserL
     return shouldHideInvoiceOption ? typeOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE) : typeOptions;
 }
 
-function getGroupByOptions() {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translateLocal(`search.filters.groupBy.${value}`), value}));
+function getGroupByOptions(translate: LocalizedTranslate) {
+    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translate(`search.filters.groupBy.${value}`), value}));
 }
 
 function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList) {
