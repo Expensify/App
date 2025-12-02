@@ -5984,6 +5984,36 @@ ${amount} para ${merchant} - ${date}`,
             `cambió la tasa de informes enviados aleatoriamente para aprobación manual a ${Math.round(newAuditRate * 100)}% (previamente ${Math.round(oldAuditRate * 100)}%)`,
         updateReimbursementEnabled: ({enabled}) => `${enabled ? 'habilitó' : 'deshabilitó'} los reembolsos para este espacio de trabajo`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}) => `cambió el límite de aprobación manual para todos los gastos a ${newLimit} (previamente ${oldLimit})`,
+        updatedFeatureEnabled: ({enabled, featureName}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'activó' : 'desactivó'} las categorías`;
+                case 'tags':
+                    return `${enabled ? 'activó' : 'desactivó'} las etiquetas`;
+                case 'workflows':
+                    return `${enabled ? 'activó' : 'desactivó'} los flujos de trabajo`;
+                case 'distance rates':
+                    return `${enabled ? 'activó' : 'desactivó'} las tasas por distancia`;
+                case 'accounting':
+                    return `${enabled ? 'activó' : 'desactivó'} la contabilidad`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'activó' : 'desactivó'} las tarjetas Expensify`;
+                case 'company cards':
+                    return `${enabled ? 'activó' : 'desactivó'} las tarjetas de empresa`;
+                case 'invoicing':
+                    return `${enabled ? 'activó' : 'desactivó'} las facturas`;
+                case 'per diem':
+                    return `${enabled ? 'activó' : 'desactivó'} per diem`;
+                case 'receipt partners':
+                    return `${enabled ? 'activó' : 'desactivó'} la importación de recibos`;
+                case 'rules':
+                    return `${enabled ? 'activó' : 'desactivó'} las reglas`;
+                case 'tax tracking':
+                    return `${enabled ? 'activó' : 'desactivó'} el seguimiento de impuestos`;
+                default:
+                    return `${enabled ? 'activó' : 'desactivó'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitó' : 'deshabilitó'} el seguimiento de asistentes`,
         addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,
         deleteTax: ({taxName}) => `eliminó el impuesto "${taxName}"`,
@@ -7354,9 +7384,7 @@ ${amount} para ${merchant} - ${date}`,
                 `Has impugnado el cargo ${amountOwed} en la tarjeta terminada en ${cardEnding}. Tu cuenta estará bloqueada hasta que se resuelva la disputa con tu banco.`,
             preTrial: {
                 title: 'Iniciar una prueba gratuita',
-                subtitleStart: 'El próximo paso es ',
-                subtitleLink: 'completar la configuración ',
-                subtitleEnd: 'para que tu equipo pueda empezar a enviar gastos.',
+                subtitle: 'El próximo paso es <a href="#">completar la configuración</a> para que tu equipo pueda empezar a enviar gastos.',
             },
             trialStarted: {
                 title: ({numOfDays}) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `${numOfDays} días`}!`,
