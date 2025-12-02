@@ -919,7 +919,7 @@ describe('getReportPreviewAction', () => {
                     false,
                     false,
                 ),
-            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT);
+            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
         });
     });
 });

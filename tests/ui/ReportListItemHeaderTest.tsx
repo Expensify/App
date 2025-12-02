@@ -92,7 +92,13 @@ const createReportListItem = (
 });
 
 // Helper function to wrap component with context
-const renderReportListItemHeader = (reportItem: TransactionReportGroupListItemType) => {
+const renderReportListItemHeader = (
+    reportItem: TransactionReportGroupListItemType,
+    options?: {
+        onDEWModalOpen?: () => void;
+        isDEWBetaEnabled?: boolean;
+    },
+) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             {/* @ts-expect-error - Disable TypeScript errors to simplify the test */}
@@ -103,6 +109,8 @@ const renderReportListItemHeader = (reportItem: TransactionReportGroupListItemTy
                     onCheckboxPress={jest.fn()}
                     isDisabled={false}
                     canSelectMultiple={false}
+                    onDEWModalOpen={options?.onDEWModalOpen}
+                    isDEWBetaEnabled={options?.isDEWBetaEnabled}
                 />
             </SearchContext.Provider>
         </ComposeProviders>,
@@ -214,6 +222,50 @@ describe('ReportListItemHeader', () => {
                 expect(screen.getByText('John Doe')).toBeOnTheScreen();
                 expect(screen.queryByTestId('UserInfoToIndicator')).not.toBeOnTheScreen();
             });
+        });
+    });
+
+    describe('DEW (Dynamic External Workflow)', () => {
+        it('should accept onDEWModalOpen callback for SUBMIT action', async () => {
+            const mockOnDEWModalOpen = jest.fn();
+            const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'jane', {
+                action: 'submit',
+            });
+            renderReportListItemHeader(reportItem, {onDEWModalOpen: mockOnDEWModalOpen});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('John Doe')).toBeOnTheScreen();
+        });
+
+        it('should accept onDEWModalOpen callback for APPROVE action', async () => {
+            const mockOnDEWModalOpen = jest.fn();
+            const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'jane', {
+                action: 'approve',
+            });
+            renderReportListItemHeader(reportItem, {onDEWModalOpen: mockOnDEWModalOpen});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('John Doe')).toBeOnTheScreen();
+        });
+
+        it('should accept isDEWBetaEnabled prop', async () => {
+            const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'jane', {
+                action: 'submit',
+            });
+            renderReportListItemHeader(reportItem, {isDEWBetaEnabled: true});
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('John Doe')).toBeOnTheScreen();
+        });
+
+        it('should render without DEW props', async () => {
+            const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'jane', {
+                action: 'submit',
+            });
+            renderReportListItemHeader(reportItem);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('John Doe')).toBeOnTheScreen();
         });
     });
 });
