@@ -7,7 +7,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImportOnyxState from '@components/ImportOnyxState';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import RecordTroubleshootDataToolMenu from '@components/RecordTroubleshootDataToolMenu';
@@ -32,6 +31,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
+import colors from '@styles/theme/colors';
 import {clearOnyxAndResetApp} from '@userActions/App';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -39,6 +39,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
+import useTroubleshootSectionIllustration from './useTroubleshootSectionIllustration';
 
 type BaseMenuItem = {
     translationKey: TranslationPaths;
@@ -49,6 +50,7 @@ type BaseMenuItem = {
 function TroubleshootPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'ExpensifyLogoNew'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Lightbulb'] as const);
+    const troubleshootIllustration = useTroubleshootSectionIllustration();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isProduction} = useEnvironment();
@@ -168,13 +170,16 @@ function TroubleshootPage() {
                         subtitle={translate('initialSettingsPage.troubleshoot.description')}
                         isCentralPane
                         subtitleMuted
-                        illustration={LottieAnimations.Desk}
+                        illustrationContainerStyle={styles.cardSectionIllustrationContainer}
+                        illustrationBackgroundColor={colors.blue700}
                         titleStyles={styles.accountSettingsSectionTitle}
                         renderSubtitle={() => (
                             <View style={[styles.renderHTML, styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
                                 <RenderHTML html={translate('initialSettingsPage.troubleshoot.description')} />
                             </View>
                         )}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...troubleshootIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <View>
