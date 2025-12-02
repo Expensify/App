@@ -2662,6 +2662,7 @@ describe('OptionsListUtils', () => {
                 message: [{type: 'COMMENT', text: ''}],
                 originalMessage: {
                     toReportID: report2.reportID,
+                    fromReportID: report.reportID,
                 },
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`, report2);
@@ -2669,7 +2670,7 @@ describe('OptionsListUtils', () => {
                 [movedTransactionAction.reportActionID]: movedTransactionAction,
             });
             const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
-            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(report2)));
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(movedTransactionAction)));
         });
         describe('SUBMITTED action', () => {
             it('should return automatic submitted message if submitted via harvesting', async () => {
