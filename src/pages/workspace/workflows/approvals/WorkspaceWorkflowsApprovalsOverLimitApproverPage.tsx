@@ -37,16 +37,20 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const policyID = route.params.policyID;
-    const approverIndex = Number(route.params.approverIndex) ?? 0;
+    const approverIndex = Number(route.params.approverIndex ?? 0);
     const backTo = route.params?.backTo;
     const currentApprover = approvalWorkflow?.approvers?.[approverIndex];
 
     const employeeList = policy?.employeeList;
+    const isDefault = approvalWorkflow?.isDefault;
+    const membersEmail = useMemo(() => approvalWorkflow?.members.map((member) => member.email), [approvalWorkflow?.members]);
 
     const allApprovers: SelectionListApprover[] = useMemo(() => {
         if (isApprovalWorkflowLoading || !employeeList) {
             return [];
         }
+
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
 
         return Object.values(employeeList)
             .map((employee): SelectionListApprover | null => {
@@ -56,7 +60,10 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                     return null;
                 }
 
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
+                if (!isDefault && policy?.preventSelfApproval && membersEmail?.includes(email)) {
+                    return null;
+                }
+
                 const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
                 const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
 
@@ -77,7 +84,17 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [isApprovalWorkflowLoading, employeeList, personalDetails, policy?.owner, currentApprover?.overLimitForwardsTo, expensifyIcons.FallbackAvatar]);
+    }, [
+        isApprovalWorkflowLoading,
+        employeeList,
+        personalDetails,
+        policy?.owner,
+        policy?.preventSelfApproval,
+        currentApprover?.overLimitForwardsTo,
+        expensifyIcons.FallbackAvatar,
+        isDefault,
+        membersEmail,
+    ]);
 
     const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading;
 

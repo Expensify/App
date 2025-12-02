@@ -280,7 +280,9 @@ function convertApprovalWorkflowToPolicyEmployees({
             ...(overLimitForwardsToChanged ? {overLimitForwardsTo} : {}),
             pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : pendingAction,
             pendingFields: {
-                forwardsTo: pendingAction,
+                ...(forwardsToChanged ? {forwardsTo: pendingAction} : {}),
+                ...(approvalLimitChanged ? {approvalLimit: pendingAction} : {}),
+                ...(overLimitForwardsToChanged ? {overLimitForwardsTo: pendingAction} : {}),
             },
         };
     }

@@ -46,7 +46,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     });
 
     const policyID = route.params.policyID;
-    const approverIndex = Number(route.params.approverIndex) ?? 0;
+    const approverIndex = Number(route.params.approverIndex ?? 0);
     const backTo = route.params?.backTo;
     const isEditFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT;
     const currentApprover = approvalWorkflow?.approvers?.[approverIndex];
