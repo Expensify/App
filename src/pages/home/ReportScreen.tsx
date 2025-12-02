@@ -163,6 +163,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
+    const createOneTransactionThreadReportRef = useRef<() => void>(() => {});
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -543,6 +544,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [reportMetadata.isOptimisticReport, report, isOffline, isLoadingApp, introSelected, isOnboardingCompleted, isInviteOnboardingComplete, reportIDFromRoute, reportActionIDFromRoute]);
 
     useEffect(() => {
+        createOneTransactionThreadReportRef.current = createOneTransactionThreadReport;
+    }, [createOneTransactionThreadReport]);
+
+    useEffect(() => {
         if (!isAnonymousUser) {
             return;
         }
@@ -554,8 +559,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        createOneTransactionThreadReport();
-    }, [reportMetadata.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, createOneTransactionThreadReport, transactionThreadReportID]);
+        createOneTransactionThreadReportRef.current();
+    }, [reportMetadata.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID]);
 
     useEffect(() => {
         if (isLoadingReportData || !prevIsLoadingReportData || !prevIsAnonymousUser.current || isAnonymousUser) {
