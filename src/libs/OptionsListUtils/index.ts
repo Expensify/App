@@ -66,6 +66,7 @@ import {
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
     isInviteOrRemovedAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
@@ -734,6 +735,8 @@ function getLastMessageTextForReport({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.approvedMessage');
         }
+    } else if (isDynamicExternalWorkflowSubmitFailedAction(lastReportAction)) {
+        lastMessageTextFromReport = getOriginalMessage(lastReportAction)?.message ?? '';
     } else if (isUnapprovedAction(lastReportAction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('iou.unapproved');
