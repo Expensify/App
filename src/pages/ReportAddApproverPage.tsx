@@ -100,7 +100,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
             isASAPSubmitBetaEnabled,
             reportNextStep,
         );
-        Navigation.dismissModal();
+        Navigation.dismissToFirstRHP();
     }, [allApprovers, selectedApproverEmail, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep]);
 
     const button = useMemo(() => {

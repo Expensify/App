@@ -54,6 +54,7 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {
     calculateAmount as calculateIOUAmount,
@@ -8864,7 +8865,10 @@ function getNavigationUrlOnMoneyRequestDelete(
 
     // Determine which report to navigate back to
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
-        return ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID);
+        if (getIsNarrowLayout()) {
+            return ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID);
+        }
+        return ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReport.reportID});
     }
 
     if (iouReport?.chatReportID && shouldDeleteIOUReport) {
@@ -14898,17 +14902,12 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
     const transactionThreadReportID = params.firstIOU?.childReportID;
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
-    const superWideRHPReportScreen = Navigation.getSuperWideRHPRouteByID(transactionReport?.reportID);
 
     // Reset selected transactions in search after saving split expenses
     params?.searchContext?.clearSelectedTransactions?.(undefined, true);
 
     if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
-        if (superWideRHPReportScreen?.key) {
-            Navigation.dismissToFirstRHP();
-        } else {
-            Navigation.dismissModal();
-        }
+        Navigation.dismissToSuperWideRHP();
 
         // After the modal is dismissed, remove the transaction thread report screen
         // to avoid navigating back to a report removed by the split transaction.
@@ -14920,11 +14919,6 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
             Navigation.removeScreenByKey(transactionThreadReportScreen.key);
         });
 
-        return;
-    }
-
-    if (superWideRHPReportScreen?.key) {
-        Navigation.dismissToFirstRHP();
         return;
     }
 
