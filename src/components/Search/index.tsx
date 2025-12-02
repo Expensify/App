@@ -115,11 +115,11 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
                 item.policy,
             ),
             action: item.action,
-            convertedCurrency: item.convertedCurrency,
+            groupCurrency: item.groupCurrency,
             reportID: item.reportID,
             policyID: item.report?.policyID,
             amount: item.modifiedAmount ?? item.amount,
-            convertedAmount: item.convertedAmount,
+            groupAmount: item.groupAmount,
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
             ownerAccountID: item.reportAction?.actorAccountID,
@@ -200,8 +200,8 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             reportID: item.reportID,
             policyID: item.policyID,
             amount: Math.abs(item.modifiedAmount || item.amount),
-            convertedAmount: item.convertedAmount,
-            convertedCurrency: item.convertedCurrency,
+            groupAmount: item.groupAmount,
+            groupCurrency: item.groupCurrency,
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
             ownerAccountID: item.reportAction?.actorAccountID,
@@ -277,7 +277,7 @@ function Search({
         const transactionKeys = Object.keys(searchResults.data).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 
         for (const key of transactionKeys) {
-            // eslint-disable-next-line
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const transaction = searchResults.data[key as keyof typeof searchResults.data] as SearchTransaction;
             if (!transaction || typeof transaction !== 'object' || !('transactionID' in transaction) || !('reportID' in transaction)) {
                 continue;
@@ -451,7 +451,7 @@ function Search({
             return;
         }
 
-        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: !!searchResults?.search.isLoading});
+        handleSearch({queryJSON, searchKey, offset, shouldCalculateTotals, prevReportsLength: filteredDataLength, isLoading: !!searchResults?.search?.isLoading});
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-compiler/react-compiler
@@ -518,8 +518,8 @@ function Search({
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
                         amount: transactionItem.modifiedAmount ?? transactionItem.amount,
-                        convertedAmount: transactionItem.convertedAmount,
-                        convertedCurrency: transactionItem.convertedCurrency,
+                        groupAmount: transactionItem.groupAmount,
+                        groupCurrency: transactionItem.groupCurrency,
                         currency: transactionItem.currency,
                         ownerAccountID: transactionItem.reportAction?.actorAccountID,
                     };
@@ -563,8 +563,8 @@ function Search({
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
                     amount: transactionItem.modifiedAmount ?? transactionItem.amount,
-                    convertedAmount: transactionItem.convertedAmount,
-                    convertedCurrency: transactionItem.convertedCurrency,
+                    groupAmount: transactionItem.groupAmount,
+                    groupCurrency: transactionItem.groupCurrency,
                     currency: transactionItem.currency,
                     ownerAccountID: transactionItem.reportAction?.actorAccountID,
                 };
