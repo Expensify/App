@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
-import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
+import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
+import {checkIfFeedConnectionIsBroken, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -48,7 +49,9 @@ function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
 
     const infoChecking: Partial<Record<AccountTabIndicatorStatus, boolean>> = {
         [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO]: !!loginList && hasLoginListInfo(loginList, session?.email),
+        [CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO]: hasPendingExpensifyCardAction(allCards),
         [CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO]: hasSubscriptionGreenDotInfo(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed),
+        [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]: hasPartiallySetupBankAccount(bankAccountList),
     };
 
     const [error] = Object.entries(errorChecking).find(([, value]) => value) ?? [];
