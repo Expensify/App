@@ -453,7 +453,6 @@ jobs:
               }
             ]
           comment-bot: false
-          rock-build-extra-params: '--ad-hoc'
 
   postGithubComment:
     runs-on: ubuntu-latest
