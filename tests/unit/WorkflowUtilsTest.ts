@@ -33,6 +33,8 @@ function buildApprover(accountID: number, approver: Partial<Approver> = {}): App
         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
         displayName: `${accountID}@example.com User`,
         isCircularReference: false,
+        approvalLimit: undefined,
+        overLimitForwardsTo: undefined,
         ...approver,
     };
 }
