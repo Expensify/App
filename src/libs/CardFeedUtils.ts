@@ -130,13 +130,13 @@ function buildCardsData(
     const allCardItems = [...userAssignedCards, ...allWorkspaceCards];
     const selectedCardItems: CardFilterItem[] = [];
     const unselectedCardItems: CardFilterItem[] = [];
-    allCardItems.forEach((card) => {
+    for (const card of allCardItems) {
         if (card.isSelected) {
             selectedCardItems.push(card);
         } else {
             unselectedCardItems.push(card);
         }
-    });
+    }
     return {selected: selectedCardItems, unselected: unselectedCardItems};
 }
 
@@ -239,17 +239,17 @@ function getCardFeedsData({workspaceCardFeeds, translate}: GetCardFeedData) {
     const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds ?? CONST.EMPTY_OBJECT), domainFeedData);
     const cardFeedData: Record<string, CardFeedData> = {};
 
-    filterOutDomainCards(workspaceCardFeeds).forEach(([cardFeedKey, cardFeed]) => {
+    for (const [cardFeedKey, cardFeed] of filterOutDomainCards(workspaceCardFeeds)) {
         const workspaceData = getWorkspaceCardFeedData(cardFeed, repeatingBanks, translate);
         if (workspaceData) {
             cardFeedData[cardFeedKey] = workspaceData;
         }
-    });
+    }
 
-    Object.values(domainFeedData).forEach((domainFeed) => {
+    for (const domainFeed of Object.values(domainFeedData)) {
         const cardFeedKey = createCardFeedKey(`cards_${domainFeed.fundID}`, domainFeed.bank);
         cardFeedData[cardFeedKey] = getDomainCardFeedData(domainFeed, repeatingBanks, translate);
-    });
+    }
 
     return cardFeedData;
 }
@@ -320,7 +320,7 @@ function buildCardFeedsData(
     const unselectedFeeds: CardFilterItem[] = [];
     const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds), domainFeedsData);
 
-    Object.values(domainFeedsData).forEach((domainFeed) => {
+    for (const domainFeed of Object.values(domainFeedsData)) {
         const {domainName, bank, correspondingCardIDs} = domainFeed;
 
         const cardFeedKey = createCardFeedKey(domainFeed.fundID, bank);
@@ -340,16 +340,16 @@ function buildCardFeedsData(
         } else {
             unselectedFeeds.push(feedItem);
         }
-    });
+    }
 
-    filterOutDomainCards(workspaceCardFeeds).forEach(([workspaceFeedKey, workspaceFeed]) => {
+    for (const [workspaceFeedKey, workspaceFeed] of filterOutDomainCards(workspaceCardFeeds)) {
         const correspondingCardIDs = Object.entries(workspaceFeed ?? {})
             .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && !isCardHiddenFromSearch(card))
             .map(([cardKey]) => cardKey);
 
         const cardFeedData = getWorkspaceCardFeedData(workspaceFeed, repeatingBanks, translate);
         if (!cardFeedData) {
-            return;
+            continue;
         }
         const {cardName, bank} = cardFeedData;
         const cardFeedKey = getCardFeedKey(workspaceCardFeeds, workspaceFeedKey);
@@ -368,7 +368,7 @@ function buildCardFeedsData(
         } else {
             unselectedFeeds.push(feedItem);
         }
-    });
+    }
 
     return {selected: selectedFeeds, unselected: unselectedFeeds};
 }
@@ -417,13 +417,14 @@ const generateSelectedCards = (
 function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCards: CardList): CardFeedsForDisplay {
     const cardFeedsForDisplay = {} as CardFeedsForDisplay;
 
-    Object.entries(allCardFeeds ?? {}).forEach(([domainKey, cardFeeds]) => {
+    for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
         // sharedNVP_private_domain_member_123456 -> 123456
         const fundID = domainKey.split('_').at(-1);
         if (!fundID) {
-            return;
+            continue;
         }
 
+        // eslint-disable-next-line unicorn/no-array-for-each
         Object.keys(getOriginalCompanyFeeds(cardFeeds)).forEach((key) => {
             const feed = key as CompanyCardFeed;
             const id = `${fundID}_${feed}`;
@@ -439,17 +440,17 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
                 name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             };
         });
-    });
+    }
 
-    Object.values(allCards).forEach((card) => {
+    for (const card of Object.values(allCards)) {
         if (card.bank !== CONST.EXPENSIFY_CARD.BANK || !card.fundID) {
-            return;
+            continue;
         }
 
         const id = `${card.fundID}_${CONST.EXPENSIFY_CARD.BANK}`;
 
         if (cardFeedsForDisplay[id]) {
-            return;
+            continue;
         }
 
         cardFeedsForDisplay[id] = {
@@ -458,7 +459,7 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
             fundID: card.fundID,
             name: CONST.EXPENSIFY_CARD.BANK,
         };
-    });
+    }
 
     return cardFeedsForDisplay;
 }
@@ -471,13 +472,14 @@ function getCardFeedsForDisplay(allCardFeeds: OnyxCollection<CardFeeds>, allCard
 function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>): Record<string, CardFeedForDisplay[]> {
     const cardFeedsForDisplayPerPolicy = {} as Record<string, CardFeedForDisplay[]>;
 
-    Object.entries(allCardFeeds ?? {}).forEach(([domainKey, cardFeeds]) => {
+    for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
         // sharedNVP_private_domain_member_123456 -> 123456
         const fundID = domainKey.split('_').at(-1);
         if (!fundID) {
-            return;
+            continue;
         }
 
+        // eslint-disable-next-line unicorn/no-array-for-each
         Object.entries(getOriginalCompanyFeeds(cardFeeds)).forEach(([key, feedData]) => {
             const preferredPolicy = 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
             const feed = key as CompanyCardFeed;
@@ -490,7 +492,7 @@ function getCardFeedsForDisplayPerPolicy(allCardFeeds: OnyxCollection<CardFeeds>
                 name: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             });
         });
-    });
+    }
 
     return cardFeedsForDisplayPerPolicy;
 }

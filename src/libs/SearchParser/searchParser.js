@@ -375,15 +375,19 @@ function peg$parse(input, options) {
       const allFilters = [head, ...tail.map(([_, filter]) => filter)]
         .filter(Boolean)
         .filter((filter) => filter.right);
-      if (!allFilters.length) {
+      rawFilterList = allFilters.map(createRawFilter).filter(Boolean);
+
+      const filtersWithoutDefaults = allFilters.filter((filter) => !filter.isDefault);
+
+      if (!filtersWithoutDefaults.length) {
         return null;
       }
 
-      const keywords = allFilters.filter(
+      const keywords = filtersWithoutDefaults.filter(
         (filter) =>
           filter.left === "keyword" || filter.right?.left === "keyword"
       );
-      const nonKeywords = allFilters.filter(
+      const nonKeywords = filtersWithoutDefaults.filter(
         (filter) =>
           filter.left !== "keyword" && filter.right?.left !== "keyword"
       );
@@ -392,7 +396,7 @@ function peg$parse(input, options) {
         "eq",
         "keyword",
         keywords
-          .map((filter) => filter.right.replace(/^(['"])(.*)\1$/, "$2"))
+          .map((filter) => filter.right.replaceAll(/^(['"])(.*)\1$/g, "$2"))
           .flat()
       );
       if (keywordFilter.right.length > 0) {
@@ -404,6 +408,7 @@ function peg$parse(input, options) {
     };
   var peg$f2 = function(key, op, value) {
       updateDefaultValues(key, value);
+      return {...buildFilter(op, key, value), isDefault: true};
     };
   var peg$f3 = function(value) {
       //handle no-breaking space
@@ -431,7 +436,7 @@ function peg$parse(input, options) {
       return buildFilter(operator, key, values);
     };
   var peg$f5 = function(rest) {
-      const suffix = rest.replace(/^-+/, "");
+      const suffix = rest.replaceAll(/^-+/g, "");
       return "reportField-" + (suffix ? suffix : "");
     };
   var peg$f6 = function(k) {
@@ -3167,6 +3172,7 @@ function peg$parse(input, options) {
     sortBy: "date",
     sortOrder: "desc",
   };
+  let rawFilterList = [];
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
@@ -3177,6 +3183,7 @@ function peg$parse(input, options) {
     return {
       ...defaultValues,
       filters,
+      rawFilterList,
     };
   }
 
@@ -3186,6 +3193,26 @@ function peg$parse(input, options) {
       return;
     }
     defaultValues[field] = value;
+  }
+
+  function createRawFilter(filter) {
+    if (!filter || !filter.right) {
+      return null;
+    }
+
+    if (typeof filter.left !== "string") {
+      return null;
+    }
+
+    const key = filter.left;
+    const value = Array.isArray(filter.right) ? [...filter.right] : filter.right;
+
+    return {
+      key,
+      operator: filter.operator,
+      value,
+      isDefault: !!filter.isDefault,
+    };
   }
 
  

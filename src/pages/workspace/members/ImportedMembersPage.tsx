@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -33,6 +34,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const [shouldShowConfirmModal, setShouldShowConfirmModal] = useState(true);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const isFocused = useIsFocused();
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -133,27 +135,29 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const allMembers = [...(members ?? [])];
 
         // Add submitsTo and forwardsTo members if they are not in the workspace
-        members?.forEach((member) => {
-            if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policy)) {
-                isRoleMissing = true;
-                allMembers.push({
-                    email: member.submitsTo,
-                    role: '',
-                    submitsTo: '',
-                    forwardsTo: '',
-                });
-            }
+        if (members) {
+            for (const member of members) {
+                if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policy)) {
+                    isRoleMissing = true;
+                    allMembers.push({
+                        email: member.submitsTo,
+                        role: '',
+                        submitsTo: '',
+                        forwardsTo: '',
+                    });
+                }
 
-            if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo) && !isPolicyMemberWithoutPendingDelete(member.forwardsTo, policy)) {
-                isRoleMissing = true;
-                allMembers.push({
-                    email: member.forwardsTo,
-                    role: policy?.employeeList?.[member.forwardsTo]?.role ?? '',
-                    submitsTo: '',
-                    forwardsTo: '',
-                });
+                if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo) && !isPolicyMemberWithoutPendingDelete(member.forwardsTo, policy)) {
+                    isRoleMissing = true;
+                    allMembers.push({
+                        email: member.forwardsTo,
+                        role: policy?.employeeList?.[member.forwardsTo]?.role ?? '',
+                        submitsTo: '',
+                        forwardsTo: '',
+                    });
+                }
             }
-        });
+        }
 
         if (isRoleMissing) {
             setImportedSpreadsheetMemberData(allMembers);
@@ -199,7 +203,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.MEMBERS_ARTICLE_LINK}
             />
             <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal}
+                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal && isFocused}
                 closeImportPageAndModal={closeImportPageAndModal}
                 onModalHide={() => {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
