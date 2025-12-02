@@ -374,7 +374,7 @@ index 39459ff..a531aff 100644
 +  ): SecureStoreOriginalFeedback<String>
  }
 diff --git a/node_modules/expo-secure-store/build/SecureStore.d.ts b/node_modules/expo-secure-store/build/SecureStore.d.ts
-index 835a4d4..7bfcc98 100644
+index 835a4d4..d2da8d9 100644
 --- a/node_modules/expo-secure-store/build/SecureStore.d.ts
 +++ b/node_modules/expo-secure-store/build/SecureStore.d.ts
 @@ -1,4 +1,53 @@
@@ -431,15 +431,7 @@ index 835a4d4..7bfcc98 100644
  /**
   * The data in the keychain item cannot be accessed after a restart until the device has been
   * unlocked once by the user. This may be useful if you need to access the item when the phone
-@@ -59,6 +108,7 @@ export type SecureStoreOptions = {
-      * Warning: This option is not supported in Expo Go when biometric authentication is available due to a missing NSFaceIDUsageDescription.
-      * In release builds or when using continuous native generation, make sure to use the `expo-secure-store` config plugin.
-      *
-+     * > **Note:** This library requires a real device for testing since emulators/simulators do not require biometric authentication when retrieving secrets, unlike real iOS devices.
-      */
-     requireAuthentication?: boolean;
-     /**
-@@ -88,6 +138,22 @@ export type SecureStoreOptions = {
+@@ -88,6 +137,22 @@ export type SecureStoreOptions = {
       * @platform ios
       */
      enableDeviceFallback?: boolean;
@@ -462,7 +454,7 @@ index 835a4d4..7bfcc98 100644
  };
  /**
   * Returns whether the SecureStore API is enabled on the current device. This does not check the app
-@@ -119,27 +185,27 @@ export declare function deleteItemAsync(key: string, options?: SecureStoreOption
+@@ -119,7 +184,7 @@ export declare function deleteItemAsync(key: string, options?: SecureStoreOption
   * > After a key has been invalidated, it becomes impossible to read its value.
   * > This only applies to values stored with `requireAuthentication` set to `true`.
   */
@@ -471,10 +463,7 @@ index 835a4d4..7bfcc98 100644
  /**
   * Stores a key–value pair.
   *
-  * @param key The key to associate with the stored value. Keys may contain alphanumeric characters, `.`, `-`, and `_`.
-- * @param value The value to store. Size limit is 2048 bytes.
-+ * @param value The value to store.
-  * @param options An [`SecureStoreOptions`](#securestoreoptions) object.
+@@ -129,7 +194,7 @@ export declare function getItemAsync(key: string, options?: SecureStoreOptions):
   *
   * @return A promise that rejects if value cannot be stored on the device.
   */
@@ -483,10 +472,7 @@ index 835a4d4..7bfcc98 100644
  /**
   * Stores a key–value pair synchronously.
   * > **Note:** This function blocks the JavaScript thread, so the application may not be interactive when the `requireAuthentication` option is set to `true` until the user authenticates.
-  *
-  * @param key The key to associate with the stored value. Keys may contain alphanumeric characters, `.`, `-`, and `_`.
-- * @param value The value to store. Size limit is 2048 bytes.
-+ * @param value The value to store.
+@@ -139,7 +204,7 @@ export declare function setItemAsync(key: string, value: string, options?: Secur
   * @param options An [`SecureStoreOptions`](#securestoreoptions) object.
   *
   */
@@ -495,7 +481,7 @@ index 835a4d4..7bfcc98 100644
  /**
   * Synchronously reads the stored value associated with the provided key.
   * > **Note:** This function blocks the JavaScript thread, so the application may not be interactive when reading a value with `requireAuthentication`
-@@ -150,7 +216,7 @@ export declare function setItem(key: string, value: string, options?: SecureStor
+@@ -150,7 +215,7 @@ export declare function setItem(key: string, value: string, options?: SecureStor
   * @return Previously stored value. It resolves with `null` if there is no entry
   * for the given key or if the key has been invalidated.
   */
@@ -504,14 +490,8 @@ index 835a4d4..7bfcc98 100644
  /**
   * Checks if the value can be saved with `requireAuthentication` option enabled.
   * @return `true` if the device supports biometric authentication and the enrolled method is sufficiently secure. Otherwise, returns `false`. Always returns false on tvOS.
-@@ -165,4 +231,5 @@ export declare function canUseBiometricAuthentication(): boolean;
-  * @platform ios
-  */
- export declare function canUseDeviceCredentialsAuthentication(): boolean;
-+export {};
- //# sourceMappingURL=SecureStore.d.ts.map
 diff --git a/node_modules/expo-secure-store/build/SecureStore.js b/node_modules/expo-secure-store/build/SecureStore.js
-index e11bd94..04569ac 100644
+index e11bd94..940fc61 100644
 --- a/node_modules/expo-secure-store/build/SecureStore.js
 +++ b/node_modules/expo-secure-store/build/SecureStore.js
 @@ -1,6 +1,53 @@
@@ -568,16 +548,7 @@ index e11bd94..04569ac 100644
  /**
   * The data in the keychain item cannot be accessed after a restart until the device has been
   * unlocked once by the user. This may be useful if you need to access the item when the phone
-@@ -92,7 +139,7 @@ export async function getItemAsync(key, options = {}) {
-  * Stores a key–value pair.
-  *
-  * @param key The key to associate with the stored value. Keys may contain alphanumeric characters, `.`, `-`, and `_`.
-- * @param value The value to store. Size limit is 2048 bytes.
-+ * @param value The value to store.
-  * @param options An [`SecureStoreOptions`](#securestoreoptions) object.
-  *
-  * @return A promise that rejects if value cannot be stored on the device.
-@@ -102,14 +149,14 @@ export async function setItemAsync(key, value, options = {}) {
+@@ -102,7 +149,7 @@ export async function setItemAsync(key, value, options = {}) {
      if (!isValidValue(value)) {
          throw new Error(`Invalid value provided to SecureStore. Values must be strings; consider JSON-encoding your values if they are serializable.`);
      }
@@ -586,42 +557,16 @@ index e11bd94..04569ac 100644
  }
  /**
   * Stores a key–value pair synchronously.
-  * > **Note:** This function blocks the JavaScript thread, so the application may not be interactive when the `requireAuthentication` option is set to `true` until the user authenticates.
-  *
-  * @param key The key to associate with the stored value. Keys may contain alphanumeric characters, `.`, `-`, and `_`.
-- * @param value The value to store. Size limit is 2048 bytes.
-+ * @param value The value to store.
-  * @param options An [`SecureStoreOptions`](#securestoreoptions) object.
-  *
-  */
 diff --git a/node_modules/expo-secure-store/ios/SecureStoreModule.swift b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
-index 1268979..5280020 100644
+index 1268979..7764c8e 100644
 --- a/node_modules/expo-secure-store/ios/SecureStoreModule.swift
 +++ b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
-@@ -8,38 +8,44 @@ public final class SecureStoreModule: Module {
-   public func definition() -> ModuleDefinition {
-     Name("ExpoSecureStore")
+@@ -18,28 +18,36 @@ public final class SecureStoreModule: Module {
+       "WHEN_UNLOCKED_THIS_DEVICE_ONLY": SecureStoreAccessible.whenUnlockedThisDeviceOnly.rawValue
+     ])
  
--    Constants([
--      "AFTER_FIRST_UNLOCK": SecureStoreAccessible.afterFirstUnlock.rawValue,
--      "AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY": SecureStoreAccessible.afterFirstUnlockThisDeviceOnly.rawValue,
--      "ALWAYS": SecureStoreAccessible.always.rawValue,
--      "WHEN_PASSCODE_SET_THIS_DEVICE_ONLY": SecureStoreAccessible.whenPasscodeSetThisDeviceOnly.rawValue,
--      "ALWAYS_THIS_DEVICE_ONLY": SecureStoreAccessible.alwaysThisDeviceOnly.rawValue,
--      "WHEN_UNLOCKED": SecureStoreAccessible.whenUnlocked.rawValue,
--      "WHEN_UNLOCKED_THIS_DEVICE_ONLY": SecureStoreAccessible.whenUnlockedThisDeviceOnly.rawValue
--    ])
--
 -    AsyncFunction("getValueWithKeyAsync") { (key: String, options: SecureStoreOptions) -> String? in
 -      return try get(with: key, options: options)
-+    Constant("AFTER_FIRST_UNLOCK") { SecureStoreAccessible.afterFirstUnlock.rawValue }
-+    Constant("AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY") { SecureStoreAccessible.afterFirstUnlockThisDeviceOnly.rawValue }
-+    Constant("ALWAYS") { SecureStoreAccessible.always.rawValue }
-+    Constant("WHEN_PASSCODE_SET_THIS_DEVICE_ONLY") { SecureStoreAccessible.whenPasscodeSetThisDeviceOnly.rawValue }
-+    Constant("ALWAYS_THIS_DEVICE_ONLY") { SecureStoreAccessible.alwaysThisDeviceOnly.rawValue }
-+    Constant("WHEN_UNLOCKED") { SecureStoreAccessible.whenUnlocked.rawValue }
-+    Constant("WHEN_UNLOCKED_THIS_DEVICE_ONLY") { SecureStoreAccessible.whenUnlockedThisDeviceOnly.rawValue }
-+
 +    AsyncFunction("getValueWithKeyAsync") { (key: String, options: SecureStoreOptions) in
 +      let result = try get(with: key, options: options)
 +
@@ -661,7 +606,7 @@ index 1268979..5280020 100644
      }
  
      AsyncFunction("deleteValueWithKeyAsync") { (key: String, options: SecureStoreOptions) in
-@@ -53,18 +59,7 @@ public final class SecureStoreModule: Module {
+@@ -53,18 +61,7 @@ public final class SecureStoreModule: Module {
      }
  
      Function("canUseBiometricAuthentication") {() -> Bool in
@@ -681,7 +626,7 @@ index 1268979..5280020 100644
      }
  
      Function("canUseDeviceCredentialsAuthentication") { () -> Bool in
-@@ -76,6 +71,41 @@ public final class SecureStoreModule: Module {
+@@ -76,6 +73,41 @@ public final class SecureStoreModule: Module {
      return LAContext().canEvaluatePolicy(LAPolicy.deviceOwnerAuthentication, error: nil)
    }
  
@@ -800,7 +745,7 @@ index c9e843b..b95eca7 100644
 +  }
  }
 diff --git a/node_modules/expo-secure-store/src/SecureStore.ts b/node_modules/expo-secure-store/src/SecureStore.ts
-index 4f253a1..e32ebdf 100644
+index 4f253a1..d44c0bb 100644
 --- a/node_modules/expo-secure-store/src/SecureStore.ts
 +++ b/node_modules/expo-secure-store/src/SecureStore.ts
 @@ -1,8 +1,63 @@
@@ -867,312 +812,90 @@ index 4f253a1..e32ebdf 100644
  // @needsAudit
  /**
   * The data in the keychain item cannot be accessed after a restart until the device has been
-@@ -17,7 +72,7 @@ export const AFTER_FIRST_UNLOCK: KeychainAccessibilityConstant = ExpoSecureStore
-  * from a backup.
-  */
- export const AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY: KeychainAccessibilityConstant =
--  ExpoSecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY;
-+    ExpoSecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY;
- 
- // @needsAudit
- /**
-@@ -34,7 +89,7 @@ export const ALWAYS: KeychainAccessibilityConstant = ExpoSecureStore.ALWAYS;
-  * store an entry. If the user removes their passcode, the entry will be deleted.
-  */
- export const WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: KeychainAccessibilityConstant =
--  ExpoSecureStore.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY;
-+    ExpoSecureStore.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY;
- 
- // @needsAudit
- /**
-@@ -43,7 +98,7 @@ export const WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: KeychainAccessibilityConstant =
-  * @deprecated Use an accessibility level that provides some user protection, such as `AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY`.
-  */
- export const ALWAYS_THIS_DEVICE_ONLY: KeychainAccessibilityConstant =
--  ExpoSecureStore.ALWAYS_THIS_DEVICE_ONLY;
-+    ExpoSecureStore.ALWAYS_THIS_DEVICE_ONLY;
- 
- // @needsAudit
- /**
-@@ -57,62 +112,80 @@ export const WHEN_UNLOCKED: KeychainAccessibilityConstant = ExpoSecureStore.WHEN
-  * a backup.
-  */
- export const WHEN_UNLOCKED_THIS_DEVICE_ONLY: KeychainAccessibilityConstant =
--  ExpoSecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY;
-+    ExpoSecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY;
- 
- // @needsAudit
- export type SecureStoreOptions = {
--  /**
--   * - Android: Equivalent of the public/private key pair `Alias`.
--   * - iOS: The item's service, equivalent to [`kSecAttrService`](https://developer.apple.com/documentation/security/ksecattrservice/).
--   * > If the item is set with the `keychainService` option, it will be required to later fetch the value.
--   */
--  keychainService?: string;
--  /**
--   * Option responsible for enabling the usage of the user authentication methods available on the device while
--   * accessing data stored in SecureStore.
--   * - Android: Equivalent to [`setUserAuthenticationRequired(true)`](https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.Builder#setUserAuthenticationRequired(boolean))
--   *   (requires API 23).
--   * - iOS: Equivalent to [`biometryCurrentSet`](https://developer.apple.com/documentation/security/secaccesscontrolcreateflags/2937192-biometrycurrentset).
--   * Complete functionality is unlocked only with a freshly generated key - this would not work in tandem with the `keychainService`
--   * value used for the others non-authenticated operations.
--   *
--   * This option works slightly differently across platforms: On Android, user authentication is required for all operations.
--   * On iOS, the user is prompted to authenticate only when reading or updating an existing value (not when creating a new one).
--   *
--   * Warning: This option is not supported in Expo Go when biometric authentication is available due to a missing NSFaceIDUsageDescription.
--   * In release builds or when using continuous native generation, make sure to use the `expo-secure-store` config plugin.
--   *
--   */
--  requireAuthentication?: boolean;
--  /**
--   * Custom message displayed to the user while `requireAuthentication` option is turned on.
--   */
--  authenticationPrompt?: string;
--  /**
--   * Specifies when the stored entry is accessible, using iOS's `kSecAttrAccessible` property.
--   * @see Apple's documentation on [keychain item accessibility](https://developer.apple.com/documentation/security/ksecattraccessible/).
--   * @default SecureStore.WHEN_UNLOCKED
--   * @platform ios
--   */
--  keychainAccessible?: KeychainAccessibilityConstant;
-+    /**
-+     * - Android: Equivalent of the public/private key pair `Alias`.
-+     * - iOS: The item's service, equivalent to [`kSecAttrService`](https://developer.apple.com/documentation/security/ksecattrservice/).
-+     * > If the item is set with the `keychainService` option, it will be required to later fetch the value.
-+     */
-+    keychainService?: string;
-+    /**
-+     * Option responsible for enabling the usage of the user authentication methods available on the device while
-+     * accessing data stored in SecureStore.
-+     * - Android: Equivalent to [`setUserAuthenticationRequired(true)`](https://developer.android.com/reference/android/security/keystore/KeyGenParameterSpec.Builder#setUserAuthenticationRequired(boolean))
-+     *   (requires API 23).
-+     * - iOS: Equivalent to [`biometryCurrentSet`](https://developer.apple.com/documentation/security/secaccesscontrolcreateflags/2937192-biometrycurrentset).
-+     * Complete functionality is unlocked only with a freshly generated key - this would not work in tandem with the `keychainService`
-+     * value used for the others non-authenticated operations.
-+     *
-+     * This option works slightly differently across platforms: On Android, user authentication is required for all operations.
-+     * On iOS, the user is prompted to authenticate only when reading or updating an existing value (not when creating a new one).
-+     *
-+     * Warning: This option is not supported in Expo Go when biometric authentication is available due to a missing NSFaceIDUsageDescription.
-+     * In release builds or when using continuous native generation, make sure to use the `expo-secure-store` config plugin.
-+     *
-+     * > **Note:** This library requires a real device for testing since emulators/simulators do not require biometric authentication when retrieving secrets, unlike real iOS devices.
-+     */
-+    requireAuthentication?: boolean;
-+    /**
-+     * Custom message displayed to the user while `requireAuthentication` option is turned on.
-+     */
-+    authenticationPrompt?: string;
-+    /**
-+     * Specifies when the stored entry is accessible, using iOS's `kSecAttrAccessible` property.
-+     * @see Apple's documentation on [keychain item accessibility](https://developer.apple.com/documentation/security/ksecattraccessible/).
-+     * @default SecureStore.WHEN_UNLOCKED
-+     * @platform ios
-+     */
-+    keychainAccessible?: KeychainAccessibilityConstant;
+@@ -113,6 +168,23 @@ export type SecureStoreOptions = {
+    * @platform ios
+    */
+   enableDeviceFallback?: boolean;
 +
-+    /**
-+     * Specifies the access group the stored entry belongs to.
-+     * @see Apple's documentation on [Sharing access to keychain items among a collection of apps](https://developer.apple.com/documentation/security/sharing-access-to-keychain-items-among-a-collection-of-apps).
-+     * @platform ios
-+     */
-+    accessGroup?: string;
- 
--  /**
--   * Specifies the access group the stored entry belongs to.
--   * @see Apple's documentation on [Sharing access to keychain items among a collection of apps](https://developer.apple.com/documentation/security/sharing-access-to-keychain-items-among-a-collection-of-apps).
--   * @platform ios
--   */
--  accessGroup?: string;
-+    /**
-+     * This flag enables users to authenticate using Lock Screen Knowledge Factor (e.g. PIN, pattern or password).
-+     * For sensitive apps, it is recommended not having biometric fall back to such factor.
-+     * @see: https://developer.android.com/security/fraud-prevention/authentication
-+     *
-+     * @default false
-+     * @platform android
-+     * @platform ios
-+     */
-+    enableDeviceFallback?: boolean;
- 
--  /**
--   * This flag enables users to authenticate using Lock Screen Knowledge Factor (e.g. PIN, pattern or password).
--   * For sensitive apps, it is recommended not having biometric fall back to such factor.
--   * @see: https://developer.android.com/security/fraud-prevention/authentication
--   *
--   * @default false
--   * @platform android
--   * @platform ios
--   */
--  enableDeviceFallback?: boolean;
-+    /**
-+     * When this flag is set to true, the get methods of SecureStore will return a two-element array. The first value will be the original value returned when this flag is set to false.
-+     * The second value is the authentication type used to read the value from the AUTH_TYPE object.
-+     * As for the set function, the returned value will simply be AUTH_TYPE.
-+     *
-+     * @warning
-+     * If the iOS device supports biometrics and the user falls back to device credentials, it will not be detected.
-+     * This is not the case on Android, but we cannot specify the exact type of biometrics (e.g. fingerprint or face scan).
-+     * Whether the type is detected correctly depends on the platform and its native implementation.
-+     * This should be treated as more of a hint.
-+     *
-+     * @default false
-+     * @platform android
-+     * @platform ios
-+     */
-+    returnUsedAuthenticationType?: boolean;
++  /**
++   * When this flag is set to true, the get methods of SecureStore will return a two-element array. The first value will be the original value returned when this flag is set to false.
++   * The second value is the authentication type used to read the value from the AUTH_TYPE object.
++   * As for the set function, the returned value will simply be AUTH_TYPE.
++   *
++   * @warning
++   * If the iOS device supports biometrics and the user falls back to device credentials, it will not be detected.
++   * This is not the case on Android, but we cannot specify the exact type of biometrics (e.g. fingerprint or face scan).
++   * Whether the type is detected correctly depends on the platform and its native implementation.
++   * This should be treated as more of a hint.
++   *
++   * @default false
++   * @platform android
++   * @platform ios
++   */
++  returnUsedAuthenticationType?: boolean;
  };
  
  // @needsAudit
-@@ -124,7 +197,7 @@ export type SecureStoreOptions = {
-  * on the current device. Currently, this resolves `true` on Android and iOS only.
-  */
- export async function isAvailableAsync(): Promise<boolean> {
--  return !!ExpoSecureStore.getValueWithKeyAsync;
-+    return !!ExpoSecureStore.getValueWithKeyAsync;
- }
- 
- // @needsAudit
-@@ -137,12 +210,12 @@ export async function isAvailableAsync(): Promise<boolean> {
-  * @return A promise that rejects if the value can't be deleted.
-  */
- export async function deleteItemAsync(
--  key: string,
--  options: SecureStoreOptions = {}
-+    key: string,
-+    options: SecureStoreOptions = {}
- ): Promise<void> {
--  ensureValidKey(key);
-+    ensureValidKey(key);
- 
--  await ExpoSecureStore.deleteValueWithKeyAsync(key, options);
-+    await ExpoSecureStore.deleteValueWithKeyAsync(key, options);
- }
- 
- // @needsAudit
-@@ -159,12 +232,12 @@ export async function deleteItemAsync(
+@@ -159,10 +231,10 @@ export async function deleteItemAsync(
   * > After a key has been invalidated, it becomes impossible to read its value.
   * > This only applies to values stored with `requireAuthentication` set to `true`.
   */
 -export async function getItemAsync(
--  key: string,
++export async function getItemAsync<R extends SecureStoreOptions>(
+   key: string,
 -  options: SecureStoreOptions = {}
 -): Promise<string | null> {
--  ensureValidKey(key);
--  return await ExpoSecureStore.getValueWithKeyAsync(key, options);
-+export async function getItemAsync<R extends SecureStoreOptions>(
-+    key: string,
-+    options: R | EmptyObject = {}
++  options: R | EmptyObject = {}
 +): Promise<SecureStoreGetFeedback<string, R>> {
-+    ensureValidKey(key);
-+    return await ExpoSecureStore.getValueWithKeyAsync(key, options);
+   ensureValidKey(key);
+   return await ExpoSecureStore.getValueWithKeyAsync(key, options);
  }
- 
- // @needsAudit
-@@ -172,24 +245,24 @@ export async function getItemAsync(
-  * Stores a key–value pair.
-  *
-  * @param key The key to associate with the stored value. Keys may contain alphanumeric characters, `.`, `-`, and `_`.
-- * @param value The value to store. Size limit is 2048 bytes.
-+ * @param value The value to store.
-  * @param options An [`SecureStoreOptions`](#securestoreoptions) object.
+@@ -177,11 +249,11 @@ export async function getItemAsync(
   *
   * @return A promise that rejects if value cannot be stored on the device.
   */
 -export async function setItemAsync(
--  key: string,
--  value: string,
++export async function setItemAsync<R extends SecureStoreOptions>(
+   key: string,
+   value: string,
 -  options: SecureStoreOptions = {}
 -): Promise<void> {
--  ensureValidKey(key);
--  if (!isValidValue(value)) {
--    throw new Error(
--      `Invalid value provided to SecureStore. Values must be strings; consider JSON-encoding your values if they are serializable.`
--    );
--  }
-+export async function setItemAsync<R extends SecureStoreOptions>(
-+    key: string,
-+    value: string,
-+    options: R | EmptyObject = {}
++  options: R | EmptyObject = {}
 +): Promise<SecureStoreSetFeedback<R>> {
-+    ensureValidKey(key);
-+    if (!isValidValue(value)) {
-+        throw new Error(
-+            `Invalid value provided to SecureStore. Values must be strings; consider JSON-encoding your values if they are serializable.`
-+        );
-+    }
+   ensureValidKey(key);
+   if (!isValidValue(value)) {
+     throw new Error(
+@@ -189,7 +261,7 @@ export async function setItemAsync(
+     );
+   }
  
 -  await ExpoSecureStore.setValueWithKeyAsync(value, key, options);
-+    return await ExpoSecureStore.setValueWithKeyAsync(value, key, options);
++  return await ExpoSecureStore.setValueWithKeyAsync(value, key, options);
  }
  
  /**
-@@ -197,19 +270,23 @@ export async function setItemAsync(
-  * > **Note:** This function blocks the JavaScript thread, so the application may not be interactive when the `requireAuthentication` option is set to `true` until the user authenticates.
-  *
-  * @param key The key to associate with the stored value. Keys may contain alphanumeric characters, `.`, `-`, and `_`.
-- * @param value The value to store. Size limit is 2048 bytes.
-+ * @param value The value to store.
+@@ -201,7 +273,11 @@ export async function setItemAsync(
   * @param options An [`SecureStoreOptions`](#securestoreoptions) object.
   *
   */
 -export function setItem(key: string, value: string, options: SecureStoreOptions = {}): void {
--  ensureValidKey(key);
--  if (!isValidValue(value)) {
--    throw new Error(
--      `Invalid value provided to SecureStore. Values must be strings; consider JSON-encoding your values if they are serializable.`
--    );
--  }
 +export function setItem<R extends SecureStoreOptions>(
-+    key: string,
-+    value: string,
-+    options: R | EmptyObject = {}
++  key: string,
++  value: string,
++  options: R | EmptyObject = {}
 +): SecureStoreSetFeedback<R> {
-+    ensureValidKey(key);
-+    if (!isValidValue(value)) {
-+        throw new Error(
-+            `Invalid value provided to SecureStore. Values must be strings; consider JSON-encoding your values if they are serializable.`
-+        );
-+    }
- 
--  return ExpoSecureStore.setValueWithKeySync(value, key, options);
-+    return ExpoSecureStore.setValueWithKeySync(value, key, options);
- }
- 
- /**
-@@ -222,9 +299,12 @@ export function setItem(key: string, value: string, options: SecureStoreOptions
+   ensureValidKey(key);
+   if (!isValidValue(value)) {
+     throw new Error(
+@@ -222,7 +298,10 @@ export function setItem(key: string, value: string, options: SecureStoreOptions
   * @return Previously stored value. It resolves with `null` if there is no entry
   * for the given key or if the key has been invalidated.
   */
 -export function getItem(key: string, options: SecureStoreOptions = {}): string | null {
--  ensureValidKey(key);
--  return ExpoSecureStore.getValueWithKeySync(key, options);
 +export function getItem<R extends SecureStoreOptions>(
-+    key: string,
-+    options: R | EmptyObject = {}
++  key: string,
++  options: R | EmptyObject = {}
 +): SecureStoreGetFeedback<string, R> {
-+    ensureValidKey(key);
-+    return ExpoSecureStore.getValueWithKeySync(key, options);
+   ensureValidKey(key);
+   return ExpoSecureStore.getValueWithKeySync(key, options);
  }
- 
- /**
-@@ -234,7 +314,7 @@ export function getItem(key: string, options: SecureStoreOptions = {}): string |
-  * @platform ios
-  */
- export function canUseBiometricAuthentication(): boolean {
--  return ExpoSecureStore.canUseBiometricAuthentication();
-+    return ExpoSecureStore.canUseBiometricAuthentication();
- }
- 
- /**
-@@ -244,7 +324,7 @@ export function canUseBiometricAuthentication(): boolean {
-  * @platform ios
-  */
- export function canUseDeviceCredentialsAuthentication(): boolean {
--  return ExpoSecureStore.canUseDeviceCredentialsAuthentication();
-+    return ExpoSecureStore.canUseDeviceCredentialsAuthentication();
- }
- 
- function ensureValidKey(key: string) {

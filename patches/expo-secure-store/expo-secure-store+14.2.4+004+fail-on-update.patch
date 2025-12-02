@@ -28,10 +28,10 @@ index 4e30440..16674b8 100644
  
  enum class SecureStoreAuthType(index: Int) {
 diff --git a/node_modules/expo-secure-store/build/SecureStore.d.ts b/node_modules/expo-secure-store/build/SecureStore.d.ts
-index 4543001..0f3ef89 100644
+index f1e3610..8954c59 100644
 --- a/node_modules/expo-secure-store/build/SecureStore.d.ts
 +++ b/node_modules/expo-secure-store/build/SecureStore.d.ts
-@@ -168,6 +168,16 @@ export type SecureStoreOptions = {
+@@ -167,6 +167,16 @@ export type SecureStoreOptions = {
       * @platform ios
       */
      forceAuthenticationOnSave?: boolean;
@@ -49,14 +49,14 @@ index 4543001..0f3ef89 100644
  /**
   * Returns whether the SecureStore API is enabled on the current device. This does not check the app
 diff --git a/node_modules/expo-secure-store/ios/SecureStoreModule.swift b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
-index 3060cbd..5a81b11 100644
+index 02f837c..47282db 100644
 --- a/node_modules/expo-secure-store/ios/SecureStoreModule.swift
 +++ b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
-@@ -167,6 +167,9 @@ public final class SecureStoreModule: Module {
+@@ -169,6 +169,9 @@ public final class SecureStoreModule: Module {
        SecItemDelete(query(with: key, options: options, requireAuthentication: !options.requireAuthentication) as CFDictionary)
        return true
      case errSecDuplicateItem:
-+     if options.failOnUpdate {
++      if options.failOnUpdate {
 +        throw SecureStoreRuntimeError("Key already exists")
 +      }
        return try update(value: value, with: key, options: options)
@@ -77,32 +77,24 @@ index 321c7e5..6a787b0 100644
  
  @available(iOS 11.2, *)
 diff --git a/node_modules/expo-secure-store/src/SecureStore.ts b/node_modules/expo-secure-store/src/SecureStore.ts
-index 3fbaf02..9c3463c 100644
+index c4b95ae..0bedcaa 100644
 --- a/node_modules/expo-secure-store/src/SecureStore.ts
 +++ b/node_modules/expo-secure-store/src/SecureStore.ts
-@@ -201,6 +201,17 @@ export type SecureStoreOptions = {
-      * @platform ios
-      */
-     forceAuthenticationOnSave?: boolean;
+@@ -200,6 +200,17 @@ export type SecureStoreOptions = {
+    * @platform ios
+    */
+   forceAuthenticationOnSave?: boolean;
 +
-+    /**
-+     * If the key has already been stored, the save function will throw an error instead of overwriting it.
-+     * The behaviour differs slightly depending on the platform.
-+     * On Android, an error is thrown before the authentication prompt. On iOS, an error is thrown after authentication.
-+     *
-+     * @default false
-+     * @platform ios
-+     * @platform android
-+     */
-+    failOnUpdate?: boolean;
++  /**
++   * If the key has already been stored, the save function will throw an error instead of overwriting it.
++   * The behaviour differs slightly depending on the platform.
++   * On Android, an error is thrown before the authentication prompt. On iOS, an error is thrown after authentication.
++   *
++   * @default false
++   * @platform ios
++   * @platform android
++   */
++  failOnUpdate?: boolean;
  };
  
  // @needsAudit
-@@ -341,7 +352,6 @@ export function canUseBiometricAuthentication(): boolean {
- export function canUseDeviceCredentialsAuthentication(): boolean {
-     return ExpoSecureStore.canUseDeviceCredentialsAuthentication();
- }
--
- function ensureValidKey(key: string) {
-   if (!isValidKey(key)) {
-     throw new Error(

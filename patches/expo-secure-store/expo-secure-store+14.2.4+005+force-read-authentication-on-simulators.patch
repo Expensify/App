@@ -1,8 +1,8 @@
 diff --git a/node_modules/expo-secure-store/build/SecureStore.d.ts b/node_modules/expo-secure-store/build/SecureStore.d.ts
-index a6856a9..59bdee0 100644
+index 836958c..29531c5 100644
 --- a/node_modules/expo-secure-store/build/SecureStore.d.ts
 +++ b/node_modules/expo-secure-store/build/SecureStore.d.ts
-@@ -178,6 +178,18 @@ export type SecureStoreOptions = {
+@@ -177,6 +177,18 @@ export type SecureStoreOptions = {
       * @platform android
       */
      failOnUpdate?: boolean;
@@ -22,11 +22,11 @@ index a6856a9..59bdee0 100644
  /**
   * Returns whether the SecureStore API is enabled on the current device. This does not check the app
 diff --git a/node_modules/expo-secure-store/ios/SecureStoreModule.swift b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
-index 5a81b11..35a339a 100644
+index 47282db..dcbe242 100644
 --- a/node_modules/expo-secure-store/ios/SecureStoreModule.swift
 +++ b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
-@@ -17,6 +17,11 @@ public final class SecureStoreModule: Module {
-     Constant("WHEN_UNLOCKED_THIS_DEVICE_ONLY") { SecureStoreAccessible.whenUnlockedThisDeviceOnly.rawValue }
+@@ -19,6 +19,11 @@ public final class SecureStoreModule: Module {
+     ])
  
      AsyncFunction("getValueWithKeyAsync") { (key: String, options: SecureStoreOptions) in
 +      #if targetEnvironment(simulator)
@@ -52,34 +52,26 @@ index 6a787b0..8f110dd 100644
  
  @available(iOS 11.2, *)
 diff --git a/node_modules/expo-secure-store/src/SecureStore.ts b/node_modules/expo-secure-store/src/SecureStore.ts
-index 9c3463c..52fc89d 100644
+index 0bedcaa..bae5580 100644
 --- a/node_modules/expo-secure-store/src/SecureStore.ts
 +++ b/node_modules/expo-secure-store/src/SecureStore.ts
-@@ -212,6 +212,19 @@ export type SecureStoreOptions = {
-      * @platform android
-      */
-     failOnUpdate?: boolean;
+@@ -211,6 +211,19 @@ export type SecureStoreOptions = {
+    * @platform android
+    */
+   failOnUpdate?: boolean;
 +
-+    /**
-+     * The LocalAuthentication behaves slightly differently on iOS simulators.
-+     * In numerous cases, the authentication prompts are skipped on simulators (as opposed to real devices).
-+     * Setting this flag to true forces the prompt to appear on simulators when a value with the `requireAuthentication` flag set to true is read.
-+     * This is purely for testing the app on simulators, in cases where the prompt does not appear when the value is read.
-+     * This has no effect on real devices.
-+     *
-+     * @warning: This flag only works for the asynchronous version of the SecureStore read method.
-+     * @default false
-+     * @platform ios
-+     */
-+    forceReadAuthenticationOnSimulators?: boolean;
++  /**
++   * The LocalAuthentication behaves slightly differently on iOS simulators.
++   * In numerous cases, the authentication prompts are skipped on simulators (as opposed to real devices).
++   * Setting this flag to true forces the prompt to appear on simulators when a value with the `requireAuthentication` flag set to true is read.
++   * This is purely for testing the app on simulators, in cases where the prompt does not appear when the value is read.
++   * This has no effect on real devices.
++   *
++   * @warning: This flag only works for the asynchronous version of the SecureStore read method.
++   * @default false
++   * @platform ios
++   */
++  forceReadAuthenticationOnSimulators?: boolean;
  };
  
  // @needsAudit
-@@ -352,6 +365,7 @@ export function canUseBiometricAuthentication(): boolean {
- export function canUseDeviceCredentialsAuthentication(): boolean {
-     return ExpoSecureStore.canUseDeviceCredentialsAuthentication();
- }
-+
- function ensureValidKey(key: string) {
-   if (!isValidKey(key)) {
-     throw new Error(
