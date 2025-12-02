@@ -94,12 +94,11 @@ function BaseVideoPlayer({
 
     const isPlaying = videoPlayerRef.current.playing;
     const {currentTime, bufferedPosition} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
-    const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: 'idle'} as StatusChangeEventPayload);
+    const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: 'loading'} as StatusChangeEventPayload);
 
-    const [isSafariLoading, setIsSafariLoading] = useState(false);
     const isLoading = useMemo(() => {
-        return status === 'loading' || isSafariLoading;
-    }, [isSafariLoading, status]);
+        return status === 'loading';
+    }, [status]);
 
     const hasError = useMemo(() => {
         return status === 'error';
@@ -121,8 +120,8 @@ function BaseVideoPlayer({
     const shouldShowLoadingIndicator = useMemo(() => {
         // We want to show LoadingIndicator when video's loading and paused, except when it's loading
         // for the first time, then playing/loading may vary. Video should be online and without errors.
-        return (isLoading || isFirstLoad) && (!isPlaying || (isFirstLoad && !shouldUseSharedVideoElement)) && !isOffline && !hasError;
-    }, [hasError, isFirstLoad, isLoading, isOffline, isPlaying, shouldUseSharedVideoElement]);
+        return isLoading && (!isPlaying || !shouldUseSharedVideoElement) && !isOffline && !hasError;
+    }, [hasError, isLoading, isOffline, isPlaying, shouldUseSharedVideoElement]);
     const shouldShowOfflineIndicator = useMemo(() => {
         return isOffline && currentTime + bufferedPosition <= 0;
     }, [bufferedPosition, currentTime, isOffline]);
@@ -241,9 +240,6 @@ function BaseVideoPlayer({
     });
 
     useEventListener(videoPlayerRef.current, 'statusChange', (payload: StatusChangeEventPayload) => {
-        if (isSafariLoading) {
-            setIsSafariLoading(false);
-        }
         if (payload.status !== 'readyToPlay') {
             return;
         }
@@ -396,7 +392,6 @@ function BaseVideoPlayer({
             return;
         }
         videoElement.load();
-        setIsSafariLoading(true);
     }, [hasError, sharedElement]);
 
     return (
