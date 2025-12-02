@@ -811,6 +811,21 @@ function ComposerWithSuggestions({
         onFocus();
     }, [onFocus, setUpComposeFocusManager]);
 
+    // When using the suggestions box (Suggestions) we need to imperatively
+    // set the cursor to the end of the suggestion/mention after it's selected.
+    const onSuggestionSelected = useCallback((suggestionSelection: TextSelection) => {
+        const endOfSuggestionSelection = suggestionSelection.end;
+        setSelection(suggestionSelection);
+
+        if (endOfSuggestionSelection === undefined) {
+            return;
+        }
+
+        queueMicrotask(() => {
+            textInputRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
+        });
+    }, []);
+
     return (
         <>
             <View
@@ -864,7 +879,7 @@ function ComposerWithSuggestions({
                 // Input
                 value={value}
                 selection={selection}
-                setSelection={setSelection}
+                setSelection={onSuggestionSelected}
                 resetKeyboardInput={resetKeyboardInput}
             />
 
