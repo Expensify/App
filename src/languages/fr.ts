@@ -5999,7 +5999,7 @@ ${
                     expense: 'Dépense individuelle',
                     expenseSubtitle: "Marquer les montants des dépenses par catégorie. Cette règle remplace la règle générale de l'espace de travail pour le montant maximal des dépenses.",
                     daily: 'Total de la catégorie',
-                    dailySubtitle: 'Indiquer le total des dépenses par catégorie pour chaque rapport de dépenses.',
+                    dailySubtitle: 'Indiquer le total des dépenses par jour par catégorie pour chaque rapport de dépenses.',
                 },
                 requireReceiptsOver: 'Exiger des reçus au-dessus de',
                 requireReceiptsOverList: {

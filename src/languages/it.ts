@@ -5978,7 +5978,7 @@ ${
                     expenseSubtitle:
                         "Contrassegna gli importi delle spese per categoria. Questa regola sostituisce la regola generale dello spazio di lavoro per l'importo massimo delle spese.",
                     daily: 'Totale categoria',
-                    dailySubtitle: 'Segnala la spesa totale per categoria per ogni rapporto di spesa.',
+                    dailySubtitle: 'Segnala la spesa totale per giorno per categoria per ogni rapporto di spesa.',
                 },
                 requireReceiptsOver: 'Richiedi ricevute superiori a',
                 requireReceiptsOverList: {

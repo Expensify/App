@@ -5961,7 +5961,7 @@ ${
                     expense: 'Despesa individual',
                     expenseSubtitle: 'Marcar valores de despesas por categoria. Esta regra substitui a regra geral do espaço de trabalho para o valor máximo de despesa.',
                     daily: 'Total da categoria',
-                    dailySubtitle: 'Marcar o total de gastos por categoria em cada relatório de despesas.',
+                    dailySubtitle: 'Marcar o total de gastos por dia por categoria em cada relatório de despesas.',
                 },
                 requireReceiptsOver: 'Exigir recibos acima de',
                 requireReceiptsOverList: {

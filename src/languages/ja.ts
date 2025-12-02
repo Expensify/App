@@ -5922,7 +5922,7 @@ ${
                     expense: '個別経費',
                     expenseSubtitle: 'カテゴリ別に経費金額をフラグします。このルールは、最大経費金額に関する一般的なワークスペースルールを上書きします。',
                     daily: 'カテゴリ合計',
-                    dailySubtitle: '経費報告書ごとにカテゴリ別の合計支出をフラグ付けします。',
+                    dailySubtitle: '経費報告書ごとにカテゴリ別の一日あたりの合計支出をフラグ付けします。',
                 },
                 requireReceiptsOver: 'を超える領収書を必須にする',
                 requireReceiptsOverList: {
