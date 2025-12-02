@@ -698,6 +698,8 @@ const translations: TranslationDeepObject<typeof en> = {
         thisIsTakingLongerThanExpected: 'Isso está demorando mais do que o esperado...',
         domains: 'Domínios',
         reportName: 'Nome do relatório',
+        showLess: 'Mostrar menos',
+        actionRequired: 'Ação necessária',
     },
     supportalNoAccess: {
         title: 'Não tão rápido',
@@ -1334,7 +1336,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `alterou o ${translatedChangedField} para ${newMerchant} (anteriormente ${oldMerchant}), o que atualizou o valor para ${newAmountToDisplay} (anteriormente ${oldAmountToDisplay})`,
         basedOnAI: 'com base em atividades passadas',
-        basedOnMCC: 'com base na regra do espaço de trabalho',
+        basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `com base nas <a href="${rulesLink}">regras do espaço de trabalho</a>` : 'com base na regra do espaço de trabalho'),
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `para ${comment}` : 'despesa'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Relatório de Fatura nº ${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? `para ${comment}` : ''}`,
@@ -1616,9 +1618,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Este recurso requer que você valide sua conta.',
         validateAccount: 'Valide sua conta',
         helpText: ({email}: {email: string}) =>
-            `Adicione mais maneiras de enviar recibos. Encaminhe-os para <copy-text text="${email}"/> ou envie uma mensagem para 47777 (apenas números dos EUA).`,
-        pleaseVerify: 'Por favor, verifique este método de contato',
-        getInTouch: 'Sempre que precisarmos entrar em contato com você, usaremos este método de contato.',
+            `Adicione mais formas de fazer login e enviar recibos para o Expensify.<br/><br/>Adicione um endereço de e-mail para encaminhar recibos para <a href="mailto:${email}">${email}</a> ou adicione um número de telefone para enviar recibos por mensagem de texto para 47777 (somente números dos EUA).`,
+        pleaseVerify: 'Por favor, verifique este método de contato.',
+        getInTouch: 'Usaremos este método para entrar em contato com você.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, insira o código mágico enviado para ${contactMethod}. Ele deve chegar em um ou dois minutos.`,
         setAsDefault: 'Definir como padrão',
         yourDefaultContactMethod: 'Este é o seu método de contato padrão atual. Antes de poder excluí-lo, você precisará escolher outro método de contato e clicar em “Definir como padrão”.',
@@ -2670,12 +2672,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Ser reembolsado é tão fácil quanto enviar uma mensagem. Vamos ver o básico.',
             onboardingPersonalSpendMessage: 'Veja como rastrear seus gastos em poucos cliques.',
-            onboardingManageTeamMessage: dedent(`
-                Seu teste gratuito começou! Vamos deixar tudo pronto.
-                👋 Olá! Sou seu especialista de configuração da Expensify. Agora que você criou um espaço de trabalho, aproveite ao máximo seu teste gratuito de 30 dias seguindo as etapas abaixo!
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # Sua avaliação gratuita foi iniciada! Vamos configurar tudo.
+                        👋 Oi! Sou seu especialista de configuração da Expensify. Já criei um espaço de trabalho para ajudar a gerenciar os recibos e as despesas da sua equipe. Para aproveitar ao máximo seus 30 dias de avaliação gratuita, basta seguir as etapas de configuração restantes abaixo!
+                    `)
+                    : dedent(`
+                        # Seu teste gratuito começou! Vamos configurar tudo.
+                        👋 Olá! Sou seu especialista de configuração da Expensify. Agora que você criou um espaço de trabalho, aproveite ao máximo seu teste gratuito de 30 dias seguindo as etapas abaixo!
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Vamos configurar você\n👋 Estou aqui para ajudar! Para você começar, adaptei as configurações do seu espaço de trabalho para microempreendedores individuais e empresas semelhantes. Você pode ajustar seu espaço de trabalho clicando no link abaixo!\n\nVeja como rastrear seus gastos em poucos cliques:',
+                '# Vamos configurar tudo\n👋 Olá! Sou seu especialista em configuração da Expensify. Já criei um espaço de trabalho para ajudar a gerenciar seus recibos e despesas. Para aproveitar ao máximo sua avaliação gratuita de 30 dias, basta seguir as etapas de configuração restantes abaixo!',
             onboardingChatSplitMessage: 'Dividir contas com amigos é tão fácil quanto enviar uma mensagem. Veja como.',
             onboardingAdminMessage: 'Aprenda a gerenciar o espaço de trabalho da sua equipe como administrador e enviar suas próprias despesas.',
             onboardingLookingAroundMessage:
@@ -2897,6 +2905,8 @@ ${
         hasBeenThrottledError: 'Ocorreu um erro ao adicionar sua conta bancária. Por favor, aguarde alguns minutos e tente novamente.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Ops! Parece que a moeda do seu espaço de trabalho está definida para uma moeda diferente de USD. Para continuar, por favor vá para <a href="${workspaceRoute}">suas configurações de espaço de trabalho</a> para definir para USD e tentar novamente.`,
+        bbaAdded: 'Conta bancária empresarial adicionada!',
+        bbaAddedDescription: 'Está pronta para ser usada em pagamentos.',
         error: {
             youNeedToSelectAnOption: 'Por favor, selecione uma opção para continuar',
             noBankAccountAvailable: 'Desculpe, não há nenhuma conta bancária disponível.',
@@ -4642,7 +4652,7 @@ ${
             companyCard: 'cartão corporativo',
             chooseCardFeed: 'Escolher feed de cartão',
             ukRegulation:
-                'A Expensify, Inc. é um agente da Plaid Financial Ltd., uma instituição de pagamento autorizada e regulada pela Financial Conduct Authority sob as Payment Services Regulations 2017 (Número de Referência da Empresa: 804718). A Plaid fornece a você serviços de informações de conta regulados através da Expensify Limited como seu agente.',
+                'A Expensify Limited é um agente da Plaid Financial Ltd., uma instituição de pagamento autorizada e regulada pela Financial Conduct Authority sob as Payment Services Regulations 2017 (Número de Referência da Empresa: 804718). A Plaid fornece a você serviços de informações de conta regulados através da Expensify Limited como seu agente.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emita e gerencie seus Cartões Expensify',
@@ -4708,6 +4718,10 @@ ${
             issuedCard: ({assignee}: AssigneeParams) => `emitiu um Cartão Expensify para ${assignee}! O cartão chegará em 2-3 dias úteis.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
                 `Foi emitido para ${assignee} um Expensify Card! O cartão será enviado assim que os detalhes de envio forem confirmados.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} substituiu seu cartão virtual Expensify! ${link} pode ser usado imediatamente.`,
+            card: 'cartão',
+            replacementCard: 'cartão de substituição',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} substituiu seu cartão Expensify. O novo cartão chegará em 2-3 dias úteis.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `emitiu ${assignee} um ${link} virtual! O cartão pode ser usado imediatamente.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} adicionou informações de envio. O Expensify Card chegará em 2-3 dias úteis.`,
             verifyingHeader: 'Verificando',
@@ -6204,6 +6218,7 @@ ${
             `atualizou a frequência de relatórios automáticos para "${newFrequency}" (anteriormente "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `atualizou o modo de aprovação para "${newValue}" (anteriormente "${oldValue}")`,
         upgradedWorkspace: 'atualizou este espaço de trabalho para o plano Control',
+        forcedCorporateUpgrade: `Este espaço de trabalho foi atualizado para o plano Control. Clique <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">aqui</a> para mais informações.`,
         downgradedWorkspace: 'rebaixou este espaço de trabalho para o plano Collect',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `alterou a taxa de relatórios encaminhados aleatoriamente para aprovação manual para ${Math.round(newAuditRate * 100)}% (anteriormente ${Math.round(oldAuditRate * 100)}%)`,
@@ -6373,6 +6388,7 @@ ${
             delete: 'Excluir',
             hold: 'Manter',
             unhold: 'Remover retenção',
+            reject: 'Rejeitar',
             noOptionsAvailable: 'Nenhuma opção disponível para o grupo de despesas selecionado.',
         },
         filtersHeader: 'Filtros',
@@ -6552,6 +6568,27 @@ ${
         error: {
             title: 'Falha na verificação de atualização',
             message: 'Não conseguimos verificar uma atualização. Por favor, tente novamente em breve.',
+        },
+    },
+    settlement: {
+        status: {
+            pending: 'Pendente',
+            cleared: 'Liquidado',
+            failed: 'Falhou',
+        },
+        failedError: ({link}: {link: string}) => `Tentaremos esta liquidação novamente quando você <a href="${link}">desbloquear sua conta</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de saque: ${withdrawalID}`,
+    },
+    reportLayout: {
+        reportLayout: 'Layout do relatório',
+        groupByLabel: 'Agrupar por:',
+        selectGroupByOption: 'Selecione como agrupar as despesas do relatório',
+        uncategorized: 'Sem categoria',
+        noTag: 'Sem tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Selecionar todas as despesas em ${groupName}`,
+        groupBy: {
+            category: 'Categoria',
+            tag: 'Tag',
         },
     },
     report: {
@@ -7099,9 +7136,7 @@ ${
                 `Você contestou a cobrança de ${amountOwed} no cartão com final ${cardEnding}. Sua conta será bloqueada até que a disputa seja resolvida com seu banco.`,
             preTrial: {
                 title: 'Inicie uma avaliação gratuita',
-                subtitleStart: 'Como próximo passo,',
-                subtitleLink: 'complete sua lista de verificação de configuração',
-                subtitleEnd: 'para que sua equipe possa começar a registrar despesas.',
+                subtitle: 'Como próximo passo, <a href="#">conclua seu checklist de configuração</a> para que sua equipe possa começar a registrar despesas.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Teste: ${numOfDays} ${numOfDays === 1 ? 'dia' : 'dias'} restantes!`,
@@ -7412,13 +7447,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Bem-vindo ao New Expensify!',
-        subtitle: 'O novo Expensify tem a mesma ótima automação, mas agora com uma colaboração incrível:',
+        subtitle: 'Tem tudo o que você ama da nossa experiência clássica, com várias atualizações para deixar sua vida ainda mais fácil:',
         confirmText: 'Vamos lá!',
         features: {
-            chat: '<strong>Converse diretamente em qualquer despesa</strong>, relatório ou espaço de trabalho',
-            scanReceipt: '<strong>Escaneie recibos</strong> e receba o reembolso',
-            crossPlatform: 'Faça <strong>tudo</strong> do seu telefone ou navegador',
+            chat: 'Converse sobre qualquer despesa para resolver dúvidas rapidamente',
+            search: 'Busca mais poderosa no celular, na web e no desktop',
+            concierge: 'IA Concierge integrada para ajudar a automatizar suas despesas',
         },
+        helpText: 'Experimente a demo de 2 min',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
@@ -7570,6 +7606,17 @@ ${
                         return `Aguardando um administrador aprovar as despesas.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Aguardando <strong>você</strong> exportar este relatório.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Aguardando <strong>${actor}</strong> exportar este relatório.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Aguardando um administrador para exportar este relatório.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7641,6 +7688,32 @@ ${
             onePasswordForAnything: 'Uma senha para tudo',
         },
         goToDomain: 'Ir para o domínio',
+        samlLogin: {
+            title: 'Login SAML',
+            subtitle: `<muted-text>Configure o acesso dos membros com <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'Ativar login SAML',
+            allowMembers: 'Permitir que os membros façam login com SAML.',
+            requireSamlLogin: 'Exigir login via SAML',
+            anyMemberWillBeRequired: 'Qualquer membro que tiver feito login com um método diferente precisará se autenticar novamente usando SAML.',
+            enableError: 'Não foi possível atualizar a configuração de habilitação do SAML',
+            requireError: 'Não foi possível atualizar a configuração de obrigatoriedade do SAML',
+        },
+        samlConfigurationDetails: {
+            title: 'Detalhes da configuração do SAML',
+            subtitle: 'Use estes detalhes para configurar o SAML.',
+            identityProviderMetaData: 'Metadados do Provedor de Identidade',
+            entityID: 'ID da entidade',
+            nameIDFormat: 'Formato do ID do nome',
+            loginUrl: 'URL de login',
+            acsUrl: 'URL do ACS (Serviço de Consumo de Asserções)',
+            logoutUrl: 'URL de saída',
+            sloUrl: 'URL do SLO (Single Logout)',
+            serviceProviderMetaData: 'Metadados do Provedor de Serviço',
+            oktaScimToken: 'Token SCIM do Okta',
+            revealToken: 'Revelar token',
+            fetchError: 'Não foi possível obter os detalhes da configuração SAML',
+            setMetadataGenericError: 'Não foi possível definir os metadados SAML',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

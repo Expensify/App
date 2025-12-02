@@ -2747,6 +2747,7 @@ const run = () => {
     let graphiteString = '';
     let timestamp;
     // Iterate over each entry
+    // eslint-disable-next-line unicorn/no-array-for-each
     regressionEntries.forEach((entry) => {
         // Skip empty lines
         if (entry.trim() === '') {
