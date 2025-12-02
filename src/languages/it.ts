@@ -5215,16 +5215,16 @@ ${
             removeMemberTitle: 'Rimuovi membro',
             transferOwner: 'Trasferisci proprietario',
             makeMember: () => ({
-                one: 'Rendi membro',
-                other: 'Rendi membri',
+                one: 'Make member',
+                other: 'Make members',
             }),
             makeAdmin: () => ({
-                one: 'Rendi amministratore',
-                other: 'Rendi amministratori',
+                one: 'Make admin',
+                other: 'Make admins',
             }),
             makeAuditor: () => ({
-                one: 'Rendi revisore',
-                other: 'Rendi revisori',
+                one: 'Make auditor',
+                other: 'Make auditors',
             }),
             selectAll: 'Seleziona tutto',
             error: {

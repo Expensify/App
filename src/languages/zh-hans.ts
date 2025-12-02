@@ -5105,16 +5105,16 @@ ${
             removeMemberTitle: '移除成员',
             transferOwner: '转移所有者',
             makeMember: () => ({
-                one: '设为成员',
-                other: '设为成员',
+                one: 'Make member',
+                other: 'Make members',
             }),
             makeAdmin: () => ({
-                one: '设为管理员',
-                other: '设为管理员',
+                one: 'Make admin',
+                other: 'Make admins',
             }),
             makeAuditor: () => ({
-                one: '设为审计员',
-                other: '设为审计员',
+                one: 'Make auditor',
+                other: 'Make auditors',
             }),
             selectAll: '全选',
             error: {
