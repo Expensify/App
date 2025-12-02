@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import FormHelpMessage from '@components/FormHelpMessage';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,8 +25,8 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [error, setError] = useState<string | undefined>(undefined);
 
-    const data = useMemo(() => {
-        return CONST.DATE.MONTH_DAYS.reduce<CustomCloseDateListItem[]>((days, dayValue) => {
+    const {sections, headerMessage} = useMemo(() => {
+        const data = CONST.DATE.MONTH_DAYS.reduce<CustomCloseDateListItem[]>((days, dayValue) => {
             const day = {
                 value: dayValue,
                 text: dayValue.toString(),
@@ -44,7 +44,12 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
 
             return days;
         }, []);
-    }, [selectedDay, debouncedSearchValue]);
+
+        return {
+            sections: [{data, indexOffset: 0}],
+            headerMessage: data.length === 0 ? translate('common.noResultsFound') : undefined,
+        };
+    }, [selectedDay, debouncedSearchValue, translate]);
 
     const selectDayAndClearError = useCallback((item: CustomCloseDateListItem) => {
         setSelectedDay(item.value);
@@ -60,38 +65,25 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
         onConfirmSelectedDay(selectedDay);
     }, [selectedDay, onConfirmSelectedDay, translate]);
 
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('common.search'),
-            value: searchValue,
-            onChangeText: setSearchValue,
-            headerMessage: data.length === 0 ? translate('common.noResultsFound') : undefined,
-        }),
-        [translate, searchValue, data.length, setSearchValue],
-    );
-
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: confirmSelectedDay,
-            style: styles.mt3,
-        }),
-        [translate, confirmSelectedDay, styles.mt3],
-    );
-
     return (
         <SelectionList
-            data={data}
             ListItem={SingleSelectListItem}
             onSelectRow={selectDayAndClearError}
-            initiallyFocusedItemKey={initiallySelectedDay?.toString()}
-            confirmButtonOptions={confirmButtonOptions}
-            textInputOptions={textInputOptions}
-            showListEmptyContent={false}
+            shouldShowListEmptyContent={false}
+            sections={sections}
             shouldSingleExecuteRowSelect
+            initiallyFocusedOptionKey={initiallySelectedDay?.toString()}
             shouldUpdateFocusedIndex
+            showConfirmButton
+            confirmButtonText={translate('common.save')}
+            onConfirm={confirmSelectedDay}
+            confirmButtonStyles={styles.mt3}
             addBottomSafeAreaPadding
+            shouldShowTextInput
+            textInputLabel={translate('common.search')}
+            textInputValue={searchValue}
+            onChangeText={setSearchValue}
+            headerMessage={headerMessage}
         >
             {!!error && (
                 <FormHelpMessage
