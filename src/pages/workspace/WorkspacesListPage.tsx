@@ -4,8 +4,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import type {DomainItem} from '@components/Domain/DomainMenuItem';
 import DomainMenuItem from '@components/Domain/DomainMenuItem';
@@ -47,7 +45,6 @@ import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace,
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -65,6 +62,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {shouldCalculateBillNewDot as shouldCalculateBillNewDotFn} from '@libs/SubscriptionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+import WorkspacesListPageHeaderButton from '@pages/workspace/WorkspacesListPageHeaderButton';
 import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -123,7 +121,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar', 'Plus', 'Globe'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -659,44 +657,14 @@ function WorkspacesListPage() {
         </>
     );
 
-    const getHeaderButton = () => {
-        if (isRestrictedPolicyCreation || workspaces.length === 0) {
-            return null;
-        }
+    const headerButton = (
+        <WorkspacesListPageHeaderButton
+            isRestrictedPolicyCreation={isRestrictedPolicyCreation}
+            hasWorkspaces={!!workspaces.length}
+            hasDomains={!!domains.length}
+        />
+    );
 
-        return !domains.length ? (
-            <Button
-                accessibilityLabel={translate('workspace.new.newWorkspace')}
-                text={translate('workspace.new.newWorkspace')}
-                onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
-                icon={icons.Plus}
-                style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
-            />
-        ) : (
-            <ButtonWithDropdownMenu
-                success={false}
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('common.new')}
-                options={[
-                    {
-                        value: 'workspace',
-                        text: translate('workspace.new.newWorkspace'),
-                        icon: icons.Building,
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
-                    },
-                    {
-                        value: 'domain',
-                        text: translate('domain.addDomain.newDomain'),
-                        icon: icons.Globe,
-                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN)),
-                    },
-                ]}
-                isSplitButton={false}
-                wrapperStyle={styles.flexGrow1}
-            />
-        );
-    };
     const onBackButtonPress = () => {
         Navigation.goBack(route.params?.backTo);
         return true;
@@ -804,8 +772,8 @@ function WorkspacesListPage() {
             }
         >
             <View style={styles.flex1}>
-                <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
-                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
+                <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{headerButton}</View>}</TopBar>
+                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
                 <FlatList
                     ref={flatlistRef}
                     data={data}
