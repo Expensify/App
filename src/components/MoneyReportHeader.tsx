@@ -1225,7 +1225,8 @@ function MoneyReportHeader({
                 if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
-                Navigation.goBack(route.params?.backTo);
+                const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
+                Navigation.goBack(backToRoute);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     deleteAppReport(moneyRequestReport?.reportID, email ?? '');
