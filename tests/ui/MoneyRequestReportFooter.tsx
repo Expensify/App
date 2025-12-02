@@ -3,6 +3,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import type {MenuItemProps} from '@components/MenuItem';
 import MoneyRequestConfirmationListFooter from '@components/MoneyRequestConfirmationListFooter';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,22 +16,19 @@ import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    __esModule: true,
     navigate: jest.fn(),
     getActiveRoute: jest.fn(() => 'activeRoute'),
 }));
 
-// Replace MenuItemWithTopDescription with a simple test double that exposes props in the tree
 jest.mock('@components/MenuItemWithTopDescription', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View, Text} = require('react-native');
-    return (props: any) => (
+    return (props: MenuItemProps) => (
         <View
             testID={`menu-item-${props.description}`}
             accessibilityLabel={props.description}
             onPress={props.onPress}
-            {...(props.interactive !== undefined && {
-                accessibilityState: {disabled: !props.interactive},
-            })}
+            accessibilityState={{disabled: !props.interactive}}
         >
             <Text>{props.description}</Text>
             <Text>{props.title}</Text>
@@ -125,6 +123,7 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <ScreenWrapper testID="MoneyRequestConfirmationListFooter">
+                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                 <MoneyRequestConfirmationListFooter {...defaultProps} />
             </ScreenWrapper>
         </ComposeProviders>,
@@ -138,11 +137,6 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
 
         initOnyxDerivedValues();
-        return waitForBatchedUpdatesWithAct();
-    });
-
-    beforeEach(async () => {
-        jest.clearAllMocks();
         return waitForBatchedUpdatesWithAct();
     });
 
@@ -185,14 +179,13 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        await waitForBatchedUpdatesWithAct();
-
         renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-common.report');
-        expect(reportItem.props.accessibilityState.disabled).toBe(false);
+        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
+        expect(accessibilityState.disabled).toBe(false);
     });
 
     it('should disable report field when there is only 1 outstanding report and creating from policy chat', async () => {
@@ -218,14 +211,13 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        await waitForBatchedUpdatesWithAct();
-
         renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.accessibilityState.disabled).toBe(true);
+        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
+        expect(accessibilityState.disabled).toBe(true);
     });
 
     it('should disable report field when there are no reports available', async () => {
@@ -242,14 +234,13 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        await waitForBatchedUpdatesWithAct();
-
         renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.accessibilityState.disabled).toBe(true);
+        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
+        expect(accessibilityState.disabled).toBe(true);
     });
 
     it('should disable report field when transaction has reportID and creating from FAB with only 1 outstanding report', async () => {
@@ -275,14 +266,13 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        await waitForBatchedUpdatesWithAct();
-
         renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.accessibilityState.disabled).toBe(true);
+        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
+        expect(accessibilityState.disabled).toBe(true);
     });
 
     it('should allow editing report field when transaction is unReported and creating from FAB with only 1 outstanding report', async () => {
@@ -308,13 +298,12 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        await waitForBatchedUpdatesWithAct();
-
         renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
         const reportItem = screen.getByTestId('menu-item-Report');
-        expect(reportItem.props.accessibilityState.disabled).toBe(false);
+        const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
+        expect(accessibilityState.disabled).toBe(false);
     });
 });
