@@ -5170,9 +5170,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `${memberName}を削除してもよろしいですか？`,
             removeMemberTitle: 'メンバーを削除',
             transferOwner: 'オーナーを移行',
-            makeMember: 'メンバーにする',
-            makeAdmin: '管理者にする',
-            makeAuditor: '監査人を作成',
+            makeMember: () => ({
+                one: 'Make member',
+                other: 'Make members',
+            }),
+            makeAdmin: () => ({
+                one: 'Make admin',
+                other: 'Make admins',
+            }),
+            makeAuditor: () => ({
+                one: 'Make auditor',
+                other: 'Make auditors',
+            }),
             selectAll: 'すべて選択',
             error: {
                 genericAdd: 'このワークスペースメンバーを追加する際に問題が発生しました',

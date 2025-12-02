@@ -5205,9 +5205,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Weet je zeker dat je ${memberName} wilt verwijderen?`,
             removeMemberTitle: 'Lid verwijderen',
             transferOwner: 'Eigenaar overdragen',
-            makeMember: 'Lid maken',
-            makeAdmin: 'Beheerder maken',
-            makeAuditor: 'Maak controleur',
+            makeMember: () => ({
+                one: 'Make member',
+                other: 'Make members',
+            }),
+            makeAdmin: () => ({
+                one: 'Make admin',
+                other: 'Make admins',
+            }),
+            makeAuditor: () => ({
+                one: 'Make auditor',
+                other: 'Make auditors',
+            }),
             selectAll: 'Alles selecteren',
             error: {
                 genericAdd: 'Er was een probleem bij het toevoegen van dit werkruimtelid.',
