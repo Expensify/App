@@ -95,7 +95,7 @@ function SubmitDetailsPage({
         });
     }, [reportOrAccountID, policy, report, parentReport, currentDate, currentUserPersonalDetails]);
 
-    const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
+    const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const participants = selectedParticipants.map((participant) =>
         participant?.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived),
     );
