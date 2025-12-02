@@ -111,7 +111,7 @@ function SuggestionMention({
                   }
                 : null,
         );
-    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails]);
+    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails.accountID]);
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
@@ -467,7 +467,7 @@ function SuggestionMention({
         [shouldBlockCalc],
     );
 
-    const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
+    const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues.suggestedMentions]);
     const getIsSuggestionsMenuVisible = useCallback(() => isMentionSuggestionsMenuVisible, [isMentionSuggestionsMenuVisible]);
 
     useImperativeHandle(

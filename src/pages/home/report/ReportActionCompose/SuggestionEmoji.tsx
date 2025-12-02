@@ -201,7 +201,7 @@ function SuggestionEmoji({
         [shouldBlockCalc],
     );
 
-    const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues]);
+    const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues.suggestedEmojis]);
 
     const getIsSuggestionsMenuVisible = useCallback(() => isEmojiSuggestionsMenuVisible, [isEmojiSuggestionsMenuVisible]);
 
