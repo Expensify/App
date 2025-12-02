@@ -15,7 +15,7 @@ To pay Workspace expenses, you’ll first need to:
 - [Connect a business bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account)
 - Ask the submitter to [connect a personal bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account)
 
-## Where to find Pay Workspace Expenses
+## Where to Find Workspaces Expenses to Pay
 
 - On web, go to the **navigation tabs on the left** and select **Reports > To-do > Pay**  
 - On mobile, go to the **navigation tabs on the bottom** and select **Reports > To-do > Pay**  
@@ -40,7 +40,7 @@ To pay Workspace expenses, you’ll first need to:
 To send a personal payment, you must first [set up your Wallet](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Set-up-your-wallet).  
 **Note:** Personal payments are currently available only to U.S. customers.
 
-## Where to find Pay a Personal Expense
+## Where to find Personal Expenses to Pay
 
 - On web, go to the **navigation tabs on the left** and select **Reports > To-do > Pay**  
 - On mobile, go to the **navigation tabs on the bottom** and select **Reports > To-do > Pay**  
