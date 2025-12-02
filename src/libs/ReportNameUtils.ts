@@ -4,6 +4,7 @@
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -21,7 +22,6 @@ import type {
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString} from './CurrencyUtils';
-import {formatPhoneNumber} from './LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
@@ -137,7 +137,15 @@ function generateArchivedReportName(reportName: string): string {
  * This function is useful in contexts such as 1:1 direct messages (DMs) or other group chats.
  * It limits to a maximum of 5 participants for the title and uses short names unless there is only one participant.
  */
-const buildReportNameFromParticipantNames = ({report, personalDetailsList: personalDetailsData}: {report: OnyxEntry<Report>; personalDetailsList?: Partial<PersonalDetailsList>}) =>
+const buildReportNameFromParticipantNames = ({
+    report,
+    personalDetailsList: personalDetailsData,
+    formatPhoneNumber,
+}: {
+    report: OnyxEntry<Report>;
+    personalDetailsList?: Partial<PersonalDetailsList>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+}) =>
     Object.keys(report?.participants ?? {})
         .map(Number)
         .filter((id) => id !== currentUserAccountID)
@@ -175,7 +183,13 @@ const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'var
 /**
  * Returns the report name if the report is a group chat
  */
-function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit = false, report?: OnyxEntry<Report>, reportMetadataParam?: OnyxEntry<ReportMetadata>): string | undefined {
+function getGroupChatName(
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    participants?: SelectedParticipant[],
+    shouldApplyLimit = false,
+    report?: OnyxEntry<Report>,
+    reportMetadataParam?: OnyxEntry<ReportMetadata>,
+): string | undefined {
     // If we have a report always try to get the name from the report.
     if (report?.reportName) {
         return report.reportName;
@@ -217,7 +231,15 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
 /**
  * Get the title for a policy expense chat
  */
-function getPolicyExpenseChatName({report, personalDetailsList}: {report: OnyxEntry<Report>; personalDetailsList?: Partial<PersonalDetailsList>}): string | undefined {
+function getPolicyExpenseChatName({
+    report,
+    personalDetailsList,
+    formatPhoneNumber,
+}: {
+    report: OnyxEntry<Report>;
+    personalDetailsList?: Partial<PersonalDetailsList>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+}): string | undefined {
     const ownerAccountID = report?.ownerAccountID;
     const personalDetails = ownerAccountID ? personalDetailsList?.[ownerAccountID] : undefined;
     const login = personalDetails ? personalDetails.login : null;
@@ -240,11 +262,13 @@ function getInvoicesChatName({
     receiverPolicy,
     personalDetails,
     policies,
+    formatPhoneNumber,
 }: {
     report: OnyxEntry<Report>;
     receiverPolicy: OnyxEntry<Policy>;
     personalDetails?: Partial<PersonalDetailsList>;
     policies?: Policy[];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
@@ -266,8 +290,13 @@ function getInvoicesChatName({
     return getPolicyName({report, policy: receiverPolicyResolved, policies});
 }
 
-function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
-    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+function getInvoiceReportName(
+    report: OnyxEntry<Report>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    policy?: OnyxEntry<Policy>,
+    invoiceReceiverPolicy?: OnyxEntry<Policy>,
+): string {
+    const moneyRequestReportName = getMoneyRequestReportName({report, formatPhoneNumber, policy, invoiceReceiverPolicy});
     const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
     return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
 }
@@ -277,7 +306,12 @@ function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Poli
  * - Individual - a receiver display name.
  * - Policy - a receiver policy name.
  */
-function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: OnyxEntry<Policy>, invoiceReceiverPersonalDetail?: PersonalDetails | null): string {
+function getInvoicePayerName(
+    report: OnyxEntry<Report>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    invoiceReceiverPolicy?: OnyxEntry<Policy>,
+    invoiceReceiverPersonalDetail?: PersonalDetails | null,
+): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
@@ -292,7 +326,17 @@ function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: 
 /**
  * Get the title for an IOU or expense chat which will be showing the payer and the amount
  */
-function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {report: OnyxEntry<Report>; policy?: OnyxEntry<Policy>; invoiceReceiverPolicy?: OnyxEntry<Policy>}): string {
+function getMoneyRequestReportName({
+    report,
+    formatPhoneNumber,
+    policy,
+    invoiceReceiverPolicy,
+}: {
+    report: OnyxEntry<Report>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    policy?: OnyxEntry<Policy>;
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
+}): string {
     if (report?.reportName && isExpenseReport(report)) {
         return report.reportName;
     }
@@ -306,7 +350,7 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
         payerOrApproverName = getPolicyName({report: parentReport ?? report, policy});
     } else if (isInvoiceReport(report)) {
         const chatReport = getReportOrDraftReport(report?.chatReportID);
-        payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy);
+        payerOrApproverName = getInvoicePayerName(chatReport, formatPhoneNumber, invoiceReceiverPolicy);
     } else {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber}) ?? '';
     }
@@ -601,6 +645,7 @@ function computeChatThreadReportName(report: Report, reportNameValuePairs: Repor
 }
 
 function computeReportName(
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     report?: Report,
     reports?: OnyxCollection<Report>,
     policies?: OnyxCollection<Policy>,
@@ -643,7 +688,7 @@ function computeReportName(
     }
 
     if (isGroupChat(report)) {
-        return getGroupChatName(undefined, true, report) ?? '';
+        return getGroupChatName(formatPhoneNumber, undefined, true, report) ?? '';
     }
 
     let formattedName: string | undefined;
@@ -653,12 +698,12 @@ function computeReportName(
     }
 
     if (isPolicyExpenseChat(report)) {
-        formattedName = getPolicyExpenseChatName({report, personalDetailsList});
+        formattedName = getPolicyExpenseChatName({report, personalDetailsList, formatPhoneNumber});
     }
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName({report, policy});
+        formattedName = getMoneyRequestReportName({report, formatPhoneNumber, policy});
     }
 
     if (isInvoiceReport(report)) {
@@ -669,7 +714,7 @@ function computeReportName(
             chatReceiverPolicyID = (chatReceiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = chatReceiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReceiverPolicyID}`] : undefined;
-        formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy);
+        formattedName = getInvoiceReportName(report, formatPhoneNumber, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {
@@ -679,7 +724,7 @@ function computeReportName(
             receiverPolicyID = (receiver as {policyID: string}).policyID;
         }
         const invoiceReceiverPolicy = receiverPolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicyID}`] : undefined;
-        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList});
+        formattedName = getInvoicesChatName({report, formatPhoneNumber, receiverPolicy: invoiceReceiverPolicy, personalDetails: personalDetailsList});
     }
 
     if (isSelfDM(report)) {
@@ -695,7 +740,7 @@ function computeReportName(
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, formatPhoneNumber});
 
     const finalName = formattedName ?? report?.reportName ?? '';
 

@@ -69,7 +69,6 @@ import {
     getReasonAndReportActionThatRequiresAttention,
     getReportActionActorAccountID,
     getReportIDFromLink,
-    getReportName,
     getReportOrDraftReport,
     getReportStatusTranslation,
     getReportURLForCurrentContext,
@@ -110,6 +109,7 @@ import {
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
+import {getGroupChatName} from '@libs/ReportNameUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
