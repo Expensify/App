@@ -54,8 +54,13 @@ const getIOUActionForReportID = (reportID: string | undefined, transactionID: st
     return {...mockAction, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
 };
 
-const hasViolations = (reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean) =>
-    (shouldShowInReview === undefined || shouldShowInReview) && Object.values(transactionViolations ?? {}).length > 0;
+const hasViolations = (
+    reportID: string | undefined,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    _currentUserAccountID: number,
+    _currentUserEmailParam: string,
+    shouldShowInReview?: boolean,
+) => (shouldShowInReview === undefined || shouldShowInReview) && Object.values(transactionViolations ?? {}).length > 0;
 
 const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = null}: Partial<MoneyRequestReportPreviewProps>) => {
     return render(
