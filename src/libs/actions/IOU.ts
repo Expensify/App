@@ -14330,7 +14330,6 @@ function updateSplitTransactions({
     const originalChildTransactions = getChildTransactions(allTransactionsList, allReportsList, originalTransactionID);
     const processedChildTransactionIDs: string[] = [];
 
-    const reportTotal = transactionReport?.total ?? 0;
     const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
 
     const isCreationOfSplits = originalChildTransactions.length === 0;
