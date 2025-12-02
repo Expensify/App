@@ -131,7 +131,21 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             resetVideoPlayerData: video.resetPlayerData,
             mountedVideoPlayersRef,
         }),
-        [updateCurrentURLAndReportID, currentlyPlayingURL, currentRouteReportID, originalParent, sharedElement, video, shareVideoPlayerElements],
+        [
+            updateCurrentURLAndReportID,
+            currentlyPlayingURL,
+            currentRouteReportID,
+            originalParent,
+            sharedElement,
+            video.ref,
+            video.play,
+            video.pause,
+            video.stop,
+            video.isPlaying,
+            video.resumeTryNumberRef,
+            video.resetPlayerData,
+            shareVideoPlayerElements,
+        ],
     );
 
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
