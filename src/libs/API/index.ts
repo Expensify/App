@@ -274,7 +274,7 @@ function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.READ, TComm
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData,
     config: PaginationConfig,
-): void;
+): Promise<Response | void>;
 function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.WRITE, TCommand extends CommandOfType<TRequestType>>(
     type: TRequestType,
     command: TCommand,
@@ -282,7 +282,7 @@ function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.WRITE, TCom
     onyxData: OnyxData,
     config: PaginationConfig,
     conflictResolver?: RequestConflictResolver,
-): void;
+): Promise<Response | void>;
 function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>>(
     type: TRequestType,
     command: TCommand,
@@ -290,7 +290,7 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
     onyxData: OnyxData,
     config: PaginationConfig,
     conflictResolver: RequestConflictResolver = {},
-): Promise<Response | void> | void {
+): Promise<Response | void> {
     Log.info('[API] Called API.paginate', false, {command, ...apiCommandParameters});
     const request: PaginatedRequest = {
         ...prepareRequest(command, type, apiCommandParameters, onyxData, conflictResolver),
@@ -302,13 +302,11 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
 
     switch (type) {
         case CONST.API_REQUEST_TYPE.WRITE:
-            processRequest(request, type);
-            return;
+            return processRequest(request, type);
         case CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS:
             return processRequest(request, type);
         case CONST.API_REQUEST_TYPE.READ:
-            waitForWrites(command as ReadCommand).then(() => processRequest(request, type));
-            return;
+            return waitForWrites(command as ReadCommand).then(() => processRequest(request, type));
         default:
             throw new Error('Unknown API request type');
     }
