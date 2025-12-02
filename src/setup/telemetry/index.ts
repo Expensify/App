@@ -11,11 +11,9 @@ import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
 export default function (): void {
-    const isDevMode = isDevelopment();
-
     Sentry.init({
-        dsn: isDevMode ? '' : CONFIG.SENTRY_DSN,
-        transport: isDevMode ? makeDebugTransport : undefined,
+        dsn: CONFIG.SENTRY_DSN,
+        transport: isDevelopment() ? makeDebugTransport : undefined,
         tracesSampleRate: 1.0,
         profilesSampleRate: Platform.OS === 'android' ? 0 : 1.0,
         enableAutoPerformanceTracing: true,
