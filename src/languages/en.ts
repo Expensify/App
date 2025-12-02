@@ -4940,11 +4940,11 @@ const translations = {
                 title: 'Company cards',
                 subtitle: 'Import spend from existing company cards.',
                 feed: {
-                    title: 'Import company cards',
+                    title: 'Bring your own cards (BYOC)',
                     features: {
-                        support: 'Support for all major card providers',
-                        assignCards: 'Assign cards to the entire team',
-                        automaticImport: 'Automatic transaction import',
+                        support: 'Connect cards from 10,000+ banks',
+                        assignCards: 'Link your team's existing cards',
+                        automaticImport: 'We'll pull everything in automatically',
                     },
                 },
                 bankConnectionError: 'Bank connection issue',
