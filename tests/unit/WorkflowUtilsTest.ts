@@ -794,4 +794,96 @@ describe('WorkflowUtils', () => {
             expect(updateWorkflowDataOnApproverRemoval).toEqual([approvalWorkflow1, {...approvalWorkflow2, removeApprovalWorkflow: true}]);
         });
     });
+
+    describe('getApprovalLimitDescription', () => {
+        const mockTranslate = jest.fn((key: string, params?: Record<string, string>) => {
+            if (key === 'workflowsApprovalLimitPage.forwardLimitDescription') {
+                return `Reports above ${params?.approvalLimit} forward to ${params?.approverName}`;
+            }
+            return key;
+        });
+
+        beforeEach(() => {
+            mockTranslate.mockClear();
+        });
+
+        it('Should return undefined when approver is undefined', () => {
+            const result = WorkflowUtils.getApprovalLimitDescription({
+                approver: undefined,
+                currency: 'USD',
+                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                personalDetailsByEmail: {},
+            });
+
+            expect(result).toBeUndefined();
+        });
+
+        it('Should return undefined when approvalLimit is null', () => {
+            const approver = buildApprover(1, {approvalLimit: null, overLimitForwardsTo: '2@example.com'});
+
+            const result = WorkflowUtils.getApprovalLimitDescription({
+                approver,
+                currency: 'USD',
+                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                personalDetailsByEmail: {},
+            });
+
+            expect(result).toBeUndefined();
+        });
+
+        it('Should return undefined when approvalLimit is undefined', () => {
+            const approver = buildApprover(1, {approvalLimit: undefined, overLimitForwardsTo: '2@example.com'});
+
+            const result = WorkflowUtils.getApprovalLimitDescription({
+                approver,
+                currency: 'USD',
+                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                personalDetailsByEmail: {},
+            });
+
+            expect(result).toBeUndefined();
+        });
+
+        it('Should return undefined when overLimitForwardsTo is missing', () => {
+            const approver = buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: undefined});
+
+            const result = WorkflowUtils.getApprovalLimitDescription({
+                approver,
+                currency: 'USD',
+                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                personalDetailsByEmail: {},
+            });
+
+            expect(result).toBeUndefined();
+        });
+
+        it('Should return description when approvalLimit and overLimitForwardsTo are set', () => {
+            const approver = buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '2@example.com'});
+
+            const result = WorkflowUtils.getApprovalLimitDescription({
+                approver,
+                currency: 'USD',
+                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                personalDetailsByEmail: {},
+            });
+
+            expect(result).toBe('Reports above $500.00 forward to 2@example.com');
+        });
+
+        it('Should use display name from personalDetails when available', () => {
+            const approver = buildApprover(1, {approvalLimit: 100000, overLimitForwardsTo: '2@example.com'});
+            const personalDetailsWithEmail: PersonalDetailsList = {
+                '2@example.com': {accountID: 2, displayName: 'John Doe'},
+            };
+
+            const result = WorkflowUtils.getApprovalLimitDescription({
+                approver,
+                currency: 'USD',
+                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                personalDetailsByEmail: personalDetailsWithEmail,
+            });
+
+            expect(result).toBe('Reports above $1,000.00 forward to John Doe');
+        });
+    });
 });

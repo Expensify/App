@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import lodashMapKeys from 'lodash/mapKeys';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -11,6 +12,7 @@ import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import {convertToDisplayString} from './CurrencyUtils';
 import {getDefaultApprover} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -460,10 +462,36 @@ function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountLis
     });
 }
 
+type GetApprovalLimitDescriptionParams = {
+    approver: Approver | undefined;
+    currency: string;
+    translate: LocaleContextProps['translate'];
+    personalDetailsByEmail: PersonalDetailsList | undefined;
+};
+
+/**
+ * Get the approval limit description for an approver (e.g., "Reports above $1,000 forward to John Doe")
+ */
+function getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail}: GetApprovalLimitDescriptionParams): string | undefined {
+    if (approver?.approvalLimit == null || !approver?.overLimitForwardsTo) {
+        return undefined;
+    }
+
+    const formattedAmount = convertToDisplayString(approver.approvalLimit, currency);
+    const overLimitApproverDetails = personalDetailsByEmail?.[approver.overLimitForwardsTo];
+    const approverDisplayName = Str.removeSMSDomain(overLimitApproverDetails?.displayName ?? approver.overLimitForwardsTo);
+
+    return translate('workflowsApprovalLimitPage.forwardLimitDescription', {
+        approvalLimit: formattedAmount,
+        approverName: approverDisplayName,
+    });
+}
+
 export {
     calculateApprovers,
     convertPolicyEmployeesToApprovalWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
+    getApprovalLimitDescription,
     getEligibleExistingBusinessBankAccounts,
     INITIAL_APPROVAL_WORKFLOW,
     updateWorkflowDataOnApproverRemoval,

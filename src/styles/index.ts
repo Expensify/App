@@ -5214,7 +5214,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         workflowApprovalLimitText: {
-            marginLeft: variables.componentSizeNormal + 12,
+            marginLeft: 32,
         },
 
         integrationIcon: {
