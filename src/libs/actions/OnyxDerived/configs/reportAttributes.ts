@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {generateIsEmptyReport, generateReportAttributes, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -70,9 +71,10 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.PERSONAL_DETAILS_LIST,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
+        ONYXKEYS.COUNTRY_CODE,
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, policies],
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, policies, reportMetadata, countryCode],
         {currentValue, sourceValues, areAllConnectionsSet},
     ) => {
         if (!areAllConnectionsSet) {
@@ -81,6 +83,8 @@ export default createOnyxDerivedValueConfig({
                 locale: null,
             };
         }
+
+        const formatPhoneNumber = (phoneNumber: string) => formatPhoneNumberWithCountryCode(phoneNumber, countryCode ?? 1);
 
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
@@ -204,7 +208,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             acc[report.reportID] = {
-                reportName: report ? computeReportName(report, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions) : '',
+                reportName: report ? computeReportName(formatPhoneNumber, report, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions) : '',
                 isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,
                 requiresAttention,
