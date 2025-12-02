@@ -917,7 +917,7 @@ function SearchPage({route}: SearchPageProps) {
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value).then((jsonCode) => {
+            search(value)?.then((jsonCode) => {
                 setSearchRequestResponseStatusCode(Number(jsonCode ?? 0));
             });
         }
@@ -926,9 +926,9 @@ function SearchPage({route}: SearchPageProps) {
     const footerData = useMemo(() => {
         const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
-        const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.convertedCurrency;
+        const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency;
         const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
-        const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.convertedAmount ?? 0), 0) : metadata?.total;
+        const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : metadata?.total;
 
         return {count, total, currency};
     }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);

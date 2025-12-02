@@ -356,6 +356,7 @@ function MoneyReportHeader({
 
     const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey, currentSearchHash} = useSearchContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.similarSearchHash, true);
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON?.hash}`, {canBeMissing: true});
 
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
@@ -486,6 +487,7 @@ function MoneyReportHeader({
                         offset: 0,
                         queryJSON: currentSearchQueryJSON,
                         isOffline,
+                        isLoading: !!currentSearchResults?.search.isLoading,
                     });
                 }
             }
@@ -505,6 +507,7 @@ function MoneyReportHeader({
             currentSearchQueryJSON,
             currentSearchKey,
             isOffline,
+            currentSearchResults?.search.isLoading,
         ],
     );
 
@@ -796,6 +799,7 @@ function MoneyReportHeader({
                             offset: 0,
                             queryJSON: currentSearchQueryJSON,
                             isOffline,
+                            isLoading: !!currentSearchResults?.search.isLoading,
                         });
                     }
                 }}

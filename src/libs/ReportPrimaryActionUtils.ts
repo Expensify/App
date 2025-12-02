@@ -230,6 +230,11 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
 }
 
 function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, reportTransactions: Transaction[]) {
+    const isClosedReport = isClosedReportUtils(report);
+    if (isClosedReport) {
+        return false;
+    }
+
     const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
 
     if (!isReportOnHold) {
