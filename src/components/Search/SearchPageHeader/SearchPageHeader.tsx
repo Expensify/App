@@ -56,7 +56,7 @@ function SearchPageHeader({
         const options = getTypeOptions(translate, allPolicies, email);
         const value = options.find((option) => option.value === unsafeType) ?? null;
         return [value];
-    }, [allPolicies, email, unsafeType]);
+    }, [allPolicies, email, unsafeType, translate]);
 
     const selectedItemsCount = useMemo(() => {
         if (!selectedTransactions) {
@@ -75,7 +75,7 @@ function SearchPageHeader({
 
         // Otherwise count transactions
         return selectedTransactionsKeys.length;
-    }, [selectedTransactionsKeys.length, type?.value, selectedTransactions, translate]);
+    }, [selectedTransactionsKeys.length, type?.value, selectedTransactions]);
 
     if (shouldUseNarrowLayout && isMobileSelectionModeEnabled) {
         return (
