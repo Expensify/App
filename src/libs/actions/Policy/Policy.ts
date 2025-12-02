@@ -107,6 +107,7 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    BankAccountList,
     CardFeeds,
     DuplicateWorkspace,
     IntroSelected,
@@ -357,6 +358,7 @@ type DeleteWorkspaceActionParams = {
     reportsToArchive: Report[];
     transactionViolations: OnyxCollection<TransactionViolations> | undefined;
     reimbursementAccountError: Errors | undefined;
+    bankAccountList: OnyxEntry<BankAccountList>;
     lastUsedPaymentMethods?: LastPaymentMethod;
 };
 
@@ -368,14 +370,33 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         return;
     }
 
-    const {policyID, activePolicyID, policyName, lastAccessedWorkspacePolicyID, policyCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastUsedPaymentMethods} =
-        params;
+    const {
+        policyID,
+        activePolicyID,
+        policyName,
+        lastAccessedWorkspacePolicyID,
+        policyCardFeeds,
+        reportsToArchive,
+        transactionViolations,
+        reimbursementAccountError,
+        lastUsedPaymentMethods,
+        bankAccountList,
+    } = params;
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const filteredPolicies = Object.values(deprecatedAllPolicies).filter((p): p is Policy => p?.id !== policyID);
     const workspaceAccountID = policy?.workspaceAccountID;
+
+    // Filter out bank accounts associated with the policy being deleted
+    const filteredBankAccountList = Object.entries(bankAccountList ?? {}).reduce<BankAccountList>((acc, [key, bankAccount]) => {
+        if (bankAccount?.accountData?.additionalData?.policyID !== policyID) {
+            acc[key] = bankAccount;
+        }
+        return acc;
+    }, {});
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -391,6 +412,15 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: null,
         },
+        ...(filteredBankAccountList !== bankAccountList
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                      value: filteredBankAccountList,
+                  },
+              ]
+            : []),
         ...(!hasActiveChatEnabledPolicies(filteredPolicies, true)
             ? [
                   {
@@ -427,6 +457,15 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: policyCardFeeds,
         },
+        ...(filteredBankAccountList !== bankAccountList
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                      value: bankAccountList ?? {},
+                  },
+              ]
+            : []),
     ];
 
     if (policyID === activePolicyID) {
@@ -4930,6 +4969,7 @@ function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, cat
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY, {policyID, groupID, category}, {optimisticData, successData, failureData});
 }
+
 /**
  * Call the API to set the receipt required amount for the given policy
  * @param policyID - id of the policy to set the receipt required amount
