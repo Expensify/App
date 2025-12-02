@@ -1,5 +1,5 @@
 import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';
@@ -121,7 +121,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     ref?: Ref<unknown>;
     multiline?: boolean;
     autoGrowHeight?: boolean;
-    blurOnSubmit?: boolean;
+    submitBehavior?: SubmitBehavior;
     shouldSubmitForm?: boolean;
     uncontrolled?: boolean;
 };
