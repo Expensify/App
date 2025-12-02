@@ -147,10 +147,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 searchKey: undefined,
                 offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
                 shouldCalculateTotals: false,
-                isLoading: !!transactionsSnapshot?.search.isLoading,
+                isLoading: !!transactionsSnapshot?.search?.isLoading,
             });
         },
-        [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.offset, transactionsSnapshot?.search.isLoading],
+        [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.offset, transactionsSnapshot?.search?.isLoading],
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
