@@ -293,7 +293,7 @@ class Git {
             return false;
         }
 
-        if (file.hunks.length === 1 && file.hunks.at(0)?.oldStart === 0) {
+        if (file.hunks.length === 1 && file.hunks.at(0)?.oldStart === 0 && file.hunks.at(0)?.oldCount === 0) {
             return true;
         }
 
