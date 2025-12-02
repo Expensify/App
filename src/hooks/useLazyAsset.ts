@@ -17,61 +17,63 @@ type LazyAssetResult<T> = {
  * Hook for lazy loading any type of asset
  */
 function useLazyAsset<T>(importFn: () => {default: T} | Promise<{default: T}>, fallback?: T): LazyAssetResult<T> {
-    const memoizedImportFn = useMemo(() => importFn, [importFn]);
-    const importFnResult = memoizedImportFn();
-    const isResultPromise = importFnResult instanceof Promise;
-
-    const assetRef = useRef<T | undefined>(isResultPromise ? undefined : importFnResult.default);
+    const assetRef = useRef<T | undefined>(undefined);
     const versionRef = useRef(0);
 
-    const [isLoaded, setIsLoaded] = useState(!isResultPromise);
-    const [isLoading, setIsLoading] = useState(isResultPromise);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [hasError, setHasError] = useState(false);
 
     useEffect(() => {
-        if (!isResultPromise) {
-            return;
-        }
-
         let isMounted = true;
         const currentVersion = ++versionRef.current;
 
-        const loadAsset = () => {
-            setIsLoading(true);
-            setHasError(false);
+        // Call importFn inside the effect to avoid calling it on every render
+        const importFnResult = importFn();
+        const isResultPromise = importFnResult instanceof Promise;
 
-            importFnResult
-                .then((module) => {
-                    // Check if this is still the latest request and component is mounted
-                    if (!isMounted || currentVersion !== versionRef.current) {
-                        return;
-                    }
-                    assetRef.current = module.default;
+        // Handle synchronous imports
+        if (!isResultPromise) {
+            assetRef.current = importFnResult.default;
+            setIsLoaded(true);
+            setIsLoading(false);
+            return;
+        }
+
+        // Handle async imports
+        setIsLoading(true);
+        setIsLoaded(false);
+        setHasError(false);
+
+        importFnResult
+            .then((module) => {
+                // Check if this is still the latest request and component is mounted
+                if (!isMounted || currentVersion !== versionRef.current) {
+                    return;
+                }
+                assetRef.current = module.default;
+                setIsLoaded(true);
+                setIsLoading(false);
+            })
+            .catch(() => {
+                // Check if this is still the latest request and component is mounted
+                if (!isMounted || currentVersion !== versionRef.current) {
+                    return;
+                }
+                setHasError(true);
+                setIsLoading(false);
+
+                // Use fallback if available
+                if (fallback) {
+                    assetRef.current = fallback;
                     setIsLoaded(true);
-                    setIsLoading(false);
-                })
-                .catch(() => {
-                    // Check if this is still the latest request and component is mounted
-                    if (!isMounted || currentVersion !== versionRef.current) {
-                        return;
-                    }
-                    setHasError(true);
-                    setIsLoading(false);
-
-                    // Use fallback if available
-                    if (fallback) {
-                        assetRef.current = fallback;
-                        setIsLoaded(true);
-                    }
-                });
-        };
-
-        loadAsset();
+                }
+            });
 
         return () => {
             isMounted = false;
         };
-    }, [fallback, importFnResult, isResultPromise]);
+    }, [importFn, fallback]);
 
     return {
         asset: isLoaded ? assetRef?.current : undefined,
