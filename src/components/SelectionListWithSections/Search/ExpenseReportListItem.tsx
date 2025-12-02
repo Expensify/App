@@ -134,6 +134,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         styles.textMicro,
         theme.danger,
         translate,
+        expensifyIcons.DotIndicator,
     ]);
 
     return (
