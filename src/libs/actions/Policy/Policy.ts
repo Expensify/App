@@ -3516,8 +3516,8 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         ownerAccountID: sessionAccountID,
         isPolicyExpenseChatEnabled: true,
 
-        // Setting the currency to USD as we can only add the VBBA for this policy currency right now
-        outputCurrency: CONST.CURRENCY.USD,
+        // Setting the currency to the currency of the iouReport 
+        outputCurrency: iouReport.currency ?? CONST.CURRENCY.USD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         autoReporting: true,
         autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
