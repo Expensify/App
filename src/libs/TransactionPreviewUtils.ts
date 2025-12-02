@@ -43,7 +43,6 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
 
 const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
@@ -276,10 +275,6 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     if (isDistanceRequest(transaction)) {
         previewHeaderText = [{translationPath: 'common.distance'}];
-
-        if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
-            RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
-        }
     } else if (isPerDiemRequest(transaction)) {
         previewHeaderText = [{translationPath: 'common.perDiem'}];
     } else if (isTransactionScanning) {
@@ -393,8 +388,6 @@ function createTransactionPreviewConditionals({
     const shouldShowCategory = !!categoryForDisplay && isReportAPolicyExpenseChat;
 
     const hasAnyViolations =
-        isUnreportedAndHasInvalidDistanceRateTransaction(transaction) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         hasViolationsOfTypeNotice ||
         hasWarningTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy) ||
         hasViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) ||

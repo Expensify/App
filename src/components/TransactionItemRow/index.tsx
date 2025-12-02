@@ -21,16 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import {isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {
-    getDescription,
-    getMerchant,
-    getCreated as getTransactionCreated,
-    hasMissingSmartscanFields,
-    isAmountMissing,
-    isMerchantMissing,
-    isScanning,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
-} from '@libs/TransactionUtils';
+import {getDescription, getMerchant, getCreated as getTransactionCreated, hasMissingSmartscanFields, isAmountMissing, isMerchantMissing, isScanning} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {PersonalDetails, Report, TransactionViolation} from '@src/types/onyx';
@@ -183,8 +174,7 @@ function TransactionItemRow({
             return '';
         }
 
-        const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem);
-        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report);
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
             const merchantMissing = isMerchantMissing(transactionItem);
@@ -196,9 +186,8 @@ function TransactionItemRow({
                 error = translate('iou.missingAmount');
             } else if (merchantMissing && !isSettled(report)) {
                 error = translate('iou.missingMerchant');
-            } else if (isCustomUnitOutOfPolicy) {
-                error = translate('violations.customUnitOutOfPolicy');
             }
+
             return error;
         }
     }, [transactionItem, translate, report]);
