@@ -586,8 +586,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     participant?: Participant;
     shouldGenerateTransactionThreadReport?: boolean;
     isASAPSubmitBetaEnabled: boolean;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     hasViolations: boolean;
 };
 
@@ -699,6 +698,7 @@ type BuildOnyxDataForInvoiceParams = {
     companyName?: string;
     companyWebsite?: string;
     participant?: Participant;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 type GetTrackExpenseInformationTransactionParams = {
@@ -799,6 +799,7 @@ type GetSearchOnyxUpdateParams = {
     isFromOneTransactionReport?: boolean;
     isInvoice?: boolean;
     transactionThreadReportID: string | undefined;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 type DeleteTrackExpenseParams = {
@@ -926,14 +927,6 @@ Onyx.connect({
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
         userAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
-let deprecatedCurrentUserPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetails>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        deprecatedCurrentUserPersonalDetails = value?.[userAccountID] ?? undefined;
     },
 });
 
@@ -1538,6 +1531,7 @@ type BuildOnyxDataForTestDriveIOUParams = {
     iouOptimisticParams: MoneyRequestOptimisticParams['iou'];
     chatOptimisticParams: MoneyRequestOptimisticParams['chat'];
     testDriveCommentReportActionID?: string;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDriveIOUParams): OnyxData {
@@ -1575,7 +1569,7 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
             value: {
                 ...{lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
                 hasOutstandingChildRequest: false,
-                lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
+                lastActorAccountID: testDriveIOUParams.currentUserPersonalDetails?.accountID,
             },
         },
         {
@@ -1607,8 +1601,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         participant,
         shouldGenerateTransactionThreadReport = true,
         isASAPSubmitBetaEnabled,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
+        currentUserPersonalDetails,
         hasViolations,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -1806,6 +1799,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             iouOptimisticParams: iou,
             chatOptimisticParams: chat,
             testDriveCommentReportActionID,
+            currentUserPersonalDetails,
         });
         optimisticData.push(...testDriveOptimisticData);
         successData.push(...testDriveSuccessData);
@@ -1842,7 +1836,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                     ...iou.report,
                     ...(!isScanRequest || isTestReceipt ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} : undefined),
                     hasOutstandingChildRequest: false,
-                    lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
+                    lastActorAccountID: currentUserPersonalDetails?.accountID,
                 },
             },
             {
@@ -2151,6 +2145,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         policy,
         transactionThreadReportID: transactionThreadReport?.reportID,
         isFromOneTransactionReport,
+        currentUserPersonalDetails,
     });
 
     if (searchUpdate) {
@@ -2189,8 +2184,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 predictedNextStatus: iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN,
                 shouldFixViolations,
                 policy,
-                currentUserAccountIDParam,
-                currentUserEmailParam,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails?.login,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
             }),
@@ -2207,7 +2202,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
 /** Builds the Onyx data for an invoice */
 function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
-    const {chat, iou, transactionParams, policyParams, optimisticData: optimisticDataParams, companyName, companyWebsite, participant} = invoiceParams;
+    const {chat, iou, transactionParams, policyParams, optimisticData: optimisticDataParams, companyName, companyWebsite, participant, currentUserPersonalDetails} = invoiceParams;
     const transaction = transactionParams.transaction;
 
     const clearedPendingFields = Object.fromEntries(Object.keys(transactionParams.transaction.pendingFields ?? {}).map((key) => [key, null]));
@@ -2590,6 +2585,7 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
         policy: policyParams.policy,
         isInvoice: true,
         transactionThreadReportID: transactionParams.threadReport.reportID,
+        currentUserPersonalDetails,
     });
 
     if (searchUpdate) {
@@ -2615,6 +2611,7 @@ type BuildOnyxDataForTrackExpenseParams = {
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
     participant?: Participant;
     isASAPSubmitBetaEnabled: boolean;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 /** Builds the Onyx data for track expense */
@@ -2629,6 +2626,7 @@ function buildOnyxDataForTrackExpense({
     retryParams,
     participant,
     isASAPSubmitBetaEnabled,
+    currentUserPersonalDetails,
 }: BuildOnyxDataForTrackExpenseParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const {report: chatReport, previewAction: reportPreviewAction} = chat;
     const {report: iouReport, createdAction: iouCreatedAction, action: iouAction} = iou;
@@ -3019,6 +3017,7 @@ function buildOnyxDataForTrackExpense({
         transaction,
         participant,
         transactionThreadReportID: transactionThreadReport?.reportID,
+        currentUserPersonalDetails,
     });
 
     if (searchUpdate) {
@@ -13213,9 +13212,10 @@ function getSearchOnyxUpdate({
     transactionThreadReportID,
     isFromOneTransactionReport,
     isInvoice,
+    currentUserPersonalDetails,
 }: GetSearchOnyxUpdateParams): OnyxData | undefined {
     const toAccountID = participant?.accountID;
-    const fromAccountID = deprecatedCurrentUserPersonalDetails?.accountID;
+    const fromAccountID = currentUserPersonalDetails.accountID;
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
@@ -13259,9 +13259,9 @@ function getSearchOnyxUpdate({
                                     },
                                     [fromAccountID]: {
                                         accountID: fromAccountID,
-                                        avatar: deprecatedCurrentUserPersonalDetails?.avatar,
-                                        displayName: deprecatedCurrentUserPersonalDetails?.displayName,
-                                        login: deprecatedCurrentUserPersonalDetails?.login,
+                                        avatar: currentUserPersonalDetails?.avatar,
+                                        displayName: currentUserPersonalDetails?.displayName,
+                                        login: currentUserPersonalDetails?.login,
                                     },
                                 },
                                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
