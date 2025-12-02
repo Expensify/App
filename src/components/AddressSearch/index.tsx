@@ -480,7 +480,17 @@ function AddressSearch({
                 </View>
             </ScrollView>
             {isFetchingCurrentLocation && (
-                <View style={[styles.h100, styles.mt7]}>
+                <View
+                    style={[
+                        styles.pAbsolute,
+                        styles.inset0,
+                        StyleUtils.getBackgroundColorStyle(theme.appBG),
+                        styles.opacityActivityIndicator,
+                        styles.zIndex10,
+                        styles.justifyContentCenter,
+                        styles.alignItemsCenter,
+                    ]}
+                >
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             )}
