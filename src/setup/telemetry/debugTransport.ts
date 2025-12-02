@@ -4,7 +4,7 @@ import {createTransport} from '@sentry/core';
 /**
  * Enable this to log Sentry telemetry data to console instead of sending to Sentry servers.
  */
-const DEBUG_SENTRY_ENABLED = false;
+const DEBUG_SENTRY_ENABLED = true;
 
 /**
  * List of span operations to highlight in debug logs.
@@ -12,7 +12,7 @@ const DEBUG_SENTRY_ENABLED = false;
  * Note: span.op in code corresponds to span.name in Sentry dashboard.
  * Example: ['ui.interaction.click', 'ui.interaction.scroll', 'ui.load', 'navigation']
  */
-const HIGHLIGHTED_SPAN_OPS: string[] = [];
+const HIGHLIGHTED_SPAN_OPS: string[] = ['navigation'];
 
 function formatLogPrefix(category: string, op?: string): string {
     if (op) {
@@ -109,3 +109,4 @@ function makeDebugTransport(options: BaseTransportOptions): Transport {
 }
 
 export default makeDebugTransport;
+export {DEBUG_SENTRY_ENABLED};

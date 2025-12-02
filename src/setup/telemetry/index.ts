@@ -8,9 +8,13 @@ import processBeforeSendTransactions from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import pkg from '../../../package.json';
-import makeDebugTransport from './debugTransport';
+import makeDebugTransport, {DEBUG_SENTRY_ENABLED} from './debugTransport';
 
 export default function (): void {
+    if (isDevelopment() && !DEBUG_SENTRY_ENABLED) {
+        return;
+    }
+
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
         transport: isDevelopment() ? makeDebugTransport : undefined,
