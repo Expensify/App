@@ -2271,6 +2271,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             const result = getSecondaryReportActions({
                 currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: transactions,
@@ -2290,6 +2291,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             const result = getSecondaryReportActions({
                 currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: transactions,
@@ -2309,6 +2311,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             const result = getSecondaryReportActions({
                 currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: transactions,
@@ -2327,6 +2330,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             const result = getSecondaryReportActions({
                 currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: [],
@@ -2346,6 +2350,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             const result = getSecondaryReportActions({
                 currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: transactions,
@@ -2365,6 +2370,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
             const result = getSecondaryReportActions({
                 currentUserEmail: EMPLOYEE_EMAIL,
+                currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 report,
                 chatReport,
                 reportTransactions: transactions,
