@@ -15,16 +15,6 @@ type ImageOnLoadEvent = {
     };
 };
 
-type ImageLoadEventWithSource = {
-    nativeEvent: {
-        source: {
-            height: number;
-            width: number;
-            uri: string;
-        };
-    };
-};
-
 type BaseImageProps = {
     /** The static asset or URI source of the image */
     source: ExpoImageSource | Omit<ImageURISource, 'cache'> | ImageRequireSource | undefined;
@@ -83,4 +73,4 @@ type ImageOwnProps = BaseImageProps & {
 
 type ImageProps = ImageOwnProps;
 
-export type {BaseImageProps, ImageProps, ImageOnLoadEvent, ImageLoadEventWithSource, ImageObjectPosition};
+export type {BaseImageProps, ImageProps, ImageOnLoadEvent, ImageObjectPosition};
