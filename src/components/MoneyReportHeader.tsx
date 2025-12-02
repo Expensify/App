@@ -228,6 +228,7 @@ function MoneyReportHeader({
         'Export',
         'Document',
         'Feed',
+        'DotIndicator',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
@@ -577,7 +578,17 @@ function MoneyReportHeader({
             }, {});
             const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
             if (errors?.dewSubmitFailed) {
-                return {icon: getStatusIcon(expensifyIcons.Flag), description: translate('iou.dynamicExternalWorkflowCannotSubmit')};
+                return {
+                    icon: (
+                        <Icon
+                            src={expensifyIcons.DotIndicator}
+                            height={variables.iconSizeSmall}
+                            width={variables.iconSizeSmall}
+                            fill={theme.danger}
+                        />
+                    ),
+                    description: <Text style={{color: theme.danger}}>{translate('iou.dynamicExternalWorkflowCannotSubmit')}</Text>,
+                };
             }
         }
 

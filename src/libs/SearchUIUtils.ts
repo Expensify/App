@@ -80,6 +80,7 @@ import {
     getOriginalMessage,
     isCreatedAction,
     isDeletedAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
     isHoldAction,
     isMoneyRequestAction,
     isResolvedActionableWhisper,
@@ -1260,6 +1261,12 @@ function getActions(
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (transaction?.errors || report?.errors) {
+        return [CONST.SEARCH.ACTION_TYPES.REVIEW];
+    }
+
+    // Check for DEW submit failed - if the report has a DEW_SUBMIT_FAILED action and is still OPEN, show Review
+    const hasDEWSubmitFailed = report.statusNum === CONST.REPORT.STATUS_NUM.OPEN && reportActions.some(isDynamicExternalWorkflowSubmitFailedAction);
+    if (hasDEWSubmitFailed) {
         return [CONST.SEARCH.ACTION_TYPES.REVIEW];
     }
 
