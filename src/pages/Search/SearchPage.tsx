@@ -387,9 +387,9 @@ function SearchPage({route}: SearchPageProps) {
         const searchData = currentSearchResults?.data;
         const reports: Report[] = searchData
             ? Object.keys(searchData)
-                    .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
-                    .map((key) => searchData[key as keyof typeof searchData] as Report)
-                    .filter((report): report is Report => report != null && 'reportID' in report)
+                  .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+                  .map((key) => searchData[key as keyof typeof searchData] as Report)
+                  .filter((report): report is Report => report != null && 'reportID' in report)
             : [];
 
         return (
