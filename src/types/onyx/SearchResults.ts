@@ -237,7 +237,7 @@ type SearchTransaction = {
     reportID: string;
 
     /** The policyID of the report */
-    policyID: string;
+    policyID?: string;
 
     /** The name of the file used for a receipt */
     filename?: string;

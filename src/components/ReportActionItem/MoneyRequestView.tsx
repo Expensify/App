@@ -40,13 +40,13 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {canSubmitPerDiemExpenseFromWorkspace, getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getReportName,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isInvoiceReport,

@@ -13,7 +13,8 @@ import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransacti
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
-import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
+import {getReportName} from './ReportNameUtils';
+import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
@@ -371,7 +372,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
 /**
  * Determines whether two transactions can be merged together.
  */
-function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2: Transaction, originalTransaction1?: Transaction, originalTransaction2?: Transaction) {
+function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, transaction2: OnyxEntry<Transaction>, originalTransaction1?: Transaction, originalTransaction2?: Transaction) {
     // Do not allow merging two card transactions
     if (isManagedCardTransaction(transaction1) && isManagedCardTransaction(transaction2)) {
         return false;
@@ -392,7 +393,7 @@ function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2
         return false;
     }
 
-    if (isIOUReport(transaction1.reportID) || isIOUReport(transaction2.reportID)) {
+    if (isIOUReport(transaction1?.reportID) || isIOUReport(transaction2?.reportID)) {
         return false;
     }
 
