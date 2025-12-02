@@ -30,7 +30,7 @@ function SearchFiltersHasPage() {
         return searchAdvancedFiltersForm.has;
     });
 
-    const items = useMemo(() => getHasOptions(currentType), [currentType]);
+    const items = useMemo(() => getHasOptions(translate, currentType), [translate, currentType]);
 
     const listData: ListItem[] = useMemo(() => {
         return items.map((hasOption) => ({
