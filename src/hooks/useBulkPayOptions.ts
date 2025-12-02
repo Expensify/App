@@ -5,6 +5,7 @@ import type {TupleToUnion} from 'type-fest';
 import {Bank, Cash, Wallet} from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
+import {canIOUBePaid} from '@libs/actions/IOU';
 import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
@@ -78,6 +79,7 @@ function useBulkPayOptions({
     const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedWallet;
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
+    const onlyShowPayElsewhere = canIOUBePaid(iouReport, chatReport, policy, undefined, true);
 
     function getLatestBankAccountItem() {
         if (!policy?.achAccount?.bankAccountID) {
@@ -135,6 +137,10 @@ function useBulkPayOptions({
 
         if (!selectedReportID || !selectedPolicyID) {
             return undefined;
+        }
+
+        if (onlyShowPayElsewhere) {
+            return [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
         }
 
         if (shouldShowBusinessBankAccountOptions) {
@@ -238,6 +244,7 @@ function useBulkPayOptions({
         chatReport,
         getPaymentSubitems,
         formattedAmount,
+        onlyShowPayElsewhere,
     ]);
 
     return {
