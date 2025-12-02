@@ -1143,6 +1143,41 @@ describe('ReportUtils', () => {
             const reportName = getReportName(chatReport, undefined, resolvedDuplicateAction);
             expect(reportName).toBe('resolved the duplicate');
         });
+
+        describe('Unreported transaction thread', () => {
+            test('HTML is stripped from unreported transaction message', async () => {
+                const fromReport = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: '789',
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
+
+                const transactionThread = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportID: '123',
+                    parentReportID: '456',
+                };
+
+                const unreportedTransactionAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+                    originalMessage: {
+                        fromReportID: '789',
+                    },
+                } as ReportAction;
+
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                const reportName = getReportName(transactionThread, undefined, unreportedTransactionAction);
+
+                // Should NOT contain HTML tags
+                expect(reportName).not.toContain('<a href');
+                expect(reportName).not.toContain('</a>');
+                // Should contain the text content
+                expect(reportName).toContain('moved this expense from');
+                expect(reportName).toContain('Ragnar');
+            });
+        });
     });
 
     // Need to merge the same tests
