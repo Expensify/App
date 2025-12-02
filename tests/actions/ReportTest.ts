@@ -1748,6 +1748,8 @@ describe('actions/Report', () => {
             ...createRandomPolicy(Number(policyID)),
             isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
+            autoReporting: false,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
             harvesting: {
                 enabled: false,
             },
@@ -1776,15 +1778,9 @@ describe('actions/Report', () => {
                 key: ONYXKEYS.COLLECTION.REPORT,
                 waitForCollectionCallback: true,
                 callback: (reports) => {
+                    Onyx.disconnect(connection);
                     const createdReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                     const parentPolicyExpenseChat = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`];
-
-                    // Wait until the optimistic data has propagated
-                    if (!createdReport?.reportID || parentPolicyExpenseChat?.hasOutstandingChildRequest !== true) {
-                        return;
-                    }
-
-                    Onyx.disconnect(connection);
                     // assert correctness of crucial onyx data
                     expect(createdReport?.reportID).toBe(reportID);
                     expect(parentPolicyExpenseChat?.hasOutstandingChildRequest).toBe(true);
@@ -1858,6 +1854,7 @@ describe('actions/Report', () => {
             ...createRandomPolicy(Number(policyID)),
             isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
             harvesting: {
                 enabled: true,
             },
@@ -2077,7 +2074,7 @@ describe('actions/Report', () => {
                 ownerAccountID: currentUserAccountID,
                 areRulesEnabled: true,
                 preventSelfApproval: false,
-                autoReportingFrequency: 'immediate',
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
                 harvesting: {
                     enabled: false,
                 },
