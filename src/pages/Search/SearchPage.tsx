@@ -10,6 +10,7 @@ import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
+import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -54,6 +55,7 @@ import {
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import {setTransactionReport} from '@libs/actions/Transaction';
+import {setNameValuePair} from '@libs/actions/User';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -66,6 +68,7 @@ import {
     getPolicyExpenseChat,
     getReportOrDraftReport,
     isBusinessInvoiceRoom,
+    isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
@@ -82,7 +85,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SearchResults, Transaction} from '@src/types/onyx';
+import type {Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
@@ -119,13 +122,12 @@ function SearchPage({route}: SearchPageProps) {
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
+    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
+    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
+        typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
+    > | null>(null);
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
-    const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
-    const dismissModalAndUpdateUseReject = () => {
-        setIsRejectEducationalModalVisible(false);
-        dismissRejectUseExplanation();
-        Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
-    };
+    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
     const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
@@ -377,6 +379,28 @@ function SearchPage({route}: SearchPageProps) {
         [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions, policies, formatPhoneNumber],
     );
 
+    // Check if all selected transactions are from the submitter
+    const areAllTransactionsFromSubmitter = useMemo(() => {
+        if (!currentUserPersonalDetails?.accountID) {
+            return false;
+        }
+
+        const searchData = currentSearchResults?.data;
+        const reports: Report[] = searchData
+            ? Object.keys(searchData)
+                  .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+                  .map((key) => searchData[key as keyof typeof searchData] as Report)
+                  .filter((report): report is Report => report != null && 'reportID' in report)
+            : [];
+
+        return (
+            selectedTransactionReportIDs.length > 0 &&
+            selectedTransactionReportIDs.every((id) => {
+                return isCurrentUserSubmitter(getReportOrDraftReport(id, reports));
+            })
+        );
+    }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID, currentSearchResults?.data]);
+
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
@@ -589,7 +613,7 @@ function SearchPage({route}: SearchPageProps) {
                     if (dismissedRejectUseExplanation) {
                         Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
                     } else {
-                        setIsRejectEducationalModalVisible(true);
+                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
                     }
                 },
             });
@@ -659,7 +683,15 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+                    const isDismissed = areAllTransactionsFromSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+
+                    if (isDismissed) {
+                        Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+                    } else if (areAllTransactionsFromSubmitter) {
+                        setIsHoldEducationalModalVisible(true);
+                    } else {
+                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
+                    }
                 },
             });
         }
@@ -786,6 +818,9 @@ function SearchPage({route}: SearchPageProps) {
         styles.fontWeightNormal,
         styles.textWrap,
         expensifyIcons,
+        dismissedHoldUseExplanation,
+        dismissedRejectUseExplanation,
+        areAllTransactionsFromSubmitter,
         bulkRejectHydrationStatus,
     ]);
 
@@ -1007,6 +1042,27 @@ function SearchPage({route}: SearchPageProps) {
         setIsDownloadExportModalVisible?.(false);
     }, [setIsDownloadExportModalVisible]);
 
+    const dismissModalAndUpdateUseHold = useCallback(() => {
+        setIsHoldEducationalModalVisible(false);
+        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
+        if (hash && selectedTransactionsKeys.length > 0) {
+            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+        }
+    }, [hash, selectedTransactionsKeys.length, isOffline]);
+
+    const dismissRejectModalBasedOnAction = useCallback(() => {
+        if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
+            dismissRejectUseExplanation();
+            if (hash && selectedTransactionsKeys.length > 0) {
+                Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+            }
+        } else {
+            dismissRejectUseExplanation();
+            Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+        }
+        setRejectModalAction(null);
+    }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
+
     return (
         <>
             <Animated.View style={[styles.flex1]}>
@@ -1119,10 +1175,16 @@ function SearchPage({route}: SearchPageProps) {
                             cancelText={translate('common.cancel')}
                         />
                     )}
-                    {!!isRejectEducationalModalVisible && (
+                    {!!rejectModalAction && (
                         <HoldOrRejectEducationalModal
-                            onClose={dismissModalAndUpdateUseReject}
-                            onConfirm={dismissModalAndUpdateUseReject}
+                            onClose={dismissRejectModalBasedOnAction}
+                            onConfirm={dismissRejectModalBasedOnAction}
+                        />
+                    )}
+                    {!!isHoldEducationalModalVisible && (
+                        <HoldSubmitterEducationalModal
+                            onClose={dismissModalAndUpdateUseHold}
+                            onConfirm={dismissModalAndUpdateUseHold}
                         />
                     )}
                 </View>

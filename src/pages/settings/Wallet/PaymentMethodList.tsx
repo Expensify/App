@@ -260,6 +260,8 @@ function PaymentMethodList({
                     continue;
                 }
 
+                const pressHandler = onPress as CardPressHandler;
+
                 // The card shouldn't be grouped or it's domain group doesn't exist yet
                 const cardDescription =
                     card?.nameValuePairs?.issuedBy && card?.lastFourPAN
@@ -271,6 +273,18 @@ function PaymentMethodList({
                     title: isTravelCard ? translate('cardPage.expensifyTravelCard') : card?.nameValuePairs?.cardTitle || card.bank,
                     description: isTravelCard ? translate('cardPage.expensifyTravelCard') : cardDescription,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
+                    onThreeDotsMenuPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                        pressHandler({
+                            event: e,
+                            cardData: card,
+                            icon: {
+                                icon,
+                                iconStyles: [styles.cardIcon],
+                                iconWidth: variables.cardIconWidth,
+                                iconHeight: variables.cardIconHeight,
+                            },
+                            cardID: card.cardID,
+                        }),
                     cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard && !isTravelCard,
                     shouldShowRightIcon: true,
