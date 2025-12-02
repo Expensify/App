@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -56,16 +56,6 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
         [route.params.backTo],
     );
 
-    const textInputOptions = useMemo(
-        () => ({
-            value: searchValue,
-            label: translate('common.country'),
-            onChangeText: setSearchValue,
-            headerMessage,
-        }),
-        [headerMessage, searchValue, translate, setSearchValue],
-    );
-
     return (
         <ScreenWrapper
             testID={CountrySelectionPage.displayName}
@@ -82,12 +72,16 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
             />
 
             <SelectionList
-                data={searchResults}
-                textInputOptions={textInputOptions}
+                headerMessage={headerMessage}
+                textInputLabel={translate('common.country')}
+                textInputValue={searchValue}
+                sections={[{data: searchResults}]}
                 ListItem={RadioListItem}
                 onSelectRow={selectCountry}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedItemKey={currentCountry}
+                onChangeText={setSearchValue}
+                initiallyFocusedOptionKey={currentCountry}
+                shouldUseDynamicMaxToRenderPerBatch
                 addBottomSafeAreaPadding
             />
         </ScreenWrapper>
