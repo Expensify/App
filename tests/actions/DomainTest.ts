@@ -22,9 +22,11 @@ describe('actions/Domain', () => {
 
     describe('resetCreateDomainForm', () => {
         it('clears form onyx data', async () => {
+            const timestamp = 123;
+
             await Onyx.set(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {
                 hasCreationSucceeded: true,
-                errors: {123: 'error'},
+                errors: {[timestamp]: 'error'},
             });
 
             resetCreateDomainForm();
