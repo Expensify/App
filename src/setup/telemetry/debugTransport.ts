@@ -108,4 +108,4 @@ function makeDebugTransport(options: BaseTransportOptions): Transport {
     return createTransport(options, makeRequest);
 }
 
-export {makeDebugTransport};
+export default makeDebugTransport;

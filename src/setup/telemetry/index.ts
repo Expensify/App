@@ -8,7 +8,7 @@ import processBeforeSendTransactions from '@libs/telemetry/middlewares';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import pkg from '../../../package.json';
-import {makeDebugTransport} from './debugTransport';
+import makeDebugTransport from './debugTransport';
 
 export default function (): void {
     const isDevMode = isDevelopment();
