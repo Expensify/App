@@ -125,6 +125,7 @@ import {
     getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
+    isActionCreator,
     isExpenseReport,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
@@ -177,6 +178,7 @@ type ShouldShow = (args: {
     reportAction: OnyxEntry<ReportAction>;
     childReportActions: OnyxCollection<ReportAction>;
     isArchivedRoom: boolean;
+    childReport?: OnyxEntry<ReportType>;
     betas: OnyxEntry<Beta[]>;
     menuTarget: RefObject<ContextMenuAnchor> | undefined;
     isChronosReport: boolean;
@@ -485,6 +487,9 @@ const ContextMenuActions: ContextMenuAction[] = [
         textTranslateKey: 'reportActionContextMenu.leaveThread',
         icon: Expensicons.Exit,
         shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction}) => {
+            if (isActionCreator(reportAction)) {
+                return false;
+            }
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);

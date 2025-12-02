@@ -11107,7 +11107,15 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isRe
         return canLeaveInvoiceRoom(report);
     }
 
-    return (isChatThread(report) && !!getReportNotificationPreference(report)) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
+    if (isChatThread(report)) {
+        const parentReportAction = report?.parentReportID && report?.parentReportActionID ? getReportAction(report.parentReportID, report.parentReportActionID) : undefined;
+        if (isActionCreator(parentReportAction ?? {})) {
+            return false;
+        }
+        return !!getReportNotificationPreference(report);
+    }
+
+    return isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
 }
 
 function getReportActionActorAccountID(

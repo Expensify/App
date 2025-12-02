@@ -232,6 +232,7 @@ function BaseReportActionContextMenu({
                 reportAction,
                 childReportActions,
                 isArchivedRoom,
+                childReport,
                 betas,
                 menuTarget: anchor,
                 isChronosReport,

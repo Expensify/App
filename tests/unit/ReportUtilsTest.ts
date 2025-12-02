@@ -6622,11 +6622,42 @@ describe('ReportUtils', () => {
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
                 parentReportID: '12345',
                 parentReportActionID: '67890',
+                ownerAccountID: currentUserAccountID + 1,
             };
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
+                [report.parentReportActionID ?? '']: {
+                    ...createRandomReportAction(2),
+                    actorAccountID: currentUserAccountID + 2,
+                },
+            });
 
             expect(canLeaveChat(report, undefined)).toBe(true);
+        });
+
+        it('should return false for chat thread if the user is the owner', async () => {
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, 1234]),
+                parentReportID: '12345',
+                parentReportActionID: '67890',
+                ownerAccountID: currentUserAccountID,
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [currentUserAccountID]: {accountID: currentUserAccountID},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {
+                [report.parentReportActionID ?? '']: {
+                    ...createRandomReportAction(3),
+                    actorAccountID: currentUserAccountID,
+                },
+            });
+
+            expect(canLeaveChat(report, undefined)).toBe(false);
         });
 
         it('should return true for user created policy room', async () => {
