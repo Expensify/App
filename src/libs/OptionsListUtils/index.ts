@@ -83,6 +83,7 @@ import {
     isWhisperAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
+import {computeReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
@@ -105,7 +106,6 @@ import {
     getRejectedReportMessage,
     getReportActionActorAccountID,
     getReportLastMessage,
-    getReportName,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportPreviewMessage,
@@ -659,7 +659,8 @@ function getLastMessageTextForReport({
             : undefined;
         // For workspace chats, use the report title
         if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
-            lastMessageTextFromReport = formatReportLastMessageText(getReportName(iouReport));
+            const reportName = computeReportName(iouReport);
+            lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
             const reportPreviewMessage = getReportPreviewMessage(
                 !isEmptyObject(iouReport) ? iouReport : null,
@@ -915,9 +916,10 @@ function createOption(
             showPersonalDetails && personalDetail?.login
                 ? personalDetail.login
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
+        const computedReportName = computeReportName(report);
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
-            : getReportName(report);
+            : computedReportName;
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '');
@@ -964,7 +966,7 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report);
+        option.text = computeReportName(report);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
@@ -1013,7 +1015,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = getReportName(report);
+        option.text = computeReportName(report);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails) {
