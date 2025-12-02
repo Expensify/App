@@ -104,8 +104,9 @@ function TransactionPreviewContent({
                 areThereDuplicates,
                 isReportAPolicyExpenseChat,
                 currentUserEmail: currentUserDetails.email ?? '',
+                currentUserAccountID: currentUserDetails.accountID,
             }),
-        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserDetails.email],
+        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserDetails.email, currentUserDetails.accountID],
     );
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
@@ -124,9 +125,10 @@ function TransactionPreviewContent({
                 violationMessage,
                 reportActions,
                 currentUserEmail: currentUserDetails.email ?? '',
+                currentUserAccountID: currentUserDetails.accountID,
                 originalTransaction,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserDetails.email, originalTransaction],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserDetails.email, currentUserDetails.accountID, originalTransaction],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
