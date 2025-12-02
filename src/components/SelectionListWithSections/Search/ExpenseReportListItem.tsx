@@ -1,12 +1,12 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType, ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -43,6 +43,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
 
     const snapshotData = snapshot?.data;
 
@@ -113,7 +114,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return (
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
                 <Icon
-                    src={Expensicons.DotIndicator}
+                    src={expensifyIcons.DotIndicator}
                     fill={theme.danger}
                     additionalStyles={[styles.mr1]}
                     width={12}
