@@ -196,7 +196,7 @@ function IOURequestStepConfirmation({
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
 
     const policyCategories = useMemo(() => {
         if (isDraftPolicy && draftPolicyID) {
@@ -380,11 +380,6 @@ function IOURequestStepConfirmation({
                     }
                 }
                 continue;
-            }
-
-            // Clear category field when the category doesn't exist for selected policy, or it's disabled
-            if (!policyCategories?.[item.category] || !policyCategories[item.category]?.enabled) {
-                setMoneyRequestCategory(item.transactionID, '', policy?.id, isMovingTransactionFromTrackExpense);
             }
         }
         // We don't want to clear out category every time the transactions change
