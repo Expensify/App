@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -34,7 +34,6 @@ type ExpenseReportListItemRowProps = {
     onButtonPress?: () => void;
     onCheckboxPress?: () => void;
     containerStyle?: StyleProp<ViewStyle>;
-    avatarBorderColor?: ColorValue;
     isSelectAllChecked?: boolean;
     isIndeterminate?: boolean;
     isDisabledCheckbox?: boolean;
@@ -51,7 +50,6 @@ function ExpenseReportListItemRow({
     containerStyle,
     showTooltip,
     canSelectMultiple,
-    avatarBorderColor,
     isSelectAllChecked,
     isIndeterminate,
     isDisabledCheckbox,
@@ -84,7 +82,9 @@ function ExpenseReportListItemRow({
     const showUserInfo = (item.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (item.type === CONST.REPORT.TYPE.EXPENSE && !!item?.from);
 
     // Calculate the correct border color for avatars based on hover and focus states
-    const finalAvatarBorderColor = isHovered && !isFocused ? theme.border : avatarBorderColor;
+    const finalAvatarBorderColor =
+        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused || !!isHovered, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
+        theme.highlightBG;
 
     const getDescription = useMemo(() => {
         if (!item?.hasVisibleViolations || isSettled(item.reportID)) {

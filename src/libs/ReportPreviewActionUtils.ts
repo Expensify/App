@@ -1,7 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
-import {getCurrentUserAccountID} from './actions/Report';
 import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
@@ -22,7 +21,7 @@ import {
 import {getSession} from './SessionUtils';
 import {isPending, isScanning} from './TransactionUtils';
 
-function canSubmit(report: Report, isReportArchived: boolean, policy?: Policy, transactions?: Transaction[]) {
+function canSubmit(report: Report, isReportArchived: boolean, currentUserAccountID: number, policy?: Policy, transactions?: Transaction[]) {
     if (isReportArchived) {
         return false;
     }
@@ -30,7 +29,7 @@ function canSubmit(report: Report, isReportArchived: boolean, policy?: Policy, t
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenReport(report);
-    const isManager = report.managerID === getCurrentUserAccountID();
+    const isManager = report.managerID === currentUserAccountID;
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
@@ -48,13 +47,12 @@ function canSubmit(report: Report, isReportArchived: boolean, policy?: Policy, t
     return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
-function canApprove(report: Report, policy?: Policy, transactions?: Transaction[]) {
-    const currentUserID = getCurrentUserAccountID();
+function canApprove(report: Report, currentUserAccountID: number, policy?: Policy, transactions?: Transaction[]) {
     const isExpense = isExpenseReport(report);
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const managerID = report.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const isCurrentUserManager = managerID === currentUserID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
     const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
 
@@ -76,7 +74,7 @@ function canApprove(report: Report, policy?: Policy, transactions?: Transaction[
     return isExpense && isProcessing && !!isApprovalEnabled && reportTransactions.length > 0 && isCurrentUserManager;
 }
 
-function canPay(report: Report, isReportArchived: boolean, policy?: Policy, invoiceReceiverPolicy?: Policy) {
+function canPay(report: Report, isReportArchived: boolean, currentUserAccountID: number, policy?: Policy, invoiceReceiverPolicy?: Policy) {
     if (isReportArchived) {
         return false;
     }
@@ -115,7 +113,7 @@ function canPay(report: Report, isReportArchived: boolean, policy?: Policy, invo
 
     const parentReport = getParentReport(report);
     if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL && reimbursableSpend > 0) {
-        return parentReport?.invoiceReceiver?.accountID === getCurrentUserAccountID();
+        return parentReport?.invoiceReceiver?.accountID === currentUserAccountID;
     }
 
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
@@ -153,9 +151,10 @@ function canExport(report: Report, policy?: Policy) {
 
 function getReportPreviewAction(
     isReportArchived: boolean,
-    report?: Report,
-    policy?: Policy,
-    transactions?: Transaction[],
+    currentUserAccountID: number,
+    report: Report | undefined,
+    policy: Policy | undefined,
+    transactions: Transaction[],
     invoiceReceiverPolicy?: Policy,
     isPaidAnimationRunning?: boolean,
     isApprovedAnimationRunning?: boolean,
@@ -178,13 +177,13 @@ function getReportPreviewAction(
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
-    if (canSubmit(report, isReportArchived, policy, transactions)) {
+    if (canSubmit(report, isReportArchived, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
-    if (canApprove(report, policy, transactions)) {
+    if (canApprove(report, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, isReportArchived, policy, invoiceReceiverPolicy)) {
+    if (canPay(report, isReportArchived, currentUserAccountID, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
     if (canExport(report, policy)) {

@@ -1195,6 +1195,8 @@ const CONST = {
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
                 CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
+                CARD_REPLACED_VIRTUAL: 'CARDREPLACEDVIRTUAL',
+                CARD_REPLACED: 'CARDREPLACED',
                 CARD_ASSIGNED: 'CARDASSIGNED',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY',
@@ -1648,7 +1650,7 @@ const CONST = {
         TRIE_INITIALIZATION: 'trie_initialization',
         COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
-        MENTION_SUGGESTION_DEBOUNCE_TIME: 100,
+        SUGGESTION_DEBOUNCE_TIME: 100,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
         SEARCH_FILTER_OPTIONS: 'search_filter_options',
@@ -3452,6 +3454,11 @@ const CONST = {
         FREQUENCY_SETTING: {
             DAILY: 'daily',
             MONTHLY: 'monthly',
+        },
+        TERMINATION_REASON: {
+            LOST: 'lost',
+            STOLEN: 'stolen',
+            DAMAGED: 'damaged',
         },
         MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
     },
@@ -6632,6 +6639,7 @@ const CONST = {
             HOLD: 'hold',
             UNHOLD: 'unhold',
             DELETE: 'delete',
+            REJECT: 'reject',
             CHANGE_REPORT: 'changeReport',
         },
         TRANSACTION_TYPE: {
@@ -6643,6 +6651,11 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
+        },
+        SETTLEMENT_STATUS: {
+            PENDING: 'pending',
+            CLEARED: 'cleared',
+            FAILED: 'failed',
         },
         IS_VALUES: {
             READ: 'read',
@@ -7220,7 +7233,9 @@ const CONST = {
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
         HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
+        HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
         HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
+        HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
     },
 
     DEBUG: {

@@ -83,7 +83,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${oneTransactionItem?.transactionID}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
         (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.moneyRequestReportActionID}`],
-        [oneTransactionItem],
+        [oneTransactionItem?.moneyRequestReportActionID],
     );
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionItem?.reportID}`, {selector: parentReportActionSelector, canBeMissing: true}, [
         oneTransactionItem,
@@ -109,14 +109,14 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             return [];
         }
-        const sectionData = getSections({
+        const [sectionData] = getSections({
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             data: transactionsSnapshot?.data,
             currentAccountID: accountID,
             currentUserEmail: currentUserDetails.email ?? '',
             formatPhoneNumber,
             isActionLoadingSet,
-        }) as TransactionListItemType[];
+        }) as [TransactionListItemType[], number];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
@@ -152,9 +152,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 searchKey: undefined,
                 offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
                 shouldCalculateTotals: false,
+                isLoading: !!transactionsSnapshot?.search.isLoading,
             });
         },
-        [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.offset],
+        [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.offset, transactionsSnapshot?.search.isLoading],
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
