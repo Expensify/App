@@ -85,7 +85,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SearchResults, Transaction} from '@src/types/onyx';
+import type {Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
@@ -384,13 +384,21 @@ function SearchPage({route}: SearchPageProps) {
             return false;
         }
 
+        const searchData = currentSearchResults?.data;
+        const reports: Report[] = searchData
+            ? Object.keys(searchData)
+                    .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+                    .map((key) => searchData[key as keyof typeof searchData] as Report)
+                    .filter((report): report is Report => report != null && 'reportID' in report)
+            : [];
+
         return (
             selectedTransactionReportIDs.length > 0 &&
             selectedTransactionReportIDs.every((id) => {
-                return isCurrentUserSubmitter(getReportOrDraftReport(id));
+                return isCurrentUserSubmitter(getReportOrDraftReport(id, reports));
             })
         );
-    }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID]);
+    }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID, currentSearchResults?.data]);
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
