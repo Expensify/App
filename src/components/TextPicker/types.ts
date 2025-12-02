@@ -30,6 +30,9 @@ type TextSelectorModalProps = {
     /** Whether the field is required */
     required?: boolean;
 
+    /** Custom validation function */
+    customValidate?: (values: Record<string, string>) => Record<string, string>;
+
     /** Whether the form should be actionable when offline */
     enabledWhenOffline?: boolean;
 } & Pick<MenuItemBaseProps, 'subtitle' | 'description'> &
@@ -65,6 +68,9 @@ type TextPickerProps = {
 
     /** Whether the field is required */
     required?: boolean;
+
+    /** Custom validation function */
+    customValidate?: (values: Record<string, string>) => Record<string, string>;
 
     /** Whether the form should be actionable when offline */
     enabledWhenOffline?: boolean;

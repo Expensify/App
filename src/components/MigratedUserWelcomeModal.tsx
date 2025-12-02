@@ -18,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MigratedUserModalNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {getDefaultActionableSearchMenuItem} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,8 +85,10 @@ function MigratedUserWelcomeModal() {
 
         Log.hmmm('[MigratedUserWelcomeModal] Enabling modal and navigating to search');
         setIsModalDisabled(false);
-        const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? buildCannedSearchQuery()}));
+        const flattenedMenuItems = typeMenuSections.flatMap((section) => section.menuItems);
+        const defaultActionableSearchQuery =
+            getDefaultActionableSearchMenuItem(flattenedMenuItems)?.searchQuery ?? flattenedMenuItems.at(0)?.searchQuery ?? typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultActionableSearchQuery ?? buildCannedSearchQuery()}));
     }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot, shouldOpenSearch, typeMenuSections]);
 
     return (

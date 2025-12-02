@@ -95,7 +95,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             headerMessage: searchTerm && !orderedApprovers.length ? translate('common.noResultsFound') : '',
             onChangeText: setSearchTerm,
         }),
-        [searchTerm, orderedApprovers, setSearchTerm, translate],
+        [searchTerm, orderedApprovers.length, setSearchTerm, translate],
     );
 
     return (
