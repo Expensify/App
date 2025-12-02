@@ -514,7 +514,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!!rate && !isReadOnly && !isUnreported}
+                    shouldShowRightIcon={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
                     title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
@@ -542,7 +542,7 @@ function MoneyRequestConfirmationListFooter({
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
-                    interactive={!!rate && !isReadOnly && !isUnreported}
+                    interactive={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
                 />
             ),
             shouldShow: isDistanceRequest,
