@@ -33,7 +33,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -121,7 +121,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
             amount: item.modifiedAmount ?? item.amount,
             groupAmount: item.groupAmount,
             currency: item.currency,
-            isFromOneTransactionReport: isOneTransactionReport(item.report),
+            isFromOneTransactionReport: item.isFromOneTransactionReport,
             ownerAccountID: item.reportAction?.actorAccountID,
         },
     ];
@@ -203,7 +203,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
             groupAmount: item.groupAmount,
             groupCurrency: item.groupCurrency,
             currency: item.currency,
-            isFromOneTransactionReport: isOneTransactionReport(item.report),
+            isFromOneTransactionReport: item.isFromOneTransactionReport,
             ownerAccountID: item.reportAction?.actorAccountID,
         },
     };
@@ -682,7 +682,7 @@ function Search({
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
             if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
-                const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+                const shouldOpenTransactionThread = !item.isFromOneTransactionReport || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
                 createAndOpenSearchTransactionThread(item, hash, backTo, undefined, shouldOpenTransactionThread);
                 if (shouldOpenTransactionThread) {
                     return;
@@ -728,15 +728,12 @@ function Search({
                 return;
             }
 
-            let reportID = item.reportID;
-            if (isTransactionItem && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
-                const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                const isFromOneTransactionReport = isOneTransactionReport(item.report);
+            const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
-                if (isFromSelfDM || !isFromOneTransactionReport) {
-                    reportID = item.transactionThreadReportID;
-                }
-            }
+            const reportID =
+                isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
+                    ? item.transactionThreadReportID
+                    : item.reportID;
 
             if (!reportID) {
                 return;

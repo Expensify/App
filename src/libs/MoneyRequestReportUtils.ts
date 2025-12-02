@@ -13,7 +13,6 @@ import {
     hasUpdatedTotal,
     isInvoiceReport,
     isMoneyRequestReport,
-    isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
 import {isTransactionPendingDelete} from './TransactionUtils';
@@ -63,9 +62,8 @@ function getThreadReportIDsForTransactions(reportActions: ReportAction[], transa
  */
 function getReportIDForTransaction(transactionItem: TransactionListItemType) {
     const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const isFromOneTransactionReport = isOneTransactionReport(transactionItem.report);
 
-    return (!isFromOneTransactionReport || isFromSelfDM) && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
+    return (!transactionItem.isFromOneTransactionReport || isFromSelfDM) && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
         ? transactionItem.transactionThreadReportID
         : transactionItem.reportID;
 }
