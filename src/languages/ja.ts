@@ -4691,6 +4691,10 @@ ${
             addShippingDetails: '配送詳細を追加',
             issuedCard: ({assignee}: AssigneeParams) => `${assignee}にExpensifyカードを発行しました！カードは2～3営業日で到着します。`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `${assignee} に Expensify Card を発行しました！配送情報が確認され次第、カードは発送されます。`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee}はバーチャルExpensifyカードを再発行しました！${link}はすぐに使用できます。`,
+            card: 'カード',
+            replacementCard: '交換カード',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee}はExpensifyカードを交換しました。新しいカードは2〜3営業日以内に到着します。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `${assignee}にバーチャル${link}を発行しました！カードはすぐに使用できます。`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} が配送情報を追加しました。Expensify Card は2～3営業日で到着します。`,
             verifyingHeader: '確認中',
@@ -6521,6 +6525,15 @@ ${
             message: '更新を確認できませんでした。しばらくしてからもう一度お試しください。',
         },
     },
+    settlement: {
+        status: {
+            pending: '保留中',
+            cleared: '決済済み',
+            failed: '失敗',
+        },
+        failedError: ({link}: {link: string}) => `この決済は<a href="${link}">アカウントのロックを解除</a>すると再試行されます。`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 出金ID: ${withdrawalID}`,
+    },
     reportLayout: {
         reportLayout: 'レポートレイアウト',
         groupByLabel: 'グループ化:',
@@ -7076,12 +7089,7 @@ ${
             },
             cardOnDispute: ({amountOwed, cardEnding}: BillingBannerCardOnDisputeParams) =>
                 `あなたは、${cardEnding}で終わるカードの${amountOwed}の請求を異議申し立てしました。異議が銀行で解決されるまで、あなたのアカウントはロックされます。`,
-            preTrial: {
-                title: '無料トライアルを開始',
-                subtitleStart: '次のステップとして、',
-                subtitleLink: 'セットアップチェックリストを完了する',
-                subtitleEnd: 'あなたのチームが経費精算を始められるように。',
-            },
+            preTrial: {title: '無料トライアルを開始', subtitle: '次のステップとして、チームが経費精算を開始できるよう、<a href="#">セットアップチェックリストを完了</a>してください。'},
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `トライアル: ${numOfDays} ${numOfDays === 1 ? '日' : '日'} 日残り！`,
                 subtitle: 'お気に入りの機能を引き続き利用するために、支払いカードを追加してください。',

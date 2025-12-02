@@ -4719,6 +4719,10 @@ ${
             issuedCard: ({assignee}: AssigneeParams) => `emitiu um Cartão Expensify para ${assignee}! O cartão chegará em 2-3 dias úteis.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
                 `Foi emitido para ${assignee} um Expensify Card! O cartão será enviado assim que os detalhes de envio forem confirmados.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} substituiu seu cartão virtual Expensify! ${link} pode ser usado imediatamente.`,
+            card: 'cartão',
+            replacementCard: 'cartão de substituição',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} substituiu seu cartão Expensify. O novo cartão chegará em 2-3 dias úteis.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `emitiu ${assignee} um ${link} virtual! O cartão pode ser usado imediatamente.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} adicionou informações de envio. O Expensify Card chegará em 2-3 dias úteis.`,
             verifyingHeader: 'Verificando',
@@ -6567,6 +6571,15 @@ ${
             message: 'Não conseguimos verificar uma atualização. Por favor, tente novamente em breve.',
         },
     },
+    settlement: {
+        status: {
+            pending: 'Pendente',
+            cleared: 'Liquidado',
+            failed: 'Falhou',
+        },
+        failedError: ({link}: {link: string}) => `Tentaremos esta liquidação novamente quando você <a href="${link}">desbloquear sua conta</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID de saque: ${withdrawalID}`,
+    },
     reportLayout: {
         reportLayout: 'Layout do relatório',
         groupByLabel: 'Agrupar por:',
@@ -7124,9 +7137,7 @@ ${
                 `Você contestou a cobrança de ${amountOwed} no cartão com final ${cardEnding}. Sua conta será bloqueada até que a disputa seja resolvida com seu banco.`,
             preTrial: {
                 title: 'Inicie uma avaliação gratuita',
-                subtitleStart: 'Como próximo passo,',
-                subtitleLink: 'complete sua lista de verificação de configuração',
-                subtitleEnd: 'para que sua equipe possa começar a registrar despesas.',
+                subtitle: 'Como próximo passo, <a href="#">conclua seu checklist de configuração</a> para que sua equipe possa começar a registrar despesas.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Teste: ${numOfDays} ${numOfDays === 1 ? 'dia' : 'dias'} restantes!`,
