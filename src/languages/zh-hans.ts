@@ -6115,6 +6115,36 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? '已启用' : '已禁用'} 个类别`;
+                case 'tags':
+                    return `${enabled ? '已启用' : '已禁用'} 个标签`;
+                case 'workflows':
+                    return `${enabled ? '已启用' : '已禁用'} 个工作流程`;
+                case 'distance rates':
+                    return `${enabled ? '已启用' : '已禁用'} 距离费率`;
+                case 'accounting':
+                    return `${enabled ? '已启用' : '已禁用'} 会计`;
+                case 'Expensify Cards':
+                    return `${enabled ? '已启用' : '已禁用'} Expensify 卡`;
+                case 'company cards':
+                    return `${enabled ? '已启用' : '已禁用'} 张公司卡`;
+                case 'invoicing':
+                    return `${enabled ? '已启用' : '已禁用'} 开票`;
+                case 'per diem':
+                    return `${enabled ? '已启用' : '已禁用'} 每日津贴`;
+                case 'receipt partners':
+                    return `${enabled ? '已启用' : '已禁用'} 收据合作伙伴`;
+                case 'rules':
+                    return `${enabled ? '已启用' : '已禁用'} 条规则`;
+                case 'tax tracking':
+                    return `${enabled ? '已启用' : '已禁用'} 税务追踪`;
+                default:
+                    return `${enabled ? '已启用' : '已禁用'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 与会者跟踪`,
     },
     roomMembersPage: {
