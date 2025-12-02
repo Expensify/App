@@ -128,7 +128,7 @@ function WalletPage() {
                 };
             }
             if (accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !!accountData?.sharees?.length) {
-                setShouldShowUnshareButton(accountData?.state !== CONST.BANK_ACCOUNT.STATE.PENDING);
+                setShouldShowUnshareButton(accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN);
             }
             setPaymentMethod({
                 isSelectedPaymentMethodDefault: !!isDefault,
@@ -210,7 +210,6 @@ function WalletPage() {
             deletePaymentCard(fundID);
         }
         setShowConfirmDeleteModal(false);
-        setShouldShowUnshareButton(false);
         resetSelectedPaymentMethodData();
     }, [
         paymentMethod.selectedPaymentMethod.bankAccountID,
@@ -320,7 +319,7 @@ function WalletPage() {
                       },
                   ]
                 : []),
-            ...(!shouldShowUnshareButton
+            ...(shouldShowUnshareButton
                 ? [
                       {
                           text: translate('common.unshare'),

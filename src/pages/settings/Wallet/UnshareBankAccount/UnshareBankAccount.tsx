@@ -12,7 +12,6 @@ import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatMemberForList, getHeaderMessage, getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
@@ -36,7 +35,6 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [showExpensifyCardErrorModal, setShowExpensifyCardErrorModal] = useState(false);
 
-    const {isOffline} = useNetwork();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const [unsharedBankAccountData] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT, {canBeMissing: true});
@@ -66,6 +64,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
             return;
         }
         if (isExpensifyCardSettlementAccount) {
+            setUnshareUser(undefined);
             setShowExpensifyCardErrorModal(true);
             return;
         }
@@ -94,7 +93,6 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
 
         let adminsToDisplay = [...adminsWithInfo];
 
-        // Apply search filter if there's a search term
         if (debouncedSearchTerm) {
             const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
             adminsToDisplay = tokenizedSearch(adminsWithInfo, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
@@ -117,7 +115,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                 <Button
                     isLoading={isLoading && unsharedBankAccountData?.email === item?.login}
                     small
-                    isDisabled={isOffline || isLoading}
+                    isDisabled={isLoading}
                     danger
                     text={translate('common.unshare')}
                     onPress={() => setUnshareUser({login: item?.login, text: item?.text})}
@@ -125,7 +123,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                 />
             );
         },
-        [isLoading, unsharedBankAccountData?.email, isOffline, translate],
+        [isLoading, unsharedBankAccountData?.email, translate],
     );
 
     const sections = useMemo(
