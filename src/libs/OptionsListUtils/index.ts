@@ -2,7 +2,6 @@
 import * as Sentry from '@sentry/react-native';
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
-import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -12,7 +11,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from '@libs/Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
@@ -94,6 +93,7 @@ import {
     getDeletedTransactionMessage,
     getDisplayNameForParticipant,
     getDowngradeWorkspaceMessage,
+    getForcedCorporateUpgradeMessage,
     getIcons,
     getMovedActionMessage,
     getMovedTransactionMessage,
@@ -140,7 +140,6 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {generateAccountID} from '@libs/UserUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
@@ -365,7 +364,7 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const displayName = participant?.displayName || formatPhoneNumber(getDisplayNameOrDefault(detail, login || participant.text));
+    const displayName = participant?.displayName || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(detail, login || participant.text));
 
     return {
         keyForList: String(detail?.accountID ?? login),
@@ -376,7 +375,7 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
         firstName: (detail?.firstName || participant.firstName) ?? '',
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         lastName: (detail?.lastName || participant.lastName) ?? '',
-        alternateText: formatPhoneNumber(login) || displayName,
+        alternateText: formatPhoneNumberPhoneUtils(login) || displayName,
         icons: [
             {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -427,7 +426,7 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 
     return lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          lastActorDetails.firstName || formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails))
+          lastActorDetails.firstName || formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(lastActorDetails))
         : // eslint-disable-next-line @typescript-eslint/no-deprecated
           translateLocal('common.you');
 }
@@ -440,11 +439,12 @@ function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDeta
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : lastAction;
 
     if (
+        !lastReportAction ||
         !lastActorDetails ||
         reportUtilsIsSelfDM(report) ||
         (isDM(report) && lastActorDetails.accountID !== currentUserAccountID) ||
-        (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && lastReportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) ||
-        (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+        lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
+        (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             Object.keys(report?.participants ?? {})?.some((participantID) => participantID === CONST.ACCOUNT_ID.MANAGER_MCTEST.toString()))
     ) {
         return false;
@@ -508,7 +508,7 @@ function getAlternateText(
 
     return showChatPreviewLine && formattedLastMessageText
         ? formattedLastMessageTextWithPrefix
-        : formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? (option.participantsList.at(0)?.login ?? '') : '');
+        : formatPhoneNumberPhoneUtils(option.participantsList && option.participantsList.length > 0 ? (option.participantsList.at(0)?.login ?? '') : '');
 }
 
 /**
@@ -629,7 +629,7 @@ function getLastMessageTextForReport({
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED: {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 lastMessageTextFromReport = translateLocal(`reportArchiveReasons.${archiveReason}`, {
-                    displayName: formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails)),
+                    displayName: formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(lastActorDetails)),
                     policyName: getPolicyName({report, policy}),
                 });
                 break;
@@ -743,6 +743,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getRejectedReportMessage();
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
         lastMessageTextFromReport = getUpgradeWorkspaceMessage();
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
+        lastMessageTextFromReport = Parser.htmlToText(getForcedCorporateUpgradeMessage());
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         lastMessageTextFromReport = getDowngradeWorkspaceMessage();
     } else if (isActionableAddPaymentCard(lastReportAction)) {
@@ -761,7 +763,7 @@ function getLastMessageTextForReport({
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
-        lastMessageTextFromReport = getUpdateRoomDescriptionMessage(lastReportAction);
+        lastMessageTextFromReport = Parser.htmlToText(getUpdateRoomDescriptionMessage(lastReportAction));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_AVATAR)) {
         lastMessageTextFromReport = getRoomAvatarUpdatedMessage(lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
@@ -913,13 +915,15 @@ function createOption(
             showPersonalDetails && personalDetail?.login
                 ? personalDetail.login
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
-        reportName = showPersonalDetails ? getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '') : getReportName(report);
+        reportName = showPersonalDetails
+            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
+            : getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0)}) || formatPhoneNumber(personalDetail?.login ?? '');
+        reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs.at(0));
 
-        result.alternateText = formatPhoneNumber(personalDetails?.[accountIDs[0]]?.login ?? '');
+        result.alternateText = formatPhoneNumberPhoneUtils(personalDetails?.[accountIDs[0]]?.login ?? '');
     }
 
     // Set core display properties that are used in SearchOption context
@@ -1228,20 +1232,12 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
     };
 }
 
-function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, reportAttributesDerived?: ReportAttributesDerivedValue['reports']) {
+function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, reportAttributesDerived?: ReportAttributesDerivedValue['reports'], config?: PreviewConfig) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
     return {
         item: report,
-        ...createOption(
-            accountIDs,
-            personalDetails,
-            report,
-            {
-                showPersonalDetails: true,
-            },
-            reportAttributesDerived,
-        ),
+        ...createOption(accountIDs, personalDetails, report, config, reportAttributesDerived),
     };
 }
 
@@ -1591,25 +1587,29 @@ function getUserToInviteContactOption({
     // Handle phone number parsing for either provided phone or searchValue
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const phoneToCheck = phone || searchValue;
-    const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(phoneToCheck), countryCode));
-
-    const isCurrentUserLogin = isCurrentUser({login: effectiveSearchValue} as PersonalDetails);
-    const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === effectiveSearchValue);
+    const normalizedPhoneNumber = appendCountryCode(Str.removeSMSDomain(phoneToCheck), countryCode);
+    const parsedPhoneNumber = parsePhoneNumber(normalizedPhoneNumber);
 
     // Validate email (either provided email or searchValue)
     const isValidEmail = Str.isValidEmail(effectiveSearchValue) && !Str.isDomainEmail(effectiveSearchValue) && !Str.endsWith(effectiveSearchValue, CONST.SMS.DOMAIN);
 
     const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
 
-    const isInOptionToExclude =
-        optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === addSMSDomainIfPhoneNumber(effectiveSearchValue).toLowerCase()) !== -1;
+    const sanitizedPhoneLogin = isValidPhoneNumber ? addSMSDomainIfPhoneNumber(parsedPhoneNumber.number?.e164 ?? normalizedPhoneNumber) : '';
+    const login = email ? effectiveSearchValue : (sanitizedPhoneLogin ?? searchValue);
+    const normalizedLoginToExclude = addSMSDomainIfPhoneNumber(login).toLowerCase();
+
+    const isCurrentUserLogin = isCurrentUser({login} as PersonalDetails);
+    const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === login);
+
+    const isInOptionToExclude = optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === normalizedLoginToExclude) !== -1;
 
     if (!effectiveSearchValue || isCurrentUserLogin || isInSelectedOption || (!isValidEmail && !isValidPhoneNumber) || isInOptionToExclude) {
         return null;
     }
 
     // Generates an optimistic account ID for new users not yet saved in Onyx
-    const optimisticAccountID = generateAccountID(effectiveSearchValue);
+    const optimisticAccountID = generateAccountID(login);
 
     // Construct display name if firstName/lastName are provided
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1623,7 +1623,7 @@ function getUserToInviteContactOption({
         firstName: firstName ?? '',
         lastName: lastName ?? '',
         displayName,
-        login: effectiveSearchValue,
+        login,
         pronouns: '',
         phoneNumber: phone ?? '',
         validated: true,
@@ -1635,20 +1635,20 @@ function getUserToInviteContactOption({
         displayName,
         firstName,
         lastName,
-        alternateText: displayName !== effectiveSearchValue ? effectiveSearchValue : undefined,
+        alternateText: displayName !== login ? login : undefined,
         brickRoadIndicator: null,
         icons: [
             {
                 source: userDetails.avatar,
                 type: CONST.ICON_TYPE_AVATAR,
-                name: effectiveSearchValue,
+                name: login,
                 id: optimisticAccountID,
             },
         ],
         tooltipText: null,
         participantsList: [userDetails],
         accountID: optimisticAccountID,
-        login: effectiveSearchValue,
+        login,
         reportID: '',
         phoneNumber: phone ?? '',
         hasDraftComment: false,
@@ -1985,9 +1985,9 @@ function getValidOptions(
     let workspaceChats: Array<SearchOption<Report>> = [];
     let selfDMChat: SearchOptionData | undefined;
 
+    const searchTerms = processSearchString(searchString);
     if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
-        const searchTerms = processSearchString(searchString);
 
         const isWorkspaceChat = (report: SearchOption<Report>) => shouldSeparateWorkspaceChat && report.isPolicyExpenseChat && !report.private_isArchived;
         const isSelfDMChat = (report: SearchOption<Report>) => shouldSeparateSelfDMChat && report.isSelfDM && !report.private_isArchived;
@@ -2068,7 +2068,11 @@ function getValidOptions(
 
             return false;
         });
-        recentReportOptions = recentAttendees as Array<SearchOption<Report>>;
+        recentReportOptions = filterReports(recentAttendees as SearchOptionData[], searchTerms) as Array<SearchOption<Report>>;
+
+        if (maxRecentReportElements) {
+            recentReportOptions = recentReportOptions.slice(0, maxRecentReportElements);
+        }
     }
 
     // Get valid personal details and check if we can find the current user:
@@ -2086,7 +2090,6 @@ function getValidOptions(
             };
         }
 
-        const searchTerms = processSearchString(searchString);
         const filteringFunction = (personalDetail: OptionData) => {
             if (
                 !personalDetail?.login ||
@@ -2227,8 +2230,8 @@ function getSearchOptions({
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEntry<PersonalDetails>, amountText?: string): PayeePersonalDetails {
     const login = personalDetail?.login ?? '';
     return {
-        text: formatPhoneNumber(getDisplayNameOrDefault(personalDetail, login)),
-        alternateText: formatPhoneNumber(login || getDisplayNameOrDefault(personalDetail, '', false)),
+        text: formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(personalDetail, login)),
+        alternateText: formatPhoneNumberPhoneUtils(login || getDisplayNameOrDefault(personalDetail, '', false)),
         icons: [
             {
                 source: personalDetail?.avatar ?? FallbackAvatar,
@@ -2245,40 +2248,7 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxEn
     };
 }
 
-type GetAttendeeOptionsParams = {
-    reports: Array<SearchOption<Report>>;
-    personalDetails: Array<SearchOption<PersonalDetails>>;
-    betas: OnyxEntry<Beta[]>;
-    attendees: Attendee[];
-    recentAttendees: Attendee[];
-    draftComments: OnyxCollection<string>;
-    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
-    includeOwnedWorkspaceChats: boolean;
-    includeP2P: boolean;
-    includeInvoiceRooms: boolean;
-    action: IOUAction | undefined;
-    countryCode: number;
-};
-
-function getAttendeeOptions({
-    reports,
-    personalDetails,
-    betas,
-    attendees,
-    recentAttendees,
-    draftComments,
-    nvpDismissedProductTraining,
-    includeOwnedWorkspaceChats = false,
-    includeP2P = true,
-    includeInvoiceRooms = false,
-    action = undefined,
-    countryCode = CONST.DEFAULT_COUNTRY_CODE,
-}: GetAttendeeOptionsParams) {
-    const personalDetailList = keyBy(
-        personalDetails.map(({item}) => item),
-        'accountID',
-    );
-
+function getFilteredRecentAttendees(personalDetails: OnyxEntry<PersonalDetailsList>, attendees: Attendee[], recentAttendees: Attendee[]): Option[] {
     const recentAttendeeHasCurrentUser = recentAttendees.find((attendee) => attendee.email === currentUserLogin || attendee.login === currentUserLogin);
     if (!recentAttendeeHasCurrentUser && currentUserLogin) {
         const details = getPersonalDetailByEmail(currentUserLogin);
@@ -2300,27 +2270,9 @@ function getAttendeeOptions({
             login: attendee.email ?? attendee.displayName,
             ...getPersonalDetailByEmail(attendee.email),
         }))
-        .map((attendee) => getParticipantsOption(attendee, personalDetailList as never));
+        .map((attendee) => getParticipantsOption(attendee, personalDetails));
 
-    return getValidOptions(
-        {reports, personalDetails},
-        draftComments,
-        nvpDismissedProductTraining,
-        {
-            betas,
-            selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            includeOwnedWorkspaceChats,
-            includeRecentReports: false,
-            includeP2P,
-            includeSelectedOptions: false,
-            includeSelfDM: false,
-            includeInvoiceRooms,
-            action,
-            recentAttendees: filteredRecentAttendees,
-        },
-        countryCode,
-    );
+    return filteredRecentAttendees;
 }
 
 /**
@@ -2851,7 +2803,7 @@ export {
     formatMemberForList,
     formatSectionsFromSearchTerm,
     getAlternateText,
-    getAttendeeOptions,
+    getFilteredRecentAttendees,
     getCurrentUserSearchTerms,
     getEmptyOptions,
     getFirstKeyForList,

@@ -44,6 +44,7 @@ import {
 } from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import Timing from '@userActions/Timing';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -120,6 +121,7 @@ const defaultListOptions = {
 const setPerformanceTimersEnd = () => {
     Timing.end(CONST.TIMING.OPEN_SEARCH);
     Performance.markEnd(CONST.TIMING.OPEN_SEARCH);
+    endSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
 };
 
 function isSearchQueryListItem(listItem: UserListItemProps<OptionData> | SearchQueryListItemProps): listItem is SearchQueryListItemProps {
@@ -253,7 +255,7 @@ function SearchAutocompleteList({
         return suggestedStatuses.map((value) => getUserFriendlyValue(value));
     })();
 
-    const hasAutocompleteList = getHasOptions(currentType);
+    const hasAutocompleteList = getHasOptions(translate, currentType);
     const isAutocompleteList = (() => {
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.CHAT:
@@ -797,7 +799,13 @@ function SearchAutocompleteList({
 
     const onArrowFocus = useCallback(
         (focusedItem: OptionData | SearchQueryItem) => {
-            if (!isSearchQueryItem(focusedItem) || !focusedItem.searchQuery || focusedItem?.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION) {
+            if (
+                isInitialRender ||
+                !autocompleteQueryValue.trim() ||
+                !isSearchQueryItem(focusedItem) ||
+                !focusedItem.searchQuery ||
+                focusedItem?.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION
+            ) {
                 return;
             }
 
@@ -828,7 +836,7 @@ function SearchAutocompleteList({
             setTextQuery(`${trimmedUserSearchQuery}${sanitizeSearchValue(focusedItem.searchQuery)}\u00A0`);
             updateAutocompleteSubstitutions(focusedItem);
         },
-        [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions],
+        [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions, isInitialRender],
     );
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';

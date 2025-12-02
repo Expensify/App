@@ -12,6 +12,7 @@ import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
+import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import Permissions from './Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
@@ -76,7 +77,7 @@ Onyx.connect({
 });
 
 function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate']): string {
-    const actor = getDisplayNameForParticipant({accountID: nextStep.actorAccountID});
+    const actor = getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
 
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
     if (nextStep.actorAccountID === currentUserAccountID) {
@@ -320,7 +321,7 @@ function parseMessage(messages: Message[] | undefined) {
 function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boolean) {
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
 
-    return getDisplayNameForParticipant({accountID: approverAccountID}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
+    return getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
 }
 
 function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
@@ -394,7 +395,7 @@ function buildNextStep(
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
     const {harvesting, autoReportingOffset} = policy;
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
@@ -410,14 +411,17 @@ function buildNextStep(
             (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
-    const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy.ownerAccountID});
+    const ownerDisplayName =
+        ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+    const policyOwnerDisplayName =
+        policyOwnerPersonalDetails?.displayName ??
+        policyOwnerPersonalDetails?.login ??
+        getDisplayNameForParticipant({accountID: policy.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
     const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
-    const hasValidAccount = !!policy?.achAccount?.accountNumber || policy.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     const type: ReportNextStepDeprecated['type'] = 'neutral';
     let optimisticNextStep: ReportNextStepDeprecated | null;
 
@@ -690,7 +694,7 @@ function buildNextStep(
             break;
 
         // Generates an optimistic nextStep once a report has been approved
-        case CONST.REPORT.STATUS_NUM.APPROVED:
+        case CONST.REPORT.STATUS_NUM.APPROVED: {
             if (
                 isInvoiceReport(report) ||
                 !isPayer(
@@ -707,6 +711,23 @@ function buildNextStep(
                 break;
             }
             // Self review
+            let payerMessage: Message;
+            if (
+                isPayer(
+                    {
+                        accountID: currentUserAccountID,
+                        email: currentUserEmail,
+                    },
+                    report,
+                )
+            ) {
+                payerMessage = {text: 'you', type: 'strong'};
+            } else if (reimburserAccountID === -1) {
+                payerMessage = {text: 'an admin'};
+            } else {
+                payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}), type: 'strong'};
+            }
+
             optimisticNextStep = {
                 type,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -714,26 +735,20 @@ function buildNextStep(
                     {
                         text: 'Waiting for ',
                     },
-                    reimburserAccountID === -1
-                        ? {
-                              text: 'an admin',
-                          }
-                        : {
-                              text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
-                              type: 'strong',
-                          },
+                    payerMessage,
                     {
                         text: ' to ',
                     },
                     {
-                        text: hasValidAccount ? 'pay' : 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: hasValidAccount ? ' %expenses.' : ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ],
             };
             break;
+        }
 
         // Resets a nextStep
         default:
@@ -772,14 +787,17 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
-    const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy?.ownerAccountID});
+    const ownerDisplayName =
+        ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+    const policyOwnerDisplayName =
+        policyOwnerPersonalDetails?.displayName ??
+        policyOwnerPersonalDetails?.login ??
+        getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
     const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
     const reimburserAccountID = getReimburserAccountID(policy);
-    const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
     const type: ReportNextStepDeprecated['type'] = 'neutral';
     let optimisticNextStep: ReportNextStepDeprecated | null;
 
@@ -1052,7 +1070,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             break;
 
         // Generates an optimistic nextStep once a report has been approved
-        case CONST.REPORT.STATUS_NUM.APPROVED:
+        case CONST.REPORT.STATUS_NUM.APPROVED: {
             if (
                 isInvoiceReport(report) ||
                 !isPayer(
@@ -1069,6 +1087,23 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                 break;
             }
             // Self review
+            let payerMessage: Message;
+            if (
+                isPayer(
+                    {
+                        accountID: currentUserAccountIDParam,
+                        email: currentUserEmailParam,
+                    },
+                    report,
+                )
+            ) {
+                payerMessage = {text: 'you', type: 'strong'};
+            } else if (reimburserAccountID === -1) {
+                payerMessage = {text: 'an admin'};
+            } else {
+                payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}), type: 'strong'};
+            }
+
             optimisticNextStep = {
                 type,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -1076,26 +1111,20 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                     {
                         text: 'Waiting for ',
                     },
-                    reimburserAccountID === -1
-                        ? {
-                              text: 'an admin',
-                          }
-                        : {
-                              text: getDisplayNameForParticipant({accountID: reimburserAccountID}),
-                              type: 'strong',
-                          },
+                    payerMessage,
                     {
                         text: ' to ',
                     },
                     {
-                        text: hasValidAccount ? 'pay' : 'finish setting up',
+                        text: 'pay',
                     },
                     {
-                        text: hasValidAccount ? ' %expenses.' : ' a business bank account.',
+                        text: ' %expenses.',
                     },
                 ],
             };
             break;
+        }
 
         // Resets a nextStep
         default:

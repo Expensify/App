@@ -288,6 +288,9 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                         authToken,
                         encryptedAuthToken: response.encryptedAuthToken,
                     });
+                    Onyx.merge(ONYXKEYS.ACCOUNT, {
+                        primaryLogin: requesterEmail,
+                    });
                     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
 
