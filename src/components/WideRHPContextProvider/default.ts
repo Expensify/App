@@ -2,7 +2,8 @@ import type {WideRHPContextType} from './types';
 
 const defaultWideRHPContextValue: WideRHPContextType = {
     wideRHPRouteKeys: [],
-    shouldRenderSecondaryOverlay: false,
+    shouldRenderSecondaryOverlayForWideRHP: false,
+    shouldRenderSecondaryOverlayForSingleRHP: false,
     showWideRHPVersion: () => {},
     removeWideRHPRouteKey: () => {},
     markReportIDAsExpense: () => {},
@@ -10,8 +11,6 @@ const defaultWideRHPContextValue: WideRHPContextType = {
     unmarkReportIDAsMultiTransactionExpense: () => {},
     isReportIDMarkedAsExpense: () => false,
     isReportIDMarkedAsMultiTransactionExpense: () => false,
-    isWideRHPClosing: false,
-    setIsWideRHPClosing: () => {},
     isWideRHPFocused: false,
     shouldRenderTertiaryOverlay: false,
     superWideRHPRouteKeys: [],
