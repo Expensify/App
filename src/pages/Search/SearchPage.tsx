@@ -588,7 +588,7 @@ function SearchPage({route}: SearchPageProps) {
                     if (dismissedRejectUseExplanation) {
                         Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
                     } else {
-                        setRejectModalAction(null);
+                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
                     }
                 },
             });
