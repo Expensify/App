@@ -1,5 +1,4 @@
 import React from 'react';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ROUTES from '@src/ROUTES';
@@ -15,7 +14,6 @@ function SamlDomainVerifiedPage({route}: SamlDomainVerifiedPageProps) {
         <BaseDomainVerifiedPage
             accountID={accountID}
             redirectTo={ROUTES.DOMAIN_VERIFY.getRoute(accountID)}
-            navigateAfterConfirmation={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute())}
         />
     );
 }

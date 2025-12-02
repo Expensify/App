@@ -9,7 +9,19 @@ import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, CurrencyList, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {
+    BankAccountList,
+    Card,
+    CardFeeds,
+    CardList,
+    CompanyCardFeed,
+    CurrencyList,
+    ExpensifyCardSettings,
+    PersonalDetailsList,
+    Policy,
+    PrivatePersonalDetails,
+    WorkspaceCardsList,
+} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CardFeedData, CompanyCardFeedWithDomainID, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -17,7 +29,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {filterObject} from './ObjectUtils';
-import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {arePersonalDetailsMissing, getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import StringUtils from './StringUtils';
 
 const COMPANY_CARD_FEED_ICON_NAMES = [
@@ -735,6 +747,34 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
+function isCardPendingIssue(card?: Card) {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+}
+
+function isCardPendingActivate(card?: Card) {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
+}
+
+function isCardPendingReplace(card?: Card) {
+    return (
+        (isCardPendingActivate(card) || isCardPendingIssue(card)) &&
+        !!card?.nameValuePairs?.terminationReason &&
+        card?.nameValuePairs?.statusChanges?.at(-1)?.status === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED
+    );
+}
+
+function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: PrivatePersonalDetails): boolean {
+    return (
+        card?.bank === CONST.EXPENSIFY_CARD.BANK &&
+        !card.nameValuePairs?.isVirtual &&
+        (isCardPendingIssue(card) || isCardPendingActivate(card) || isCardPendingReplace(card) || arePersonalDetailsMissing(privatePersonalDetails)) &&
+        (!card.lastScrapeResult || CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult))
+    );
+}
+
+function hasPendingExpensifyCardAction(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails) {
+    return Object.values(cards ?? {}).some((card) => isExpensifyCardPendingAction(card, privatePersonalDetails));
+}
 const isCurrencySupportedForECards = (currency?: string) => {
     if (!currency) {
         return false;
@@ -819,7 +859,12 @@ export {
     hasIssuedExpensifyCard,
     isExpensifyCardFullySetUp,
     filterInactiveCards,
+    isCardPendingIssue,
+    isCardPendingActivate,
+    hasPendingExpensifyCardAction,
+    isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
+    isCardPendingReplace,
     getCardsByCardholderName,
     filterCardsByPersonalDetails,
     getCompanyCardDescription,
