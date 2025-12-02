@@ -1887,7 +1887,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             value: {
-                nextStep: nextStep,
+                nextStep,
                 pendingFields: {
                     nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -3717,8 +3717,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
     const hasViolations = hasViolationsReportUtils(iouReport.reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     // buildOptimisticNextStep is used in parallel
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: iouReport,
         predictedNextStatus,
