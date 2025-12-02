@@ -20,6 +20,7 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
@@ -95,14 +96,6 @@ Onyx.connect({
 
         currentUserAccountID = value.accountID;
         currentEmail = value?.email ?? '';
-    },
-});
-
-let privatePersonalDetails: PrivatePersonalDetails | undefined;
-Onyx.connect({
-    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    callback: (personalDetails) => {
-        privatePersonalDetails = personalDetails;
     },
 });
 
@@ -532,7 +525,7 @@ function getCombinedReportActions(
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
 
     // We don't want to combine report actions of transaction thread in iou report of send money request because we display the transaction report of send money request as a normal thread
-    if (isEmpty(transactionThreadReportID) || isSentMoneyReport) {
+    if (!transactionThreadReportID || isSentMoneyReport) {
         return reportActions;
     }
 
@@ -1372,10 +1365,9 @@ function getOneTransactionThreadReportAction(
         if (
             actionType &&
             iouRequestTypesSet.has(actionType) &&
-            // Include deleted IOU reportActions if:
-            // - they have an associated IOU transaction ID or
-            // - the action is pending deletion and the user is offline
-            (!!originalMessage?.IOUTransactionID || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline)))
+            !!originalMessage?.IOUTransactionID &&
+            // Include deleted IOU reportActions if the action is pending deletion and the user is offline
+            (!isDeletedAction(action) || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline)))
         ) {
             if (iouRequestAction !== null) {
                 // We found a second action so this is for sure not a one-transaction report
@@ -3172,19 +3164,27 @@ function isCardIssuedAction(
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS
     | typeof CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL
+    | typeof CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED
 > {
     return (
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED) ||
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL) ||
         isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS) ||
-        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED)
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED)
     );
 }
 
-function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card) {
-    const missingDetails = arePersonalDetailsMissing(privatePersonalDetails);
+function shouldShowAddMissingDetails(actionName?: ReportActionName, privatePersonalDetail?: PrivatePersonalDetails) {
+    const missingDetails = arePersonalDetailsMissing(privatePersonalDetail);
+    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails;
+}
 
-    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && (card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED || missingDetails);
+function shouldShowActivateCard(actionName?: ReportActionName, card?: Card, privatePersonalDetail?: PrivatePersonalDetails) {
+    const missingDetails = arePersonalDetailsMissing(privatePersonalDetail);
+    return (actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED || actionName === CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED) && isCardPendingActivate(card) && !missingDetails;
 }
 
 function getJoinRequestMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>) {
@@ -3210,12 +3210,14 @@ function getCardIssuedMessage({
     policyID = '-1',
     expensifyCard,
     companyCard,
+    translate,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     shouldRenderHTML?: boolean;
     policyID?: string;
     expensifyCard?: Card;
     companyCard?: Card;
+    translate: LocaleContextProps['translate'];
 }) {
     const cardIssuedActionOriginalMessage = isCardIssuedAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
 
@@ -3226,32 +3228,31 @@ function getCardIssuedMessage({
     const isPolicyAdmin = isPolicyAdminPolicyUtils(getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : Parser.htmlToText(`<mention-user accountID="${assigneeAccountID}"/>`);
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(String(cardID));
-
     const isExpensifyCardActive = isCardActive(expensifyCard);
-    const expensifyCardLink =
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${translateLocal('cardPage.expensifyCard')}</a>` : translateLocal('cardPage.expensifyCard');
+    const expensifyCardLink = (expensifyCardLinkText: string) =>
+        shouldRenderHTML && isExpensifyCardActive ? `<a href='${environmentURL}/${navigateRoute}'>${expensifyCardLinkText}</a>` : expensifyCardLinkText;
     const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
     const companyCardLink =
         shouldRenderHTML && isAssigneeCurrentUser && companyCard
-            ? // eslint-disable-next-line @typescript-eslint/no-deprecated
-              `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translateLocal('workspace.companyCards.companyCard')}</a>`
-            : // eslint-disable-next-line @typescript-eslint/no-deprecated
-              translateLocal('workspace.companyCards.companyCard');
-    const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction?.actionName, expensifyCard);
+            ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translate('workspace.companyCards.companyCard')}</a>`
+            : translate('workspace.companyCards.companyCard');
     switch (reportAction?.actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('workspace.expensifyCard.issuedCard', {assignee});
+        case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED: {
+            if (cardIssuedActionOriginalMessage?.hadMissingAddress) {
+                return translate('workspace.expensifyCard.addedShippingDetails', {assignee});
+            }
+            return translate('workspace.expensifyCard.issuedCard', {assignee});
+        }
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink});
+            return translate('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink(translate('workspace.expensifyCard.card'))});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
+            return translate('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal(`workspace.expensifyCard.${shouldShowAddMissingDetailsMessage ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, {assignee});
+            return translate('workspace.expensifyCard.issuedCardNoShippingDetails', {assignee});
+        case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL:
+            return translate('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink(translate('workspace.expensifyCard.replacementCard'))});
+        case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED:
+            return translate('workspace.expensifyCard.replacedCard', {assignee});
         default:
             return '';
     }
@@ -3525,6 +3526,7 @@ export {
     getTagListNameUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getRoomChangeLogMessage,
+    shouldShowActivateCard,
     getReopenedMessage,
     getLeaveRoomMessage,
     getRetractedMessage,
