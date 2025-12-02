@@ -113,7 +113,7 @@ function openPersonalBankAccountSetupView({exitReportID, policyID, source, shoul
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {source});
         }
         if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute({}));
+            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.route);
             return;
         }
         if (shouldSetUpUSBankAccount) {

@@ -1,9 +1,9 @@
 import React from 'react';
-import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {type PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {type SettingsNavigatorParamList} from '@libs/Navigation/types';
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 
 type NewBankAccountVerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT>;
 
