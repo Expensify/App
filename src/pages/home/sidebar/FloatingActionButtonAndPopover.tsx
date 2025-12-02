@@ -165,7 +165,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
     const canSendInvoice = useMemo(() => canSendInvoicePolicyUtils(allPolicies as OnyxCollection<OnyxTypes.Policy>, session?.email), [allPolicies, session?.email]);
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);

@@ -395,7 +395,7 @@ function buildNextStep(
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
     const {harvesting, autoReportingOffset} = policy;
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
