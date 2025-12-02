@@ -463,7 +463,7 @@ function BaseSelectionList<TItem extends ListItem>({
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
-            {data.length === 0 ? (
+            {data.length === 0 && (showLoadingPlaceholder || showListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (
                 <>
