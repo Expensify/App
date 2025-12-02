@@ -570,7 +570,7 @@ function Search({
                 };
             }
         }
-        if (isEmptyObject(newTransactionList)) {
+        if (isEmptyObject(newTransactionList) && Object.keys(selectedTransactions).length === 0) {
             return;
         }
 
