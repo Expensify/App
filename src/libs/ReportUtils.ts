@@ -154,6 +154,7 @@ import {
     getPolicyRole,
     getRuleApprovers,
     getSubmitToAccountID,
+    hasDynamicExternalWorkflow,
     hasDependentTags as hasDependentTagsPolicyUtils,
     isExpensifyTeam,
     isInstantSubmitEnabled,
@@ -1967,11 +1968,31 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
         return false;
     }
 
+    if (!isProcessingReport(report)) {
+        return false;
+    }
+
+    if (isIOUReportUsingReport(report)) {
+        return true;
+    }
+
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const submitsToAccountID = getSubmitToAccountID(getPolicy(report.policyID), report);
+    const policy = getPolicy(report?.policyID);
 
-    return isProcessingReport(report) && submitsToAccountID === report.managerID;
+    if (hasDynamicExternalWorkflow(policy)) {
+        return false;
+    }
+
+    if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC) {
+        return true;
+    }
+
+    const submitsToAccountID = getSubmitToAccountID(policy, report);
+
+    // Fallback to comparing current manager of the report to the submitsTo in the policy.
+    // If they match, then the report should still be awaiting first level approval.
+    return submitsToAccountID === report?.managerID;
 }
 
 /**
