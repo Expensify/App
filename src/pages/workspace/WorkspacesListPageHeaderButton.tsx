@@ -10,8 +10,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 type WorkspacesListPageHeaderButtonProps = {
+    /** Whether the user is restricted from creating a policy. */
     isRestrictedPolicyCreation: boolean;
+
+    /** Whether the user has any workspaces. */
     hasWorkspaces: boolean;
+
+    /** Whether the user has any domains. */
     hasDomains: boolean;
 };
 
@@ -39,19 +44,21 @@ function WorkspacesListPageHeaderButton({isRestrictedPolicyCreation, hasWorkspac
             onPress={() => {}}
             customText={translate('common.new')}
             options={[
-                {
-                    value: 'workspace',
-                    text: translate('workspace.new.newWorkspace'),
-                    icon: icons.Building,
-                    onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
-                },
+                !isRestrictedPolicyCreation
+                    ? {
+                          value: 'workspace',
+                          text: translate('workspace.new.newWorkspace'),
+                          icon: icons.Building,
+                          onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
+                      }
+                    : undefined,
                 {
                     value: 'domain',
                     text: translate('domain.addDomain.newDomain'),
                     icon: icons.Globe,
                     onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN)),
                 },
-            ]}
+            ].filter((option) => option !== undefined)}
             isSplitButton={false}
             wrapperStyle={styles.flexGrow1}
             testID="dropdown-button-new"
