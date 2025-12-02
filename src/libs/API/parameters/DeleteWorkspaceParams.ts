@@ -6,7 +6,7 @@ type DeleteWorkspaceParams = {
      *   [reportID]: optimisticReportActionID;
      * }>
      */
-    reportIDToOptimisticClosedReportActionID: string;
+    optimisticReportActions: string;
 };
 
 export default DeleteWorkspaceParams;

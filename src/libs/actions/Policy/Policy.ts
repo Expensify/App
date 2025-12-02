@@ -620,7 +620,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         }
     });
 
-    const apiParams: DeleteWorkspaceParams = {policyID, reportIDToOptimisticClosedReportActionID: JSON.stringify(reportIDToOptimisticClosedReportActionID)};
+    const apiParams: DeleteWorkspaceParams = {policyID, optimisticReportActions: JSON.stringify(reportIDToOptimisticClosedReportActionID)};
 
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE, apiParams, {optimisticData, finallyData, failureData});
 
