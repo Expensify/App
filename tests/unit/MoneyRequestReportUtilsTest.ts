@@ -103,8 +103,6 @@ const transactionItemBaseMock: TransactionListItemType = {
     errors: undefined,
     filename: undefined,
     violations: [],
-    convertedAmount: -5000,
-    convertedCurrency: 'USD',
 };
 
 describe('MoneyRequestReportUtils', () => {

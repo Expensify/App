@@ -634,6 +634,64 @@ describe('getPrimaryAction', () => {
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD);
     });
 
+    it('should not return REMOVE HOLD for closed reports with transactions on hold', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {};
+        const HOLD_ACTION_ID = 'HOLD_ACTION_ID';
+        const REPORT_ACTION_ID = 'REPORT_ACTION_ID';
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const CHILD_REPORT_ID = 'CHILD_REPORT_ID';
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            comment: {
+                hold: HOLD_ACTION_ID,
+            },
+        } as unknown as Transaction;
+
+        const reportAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            type: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportActionID: REPORT_ACTION_ID,
+            actorAccountID: CURRENT_USER_ACCOUNT_ID,
+            childReportID: CHILD_REPORT_ID,
+            message: [
+                {
+                    html: 'html',
+                },
+            ],
+            originalMessage: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                IOUTransactionID: TRANSACTION_ID,
+            },
+        } as unknown as ReportAction;
+
+        const holdAction = {
+            reportActionID: HOLD_ACTION_ID,
+            reportID: CHILD_REPORT_ID,
+            actorAccountID: CURRENT_USER_ACCOUNT_ID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[REPORT_ACTION_ID]: reportAction});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHILD_REPORT_ID}`, {[HOLD_ACTION_ID]: holdAction});
+
+        expect(
+            getReportPrimaryAction({
+                currentUserEmail: CURRENT_USER_EMAIL,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD);
+    });
+
     it('should return MARK AS CASH if has all RTER violations', async () => {
         const report = {
             reportID: REPORT_ID,
