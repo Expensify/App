@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type ReportTypingIndicatorProps = {
@@ -13,10 +13,10 @@ type ReportTypingIndicatorProps = {
 };
 
 function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const [userTypingStatuses] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`);
+    const [userTypingStatuses] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const usersTyping = useMemo(() => Object.keys(userTypingStatuses ?? {}).filter((loginOrAccountID) => userTypingStatuses?.[loginOrAccountID]), [userTypingStatuses]);
     const firstUserTyping = usersTyping.at(0);
@@ -31,7 +31,7 @@ function ReportTypingIndicator({reportID}: ReportTypingIndicatorProps) {
     // If the user is typing on OldDot, firstUserTyping will be a string (the user's displayName)
     const firstUserTypingDisplayName = isUserTypingADisplayName
         ? firstUserTyping
-        : ReportUtils.getDisplayNameForParticipant({accountID: Number(firstUserTyping), shouldFallbackToHidden: false});
+        : getDisplayNameForParticipant({accountID: Number(firstUserTyping), shouldFallbackToHidden: false, formatPhoneNumber});
 
     if (usersTyping.length === 1) {
         return (

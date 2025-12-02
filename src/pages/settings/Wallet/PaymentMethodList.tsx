@@ -16,7 +16,15 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAssignedCardSortKey, getCardFeedIcon, getPlaidInstitutionIconUrl, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {
+    getAssignedCardSortKey,
+    getCardFeedIcon,
+    getPlaidInstitutionIconUrl,
+    isExpensifyCard,
+    isExpensifyCardPendingAction,
+    lastFourNumbersFromCardName,
+    maskCardNumber,
+} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
@@ -24,7 +32,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankAccount, BankAccountList, CardList, CompanyCardFeed} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, Card, CardList, CompanyCardFeed} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -156,11 +164,25 @@ function PaymentMethodList({
     });
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
     const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
+
+    const getCardBrickRoadIndicator = useCallback(
+        (card: Card) => {
+            if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors) {
+                return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+            }
+            if (isExpensifyCardPendingAction(card, privatePersonalDetails)) {
+                return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+            }
+            return undefined;
+        },
+        [privatePersonalDetails],
+    );
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
@@ -238,6 +260,8 @@ function PaymentMethodList({
                     continue;
                 }
 
+                const pressHandler = onPress as CardPressHandler;
+
                 // The card shouldn't be grouped or it's domain group doesn't exist yet
                 const cardDescription =
                     card?.nameValuePairs?.issuedBy && card?.lastFourPAN
@@ -249,6 +273,18 @@ function PaymentMethodList({
                     title: isTravelCard ? translate('cardPage.expensifyTravelCard') : card?.nameValuePairs?.cardTitle || card.bank,
                     description: isTravelCard ? translate('cardPage.expensifyTravelCard') : cardDescription,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
+                    onThreeDotsMenuPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
+                        pressHandler({
+                            event: e,
+                            cardData: card,
+                            icon: {
+                                icon,
+                                iconStyles: [styles.cardIcon],
+                                iconWidth: variables.cardIconWidth,
+                                iconHeight: variables.cardIconHeight,
+                            },
+                            cardID: card.cardID,
+                        }),
                     cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard && !isTravelCard,
                     shouldShowRightIcon: true,
@@ -257,10 +293,7 @@ function PaymentMethodList({
                     canDismissError: true,
                     errors: card.errors,
                     pendingAction: card.pendingAction,
-                    brickRoadIndicator:
-                        card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors
-                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                            : undefined,
+                    brickRoadIndicator: getCardBrickRoadIndicator(card),
                     icon,
                     iconStyles: [styles.cardIcon],
                     iconWidth: variables.cardIconWidth,
@@ -344,6 +377,7 @@ function PaymentMethodList({
         cardList,
         illustrations,
         translate,
+        getCardBrickRoadIndicator,
         onPress,
         shouldShowRightIcon,
         itemIconRight,
