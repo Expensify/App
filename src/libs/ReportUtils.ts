@@ -1219,7 +1219,6 @@ Onyx.connectWithoutView({
     },
 });
 
-
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
