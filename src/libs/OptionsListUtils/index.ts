@@ -124,6 +124,7 @@ import {
     isInvoiceRoom,
     isMoneyRequest,
     isPolicyAdmin,
+    isUnread,
     isAdminRoom as reportUtilsIsAdminRoom,
     isAnnounceRoom as reportUtilsIsAnnounceRoom,
     isChatReport as reportUtilsIsChatReport,
@@ -661,6 +662,7 @@ function getLastMessageTextForReport({
             : undefined;
         // For workspace chats, use the report title
         if (reportUtilsIsPolicyExpenseChat(report) && !isEmptyObject(iouReport)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = formatReportLastMessageText(getReportName(iouReport));
         } else {
             const reportPreviewMessage = getReportPreviewMessage(
@@ -927,7 +929,8 @@ function createOption(
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
-            : getReportName(report);
+            : // eslint-disable-next-line @typescript-eslint/no-deprecated
+              getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '');
@@ -973,6 +976,7 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.text = getReportName(report);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
@@ -1022,6 +1026,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.text = getReportName(report);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
@@ -1832,6 +1837,7 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, co
         isPerDiemRequest = false,
         showRBR = true,
         shouldShowGBR = false,
+        shouldUnreadBeBold = false,
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
@@ -1851,7 +1857,18 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, co
          */
         const alternateText = getAlternateText(option, {showChatPreviewLine, forcePolicyNamePreview}, !!option.private_isArchived);
         const isSelected = isReportSelected(option, selectedOptions);
-        const isBold = shouldBoldTitleByDefault || shouldUseBoldText(option);
+
+        let isOptionUnread = option.isUnread;
+        if (shouldUnreadBeBold) {
+            const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
+            const oneTransactionThreadReportID =
+                report.type === CONST.REPORT.TYPE.IOU || report.type === CONST.REPORT.TYPE.EXPENSE || report.type === CONST.REPORT.TYPE.INVOICE
+                    ? getOneTransactionThreadReportID(report, chatReport, allSortedReportActions[report.reportID])
+                    : undefined;
+            const oneTransactionThreadReport = oneTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
+
+            isOptionUnread = isUnread(report, oneTransactionThreadReport, !!option.private_isArchived) && !!report.lastActorAccountID;
+        }
 
         let lastIOUCreationDate;
         // Add a field to sort the recent reports by the time of last IOU request for create actions
@@ -1872,10 +1889,12 @@ function prepareReportOptionsForDisplay(options: Array<SearchOption<Report>>, co
             ...option,
             alternateText,
             isSelected,
-            isBold,
+            isUnread: isOptionUnread,
             lastIOUCreationDate,
             brickRoadIndicator: showRBR ? option.brickRoadIndicator : null,
         };
+
+        newReportOption.isBold = shouldBoldTitleByDefault || shouldUseBoldText(newReportOption);
 
         if (newReportOption.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
             newReportOption.brickRoadIndicator = shouldShowGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : null;
@@ -2178,6 +2197,7 @@ type SearchOptionsConfig = {
     includeCurrentUser?: boolean;
     countryCode?: number;
     shouldShowGBR?: boolean;
+    shouldUnreadBeBold?: boolean;
 };
 
 /**
@@ -2197,6 +2217,7 @@ function getSearchOptions({
     includeCurrentUser = false,
     countryCode = CONST.DEFAULT_COUNTRY_CODE,
     shouldShowGBR = false,
+    shouldUnreadBeBold = false,
 }: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2224,6 +2245,7 @@ function getSearchOptions({
             searchString: searchQuery,
             includeUserToInvite,
             shouldShowGBR,
+            shouldUnreadBeBold,
         },
         countryCode,
     );

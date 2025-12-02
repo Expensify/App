@@ -1,4 +1,5 @@
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
+import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
 
 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
@@ -121,6 +122,26 @@ describe('groupTransactionsByCategory', () => {
         expect(travelGroup?.subTotalAmount).toBe(500);
     });
 
+    it('uses modifiedCurrency to determine transaction currency when edited', () => {
+        const report = createMockReport({currency: 'USD'});
+        const transactions = [
+            createMockTransaction({
+                transactionID: '1',
+                category: 'Travel',
+                amount: -1200,
+                currency: 'USD',
+                modifiedCurrency: 'AED',
+                convertedAmount: -8,
+            }),
+            createMockTransaction({transactionID: '2', category: 'Travel', amount: -500, currency: 'USD'}),
+        ];
+
+        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const travelGroup = result.find((g) => g.groupKey === 'Travel');
+
+        expect(travelGroup?.subTotalAmount).toBe(508);
+    });
+
     it('sets groupName equal to groupKey', () => {
         const report = createMockReport();
         const transactions = [createMockTransaction({transactionID: '1', category: 'Travel', amount: -1000})];
@@ -143,6 +164,70 @@ describe('groupTransactionsByCategory', () => {
         expect(result).toHaveLength(1);
         expect(result.at(0)?.groupKey).toBe('');
         expect(result.at(0)?.transactions).toHaveLength(2);
+    });
+
+    it('excludes pending delete transactions from subtotal calculation', () => {
+        const report = createMockReport({currency: 'USD'});
+        const transactions = [
+            createMockTransaction({transactionID: '1', category: 'Travel', amount: -1000, currency: 'USD'}),
+            createMockTransaction({transactionID: '2', category: 'Travel', amount: -1200, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        ];
+
+        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const travelGroup = result.find((g) => g.groupKey === 'Travel');
+
+        expect(travelGroup?.subTotalAmount).toBe(1000);
+        expect(travelGroup?.transactions).toHaveLength(2);
+    });
+
+    it('returns zero subtotal when all transactions in group are pending delete', () => {
+        const report = createMockReport({currency: 'USD'});
+        const transactions = [
+            createMockTransaction({transactionID: '1', category: 'Travel', amount: -1000, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+            createMockTransaction({transactionID: '2', category: 'Travel', amount: -1200, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        ];
+
+        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const travelGroup = result.find((g) => g.groupKey === 'Travel');
+
+        expect(travelGroup?.subTotalAmount).toBe(0);
+        expect(travelGroup?.transactions).toHaveLength(2);
+    });
+
+    it('excludes pending delete multi-currency transactions from subtotal calculation', () => {
+        const report = createMockReport({currency: 'USD'});
+        const transactions = [
+            createMockTransaction({transactionID: '1', category: 'Travel', amount: -1000, currency: 'EUR', convertedAmount: -1200}),
+            createMockTransaction({transactionID: '2', category: 'Travel', amount: -500, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        ];
+
+        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const travelGroup = result.find((g) => g.groupKey === 'Travel');
+
+        expect(travelGroup?.subTotalAmount).toBe(1200);
+        expect(travelGroup?.transactions).toHaveLength(2);
+    });
+
+    it('excludes pending delete transactions with modifiedCurrency from subtotal calculation', () => {
+        const report = createMockReport({currency: 'USD'});
+        const transactions = [
+            createMockTransaction({transactionID: '1', category: 'Travel', amount: -1000, currency: 'USD'}),
+            createMockTransaction({
+                transactionID: '2',
+                category: 'Travel',
+                amount: -1200,
+                currency: 'USD',
+                modifiedCurrency: 'AED',
+                convertedAmount: -50,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            }),
+        ];
+
+        const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
+        const travelGroup = result.find((g) => g.groupKey === 'Travel');
+
+        expect(travelGroup?.subTotalAmount).toBe(1000);
+        expect(travelGroup?.transactions).toHaveLength(2);
     });
 });
 
@@ -246,6 +331,26 @@ describe('groupTransactionsByTag', () => {
         expect(projectAGroup?.subTotalAmount).toBe(500);
     });
 
+    it('uses modifiedCurrency to determine transaction currency when edited', () => {
+        const report = createMockReport({currency: 'USD'});
+        const transactions = [
+            createMockTransaction({
+                transactionID: '1',
+                tag: 'Project A',
+                amount: -1200,
+                currency: 'USD',
+                modifiedCurrency: 'AED',
+                convertedAmount: -8,
+            }),
+            createMockTransaction({transactionID: '2', tag: 'Project A', amount: -500, currency: 'USD'}),
+        ];
+
+        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const projectAGroup = result.find((g) => g.groupKey === 'Project A');
+
+        expect(projectAGroup?.subTotalAmount).toBe(508);
+    });
+
     it('sets groupName equal to groupKey', () => {
         const report = createMockReport();
         const transactions = [createMockTransaction({transactionID: '1', tag: 'Project A', amount: -1000})];
@@ -264,5 +369,69 @@ describe('groupTransactionsByTag', () => {
 
         expect(result).toHaveLength(2);
         expect(result.find((g) => g.groupKey === '')?.transactions).toHaveLength(1);
+    });
+
+    it('excludes pending delete transactions from subtotal calculation', () => {
+        const report = createMockReport({currency: 'USD'});
+        const transactions = [
+            createMockTransaction({transactionID: '1', tag: 'Project A', amount: -1000, currency: 'USD'}),
+            createMockTransaction({transactionID: '2', tag: 'Project A', amount: -1200, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        ];
+
+        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const projectAGroup = result.find((g) => g.groupKey === 'Project A');
+
+        expect(projectAGroup?.subTotalAmount).toBe(1000);
+        expect(projectAGroup?.transactions).toHaveLength(2);
+    });
+
+    it('returns zero subtotal when all transactions in group are pending delete', () => {
+        const report = createMockReport({currency: 'USD'});
+        const transactions = [
+            createMockTransaction({transactionID: '1', tag: 'Project A', amount: -1000, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+            createMockTransaction({transactionID: '2', tag: 'Project A', amount: -1200, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        ];
+
+        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const projectAGroup = result.find((g) => g.groupKey === 'Project A');
+
+        expect(projectAGroup?.subTotalAmount).toBe(0);
+        expect(projectAGroup?.transactions).toHaveLength(2);
+    });
+
+    it('excludes pending delete multi-currency transactions from subtotal calculation', () => {
+        const report = createMockReport({currency: 'USD'});
+        const transactions = [
+            createMockTransaction({transactionID: '1', tag: 'Project A', amount: -1000, currency: 'EUR', convertedAmount: -1200}),
+            createMockTransaction({transactionID: '2', tag: 'Project A', amount: -500, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        ];
+
+        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const projectAGroup = result.find((g) => g.groupKey === 'Project A');
+
+        expect(projectAGroup?.subTotalAmount).toBe(1200);
+        expect(projectAGroup?.transactions).toHaveLength(2);
+    });
+
+    it('excludes pending delete transactions with modifiedCurrency from subtotal calculation', () => {
+        const report = createMockReport({currency: 'USD'});
+        const transactions = [
+            createMockTransaction({transactionID: '1', tag: 'Project A', amount: -1000, currency: 'USD'}),
+            createMockTransaction({
+                transactionID: '2',
+                tag: 'Project A',
+                amount: -1200,
+                currency: 'USD',
+                modifiedCurrency: 'AED',
+                convertedAmount: -50,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            }),
+        ];
+
+        const result = groupTransactionsByTag(transactions, report, mockLocaleCompare);
+        const projectAGroup = result.find((g) => g.groupKey === 'Project A');
+
+        expect(projectAGroup?.subTotalAmount).toBe(1000);
+        expect(projectAGroup?.transactions).toHaveLength(2);
     });
 });
