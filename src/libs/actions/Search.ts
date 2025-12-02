@@ -1048,7 +1048,7 @@ function handleBulkPayItemSelected(
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void,
 ) {
     // If delegate access is restricted, we should not allow bulk pay with business bank account or bulk pay
-    if (isDelegateAccessRestricted && (item.value === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || item.value === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT)) {
+    if (isDelegateAccessRestricted && ('value' in item && (item.value === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || item.value === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT))) {
         showDelegateNoAccessModal();
         return;
     }
