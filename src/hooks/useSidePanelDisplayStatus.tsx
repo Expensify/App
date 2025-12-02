@@ -1,4 +1,3 @@
-import {isModalCenteredVisibleSelector} from '@selectors/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useLocalize from './useLocalize';
@@ -12,10 +11,6 @@ function useSidePanelDisplayStatus() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {preferredLocale} = useLocalize();
     const [sidePanelNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL, {canBeMissing: true});
-    const [isModalCenteredVisible = false] = useOnyx(ONYXKEYS.MODAL, {
-        canBeMissing: true,
-        selector: isModalCenteredVisibleSelector,
-    });
 
     const isLanguageUnsupported = preferredLocale !== CONST.LOCALES.EN;
     const isSidePanelVisible = isExtraLargeScreenWidth ? sidePanelNVP?.open : sidePanelNVP?.openNarrowScreen;
@@ -24,7 +19,7 @@ function useSidePanelDisplayStatus() {
     // - NVP is not set or it is false
     // - language is unsupported
     // - modal centered is visible
-    const shouldHideSidePanel = !isSidePanelVisible || isLanguageUnsupported || isModalCenteredVisible || !sidePanelNVP;
+    const shouldHideSidePanel = !isSidePanelVisible || isLanguageUnsupported || !sidePanelNVP;
     const isSidePanelHiddenOrLargeScreen = !isSidePanelVisible || isLanguageUnsupported || isExtraLargeScreenWidth || !sidePanelNVP;
 
     // The help button is hidden when:
