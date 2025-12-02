@@ -37,7 +37,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     });
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
 
-    const approverIndex = Number(route.params.approverIndex ?? 0);
+    const approverIndex = Number(route.params.approverIndex) ?? 0;
     const isInitialCreationFlow = currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
     const defaultApprover = getDefaultApprover(policy);
     const firstApprover = currentApprovalWorkflow?.approvers?.[0]?.email ?? '';

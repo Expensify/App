@@ -259,7 +259,7 @@ function convertApprovalWorkflowToPolicyEmployees({
     for (const [index, approver] of approvalWorkflow.approvers.entries()) {
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         const forwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (nextApprover?.email ?? '');
-        const approvalLimit = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? undefined : approver.approvalLimit;
+        const approvalLimit = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? null : approver.approvalLimit;
         const overLimitForwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (approver.overLimitForwardsTo ?? '');
 
         // For every approver, we check if the forwardsTo, approvalLimit, or overLimitForwardsTo fields have changed.

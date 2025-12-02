@@ -37,7 +37,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const policyID = route.params.policyID;
-    const approverIndex = Number(route.params.approverIndex ?? 0);
+    const approverIndex = Number(route.params.approverIndex) ?? 0;
     const backTo = route.params?.backTo;
     const currentApprover = approvalWorkflow?.approvers?.[approverIndex];
 
