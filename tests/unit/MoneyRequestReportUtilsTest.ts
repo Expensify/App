@@ -129,7 +129,7 @@ describe('MoneyRequestReportUtils', () => {
         });
 
         it('returns reportID if transaction thread ID is 0 - unreported', () => {
-            const transactionItem: TransactionListItemType = {...transactionItemBaseMock, transactionThreadReportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+            const transactionItem: TransactionListItemType = {...transactionItemBaseMock};
             const resultID = getReportIDForTransaction(transactionItem);
 
             expect(resultID).toBe('123');
