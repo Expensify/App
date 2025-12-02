@@ -1,8 +1,12 @@
-import {useCallback, useMemo} from 'react';
-import {Pressable} from 'react-native';
+import {memo, useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 
 function RCAutoMemoComponent() {
     const someValue = useMemo(() => {
+        return 'someValue';
+    }, []);
+
+    const someOtherValue = useMemo(() => {
         return 'someValue';
     }, []);
 
@@ -11,7 +15,11 @@ function RCAutoMemoComponent() {
     }, []);
 
     // eslint-disable-next-line react-native-a11y/has-valid-accessibility-descriptors
-    return <Pressable onPress={someCallback}>{someValue}</Pressable>;
+    return (
+        <View onLayout={someCallback}>
+            {someValue} {someOtherValue}
+        </View>
+    );
 }
 
-export default RCAutoMemoComponent;
+export default memo(RCAutoMemoComponent);
