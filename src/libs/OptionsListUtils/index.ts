@@ -104,7 +104,7 @@ import {
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
     getReportActionActorAccountID,
-    getReportLastMessage, 
+    getReportLastMessage,
     getReportName,
     getReportNotificationPreference,
     getReportOrDraftReport,
@@ -919,8 +919,8 @@ function createOption(
                 : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview}, !!result.private_isArchived, lastActorDetails);
         reportName = showPersonalDetails
             ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            : getReportName(report);
+            : // eslint-disable-next-line @typescript-eslint/no-deprecated
+              getReportName(report);
     } else {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         reportName = getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '');
