@@ -2,7 +2,7 @@ import {useEffect, useRef} from 'react';
 import {clearAllFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
+import {getDefaultActionableSearchMenuItem} from '@libs/SearchUIUtils';
 import ROUTES from '@src/ROUTES';
 
 type UseSuggestedSearchDefaultNavigationParams = {
@@ -27,8 +27,7 @@ function useSuggestedSearchDefaultNavigation({shouldShowSkeleton, flattenedMenuI
 
         hasShownSkeleton.current = false;
 
-        const defaultMenuItem =
-            flattenedMenuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.APPROVE) ?? flattenedMenuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+        const defaultMenuItem = getDefaultActionableSearchMenuItem(flattenedMenuItems);
 
         if (!defaultMenuItem || similarSearchHash === defaultMenuItem.similarSearchHash) {
             return;

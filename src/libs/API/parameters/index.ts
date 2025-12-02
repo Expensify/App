@@ -289,6 +289,7 @@ export type {default as MarkAsExportedParams} from './MarkAsExportedParams';
 export type {default as UpgradeToCorporateParams} from './UpgradeToCorporateParams';
 export type {default as DowngradeToTeamParams} from './DowngradeToTeamParams';
 export type {default as DeleteMoneyRequestOnSearchParams} from './DeleteMoneyRequestOnSearchParams';
+export type {default as RejectMoneyRequestInBulkParams} from './RejectMoneyRequestInBulkParams';
 export type {default as HoldMoneyRequestOnSearchParams} from './HoldMoneyRequestOnSearchParams';
 export type {default as ApproveMoneyRequestOnSearchParams} from './ApproveMoneyRequestOnSearchParams';
 export type {default as PayMoneyRequestOnSearchParams} from './PayMoneyRequestOnSearchParams';
@@ -441,4 +442,8 @@ export type {default as EnableGlobalReimbursementsForUSDBankAccountParams} from 
 export type {default as SendReminderForCorpaySignerInformationParams} from './SendReminderForCorpaySignerInformationParams';
 export type {default as SendScheduleCallNudgeParams} from './SendScheduleCallNudge';
 export type {default as DomainParams} from './DomainParams';
+export type {default as GetScimTokenParams} from './GetScimTokenParams';
+export type {default as SetSamlIdentityParams} from './SetSamlIdentityParams';
+export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams';
+export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';

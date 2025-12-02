@@ -13,7 +13,6 @@ import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType, Source} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -27,7 +26,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
 import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,6 +46,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
+import useWalletSectionIllustration from './useWalletSectionIllustration';
 
 const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
     Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
@@ -67,10 +66,10 @@ function WalletPage() {
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const {isBetaEnabled} = usePermissions();
 
     const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe'] as const);
     const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet'] as const);
+    const walletIllustration = useWalletSectionIllustration();
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -262,7 +261,6 @@ function WalletPage() {
         paymentMethod.selectedPaymentMethod?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
 
     const shouldShowEnableGlobalReimbursementsButton =
-        isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) &&
         paymentMethod.selectedPaymentMethod?.additionalData?.currency === CONST.CURRENCY.USD &&
         paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
         !paymentMethod.selectedPaymentMethod?.additionalData?.corpay?.achAuthorizationForm &&
@@ -414,10 +412,10 @@ function WalletPage() {
                             isCentralPane
                             subtitleMuted
                             titleStyles={styles.accountSettingsSectionTitle}
-                            illustration={LottieAnimations.BankVault}
-                            illustrationStyle={styles.walletIllustration}
-                            illustrationContainerStyle={{height: 220}}
+                            illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                             illustrationBackgroundColor="#411103"
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...walletIllustration}
                         >
                             <PaymentMethodList
                                 onPress={onBankAccountRowPressed}
@@ -480,6 +478,7 @@ function WalletPage() {
                                                 interactive={false}
                                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                                 copyValue={convertToDisplayString(userWallet?.currentBalance ?? 0)}
+                                                copyable
                                             />
                                         </OfflineWithFeedback>
                                     )}
