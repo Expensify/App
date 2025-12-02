@@ -102,7 +102,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
         return () => {
             clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners();
         };
-    }, [reimbursementAccount, onSubmit]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields, reimbursementAccount?.isSuccess, onSubmit]);
 
     const addOwner = (ownerID: string) => {
         const newOwners = [...ownerKeys, ownerID];

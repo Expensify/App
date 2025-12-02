@@ -8,7 +8,6 @@ import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {findSelfDMReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
@@ -111,9 +110,7 @@ describe('Transaction', () => {
 
             const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
 
-            const selfDMReportID = findSelfDMReportID();
-
-            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report, undefined, undefined, undefined, selfDMReportID);
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report);
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
                 const connection = Onyx.connect({
