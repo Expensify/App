@@ -4751,8 +4751,12 @@ ${
             addShippingDetails: "Ajouter les détails d'expédition",
             issuedCard: ({assignee}: AssigneeParams) => `a émis une carte Expensify à ${assignee} ! La carte arrivera dans 2-3 jours ouvrables.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
-                `a délivré une Expensify Card à ${assignee} ! La carte sera expédiée une fois que les détails d'expédition auront été confirmés.`,
+                `a délivré une Expensify Card à ${assignee} ! La carte sera expédiée une fois que les détails d’expédition auront été confirmés.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `a émis une ${link} virtuelle à ${assignee} ! La carte peut être utilisée immédiatement.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} a remplacé sa carte Expensify virtuelle ! ${link} peut être utilisé immédiatement.`,
+            card: 'carte',
+            replacementCard: 'carte de remplacement',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} a remplacé sa carte Expensify. La nouvelle carte arrivera dans 2 à 3 jours ouvrables.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} a ajouté les informations d’expédition. La carte Expensify arrivera dans 2 à 3 jours ouvrés.`,
             verifyingHeader: 'Vérification en cours',
             bankAccountVerifiedHeader: 'Compte bancaire vérifié',
@@ -6284,6 +6288,36 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'activé' : 'désactivé'} catégories`;
+                case 'tags':
+                    return `${enabled ? 'activé' : 'désactivé'} étiquettes`;
+                case 'workflows':
+                    return `${enabled ? 'activé' : 'désactivé'} flux de travail`;
+                case 'distance rates':
+                    return `${enabled ? 'activé' : 'désactivé'} tarifs de distance`;
+                case 'accounting':
+                    return `${enabled ? 'activé' : 'désactivé'} comptabilité`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'activé' : 'désactivé'} Cartes Expensify`;
+                case 'company cards':
+                    return `${enabled ? 'activé' : 'désactivé'} cartes d’entreprise`;
+                case 'invoicing':
+                    return `${enabled ? 'activé' : 'désactivé'} la facturation`;
+                case 'per diem':
+                    return `${enabled ? 'activé' : 'désactivé'} les indemnités journalières`;
+                case 'receipt partners':
+                    return `${enabled ? 'activé' : 'désactivé'} partenaires de reçus`;
+                case 'rules':
+                    return `${enabled ? 'activé' : 'désactivé'} règles`;
+                case 'tax tracking':
+                    return `${enabled ? 'activé' : 'désactivé'} suivi des taxes`;
+                default:
+                    return `${enabled ? 'activé' : 'désactivé'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} suivi des participants`,
     },
     roomMembersPage: {
@@ -7175,9 +7209,7 @@ ${
                 `Vous avez contesté le débit de ${amountOwed} sur la carte se terminant par ${cardEnding}. Votre compte sera verrouillé jusqu'à ce que le litige soit résolu avec votre banque.`,
             preTrial: {
                 title: 'Commencer un essai gratuit',
-                subtitleStart: 'Comme prochaine étape,',
-                subtitleLink: 'complétez votre liste de vérification de configuration',
-                subtitleEnd: 'afin que votre équipe puisse commencer à soumettre des notes de frais.',
+                subtitle: 'Étape suivante : <a href="#">complétez votre liste de contrôle de configuration</a> afin que votre équipe puisse commencer à soumettre des notes de frais.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Essai : ${numOfDays} ${numOfDays === 1 ? 'jour' : 'jours'} restants !`,
