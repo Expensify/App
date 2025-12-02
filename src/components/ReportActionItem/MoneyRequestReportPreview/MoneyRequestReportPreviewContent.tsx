@@ -138,7 +138,7 @@ function MoneyRequestReportPreviewContent({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -168,7 +168,7 @@ function MoneyRequestReportPreviewContent({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
-    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false, shouldCheckApprovedState = true) =>
@@ -291,7 +291,7 @@ function MoneyRequestReportPreviewContent({
         } else if (isInvoiceRoom) {
             payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
         } else {
-            payerOrApproverName = getDisplayNameForParticipant({accountID: managerID, shouldUseShortForm: true});
+            payerOrApproverName = getDisplayNameForParticipant({accountID: managerID, shouldUseShortForm: true, formatPhoneNumber});
         }
 
         if (isApproved) {
@@ -302,7 +302,7 @@ function MoneyRequestReportPreviewContent({
             paymentVerb = 'iou.payerPaid';
         } else if (hasNonReimbursableTransactions) {
             paymentVerb = 'iou.payerSpent';
-            payerOrApproverName = getDisplayNameForParticipant({accountID: chatReport?.ownerAccountID, shouldUseShortForm: true});
+            payerOrApproverName = getDisplayNameForParticipant({accountID: chatReport?.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber});
         }
         return translate(paymentVerb, {payer: payerOrApproverName});
     }, [
@@ -324,6 +324,7 @@ function MoneyRequestReportPreviewContent({
         invoiceReceiverPolicy,
         invoiceReceiverPersonalDetail,
         managerID,
+        formatPhoneNumber,
     ]);
 
     /*
@@ -495,6 +496,7 @@ function MoneyRequestReportPreviewContent({
             violations,
             isIouReportArchived || isChatReportArchived,
             currentUserDetails.email ?? '',
+            currentUserDetails.accountID,
             iouReport,
             policy,
             transactions,
@@ -517,6 +519,7 @@ function MoneyRequestReportPreviewContent({
         isChatReportArchived,
         areStrictPolicyRulesEnabled,
         currentUserDetails.email,
+        currentUserDetails.accountID,
     ]);
 
     const addExpenseDropdownOptions = useMemo(

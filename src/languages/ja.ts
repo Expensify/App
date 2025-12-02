@@ -700,6 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'ドメイン',
         reportName: 'レポート名',
         showLess: '表示を減らす',
+        actionRequired: 'アクションが必要',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -2902,6 +2903,8 @@ ${
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから再試行してください。',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。<a href="${workspaceRoute}">ワークスペースの設定</a> USDに設定して、もう一度お試しください。`,
+        bbaAdded: 'ビジネス銀行口座が追加されました！',
+        bbaAddedDescription: '支払いに使用する準備ができています。',
         error: {
             youNeedToSelectAnOption: 'オプションを選択してください',
             noBankAccountAvailable: '申し訳ありませんが、利用可能な銀行口座がありません。',
@@ -4690,6 +4693,10 @@ ${
             addShippingDetails: '配送詳細を追加',
             issuedCard: ({assignee}: AssigneeParams) => `${assignee}にExpensifyカードを発行しました！カードは2～3営業日で到着します。`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `${assignee} に Expensify Card を発行しました！配送情報が確認され次第、カードは発送されます。`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee}はバーチャルExpensifyカードを再発行しました！${link}はすぐに使用できます。`,
+            card: 'カード',
+            replacementCard: '交換カード',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee}はExpensifyカードを交換しました。新しいカードは2〜3営業日以内に到着します。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `${assignee}にバーチャル${link}を発行しました！カードはすぐに使用できます。`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} が配送情報を追加しました。Expensify Card は2～3営業日で到着します。`,
             verifyingHeader: '確認中',
@@ -6519,6 +6526,15 @@ ${
             title: '更新の確認に失敗しました',
             message: '更新を確認できませんでした。しばらくしてからもう一度お試しください。',
         },
+    },
+    settlement: {
+        status: {
+            pending: '保留中',
+            cleared: '決済済み',
+            failed: '失敗',
+        },
+        failedError: ({link}: {link: string}) => `この決済は<a href="${link}">アカウントのロックを解除</a>すると再試行されます。`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 出金ID: ${withdrawalID}`,
     },
     reportLayout: {
         reportLayout: 'レポートレイアウト',
