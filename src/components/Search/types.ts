@@ -38,14 +38,14 @@ type SelectedTransactionInfo = {
     /** The transaction amount */
     amount: number;
 
-    /** The converted transaction amount into either group currency, or the active policy currency */
-    convertedAmount: number;
-
-    /** The currency that the converted amount is in */
-    convertedCurrency: string;
-
     /** The transaction currency */
     currency: string;
+
+    /** The transaction converted amount in `groupCurrency` currency */
+    groupAmount?: number;
+
+    /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
+    groupCurrency?: string;
 
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport?: boolean;
@@ -205,6 +205,15 @@ type QueryFilters = Array<{
     filters: QueryFilter[];
 }>;
 
+type RawFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+
+type RawQueryFilter = {
+    key: RawFilterKey;
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+    value: string | string[];
+    isDefault?: boolean;
+};
+
 type SearchQueryString = string;
 
 type SearchQueryAST = {
@@ -215,6 +224,7 @@ type SearchQueryAST = {
     groupBy?: SearchGroupBy;
     filters: ASTNode;
     policyID?: string[];
+    rawFilterList?: RawQueryFilter[];
 };
 
 type SearchQueryJSON = {
@@ -245,6 +255,7 @@ type SearchParams = {
     offset: number;
     prevReportsLength?: number;
     shouldCalculateTotals: boolean;
+    isLoading: boolean;
 };
 
 type BankAccountMenuItem = {
@@ -275,6 +286,8 @@ export type {
     ASTNode,
     QueryFilter,
     QueryFilters,
+    RawFilterKey,
+    RawQueryFilter,
     SearchFilterKey,
     UserFriendlyKey,
     ExpenseSearchStatus,
