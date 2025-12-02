@@ -64,8 +64,10 @@ function getThreadReportIDsForTransactions(reportActions: ReportAction[], transa
 function getReportIDForTransaction(transactionItem: TransactionListItemType) {
     const isFromSelfDM = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isFromOneTransactionReport = isOneTransactionReport(transactionItem.report);
+    // Invoice reports should always navigate to the invoice report itself, not the transaction thread
+    const isInvoice = isInvoiceReport(transactionItem.report);
 
-    return (!isFromOneTransactionReport || isFromSelfDM) && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
+    return (!isFromOneTransactionReport || isFromSelfDM) && !isInvoice && transactionItem.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
         ? transactionItem.transactionThreadReportID
         : transactionItem.reportID;
 }
