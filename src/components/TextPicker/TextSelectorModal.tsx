@@ -11,6 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,6 +33,7 @@ function TextSelectorModal({
     required = false,
     customValidate,
     enabledWhenOffline = true,
+    allowHTML,
     ...rest
 }: TextSelectorModalProps) {
     const {translate} = useLocalize();
@@ -43,10 +45,7 @@ function TextSelectorModal({
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const inputValueRef = useRef(value);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    const inputCallbackRef = (ref: BaseTextInputRef | null) => {
-        inputRef.current = ref;
-    };
+    const {inputCallbackRef} = useAutoFocusInput(true);
 
     const hide = useCallback(() => {
         onClose();
@@ -155,6 +154,7 @@ function TextSelectorModal({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                     enterKeyEventListenerPriority={0}
+                    allowHTML={allowHTML}
                 >
                     {!!subtitle && (
                         <View style={styles.pb4}>
