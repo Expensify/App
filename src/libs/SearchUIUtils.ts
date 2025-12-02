@@ -1543,9 +1543,9 @@ function getReportSections(
                 const allReportTransactions = getTransactionsForReport(data, reportItem.reportID);
                 const policy = getPolicyFromKey(data, reportItem);
 
-                const hasAnyViolationsForReport = hasAnyViolations(reportItem.reportID, allViolations, allReportTransactions, currentUserEmail, reportItem, policy);
+                const hasAnyViolationsForReport = hasAnyViolations(reportItem.reportID, allViolations, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail, allReportTransactions, reportItem, policy);
                 const hasVisibleViolationsForReport =
-                    hasAnyViolationsForReport && ViolationsUtils.hasVisibleViolationsForUser(reportItem, allViolations, currentUserEmail, policy, allReportTransactions);
+                    hasAnyViolationsForReport && ViolationsUtils.hasVisibleViolationsForUser(reportItem, allViolations, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, policy, allReportTransactions);
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
