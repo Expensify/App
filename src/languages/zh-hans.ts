@@ -1143,7 +1143,7 @@ const translations: TranslationDeepObject<typeof en> = {
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `总金额比原始费用少 ${amount}。`,
         splitExpenseZeroAmount: '请在继续之前输入有效金额。',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `为${merchant}编辑${amount}`,
-        transactionDisplayName: ({amount, merchant}: SplitExpenseEditTitleParams) => `${amount} 给 ${merchant}`,
+        transactionDisplayName: ({amount, merchant}: SplitExpenseEditTitleParams) => `${amount} 用于 ${merchant}`,
         splitExpenseOneMoreSplit: '没有添加分割。至少添加一个来保存。',
         splitExpenseCannotBeEditedModalTitle: '此费用无法编辑',
         splitExpenseCannotBeEditedModalDescription: '已批准或已支付的费用无法编辑',
