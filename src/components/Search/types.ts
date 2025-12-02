@@ -200,6 +200,15 @@ type QueryFilters = Array<{
     filters: QueryFilter[];
 }>;
 
+type RawFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+
+type RawQueryFilter = {
+    key: RawFilterKey;
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+    value: string | string[];
+    isDefault?: boolean;
+};
+
 type SearchQueryString = string;
 
 type SearchQueryAST = {
@@ -210,6 +219,7 @@ type SearchQueryAST = {
     groupBy?: SearchGroupBy;
     filters: ASTNode;
     policyID?: string[];
+    rawFilterList?: RawQueryFilter[];
 };
 
 type SearchQueryJSON = {
@@ -240,6 +250,7 @@ type SearchParams = {
     offset: number;
     prevReportsLength?: number;
     shouldCalculateTotals: boolean;
+    isLoading: boolean;
 };
 
 type BankAccountMenuItem = {
@@ -270,6 +281,8 @@ export type {
     ASTNode,
     QueryFilter,
     QueryFilters,
+    RawFilterKey,
+    RawQueryFilter,
     SearchFilterKey,
     UserFriendlyKey,
     ExpenseSearchStatus,

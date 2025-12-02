@@ -25,6 +25,15 @@ import {translateLocal} from '../utils/TestHelper';
 global.TextEncoder = TextEncoder as typeof global.TextEncoder;
 
 describe('ValidationUtils', () => {
+    beforeAll(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2024-01-15'));
+    });
+
+    afterAll(() => {
+        jest.useRealTimers();
+    });
+
     describe('isValidDate', () => {
         test('Should return true for a valid date within the range', () => {
             const validDate = '2023-07-18';
