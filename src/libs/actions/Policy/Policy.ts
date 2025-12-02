@@ -107,6 +107,7 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    BankAccountList,
     CardFeeds,
     DuplicateWorkspace,
     IntroSelected,
@@ -357,6 +358,7 @@ type DeleteWorkspaceActionParams = {
     reportsToArchive: Report[];
     transactionViolations: OnyxCollection<TransactionViolations> | undefined;
     reimbursementAccountError: Errors | undefined;
+    bankAccountList: OnyxEntry<BankAccountList>;
     lastUsedPaymentMethods?: LastPaymentMethod;
 };
 
@@ -368,14 +370,33 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         return;
     }
 
-    const {policyID, activePolicyID, policyName, lastAccessedWorkspacePolicyID, policyCardFeeds, reportsToArchive, transactionViolations, reimbursementAccountError, lastUsedPaymentMethods} =
-        params;
+    const {
+        policyID,
+        activePolicyID,
+        policyName,
+        lastAccessedWorkspacePolicyID,
+        policyCardFeeds,
+        reportsToArchive,
+        transactionViolations,
+        reimbursementAccountError,
+        lastUsedPaymentMethods,
+        bankAccountList,
+    } = params;
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);
     const filteredPolicies = Object.values(allPolicies).filter((p): p is Policy => p?.id !== policyID);
     const workspaceAccountID = policy?.workspaceAccountID;
+
+    // Filter out bank accounts associated with the policy being deleted
+    const filteredBankAccountList = Object.entries(bankAccountList ?? {}).reduce<BankAccountList>((acc, [key, bankAccount]) => {
+        if (bankAccount?.accountData?.additionalData?.policyID !== policyID) {
+            acc[key] = bankAccount;
+        }
+        return acc;
+    }, {});
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -391,6 +412,15 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: null,
         },
+        ...(filteredBankAccountList !== bankAccountList
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                      value: filteredBankAccountList,
+                  },
+              ]
+            : []),
         ...(!hasActiveChatEnabledPolicies(filteredPolicies, true)
             ? [
                   {
@@ -427,6 +457,15 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: policyCardFeeds,
         },
+        ...(filteredBankAccountList !== bankAccountList
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                      value: bankAccountList ?? {},
+                  },
+              ]
+            : []),
     ];
 
     if (policyID === activePolicyID) {
@@ -1044,6 +1083,7 @@ function leaveWorkspace(policyID?: string) {
         },
     ];
 
+    const currentTime = DateUtils.getDBTime();
     const pendingChatMembers = ReportUtils.getPendingChatMembers([sessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     // eslint-disable-next-line unicorn/no-array-for-each
@@ -1063,6 +1103,7 @@ function leaveWorkspace(policyID?: string) {
                     statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     oldPolicyName: policy?.name ?? '',
+                    isPinned: false,
                 },
             },
             {
@@ -1072,7 +1113,23 @@ function leaveWorkspace(policyID?: string) {
                     pendingChatMembers,
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
+                value: {
+                    private_isArchived: currentTime,
+                },
+            },
         );
+
+        // Restore archived flag on failure
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
+            value: {
+                private_isArchived: null,
+            },
+        });
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
@@ -4907,6 +4964,7 @@ function setWorkspaceDefaultSpendCategory(policyID: string, groupID: string, cat
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY, {policyID, groupID, category}, {optimisticData, successData, failureData});
 }
+
 /**
  * Call the API to set the receipt required amount for the given policy
  * @param policyID - id of the policy to set the receipt required amount
