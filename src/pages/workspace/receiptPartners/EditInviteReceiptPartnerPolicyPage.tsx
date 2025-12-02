@@ -310,7 +310,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                             ListItem={UserListItem}
                                             onSelectRow={() => {}}
                                             onDismissError={dismissError}
-                                            style={{listItemWrapperStyle: styles.cursorDefault}}
+                                            style={{listItemWrapperStyle: styles.cursorDefault, listStyle: styles.mt3}}
                                             addBottomSafeAreaPadding
                                             shouldShowTextInput={shouldShowTextInput}
                                             textInputOptions={{
