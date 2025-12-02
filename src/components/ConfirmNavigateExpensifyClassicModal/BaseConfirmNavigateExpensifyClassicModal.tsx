@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, {useCallback} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
