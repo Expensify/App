@@ -255,6 +255,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                     textInputOptions={textInputOptions}
                     showListEmptyContent={false}
                     shouldUseDefaultRightHandSideCheckmark
+                    disableMaintainingScrollPosition
                     addBottomSafeAreaPadding
                     canSelectMultiple
                 />
