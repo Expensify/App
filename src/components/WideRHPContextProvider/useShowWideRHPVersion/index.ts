@@ -14,7 +14,7 @@ import {WideRHPContext} from '..';
 function useShowWideRHPVersion(condition: boolean) {
     const route = useRoute();
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
-    const {showWideRHPVersion, removeWideRHPRouteKey, isReportIDMarkedAsExpense, setIsWideRHPClosing} = useContext(WideRHPContext);
+    const {showWideRHPVersion, removeWideRHPRouteKey, isReportIDMarkedAsExpense} = useContext(WideRHPContext);
 
     // When switching between reports using the arrow keys, the transition is completed when the new report screen is mounted.
     useEffect(() => {
@@ -26,13 +26,11 @@ function useShowWideRHPVersion(condition: boolean) {
     useEffect(() => () => removeWideRHPRouteKey(route), [removeWideRHPRouteKey, route]);
 
     const onWideRHPClose = useCallback(() => {
-        setIsWideRHPClosing(true);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             removeWideRHPRouteKey(route);
-            setIsWideRHPClosing(false);
         });
-    }, [removeWideRHPRouteKey, route, setIsWideRHPClosing]);
+    }, [removeWideRHPRouteKey, route]);
 
     /**
      * Effect that sets up cleanup when the screen is about to be removed.

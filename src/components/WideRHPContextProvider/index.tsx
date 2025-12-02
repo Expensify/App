@@ -24,7 +24,8 @@ import useShouldRenderOverlay from './useShouldRenderOverlay';
 // 0 is folded/hidden, 1 is expanded/shown
 const expandedRHPProgress = new Animated.Value(0);
 const innerRHPProgress = new Animated.Value(0);
-const secondOverlayProgress = new Animated.Value(0);
+const secondOverlayForWideRHPProgress = new Animated.Value(0);
+const secondOverlayForSingleRHPProgress = new Animated.Value(0);
 const thirdOverlayProgress = new Animated.Value(0);
 
 // This array contains the names of wide and super wide right modals.
@@ -98,8 +99,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const [expenseReportIDs, setExpenseReportIDs] = useState<Set<string>>(new Set());
     const [multiTransactionExpenseReportIDs, setMultiTransactionExpenseReportIDs] = useState<Set<string>>(new Set());
 
-    // When closing Wide RHP, it is no longer the focused screen, this variable helps to determine the moment when Wide RHP is still visible on the screen but no longer focused
-    const [isWideRHPClosing, setIsWideRHPClosing] = useState(false);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: expenseReportSelector, canBeMissing: true});
 
     const focusedRoute = useRootNavigationState((state) => (state ? findFocusedRoute(state) : undefined));
@@ -140,10 +139,14 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     }, [allSuperWideRHPRouteKeys, syncSuperWideRHPKeys]);
 
     /**
-     * Effect that manages the secondary overlay animation and rendering state.
+     * Effect that manages the secondary overlay animation for single RHP and rendering state.
      */
-    const shouldRenderSecondaryOverlay = useShouldRenderOverlay(isWideRHPBelow || isSuperWideRHPBelow, secondOverlayProgress);
+    const shouldRenderSecondaryOverlayForSingleRHP = useShouldRenderOverlay((isSuperWideRHPBelow || isWideRHPBelow) && !isWideRHPFocused, secondOverlayForSingleRHPProgress);
 
+    /**
+     * Effect that manages the secondary overlay animation for Wide RHP and rendering state.
+     */
+    const shouldRenderSecondaryOverlayForWideRHP = useShouldRenderOverlay(isSuperWideRHPBelow && !!isWideRHPFocused, secondOverlayForWideRHPProgress);
     /**
      * Effect that manages the tertiary overlay animation and rendering state.
      */
@@ -296,7 +299,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             showSuperWideRHPVersion,
             removeWideRHPRouteKey,
             removeSuperWideRHPRouteKey,
-            shouldRenderSecondaryOverlay,
+            shouldRenderSecondaryOverlayForSingleRHP,
+            shouldRenderSecondaryOverlayForWideRHP,
             shouldRenderTertiaryOverlay,
             markReportIDAsExpense,
             markReportIDAsMultiTransactionExpense,
@@ -304,8 +308,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isReportIDMarkedAsExpense,
             isReportIDMarkedAsMultiTransactionExpense,
             isWideRHPFocused,
-            isWideRHPClosing,
-            setIsWideRHPClosing,
             syncWideRHPKeys,
             syncSuperWideRHPKeys,
             clearWideRHPKeys,
@@ -317,7 +319,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             showSuperWideRHPVersion,
             removeWideRHPRouteKey,
             removeSuperWideRHPRouteKey,
-            shouldRenderSecondaryOverlay,
+            shouldRenderSecondaryOverlayForSingleRHP,
+            shouldRenderSecondaryOverlayForWideRHP,
             shouldRenderTertiaryOverlay,
             markReportIDAsExpense,
             markReportIDAsMultiTransactionExpense,
@@ -325,7 +328,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isReportIDMarkedAsExpense,
             isReportIDMarkedAsMultiTransactionExpense,
             isWideRHPFocused,
-            isWideRHPClosing,
             syncWideRHPKeys,
             syncSuperWideRHPKeys,
             clearWideRHPKeys,
@@ -347,7 +349,8 @@ export {
     innerRHPProgress,
     modalStackOverlaySuperWideRHPPositionLeft,
     modalStackOverlayWideRHPPositionLeft,
-    secondOverlayProgress,
+    secondOverlayForWideRHPProgress,
+    secondOverlayForSingleRHPProgress,
     thirdOverlayProgress,
     WideRHPContext,
     WIDE_RIGHT_MODALS,
