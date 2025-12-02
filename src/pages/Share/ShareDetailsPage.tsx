@@ -94,7 +94,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 setErrorMessage(translate('attachmentPicker.sizeNotMet'));
             }
         });
-    }, [currentAttachment, errorTitle, translate]);
+    }, [currentAttachment?.content, errorTitle, translate]);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {

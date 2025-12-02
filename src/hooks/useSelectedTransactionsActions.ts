@@ -120,7 +120,7 @@ function useSelectedTransactionsActions({
         }
 
         return false;
-    }, [selectedTransactionsList, selectedTransactionsMeta, selectedTransactionIDs]);
+    }, [selectedTransactionsList, selectedTransactionsMeta, selectedTransactionIDs.length]);
 
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
