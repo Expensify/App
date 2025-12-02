@@ -1641,7 +1641,7 @@ describe('getSecondaryAction', () => {
         jest.spyOn(ReportActionsUtils, 'getOneTransactionThreadReportID').mockReturnValue(originalMessageR14932.IOUTransactionID);
         jest.spyOn(ReportUtils, 'isHoldCreator').mockReturnValue(false);
 
-        const result = getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, report, chatReport, reportTransactions, originalTransaction: {} as Transaction, violations: {}, policy});
+        const result = getSecondaryReportActions({currentUserEmail: EMPLOYEE_EMAIL, currentUserAccountID: EMPLOYEE_ACCOUNT_ID, report, chatReport, reportTransactions, originalTransaction: {} as Transaction, violations: {}, policy});
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 });
