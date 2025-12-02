@@ -289,12 +289,14 @@ function getCustomUnitRateID({
     reportID,
     isPolicyExpenseChat,
     policy,
+    isTrackDistanceExpense,
     lastSelectedDistanceRates,
 }: {
     reportID: string | undefined;
     isPolicyExpenseChat: boolean;
     policy: OnyxEntry<Policy> | undefined;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
+    isTrackDistanceExpense?: boolean;
 }): string {
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
@@ -310,7 +312,7 @@ function getCustomUnitRateID({
         return customUnitRateID;
     }
 
-    if (isPolicyExpenseChat) {
+    if (isPolicyExpenseChat || isTrackDistanceExpense) {
         const distanceUnit = Object.values(policy.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
         const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;

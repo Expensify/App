@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -18,6 +19,7 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import Performance from '@libs/Performance';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
+import {isDistanceRequest} from '@libs/TransactionUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {IOURequestType} from '@userActions/IOU';
 import {initMoneyRequest} from '@userActions/IOU';
@@ -91,6 +93,8 @@ function DistanceRequestStartPage({
     const navigateBack = () => {
         Navigation.closeRHPFlow();
     };
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
 
     // This useEffect is used to initialize the money request, so that currency will be reset to default currency on page reload.
     useEffect(() => {
@@ -99,7 +103,8 @@ function DistanceRequestStartPage({
         }
         initMoneyRequest({
             reportID,
-            policy,
+            policy: isTrackDistanceExpense ? policyForMovingExpenses : policy,
+            isTrackDistanceExpense,
             isFromGlobalCreate,
             currentIouRequestType: transaction?.iouRequestType,
             newIouRequestType: transaction?.iouRequestType,
@@ -120,8 +125,9 @@ function DistanceRequestStartPage({
             }
             initMoneyRequest({
                 reportID,
-                policy,
+                policy: isTrackDistanceExpense ? policyForMovingExpenses : policy,
                 isFromGlobalCreate,
+                isTrackDistanceExpense,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
                 report,
