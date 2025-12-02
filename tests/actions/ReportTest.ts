@@ -1746,6 +1746,8 @@ describe('actions/Report', () => {
             ...createRandomPolicy(Number(policyID)),
             isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
+            autoReporting: false,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
             harvesting: {
                 enabled: false,
             },
@@ -1850,6 +1852,7 @@ describe('actions/Report', () => {
             ...createRandomPolicy(Number(policyID)),
             isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
             harvesting: {
                 enabled: true,
             },
@@ -2069,7 +2072,7 @@ describe('actions/Report', () => {
                 ownerAccountID: currentUserAccountID,
                 areRulesEnabled: true,
                 preventSelfApproval: false,
-                autoReportingFrequency: 'immediate',
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
                 harvesting: {
                     enabled: false,
                 },

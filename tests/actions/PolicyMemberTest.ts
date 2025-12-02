@@ -7,7 +7,7 @@ import * as Member from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, PersonalDetailsList, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
+import type {ImportedSpreadsheet, Policy as PolicyType, Report, ReportAction, ReportMetadata} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -188,8 +188,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
-            Member.requestWorkspaceOwnerChange(fakePolicy.id);
+            Member.requestWorkspaceOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -427,12 +426,11 @@ describe('actions/PolicyMember', () => {
             const userAccountID = 1236;
             const userEmail = 'user@example.com';
 
-            const allPersonalDetails = {
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
                 [adminAccountID]: {login: adminEmail},
                 [auditorAccountID]: {login: auditorEmail},
                 [userAccountID]: {login: userEmail},
-            } as unknown as PersonalDetailsList;
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, allPersonalDetails);
+            });
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                 ...createRandomPolicy(Number(policyID)),
                 approver: defaultApprover,
@@ -461,7 +459,7 @@ describe('actions/PolicyMember', () => {
                 [auditorEmail]: auditorAccountID,
                 [userEmail]: userAccountID,
             };
-            Member.removeMembers(policyID, [adminEmail, auditorEmail, userEmail], memberEmailsToAccountIDs, [], allPersonalDetails);
+            Member.removeMembers(policyID, [adminEmail, auditorEmail, userEmail], memberEmailsToAccountIDs);
 
             await waitForBatchedUpdates();
 
@@ -518,13 +516,9 @@ describe('actions/PolicyMember', () => {
                 [expenseAction.reportActionID]: expenseAction,
             });
 
-            const allPersonalDetails = {
-                [userAccountID]: {login: userEmail},
-            } as unknown as PersonalDetailsList;
-
             // When removing a member from the workspace
             mockFetch?.pause?.();
-            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID}, [], allPersonalDetails);
+            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID});
 
             await waitForBatchedUpdates();
 
@@ -572,10 +566,7 @@ describe('actions/PolicyMember', () => {
 
             // When removing a member and the request fails
             mockFetch?.fail?.();
-            const allPersonalDetails = {
-                [userAccountID]: {login: userEmail},
-            } as unknown as PersonalDetailsList;
-            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID}, [], allPersonalDetails);
+            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID});
 
             await waitForBatchedUpdates();
 
