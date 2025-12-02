@@ -254,6 +254,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             testID="ExpensifyLogoButton"
                             onPress={navigateToChats}
                             wrapperStyle={styles.leftNavigationTabBarItem}
+                            sentryLabel="NavigationTabBar-ExpensifyLogo"
                         >
                             <ImageSVG
                                 style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
@@ -265,6 +266,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.inbox')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel="NavigationTabBar-Inbox"
                         >
                             {({hovered}) => (
                                 <>
@@ -305,6 +307,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.reports')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel="NavigationTabBar-Reports"
                         >
                             {({hovered}) => (
                                 <>
@@ -336,6 +339,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.workspacesTabTitle')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel="NavigationTabBar-Workspaces"
                         >
                             {({hovered}) => (
                                 <>
@@ -403,6 +407,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     accessibilityLabel={translate('common.inbox')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
+                    sentryLabel="NavigationTabBar-Inbox"
                 >
                     <View>
                         <Icon
@@ -439,6 +444,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     accessibilityLabel={translate('common.reports')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
+                    sentryLabel="NavigationTabBar-Reports"
                 >
                     <View>
                         <Icon
@@ -470,6 +476,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                     accessibilityLabel={translate('common.workspacesTabTitle')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
+                    sentryLabel="NavigationTabBar-Workspaces"
                 >
                     <View>
                         <Icon
