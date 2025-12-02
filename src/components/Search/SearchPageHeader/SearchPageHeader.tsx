@@ -3,6 +3,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {BankAccountMenuItem, SearchQueryJSON} from '@components/Search/types';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {getTypeOptions} from '@libs/SearchUIUtils';
@@ -44,6 +45,7 @@ function SearchPageHeader({
 }: SearchPageHeaderProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions} = useSearchContext();
+    const {translate} = useLocalize();
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -51,7 +53,7 @@ function SearchPageHeader({
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const {type: unsafeType} = queryJSON;
     const [type] = useMemo(() => {
-        const options = getTypeOptions(allPolicies, email);
+        const options = getTypeOptions(translate, allPolicies, email);
         const value = options.find((option) => option.value === unsafeType) ?? null;
         return [value];
     }, [allPolicies, email, unsafeType]);
@@ -73,7 +75,7 @@ function SearchPageHeader({
 
         // Otherwise count transactions
         return selectedTransactionsKeys.length;
-    }, [selectedTransactionsKeys.length, type?.value, selectedTransactions]);
+    }, [selectedTransactionsKeys.length, type?.value, selectedTransactions, translate]);
 
     if (shouldUseNarrowLayout && isMobileSelectionModeEnabled) {
         return (
