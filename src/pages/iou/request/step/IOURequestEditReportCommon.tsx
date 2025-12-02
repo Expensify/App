@@ -18,7 +18,17 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSubmitPerDiemExpenseFromWorkspace, getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {canAddTransaction, getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {
+    canAddTransaction,
+    getOutstandingReportsForUser,
+    getPolicyName,
+    getReportName,
+    isIOUReport,
+    isOpenReport,
+    isReportOwner,
+    isSelfDM,
+    sortOutstandingReportsBySelected,
+} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -43,7 +53,7 @@ type Props = {
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
     createReport?: () => void;
-    isPerDiemRequest?: boolean;
+    isPerDiemRequest: boolean;
 };
 
 const policyIdSelector = (policy: OnyxEntry<Policy>) => policy?.id;
@@ -81,7 +91,7 @@ function IOURequestEditReportCommon({
         }
 
         return currentUserPersonalDetails.accountID;
-    }, [targetOwnerAccountID, selectedReport, currentUserPersonalDetails.accountID]);
+    }, [targetOwnerAccountID, selectedReport?.ownerAccountID, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest);
 
@@ -173,11 +183,12 @@ function IOURequestEditReportCommon({
             .map((report) => {
                 const matchingOption = options.reports.find((option) => option.reportID === report.reportID);
                 return {
-                    ...matchingOption,
+                    ...(matchingOption ?? report),
                     // We are shallow copying properties from matchingOption, so if it has a brickRoadIndicator, it will display RBR.
                     // We set it to null here to prevent showing RBR for reports https://github.com/Expensify/App/issues/65960.
                     brickRoadIndicator: null,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
+                    text: getReportName(report),
                     value: report.reportID,
                     keyForList: report.reportID,
                     isSelected: report.reportID === selectedReportID,
@@ -200,7 +211,7 @@ function IOURequestEditReportCommon({
         Navigation.goBack(backTo);
     };
 
-    const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
+    const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 
     const createReportOption = useMemo(() => {
         if (!createReport || (isEditing && !isOwner)) {

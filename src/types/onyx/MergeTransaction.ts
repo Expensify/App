@@ -53,6 +53,9 @@ type MergeTransaction = {
     /** The report ID of the transaction */
     reportID: string;
 
+    /** The report name of the transaction */
+    reportName: string;
+
     /** Custom unit data for distance requests */
     customUnit?: TransactionCustomUnit;
 
@@ -67,6 +70,9 @@ type MergeTransaction = {
 
     /** The attendees of the transaction */
     attendees?: Attendee[];
+
+    /** ID of the original transaction */
+    originalTransactionID?: string;
 };
 
 export default MergeTransaction;

@@ -18,6 +18,8 @@ import EmailUtils from '@libs/EmailUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+import {translateLocal} from '@libs/Localize';
 import {getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -110,6 +112,7 @@ import {
     getDeletedTransactionMessage,
     getDowngradeWorkspaceMessage,
     getHarvestOriginalReportID,
+    getForcedCorporateUpgradeMessage,
     getIOUReportActionDisplayMessage,
     getMovedActionMessage,
     getOriginalReportID,
@@ -232,6 +235,7 @@ type ContextMenuActionPayload = {
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
+    policy?: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
 };
@@ -491,6 +495,43 @@ const ContextMenuActions: ContextMenuAction[] = [
         getDescription: () => {},
     },
     {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.leaveThread',
+        icon: Expensicons.Exit,
+        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction}) => {
+            const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
+            const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
+            const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
+            const subscribed = childReportNotificationPreference !== 'hidden';
+            const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
+            const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
+            const isTaskAction = isCreatedTaskReportAction(reportAction);
+            return (
+                subscribed &&
+                !isWhisperAction &&
+                !isTaskAction &&
+                !isExpenseReportAction &&
+                !isThreadReportParentAction &&
+                (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
+            );
+        },
+        onPress: (closePopover, {reportAction, reportID}) => {
+            const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
+            const originalReportID = getOriginalReportID(reportID, reportAction);
+            if (closePopover) {
+                hideContextMenu(false, () => {
+                    ReportActionComposeFocusManager.focus();
+                    toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
+                });
+                return;
+            }
+
+            ReportActionComposeFocusManager.focus();
+            toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
+        },
+        getDescription: () => {},
+    },
+    {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Copy,
@@ -557,6 +598,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 movedToReport,
                 childReport,
                 getLocalDateFromDatetime,
+                policy,
                 policyTags,
                 translate,
             },
@@ -579,6 +621,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = getForReportActionTemp({
                         reportAction,
+                        policy,
                         movedFromReport,
                         movedToReport,
                         policyTags,
@@ -702,6 +745,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
                     const displayMessage = getUpgradeWorkspaceMessage();
                     Clipboard.setString(displayMessage);
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
+                    const displayMessage = Parser.htmlToText(getForcedCorporateUpgradeMessage());
+                    Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
                     const displayMessage = getDowngradeWorkspaceMessage();
                     Clipboard.setString(displayMessage);
@@ -744,7 +790,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
                     setClipboardMessage(getIntegrationSyncFailedMessage(reportAction, report?.policyID, isTryNewDotNVPDismissed));
                 } else if (isCardIssuedAction(reportAction)) {
-                    setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, expensifyCard: card}));
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, expensifyCard: card, translate: translateLocal}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {
                     setClipboardMessage(getAddedConnectionMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
