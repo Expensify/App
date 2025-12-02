@@ -29,7 +29,7 @@ const secondOverlayForSingleRHPProgress = new Animated.Value(0);
 const thirdOverlayProgress = new Animated.Value(0);
 
 // This array contains the names of wide and super wide right modals.
-const WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_REPORT]);
+const WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT]);
 const SUPER_WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT]);
 
 // The width of the left panel in Wide RHP where the receipt is displayed
@@ -172,16 +172,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     }, [superWideRHPRouteKeys.length, wideRHPRouteKeys.length]);
 
     /**
-     * Adds a route to the wide RHP route keys list, enabling wide RHP display for that route.
-     */
-    const showWideRHPVersion = useCallback((route: NavigationRoute) => showWideRHPRoute(route, setAllWideRHPRouteKeys), []);
-
-    /**
-     * Adds a route to the super wide RHP route keys list, enabling wide RHP display for that route.
-     */
-    const showSuperWideRHPVersion = useCallback((route: NavigationRoute) => showWideRHPRoute(route, setAllSuperWideRHPRouteKeys), []);
-
-    /**
      * Removes a route from the super wide RHP route keys list, disabling wide RHP display for that route.
      */
     const removeSuperWideRHPRouteKey = useCallback((route: NavigationRoute) => removeWideRHPRoute(route, setAllSuperWideRHPRouteKeys), []);
@@ -190,6 +180,28 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      * Removes a route from the wide RHP route keys list, disabling wide RHP display for that route.
      */
     const removeWideRHPRouteKey = useCallback((route: NavigationRoute) => removeWideRHPRoute(route, setAllWideRHPRouteKeys), []);
+
+    /**
+     * Adds a route to the wide RHP route keys list, enabling wide RHP display for that route.
+     */
+    const showWideRHPVersion = useCallback(
+        (route: NavigationRoute) => {
+            removeSuperWideRHPRouteKey(route);
+            showWideRHPRoute(route, setAllWideRHPRouteKeys);
+        },
+        [removeSuperWideRHPRouteKey],
+    );
+
+    /**
+     * Adds a route to the super wide RHP route keys list, enabling super wide RHP display for that route.
+     */
+    const showSuperWideRHPVersion = useCallback(
+        (route: NavigationRoute) => {
+            removeWideRHPRouteKey(route);
+            showWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
+        },
+        [removeWideRHPRouteKey],
+    );
 
     /**
      * Marks a report ID as an expense report, adding it to the expense reports set.
