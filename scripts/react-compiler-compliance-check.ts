@@ -710,7 +710,7 @@ function printResults(
     }
 
     log();
-    logError('The files above failed to compile with React Compiler, probably because of Rules of React violations. Please fix the issues and run the check again.');
+    logError('The files above failed the React Compiler compliance check. Please fix the issues and run the check again...');
 }
 
 function printFailures(failuresToPrint: FailureMap, level = 0) {
