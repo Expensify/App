@@ -47,7 +47,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     ]);
 
     const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(
-        () => getTransactionDetails(splitExpenseDraftTransaction, undefined, undefined, undefined, undefined, preferredLocale) ?? {},
+        () => getTransactionDetails(splitExpenseDraftTransaction, undefined, undefined, undefined, undefined, undefined, preferredLocale) ?? {},
         [splitExpenseDraftTransaction, preferredLocale],
     );
 
