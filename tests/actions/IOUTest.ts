@@ -23,6 +23,7 @@ import {
     completeSplitBill,
     createDistanceRequest,
     deleteMoneyRequest,
+    duplicateExpenseTransaction,
     evenlyDistributeSplitExpenseAmounts,
     getIOUReportActionToApproveOrPay,
     getPerDiemExpenseInformation,
@@ -10523,6 +10524,77 @@ describe('actions/IOU', () => {
             if (invoiceInfo.invoiceRoom.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
                 expect(invoiceInfo.invoiceRoom.invoiceReceiver.accountID).toBe(userBAccountID);
             }
+        });
+    });
+
+    describe('duplicateExpenseTransaction', () => {
+        const DUPLICATION_EXCEPTIONS = [
+            'transactionID', 'createdAccountID', 'reportID', 'status', 'created', 
+            'parentTransactionID', 'isTestDrive', 'source', 'receipt', 'filename',
+        ];
+
+        function isTransactionDuplicated(originalTransaction, duplicatedTransaction) {
+            Object.keys(duplicatedTransaction).forEach((key) => {
+                if (DUPLICATION_EXCEPTIONS.includes(key) || !originalTransaction.hasOwnProperty(key) || key.startsWith('original')) {
+                    return;
+                }
+
+                let originalTransactionKey = key;
+                const modifiedKey = `modified${key.charAt(0).toUpperCase()}${key.slice(1)}`;
+                if (originalTransaction.hasOwnProperty(modifiedKey) && !!originalTransaction[modifiedKey]) {
+                    originalTransactionKey = modifiedKey;
+                }
+
+                const originalValue = originalTransaction[originalTransactionKey];
+                const duplicatedValue = duplicatedTransaction[key];
+
+                // This handles cases such as modifiedAmount where the sign is flipped for zero values
+                if (originalValue == 0 && duplicatedValue == 0) {
+                    return;
+                }
+                
+                expect(duplicatedValue).toEqual(originalValue);
+            });
+        }
+
+        const mockOptimisticChatReportID = '789';
+        const mockOptimisticIOUReportID = '987';
+        const mockIsASAPSubmitBetaEnabled = false;
+
+        const mockTransaction = createRandomTransaction(1);
+        const mockPolicy = createRandomPolicy(1);
+        const policyExpenseChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+
+        it('should create a duplicate expense with all fields duplicated', async () => {
+            const {waypoints, ...restOfComment} = mockTransaction.comment;
+            const mockCashExpenseTransaction = {
+                ...mockTransaction,
+                amount: mockTransaction.amount * -1,
+                comment: {
+                    ...restOfComment,
+                },
+            }
+
+            duplicateExpenseTransaction(
+                mockCashExpenseTransaction,
+                mockOptimisticChatReportID,
+                mockOptimisticIOUReportID,
+                mockIsASAPSubmitBetaEnabled,
+                mockPolicy,
+                policyExpenseChat,
+            );
+
+            await waitForBatchedUpdates();
+            
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+            
+            isTransactionDuplicated(mockCashExpenseTransaction, duplicatedTransaction);
         });
     });
 });
