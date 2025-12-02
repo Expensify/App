@@ -377,6 +377,7 @@ function MoneyRequestConfirmationListFooter({
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
+    const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
     // The per diem custom unit
@@ -611,6 +612,8 @@ function MoneyRequestConfirmationListFooter({
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                     rightLabel={isCategoryRequired ? translate('common.required') : ''}
+                    brickRoadIndicator={shouldDisplayCategoryError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayCategoryError ? translate(formError) : ''}
                 />
             ),
             shouldShow: shouldShowCategories,
