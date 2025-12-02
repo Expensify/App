@@ -6280,6 +6280,36 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Kategorien`;
+                case 'tags':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Stichwörter`;
+                case 'workflows':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Workflows`;
+                case 'distance rates':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Entfernungsraten`;
+                case 'accounting':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Buchhaltung`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Expensify-Karten`;
+                case 'company cards':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Firmenkarten`;
+                case 'invoicing':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Rechnungsstellung`;
+                case 'per diem':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Tagespauschale`;
+                case 'receipt partners':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Belegpartner`;
+                case 'rules':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Regeln`;
+                case 'tax tracking':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Steuerverfolgung`;
+                default:
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Teilnehmerverfolgung`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `Standardgenehmiger auf ${newApprover} geändert (zuvor ${previousApprover})` : `den Standardgenehmiger auf ${newApprover} geändert`,

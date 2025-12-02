@@ -6237,6 +6237,36 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'włączone' : 'wyłączone'} kategorii`;
+                case 'tags':
+                    return `${enabled ? 'włączone' : 'wyłączone'} tagów`;
+                case 'workflows':
+                    return `${enabled ? 'włączone' : 'wyłączone'} przepływów pracy`;
+                case 'distance rates':
+                    return `${enabled ? 'włączone' : 'wyłączone'} stawki za dystans`;
+                case 'accounting':
+                    return `${enabled ? 'włączone' : 'wyłączone'} księgowość`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'włączone' : 'wyłączone'} Karty Expensify`;
+                case 'company cards':
+                    return `${enabled ? 'włączone' : 'wyłączone'} kart firmowych`;
+                case 'invoicing':
+                    return `${enabled ? 'włączone' : 'wyłączone'} fakturowanie`;
+                case 'per diem':
+                    return `${enabled ? 'włączone' : 'wyłączone'} dieta dzienna`;
+                case 'receipt partners':
+                    return `${enabled ? 'włączone' : 'wyłączone'} partnerzy paragonów`;
+                case 'rules':
+                    return `${enabled ? 'włączone' : 'wyłączone'} reguły`;
+                case 'tax tracking':
+                    return `${enabled ? 'włączone' : 'wyłączone'} śledzenie podatków`;
+                default:
+                    return `${enabled ? 'włączone' : 'wyłączone'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'Wyłączone'} śledzenie uczestników`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `zmieniono domyślnego zatwierdzającego na ${newApprover} (wcześniej ${previousApprover})` : `zmieniono domyślnego zatwierdzającego na ${newApprover}`,
