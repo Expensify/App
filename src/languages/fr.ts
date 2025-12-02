@@ -7181,9 +7181,7 @@ ${
                 `Vous avez contesté le débit de ${amountOwed} sur la carte se terminant par ${cardEnding}. Votre compte sera verrouillé jusqu'à ce que le litige soit résolu avec votre banque.`,
             preTrial: {
                 title: 'Commencer un essai gratuit',
-                subtitleStart: 'Comme prochaine étape,',
-                subtitleLink: 'complétez votre liste de vérification de configuration',
-                subtitleEnd: 'afin que votre équipe puisse commencer à soumettre des notes de frais.',
+                subtitle: 'Étape suivante : <a href="#">complétez votre liste de contrôle de configuration</a> afin que votre équipe puisse commencer à soumettre des notes de frais.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Essai : ${numOfDays} ${numOfDays === 1 ? 'jour' : 'jours'} restants !`,
