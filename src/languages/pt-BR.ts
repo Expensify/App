@@ -6252,6 +6252,36 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'ativado' : 'desativado'} categorias`;
+                case 'tags':
+                    return `${enabled ? 'ativado' : 'desativado'} etiquetas`;
+                case 'workflows':
+                    return `${enabled ? 'ativado' : 'desativado'} fluxos de trabalho`;
+                case 'distance rates':
+                    return `${enabled ? 'ativado' : 'desativado'} taxas de distância`;
+                case 'accounting':
+                    return `${enabled ? 'ativado' : 'desativado'} contabilidade`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'ativado' : 'desativado'} Cartões Expensify`;
+                case 'company cards':
+                    return `${enabled ? 'ativado' : 'desativado'} cartões corporativos`;
+                case 'invoicing':
+                    return `${enabled ? 'ativado' : 'desativado'} faturamento`;
+                case 'per diem':
+                    return `${enabled ? 'ativado' : 'desativado'} de diária`;
+                case 'receipt partners':
+                    return `${enabled ? 'ativado' : 'desativado'} parceiros de recibos`;
+                case 'rules':
+                    return `${enabled ? 'ativado' : 'desativado'} regras`;
+                case 'tax tracking':
+                    return `${enabled ? 'ativado' : 'desativado'} rastreamento de impostos`;
+                default:
+                    return `${enabled ? 'ativado' : 'desativado'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} acompanhamento de participantes`,
     },
     roomMembersPage: {
