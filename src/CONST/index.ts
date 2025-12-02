@@ -1682,6 +1682,12 @@ const CONST = {
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
+        SPAN_BOOTSPLASH: {
+            ROOT: 'BootsplashVisible',
+            NAVIGATION: 'BootsplashNavigationInit',
+            ONYX: 'BootsplashOnyxInit',
+            LOCALE: 'BootsplashLocaleInit',
+        },
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',

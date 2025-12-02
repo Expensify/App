@@ -44,7 +44,7 @@ import './libs/Notification/PushNotification/subscribeToPushNotifications';
 import './libs/registerPaginationConfig';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
-import {endSpan} from './libs/telemetry/activeSpans';
+import {endSpan, startSpan} from './libs/telemetry/activeSpans';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/telemetry/TelemetrySynchronizer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
@@ -123,14 +123,57 @@ function Expensify() {
     useDebugShortcut();
     usePriorityMode();
 
+    const bootsplashSpan = useRef<Sentry.Span>(null);
+
     const [initialUrl, setInitialUrl] = useState<Route | null>(null);
     const {setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
     useEffect(() => {
         if (isCheckingPublicRoom) {
             return;
         }
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX);
         setAttemptedToOpenPublicRoom(true);
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION,
+            parentSpan: bootsplashSpan.current,
+        });
     }, [isCheckingPublicRoom]);
+
+    useEffect(() => {
+        bootsplashSpan.current = startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+        });
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,
+            parentSpan: bootsplashSpan.current,
+        });
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE,
+            parentSpan: bootsplashSpan.current,
+        });
+
+        return () => {
+            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
+            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX);
+            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
+            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!preferredLocale) {
+            return;
+        }
+
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
+    }, [preferredLocale]);
 
     const isAuthenticated = useIsAuthenticated();
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session?.autoAuthState]);
@@ -168,6 +211,8 @@ function Expensify() {
     const setNavigationReady = useCallback(() => {
         setIsNavigationReady(true);
 
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
+
         // Navigate to any pending routes now that the NavigationContainer is ready
         Navigation.setIsNavigationReady();
     }, []);
@@ -175,6 +220,8 @@ function Expensify() {
     const onSplashHide = useCallback(() => {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX);
     }, [setSplashScreenState]);
 
     useLayoutEffect(() => {
