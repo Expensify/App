@@ -2,9 +2,10 @@ import type {BaseTransportOptions, Transport, TransportRequest, TransportRequest
 import {createTransport} from '@sentry/core';
 
 /**
- * Enable this to log Sentry telemetry data to console instead of sending to Sentry servers.
+ * Enable this to log Sentry requests to console in development.
+ * Sentry requests are NOT sent to Sentry servers in development.
  */
-const DEBUG_SENTRY_ENABLED = true;
+const DEBUG_SENTRY_ENABLED = false;
 
 /**
  * List of span operations to highlight in debug logs.
@@ -12,7 +13,7 @@ const DEBUG_SENTRY_ENABLED = true;
  * Note: span.op in code corresponds to span.name in Sentry dashboard.
  * Example: ['ui.interaction.click', 'ui.interaction.scroll', 'ui.load', 'navigation']
  */
-const HIGHLIGHTED_SPAN_OPS: string[] = ['navigation'];
+const HIGHLIGHTED_SPAN_OPS: string[] = [''];
 
 function formatLogPrefix(category: string, op?: string): string {
     if (op) {
