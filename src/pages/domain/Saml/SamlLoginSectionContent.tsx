@@ -97,11 +97,12 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                             setSamlRequired(false, accountID, domainName);
                             setIsScimConfirmModalVisible(false);
                         }}
-                        title={translate('domain.samlLogin.turnOffSamlRequired')}
-                        prompt={translate('domain.samlLogin.samlRequiredOktaWarning')}
-                        confirmText={translate('common.ok')}
+                        title={translate('domain.samlLogin.disableSamlRequired')}
+                        prompt={translate('domain.samlLogin.oktaWarningPrompt')}
+                        confirmText={translate('common.disable')}
                         cancelText={translate('common.cancel')}
                         onCancel={() => setIsScimConfirmModalVisible(false)}
+                        danger
                         shouldHandleNavigationBack
                     />
                 </>
