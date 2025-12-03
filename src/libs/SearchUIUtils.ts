@@ -1434,7 +1434,7 @@ function createAndOpenSearchTransactionThread(
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
     setOptimisticDataForTransactionThreadPreview(item, previewData, IOUTransactionID);
 
-    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction);
+    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID: item.reportAction?.reportActionID} as OnyxTypes.ReportAction);
 
     if (shouldNavigate) {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));

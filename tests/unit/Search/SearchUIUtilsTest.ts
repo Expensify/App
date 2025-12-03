@@ -406,7 +406,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
             errors: undefined,
             filename: undefined,
             groupAmount: -5000,
@@ -437,7 +436,7 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
+
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -470,7 +469,7 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
+
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -502,7 +501,7 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
+
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -806,7 +805,7 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
+
         errors: undefined,
         filename: undefined,
         violations: [],
@@ -864,7 +863,7 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
+
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -928,7 +927,7 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
+
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -987,7 +986,7 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
+
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -1078,7 +1077,7 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-                moneyRequestReportActionID: '789',
+
                 errors: undefined,
                 filename: undefined,
                 violations: [],
@@ -1184,7 +1183,7 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-                moneyRequestReportActionID: '789',
+
                 pendingAction: undefined,
                 errors: undefined,
                 filename: undefined,
@@ -2869,7 +2868,7 @@ describe('SearchUIUtils', () => {
         const threadReport = {reportID: threadReportID};
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
-        const iouReportAction = {reportActionID: transactionListItem.moneyRequestReportActionID} as OnyxTypes.ReportAction;
+        const iouReportAction = {reportActionID: transactionListItem?.reportAction?.reportActionID} as OnyxTypes.ReportAction;
         const backTo = '/search/all';
 
         test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
@@ -2915,7 +2914,7 @@ describe('SearchUIUtils', () => {
             await waitForBatchedUpdates();
 
             const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionListItem.reportID}`);
-            const parentReportAction = transactionListItem.moneyRequestReportActionID && parentReport?.[transactionListItem.moneyRequestReportActionID];
+            const parentReportAction = transactionListItem?.reportAction?.reportActionID && parentReport?.[transactionListItem?.reportAction?.reportActionID];
 
             expect(parentReportAction).toBeTruthy();
         });
