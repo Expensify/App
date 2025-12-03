@@ -198,7 +198,7 @@ function isValidReportType(reportType?: string): boolean {
  * Compute a new report name if needed based on an optimistic update
  */
 function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: OnyxUpdate, context: UpdateContext): string | null {
-    const {allPolicies, allPersonalDetails} = context;
+    const {allPolicies} = context;
 
     // If no report is provided, extract it from the update (for new reports)
     const targetReport = report ?? (incomingUpdate.value as Report);
@@ -251,18 +251,11 @@ function computeReportNameIfNeeded(report: Report | undefined, incomingUpdate: O
 
     const updatedTransaction = updateType === 'transaction' ? {...(transaction ?? {}), ...(incomingUpdate.value as Transaction)} : undefined;
 
-    const submitterAccountID = updatedReport.ownerAccountID ? String(updatedReport.ownerAccountID) : undefined;
-    const managerAccountID = updatedReport.managerID ? String(updatedReport.managerID) : undefined;
-    const submitterPersonalDetails = submitterAccountID ? (allPersonalDetails[submitterAccountID] ?? undefined) : undefined;
-    const managerPersonalDetails = managerAccountID ? (allPersonalDetails[managerAccountID] ?? undefined) : undefined;
-
     // Compute the new name
     const formulaContext: FormulaContext = {
         report: updatedReport,
         policy: updatedPolicy,
         transaction: updatedTransaction,
-        submitterPersonalDetails,
-        managerPersonalDetails,
         allTransactions: context.allTransactions,
     };
 
