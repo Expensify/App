@@ -1297,7 +1297,6 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `enviado${memo ? `, dizendo ${memo}` : ''}`,
         automaticallySubmitted: `enviado via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">adiar envios</a>`,
         queuedToSubmitViaDEW: 'enfileirado para envio via fluxo de aprovação personalizado',
-        dynamicExternalWorkflowCannotSubmit: 'Este relatório não pode ser enviado. Por favor, revise os comentários para resolver.',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `rastreamento ${formattedAmount}${comment ? `para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividir ${formattedAmount}${comment ? `para ${comment}` : ''}`,
