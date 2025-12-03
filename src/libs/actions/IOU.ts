@@ -6951,6 +6951,7 @@ function duplicateExpenseTransaction(
             attendees: transactionDetails?.attendees as Attendee[] | undefined,
             comment: transactionDetails?.comment,
             created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            modifiedCreated: '',
             customUnitRateID: transaction?.comment?.customUnit?.customUnitRateID,
             isTestDrive: transaction?.receipt?.isTestDriveReceipt,
             merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
