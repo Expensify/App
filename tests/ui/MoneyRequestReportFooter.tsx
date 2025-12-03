@@ -79,7 +79,7 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         iouAttendees: [],
         iouCategory: '',
         iouComment: '',
-        iouCreated: '',
+        iouCreated: new Date().toISOString(),
         iouCurrencyCode: 'USD',
         iouIsBillable: false,
         iouMerchant: '',
