@@ -11053,7 +11053,7 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrE
 
     if (isChatThreadReport) {
         const isHidden = isHiddenForCurrentUser(report);
-        const isCreator = currentUserAccountID && report?.ownerAccountID === currentUserAccountID;
+        const isCreator = currentUserAccountID !== undefined && report?.ownerAccountID === currentUserAccountID;
         // Creator with non-HIDDEN preference has already joined (they created it)
         if (isCreator && !isHidden) {
             return false;
