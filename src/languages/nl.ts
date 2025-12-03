@@ -2724,17 +2724,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Verbind [je zakelijke kaart](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Koppel [je bedrijfskaarten](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Koppel je bedrijfskaart om automatisch uitgaven te importeren en te coderen.
+                        Verbind de kaarten die je al hebt voor automatische import van transacties, bonnetjes matchen en afstemming.
 
                         1. Klik op *Workspaces*.
                         2. Selecteer je workspace.
-                        3. Klik op *Corporate cards*.
-                        4. Volg de aanwijzingen om je kaart te koppelen.
+                        3. Klik op *Company cards*.
+                        4. Volg de aanwijzingen om je kaarten te koppelen.
 
-                        [Breng me naar het koppelen van mijn bedrijfskaarten](${corporateCardLink}).`),
+                        [Ga naar Company cards](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Nodig [je team](${workspaceMembersLink}) uit`,

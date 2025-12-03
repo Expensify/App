@@ -2691,14 +2691,14 @@ ${
                 title: ({corporateCardLink}) => `连接 [您的公司卡](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        将您的公司卡片连接到 Expensify，自动导入并分类报销。
+                        连接你已有的卡片，以自动导入交易、匹配收据并进行对账。
 
-                        1. 点击 *Workspaces*。
-                        2. 选择您的 workspace。
-                        3. 点击 *Corporate cards*。
-                        4. 按照提示连接您的卡片。
+                        1. 点击*工作区*。
+                        2. 选择你的工作区。
+                        3. 点击*公司卡*。
+                        4. 按照提示连接你的卡片。
 
-                        [带我去连接我的公司卡片](${corporateCardLink})。`),
+                        [带我前往公司卡](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `邀请[您的团队](${workspaceMembersLink})`,

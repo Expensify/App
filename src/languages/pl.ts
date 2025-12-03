@@ -2720,17 +2720,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Połącz [swoją kartę firmową](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Połącz [swoje karty firmowe](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Połącz swoją kartę firmową, aby automatycznie importować i kategoryzować wydatki.
+                        Połącz posiadane już karty, aby automatycznie importować transakcje, dopasowywać paragony i przeprowadzać uzgodnienia.
 
                         1. Kliknij *Workspaces*.
-                        2. Wybierz swoją przestrzeń roboczą.
-                        3. Kliknij *Corporate cards*.
-                        4. Postępuj zgodnie z instrukcjami, aby połączyć swoją kartę.
+                        2. Wybierz swój workspace.
+                        3. Kliknij *Company cards*.
+                        4. Postępuj zgodnie z instrukcjami, aby połączyć swoje karty.
 
-                        [Przejdź do łączenia moich kart firmowych](${corporateCardLink}).`),
+                        [Przejdź do Company cards](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Zaproś [swój zespół](${workspaceMembersLink})`,

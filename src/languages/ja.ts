@@ -2720,17 +2720,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `[会社のカード](${corporateCardLink})を連携する`,
+                title: ({corporateCardLink}) => `[法人カード](${corporateCardLink})を連携する`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        企業カードを連携して、経費を自動で取り込み・コード化しましょう。
+                        既にお持ちのカードを接続すると、取引の自動取り込み、レシートの照合、消込が行えます。
 
                         1. 「Workspaces」をクリックします。
                         2. ワークスペースを選択します。
-                        3. 「Corporate cards」をクリックします。
-                        4. 画面の指示に従ってカードを連携します。
+                        3. *Company cards* をクリックします。
+                        4. 案内に従ってカードを接続します。
 
-                        [企業カードの連携画面へ移動](${corporateCardLink})。`),
+                        [Company cards に移動](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `[チーム](${workspaceMembersLink})を招待`,

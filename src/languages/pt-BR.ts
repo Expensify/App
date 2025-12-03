@@ -2720,17 +2720,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Conectar [seu cartão corporativo](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Conecte [seus cartões corporativos](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Conecte seu cartão corporativo para importar e categorizar despesas automaticamente.
+                        Conecte os cartões que você já possui para importação automática de transações, vinculação de recibos e conciliação.
 
                         1. Clique em *Workspaces*.
-                        2. Selecione seu workspace.
-                        3. Clique em *Corporate cards*.
-                        4. Siga as instruções para conectar seu cartão.
+                        2. Selecione seu espaço de trabalho.
+                        3. Clique em *Company cards*.
+                        4. Siga as instruções para conectar seus cartões.
 
-                        [Leve-me para conectar meus cartões corporativos](${corporateCardLink}).`),
+                        [Ir para Company cards](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Convide [sua equipe](${workspaceMembersLink})`,
