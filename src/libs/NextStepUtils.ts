@@ -325,6 +325,20 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
     return optimisticNextStep;
 }
 
+function buildOptimisticNextStepForDynamicExternalWorkflowError() {
+    const optimisticNextStep: ReportNextStepDeprecated = {
+        type: 'alert',
+        icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
+        message: [
+            {
+                text: "This report can't be submitted. Please review the comments to resolve.",
+            },
+        ],
+    };
+
+    return optimisticNextStep;
+}
+
 /**
  * Generates an optimistic nextStep based on a current report status and other properties.
  * Need to rename this function and remove the buildNextStep function above after migrating to this function
@@ -707,6 +721,7 @@ export {
     parseMessage,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
+    buildOptimisticNextStepForDynamicExternalWorkflowError,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildNextStepNew,
 };
