@@ -91,7 +91,7 @@ import {
     isSystemChat as isSystemChatUtil,
     isTaskReport as isTaskReportUtil,
     isThread as isThreadUtil,
-    isTrackExpenseReport as isTrackExpenseReportUtil,
+    isTrackExpenseReportNew as isTrackExpenseReportUtil,
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
     isWorkspaceChat as isWorkspaceChatUtil,
     isWorkspaceMemberLeavingWorkspaceRoom as isWorkspaceMemberLeavingWorkspaceRoomUtil,
@@ -196,7 +196,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isInvoiceRoom = useMemo(() => isInvoiceRoomUtil(report), [report]);
     const isTaskReport = useMemo(() => isTaskReportUtil(report), [report]);
     const isSelfDM = useMemo(() => isSelfDMUtil(report), [report]);
-    const isTrackExpenseReport = useMemo(() => isTrackExpenseReportUtil(report), [report]);
+    const isTrackExpenseReport = useMemo(() => isTrackExpenseReportUtil(report, parentReport, parentReportAction), [report, parentReport, parentReportAction]);
     const isCanceledTaskReport = isCanceledTaskReportUtil(report, parentReportAction);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails?.accountID, isParentReportArchived);
@@ -581,6 +581,16 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
         introSelected,
+        expensifyIcons.Users,
+        expensifyIcons.Gear,
+        expensifyIcons.Send,
+        expensifyIcons.Folder,
+        expensifyIcons.UserPlus,
+        expensifyIcons.Pencil,
+        expensifyIcons.Checkmark,
+        expensifyIcons.Building,
+        expensifyIcons.Exit,
+        expensifyIcons.Bug,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {

@@ -13236,6 +13236,7 @@ export {
     isSystemChat,
     isTaskReport,
     isThread,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     isTrackExpenseReport,
     isUnread,
     isUnreadWithMention,
@@ -13379,6 +13380,7 @@ export {
     shouldBlockSubmitDueToStrictPolicyRules,
     isWorkspaceChat,
     isOneTransactionReport,
+    isTrackExpenseReportNew,
 };
 export type {
     Ancestor,
