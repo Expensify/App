@@ -95,6 +95,13 @@ function getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies: OnyxCollect
     return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => policy?.arePerDiemRatesEnabled);
 }
 
+function getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
+    return getActivePoliciesWithExpenseChat(policies, currentUserLogin).filter((policy) => {
+        const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+        return policy?.arePerDiemRatesEnabled && !isEmptyObject(perDiemCustomUnit?.rates);
+    });
+}
+
 /**
  * Checks if the current user is an admin of the policy.
  */
@@ -514,6 +521,16 @@ function escapeTagName(tag: string) {
 }
 
 /**
+ * Checks if a tag list name is the default 'Tag' name
+ */
+function isDefaultTagName(tagName: string | undefined): boolean {
+    if (!tagName) {
+        return false;
+    }
+    return tagName.trim().toLowerCase() === CONST.POLICY.DEFAULT_TAG_NAME.trim().toLowerCase();
+}
+
+/**
  * Gets a count of enabled tags of a policy
  */
 function getCountOfEnabledTagsOfList(policyTags: PolicyTags | undefined): number {
@@ -672,6 +689,7 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
  * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
 function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<string, string[]> {
     const allTaxRates: Record<string, string[]> = {};
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.values(policies ?? {})?.forEach((policy) => {
         if (!policy?.taxRates?.taxes) {
             return;
@@ -855,18 +873,11 @@ function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, cu
 }
 
 /**
- * Checks whether the current user has a policy with admin access
+ * Given a list of admin policies for the current user, checks whether any of them
+ * has a Xero accounting software integration configured.
  */
-function hasActiveAdminWorkspaces(currentUserLogin: string | undefined) {
-    return getActiveAdminWorkspaces(allPolicies, currentUserLogin).length > 0;
-}
-
-/**
- *
- * Checks whether the current user has a policy with Xero accounting software integration
- */
-function hasPolicyWithXeroConnection(currentUserLogin: string | undefined) {
-    return getActiveAdminWorkspaces(allPolicies, currentUserLogin)?.some((policy) => !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]);
+function hasPolicyWithXeroConnection(adminPolicies: Policy[] | undefined) {
+    return adminPolicies?.some((policy) => !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]) ?? false;
 }
 
 /** Whether the user can send invoice from the workspace */
@@ -1447,9 +1458,9 @@ function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInp
     return undefined;
 }
 
-function hasOtherControlWorkspaces(currentPolicyID: string) {
-    const otherControlWorkspaces = Object.values(allPolicies ?? {}).filter((policy) => policy?.id !== currentPolicyID && isPolicyAdmin(policy) && isControlPolicy(policy));
-    return otherControlWorkspaces.length > 0;
+function hasOtherControlWorkspaces(adminPolicies: Policy[] | undefined, currentPolicyID: string) {
+    const otherControlWorkspaces = adminPolicies?.filter((policy) => policy?.id !== currentPolicyID && isControlPolicy(policy));
+    return (otherControlWorkspaces?.length ?? 0) > 0;
 }
 
 // If no policyID is provided, it indicates the workspace upgrade/downgrade URL
@@ -1628,7 +1639,6 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
-    hasActiveAdminWorkspaces,
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
@@ -1725,6 +1735,8 @@ export {
     getPolicyEmployeeAccountIDs,
     isMemberPolicyAdmin,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
+    isDefaultTagName,
 };
 
 export type {MemberEmailsToAccountIDs};

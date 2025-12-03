@@ -22,7 +22,9 @@ function SearchFiltersTaxRatePage() {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const allTaxRates = getAllTaxRates(policies);
     const selectedTaxesItems: SearchMultipleSelectionPickerItem[] = [];
+    // eslint-disable-next-line unicorn/no-array-for-each
     Object.entries(allTaxRates).forEach(([taxRateName, taxRateKeys]) => {
+        // eslint-disable-next-line unicorn/no-array-for-each
         searchAdvancedFiltersForm?.taxRate?.forEach((taxRateKey) => {
             if (!taxRateKeys.includes(taxRateKey) || selectedTaxesItems.some((item) => item.name === taxRateName)) {
                 return;

@@ -49,7 +49,16 @@ import {rand64} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {doesReportReceiverMatchParticipant, generateReportID, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {
+    doesReportReceiverMatchParticipant,
+    generateReportID,
+    getReportOrDraftReport,
+    hasViolations as hasViolationsReportUtils,
+    isProcessingReport,
+    isReportOutstanding,
+    isSelectedManagerMcTest,
+} from '@libs/ReportUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import {
     getDefaultTaxCode,
     getOriginalAttendees,
@@ -186,6 +195,8 @@ function IOURequestStepConfirmation({
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
 
     const policyCategories = useMemo(() => {
         if (isDraftPolicy && draftPolicyID) {
@@ -277,6 +288,7 @@ function IOURequestStepConfirmation({
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
+        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE);
     }, []);
 
@@ -317,29 +329,18 @@ function IOURequestStepConfirmation({
     }, [transactionIDs, defaultBillable, isMovingTransactionFromTrackExpense]);
 
     useEffect(() => {
-        const defaultReimbursable = isPolicyExpenseChat && isPaidGroupPolicy(policy) ? (policy?.defaultReimbursable ?? true) : true;
+        if (isMovingTransactionFromTrackExpense) {
+            return;
+        }
+        const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
         for (const transactionID of transactionIDs) {
             setMoneyRequestReimbursable(transactionID, defaultReimbursable);
         }
-    }, [transactionIDs, policy, isPolicyExpenseChat]);
+    }, [transactionIDs, policy, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, isCreatingTrackExpense]);
 
     useEffect(() => {
         // Exit early if the transaction is still loading
-        if (isLoadingTransaction) {
-            return;
-        }
-
-        // Check if the transaction belongs to the current report
-        const isCurrentReportID = transaction?.isFromGlobalCreate
-            ? transaction?.participants?.at(0)?.reportID === reportID || (!transaction?.participants?.at(0)?.reportID && transaction?.reportID === reportID)
-            : transaction?.reportID === reportID;
-
-        // Exit if the transaction already exists and is associated with the current report
-        if (
-            transaction?.transactionID &&
-            (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) &&
-            (isCurrentReportID || isMovingTransactionFromTrackExpense || iouType === CONST.IOU.TYPE.INVOICE)
-        ) {
+        if (!!isLoadingTransaction || (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)))) {
             return;
         }
 
@@ -350,7 +351,7 @@ function IOURequestStepConfirmation({
             generateReportID(),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, [isLoadingTransaction, isMovingTransactionFromTrackExpense]);
+    }, [isLoadingTransaction]);
 
     useEffect(() => {
         for (const item of transactions) {
@@ -365,11 +366,6 @@ function IOURequestStepConfirmation({
                     }
                 }
                 continue;
-            }
-
-            // Clear category field when the category doesn't exist for selected policy, or it's disabled
-            if (!policyCategories?.[item.category] || !policyCategories[item.category]?.enabled) {
-                setMoneyRequestCategory(item.transactionID, '', policy?.id);
             }
         }
         // We don't want to clear out category every time the transactions change
@@ -587,6 +583,9 @@ function IOURequestStepConfirmation({
                     shouldGenerateTransactionThreadReport,
                     backToReport,
                     isASAPSubmitBetaEnabled,
+                    currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    transactionViolations,
                 });
                 existingIOUReport = iouReport;
             }
@@ -612,6 +611,7 @@ function IOURequestStepConfirmation({
             viewTourTaskParentReport,
             isASAPSubmitBetaEnabled,
             isViewTourTaskParentReportArchived,
+            transactionViolations,
         ],
     );
 
@@ -653,6 +653,9 @@ function IOURequestStepConfirmation({
                     attendees: transaction.comment?.attendees,
                 },
                 isASAPSubmitBetaEnabled,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                hasViolations,
             });
         },
         [
@@ -665,6 +668,7 @@ function IOURequestStepConfirmation({
             policyCategories,
             recentlyUsedDestinations,
             isASAPSubmitBetaEnabled,
+            hasViolations,
         ],
     );
 
@@ -785,6 +789,7 @@ function IOURequestStepConfirmation({
                 },
                 backToReport,
                 isASAPSubmitBetaEnabled,
+                transactionViolations,
             });
         },
         [
@@ -804,6 +809,7 @@ function IOURequestStepConfirmation({
             receiptFiles,
             backToReport,
             isASAPSubmitBetaEnabled,
+            transactionViolations,
         ],
     );
 
@@ -898,6 +904,7 @@ function IOURequestStepConfirmation({
                         taxAmount: transactionTaxAmount,
                         policyRecentlyUsedCategories,
                         isASAPSubmitBetaEnabled,
+                        transactionViolations,
                     });
                 }
                 return;
@@ -925,6 +932,7 @@ function IOURequestStepConfirmation({
                         taxAmount: transactionTaxAmount,
                         policyRecentlyUsedCategories,
                         isASAPSubmitBetaEnabled,
+                        transactionViolations,
                     });
                 }
                 return;
@@ -1066,6 +1074,7 @@ function IOURequestStepConfirmation({
             isUnreported,
             isASAPSubmitBetaEnabled,
             receiverParticipantAccountID,
+            transactionViolations,
         ],
     );
 
@@ -1284,7 +1293,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={transaction?.amount ?? 0}
-                        iouAttendees={getOriginalAttendees(transaction)}
+                        iouAttendees={getOriginalAttendees(transaction, currentUserPersonalDetails)}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}

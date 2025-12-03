@@ -1,6 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import useEReceipt from '@hooks/useEReceipt';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,7 +16,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import type {TransactionListItemType} from './SelectionListWithSections/types';
 import Text from './Text';
@@ -39,8 +39,9 @@ const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidt
 function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}: EReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody', 'ExpensifyWordmark'] as const);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
@@ -55,7 +56,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
         created: transactionDate,
         cardID: transactionCardID,
         cardName: transactionCardName,
-    } = getTransactionDetails(transactionItem ?? transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT) ?? {};
+    } = getTransactionDetails(transactionItem ?? transaction, CONST.DATE.MONTH_DAY_YEAR_FORMAT, undefined, undefined, undefined, undefined, preferredLocale) ?? {};
     const formattedAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
     const amount = currency ? formattedAmount.replace(currency, '') : formattedAmount;
@@ -87,7 +88,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                 <View style={styles.eReceiptContentContainer}>
                     <View>
                         <ImageSVG
-                            src={Expensicons.ReceiptBody}
+                            src={icons.ReceiptBody}
                             fill={theme.textColorfulBackground}
                             contentFit="fill"
                         />
@@ -157,7 +158,7 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
                                                 width={variables.eReceiptWordmarkWidth}
                                                 height={variables.eReceiptWordmarkHeight}
                                                 fill={secondaryColor}
-                                                src={Expensicons.ExpensifyWordmark}
+                                                src={icons.ExpensifyWordmark}
                                             />
                                         </View>
                                     </View>

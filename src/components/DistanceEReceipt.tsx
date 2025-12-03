@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import EReceiptBackground from '@assets/images/eReceipt_background.svg';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -8,11 +9,11 @@ import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getWaypointIndex, hasReceipt, isFetchingWaypointsFromServer} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import PendingMapView from './MapView/PendingMapView';
 import ReceiptImage from './ReceiptImage';
@@ -29,9 +30,15 @@ type DistanceEReceiptProps = {
 
 function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
     const thumbnail = hasReceipt(transaction) ? getThumbnailAndImageURIs(transaction).thumbnail : null;
-    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = getTransactionDetails(transaction) ?? {};
+    const {
+        amount: transactionAmount,
+        currency: transactionCurrency,
+        merchant: transactionMerchant,
+        created: transactionDate,
+    } = getTransactionDetails(transaction, CONST.DATE.FNS_FORMAT_STRING, undefined, undefined, undefined, undefined, preferredLocale) ?? {};
     const formattedTransactionAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const waypoints = useMemo(() => transaction?.comment?.waypoints ?? {}, [transaction?.comment?.waypoints]);
@@ -101,7 +108,7 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
                         <Icon
                             width={86}
                             height={19.25}
-                            src={Expensicons.ExpensifyWordmark}
+                            src={icons.ExpensifyWordmark}
                         />
 
                         <Text style={styles.eReceiptGuaranteed}>{translate('eReceipt.guaranteed')}</Text>
