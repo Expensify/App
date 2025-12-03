@@ -74,7 +74,7 @@ function AddPaymentCard() {
             };
             addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData, fundList);
         },
-        [accountID],
+        [accountID, fundList],
     );
 
     const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {canBeMissing: true});

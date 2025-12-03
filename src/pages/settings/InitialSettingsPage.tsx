@@ -245,23 +245,24 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             items,
         };
     }, [
-        icons.Gear,
-        icons.Profile,
         loginList,
         privatePersonalDetails,
         vacationDelegate,
         session?.email,
+        icons.Profile,
+        icons.Gear,
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,
-        styles.badgeSuccess,
-        styles.accountSettingsSectionContainer,
         subscriptionPlan,
+        styles.accountSettingsSectionContainer,
+        styles.badgeSuccess,
         privateSubscription?.errors,
         stripeCustomerId,
         retryBillingSuccessful,
         billingDisputePending,
         retryBillingFailed,
+        fundList,
         freeTrialText,
     ]);
 
