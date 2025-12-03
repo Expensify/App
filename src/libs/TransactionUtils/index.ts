@@ -2204,7 +2204,7 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, reports
 
 /**
  * Determines whether a report should display the expense breakdown.
- * */
+ */
 function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
     if (!transactions || transactions.length === 0) {
         return false;
