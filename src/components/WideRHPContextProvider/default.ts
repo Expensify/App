@@ -3,7 +3,8 @@ import type {WideRHPContextType} from './types';
 const defaultWideRHPContextValue: WideRHPContextType = {
     wideRHPRouteKeys: [],
     shouldRenderSecondaryOverlayForWideRHP: false,
-    shouldRenderSecondaryOverlayForSingleRHP: false,
+    shouldRenderSecondaryOverlayForSingleRHPOnWideRHP: false,
+    shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP: false,
     showWideRHPVersion: () => {},
     removeWideRHPRouteKey: () => {},
     markReportIDAsExpense: () => {},
