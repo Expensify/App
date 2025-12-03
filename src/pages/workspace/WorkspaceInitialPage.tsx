@@ -160,7 +160,23 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: isUberForBusinessEnabled && (policy?.receiptPartners?.enabled ?? false),
             [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: policy?.isTravelEnabled,
         }),
-        [policy, isUberForBusinessEnabled],
+        [
+            policy?.areDistanceRatesEnabled,
+            policy?.areWorkflowsEnabled,
+            policy?.areCategoriesEnabled,
+            policy?.areTagsEnabled,
+            policy?.tax?.trackingEnabled,
+            policy?.areCompanyCardsEnabled,
+            policy?.areConnectionsEnabled,
+            policy?.connections,
+            policy?.areExpensifyCardsEnabled,
+            policy?.areReportFieldsEnabled,
+            policy?.areRulesEnabled,
+            policy?.areInvoicesEnabled,
+            policy?.arePerDiemRatesEnabled,
+            policy?.receiptPartners?.enabled,
+            isUberForBusinessEnabled,
+        ],
     ) as PolicyFeatureStates;
 
     const fetchPolicyData = useCallback(() => {
