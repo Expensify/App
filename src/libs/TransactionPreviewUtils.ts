@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getCurrentUserAccountID} from './actions/Report';
 import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './actions/Transaction';
@@ -189,6 +190,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     currentUserEmail,
     currentUserAccountID,
     originalTransaction,
+    locale,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -202,6 +204,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     currentUserEmail: string;
     currentUserAccountID: number;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+    locale?: Locale;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
@@ -287,7 +290,11 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     if (!isCreatedMissing(transaction)) {
         const created = getFormattedCreated(transaction);
-        const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+        const date = DateUtils.formatWithUTCTimeZone(
+            created,
+            DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+            locale,
+        );
         previewHeaderText.unshift({text: date}, dotSeparator);
     }
 

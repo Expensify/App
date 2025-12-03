@@ -1,5 +1,4 @@
 import {emailSelector} from '@selectors/Session';
-import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useMemo} from 'react';
@@ -36,7 +35,7 @@ import {
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import CONST from '@src/CONST';
+import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -265,7 +264,7 @@ function MoneyRequestConfirmationListFooter({
 }: MoneyRequestConfirmationListFooterProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid'] as const);
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -279,6 +278,11 @@ function MoneyRequestConfirmationListFooter({
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
+
+    const formattedCreatedDate = useMemo(() => {
+        const formatter = new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]);
+        return formatter.format(new Date(iouCreated ?? Date.now()));
+    }, [iouCreated, preferredLocale]);
 
     const decodedCategoryName = useMemo(() => getDecodedCategoryName(iouCategory), [iouCategory]);
 
@@ -346,6 +350,7 @@ function MoneyRequestConfirmationListFooter({
     }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
 
     const reportName = useMemo(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const name = getReportName(selectedReport, selectedPolicy);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
@@ -514,7 +519,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!!rate && !isReadOnly && !isUnreported}
+                    shouldShowRightIcon={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
                     title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
@@ -543,7 +548,7 @@ function MoneyRequestConfirmationListFooter({
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}
-                    interactive={!!rate && !isReadOnly && !isUnreported}
+                    interactive={!!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT && !isUnreported}
                 />
             ),
             shouldShow: isDistanceRequest,
@@ -625,7 +630,7 @@ function MoneyRequestConfirmationListFooter({
                     key={translate('common.date')}
                     shouldShowRightIcon={!isReadOnly}
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                    title={formattedCreatedDate}
                     description={translate('common.date')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
