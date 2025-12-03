@@ -211,7 +211,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             const lastQueryFromOnyx = lastSearchParams?.queryJSON ? buildSearchQueryString(lastSearchParams.queryJSON) : undefined;
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultActionableSearchQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
         });
-    }, [selectedTab, typeMenuSections, savedSearches]);
+    }, [selectedTab, typeMenuSections, savedSearches, lastSearchParams?.queryJSON]);
 
     const navigateToSettings = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SETTINGS) {
