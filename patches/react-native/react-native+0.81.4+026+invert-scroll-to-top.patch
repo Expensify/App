@@ -34,6 +34,38 @@ index 6402bc6..a65ec93 100644
  
  /*
   * Makes `setContentOffset:` method no-op when given `block` is executed.
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.mm
+index c593d9e..dfcdc47 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.mm
+@@ -96,9 +96,14 @@ - (void)setContentOffset:(CGPoint)contentOffset
+   if (_isSetContentOffsetDisabled) {
+     return;
+   }
++
++  CGFloat newContentOffsetY = contentOffset.y;
++  if (newContentOffsetY < 1.0 && newContentOffsetY > -1.0) {
++    newContentOffsetY = 1.0;
++  }
+   super.contentOffset = CGPointMake(
+       RCTSanitizeNaNValue(contentOffset.x, @"scrollView.contentOffset.x"),
+-      RCTSanitizeNaNValue(contentOffset.y, @"scrollView.contentOffset.y"));
++      RCTSanitizeNaNValue(newContentOffsetY, @"scrollView.contentOffset.y"));
+ }
+ 
+ - (void)setFrame:(CGRect)frame
+@@ -280,6 +285,11 @@ - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView
+       targetContentOffset->y = newTargetContentOffset;
+     }
+   }
++
++  if (targetContentOffset->y < 1.0) {
++    CGFloat minY = 1.0;
++    targetContentOffset->y = minY;
++  }
+ }
+ 
+ - (void)scrollViewDidZoom:(__unused UIScrollView *)scrollView
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.h b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.h
 index 99b7240..fc75797 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.h
