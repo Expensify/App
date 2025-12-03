@@ -268,6 +268,7 @@ function IOURequestStepAmount({
             isPaidGroupPolicy(defaultExpensePolicy) &&
             defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
             defaultExpensePolicy?.autoReporting &&
+            personalPolicy?.autoReporting &&
             !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
         ) {
             const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
