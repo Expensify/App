@@ -336,7 +336,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
 
     const reportName = Parser.htmlToText(getReportName(report, undefined, undefined, undefined, undefined, reportAttributes));
-
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle
@@ -725,6 +724,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     <View style={styles.mw100}>
                         <ParentNavigationSubtitle
                             parentNavigationSubtitleData={parentNavigationSubtitleData}
+                            reportID={report?.reportID}
                             parentReportID={report?.parentReportID}
                             parentReportActionID={report?.parentReportActionID}
                             pressableStyles={[styles.mt1, styles.mw100]}
@@ -776,6 +776,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const nameSectionFurtherDetailsContent = (
         <ParentNavigationSubtitle
             parentNavigationSubtitleData={parentNavigationSubtitleData}
+            reportID={report?.reportID}
             parentReportID={report?.parentReportID}
             parentReportActionID={report?.parentReportActionID}
             pressableStyles={[styles.mt1, styles.mw100]}
