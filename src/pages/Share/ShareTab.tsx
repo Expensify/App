@@ -105,7 +105,7 @@ function ShareTab({ref}: ShareTabProps) {
             pressableStyle: styles.br2,
             text: StringUtils.lineBreaksToSpaces(item.text),
             wrapperStyle: [styles.pr3, styles.pl3],
-            keyForList: String(item.reportID) + String(index),
+            keyForList: `${item.reportID}-${index}`,
         }));
     }, [recentReportsOptions, styles]);
 
