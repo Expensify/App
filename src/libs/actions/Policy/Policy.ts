@@ -486,7 +486,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
 
     const finallyData: OnyxUpdate[] = [];
     const currentTime = DateUtils.getDBTime();
-    const reportIDToOptimisticClosedReportActionID: Record<string, string> = {};
+    const reportIDToOptimisticCloseReportActionID: Record<string, string> = {};
 
     // eslint-disable-next-line unicorn/no-array-for-each
     reportsToArchive.forEach((report) => {
@@ -558,7 +558,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
                 [optimisticClosedReportAction.reportActionID]: null,
             },
         });
-        reportIDToOptimisticClosedReportActionID[reportID] = optimisticClosedReportAction.reportActionID;
+        reportIDToOptimisticCloseReportActionID[reportID] = optimisticClosedReportAction.reportActionID;
 
         for (const transactionViolationKey of Object.keys(transactionViolations ?? {})) {
             const transactionViolation = transactionViolations?.[transactionViolationKey];
@@ -620,7 +620,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         }
     });
 
-    const apiParams: DeleteWorkspaceParams = {policyID, optimisticReportActions: JSON.stringify(reportIDToOptimisticClosedReportActionID)};
+    const apiParams: DeleteWorkspaceParams = {policyID, reportIDToOptimisticCloseReportActionID: JSON.stringify(reportIDToOptimisticCloseReportActionID)};
 
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE, apiParams, {optimisticData, finallyData, failureData});
 
