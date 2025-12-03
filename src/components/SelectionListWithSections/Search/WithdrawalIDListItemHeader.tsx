@@ -160,7 +160,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                         accessibilityLabel={translate('common.select')}
                         isIndeterminate={isIndeterminate}
                     />
-                )}{' '}
+                )}
                 <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.gap3]}>
                     <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)]}>
                         <Icon

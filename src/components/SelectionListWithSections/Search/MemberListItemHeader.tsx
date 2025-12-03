@@ -64,13 +64,15 @@ function MemberListItemHeader<TItem extends ListItem>({
         return (
             <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
-                    <Checkbox
-                        onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
-                        isChecked={isSelectAllChecked}
-                        isIndeterminate={isIndeterminate}
-                        disabled={!!isDisabled || memberItem.isDisabledCheckbox}
-                        accessibilityLabel={translate('common.select')}
-                    />
+                    {!!canSelectMultiple && (
+                        <Checkbox
+                            onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
+                            isChecked={isSelectAllChecked}
+                            isIndeterminate={isIndeterminate}
+                            disabled={!!isDisabled || memberItem.isDisabledCheckbox}
+                            accessibilityLabel={translate('common.select')}
+                        />
+                    )}
                     <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                         <UserDetailsTooltip accountID={memberItem.accountID}>
                             <View>
@@ -112,14 +114,16 @@ function MemberListItemHeader<TItem extends ListItem>({
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pl3]}>
-            <Checkbox
-                onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
-                isChecked={isSelectAllChecked}
-                isIndeterminate={isIndeterminate}
-                disabled={!!isDisabled || memberItem.isDisabledCheckbox}
-                accessibilityLabel={translate('common.select')}
-                style={[styles.mr1]}
-            />
+            {!!canSelectMultiple && (
+                <Checkbox
+                    onPress={() => onCheckboxPress?.(memberItem as unknown as TItem)}
+                    isChecked={isSelectAllChecked}
+                    isIndeterminate={isIndeterminate}
+                    disabled={!!isDisabled || memberItem.isDisabledCheckbox}
+                    accessibilityLabel={translate('common.select')}
+                    style={[styles.mr1]}
+                />
+            )}
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)]}>
                 <UserDetailsTooltip accountID={memberItem.accountID}>
                     <View>
