@@ -108,7 +108,7 @@ import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import createRandomTransaction from '../utils/collections/transaction';
+import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import type {MockFetch} from '../utils/TestHelper';
@@ -10615,15 +10615,17 @@ describe('actions/IOU', () => {
             'parentTransactionID', 'isTestDrive', 'source', 'receipt', 'filename',
         ];
 
-        function isTransactionDuplicated(originalTransaction, duplicatedTransaction) {
-            Object.keys(duplicatedTransaction).forEach((key) => {
+        function isTransactionDuplicated(originalTransaction: Transaction, duplicatedTransaction: Transaction) {
+            Object.keys(duplicatedTransaction).forEach((k) => {
+                const key = k as keyof Transaction;
+
                 if (DUPLICATION_EXCEPTIONS.includes(key) || !originalTransaction.hasOwnProperty(key) || key.startsWith('original')) {
                     return;
                 }
 
                 let originalTransactionKey = key;
-                const modifiedKey = `modified${key.charAt(0).toUpperCase()}${key.slice(1)}`;
-                if (originalTransaction.hasOwnProperty(modifiedKey) && !!originalTransaction[modifiedKey]) {
+                const modifiedKey = `modified${key.charAt(0).toUpperCase()}${key.slice(1)}` as keyof Transaction;
+                if (modifiedKey in originalTransaction && !!originalTransaction[modifiedKey]) {
                     originalTransactionKey = modifiedKey;
                 }
 
@@ -10648,7 +10650,7 @@ describe('actions/IOU', () => {
         const policyExpenseChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
 
         it('should create a duplicate expense with all fields duplicated', async () => {
-            const {waypoints, ...restOfComment} = mockTransaction.comment;
+            const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
             const mockCashExpenseTransaction = {
                 ...mockTransaction,
                 amount: mockTransaction.amount * -1,
@@ -10668,6 +10670,8 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
             
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
                 waitForCollectionCallback: true,
@@ -10676,7 +10680,47 @@ describe('actions/IOU', () => {
                 },
             });
             
+            if (!duplicatedTransaction) {
+                return;
+            }
+
             isTransactionDuplicated(mockCashExpenseTransaction, duplicatedTransaction);
+        });
+
+        it('should create a duplicate distance expense with all fields duplicated', async () => {
+            const randomDistanceTransaction = createRandomDistanceRequestTransaction(1);
+
+            const mockDistanceTransaction = {
+                ...randomDistanceTransaction,
+                amount: randomDistanceTransaction.amount * -1,
+            }
+            
+            duplicateExpenseTransaction(
+                mockDistanceTransaction,
+                mockOptimisticChatReportID,
+                mockOptimisticIOUReportID,
+                mockIsASAPSubmitBetaEnabled,
+                mockPolicy,
+                policyExpenseChat,
+            );
+            
+            await waitForBatchedUpdates();
+            
+            let duplicatedTransaction: OnyxEntry<Transaction>;
+
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                waitForCollectionCallback: true,
+                callback: (allTransactions) => {
+                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
+                },
+            });
+
+            if (!duplicatedTransaction) {
+                return;
+            }
+            
+            isTransactionDuplicated(mockDistanceTransaction, duplicatedTransaction);
         });
     });
 });
