@@ -1,5 +1,5 @@
 diff --git a/node_modules/@sentry/core/build/cjs/utils/browser.js b/node_modules/@sentry/core/build/cjs/utils/browser.js
-index 3169c25..f2770da 100644
+index 3169c25..19acc49 100644
 --- a/node_modules/@sentry/core/build/cjs/utils/browser.js
 +++ b/node_modules/@sentry/core/build/cjs/utils/browser.js
 @@ -9,8 +9,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
@@ -45,23 +45,22 @@ index 3169c25..f2770da 100644
    } catch {
      return '<unknown>';
    }
-@@ -91,9 +114,11 @@ function _htmlElementAsString(el, keyAttrs) {
-   out.push(elem.tagName.toLowerCase());
+@@ -77,8 +100,12 @@ function _htmlElementAsString(el, keyAttrs) {
  
-   // Pairs of attribute keys defined in `serializeAttribute` and their values on element.
--  const keyAttrPairs = keyAttrs?.length
--    ? keyAttrs.filter(keyAttr => elem.getAttribute(keyAttr)).map(keyAttr => [keyAttr, elem.getAttribute(keyAttr)])
--    : null;
-+  // Always include data-label if present
-+  const attrsToCheck = keyAttrs?.length ? [...keyAttrs, 'data-label'] : ['data-label'];
-+  const keyAttrPairs = attrsToCheck
-+    .filter(keyAttr => elem.getAttribute(keyAttr))
-+    .map(keyAttr => [keyAttr, elem.getAttribute(keyAttr)]);
- 
-   if (keyAttrPairs?.length) {
-     keyAttrPairs.forEach(keyAttrPair => {
+   // @ts-expect-error WINDOW has HTMLElement
+   if (WINDOW.HTMLElement) {
+-    // If using the component name annotation plugin, this value may be available on the DOM node
+     if (elem instanceof HTMLElement && elem.dataset) {
++      // Check for data-label first - return in attribute format [data-label="value"]
++      if (elem.dataset['label']) {
++        return `[data-label="${elem.dataset['label']}"]`;
++      }
++      // If using the component name annotation plugin, this value may be available on the DOM node
+       if (elem.dataset['sentryComponent']) {
+         return elem.dataset['sentryComponent'];
+       }
 diff --git a/node_modules/@sentry/core/build/esm/utils/browser.js b/node_modules/@sentry/core/build/esm/utils/browser.js
-index 2ad52b0..274249f 100644
+index 2ad52b0..fd184fb 100644
 --- a/node_modules/@sentry/core/build/esm/utils/browser.js
 +++ b/node_modules/@sentry/core/build/esm/utils/browser.js
 @@ -7,8 +7,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
@@ -107,18 +106,17 @@ index 2ad52b0..274249f 100644
    } catch {
      return '<unknown>';
    }
-@@ -89,9 +112,11 @@ function _htmlElementAsString(el, keyAttrs) {
-   out.push(elem.tagName.toLowerCase());
+@@ -75,8 +98,12 @@ function _htmlElementAsString(el, keyAttrs) {
  
-   // Pairs of attribute keys defined in `serializeAttribute` and their values on element.
--  const keyAttrPairs = keyAttrs?.length
--    ? keyAttrs.filter(keyAttr => elem.getAttribute(keyAttr)).map(keyAttr => [keyAttr, elem.getAttribute(keyAttr)])
--    : null;
-+  // Always include data-label if present
-+  const attrsToCheck = keyAttrs?.length ? [...keyAttrs, 'data-label'] : ['data-label'];
-+  const keyAttrPairs = attrsToCheck
-+    .filter(keyAttr => elem.getAttribute(keyAttr))
-+    .map(keyAttr => [keyAttr, elem.getAttribute(keyAttr)]);
- 
-   if (keyAttrPairs?.length) {
-     keyAttrPairs.forEach(keyAttrPair => {
+   // @ts-expect-error WINDOW has HTMLElement
+   if (WINDOW.HTMLElement) {
+-    // If using the component name annotation plugin, this value may be available on the DOM node
+     if (elem instanceof HTMLElement && elem.dataset) {
++      // Check for data-label first - return in attribute format [data-label="value"]
++      if (elem.dataset['label']) {
++        return `[data-label="${elem.dataset['label']}"]`;
++      }
++      // If using the component name annotation plugin, this value may be available on the DOM node
+       if (elem.dataset['sentryComponent']) {
+         return elem.dataset['sentryComponent'];
+       }
