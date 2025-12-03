@@ -6974,6 +6974,8 @@ function getMovedTransactionMessage(action: ReportAction) {
     const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
     const report = fromReport ?? toReport;
+    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName(report) ?? report?.reportName ?? '';
     let reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
@@ -7003,6 +7005,8 @@ function getUnreportedTransactionMessage(action: ReportAction) {
 
     const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
+    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName(fromReport) ?? fromReport?.reportName ?? '';
 
     let reportUrl = `${environmentURL}/r/${fromReport?.reportID}`;
