@@ -18,8 +18,8 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
-import {generateReportID, getDefaultGroupAvatar} from '@libs/ReportUtils';
 import {getGroupChatName} from '@libs/ReportNameUtils';
+import {generateReportID, getDefaultGroupAvatar} from '@libs/ReportUtils';
 import {navigateToAndOpenReport, setGroupDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

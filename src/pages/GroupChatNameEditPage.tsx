@@ -12,8 +12,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
-import {getGroupChatDraft} from '@libs/ReportUtils';
 import {getGroupChatName} from '@libs/ReportNameUtils';
+import {getGroupChatDraft} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {setGroupDraft, updateChatName} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -39,7 +39,10 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const existingReportName = useMemo(() => (report ? getGroupChatName(formatPhoneNumber, undefined, false, report) : getGroupChatName(formatPhoneNumber, groupChatDraft?.participants)), [groupChatDraft?.participants, report]);
+    const existingReportName = useMemo(
+        () => (report ? getGroupChatName(formatPhoneNumber, undefined, false, report) : getGroupChatName(formatPhoneNumber, groupChatDraft?.participants)),
+        [groupChatDraft?.participants, report],
+    );
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
 
