@@ -9,8 +9,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import type {DomainItem} from '@components/Domain/DomainMenuItem';
 import DomainMenuItem from '@components/Domain/DomainMenuItem';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {MenuItemProps} from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -27,6 +25,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import WorkspacesEmptyStateComponent from '@components/WorkspacesEmptyStateComponent';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -41,7 +40,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {openOldDotLink} from '@libs/actions/Link';
 import {close} from '@libs/actions/Modal';
 import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
@@ -124,13 +122,14 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar', 'Plus'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
@@ -144,6 +143,7 @@ function WorkspacesListPage() {
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE, {canBeMissing: true});
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isRestrictedPolicyCreation} = usePreferredPolicy();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [reimbursementAccountError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true, selector: reimbursementAccountErrorSelector});
 
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
@@ -215,6 +215,7 @@ function WorkspacesListPage() {
             reportsToArchive,
             transactionViolations,
             reimbursementAccountError,
+            bankAccountList,
             lastUsedPaymentMethods: lastPaymentMethod,
         });
         if (isOffline) {
@@ -302,17 +303,17 @@ function WorkspacesListPage() {
             }
 
             clearWorkspaceOwnerChangeFlow(policyID);
-            requestWorkspaceOwnerChange(policyID);
+            requestWorkspaceOwnerChange(policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
             Navigation.navigate(
                 ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(
                     policyID,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserPersonalDetails.accountID,
                     'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
                     Navigation.getActiveRoute(),
                 ),
             );
         },
-        [session?.accountID],
+        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login],
     );
 
     useEffect(() => {
@@ -367,7 +368,7 @@ function WorkspacesListPage() {
 
             if (isAdmin) {
                 threeDotsMenuItems.push({
-                    icon: Expensicons.Copy,
+                    icon: icons.Copy,
                     text: translate('workspace.common.duplicateWorkspace'),
                     onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.WORKSPACE_DUPLICATE.getRoute(item.policyID)) : undefined),
                 });
@@ -375,7 +376,7 @@ function WorkspacesListPage() {
 
             if (!isDefault && !item?.isJoinRequestPending && !isRestrictedToPreferredPolicy) {
                 threeDotsMenuItems.push({
-                    icon: Expensicons.Star,
+                    icon: icons.Star,
                     text: translate('workspace.common.setAsDefault'),
                     onSelected: () => {
                         if (!item.policyID || !activePolicyID) {
@@ -387,7 +388,7 @@ function WorkspacesListPage() {
             }
             if (isOwner) {
                 threeDotsMenuItems.push({
-                    icon: Expensicons.Trashcan,
+                    icon: icons.Trashcan,
                     text: translate('workspace.common.delete'),
                     shouldShowLoadingSpinnerIcon: loadingSpinnerIconIndex === index,
                     onSelected: () => {
@@ -414,7 +415,7 @@ function WorkspacesListPage() {
 
             if (isAdmin && !isOwner && shouldRenderTransferOwnerButton(fundList)) {
                 threeDotsMenuItems.push({
-                    icon: Expensicons.Transfer,
+                    icon: icons.Transfer,
                     text: translate('workspace.people.transferOwner'),
                     onSelected: () => startChangeOwnershipFlow(item.policyID),
                 });
@@ -464,7 +465,6 @@ function WorkspacesListPage() {
             );
         },
         [
-            icons.Building,
             session?.email,
             session?.accountID,
             activePolicyID,
@@ -484,7 +484,7 @@ function WorkspacesListPage() {
             isRestrictedToPreferredPolicy,
             policyIDToDelete,
             preferredPolicyID,
-            icons.Exit,
+            icons,
         ],
     );
 
@@ -500,10 +500,7 @@ function WorkspacesListPage() {
         [shouldUseNarrowLayout],
     );
 
-    const navigateToDomain = useCallback(({accountID, isValidated}: {accountID: number; isValidated: boolean}) => {
-        if (isValidated) {
-            return openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
-        }
+    const navigateToDomain = useCallback((accountID: number) => {
         Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID));
     }, []);
 
@@ -533,7 +530,7 @@ function WorkspacesListPage() {
                         type: policyInfo.type,
                         iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                         iconFill: theme.textLight,
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        fallbackIcon: icons.FallbackWorkspaceAvatar,
                         policyID: id,
                         role: CONST.POLICY.ROLE.USER,
                         errors: undefined,
@@ -562,7 +559,7 @@ function WorkspacesListPage() {
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                     iconFill: theme.textLight,
-                    fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                    fallbackIcon: icons.FallbackWorkspaceAvatar,
                     policyID: policy.id,
                     ownerAccountID: policy.ownerAccountID,
                     role: policy.role,
@@ -570,7 +567,7 @@ function WorkspacesListPage() {
                     employeeList: policy.employeeList,
                 };
             });
-    }, [reimbursementAccount?.errors, policies, session?.email, allConnectionSyncProgresses, theme.textLight, navigateToWorkspace]);
+    }, [reimbursementAccount?.errors, policies, session?.email, allConnectionSyncProgresses, theme.textLight, icons.FallbackWorkspaceAvatar, navigateToWorkspace]);
 
     const filterWorkspace = useCallback((workspace: WorkspaceItem, inputValue: string) => workspace.title.toLowerCase().includes(inputValue), []);
     const sortWorkspace = useCallback((workspaceItems: WorkspaceItem[]) => workspaceItems.sort((a, b) => localeCompare(a.title, b.title)), [localeCompare]);
@@ -591,7 +588,7 @@ function WorkspacesListPage() {
                 listItemType: 'domain',
                 accountID: domain.accountID,
                 title: Str.extractEmailDomain(domain.email),
-                action: () => navigateToDomain({accountID: domain.accountID, isValidated: domain.validated}),
+                action: () => navigateToDomain(domain.accountID),
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,
@@ -602,18 +599,19 @@ function WorkspacesListPage() {
     }, [navigateToDomain, allDomains, adminAccess]);
 
     useEffect(() => {
-        if (isEmptyObject(duplicateWorkspace) || !filteredWorkspaces.length || !isFocused) {
+        const duplicatedWSPolicyID = duplicateWorkspace?.policyID;
+        if (!duplicatedWSPolicyID || !filteredWorkspaces.length || !isFocused) {
             return;
         }
-        const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicateWorkspace.policyID);
-        if (duplicateWorkspaceIndex > 0) {
+        const duplicateWorkspaceIndex = filteredWorkspaces.findIndex((workspace) => workspace.policyID === duplicatedWSPolicyID);
+        if (duplicateWorkspaceIndex >= 0) {
             flatlistRef.current?.scrollToIndex({index: duplicateWorkspaceIndex, animated: false});
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearDuplicateWorkspace();
             });
         }
-    }, [duplicateWorkspace, isFocused, filteredWorkspaces]);
+    }, [duplicateWorkspace?.policyID, isFocused, filteredWorkspaces]);
 
     const listHeaderComponent = (
         <>
@@ -667,7 +665,7 @@ function WorkspacesListPage() {
                 accessibilityLabel={translate('workspace.new.newWorkspace')}
                 text={translate('workspace.new.newWorkspace')}
                 onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
-                icon={Expensicons.Plus}
+                icon={icons.Plus}
                 style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
             />
         );
