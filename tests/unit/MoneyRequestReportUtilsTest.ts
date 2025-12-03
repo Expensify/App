@@ -95,7 +95,6 @@ const transactionItemBaseMock: TransactionListItemType = {
         login: undefined,
     },
     transactionID: '1',
-    transactionThreadReportID: '456',
     receipt: undefined,
     taxAmount: undefined,
     mccGroup: undefined,
@@ -104,22 +103,20 @@ const transactionItemBaseMock: TransactionListItemType = {
     errors: undefined,
     filename: undefined,
     violations: [],
-    convertedAmount: -5000,
-    convertedCurrency: 'USD',
 };
 
 describe('MoneyRequestReportUtils', () => {
     describe('getReportIDForTransaction', () => {
         it('returns transaction thread ID if its not from one transaction report', () => {
             const transactionItem: TransactionListItemType = {...transactionItemBaseMock};
-            const resultID = getReportIDForTransaction(transactionItem);
+            const resultID = getReportIDForTransaction(transactionItem, '456');
 
             expect(resultID).toBe('456');
         });
 
         it('returns transaction thread ID if its from self DM', () => {
             const transactionItem: TransactionListItemType = {...transactionItemBaseMock, reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
-            const resultID = getReportIDForTransaction(transactionItem);
+            const resultID = getReportIDForTransaction(transactionItem, '456');
 
             expect(resultID).toBe('456');
         });
@@ -132,7 +129,7 @@ describe('MoneyRequestReportUtils', () => {
         });
 
         it('returns reportID if transaction thread ID is 0 - unreported', () => {
-            const transactionItem: TransactionListItemType = {...transactionItemBaseMock, transactionThreadReportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+            const transactionItem: TransactionListItemType = {...transactionItemBaseMock};
             const resultID = getReportIDForTransaction(transactionItem);
 
             expect(resultID).toBe('123');

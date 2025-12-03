@@ -1186,8 +1186,10 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Encontrar despesa',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `excluiu uma despesa (${amount} para ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moveu uma despesa${reportName ? `de ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `movei esta despesa para o seu <a href="${reportUrl}">espaço pessoal</a>`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `de <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moveu esta despesa do seu <a href="${reportUrl}">espaço pessoal</a>`,
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moveu esta despesa para o seu <a href="${reportUrl}">espaço pessoal</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
                 return `moveu este relatório para o workspace <a href="${newParentReportUrl}">${toPolicyName}</a>`;
@@ -4718,6 +4720,10 @@ ${
             issuedCard: ({assignee}: AssigneeParams) => `emitiu um Cartão Expensify para ${assignee}! O cartão chegará em 2-3 dias úteis.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) =>
                 `Foi emitido para ${assignee} um Expensify Card! O cartão será enviado assim que os detalhes de envio forem confirmados.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} substituiu seu cartão virtual Expensify! ${link} pode ser usado imediatamente.`,
+            card: 'cartão',
+            replacementCard: 'cartão de substituição',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} substituiu seu cartão Expensify. O novo cartão chegará em 2-3 dias úteis.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `emitiu ${assignee} um ${link} virtual! O cartão pode ser usado imediatamente.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} adicionou informações de envio. O Expensify Card chegará em 2-3 dias úteis.`,
             verifyingHeader: 'Verificando',
@@ -6245,6 +6251,36 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'ativado' : 'desativado'} categorias`;
+                case 'tags':
+                    return `${enabled ? 'ativado' : 'desativado'} etiquetas`;
+                case 'workflows':
+                    return `${enabled ? 'ativado' : 'desativado'} fluxos de trabalho`;
+                case 'distance rates':
+                    return `${enabled ? 'ativado' : 'desativado'} taxas de distância`;
+                case 'accounting':
+                    return `${enabled ? 'ativado' : 'desativado'} contabilidade`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'ativado' : 'desativado'} Cartões Expensify`;
+                case 'company cards':
+                    return `${enabled ? 'ativado' : 'desativado'} cartões corporativos`;
+                case 'invoicing':
+                    return `${enabled ? 'ativado' : 'desativado'} faturamento`;
+                case 'per diem':
+                    return `${enabled ? 'ativado' : 'desativado'} de diária`;
+                case 'receipt partners':
+                    return `${enabled ? 'ativado' : 'desativado'} parceiros de recibos`;
+                case 'rules':
+                    return `${enabled ? 'ativado' : 'desativado'} regras`;
+                case 'tax tracking':
+                    return `${enabled ? 'ativado' : 'desativado'} rastreamento de impostos`;
+                default:
+                    return `${enabled ? 'ativado' : 'desativado'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} acompanhamento de participantes`,
     },
     roomMembersPage: {
@@ -7007,6 +7043,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} é obrigatório`,
+        reportContainsExpensesWithViolations: 'O relatório contém despesas com violações.',
     },
     violationDismissal: {
         rter: {
@@ -7132,9 +7169,7 @@ ${
                 `Você contestou a cobrança de ${amountOwed} no cartão com final ${cardEnding}. Sua conta será bloqueada até que a disputa seja resolvida com seu banco.`,
             preTrial: {
                 title: 'Inicie uma avaliação gratuita',
-                subtitleStart: 'Como próximo passo,',
-                subtitleLink: 'complete sua lista de verificação de configuração',
-                subtitleEnd: 'para que sua equipe possa começar a registrar despesas.',
+                subtitle: 'Como próximo passo, <a href="#">conclua seu checklist de configuração</a> para que sua equipe possa começar a registrar despesas.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Teste: ${numOfDays} ${numOfDays === 1 ? 'dia' : 'dias'} restantes!`,
