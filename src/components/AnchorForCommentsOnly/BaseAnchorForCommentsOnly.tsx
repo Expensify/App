@@ -52,7 +52,7 @@ function BaseAnchorForCommentsOnly({
         linkProps.href = href;
     }
     const defaultTextStyle = canUseTouchScreen() || shouldUseNarrowLayout ? {} : {...styles.userSelectText, ...styles.cursorPointer};
-    const isEmail = Str.isValidEmail(href.replace(/mailto:/i, ''));
+    const isEmail = Str.isValidEmail(href.replaceAll(/mailto:/gi, ''));
     const linkHref = !linkHasImage ? href : undefined;
     const isFocused = useIsFocused();
 

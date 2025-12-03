@@ -63,13 +63,14 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
             ],
             options: validFieldOptions,
             recentlyUsedOptions,
+            translate,
         });
 
         const policyReportFieldData = policyReportFieldOptions.at(0)?.data ?? [];
         const header = getHeaderMessageForNonUserList(policyReportFieldData.length > 0, debouncedSearchValue);
 
         return [policyReportFieldOptions, header];
-    }, [fieldOptions, localeCompare, debouncedSearchValue, fieldValue, recentlyUsedOptions]);
+    }, [fieldOptions, localeCompare, debouncedSearchValue, fieldValue, recentlyUsedOptions, translate]);
 
     const selectedOptionKey = useMemo(() => (sections.at(0)?.data ?? []).filter((option) => option.searchText === fieldValue)?.at(0)?.keyForList, [sections, fieldValue]);
     return (
@@ -82,7 +83,6 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
             onChangeText={setSearchValue}
             headerMessage={headerMessage}
             ListItem={RadioListItem}
-            isRowMultilineSupported
             rightHandSideComponent={itemRightSideComponent}
         />
     );

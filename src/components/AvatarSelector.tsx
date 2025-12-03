@@ -3,8 +3,9 @@ import {View} from 'react-native';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-// import {CUSTOM_AVATAR_CATALOG} from '@libs/Avatars/CustomAvatarCatalog';
+import {PRESET_AVATAR_CATALOG_ORDERED} from '@libs/Avatars/PresetAvatarCatalog';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import Avatar from './Avatar';
@@ -34,8 +35,8 @@ type AvatarSelectorProps = {
 function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_SIZE.MEDIUM}: AvatarSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
-
     const {avatarList} = useLetterAvatars(name, size);
 
     return (
@@ -44,6 +45,28 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
                 <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre, styles.ph2])}>{label}</Text>
             )}
             <View style={styles.avatarSelectorListContainer}>
+                {PRESET_AVATAR_CATALOG_ORDERED.map(({id, local}) => {
+                    const isSelected = selectedID === id;
+
+                    return (
+                        <PressableWithFeedback
+                            key={id}
+                            accessible
+                            accessibilityRole="button"
+                            accessibilityLabel={translate('avatarPage.selectAvatar')}
+                            onPress={() => onSelect(id)}
+                            style={[styles.avatarSelectorWrapper, isSelected && {borderColor: theme.success, borderWidth: 2}]}
+                        >
+                            <Avatar
+                                type={CONST.ICON_TYPE_AVATAR}
+                                source={local}
+                                size={size}
+                                containerStyles={styles.avatarSelectorContainer}
+                                testID={`AvatarSelector_${id}`}
+                            />
+                        </PressableWithFeedback>
+                    );
+                })}
                 {avatarList.map(({id, StyledLetterAvatar}) => {
                     const isSelected = selectedID === id;
 

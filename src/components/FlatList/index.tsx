@@ -11,21 +11,21 @@ const IS_MOBILE_SAFARI = isMobileSafari();
 
 function mergeRefs(...args: Array<RefObject<FlatList> | ForwardedRef<FlatList> | null>) {
     return function (node: FlatList) {
-        args.forEach((ref) => {
+        for (const ref of args) {
             if (ref == null) {
-                return;
+                continue;
             }
             if (typeof ref === 'function') {
                 ref(node);
-                return;
+                continue;
             }
             if (typeof ref === 'object') {
                 // eslint-disable-next-line no-param-reassign
                 ref.current = node;
-                return;
+                continue;
             }
             console.error(`mergeRefs cannot handle Refs of type boolean, number or string, received ref ${String(ref)}`);
-        });
+        }
     };
 }
 
@@ -46,7 +46,7 @@ type CustomFlatListProps<T> = FlatListProps<T> & {
     shouldDisableVisibleContentPosition?: boolean;
 };
 
-function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, ref, ...props}: CustomFlatListProps<TItem>) {
+function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false, onScroll, initialNumToRender, ref, ...props}: CustomFlatListProps<TItem>) {
     const {minIndexForVisible: mvcpMinIndexForVisible, autoscrollToTopThreshold: mvcpAutoscrollToTopThreshold} = maintainVisibleContentPosition ?? {};
     const scrollRef = useRef<FlatList | null>(null);
     const prevFirstVisibleOffsetRef = useRef(0);
@@ -152,20 +152,20 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
             let isEditComposerAdded = false;
             // Check if the first visible view is removed and re-calculate it
             // if needed.
-            mutations.forEach((mutation) => {
-                mutation.removedNodes.forEach((node) => {
+            for (const mutation of mutations) {
+                for (const node of mutation.removedNodes) {
                     if (node !== firstVisibleViewRef.current) {
-                        return;
+                        continue;
                     }
                     firstVisibleViewRef.current = null;
-                });
-                mutation.addedNodes.forEach((node) => {
+                }
+                for (const node of mutation.addedNodes) {
                     if (node.nodeType !== Node.ELEMENT_NODE || !(node as HTMLElement).querySelector('#composer')) {
-                        return;
+                        continue;
                     }
                     isEditComposerAdded = true;
-                });
-            });
+                }
+            }
 
             if (firstVisibleViewRef.current == null) {
                 prepareForMaintainVisibleContentPosition();
@@ -244,6 +244,7 @@ function MVCPFlatList<TItem>({maintainVisibleContentPosition, horizontal = false
             onScroll={onScrollInternal}
             scrollEventThrottle={1}
             ref={onRef}
+            initialNumToRender={Math.max(0, initialNumToRender ?? 0) || undefined}
             onLayout={(e) => {
                 isListRenderedRef.current = true;
                 if (!mutationObserverRef.current) {

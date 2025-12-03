@@ -8,6 +8,7 @@ import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import type {Report, ReportAction} from '@src/types/onyx';
+import SafeString from '@src/utils/SafeString';
 import focusApp from './focusApp';
 import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
@@ -64,7 +65,7 @@ function push(
         const notificationID = Str.guid();
         notificationCache[notificationID] = new Notification(title, {
             body,
-            icon: String(icon),
+            icon: SafeString(icon),
             data,
             silent: true,
             tag,
@@ -169,6 +170,7 @@ export default {
     clearNotifications(shouldClearNotification: (notificationData: LocalNotificationData) => boolean) {
         Object.values(notificationCache)
             .filter((notification) => shouldClearNotification(notification.data as LocalNotificationData))
+            // eslint-disable-next-line unicorn/no-array-for-each
             .forEach((notification) => notification.close());
     },
 };

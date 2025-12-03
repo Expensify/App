@@ -111,9 +111,9 @@ function useMemoizedLazyIllustrations<const TName extends readonly IllustrationN
                 }
 
                 const loaded: Record<string, IconAsset> = {};
-                namesList.forEach((name) => {
+                for (const name of namesList) {
                     loaded[name as string] = chunk.getIllustration(name) ?? PlaceholderIcon;
-                });
+                }
                 setAssets(loaded);
             })
             .catch(() => {
@@ -122,9 +122,9 @@ function useMemoizedLazyIllustrations<const TName extends readonly IllustrationN
                 }
 
                 const fallback: Record<string, IconAsset> = {};
-                namesList.forEach((name) => {
+                for (const name of namesList) {
                     fallback[name as string] = PlaceholderIcon;
-                });
+                }
                 setAssets(fallback);
             });
 
@@ -157,9 +157,9 @@ function useMemoizedLazyExpensifyIcons<const TName extends readonly ExpensifyIco
                 }
 
                 const loaded: Record<string, IconAsset> = {};
-                namesList.forEach((name) => {
+                for (const name of namesList) {
                     loaded[name as string] = chunk.getExpensifyIcon(name) ?? PlaceholderIcon;
-                });
+                }
                 setAssets(loaded);
             })
             .catch(() => {
@@ -168,9 +168,9 @@ function useMemoizedLazyExpensifyIcons<const TName extends readonly ExpensifyIco
                 }
 
                 const fallback: Record<string, IconAsset> = {};
-                namesList.forEach((name) => {
+                for (const name of namesList) {
                     fallback[name as string] = PlaceholderIcon;
-                });
+                }
                 setAssets(fallback);
             });
 

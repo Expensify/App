@@ -6,6 +6,7 @@ import type {Reservation, ReservationTimeDetails, ReservationType} from '@src/ty
 import type Transaction from '@src/types/onyx/Transaction';
 import type {AirPnr, CarPnr, HotelPnr, Pnr, PnrData, PnrTraveler, RailPnr, TripData} from '@src/types/onyx/TripData';
 import type IconAsset from '@src/types/utils/IconAsset';
+import SafeString from '@src/utils/SafeString';
 import {getMoneyRequestSpendBreakdown} from './ReportUtils';
 
 function getTripReservationIcon(reservationType?: ReservationType): IconAsset {
@@ -82,7 +83,7 @@ function parseDurationToSeconds(duration: string): number {
 function getSeatByLegAndFlight(travelerInfo: ArrayValues<AirPnr['travelerInfos']>, legIdx: number, flightIdx: number): string | undefined {
     const seats = travelerInfo.booking?.seats?.filter((seat) => seat.legIdx === legIdx && seat.flightIdx === flightIdx);
     if (seats && seats.length > 0) {
-        return seats.join(', ');
+        return seats.map(SafeString).join(', ');
     }
     return '';
 }
@@ -102,7 +103,7 @@ function getTravelerName(traveler: ArrayValues<PnrData['pnrTravelers']>['persona
         name += ` ${traveler.name.given}`;
     }
 
-    return name.trim();
+    return name?.trim();
 }
 
 function getAddressFromLocation(
@@ -149,10 +150,10 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
     const airlineInfo = pnr.data.additionalMetadata?.airlineInfo ?? [];
     const airports = pnr.data.additionalMetadata?.airportInfo ?? [];
 
-    pnrData.travelerInfos.forEach((travelerInfo) => {
-        travelerInfo.tickets.forEach((ticket) => {
+    for (const travelerInfo of pnrData.travelerInfos) {
+        for (const ticket of travelerInfo.tickets) {
             const flightCoupons = ticket.flightCoupons;
-            flightCoupons.forEach((flightDetails, index) => {
+            for (const [index, flightDetails] of flightCoupons.sort((a, b) => a.legIdx - b.legIdx).entries()) {
                 const legIdx = flightDetails.legIdx;
                 const flightIdx = flightDetails.flightIdx;
                 const flightObject = pnrData.legs?.at(legIdx)?.flights.at(flightIdx);
@@ -218,9 +219,9 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reservat
                 };
 
                 reservationList.push({reservation: reservationObject, reservationIndex: index});
-            });
-        });
-    });
+            }
+        }
+    }
 
     return reservationList;
 }
@@ -335,8 +336,8 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserva
     }
     const pnrData: RailPnr = pnr.data.railPnr;
 
-    pnrData.tickets.forEach((ticket) => {
-        ticket.legs.forEach((legIdx, legIndex) => {
+    for (const ticket of pnrData.tickets) {
+        for (const [legIndex, legIdx] of ticket.legs.entries()) {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             const leg = pnrData.legInfos.at(legIdx)!;
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -384,8 +385,8 @@ function getRailReservations(pnr: Pnr, travelers: PnrTraveler[]): Array<{reserva
                     },
                 },
             });
-        });
-    });
+        }
+    }
 
     return reservationList;
 }
@@ -446,7 +447,7 @@ function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?:
 
     const pnrMap = new Map<string, ReservationPNRData>();
 
-    reservations.forEach((reservation) => {
+    for (const reservation of reservations) {
         // eslint-disable-next-line rulesdir/no-default-id-values
         const pnrID = reservation.reservation.reservationID ?? '';
         if (!pnrMap.has(pnrID)) {
@@ -461,7 +462,7 @@ function getPNRReservationDataFromTripReport(tripReport?: Report, transactions?:
         if (reservationData) {
             reservationData.reservations.push(reservation);
         }
-    });
+    }
 
     return Array.from(pnrMap.values()).map((pnrData) => {
         const pnrPayloadData = tripReport?.tripData?.payload?.pnrs?.find((pnr) => pnrData.pnrID === pnr.pnrId);
@@ -512,5 +513,6 @@ export {
     getReservationDetailsFromSequence,
     formatAirportInfo,
     getPNRReservationDataFromTripReport,
+    getAirReservations,
 };
 export type {ReservationData};

@@ -174,6 +174,13 @@ function MapView({
     }, [navigation]);
 
     useEffect(() => {
+        if (!isOffline) {
+            return;
+        }
+        setIsIdle(false);
+    }, [isOffline]);
+
+    useEffect(() => {
         setAccessToken(accessToken).then((token) => {
             if (!token) {
                 return;
@@ -204,7 +211,7 @@ function MapView({
             animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
             zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
         });
-    }, [directionCoordinates, currentPosition, mapPadding, waypoints]);
+    }, [directionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapPadding, waypoints]);
 
     const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
 

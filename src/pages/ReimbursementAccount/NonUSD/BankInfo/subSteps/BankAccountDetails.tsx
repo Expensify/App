@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {CorpayFormField} from '@src/types/onyx';
+import SafeString from '@src/utils/SafeString';
 
 function getInputComponent(field: CorpayFormField) {
     if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
@@ -55,6 +56,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
 
+            // eslint-disable-next-line unicorn/no-array-for-each
             corpayFields?.formFields?.forEach((field) => {
                 const fieldID = field.id as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>;
 
@@ -62,12 +64,13 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                     errors[fieldID] = translate('common.error.fieldRequired');
                 }
 
+                // eslint-disable-next-line unicorn/no-array-for-each
                 field.validationRules.forEach((rule) => {
                     if (!rule.regEx) {
                         return;
                     }
 
-                    if (new RegExp(rule.regEx).test(values[fieldID] ? String(values[fieldID]) : '')) {
+                    if (new RegExp(rule.regEx).test(SafeString(values[fieldID]))) {
                         return;
                     }
 
@@ -89,7 +92,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
     const inputs = useMemo(() => {
         return bankAccountDetailsFields?.map((field) => {
             if (field.valueSet !== undefined) {
-                return getInputForValueSet(field, String(defaultValues[field.id as keyof typeof defaultValues]), isEditing, styles);
+                return getInputForValueSet(field, SafeString(defaultValues[field.id as keyof typeof defaultValues]), isEditing, styles);
             }
 
             return (
@@ -104,7 +107,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                         aria-label={field.label}
                         role={CONST.ROLE.PRESENTATION}
                         shouldSaveDraft={!isEditing}
-                        defaultValue={String(defaultValues[field.id as keyof typeof defaultValues]) ?? ''}
+                        defaultValue={SafeString(defaultValues[field.id as keyof typeof defaultValues])}
                         limitSearchesToCountry={reimbursementAccountDraft?.country}
                         renamedInputKeys={{
                             street: 'bankAddressLine1',

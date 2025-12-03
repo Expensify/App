@@ -64,6 +64,8 @@ type LocaleContextProps = {
     preferredLocale: Locale | undefined;
 };
 
+type LocalizedTranslate = LocaleContextProps['translate'];
+
 const LocaleContext = createContext<LocaleContextProps>({
     translate: () => '',
     numberFormat: () => '',
@@ -129,7 +131,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         setCurrentLocale(locale);
     }, [areTranslationsLoading]);
 
-    const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails]);
+    const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails?.timezone?.selected]);
 
     const collator = useMemo(() => new Intl.Collator(currentLocale, COLLATOR_OPTIONS), [currentLocale]);
 
@@ -224,4 +226,4 @@ LocaleContextProvider.displayName = 'LocaleContextProvider';
 
 export {LocaleContext, LocaleContextProvider};
 
-export type {Locale, LocaleContextProps};
+export type {Locale, LocaleContextProps, LocalizedTranslate};

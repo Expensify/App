@@ -12,7 +12,6 @@ import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/
 import ScreenWrapper from '@components/ScreenWrapper';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {translateLocal} from '@libs/Localize';
 import {getFormattedCreated, isManagedCardTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
@@ -55,8 +54,13 @@ const getIOUActionForReportID = (reportID: string | undefined, transactionID: st
     return {...mockAction, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
 };
 
-const hasViolations = (reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean) =>
-    (shouldShowInReview === undefined || shouldShowInReview) && Object.values(transactionViolations ?? {}).length > 0;
+const hasViolations = (
+    reportID: string | undefined,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    _currentUserAccountID: number,
+    _currentUserEmailParam: string,
+    shouldShowInReview?: boolean,
+) => (shouldShowInReview === undefined || shouldShowInReview) && Object.values(transactionViolations ?? {}).length > 0;
 
 const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = null}: Partial<MoneyRequestReportPreviewProps>) => {
     return render(
@@ -91,7 +95,7 @@ const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
     const created = getFormattedCreated(transaction);
     const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
     const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
-    const cashOrCard = isTransactionMadeWithCard ? translateLocal('iou.card') : translateLocal('iou.cash');
+    const cashOrCard = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
     const transactionHeaderText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
     const transactionDisplayAmount = convertToDisplayString(transaction.amount, transaction.currency);
     return {transactionHeaderText, transactionDisplayAmount};
@@ -174,7 +178,7 @@ describe('MoneyRequestReportPreview', () => {
             await Onyx.multiSet({...mockOnyxTransactions, ...mockOnyxViolations});
         });
         await waitForBatchedUpdatesWithAct();
-        expect(screen.getAllByText(translateLocal('violations.reviewRequired'))).toHaveLength(2);
+        expect(screen.getAllByText(TestHelper.translateLocal('violations.reviewRequired'))).toHaveLength(2);
     });
 
     it('renders a skeleton if the transaction is empty', async () => {
@@ -216,10 +220,10 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Verify the Review button is rendered
-        expect(screen.getByText(translateLocal('common.review'))).toBeOnTheScreen();
+        expect(screen.getByText(TestHelper.translateLocal('common.review'))).toBeOnTheScreen();
 
         // Verify the button has the correct styling (danger icon)
-        const reviewButton = screen.getByText(translateLocal('common.review'));
+        const reviewButton = screen.getByText(TestHelper.translateLocal('common.review'));
         expect(reviewButton).toBeOnTheScreen();
 
         // Clean up mocks
@@ -241,10 +245,10 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Verify the Review button is NOT rendered
-        expect(screen.queryByText(translateLocal('common.review'))).not.toBeOnTheScreen();
+        expect(screen.queryByText(TestHelper.translateLocal('common.review'))).not.toBeOnTheScreen();
 
         // But View button should be rendered instead
-        expect(screen.getByText(translateLocal('common.view'))).toBeOnTheScreen();
+        expect(screen.getByText(TestHelper.translateLocal('common.view'))).toBeOnTheScreen();
 
         // Clean up mocks
         canReviewSpy.mockRestore();
@@ -267,7 +271,7 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Find and press the Review button
-        const reviewButton = screen.getByText(translateLocal('common.review'));
+        const reviewButton = screen.getByText(TestHelper.translateLocal('common.review'));
         expect(reviewButton).toBeOnTheScreen();
 
         fireEvent.press(reviewButton);

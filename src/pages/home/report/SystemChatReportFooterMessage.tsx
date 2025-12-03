@@ -2,14 +2,13 @@ import {emailSelector} from '@selectors/Session';
 import React, {useMemo} from 'react';
 import Banner from '@components/Banner';
 import {Lightbulb} from '@components/Icon/Expensicons';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
-import Navigation from '@navigation/Navigation';
-import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -17,6 +16,7 @@ import ROUTES from '@src/ROUTES';
 function SystemChatReportFooterMessage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {environmentURL} = useEnvironment();
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     const [choice] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
@@ -38,24 +38,17 @@ function SystemChatReportFooterMessage() {
         switch (choice) {
             case CONST.ONBOARDING_CHOICES.MANAGE_TEAM:
                 return (
-                    <>
-                        {translate('systemChatFooterMessage.newDotManageTeam.phrase1')}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID))}>
-                            {adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
-                        </TextLink>
-                        {translate('systemChatFooterMessage.newDotManageTeam.phrase2')}
-                    </>
+                    <RenderHTML
+                        html={translate('systemChatFooterMessage.newDotManageTeam', {
+                            adminReportName: adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
+                            href: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID)}`,
+                        })}
+                    />
                 );
             default:
-                return (
-                    <>
-                        {translate('systemChatFooterMessage.default.phrase1')}
-                        <TextLink onPress={() => navigateToConciergeChat()}>{CONST?.CONCIERGE_CHAT_NAME}</TextLink>
-                        {translate('systemChatFooterMessage.default.phrase2')}
-                    </>
-                );
+                return <RenderHTML html={translate('systemChatFooterMessage.default')} />;
         }
-    }, [adminChatReport?.reportName, adminChatReport?.reportID, choice, translate]);
+    }, [adminChatReport?.reportName, adminChatReport?.reportID, choice, translate, environmentURL]);
 
     return (
         <Banner

@@ -109,7 +109,7 @@ function getFileName(url: string): string {
         Log.warn('[FileUtils] Could not get attachment name', {url});
     }
 
-    return decodeURIComponent(fileName).replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
+    return decodeURIComponent(fileName).replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
 }
 
 function isImage(fileName: string): boolean {
@@ -157,18 +157,44 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
  * Returns the filename replacing special characters with underscore
  */
 function cleanFileName(fileName: string): string {
-    return fileName.replace(/[^a-zA-Z0-9\-._]/g, '_');
+    return fileName.replaceAll(/[^a-zA-Z0-9\-._]/g, '_');
 }
 
 function appendTimeToFileName(fileName: string): string {
     const file = splitExtensionFromFileName(fileName);
-    let newFileName = `${file.fileName}-${DateUtils.getDBTime()}`;
-    // Replace illegal characters before trying to download the attachment.
-    newFileName = newFileName.replace(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
-    if (file.fileExtension) {
-        newFileName += `.${file.fileExtension}`;
+
+    const fileNameWithoutExtension = file.fileName;
+    const fileExtension = file.fileExtension;
+
+    const time = DateUtils.getDBTime();
+    const timeSuffix = `-${time}`;
+
+    const lengthSafeFileNameWithoutExtension =
+        Platform.OS === 'android' ? truncateFileNameToSafeLengthOnAndroid({fileNameWithoutExtension, fileSuffixLength: timeSuffix.length}) : fileNameWithoutExtension;
+
+    let newFileName = `${lengthSafeFileNameWithoutExtension}${timeSuffix}`;
+
+    // Replace all illegal characters before trying to download the attachment.
+    newFileName = newFileName.replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
+    if (fileExtension) {
+        newFileName += `.${fileExtension}`;
     }
     return newFileName;
+}
+
+const ANDROID_SAFE_FILE_NAME_LENGTH = 70;
+
+/**
+ * Truncates the file name to a safe length on Android
+ * @param params - An object containing:
+ *   @param params.fileNameWithoutExtension - The file name without the extension
+ *   @param params.fileSuffixLength - The length of the file suffix
+ * @returns The truncated file name
+ */
+function truncateFileNameToSafeLengthOnAndroid({fileNameWithoutExtension, fileSuffixLength}: {fileNameWithoutExtension: string; fileSuffixLength: number}): string {
+    const safeFileNameLengthWithoutSuffix = ANDROID_SAFE_FILE_NAME_LENGTH - fileSuffixLength;
+
+    return fileNameWithoutExtension.substring(0, safeFileNameLengthWithoutSuffix);
 }
 
 /**
@@ -552,18 +578,18 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
 
 type ValidateAttachmentOptions = {
     isValidatingReceipts?: boolean;
-    isCheckingMultipleFiles?: boolean;
+    isValidatingMultipleFiles?: boolean;
 };
 
 const validateAttachment = (file: FileObject, validationOptions?: ValidateAttachmentOptions) => {
     const maxFileSize = validationOptions?.isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
 
     if (validationOptions?.isValidatingReceipts && !isValidReceiptExtension(file)) {
-        return validationOptions?.isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
+        return validationOptions?.isValidatingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
     }
 
     if (!Str.isImage(file.name ?? '') && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
-        return validationOptions?.isCheckingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
+        return validationOptions?.isValidatingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
     }
 
     if (validationOptions?.isValidatingReceipts && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
@@ -698,7 +724,7 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
                         return;
                     }
 
-                    const jpegFileName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
+                    const jpegFileName = fileName.replaceAll(/\.(heic|heif)$/gi, '.jpg');
                     const jpegFile = Object.assign(new File([convertedBlob], jpegFileName, {type: CONST.IMAGE_FILE_FORMAT.JPEG}), {uri: URL.createObjectURL(convertedBlob)});
                     resolve(jpegFile);
                 },
@@ -760,6 +786,8 @@ export {
     getFileType,
     cleanFileName,
     appendTimeToFileName,
+    ANDROID_SAFE_FILE_NAME_LENGTH,
+    truncateFileNameToSafeLengthOnAndroid,
     readFileAsync,
     base64ToFile,
     isLocalFile,

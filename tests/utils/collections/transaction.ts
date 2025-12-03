@@ -45,3 +45,12 @@ export default function createRandomTransaction(index: number): Transaction {
         modifiedAmount: 0,
     };
 }
+
+const createRandomDistanceRequestTransaction = (index: number): Transaction => {
+    return {
+        ...createRandomTransaction(index),
+        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+    };
+};
+
+export {createRandomDistanceRequestTransaction};

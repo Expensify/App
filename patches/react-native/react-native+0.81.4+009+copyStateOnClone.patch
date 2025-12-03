@@ -1,0 +1,16 @@
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/core/ShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/core/ShadowNode.cpp
+index a3af28d..9c0282a 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/core/ShadowNode.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/core/ShadowNode.cpp
+@@ -399,9 +399,8 @@ std::shared_ptr<ShadowNode> ShadowNode::cloneTree(
+     children[childIndex] = childNode;
+ 
+     childNode = parentNode.clone(
+-        {.children =
+-             std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(
+-                 children)});
++        {.children = std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(children),
++         .state = parentNode.getState()});
+   }
+ 
+   return std::const_pointer_cast<ShadowNode>(childNode);

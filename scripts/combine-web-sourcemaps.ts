@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/await-thenable */
 import fs from 'fs';
 import path from 'path';
 import type {RawSourceMap} from 'source-map';
@@ -43,6 +42,7 @@ async function mergeSourceMaps() {
         });
 
         // Add the sources content
+        // eslint-disable-next-line unicorn/no-array-for-each
         consumer.sources.forEach((sourceFile: string) => {
             const content = consumer.sourceContentFor(sourceFile);
             if (content) {
