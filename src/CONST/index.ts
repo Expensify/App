@@ -1693,8 +1693,11 @@ const CONST = {
         ATTRIBUTE_REPORT_ID: 'report_id',
         ATTRIBUTE_MESSAGE_LENGTH: 'message_length',
         ATTRIBUTE_CANCELED: 'canceled',
+        ATTRIBUTE_EXCEEDED_TIMEOUT: 'exceeded_timeout',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
+        // Timeouts
+        SPAN_STARTUP_TIMEOUT_MS: 60000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',

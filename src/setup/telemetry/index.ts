@@ -29,8 +29,12 @@ export default function (): void {
         beforeSendTransaction: processBeforeSendTransactions,
     });
 
-    startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {
-        name: CONST.TELEMETRY.SPAN_APP_STARTUP,
-        op: CONST.TELEMETRY.SPAN_APP_STARTUP,
-    });
+    startSpan(
+        CONST.TELEMETRY.SPAN_APP_STARTUP,
+        {
+            name: CONST.TELEMETRY.SPAN_APP_STARTUP,
+            op: CONST.TELEMETRY.SPAN_APP_STARTUP,
+        },
+        CONST.TELEMETRY.SPAN_STARTUP_TIMEOUT_MS,
+    );
 }
