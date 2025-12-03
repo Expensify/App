@@ -97,21 +97,18 @@ With Manual Rules, you’ll be able to:
 
 ## How do Personal Rules interact with workspace rules?
 
-- **Manual Personal Rules override implicit learning**
-- Workspace-level rules (like Category Rules or Report Rules) may still apply **after** Personal Rules, unless explicitly blocked by a workspace setting
+Manual Personal Rules override implicit learning. Workspace-level rules (like Category Rules or Report Rules) may still apply **after** Personal Rules, unless explicitly blocked by a workspace setting
 
 ## Do Personal Rules affect accounting exports?
 
-Yes — especially for merchant name standardization. Inconsistent names (e.g., “Starbucks #1234” vs. “Starbucks”) can create duplicate vendors in your accounting system. Personal Rules help prevent that.
+Yes — especially for merchant name standardization. Inconsistent names (e.g., “Starbucks #1234” vs. “Starbucks”) can create duplicate vendors in your accounting system. Personal Rules help prevent that. Vendor matching is supported for QuickBooks Online, QuickBooks Desktop and Xero. 
 
-### Vendor matching is supported for:
-- QuickBooks Online
-- QuickBooks Desktop
-- Xero
+## What’s the difference between implicit and manual Personal Rules?
 
-### Vendor matching is **not** supported for:
-- NetSuite
-- Sage Intacct  
-  *(due to API limitations)*
+Implicit rules are automatically learned by Concierge based on your behavior. Manual rules are ones you set up yourself.
+
+## Can I use Personal Rules on someone else’s expenses?
+
+No. Personal Rules only apply to expenses that **you** create.
 
 </div>
