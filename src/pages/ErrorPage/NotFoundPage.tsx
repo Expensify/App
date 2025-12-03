@@ -1,10 +1,12 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
+import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type NotFoundPageProps = {
@@ -20,6 +22,30 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
     const {isSmallScreenWidth} = useResponsiveLayout();
     const topmostReportId = Navigation.getTopmostReportId();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${topmostReportId}`);
+
+    useEffect(() => {
+        startSpan(CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE, {
+            name: CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE,
+            op: CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE,
+        });
+
+        // Handle page unload on web (closing tab/window, full page reload)
+        const handleBeforeUnload = () => {
+            endSpan(CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE);
+        };
+
+        if (typeof window !== 'undefined') {
+            window.addEventListener('beforeunload', handleBeforeUnload);
+        }
+
+        return () => {
+            endSpan(CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE);
+            
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('beforeunload', handleBeforeUnload);
+            }
+        };
+    }, []);
 
     return (
         <ScreenWrapper
