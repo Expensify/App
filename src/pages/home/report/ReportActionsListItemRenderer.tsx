@@ -3,7 +3,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActionReactions, ReportActionsDrafts, Transaction} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
@@ -99,8 +99,8 @@ type ReportActionsListItemRendererProps = {
     isReportArchived: boolean;
     /** Original report ID for this action (computed at list level) */
     originalReportID?: string;
-    /** Collection of report name value pairs for archived status lookup */
-    reportNameValuePairsCollection?: OnyxCollection<ReportNameValuePairs>;
+    /** Whether the original report is archived */
+    isOriginalReportArchived?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -135,7 +135,7 @@ function ReportActionsListItemRenderer({
     isTryNewDotNVPDismissed = false,
     isReportArchived = false,
     originalReportID,
-    reportNameValuePairsCollection,
+    isOriginalReportArchived,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -267,7 +267,7 @@ function ReportActionsListItemRenderer({
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             originalReportID={originalReportID}
-            reportNameValuePairsCollection={reportNameValuePairsCollection}
+            isOriginalReportArchived={isOriginalReportArchived}
         />
     );
 }

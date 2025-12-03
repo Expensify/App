@@ -53,6 +53,7 @@ import {
     chatIncludesChronosWithID,
     getReportLastVisibleActionCreated,
     isArchivedNonExpenseReport,
+    isArchivedReport,
     isCanceledTaskReport,
     isExpenseReport,
     isInvoiceReport,
@@ -465,7 +466,7 @@ function ReportActionsList({
         const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
         lastMessageTime.current = null;
 
-        const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
+        const isCurrentReportArchived = isArchivedNonExpenseReport(report, isReportArchived);
         const hasNewMessagesInView = scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         const hasUnreadReportAction = sortedVisibleReportActions.some(
             (reportAction) =>
@@ -474,7 +475,7 @@ function ReportActionsList({
                 (isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== getCurrentUserAccountID(),
         );
 
-        if (!isArchivedReport && (!hasNewMessagesInView || !hasUnreadReportAction)) {
+        if (!isCurrentReportArchived && (!hasNewMessagesInView || !hasUnreadReportAction)) {
             return;
         }
 
@@ -716,6 +717,8 @@ function ReportActionsList({
                 uniqueTransactionThreadReportID,
                 uniqueTransactionThreadReportActions,
             });
+            const originalReportNameValuePairs = reportNameValuePairsCollection?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${originalReportID}`];
+            const isOriginalReportArchived = isArchivedReport(originalReportNameValuePairs);
             const reportDraftMessages = draftMessage?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`];
             const matchingDraftMessage = reportDraftMessages?.[reportAction.reportActionID];
             const matchingDraftMessageString = matchingDraftMessage?.message;
@@ -760,7 +763,7 @@ function ReportActionsList({
                     userBillingFundID={userBillingFundID}
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                     originalReportID={originalReportID}
-                    reportNameValuePairsCollection={reportNameValuePairsCollection}
+                    isOriginalReportArchived={isOriginalReportArchived}
                 />
             );
         },
