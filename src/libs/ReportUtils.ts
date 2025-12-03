@@ -2478,8 +2478,8 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 /**
- * A Track Expense Report is a thread where the parent the parentReportAction is a transaction, and
- * parentReportAction has type of track.
+ * @deprecated Use isTrackExpenseReportNew function instead
+ * 
  */
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
