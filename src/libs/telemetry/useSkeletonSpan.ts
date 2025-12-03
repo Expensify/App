@@ -1,11 +1,11 @@
-/**
- * This file contains logic related to tracking skeleton across the application.
- */
 import {useEffect, useId} from 'react';
 import CONST from '@src/CONST';
 import {endSpan, startSpan} from './activeSpans';
 
-function useSkeletonSpan(component: string) {
+/**
+ * Create a span for a skeleton component. This helps identify "infinite skeleton" issues where loading states don't resolve.
+ */
+function useSkeletonSpan(component: string ) {
     const reactId = useId();
 
     useEffect(() => {
