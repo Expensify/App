@@ -244,6 +244,7 @@ import {
     isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction as isSplitBillReportAction,
+    isSubmittedAction,
     isTagModificationAction,
     isThreadParentMessage,
     isTrackExpenseAction,
@@ -12665,7 +12666,11 @@ function selectFilteredReportActions(
         Object.entries(reportActions).map(([reportId, actionsGroup]) => {
             const actions = Object.values(actionsGroup ?? {});
             const filteredActions = actions.filter(
-                (action): action is ReportAction => isExportIntegrationAction(action) || isIntegrationMessageAction(action) || isDynamicExternalWorkflowSubmitFailedAction(action),
+                (action): action is ReportAction =>
+                    isExportIntegrationAction(action) ||
+                    isIntegrationMessageAction(action) ||
+                    isDynamicExternalWorkflowSubmitFailedAction(action) ||
+                    (isSubmittedAction(action) && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
             );
             return [reportId, filteredActions];
         }),

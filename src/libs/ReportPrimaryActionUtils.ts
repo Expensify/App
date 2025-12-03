@@ -8,11 +8,12 @@ import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getSubmitToAccountID,
     getValidConnectedIntegration,
+    hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPreferredExporter,
 } from './PolicyUtils';
-import {getAllReportActions, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isMoneyRequestAction} from './ReportActionsUtils';
+import {getAllReportActions, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, hasPendingSubmittedAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     canAddTransaction as canAddTransactionUtil,
     canHoldUnholdReportAction,
@@ -76,8 +77,13 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
 }
 
-function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs) {
+function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, reportActions?: ReportAction[]) {
     if (isArchivedReport(reportNameValuePairs)) {
+        return false;
+    }
+
+    // Don't show submit button if there's already a pending SUBMITTED action on DEW policy (DEW submission in progress)
+    if (hasDynamicExternalWorkflow(policy) && hasPendingSubmittedAction(reportActions ?? [])) {
         return false;
     }
 
@@ -410,7 +416,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     if (isPrimaryMarkAsResolvedAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED;
     }
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 

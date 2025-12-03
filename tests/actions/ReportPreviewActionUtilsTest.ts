@@ -579,5 +579,32 @@ describe('getReportPreviewAction', () => {
                 CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW,
             );
         });
+
+        it('should return VIEW when hasPendingDEWSubmit is true and report is OPEN', async () => {
+            const report: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+            } as unknown as Transaction;
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+            await waitForBatchedUpdatesWithAct();
+
+            // hasDEWSubmitFailed = false, hasPendingDEWSubmit = true
+            expect(getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, false, true)).toBe(
+                CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW,
+            );
+        });
     });
 });

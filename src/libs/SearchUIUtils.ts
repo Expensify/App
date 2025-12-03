@@ -75,11 +75,12 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getMostRecentActiveDEWSubmitFailedAction,
     getOriginalMessage,
+    hasPendingSubmittedAction,
     isCreatedAction,
     isDeletedAction,
     isHoldAction,
@@ -1241,8 +1242,9 @@ function getActions(
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
-    // Check for DEW submit failed - if the report has a DEW_SUBMIT_FAILED action (more recent than last SUBMITTED) and is still OPEN, show View
-    if (report.statusNum === CONST.REPORT.STATUS_NUM.OPEN && !!getMostRecentActiveDEWSubmitFailedAction(reportActions)) {
+    // Check for DEW submit failed or pending DEW submission - show View instead of Submit
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (report.statusNum === CONST.REPORT.STATUS_NUM.OPEN && (!!getMostRecentActiveDEWSubmitFailedAction(reportActions) || (isDEWPolicy && hasPendingSubmittedAction(reportActions)))) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 

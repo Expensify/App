@@ -43,7 +43,7 @@ import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportU
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getMostRecentActiveDEWSubmitFailedAction} from '@libs/ReportActionsUtils';
+import {getMostRecentActiveDEWSubmitFailedAction, hasPendingSubmittedAction} from '@libs/ReportActionsUtils';
 import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
@@ -491,6 +491,8 @@ function MoneyRequestReportPreviewContent({
     }, [iouReportID]);
 
     const hasDEWSubmitFailed = useMemo(() => !!getMostRecentActiveDEWSubmitFailedAction(reportActions), [reportActions]);
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    const hasPendingDEWSubmit = useMemo(() => isDEWPolicy && hasPendingSubmittedAction(reportActions), [isDEWPolicy, reportActions]);
     const reportPreviewAction = useMemo(() => {
         return getReportPreviewAction(
             isIouReportArchived || isChatReportArchived,
@@ -503,6 +505,7 @@ function MoneyRequestReportPreviewContent({
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
             hasDEWSubmitFailed,
+            hasPendingDEWSubmit,
         );
     }, [
         isPaidAnimationRunning,
@@ -516,6 +519,7 @@ function MoneyRequestReportPreviewContent({
         isChatReportArchived,
         currentUserDetails.accountID,
         hasDEWSubmitFailed,
+        hasPendingDEWSubmit,
     ]);
 
     const addExpenseDropdownOptions = useMemo(

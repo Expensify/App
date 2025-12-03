@@ -160,6 +160,7 @@ function getReportPreviewAction(
     isApprovedAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
     hasDEWSubmitFailed?: boolean,
+    hasPendingDEWSubmit?: boolean,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -178,8 +179,8 @@ function getReportPreviewAction(
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
-    // If DEW submit failed and report is still open, show VIEW (user needs to review errors in report comments)
-    if (hasDEWSubmitFailed && isOpenReport(report)) {
+    // If DEW submit failed or there's a pending DEW submission, show VIEW
+    if ((hasDEWSubmitFailed || hasPendingDEWSubmit) && isOpenReport(report)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
