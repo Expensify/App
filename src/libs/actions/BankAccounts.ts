@@ -275,7 +275,7 @@ function addPersonalBankAccount(
     lastPaymentMethod?: LastPaymentMethodType | string | undefined,
 ) {
     const parameters: AddPersonalBankAccountParams = {
-        addressName: account.addressName ?? '',
+        addressName: account?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL ? `${account?.legalFirstName} ${account?.legalLastName}` : account.addressName,
         routingNumber: account?.routingNumber,
         accountNumber: account?.accountNumber,
         isSavings: account.isSavings ?? false,
