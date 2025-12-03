@@ -14,6 +14,7 @@ type CreateWorkspaceFromIOUPaymentParams = {
     memberData: string;
     reportActionID: string | undefined;
     expenseMovedReportActionID: string | undefined;
+    outputCurrency: string;
 };
 
 export default CreateWorkspaceFromIOUPaymentParams;
