@@ -1485,14 +1485,15 @@ describe('ReportActionsUtils', () => {
             environmentURL = await getEnvironmentURL();
         });
 
-        it('should return the correct message with a valid report ID', () => {
+        it('should return the correct message with a valid report ID and report name', () => {
             const reportID = '12345';
+            const reportName = 'Test Expense Report';
             const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', {
                 reportUrl: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`,
-                reportID,
+                reportName,
             });
 
-            const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, translateLocal);
+            const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
 
             expect(result).toBe(expectedMessage);
         });

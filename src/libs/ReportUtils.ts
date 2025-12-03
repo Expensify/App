@@ -2313,9 +2313,9 @@ function isHarvestCreatedExpenseReport(reportNameValuePairs?: OnyxInputOrEntry<R
 /**
  * Returns the original reportID for a harvest-created report
  */
-function getHarvestOriginalReportID(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): string {
+function getHarvestOriginalReportID(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): string | undefined {
     if (!reportNameValuePairs?.originalID || !isHarvestCreatedExpenseReport(reportNameValuePairs)) {
-        return '';
+        return undefined;
     }
 
     return reportNameValuePairs.originalID;

@@ -981,8 +981,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Nur Administratoren können Nachrichten in diesem Raum senden.',
     reportAction: {
         asCopilot: 'als Co-Pilot für',
-        harvestCreatedExpenseReport: ({reportUrl, reportID}: HarvestCreatedExpenseReportParams) =>
-            `hat diesen Bericht erstellt, um alle Ausgaben aus <a href="${reportUrl}">#${reportID}</a> aufzunehmen, die mit der von dir gewählten Frequenz nicht eingereicht werden konnten`,
+        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+            `hat diesen Bericht erstellt, um alle Ausgaben aus <a href="${reportUrl}">${reportName}</a> aufzunehmen, die mit der von dir gewählten Frequenz nicht eingereicht werden konnten`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Benachrichtige alle in diesem Gespräch',

@@ -28,6 +28,7 @@ import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
+    getHarvestOriginalReportID,
     getSourceIDFromReportAction,
     isArchivedNonExpenseReport,
     isInvoiceReport as ReportUtilsIsInvoiceReport,
@@ -159,6 +160,7 @@ function BaseReportActionContextMenu({
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {canBeMissing: true});
+    const [harvestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getHarvestOriginalReportID(reportNameValuePairs)}`, {canBeMissing: true});
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
@@ -380,6 +382,7 @@ function BaseReportActionContextMenu({
                             policy,
                             policyTags,
                             translate,
+                            harvestReport,
                         };
 
                         if ('renderContent' in contextAction) {

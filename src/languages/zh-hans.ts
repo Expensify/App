@@ -972,8 +972,8 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: '只有管理员可以在此房间发送消息。',
     reportAction: {
         asCopilot: '作为副驾驶',
-        harvestCreatedExpenseReport: ({reportUrl, reportID}: HarvestCreatedExpenseReportParams) =>
-            `创建了此报表以汇总 <a href="${reportUrl}">#${reportID}</a> 中无法按您选择的频率提交的所有费用`,
+        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+            `创建了此报表以汇总 <a href="${reportUrl}">${reportName}</a> 中无法按您选择的频率提交的所有费用`,
     },
     mentionSuggestions: {
         hereAlternateText: '通知此对话中的所有人',

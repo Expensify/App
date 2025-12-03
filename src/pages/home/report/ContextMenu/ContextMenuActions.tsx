@@ -103,6 +103,7 @@ import {
     isUnapprovedAction,
     isWhisperAction as isWhisperActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteReportAction,
     canEditReportAction,
@@ -113,7 +114,6 @@ import {
     getDeletedTransactionMessage,
     getDowngradeWorkspaceMessage,
     getForcedCorporateUpgradeMessage,
-    getHarvestOriginalReportID,
     getIOUReportActionDisplayMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
@@ -122,7 +122,7 @@ import {
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
-    getReportName,
+    getReportName as getReportNameDeprecated,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
@@ -240,6 +240,7 @@ type ContextMenuActionPayload = {
     policy?: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
+    harvestReport?: OnyxEntry<ReportType>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -603,6 +604,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 policy,
                 policyTags,
                 translate,
+                harvestReport,
             },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
@@ -644,7 +646,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const taskPreviewMessage = getTaskCreatedMessage(reportAction, childReport, true);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
-                    const logMessage = getMemberChangeMessageFragment(reportAction, getReportName).html ?? '';
+                    const logMessage = getMemberChangeMessageFragment(reportAction, getReportNameDeprecated).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
                     Clipboard.setString(Str.htmlDecode(getWorkspaceNameUpdatedMessage(reportAction)));
@@ -827,7 +829,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getJoinRequestMessage(reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport(reportNameValuePairs)) {
-                    const displayMessage = getHarvestCreatedExpenseReportMessage(getHarvestOriginalReportID(reportNameValuePairs), translate);
+                    const harvestReportName = getReportName(harvestReport);
+                    const displayMessage = getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate);
                     setClipboardMessage(displayMessage);
                 } else if (content) {
                     setClipboardMessage(

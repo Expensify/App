@@ -142,7 +142,7 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
 
 type HarvestCreatedExpenseReportParams = {
     reportUrl: string;
-    reportID: string;
+    reportName: string;
 };
 
 type DuplicateTransactionParams = {
