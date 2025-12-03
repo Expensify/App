@@ -43,6 +43,7 @@ type SearchTypeMenuProps = {
 
 function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {hash, similarSearchHash} = queryJSON ?? {};
+    const shouldSkipSuggestedSearchNavigation = !!queryJSON?.rawFilterList;
 
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -78,6 +79,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         flattenedMenuItems,
         similarSearchHash,
         clearSelectedTransactions,
+        shouldSkipNavigation: shouldSkipSuggestedSearchNavigation,
     });
 
     const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
