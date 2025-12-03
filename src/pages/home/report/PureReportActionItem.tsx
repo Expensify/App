@@ -1293,12 +1293,22 @@ function PureReportActionItem({
             const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
             const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
             const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+
+            // Treat a report as non-existent for rendering purposes if it's pending deletion.
+            const isFromReportPendingDelete =
+                !!fromReport &&
+                (fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                    fromReport?.pendingFields?.reportID === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            const isToReportPendingDelete =
+                !!toReport &&
+                (toReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                    toReport?.pendingFields?.reportID === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
-            const hasFromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!fromReport;
+            const hasFromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!fromReport && !isFromReportPendingDelete;
             // When expenses are merged multiple times, the previous fromReportID may reference a deleted report,
             // making it impossible to retrieve the report name for display
             // Ref: https://github.com/Expensify/App/issues/70338
-            if (!toReport && !hasFromReport) {
+            if ((!toReport || isToReportPendingDelete) && !hasFromReport) {
                 children = emptyHTML;
             } else {
                 children = (
