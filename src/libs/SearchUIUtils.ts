@@ -70,8 +70,6 @@ import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
@@ -299,6 +297,7 @@ type GetSectionsParams = {
     data: OnyxTypes.SearchResults['data'];
     currentAccountID: number | undefined;
     currentUserEmail: string;
+    translate: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     groupBy?: SearchGroupBy;
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
@@ -916,21 +915,19 @@ function getViolations(data: OnyxTypes.SearchResults['data']): OnyxCollection<On
  * @private
  * Generates a display name for IOU reports considering the personal details of the payer and the transaction details.
  */
-function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: TransactionReportGroupListItemType) {
+function getIOUReportName(translate: LocalizedTranslate, data: OnyxTypes.SearchResults['data'], reportItem: TransactionReportGroupListItemType) {
     const payerPersonalDetails = reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
     // For cases where the data personal detail for manager ID do not exist in search data.personalDetailsList
     // we fallback to the display name of the personal detail data from onyx.
     const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? getDisplayNameOrDefault(getPersonalDetailsForAccountID(reportItem.managerID));
     const formattedAmount = convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAID) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerPaidAmount', {
+        return translate('iou.payerPaidAmount', {
             payer: payerName,
             amount: formattedAmount,
         });
     }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.payerOwesAmount', {
+    return translate('iou.payerOwesAmount', {
         payer: payerName,
         amount: formattedAmount,
     });
@@ -1515,6 +1512,7 @@ function getReportSections(
     currentSearch: SearchKey,
     currentAccountID: number | undefined,
     currentUserEmail: string,
+    translate: LocalizedTranslate,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isActionLoadingSet: ReadonlySet<string> | undefined,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
@@ -1585,8 +1583,7 @@ function getReportSections(
                 const formattedFrom = formatPhoneNumber(getDisplayNameOrDefault(fromDetails));
                 const formattedTo = !shouldShowBlankTo ? formatPhoneNumber(getDisplayNameOrDefault(toDetails)) : '';
 
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate: translateLocal});
+                const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate});
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
@@ -1605,7 +1602,7 @@ function getReportSections(
                 };
 
                 if (isIOUReport) {
-                    reportIDToTransactions[reportKey].reportName = getIOUReportName(data, reportIDToTransactions[reportKey]);
+                    reportIDToTransactions[reportKey].reportName = getIOUReportName(translate, data, reportIDToTransactions[reportKey]);
                 }
             }
         } else if (isTransactionEntry(key)) {
@@ -1805,6 +1802,7 @@ function getSections({
     data,
     currentAccountID,
     currentUserEmail,
+    translate,
     formatPhoneNumber,
     groupBy,
     reportActions = {},
@@ -1821,7 +1819,7 @@ function getSections({
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, reportActions);
+        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, translate, formatPhoneNumber, isActionLoadingSet, reportActions);
     }
 
     if (groupBy) {
@@ -2060,11 +2058,18 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
 /**
  * Constructs and configures the overflow menu for search items, handling interactions such as renaming or deleting items.
  */
-function getOverflowMenu(itemName: string, hash: number, inputQuery: string, showDeleteModal: (hash: number) => void, isMobileMenu?: boolean, closeMenu?: () => void) {
+function getOverflowMenu(
+    itemName: string,
+    hash: number,
+    inputQuery: string,
+    translate: LocalizedTranslate,
+    showDeleteModal: (hash: number) => void,
+    isMobileMenu?: boolean,
+    closeMenu?: () => void,
+) {
     return [
         {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            text: translateLocal('common.rename'),
+            text: translate('common.rename'),
             onSelected: () => {
                 if (isMobileMenu && closeMenu) {
                     closeMenu();
@@ -2077,8 +2082,7 @@ function getOverflowMenu(itemName: string, hash: number, inputQuery: string, sho
             shouldCallAfterModalHide: true,
         },
         {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            text: translateLocal('common.delete'),
+            text: translate('common.delete'),
             onSelected: () => {
                 if (isMobileMenu && closeMenu) {
                     closeMenu();

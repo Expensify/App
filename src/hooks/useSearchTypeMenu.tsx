@@ -79,8 +79,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     }, []);
 
     const getOverflowMenu = useCallback(
-        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal, true, closeMenu),
-        [showDeleteModal, closeMenu],
+        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, translate, showDeleteModal, true, closeMenu),
+        [translate, showDeleteModal, closeMenu],
     );
 
     const {savedSearchesMenuItems, isSavedSearchActive} = useMemo(() => {
