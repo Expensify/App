@@ -29,8 +29,7 @@ function SearchFiltersSkeleton({shouldAnimate = true}: SearchFiltersSkeletonProp
                     <Rect
                         // eslint-disable-next-line react/no-array-index-key
                         key={index}
-                        x={index * 90}
-                        y={0}
+                        transform={[{translateX: index * 90}]}
                         rx={14}
                         ry={14}
                         width={84}
@@ -50,8 +49,7 @@ function SearchFiltersSkeleton({shouldAnimate = true}: SearchFiltersSkeletonProp
                         <Rect
                             // eslint-disable-next-line react/no-array-index-key
                             key={index}
-                            x={12 + index * 90}
-                            y={10}
+                            transform={[{translateX: 12 + index * 90}, {translateY: 10}]}
                             width={60}
                             height={8}
                         />

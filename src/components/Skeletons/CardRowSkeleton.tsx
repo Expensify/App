@@ -42,15 +42,13 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
                         r={20}
                     />
                     <Rect
-                        x={66}
-                        y={22}
+                        transform={[{translateX: 66}, {translateY: 22}]}
                         width={longBarWidth}
                         height={barHeight}
                     />
 
                     <Rect
-                        x={66}
-                        y={36}
+                        transform={[{translateX: 66}, {translateY: 36}]}
                         width={shortBarWidth}
                         height={barHeight}
                     />
@@ -59,16 +57,24 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
                         <>
                             <Rect
                                 // We have to calculate this value to make sure the element is aligned to the button on the right side.
-                                x={windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth}
-                                y={28}
+                                transform={[
+                                    {
+                                        translateX: windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth,
+                                    },
+                                    {translateY: 28},
+                                ]}
                                 width={20}
                                 height={barHeight}
                             />
 
                             <Rect
                                 // We have to calculate this value to make sure the element is aligned to the right border.
-                                x={windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding}
-                                y={28}
+                                transform={[
+                                    {
+                                        translateX: windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding,
+                                    },
+                                    {translateY: 28},
+                                ]}
                                 width={50}
                                 height={barHeight}
                             />

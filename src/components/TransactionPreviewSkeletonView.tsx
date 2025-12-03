@@ -31,20 +31,17 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
                 foregroundColor={theme.skeletonLHNOut}
             >
                 <Rect
-                    x="0"
-                    y="4"
+                    transform={[{translateY: 4}]}
                     width="64"
                     height="8"
                 />
                 <Rect
-                    x="0"
-                    y="24"
+                    transform={[{translateY: 24}]}
                     width={widthOfTheLeftSkeleton}
                     height="20"
                 />
                 <Rect
-                    x="0"
-                    y="54.75"
+                    transform={[{translateY: 54.75}]}
                     width="80"
                     height="7"
                 />
@@ -57,8 +54,7 @@ function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPr
                     backgroundColor={theme.skeletonLHNIn}
                 >
                     <Rect
-                        x="0"
-                        y="24"
+                        transform={[{translateY: 24}]}
                         width={widthOfTheRightSkeleton}
                         height="20"
                     />

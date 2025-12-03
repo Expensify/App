@@ -32,14 +32,12 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems, gradientOpa
                         r="20"
                     />
                     <Rect
-                        x="80"
-                        y="20"
+                        transform={[{translateX: 80}, {translateY: 20}]}
                         width={longBarWidth}
                         height={barHeight}
                     />
                     <Rect
-                        x="80"
-                        y="36"
+                        transform={[{translateX: 80}, {translateY: 36}]}
                         width={shortBarWidth}
                         height={barHeight}
                     />

@@ -47,30 +47,26 @@ function UnreportedExpensesSkeleton({fixedNumberOfItems}: {fixedNumberOfItems?: 
             return (
                 <>
                     <Rect
-                        x={12}
-                        y={22}
+                        transform={[{translateX: 12}, {translateY: 22}]}
                         width={20}
                         height={20}
                         rx={4}
                         ry={4}
                     />
                     <Rect
-                        x={44}
-                        y={12}
+                        transform={[{translateX: 44}, {translateY: 12}]}
                         width={36}
                         height={40}
                         rx={4}
                         ry={4}
                     />
                     <Rect
-                        x={92}
-                        y={26}
+                        transform={[{translateX: 92}, {translateY: 26}]}
                         width={getMessageSkeletonWidth(args.itemIndex)}
                         height={12}
                     />
                     <Rect
-                        x={pageWidth - 12 - getExpenseAmountSkeletonWidth(args.itemIndex)}
-                        y={26}
+                        transform={[{translateX: pageWidth - 12 - getExpenseAmountSkeletonWidth(args.itemIndex)}, {translateY: 26}]}
                         width={getExpenseAmountSkeletonWidth(args.itemIndex)}
                         height={12}
                     />

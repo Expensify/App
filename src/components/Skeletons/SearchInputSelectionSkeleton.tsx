@@ -21,8 +21,6 @@ function SearchInputSelectionSkeleton() {
                 style={[styles.ml1]}
             >
                 <Rect
-                    x="0"
-                    y="0"
                     width={variables.searchAutocompleteInputSkeletonWidth}
                     height={variables.searchAutocompleteInputSkeletonHeight}
                 />

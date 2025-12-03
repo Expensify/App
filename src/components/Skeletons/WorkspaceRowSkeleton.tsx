@@ -36,48 +36,41 @@ function WorkspaceRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpac
             renderSkeletonItem={() => (
                 <>
                     <Rect
-                        x={12}
-                        y={12}
+                        transform={[{translateX: 12}, {translateY: 12}]}
                         rx={5}
                         ry={5}
                         width={36}
                         height={40}
                     />
                     <Rect
-                        x={66}
-                        y={22}
+                        transform={[{translateX: 66}, {translateY: 22}]}
                         width={longBarWidth}
                         height={barHeight}
                     />
                     <Rect
-                        x={66}
-                        y={36}
+                        transform={[{translateX: 66}, {translateY: 36}]}
                         width={shortBarWidth}
                         height={barHeight}
                     />
                     {!shouldUseNarrowLayout && (
                         <>
                             <Rect
-                                x={66 + partWidth}
-                                y={22}
+                                transform={[{translateX: 66 + partWidth}, {translateY: 22}]}
                                 width={longBarWidth}
                                 height={barHeight}
                             />
                             <Rect
-                                x={66 + partWidth}
-                                y={36}
+                                transform={[{translateX: 66 + partWidth}, {translateY: 36}]}
                                 width={shortBarWidth}
                                 height={barHeight}
                             />
                             <Rect
-                                x={66 + partWidth * 2}
-                                y={22}
+                                transform={[{translateX: 66 + partWidth * 2}, {translateY: 22}]}
                                 width={longBarWidth}
                                 height={barHeight}
                             />
                             <Rect
-                                x={66 + partWidth * 2}
-                                y={36}
+                                transform={[{translateX: 66 + partWidth * 2}, {translateY: 36}]}
                                 width={shortBarWidth}
                                 height={barHeight}
                             />
