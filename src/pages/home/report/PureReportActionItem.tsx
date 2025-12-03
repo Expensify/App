@@ -1482,6 +1482,8 @@ function PureReportActionItem({
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);
+
+            const isConciergeOptions = isConciergeCategoryOptions(action) || isConciergeDescriptionOptions(action);
             children = (
                 <MentionReportContext.Provider value={mentionReportContextValue}>
                     <ShowContextMenuContext.Provider value={contextValue}>
@@ -1524,7 +1526,9 @@ function PureReportActionItem({
                                                     ? 'vertical'
                                                     : 'horizontal'
                                             }
-                                            shouldUseLocalization={!isConciergeCategoryOptions(action) && !isConciergeDescriptionOptions(action)}
+                                            shouldUseLocalization={!isConciergeOptions}
+                                            primaryTextNumberOfLines={isConciergeOptions ? 0 : 1}
+                                            textStyles={isConciergeOptions ? styles.textAlignLeft : undefined}
                                         />
                                     )}
                                 </View>
