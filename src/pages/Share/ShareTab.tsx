@@ -143,12 +143,15 @@ function ShareTab({ref}: ShareTabProps) {
         [textInputValue, setTextInputValue, translate, offlineMessage, header],
     );
 
-    const customListHeader =
-        textInputValue.trim() === '' ? (
-            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
-                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('search.recentChats')}</Text>
-            </View>
-        ) : undefined;
+    const customListHeader = useMemo(
+        () =>
+            textInputValue.trim() === '' ? (
+                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('search.recentChats')}</Text>
+                </View>
+            ) : undefined,
+        [textInputValue, styles, translate],
+    );
 
     return (
         <SelectionList
