@@ -218,7 +218,7 @@ function MoneyRequestView({
         postedDate: transactionPostedDate,
     } = useMemo<Partial<TransactionDetails>>(
         () => getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails, preferredLocale) ?? {},
-        [allowNegativeAmount, currentUserPersonalDetails, transaction],
+        [allowNegativeAmount, currentUserPersonalDetails, transaction, preferredLocale],
     );
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
