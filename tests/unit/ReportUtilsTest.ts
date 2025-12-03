@@ -1263,6 +1263,7 @@ describe('ReportUtils', () => {
                     },
                 } as ReportAction;
 
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const reportName = getReportNameDeprecated(transactionThread, undefined, unreportedTransactionAction);
 
                 // Should NOT contain HTML tags
