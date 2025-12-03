@@ -6201,6 +6201,10 @@ function getPendingChatMembers(accountIDs: number[], previousPendingChatMembers:
 function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportArchived = false, reportAttributes?: ReportAttributesDerivedValue['reports']): ParentNavigationSummaryParams {
     const parentReport = getParentReport(report);
 
+    if (report?.hasParentAccess === false) {
+        return {};
+    }
+
     if (isEmptyObject(parentReport)) {
         const ownerAccountID = report?.ownerAccountID;
         const personalDetails = ownerAccountID ? allPersonalDetails?.[ownerAccountID] : undefined;
