@@ -5171,16 +5171,16 @@ ${
             removeMemberTitle: 'メンバーを削除',
             transferOwner: 'オーナーを移行',
             makeMember: () => ({
-                one: 'Make member',
-                other: 'Make members',
+                one: 'メンバーにする',
+                other: 'メンバーにする',
             }),
             makeAdmin: () => ({
-                one: 'Make admin',
-                other: 'Make admins',
+                one: '管理者にする',
+                other: '管理者にする',
             }),
             makeAuditor: () => ({
-                one: 'Make auditor',
-                other: 'Make auditors',
+                one: '監査担当者にする',
+                other: '監査担当者にする',
             }),
             selectAll: 'すべて選択',
             error: {
