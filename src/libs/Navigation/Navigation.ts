@@ -575,6 +575,9 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
     return null;
 }
 
+/**
+ * Get the report ID from the topmost Super Wide RHP modal in the navigation stack.
+ */
 function getTopmostSuperWideRHPReportID(state: NavigationState = navigationRef.getRootState()): string | undefined {
     if (!state) {
         return;
@@ -794,10 +797,12 @@ function dismissToWideRHP() {
 }
 
 function dismissToSuperWideRHP() {
+    // On narrow layouts (mobile), Super Wide RHP doesn't exist, so just dismiss the modal completely
     if (getIsNarrowLayout()) {
         dismissModal();
         return;
     }
+    // On wide layouts, dismiss back to the Super Wide RHP modal stack
     return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS);
 }
 
