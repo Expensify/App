@@ -1192,7 +1192,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Trouver une dépense',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense (${amount} pour ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `à <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `à <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `de <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `déplacé cette dépense de votre <a href="${reportUrl}">espace personnel</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `déplacé cette dépense vers votre <a href="${reportUrl}">espace personnel</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -6309,6 +6311,36 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'activé' : 'désactivé'} catégories`;
+                case 'tags':
+                    return `${enabled ? 'activé' : 'désactivé'} étiquettes`;
+                case 'workflows':
+                    return `${enabled ? 'activé' : 'désactivé'} flux de travail`;
+                case 'distance rates':
+                    return `${enabled ? 'activé' : 'désactivé'} tarifs de distance`;
+                case 'accounting':
+                    return `${enabled ? 'activé' : 'désactivé'} comptabilité`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'activé' : 'désactivé'} Cartes Expensify`;
+                case 'company cards':
+                    return `${enabled ? 'activé' : 'désactivé'} cartes d’entreprise`;
+                case 'invoicing':
+                    return `${enabled ? 'activé' : 'désactivé'} la facturation`;
+                case 'per diem':
+                    return `${enabled ? 'activé' : 'désactivé'} les indemnités journalières`;
+                case 'receipt partners':
+                    return `${enabled ? 'activé' : 'désactivé'} partenaires de reçus`;
+                case 'rules':
+                    return `${enabled ? 'activé' : 'désactivé'} règles`;
+                case 'tax tracking':
+                    return `${enabled ? 'activé' : 'désactivé'} suivi des taxes`;
+                default:
+                    return `${enabled ? 'activé' : 'désactivé'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'désactivé'} suivi des participants`,
     },
     roomMembersPage: {
@@ -7071,6 +7103,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} est requis`,
+        reportContainsExpensesWithViolations: 'Le rapport contient des dépenses avec des violations.',
     },
     violationDismissal: {
         rter: {

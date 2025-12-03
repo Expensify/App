@@ -66,6 +66,7 @@ import type {
     ViolationName,
 } from '@src/types/onyx';
 import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
+import type Locale from '@src/types/onyx/Locale';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -307,7 +308,11 @@ function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isScanning(transaction));
+    return (
+        (isExpensifyCardTransaction(transaction) && isPending(transaction)) ||
+        (isScanRequest(transaction) && isMerchantMissing(transaction) && isAmountMissing(transaction)) ||
+        (isScanRequest(transaction) && isScanning(transaction))
+    );
 }
 
 /**
@@ -394,7 +399,6 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
             ? {source: receipt.source, filename: receipt?.name ?? filename, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY, isTestDriveReceipt: receipt.isTestDriveReceipt}
             : undefined,
         hasEReceipt: existingTransaction?.hasEReceipt,
-        filename: (receipt?.source ? (receipt?.name ?? filename) : filename).toString(),
         category,
         tag,
         taxCode,
@@ -791,12 +795,13 @@ function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the formatted posted date from the transaction.
  */
-function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat?: string, locale?: Locale): string {
+    const dateFormatString = dateFormat ?? CONST.DATE.FNS_FORMAT_STRING;
     const postedDate = getPostedDate(transaction);
     const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
 
     if (isValid(parsedDate)) {
-        return DateUtils.formatWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
+        return DateUtils.formatWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormatString, locale);
     }
     return '';
 }
@@ -1053,9 +1058,10 @@ function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat?: string, locale?: Locale): string {
+    const dateFormatString = dateFormat ?? CONST.DATE.FNS_FORMAT_STRING;
     const created = getCreated(transaction);
-    return DateUtils.formatWithUTCTimeZone(created, dateFormat);
+    return DateUtils.formatWithUTCTimeZone(created, dateFormatString, locale);
 }
 
 /**
