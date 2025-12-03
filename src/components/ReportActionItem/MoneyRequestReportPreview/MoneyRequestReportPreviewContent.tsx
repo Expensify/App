@@ -44,7 +44,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {isDynamicExternalWorkflowSubmitFailedAction} from '@libs/ReportActionsUtils';
-import {getReportPreviewAction} from '@libs/ReportPreviewActionUtils';
 import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
