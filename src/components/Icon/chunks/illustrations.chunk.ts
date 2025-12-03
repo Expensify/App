@@ -20,8 +20,10 @@ import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
 // Product Illustrations
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
+import BigVault from '@assets/images/product-illustrations/big-vault.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
+import DjBoothReferenceHands from '@assets/images/product-illustrations/dj-booth-reference-hands.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
 import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
@@ -35,13 +37,17 @@ import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg
 import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
+import Safe from '@assets/images/product-illustrations/safe.svg';
+import SaveTheWorldScale from '@assets/images/product-illustrations/save-the-world-scale.svg';
 import SewerDino from '@assets/images/product-illustrations/sewer_dino.svg';
 import SmartScan from '@assets/images/product-illustrations/simple-illustration__smartscan.svg';
 import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
+import TiltedCoinExpensify from '@assets/images/product-illustrations/tilted-coin-expensify.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -146,8 +152,10 @@ const Illustrations = {
 
     // Product Illustrations
     Abracadabra,
+    BigVault,
     BrokenCompanyCardBankConnection,
     BrokenMagnifyingGlass,
+    DjBoothReferenceHands,
     EmptyStateExpenses,
     HoldExpense,
     ReceiptFairy,
@@ -161,14 +169,18 @@ const Illustrations = {
     ReceiptsStackedOnPin,
     RocketBlue,
     RocketDude,
+    Safe,
+    SaveTheWorldScale,
     SewerDino,
     SmartScan,
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
     ThreeLeggedLaptopWoman,
+    TiltedCoinExpensify,
     ToddBehindCloud,
     ToddInCar,
     ToddWithPhones,
+    WorkspaceScene,
 
     // Educational Illustrations
     MultiScan,

@@ -1187,7 +1187,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Uitgave zoeken',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `verwijderde een uitgave (${amount} voor ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verplaatste een uitgave${reportName ? `van ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `heeft deze uitgave verplaatst${reportName ? `naar <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `heeft deze uitgave verplaatst${reportName ? `naar <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `heeft deze uitgave verplaatst${reportName ? `van <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `heeft deze uitgave van uw <a href="${reportUrl}">persoonlijke ruimte</a> verplaatst`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `heeft deze uitgave naar uw <a href="${reportUrl}">persoonlijke ruimte</a> verplaatst`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -6250,6 +6252,36 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} categorieën`;
+                case 'tags':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} labels`;
+                case 'workflows':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} werkstromen`;
+                case 'distance rates':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} afstandstarieven`;
+                case 'accounting':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} boekhouding`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} Expensify-kaarten`;
+                case 'company cards':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} bedrijfskaarten`;
+                case 'invoicing':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} facturering`;
+                case 'per diem':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} dagvergoeding`;
+                case 'receipt partners':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} partners voor bonnetjes`;
+                case 'rules':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} regels`;
+                case 'tax tracking':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} belastingregistratie`;
+                default:
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} bijhouden van aanwezigen`,
     },
     roomMembersPage: {
@@ -7135,12 +7167,7 @@ ${
             },
             cardOnDispute: ({amountOwed, cardEnding}: BillingBannerCardOnDisputeParams) =>
                 `U betwistte de ${amountOwed} kosten op de kaart die eindigt op ${cardEnding}. Uw account wordt geblokkeerd totdat het geschil met uw bank is opgelost.`,
-            preTrial: {
-                title: 'Begin een gratis proefperiode',
-                subtitleStart: 'Als een volgende stap,',
-                subtitleLink: 'voltooi uw setupchecklist',
-                subtitleEnd: 'zodat je team kan beginnen met declareren.',
-            },
+            preTrial: {title: 'Begin een gratis proefperiode', subtitle: 'Als volgende stap <a href="#">rond je installatiechecklist af</a> zodat je team kan beginnen met declareren.'},
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Proefversie: ${numOfDays} ${numOfDays === 1 ? 'dag' : 'dagen'} over!`,
                 subtitle: 'Voeg een betaalkaart toe om al je favoriete functies te blijven gebruiken.',
