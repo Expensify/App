@@ -5,9 +5,9 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionList';
-import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
-import type {SelectionListHandle} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import UserSelectionListItem from '@components/SelectionListWithSections/Search/UserSelectionListItem';
+import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import memoize from '@libs/memoize';
-import type {Option} from '@libs/OptionsListUtils';
+import type {Option, Section} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -111,13 +111,11 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         const personalDetailList = filteredOptions.personalDetails.map((participant) => ({
             ...participant,
             isSelected: selectedAccountIDs.has(participant.accountID),
-            keyForList: String(participant.accountID),
         }));
 
         const recentReportsList = filteredOptions.recentReports.map((report) => ({
             ...report,
             isSelected: selectedAccountIDs.has(report.accountID),
-            keyForList: String(report.reportID),
         }));
 
         const combined = [...personalDetailList, ...recentReportsList];
@@ -144,9 +142,22 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         return combined;
     }, [filteredOptions, accountID, selectedAccountIDs]);
 
-    const headerMessage = useMemo(() => {
+    const {sections, headerMessage} = useMemo(() => {
+        const newSections: Section[] = [
+            {
+                title: '',
+                data: listData,
+                shouldShow: !isEmpty(listData),
+            },
+        ];
+
         const noResultsFound = isEmpty(listData);
-        return noResultsFound ? translate('common.noResultsFound') : undefined;
+        const message = noResultsFound ? translate('common.noResultsFound') : undefined;
+
+        return {
+            sections: newSections,
+            headerMessage: message,
+        };
     }, [listData, translate]);
 
     const selectUser = useCallback(
@@ -154,7 +165,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             const isSelected = selectedOptions.some((selected) => optionsMatch(selected, option));
 
             setSelectedOptions((prev) => (isSelected ? prev.filter((selected) => !optionsMatch(selected, option)) : [...prev, getSelectedOptionData(option)]));
-            selectionListRef?.current?.scrollToIndex(0);
+            selectionListRef?.current?.scrollToIndex(0, true);
         },
         [selectedOptions],
     );
@@ -171,29 +182,23 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, [closeOverlay, onChange]);
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const dataLength = listData.length;
-
-    const textInputOptions = useMemo(
-        () => ({
-            value: searchTerm,
-            label: translate('selectionList.searchForSomeone'),
-            onChangeText: setSearchTerm,
-            headerMessage,
-            disableAutoFocus: !shouldFocusInputOnScreenFocus,
-        }),
-        [searchTerm, translate, headerMessage, shouldFocusInputOnScreenFocus],
-    );
+    const dataLength = sections.flatMap((section) => section.data).length;
 
     return (
         <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
             <SelectionList
-                data={listData}
                 ref={selectionListRef}
-                textInputOptions={textInputOptions}
                 canSelectMultiple
+                textInputAutoFocus={shouldFocusInputOnScreenFocus}
+                headerMessage={headerMessage}
+                sections={sections}
                 ListItem={UserSelectionListItem}
-                style={{containerStyle: [!shouldUseNarrowLayout && styles.pt4], listStyle: styles.pb2}}
+                containerStyle={[!shouldUseNarrowLayout && styles.pt4]}
+                contentContainerStyle={[styles.pb2]}
+                textInputLabel={translate('selectionList.searchForSomeone')}
+                textInputValue={searchTerm}
                 onSelectRow={selectUser}
+                onChangeText={setSearchTerm}
                 isLoadingNewOptions={isLoadingNewOptions}
             />
 

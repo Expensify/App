@@ -315,8 +315,6 @@ type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
     }
 >;
 
-type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
-
 export type {
     BaseListItemProps,
     ExtendedTargetedEvent,
@@ -332,5 +330,4 @@ export type {
     UserListItemProps,
     InviteMemberListItemProps,
     WorkspaceListItemType,
-    UserSelectionListItemProps,
 };
