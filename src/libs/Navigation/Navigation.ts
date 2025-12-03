@@ -793,6 +793,13 @@ function dismissToFirstRHP() {
  * Dismiss top layer modal and go back to the Wide RHP.
  */
 function dismissToWideRHP() {
+    const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+
+    // If the wide rhp route is focused, it means we should dismiss to super wide rhp route displayed in a wide mode
+    if (focusedRoute?.name === SCREENS.SEARCH.REPORT_RHP) {
+        return dismissToSuperWideRHP();
+    }
+
     return dismissToModalStack(WIDE_RIGHT_MODALS);
 }
 

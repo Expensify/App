@@ -1417,7 +1417,9 @@ function MoneyReportHeader({
                 const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
                 Navigation.goBack(backToRoute);
             }
-            handleDeleteTransactions();
+            // It has been handled like the rest of the delete cases. It will be refactored along with other cases.
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => handleDeleteTransactions());
         });
     }, [showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions, route.params?.backTo, chatReport?.reportID]);
 
