@@ -10,8 +10,6 @@ import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
-import {isApprover} from './actions/Policy/Member';
-import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from './actions/Workflow';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getDefaultApprover} from './PolicyUtils';
 
@@ -448,53 +446,6 @@ function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountLis
     });
 }
 
-type RemoveApproveWorkflowsParams = {
-    policy: OnyxEntry<Policy>;
-    selectedEmployees: string[];
-    policyMemberEmailsToAccountIDs: Record<string, number | string>;
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-    ownerDetails: PersonalDetails;
-    approvalWorkflows: ApprovalWorkflow[];
-};
-
-/**
- * Runs the logic that handles workflow updates for each approver being removed.
- * Extracted for unit testing.
- */
-function removeApproveWorkflows(args: RemoveApproveWorkflowsParams) {
-    const {policy, selectedEmployees, policyMemberEmailsToAccountIDs, personalDetails, ownerDetails, approvalWorkflows} = args;
-
-    const ownerEmail = ownerDetails?.login;
-
-    for (const login of selectedEmployees) {
-        if (!isApprover(policy, login)) {
-            continue;
-        }
-
-        const accountID = policyMemberEmailsToAccountIDs[login];
-        const removedApprover = personalDetails?.[accountID];
-
-        if (!removedApprover?.login || !ownerEmail) {
-            continue;
-        }
-
-        const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
-            approvalWorkflows,
-            removedApprover,
-            ownerDetails,
-        });
-
-        for (const workflow of updatedWorkflows) {
-            if (workflow?.removeApprovalWorkflow) {
-                const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
-                removeApprovalWorkflowAction(updatedWorkflow, policy);
-            } else {
-                updateApprovalWorkflow(workflow, [], [], policy);
-            }
-        }
-    }
-}
-
 export {
     calculateApprovers,
     convertPolicyEmployeesToApprovalWorkflows,
@@ -502,5 +453,4 @@ export {
     getEligibleExistingBusinessBankAccounts,
     INITIAL_APPROVAL_WORKFLOW,
     updateWorkflowDataOnApproverRemoval,
-    removeApproveWorkflows,
 };

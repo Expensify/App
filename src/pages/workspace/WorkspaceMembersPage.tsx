@@ -43,6 +43,7 @@ import {
     removeMembers,
     updateWorkspaceMembersRole,
 } from '@libs/actions/Policy/Member';
+import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -54,7 +55,7 @@ import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDe
 import {getMemberAccountIDsForWorkspace, isControlPolicy, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {convertPolicyEmployeesToApprovalWorkflows, removeApproveWorkflows} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -208,14 +209,31 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const hasApprovers = selectedEmployees.some((email) => isApprover(policy, email));
 
         if (hasApprovers) {
-            removeApproveWorkflows({
-                policy,
-                selectedEmployees,
-                policyMemberEmailsToAccountIDs,
-                personalDetails,
-                ownerDetails,
-                approvalWorkflows,
-            });
+            const ownerEmail = ownerDetails.login;
+            for (const login of selectedEmployees) {
+                if (!isApprover(policy, login)) {
+                    continue;
+                }
+
+                const accountID = policyMemberEmailsToAccountIDs[login];
+                const removedApprover = personalDetails?.[accountID];
+                if (!removedApprover?.login || !ownerEmail) {
+                    continue;
+                }
+                const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
+                    approvalWorkflows,
+                    removedApprover,
+                    ownerDetails,
+                });
+                for (const workflow of updatedWorkflows) {
+                    if (workflow?.removeApprovalWorkflow) {
+                        const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+                        removeApprovalWorkflowAction(updatedWorkflow, policy);
+                    } else {
+                        updateApprovalWorkflow(workflow, [], [], policy);
+                    }
+                }
+            }
         }
 
         setRemoveMembersConfirmModalVisible(false);
