@@ -14,6 +14,7 @@ import DateCell from '@components/SelectionListWithSections/Search/DateCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -158,6 +159,7 @@ function TransactionItemRow({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
 
@@ -529,10 +531,18 @@ function TransactionItemRow({
             </>
         );
 
+        const handleOnPress = () => {
+            if (isMobileSelectionModeEnabled) {
+                onCheckboxPress(transactionItem.transactionID);
+                return;
+            }
+            onArrowRightPress?.();
+        };
+
         return (
             <>
                 <PressableWithFeedback
-                    onPress={onArrowRightPress}
+                    onPress={handleOnPress}
                     disabled={isDisabled || !onArrowRightPress}
                     accessibilityRole={CONST.ROLE.BUTTON}
                     accessibilityLabel={merchantOrDescription || CONST.ROLE.BUTTON}
