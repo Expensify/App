@@ -134,7 +134,7 @@ function useSearchHighlightAndScroll({
             // Trigger the search
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                search({queryJSON, searchKey, offset, shouldCalculateTotals, isLoading: !!searchResults?.search.isLoading});
+                search({queryJSON, searchKey, offset, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading});
             });
 
             // Set the ref to prevent further triggers until reset
@@ -154,16 +154,16 @@ function useSearchHighlightAndScroll({
         searchResults?.data,
         existingSearchResultIDs,
         isOffline,
-        searchResults?.search.isLoading,
+        searchResults?.search?.isLoading,
     ]);
 
     useEffect(() => {
-        if (searchResults?.search.isLoading) {
+        if (searchResults?.search?.isLoading) {
             return;
         }
 
         searchTriggeredRef.current = false;
-    }, [searchResults?.search.isLoading]);
+    }, [searchResults?.search?.isLoading]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {

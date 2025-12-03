@@ -5,7 +5,7 @@ import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isCategoryMissing} from './CategoryUtils';
 import isTagMissing from './TagUtils';
-import {getAmount, getCategory, getTag} from './TransactionUtils';
+import {getAmount, getCategory, getCurrency, getTag, isTransactionPendingDelete} from './TransactionUtils';
 
 /**
  * Sorts groups alphabetically (A→Z) with empty keys at the end
@@ -32,11 +32,17 @@ function getConvertedAmount(transaction: Transaction): number {
 
 /**
  * Calculates group total using amount for same-currency transactions, falls back to convertedAmount for multi-currency
+ * Excludes transactions that are pending delete
  */
 function calculateGroupTotal(transactionList: Transaction[], reportCurrency: string): number {
     let total = 0;
     for (const transaction of transactionList) {
-        if (transaction.currency === reportCurrency) {
+        if (isTransactionPendingDelete(transaction)) {
+            continue;
+        }
+
+        const transactionCurrency = getCurrency(transaction);
+        if (transactionCurrency === reportCurrency) {
             total += getAmount(transaction, true, false, true);
         } else if (transaction.convertedAmount) {
             total += getConvertedAmount(transaction);

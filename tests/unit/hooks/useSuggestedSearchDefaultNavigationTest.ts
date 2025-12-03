@@ -193,4 +193,32 @@ describe('useSuggestedSearchDefaultNavigation', () => {
         expect(clearAllFilters).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
+
+    it('does not navigate when navigation is skipped', () => {
+        const clearSelectedTransactions = jest.fn();
+        const approveMenuItem = createApproveMenuItem();
+        const submitMenuItem = createSubmitMenuItem();
+
+        const {rerender} = renderHook((props: Parameters<typeof useSuggestedSearchDefaultNavigation>[0]) => useSuggestedSearchDefaultNavigation(props), {
+            initialProps: {
+                shouldShowSkeleton: true,
+                flattenedMenuItems: [approveMenuItem, submitMenuItem],
+                similarSearchHash: undefined,
+                clearSelectedTransactions,
+                shouldSkipNavigation: true,
+            },
+        });
+
+        rerender({
+            shouldShowSkeleton: false,
+            flattenedMenuItems: [approveMenuItem, submitMenuItem],
+            similarSearchHash: undefined,
+            clearSelectedTransactions,
+            shouldSkipNavigation: true,
+        });
+
+        expect(clearAllFilters).not.toHaveBeenCalled();
+        expect(clearSelectedTransactions).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
 });

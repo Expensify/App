@@ -111,7 +111,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
                 prevReportsLength: allReports.length,
                 shouldCalculateTotals: false,
                 searchKey: lastSearchQuery.searchKey,
-                isLoading: !!currentSearchResults?.search.isLoading,
+                isLoading: !!currentSearchResults?.search?.isLoading,
             });
         }
 

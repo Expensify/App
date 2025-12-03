@@ -32,6 +32,7 @@ import useWindowDimensions from './useWindowDimensions';
 
 export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const {hash, similarSearchHash} = queryJSON;
+    const shouldSkipSuggestedSearchNavigation = !!queryJSON.rawFilterList;
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -62,6 +63,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         flattenedMenuItems,
         similarSearchHash,
         clearSelectedTransactions,
+        shouldSkipNavigation: shouldSkipSuggestedSearchNavigation,
     });
 
     // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
