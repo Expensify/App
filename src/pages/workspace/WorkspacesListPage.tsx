@@ -486,6 +486,8 @@ function WorkspacesListPage() {
             policyIDToDelete,
             preferredPolicyID,
             icons,
+            expensifyIcons.Building,
+            expensifyIcons.Exit,
         ],
     );
 
