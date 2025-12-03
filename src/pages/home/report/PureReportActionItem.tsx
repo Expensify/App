@@ -1297,12 +1297,10 @@ function PureReportActionItem({
             // Treat a report as non-existent for rendering purposes if it's pending deletion.
             const isFromReportPendingDelete =
                 !!fromReport &&
-                (fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                    fromReport?.pendingFields?.reportID === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                (fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || fromReport?.pendingFields?.reportID === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             const isToReportPendingDelete =
                 !!toReport &&
-                (toReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                    toReport?.pendingFields?.reportID === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                (toReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || toReport?.pendingFields?.reportID === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
             const hasFromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!fromReport && !isFromReportPendingDelete;
             // When expenses are merged multiple times, the previous fromReportID may reference a deleted report,
