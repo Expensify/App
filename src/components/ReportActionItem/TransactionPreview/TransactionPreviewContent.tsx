@@ -11,6 +11,7 @@ import ReportActionItemImages from '@components/ReportActionItem/ReportActionIte
 import UserInfoCellsWithArrow from '@components/SelectionListWithSections/Search/UserInfoCellsWithArrow';
 import Text from '@components/Text';
 import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkeletonView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -65,7 +66,7 @@ function TransactionPreviewContent({
     const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {environmentURL} = useEnvironment();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
@@ -82,7 +83,7 @@ function TransactionPreviewContent({
     const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-
+    const currentUserDetails = useCurrentUserPersonalDetails();
     const transactionPreviewCommonArguments = useMemo(
         () => ({
             iouReport: report,
@@ -101,8 +102,10 @@ function TransactionPreviewContent({
                 ...transactionPreviewCommonArguments,
                 areThereDuplicates,
                 isReportAPolicyExpenseChat,
+                currentUserEmail: currentUserDetails.email ?? '',
+                currentUserAccountID: currentUserDetails.accountID,
             }),
-        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat],
+        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat, currentUserDetails.email, currentUserDetails.accountID],
     );
 
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
@@ -120,9 +123,12 @@ function TransactionPreviewContent({
                 shouldShowRBR,
                 violationMessage,
                 reportActions,
+                currentUserEmail: currentUserDetails.email ?? '',
+                currentUserAccountID: currentUserDetails.accountID,
                 originalTransaction,
+                locale: preferredLocale,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, originalTransaction],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, currentUserDetails.email, currentUserDetails.accountID, originalTransaction, preferredLocale],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
