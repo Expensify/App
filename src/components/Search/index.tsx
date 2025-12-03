@@ -678,12 +678,11 @@ function Search({
 
             const isTransactionItem = isTransactionListItemType(item);
             const backTo = Navigation.getActiveRoute();
-
             // If we're trying to open a transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && item.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+            if (isTransactionItem && !item?.reportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                createAndOpenSearchTransactionThread(item, hash, backTo, undefined, shouldOpenTransactionThread);
+                createAndOpenSearchTransactionThread(item, backTo, item?.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
                 if (shouldOpenTransactionThread) {
                     return;
                 }
@@ -729,12 +728,12 @@ function Search({
             }
 
             let reportID = item.reportID;
-            if (isTransactionItem && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+            if (isTransactionItem && item?.reportAction?.childReportID) {
                 const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
                 const isFromOneTransactionReport = isOneTransactionReport(item.report);
 
                 if (isFromSelfDM || !isFromOneTransactionReport) {
-                    reportID = item.transactionThreadReportID;
+                    reportID = item?.reportAction?.childReportID;
                 }
             }
 
@@ -752,10 +751,10 @@ function Search({
             if (isTransactionGroupListItemType(item)) {
                 const firstTransaction = item.transactions.at(0);
                 if (item.isOneTransactionReport && firstTransaction && transactionPreviewData) {
-                    if (firstTransaction.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                        createAndOpenSearchTransactionThread(firstTransaction, hash, backTo, transactionPreviewData, false);
+                    if (!firstTransaction?.reportAction?.childReportID) {
+                        createAndOpenSearchTransactionThread(firstTransaction, backTo, firstTransaction?.reportAction?.childReportID, transactionPreviewData, false);
                     } else {
-                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
+                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
                     }
                 }
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
@@ -771,12 +770,12 @@ function Search({
             markReportIDAsExpense(reportID);
 
             if (isTransactionItem && transactionPreviewData) {
-                setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData);
+                setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData, item?.reportAction?.childReportID);
             }
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
+        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
     );
 
     const currentColumns = useMemo(() => {

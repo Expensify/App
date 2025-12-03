@@ -11,6 +11,7 @@ type UpdateContext = {
     allPolicies: Record<string, Policy>;
     allReportNameValuePairs: Record<string, ReportNameValuePairs>;
     allTransactions: Record<string, Transaction>;
+    isOffline: boolean;
 };
 
 let betas: OnyxEntry<Beta[]>;
@@ -19,9 +20,10 @@ let allReports: Record<string, Report>;
 let allPolicies: Record<string, Policy>;
 let allReportNameValuePairs: Record<string, ReportNameValuePairs>;
 let allTransactions: Record<string, Transaction>;
+let isOffline: OnyxEntry<boolean>;
 let isInitialized = false;
 let connectionsInitializedCount = 0;
-const totalConnections = 6;
+const totalConnections = 7;
 let initializationPromise: Promise<void> | null = null;
 
 /**
@@ -110,6 +112,15 @@ function initialize(): Promise<void> {
                 incrementInitialization();
             },
         });
+
+        // Connect to NETWORK to track offline status
+        Onyx.connectWithoutView({
+            key: ONYXKEYS.NETWORK,
+            callback: (val) => {
+                isOffline = val?.isOffline;
+                incrementInitialization();
+            },
+        });
     });
 
     return initializationPromise;
@@ -131,6 +142,7 @@ function getUpdateContext(): UpdateContext {
         allPolicies: allPolicies ?? {},
         allReportNameValuePairs: allReportNameValuePairs ?? {},
         allTransactions: allTransactions ?? {},
+        isOffline: isOffline ?? false,
     };
 }
 export {initialize, getUpdateContext};
