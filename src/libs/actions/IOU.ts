@@ -8865,9 +8865,11 @@ function getNavigationUrlOnMoneyRequestDelete(
 
     // Determine which report to navigate back to
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
+        // On narrow layouts (mobile), navigate to the full report screen
         if (getIsNarrowLayout()) {
             return ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID);
         }
+        // On wide layouts, navigate to the Super Wide RHP version of the expense report
         return ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReport.reportID});
     }
 
