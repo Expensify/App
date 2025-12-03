@@ -78,10 +78,10 @@ import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {
     getIOUActionForReportID,
+    getMostRecentActiveDEWSubmitFailedAction,
     getOriginalMessage,
     isCreatedAction,
     isDeletedAction,
-    isDynamicExternalWorkflowSubmitFailedAction,
     isHoldAction,
     isMoneyRequestAction,
     isResolvedActionableWhisper,
@@ -1051,6 +1051,7 @@ function getTransactionsSections(
     currentUserEmail: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isActionLoadingSet: ReadonlySet<string> | undefined,
+    reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -1111,7 +1112,8 @@ function getTransactionsSections(
                 formatPhoneNumber,
                 report,
             );
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail);
+            const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions);
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 keyForList: transactionItem.transactionID,
@@ -1239,9 +1241,8 @@ function getActions(
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
-    // Check for DEW submit failed - if the report has a DEW_SUBMIT_FAILED action and is still OPEN, show View
-    const hasDEWSubmitFailed = report.statusNum === CONST.REPORT.STATUS_NUM.OPEN && reportActions.some(isDynamicExternalWorkflowSubmitFailedAction);
-    if (hasDEWSubmitFailed) {
+    // Check for DEW submit failed - if the report has a DEW_SUBMIT_FAILED action (more recent than last SUBMITTED) and is still OPEN, show View
+    if (report.statusNum === CONST.REPORT.STATUS_NUM.OPEN && !!getMostRecentActiveDEWSubmitFailedAction(reportActions)) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
@@ -1840,7 +1841,7 @@ function getSections({
         }
     }
 
-    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet);
+    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, reportActions);
 }
 
 /**
