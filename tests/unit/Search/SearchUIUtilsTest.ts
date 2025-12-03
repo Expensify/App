@@ -1629,7 +1629,7 @@ describe('SearchUIUtils', () => {
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
 
-        test('Should return `Review` action when report has DEW_SUBMIT_FAILED action and is still OPEN', async () => {
+        test('Should return `View` action when report has DEW_SUBMIT_FAILED action and is still OPEN', async () => {
             const dewReportID = '999';
             const dewTransactionID = '9999';
             const dewReportActionID = '99999';
@@ -1662,13 +1662,11 @@ describe('SearchUIUtils', () => {
                 },
             ] as OnyxTypes.ReportAction[];
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '', dewReportActions).at(
-                0,
-            );
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', dewReportActions).at(0);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
-        test('Should NOT return `Review` action when report has DEW_SUBMIT_FAILED action but is not OPEN', async () => {
+        test('Should NOT return `View` action when report has DEW_SUBMIT_FAILED action but is not OPEN', async () => {
             const dewReportID = '888';
             const dewTransactionID = '8888';
             const dewReportActionID = '88888';
@@ -1701,10 +1699,8 @@ describe('SearchUIUtils', () => {
                 },
             ] as OnyxTypes.ReportAction[];
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '', dewReportActions).at(
-                0,
-            );
-            expect(action).not.toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', dewReportActions).at(0);
+            expect(action).not.toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
     });
 

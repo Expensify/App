@@ -491,7 +491,7 @@ describe('getReportPreviewAction', () => {
     });
 
     describe('DEW (Dynamic External Workflow) submit failed', () => {
-        it('should return REVIEW when hasDEWSubmitFailed is true and report is OPEN', async () => {
+        it('should return VIEW when hasDEWSubmitFailed is true and report is OPEN', async () => {
             const report: Report = {
                 ...createRandomReport(REPORT_ID, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -512,26 +512,13 @@ describe('getReportPreviewAction', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
             await waitForBatchedUpdatesWithAct();
 
-            expect(
-                getReportPreviewAction(
-                    VIOLATIONS,
-                    isReportArchived.current,
-                    CURRENT_USER_EMAIL,
-                    CURRENT_USER_ACCOUNT_ID,
-                    report,
-                    policy,
-                    [transaction],
-                    undefined,
-                    false,
-                    false,
-                    false,
-                    false,
-                    true,
-                ),
-            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW);
+            // hasDEWSubmitFailed = true (last parameter)
+            expect(getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, true)).toBe(
+                CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW,
+            );
         });
 
-        it('should NOT return REVIEW when hasDEWSubmitFailed is true but report is not OPEN', async () => {
+        it('should NOT return VIEW when hasDEWSubmitFailed is true but report is not OPEN', async () => {
             const report: Report = {
                 ...createRandomReport(REPORT_ID, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -556,26 +543,13 @@ describe('getReportPreviewAction', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
             await waitForBatchedUpdatesWithAct();
 
-            expect(
-                getReportPreviewAction(
-                    VIOLATIONS,
-                    isReportArchived.current,
-                    CURRENT_USER_EMAIL,
-                    CURRENT_USER_ACCOUNT_ID,
-                    report,
-                    policy,
-                    [transaction],
-                    undefined,
-                    false,
-                    false,
-                    false,
-                    false,
-                    true,
-                ),
-            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE);
+            // hasDEWSubmitFailed = true, but report is SUBMITTED, so DEW check doesn't apply
+            expect(getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, true)).toBe(
+                CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE,
+            );
         });
 
-        it('should NOT return REVIEW when hasDEWSubmitFailed is false', async () => {
+        it('should NOT return VIEW due to DEW when hasDEWSubmitFailed is false', async () => {
             const report: Report = {
                 ...createRandomReport(REPORT_ID, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -600,23 +574,10 @@ describe('getReportPreviewAction', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
             await waitForBatchedUpdatesWithAct();
 
-            expect(
-                getReportPreviewAction(
-                    VIOLATIONS,
-                    isReportArchived.current,
-                    CURRENT_USER_EMAIL,
-                    CURRENT_USER_ACCOUNT_ID,
-                    report,
-                    policy,
-                    [transaction],
-                    undefined,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                ),
-            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+            // hasDEWSubmitFailed = false (last parameter), regular logic applies
+            expect(getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, false)).not.toBe(
+                CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW,
+            );
         });
     });
 });

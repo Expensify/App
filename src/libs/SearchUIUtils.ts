@@ -1239,10 +1239,10 @@ function getActions(
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
-    // Check for DEW submit failed - if the report has a DEW_SUBMIT_FAILED action and is still OPEN, show Review
+    // Check for DEW submit failed - if the report has a DEW_SUBMIT_FAILED action and is still OPEN, show View
     const hasDEWSubmitFailed = report.statusNum === CONST.REPORT.STATUS_NUM.OPEN && reportActions.some(isDynamicExternalWorkflowSubmitFailedAction);
     if (hasDEWSubmitFailed) {
-        return [CONST.SEARCH.ACTION_TYPES.REVIEW];
+        return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
     // We don't need to run the logic if this is not a transaction or iou/expense report, so let's shortcut the logic for performance reasons

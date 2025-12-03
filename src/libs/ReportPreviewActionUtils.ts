@@ -178,9 +178,9 @@ function getReportPreviewAction(
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
-    // If DEW submit failed and report is still open, show REVIEW
+    // If DEW submit failed and report is still open, show VIEW (user needs to review errors in report comments)
     if (hasDEWSubmitFailed && isOpenReport(report)) {
-        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
     if (canSubmit(report, isReportArchived, currentUserAccountID, policy, transactions)) {
