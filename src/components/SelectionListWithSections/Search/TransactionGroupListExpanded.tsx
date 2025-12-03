@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {PressableWithFeedback} from '@components/Pressable';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType} from '@components/Search/types';
 import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
@@ -12,6 +13,7 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,12 +45,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     shouldDisplayEmptyView,
     searchTransactions,
     isInSingleTransactionReport,
+    onLongPress,
 }: TransactionGroupListExpandedProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
     const {currentSearchHash} = useSearchContext();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const transactionsSnapshotMetadata = useMemo(() => {
         return transactionsSnapshot?.search;
     }, [transactionsSnapshot?.search]);
@@ -160,6 +164,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         );
     }
 
+    const handleOnPress = (transaction: TransactionListItemType) => {
+        if (isMobileSelectionModeEnabled) {
+            onCheckboxPress?.(transaction as unknown as TItem);
+            return;
+        }
+        openReportInRHP(transaction);
+    };
+
     return (
         <>
             {isLargeScreenWidth && (
@@ -187,36 +199,49 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         pendingAction={transaction.pendingAction}
                         key={transaction.transactionID}
                     >
-                        <TransactionItemRow
-                            report={transaction.report}
-                            transactionItem={transaction}
-                            violations={getTransactionViolations(
-                                transaction,
-                                violations,
-                                currentUserDetails.email ?? '',
-                                currentUserDetails.accountID,
-                                transaction.report,
-                                transaction.policy,
-                            )}
-                            isSelected={!!transaction.isSelected}
-                            dateColumnSize={dateColumnSize}
-                            amountColumnSize={amountColumnSize}
-                            taxAmountColumnSize={taxAmountColumnSize}
-                            shouldShowTooltip={showTooltip}
-                            shouldUseNarrowLayout={!isLargeScreenWidth}
-                            shouldShowCheckbox={!!canSelectMultiple}
-                            onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                            columns={currentColumns}
-                            onButtonPress={() => {
-                                openReportInRHP(transaction);
-                            }}
-                            style={[styles.noBorderRadius, !isLargeScreenWidth ? [styles.p3, styles.pt3] : [styles.pl3, styles.pv1Half], styles.flex1]}
-                            isReportItemChild
-                            isInSingleTransactionReport={isInSingleTransactionReport}
-                            areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                            shouldShowBottomBorder={shouldShowBottomBorder}
-                            onArrowRightPress={() => openReportInRHP(transaction)}
-                        />
+                        <PressableWithFeedback
+                            onPress={() => handleOnPress(transaction)}
+                            onLongPress={() => onLongPress?.(transaction)}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={transaction.text ?? ''}
+                            isNested
+                            onMouseDown={(e) => e.preventDefault()}
+                            hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG]}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                            id={transaction.transactionID}
+                        >
+                            <TransactionItemRow
+                                report={transaction.report}
+                                transactionItem={transaction}
+                                violations={getTransactionViolations(
+                                    transaction,
+                                    violations,
+                                    currentUserDetails.email ?? '',
+                                    currentUserDetails.accountID,
+                                    transaction.report,
+                                    transaction.policy,
+                                )}
+                                isSelected={!!transaction.isSelected}
+                                dateColumnSize={dateColumnSize}
+                                amountColumnSize={amountColumnSize}
+                                taxAmountColumnSize={taxAmountColumnSize}
+                                shouldShowTooltip={showTooltip}
+                                shouldUseNarrowLayout={!isLargeScreenWidth}
+                                shouldShowCheckbox={!!canSelectMultiple}
+                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                columns={currentColumns}
+                                onButtonPress={() => {
+                                    openReportInRHP(transaction);
+                                }}
+                                style={[styles.noBorderRadius, !isLargeScreenWidth ? [styles.p3, styles.pt3] : [styles.pl3, styles.pv1Half], styles.flex1]}
+                                isReportItemChild
+                                isInSingleTransactionReport={isInSingleTransactionReport}
+                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                                shouldShowBottomBorder={shouldShowBottomBorder}
+                                onArrowRightPress={() => openReportInRHP(transaction)}
+                                shouldShowArrowRightOnNarrowLayout
+                            />
+                        </PressableWithFeedback>
                     </OfflineWithFeedback>
                 );
             })}

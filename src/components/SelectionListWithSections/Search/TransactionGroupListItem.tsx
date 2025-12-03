@@ -356,6 +356,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 transactionsQueryJSON={groupItem.transactionsQueryJSON}
                                 searchTransactions={searchTransactions}
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                onLongPress={onLongPress}
                             />
                         </AnimatedCollapsible>
                     </View>

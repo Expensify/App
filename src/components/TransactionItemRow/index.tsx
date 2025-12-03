@@ -111,6 +111,7 @@ type TransactionItemRowProps = {
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
     onArrowRightPress?: () => void;
+    shouldShowArrowRightOnNarrowLayout?: boolean;
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -152,6 +153,7 @@ function TransactionItemRow({
     violations,
     shouldShowBottomBorder,
     onArrowRightPress,
+    shouldShowArrowRightOnNarrowLayout,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -467,6 +469,16 @@ function TransactionItemRow({
                                 </View>
                             )}
                         </View>
+                        {!!shouldShowArrowRightOnNarrowLayout && (
+                            <View style={[styles.justifyContentEnd, styles.alignItemsEnd, styles.mbHalf, styles.ml1]}>
+                                <Icon
+                                    src={Expensicons.ArrowRight}
+                                    fill={theme.icon}
+                                    additionalStyles={styles.opacitySemiTransparent}
+                                    small
+                                />
+                            </View>
+                        )}
                         {shouldShowRadioButton && (
                             <View style={[styles.ml3, styles.justifyContentCenter]}>
                                 <RadioButton
@@ -479,6 +491,7 @@ function TransactionItemRow({
                             </View>
                         )}
                     </View>
+
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
                         <View style={[styles.flexColumn, styles.flex1]}>
                             {hasCategoryOrTag && (
@@ -495,6 +508,7 @@ function TransactionItemRow({
                                     />
                                 </View>
                             )}
+
                             {shouldShowErrors && (
                                 <TransactionItemRowRBR
                                     transaction={transactionItem}
