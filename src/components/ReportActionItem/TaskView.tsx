@@ -46,7 +46,7 @@ type TaskViewProps = {
 };
 
 function TaskView({report, parentReport, action}: TaskViewProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -182,7 +182,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                         {report?.managerID ? (
                             <MenuItem
                                 label={translate('task.assignee')}
-                                title={getDisplayNameForParticipant({accountID: report.managerID})}
+                                title={getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber})}
                                 iconAccountID={report.managerID}
                                 iconType={CONST.ICON_TYPE_AVATAR}
                                 avatarSize={CONST.AVATAR_SIZE.SMALLER}

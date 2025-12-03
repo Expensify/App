@@ -91,7 +91,7 @@ function TaskAssigneeSelectorModal() {
             });
         }
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
-    }, [reports, route]);
+    }, [reports, route.params?.reportID]);
 
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
@@ -161,7 +161,7 @@ function TaskAssigneeSelectorModal() {
             // Check to see if we're editing a task and if so, update the assignee
             if (report) {
                 if (option.accountID !== report.managerID) {
-                    const assigneeChatReport = setAssigneeValue(
+                    const {report: assigneeChatReport, isOptimisticReport} = setAssigneeValue(
                         currentUserPersonalDetails.accountID,
                         assigneePersonalDetails,
                         report.reportID,
@@ -177,6 +177,7 @@ function TaskAssigneeSelectorModal() {
                         hasOutstandingChildTask,
                         option?.accountID,
                         assigneeChatReport,
+                        isOptimisticReport,
                     );
                 }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
