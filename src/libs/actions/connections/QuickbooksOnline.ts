@@ -9,12 +9,12 @@ import type UpdateQuickbooksOnlineGenericTypeParams from '@libs/API/parameters/U
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections, QBOConnectionConfig} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
-import Log from '@libs/Log';
 
 function getQuickbooksOnlineSetupLink(policyID: string) {
     const params: ConnectPolicyToAccountingIntegrationParams = {policyID};
