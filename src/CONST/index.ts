@@ -1684,10 +1684,10 @@ const CONST = {
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
         SPAN_BOOTSPLASH: {
             ROOT: 'BootsplashVisible',
-            NAVIGATION: 'BootsplashNavigationInit',
-            ONYX: 'BootsplashOnyxInit',
-            LOCALE: 'BootsplashLocaleInit',
-            SPLASH_HIDER: 'BootsplashHider',
+            NAVIGATION: 'BootsplashVisibleNavigation',
+            ONYX: 'BootsplashVisibleOnyx',
+            LOCALE: 'BootsplashVisibleLocale',
+            SPLASH_HIDER: 'BootsplashVisibleHider',
         },
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
