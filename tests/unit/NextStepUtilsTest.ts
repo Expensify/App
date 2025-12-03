@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {buildNextStepNew, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
+import {buildNextStepNew, buildOptimisticNextStepForDynamicExternalWorkflowError, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
 import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1041,6 +1041,22 @@ describe('libs/NextStepUtils', () => {
                 message: [
                     {
                         text: 'Waiting for you to fix the issues. Your admins have restricted submission of expenses with violations.',
+                    },
+                ],
+            });
+        });
+    });
+
+    describe('buildOptimisticNextStepForDynamicExternalWorkflowError', () => {
+        test('returns correct next step message for DEW submit failed', () => {
+            const result = buildOptimisticNextStepForDynamicExternalWorkflowError();
+
+            expect(result).toEqual({
+                type: 'alert',
+                icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
+                message: [
+                    {
+                        text: "This report can't be submitted. Please review the comments to resolve.",
                     },
                 ],
             });

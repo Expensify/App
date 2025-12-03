@@ -24,6 +24,7 @@ const iconMap: IconMap = {
     [CONST.NEXT_STEP.ICONS.HOURGLASS]: Expensicons.Hourglass,
     [CONST.NEXT_STEP.ICONS.CHECKMARK]: Expensicons.Checkmark,
     [CONST.NEXT_STEP.ICONS.STOPWATCH]: Expensicons.Stopwatch,
+    [CONST.NEXT_STEP.ICONS.DOT_INDICATOR]: Expensicons.DotIndicator,
 };
 
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
