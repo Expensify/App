@@ -7404,7 +7404,6 @@ ${
             hasChildReportAwaitingAction: '子レポートがアクション待ちです。',
             hasMissingInvoiceBankAccount: '請求書の銀行口座がありません',
             hasUnresolvedCardFraudAlert: '未解決のカード詐欺警告があります',
-            hasDEWError: 'DEWエラーがあります',
         },
         reasonRBR: {
             hasErrors: 'レポートまたはレポートアクションデータにエラーがあります',

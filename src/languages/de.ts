@@ -7492,7 +7492,6 @@ ${
             hasChildReportAwaitingAction: 'Hat einen untergeordneten Bericht, der auf eine Aktion wartet',
             hasMissingInvoiceBankAccount: 'Fehlendes Rechnungsbankkonto',
             hasUnresolvedCardFraudAlert: 'Hat eine ungelöste Karten-Fraud-Warnung',
-            hasDEWError: 'Hat DEW-Fehler',
         },
         reasonRBR: {
             hasErrors: 'Hat Fehler in den Berichtsdaten oder Berichtsaktionen',
