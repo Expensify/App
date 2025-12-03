@@ -64,7 +64,7 @@ import {hasSynchronizationErrorMessage} from './actions/connections';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport, createTransactionThreadReport} from './actions/Report';
 import type {TransactionPreviewData} from './actions/Search';
-import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
+import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
@@ -77,6 +77,7 @@ import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {
+    getIOUActionForReportID,
     getOriginalMessage,
     isCreatedAction,
     isDeletedAction,
@@ -1403,6 +1404,7 @@ function getTaskSections(
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const policy = getPolicy(parentReport.policyID);
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const parentReportName = getReportName(parentReport, policy, undefined, undefined, undefined, undefined, undefined, isParentReportArchived);
                 const icons = getIcons(parentReport, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
@@ -1421,19 +1423,43 @@ function getTaskSections(
 }
 
 /** Creates transaction thread report and navigates to it from the search page */
-function createAndOpenSearchTransactionThread(item: TransactionListItemType, hash: number, backTo: string, transactionPreviewData?: TransactionPreviewData, shouldNavigate = true) {
+function createAndOpenSearchTransactionThread(
+    item: TransactionListItemType,
+    backTo: string,
+    IOUTransactionID?: string,
+    transactionPreviewData?: TransactionPreviewData,
+    shouldNavigate = true,
+) {
+    const iouReportAction = getIOUActionForReportID(item.reportID, item.transactionID);
+    const moneyRequestReportActionID = item.moneyRequestReportActionID !== '0' ? item.moneyRequestReportActionID : undefined;
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-    setOptimisticDataForTransactionThreadPreview(item, previewData);
+    setOptimisticDataForTransactionThreadPreview(item, previewData, IOUTransactionID);
 
-    const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction);
-    if (transactionThreadReport?.reportID) {
-        updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
+    const hasActualTransactionThread = iouReportAction?.childReportID && iouReportAction?.childReportID !== CONST.FAKE_REPORT_ID;
+    let transactionThreadReport;
+
+    // The transaction thread can be created from the chat page and the snapshot data is stale
+    if (hasActualTransactionThread) {
+        transactionThreadReport = getReportOrDraftReport(iouReportAction.childReportID);
+    } else {
+        // For legacy transactions without an IOU action in the backend, pass transaction data
+        // This allows OpenReport to create the IOU action and transaction thread on the backend
+        const reportActionID = moneyRequestReportActionID ?? iouReportAction?.reportActionID;
+        const transaction = !reportActionID ? getTransactionFromTransactionListItem(item) : undefined;
+        const transactionViolations = !reportActionID ? item.violations : undefined;
+        transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID} as OnyxTypes.ReportAction, transaction, transactionViolations);
     }
 
     if (shouldNavigate) {
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
+        // Navigate to transaction thread if there are multiple transactions in the report, or to the parent report if it's the only transaction
+        const isFromOneTransactionReport = isOneTransactionReport(item.report);
+        const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
+        const targetReportID = shouldNavigateToTransactionThread ? transactionThreadReport?.reportID : item.reportID;
+
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo}));
     }
 }
 
@@ -1488,6 +1514,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
                 reportActionItems.push({
                     ...reportAction,
                     from,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies, isReportArchived}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
@@ -2677,6 +2704,41 @@ function getSettlementStatusBadgeProps(
     }
 }
 
+/**
+ * Extracts the core Transaction fields from a TransactionListItemType
+ * This removes UI-specific fields like formattedFrom, hash, violations, etc.
+ */
+function getTransactionFromTransactionListItem(item: TransactionListItemType): OnyxTypes.Transaction {
+    // Extract only the core Transaction fields, excluding UI-specific and search-specific fields
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {
+        keyForList,
+        action,
+        allActions,
+        report,
+        from,
+        to,
+        formattedFrom,
+        formattedTo,
+        formattedTotal,
+        formattedMerchant,
+        date,
+        shouldShowMerchant,
+        shouldShowYear: shouldTransactionShowYear,
+        isAmountColumnWide,
+        isTaxAmountColumnWide,
+        violations,
+        hash,
+        moneyRequestReportActionID,
+        canDelete,
+        accountID,
+        policyID,
+        ...transaction
+    } = item;
+
+    return transaction as OnyxTypes.Transaction;
+}
+
 export {
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
@@ -2721,5 +2783,6 @@ export {
     getHasOptions,
     getSettlementStatus,
     getSettlementStatusBadgeProps,
+    getTransactionFromTransactionListItem,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};

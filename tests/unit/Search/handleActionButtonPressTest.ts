@@ -199,7 +199,6 @@ const mockReportItemWithHold = {
             reportID: '1350959062018695',
             tag: '',
             transactionID: '5345995386715609966',
-            transactionThreadReportID: '740282333335072',
             from: {
                 accountID: 1206,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png',
