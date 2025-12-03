@@ -1,21 +1,20 @@
 import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
 import type {PropsWithChildren} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import CopyableTextField from '@components/Domain/CopyableTextField';
+import FormHelpMessageRowWithRetryButton from '@components/Domain/FormHelpMessageRowWithRetryButton';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import {Exclamation} from '@components/Icon/Expensicons';
+import {loadExpensifyIcon} from '@components/Icon/ExpensifyIconLoader';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,9 +51,10 @@ function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps)
 
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${accountID}`, {canBeMissing: true});
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
-    const {isOffline} = useNetwork();
     const [isAdmin, isAdminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${accountID}`, {canBeMissing: false});
     const doesDomainExist = !!domain;
+
+    const {asset: Exclamation} = useMemoizedLazyAsset(() => loadExpensifyIcon('Exclamation'));
 
     useEffect(() => {
         if (!domain?.validated) {
@@ -126,18 +126,11 @@ function BaseVerifyDomainPage({accountID, forwardTo}: BaseVerifyDomainPageProps)
                             </OrderedListRow>
 
                             {!!domain.validateCodeError && (
-                                <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
-                                    <FormHelpMessage
-                                        message={getLatestErrorMessage({errors: domain.validateCodeError})}
-                                        style={[styles.mt0, styles.mb0]}
-                                    />
-                                    <Button
-                                        small
-                                        text={translate('domain.retry')}
-                                        onPress={() => getDomainValidationCode(accountID, domainName)}
-                                        isDisabled={isOffline}
-                                    />
-                                </View>
+                                <FormHelpMessageRowWithRetryButton
+                                    message={getLatestErrorMessage({errors: domain.validateCodeError})}
+                                    onRetry={() => getDomainValidationCode(accountID, domainName)}
+                                    isButtonSmall
+                                />
                             )}
                         </View>
 

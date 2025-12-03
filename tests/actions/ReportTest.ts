@@ -1746,6 +1746,8 @@ describe('actions/Report', () => {
             ...createRandomPolicy(Number(policyID)),
             isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
+            autoReporting: false,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
             harvesting: {
                 enabled: false,
             },
@@ -1768,6 +1770,8 @@ describe('actions/Report', () => {
         });
         expect(getOriginalMessage(reportPreviewAction)?.linkedReportID).toBe(reportID);
         expect(reportPreviewAction?.actorAccountID).toBe(accountID);
+
+        await waitForBatchedUpdates();
 
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
@@ -1850,6 +1854,7 @@ describe('actions/Report', () => {
             ...createRandomPolicy(Number(policyID)),
             isPolicyExpenseChatEnabled: true,
             type: CONST.POLICY.TYPE.TEAM,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
             harvesting: {
                 enabled: true,
             },
@@ -2043,7 +2048,7 @@ describe('actions/Report', () => {
             });
 
             // When deleting the expense report
-            Report.deleteAppReport(reportID);
+            Report.deleteAppReport(reportID, '');
             await waitForBatchedUpdates();
 
             // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
@@ -2069,7 +2074,7 @@ describe('actions/Report', () => {
                 ownerAccountID: currentUserAccountID,
                 areRulesEnabled: true,
                 preventSelfApproval: false,
-                autoReportingFrequency: 'immediate',
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
                 harvesting: {
                     enabled: false,
                 },
@@ -2139,7 +2144,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
             // When deleting the first expense report
-            Report.deleteAppReport(expenseReport1.reportID);
+            Report.deleteAppReport(expenseReport1.reportID, '');
             await waitForBatchedUpdates();
 
             const report = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {

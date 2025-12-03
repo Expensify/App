@@ -13,11 +13,13 @@ import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useActiveRoute from '@hooks/useActiveRoute';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -36,7 +38,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -131,7 +133,7 @@ function MoneyRequestView({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {environmentURL} = useEnvironment();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, preferredLocale} = useLocalize();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
@@ -170,6 +172,11 @@ function MoneyRequestView({
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const moneyRequestReport = parentReport;
     const isApproved = isReportApproved({report: moneyRequestReport});
@@ -204,7 +211,10 @@ function MoneyRequestView({
         originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
-    } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount) ?? {}, [allowNegativeAmount, transaction]);
+    } = useMemo<Partial<TransactionDetails>>(
+        () => getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails, preferredLocale) ?? {},
+        [allowNegativeAmount, currentUserPersonalDetails, transaction],
+    );
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
@@ -235,7 +245,7 @@ function MoneyRequestView({
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction) : getTaxName(policy, transaction);
 
-    const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
+    const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction, preferredLocale) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
 
     const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
@@ -261,8 +271,11 @@ function MoneyRequestView({
     const canEditDistance = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived);
     const canEditDistanceRate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived);
     const canEditReport = useMemo(
-        () => isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID),
-        [isEditable, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID],
+        () =>
+            isEditable &&
+            canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID) &&
+            (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy)),
+        [isEditable, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID, isPerDiemRequest, policy],
     );
 
     // A flag for verifying that the current report is a sub-report of a expense chat
@@ -288,7 +301,6 @@ function MoneyRequestView({
         policy?.defaultReimbursable !== undefined && !!(updatedTransaction?.reimbursable ?? transactionReimbursable) !== policy.defaultReimbursable;
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isExpenseUnreported) &&
-        !!policyForMovingExpensesID &&
         (policy?.disabledFields?.reimbursable !== true || isCurrentTransactionReimbursableDifferentFromPolicyDefault) &&
         !isCardTransaction &&
         !isInvoice;
@@ -339,9 +351,19 @@ function MoneyRequestView({
             if (newBillable === getBillable(transaction) || !transaction?.transactionID || !report?.reportID) {
                 return;
             }
-            updateMoneyRequestBillable(transaction.transactionID, report?.reportID, newBillable, policy, policyTagList, policyCategories);
+            updateMoneyRequestBillable(
+                transaction.transactionID,
+                report?.reportID,
+                newBillable,
+                policy,
+                policyTagList,
+                policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+            );
         },
-        [transaction, report?.reportID, policy, policyTagList, policyCategories],
+        [transaction, report?.reportID, policy, policyTagList, policyCategories, currentUserAccountIDParam, currentUserEmailParam, isASAPSubmitBetaEnabled],
     );
 
     const saveReimbursable = useCallback(
@@ -350,9 +372,19 @@ function MoneyRequestView({
             if (newReimbursable === getReimbursable(transaction) || !transaction?.transactionID || !report?.reportID) {
                 return;
             }
-            updateMoneyRequestReimbursable(transaction.transactionID, report?.reportID, newReimbursable, policy, policyTagList, policyCategories);
+            updateMoneyRequestReimbursable(
+                transaction.transactionID,
+                report?.reportID,
+                newReimbursable,
+                policy,
+                policyTagList,
+                policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+            );
         },
-        [transaction, report, policy, policyTagList, policyCategories],
+        [transaction, report?.reportID, policy, policyTagList, policyCategories, currentUserAccountIDParam, currentUserEmailParam, isASAPSubmitBetaEnabled],
     );
 
     if (isCardTransaction) {
@@ -630,6 +662,7 @@ function MoneyRequestView({
         );
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportNameToDisplay = isFromMergeTransaction ? updatedTransaction?.reportName : getReportName(parentReport) || parentReport?.reportName;
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport ? reportNameToDisplay : undefined;

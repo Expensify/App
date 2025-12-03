@@ -77,6 +77,12 @@ type MenuItemBaseProps = {
     /** Text to be shown as badge near the right end. */
     badgeText?: string;
 
+    /** Icon to display on the left side of the badge */
+    badgeIcon?: IconAsset;
+
+    /** Whether the badge should be shown as success */
+    badgeSuccess?: boolean;
+
     /** Used to apply offline styles to child text components */
     style?: StyleProp<ViewStyle>;
 
@@ -93,7 +99,7 @@ type MenuItemBaseProps = {
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Used to apply styles specifically to the title */
-    titleStyle?: ViewStyle;
+    titleStyle?: StyleProp<TextStyle>;
 
     /** Any additional styles to apply on the badge element */
     badgeStyle?: ViewStyle;
@@ -384,6 +390,9 @@ type MenuItemBaseProps = {
 
     /** Whether the menu item contains nested submenu items. */
     hasSubMenuItems?: boolean;
+
+    /** Whether the screen containing the item is focused */
+    isFocused?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -396,10 +405,13 @@ const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolea
         return hoveredBackgroundColor;
     }
 };
+
 function MenuItem({
     interactive = true,
     onPress,
     badgeText,
+    badgeIcon,
+    badgeSuccess,
     style,
     wrapperStyle,
     titleWrapperStyle,
@@ -507,6 +519,7 @@ function MenuItem({
     copyable = false,
     hasSubMenuItems = false,
     ref,
+    isFocused,
 }: MenuItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -521,7 +534,7 @@ function MenuItem({
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
 
-    const combinedTitleTextStyle = StyleUtils.combineStyles(
+    const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
             styles.flexShrink1,
             styles.popoverMenuText,
@@ -535,7 +548,7 @@ function MenuItem({
             shouldBreakWord ? styles.breakWord : {},
             styles.mw100,
         ],
-        titleStyle ?? {},
+        (titleStyle ?? {}) as TextStyle,
     );
 
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
@@ -596,7 +609,6 @@ function MenuItem({
             return (
                 <DisplayNames
                     fullTitle={title}
-                    shouldParseFullTitle={!shouldRenderAsHTML}
                     displayNamesWithTooltips={titleWithTooltips}
                     tooltipEnabled
                     numberOfLines={1}
@@ -675,7 +687,7 @@ function MenuItem({
                 shouldHideOnScroll={shouldHideOnScroll}
             >
                 <View>
-                    <Hoverable>
+                    <Hoverable isFocused={isFocused}>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
@@ -899,7 +911,9 @@ function MenuItem({
                                                 {!!badgeText && (
                                                     <Badge
                                                         text={badgeText}
+                                                        icon={badgeIcon}
                                                         badgeStyles={badgeStyle}
+                                                        success={badgeSuccess}
                                                     />
                                                 )}
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
@@ -930,7 +944,7 @@ function MenuItem({
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                                         <Icon
                                                             src={Expensicons.DotIndicator}
-                                                            fill={brickRoadIndicator === 'error' ? theme.danger : theme.success}
+                                                            fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
                                                         />
                                                     </View>
                                                 )}
