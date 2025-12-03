@@ -196,9 +196,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                           },
                           debug: false,
                           telemetry: false,
-                          reactComponentAnnotation: {
-                              enabled: true,
-                          },
                       }),
                   ] as WebpackPluginInstance[])),
 
