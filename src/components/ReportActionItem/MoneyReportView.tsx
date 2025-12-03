@@ -25,7 +25,6 @@ import {
     getFieldViolationTranslation,
     getMoneyRequestSpendBreakdown,
     getReportFieldKey,
-    getReportTransactions,
     hasUpdatedTotal,
     isClosedExpenseReportWithNoExpenses as isClosedExpenseReportWithNoExpensesReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
@@ -35,7 +34,6 @@ import {
     isReportFieldOfTypeTitle,
     isSettled as isSettledReportUtils,
 } from '@libs/ReportUtils';
-import {shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -74,10 +72,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const isTotalUpdated = hasUpdatedTotal(report, policy);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
-    const transactions = getReportTransactions(report?.reportID);
-    const shouldShowBreakdown = useMemo(() => {
-        return nonReimbursableSpend && shouldShowTotal && shouldShowExpenseBreakdown(transactions);
-    }, [nonReimbursableSpend, shouldShowTotal, transactions]);
+    const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend && shouldShowTotal;
 
     const formattedTotalAmount = convertToDisplayString(totalDisplaySpend, report?.currency);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
