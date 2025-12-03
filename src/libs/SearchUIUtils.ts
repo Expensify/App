@@ -64,7 +64,7 @@ import {hasSynchronizationErrorMessage} from './actions/connections';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport, createTransactionThreadReport} from './actions/Report';
 import type {TransactionPreviewData} from './actions/Search';
-import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
+import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
@@ -1403,6 +1403,7 @@ function getTaskSections(
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const policy = getPolicy(parentReport.policyID);
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const parentReportName = getReportName(parentReport, policy, undefined, undefined, undefined, undefined, undefined, isParentReportArchived);
                 const icons = getIcons(parentReport, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
@@ -1421,16 +1422,19 @@ function getTaskSections(
 }
 
 /** Creates transaction thread report and navigates to it from the search page */
-function createAndOpenSearchTransactionThread(item: TransactionListItemType, hash: number, backTo: string, transactionPreviewData?: TransactionPreviewData, shouldNavigate = true) {
+function createAndOpenSearchTransactionThread(
+    item: TransactionListItemType,
+    backTo: string,
+    IOUTransactionID?: string,
+    transactionPreviewData?: TransactionPreviewData,
+    shouldNavigate = true,
+) {
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-    setOptimisticDataForTransactionThreadPreview(item, previewData);
+    setOptimisticDataForTransactionThreadPreview(item, previewData, IOUTransactionID);
 
     const transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID: item.moneyRequestReportActionID} as OnyxTypes.ReportAction);
-    if (transactionThreadReport?.reportID) {
-        updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
-    }
 
     if (shouldNavigate) {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo}));
@@ -1488,6 +1492,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
                 reportActionItems.push({
                     ...reportAction,
                     from,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies, isReportArchived}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
@@ -2381,45 +2386,33 @@ function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes) 
     }
 }
 
-function getHasOptions(type: SearchDataTypes) {
+function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return [
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                {text: translateLocal('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                {text: translateLocal('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
+                {text: translate('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
+                {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                {text: translate('common.tag'), value: CONST.SEARCH.HAS_VALUES.TAG},
+                {text: translate('common.category'), value: CONST.SEARCH.HAS_VALUES.CATEGORY},
             ];
         case CONST.SEARCH.DATA_TYPES.CHAT:
             return [
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                {text: translateLocal('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                {text: translateLocal('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
+                {text: translate('common.link'), value: CONST.SEARCH.HAS_VALUES.LINK},
+                {text: translate('common.attachment'), value: CONST.SEARCH.HAS_VALUES.ATTACHMENT},
             ];
         default:
             return [];
     }
 }
 
-function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
+function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        {text: translateLocal('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        {text: translateLocal('common.expenseReport'), value: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        {text: translateLocal('common.chat'), value: CONST.SEARCH.DATA_TYPES.CHAT},
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        {text: translateLocal('common.invoice'), value: CONST.SEARCH.DATA_TYPES.INVOICE},
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        {text: translateLocal('common.trip'), value: CONST.SEARCH.DATA_TYPES.TRIP},
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        {text: translateLocal('common.task'), value: CONST.SEARCH.DATA_TYPES.TASK},
+        {text: translate('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
+        {text: translate('common.expenseReport'), value: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        {text: translate('common.chat'), value: CONST.SEARCH.DATA_TYPES.CHAT},
+        {text: translate('common.invoice'), value: CONST.SEARCH.DATA_TYPES.INVOICE},
+        {text: translate('common.trip'), value: CONST.SEARCH.DATA_TYPES.TRIP},
+        {text: translate('common.task'), value: CONST.SEARCH.DATA_TYPES.TASK},
     ];
     const shouldHideInvoiceOption = !canSendInvoice(policies, currentUserLogin) && !hasInvoiceReports();
 
@@ -2427,9 +2420,8 @@ function getTypeOptions(policies: OnyxCollection<OnyxTypes.Policy>, currentUserL
     return shouldHideInvoiceOption ? typeOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE) : typeOptions;
 }
 
-function getGroupByOptions() {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translateLocal(`search.filters.groupBy.${value}`), value}));
+function getGroupByOptions(translate: LocalizedTranslate) {
+    return Object.values(CONST.SEARCH.GROUP_BY).map<SingleSelectItem<SearchGroupBy>>((value) => ({text: translate(`search.filters.groupBy.${value}`), value}));
 }
 
 function getGroupCurrencyOptions(currencyList: OnyxTypes.CurrencyList) {
