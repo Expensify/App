@@ -292,12 +292,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
             backHistory(() => {
                 onRouterClose();
-                Navigation.navigate(
-                    ROUTES.SEARCH_ROOT.getRoute({
-                        query: updatedQuery,
-                        rawQuery: queryWithSubstitutions,
-                    }),
-                );
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
             });
 
             setTextInputValue('');
