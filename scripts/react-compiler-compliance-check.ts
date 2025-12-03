@@ -585,11 +585,13 @@ function findManualMemoizationMatches(source: string): ManualMemoizationMatch[] 
 
     for (const keyword of Object.keys(MANUAL_MEMOIZATION_PATTERNS) as ManualMemoizationKeyword[]) {
         const regex = MANUAL_MEMOIZATION_PATTERNS[keyword];
-        regex.lastIndex = 0;
+        const regexMatches = source.matchAll(regex);
 
-        let regexMatch: RegExpExecArray | null;
-        while ((regexMatch = regex.exec(source)) !== null) {
+        for (const regexMatch of regexMatches) {
             const matchIndex = regexMatch.index;
+            if (matchIndex === undefined) {
+                continue;
+            }
             const {line, column} = getLineAndColumnFromIndex(source, matchIndex);
             matches.push({keyword, line, column});
         }
