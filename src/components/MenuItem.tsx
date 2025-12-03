@@ -77,6 +77,12 @@ type MenuItemBaseProps = {
     /** Text to be shown as badge near the right end. */
     badgeText?: string;
 
+    /** Icon to display on the left side of the badge */
+    badgeIcon?: IconAsset;
+
+    /** Whether the badge should be shown as success */
+    badgeSuccess?: boolean;
+
     /** Used to apply offline styles to child text components */
     style?: StyleProp<ViewStyle>;
 
@@ -384,6 +390,9 @@ type MenuItemBaseProps = {
 
     /** Whether the menu item contains nested submenu items. */
     hasSubMenuItems?: boolean;
+
+    /** Whether the screen containing the item is focused */
+    isFocused?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -396,10 +405,13 @@ const getSubscriptAvatarBackgroundColor = (isHovered: boolean, isPressed: boolea
         return hoveredBackgroundColor;
     }
 };
+
 function MenuItem({
     interactive = true,
     onPress,
     badgeText,
+    badgeIcon,
+    badgeSuccess,
     style,
     wrapperStyle,
     titleWrapperStyle,
@@ -507,6 +519,7 @@ function MenuItem({
     copyable = false,
     hasSubMenuItems = false,
     ref,
+    isFocused,
 }: MenuItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -674,7 +687,7 @@ function MenuItem({
                 shouldHideOnScroll={shouldHideOnScroll}
             >
                 <View>
-                    <Hoverable>
+                    <Hoverable isFocused={isFocused}>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
@@ -898,7 +911,9 @@ function MenuItem({
                                                 {!!badgeText && (
                                                     <Badge
                                                         text={badgeText}
+                                                        icon={badgeIcon}
                                                         badgeStyles={badgeStyle}
+                                                        success={badgeSuccess}
                                                     />
                                                 )}
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
@@ -929,7 +944,7 @@ function MenuItem({
                                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                                         <Icon
                                                             src={Expensicons.DotIndicator}
-                                                            fill={brickRoadIndicator === 'error' ? theme.danger : theme.success}
+                                                            fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
                                                         />
                                                     </View>
                                                 )}
