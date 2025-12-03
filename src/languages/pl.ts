@@ -1298,7 +1298,6 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `przesłano${memo ? `, mówiąc ${memo}` : ''}`,
         automaticallySubmitted: `przesłane za pomocą <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">opóźnij zgłoszenia</a>`,
         queuedToSubmitViaDEW: 'umieszczone w kolejce do przesłania przez niestandardowy przepływ zatwierdzania',
-        dynamicExternalWorkflowCannotSubmit: 'Ten raport nie może zostać przesłany. Proszę sprawdzić komentarze, aby rozwiązać problem.',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `śledzenie ${formattedAmount}${comment ? `dla ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `podziel ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `podziel ${formattedAmount}${comment ? `dla ${comment}` : ''}`,

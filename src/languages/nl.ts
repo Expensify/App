@@ -1299,7 +1299,6 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `ingediend${memo ? `, zegt ${memo}` : ''}`,
         automaticallySubmitted: `ingediend via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">vertraging indieningen</a>`,
         queuedToSubmitViaDEW: 'in wachtrij geplaatst om in te dienen via aangepaste goedkeuringswerkstroom',
-        dynamicExternalWorkflowCannotSubmit: 'Dit rapport kan niet worden ingediend. Bekijk de opmerkingen om op te lossen.',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `volgt ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `splitsen ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `split ${formattedAmount}${comment ? `voor ${comment}` : ''}`,

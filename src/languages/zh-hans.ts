@@ -1281,7 +1281,6 @@ const translations: TranslationDeepObject<typeof en> = {
         submitted: ({memo}: SubmittedWithMemoParams) => `已提交${memo ? `, 备注 ${memo}` : ''}`,
         automaticallySubmitted: `通过<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">延迟提交</a>提交`,
         queuedToSubmitViaDEW: '已排队等待通过自定义审批工作流提交',
-        dynamicExternalWorkflowCannotSubmit: '无法提交此报告。请查看评论以解决问题。',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `跟踪 ${formattedAmount}${comment ? `对于${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `拆分 ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `split ${formattedAmount}${comment ? `对于${comment}` : ''}`,

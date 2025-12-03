@@ -43,7 +43,7 @@ import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButt
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
-import {buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
+import {buildOptimisticNextStepForDynamicExternalWorkflowError, buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
@@ -443,6 +443,20 @@ function MoneyReportHeader({
     const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
     let optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
 
+    // Check for DEW submit failed - if the report has a DEW_SUBMIT_FAILED action, show the custom next step
+    if (isDEWBetaEnabled && hasDynamicExternalWorkflow(policy) && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+        const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
+            if (action.reportActionID) {
+                acc[action.reportActionID] = action;
+            }
+            return acc;
+        }, {});
+        const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
+        if (errors?.dewSubmitFailed) {
+            optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowError();
+        }
+    }
+
     if (shouldBlockSubmit && isReportOwner(moneyRequestReport) && isOpenExpenseReport(moneyRequestReport)) {
         optimisticNextStep = buildOptimisticNextStepForStrictPolicyRuleViolations();
     }
@@ -567,29 +581,6 @@ function MoneyReportHeader({
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (shouldShowMarkAsResolved) {
             return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.reject.rejectedStatus')};
-        }
-
-        if (isDEWBetaEnabled && hasDynamicExternalWorkflow(policy) && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
-            const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
-                if (action.reportActionID) {
-                    acc[action.reportActionID] = action;
-                }
-                return acc;
-            }, {});
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
-            if (errors?.dewSubmitFailed) {
-                return {
-                    icon: (
-                        <Icon
-                            src={expensifyIcons.DotIndicator}
-                            height={variables.iconSizeSmall}
-                            width={variables.iconSizeSmall}
-                            fill={theme.danger}
-                        />
-                    ),
-                    description: <Text style={{color: theme.danger}}>{translate('iou.dynamicExternalWorkflowCannotSubmit')}</Text>,
-                };
-            }
         }
 
         if (isPayAtEndExpense) {
