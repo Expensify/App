@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -20,17 +19,14 @@ import {getFieldRequiredErrors, isPublicDomain} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isUserValidatedSelector} from '@src/selectors/Account';
-import type {CreateDomainForm} from '@src/types/form/CreateDomainForm';
 import INPUT_IDS from '@src/types/form/CreateDomainForm';
-
-const hasCreationSucceededSelector = (form: OnyxEntry<CreateDomainForm>) => form?.hasCreationSucceeded;
 
 function AddDomainPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const [hasCreationSucceeded] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {canBeMissing: true, selector: hasCreationSucceededSelector});
+    const [form] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {canBeMissing: true});
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: isUserValidatedSelector});
 
@@ -54,7 +50,7 @@ function AddDomainPage() {
     const submittedDomainName = useRef<string | undefined>(undefined);
 
     useEffect(() => {
-        if (!hasCreationSucceeded) {
+        if (!form?.hasCreationSucceeded) {
             return;
         }
 
@@ -63,7 +59,7 @@ function AddDomainPage() {
         if (accountID) {
             Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ADDED.getRoute(accountID), {forceReplace: true});
         }
-    }, [hasCreationSucceeded, allDomains]);
+    }, [form?.hasCreationSucceeded, allDomains]);
 
     useEffect(() => {
         resetCreateDomainForm();
@@ -94,6 +90,7 @@ function AddDomainPage() {
                         submittedDomainName.current = domainName;
                         createDomain(domainName);
                     }}
+                    isLoading={form?.isLoading}
                 >
                     <InputWrapper
                         InputComponent={TextInput}

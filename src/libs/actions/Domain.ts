@@ -310,18 +310,25 @@ function createDomain(domainName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
-            value: {hasCreationSucceeded: null},
+            value: {hasCreationSucceeded: null, isLoading: true},
         },
     ];
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
-            value: {hasCreationSucceeded: true},
+            value: {hasCreationSucceeded: true, isLoading: null},
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
+            value: {isLoading: null},
         },
     ];
 
-    API.write(WRITE_COMMANDS.CREATE_DOMAIN, {domainName}, {optimisticData, successData});
+    API.write(WRITE_COMMANDS.CREATE_DOMAIN, {domainName}, {optimisticData, successData, failureData});
 }
 
 /**
