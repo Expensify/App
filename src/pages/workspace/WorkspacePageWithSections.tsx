@@ -90,7 +90,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          */
         addBottomSafeAreaPadding?: boolean;
 
-        /** Content to be added to the modal */
+        /** Content to be added as modal */
         modals?: ReactNode;
     };
 

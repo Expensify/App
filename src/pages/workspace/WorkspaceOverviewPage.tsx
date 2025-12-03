@@ -474,9 +474,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 title={translate('workspace.common.delete')}
                 isVisible={isDeleteModalOpen}
                 onConfirm={confirmDelete}
-                onCancel={() => {
-                    setIsDeleteModalOpen(false);
-                }}
+                onCancel={() => setIsDeleteModalOpen(false)}
                 prompt={hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
