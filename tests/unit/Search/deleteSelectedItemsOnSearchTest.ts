@@ -38,8 +38,6 @@ describe('bulkDeleteReports', () => {
                     canUnhold: false,
                     policyID: 'policy123',
                     amount: 0,
-                    convertedAmount: 0,
-                    convertedCurrency: 'USD',
                     currency: 'USD',
                 },
                 report_456: {
@@ -53,18 +51,17 @@ describe('bulkDeleteReports', () => {
                     canUnhold: false,
                     policyID: 'policy456',
                     amount: 0,
-                    convertedAmount: 0,
-                    convertedCurrency: 'USD',
                     currency: 'USD',
                 },
             };
 
-            bulkDeleteReports(hash, selectedTransactions);
+            const currentUserEmail = '';
+            bulkDeleteReports(hash, selectedTransactions, currentUserEmail);
 
             // Should call deleteAppReport for each empty report
             expect(deleteAppReport).toHaveBeenCalledTimes(2);
-            expect(deleteAppReport).toHaveBeenCalledWith('report_123');
-            expect(deleteAppReport).toHaveBeenCalledWith('report_456');
+            expect(deleteAppReport).toHaveBeenCalledWith('report_123', currentUserEmail);
+            expect(deleteAppReport).toHaveBeenCalledWith('report_456', currentUserEmail);
         });
 
         it('should handle mixed selection of empty reports and transactions', () => {
@@ -81,8 +78,6 @@ describe('bulkDeleteReports', () => {
                     canUnhold: false,
                     policyID: 'policy123',
                     amount: 0,
-                    convertedAmount: 0,
-                    convertedCurrency: 'USD',
                     currency: 'USD',
                 },
                 transaction_789: {
@@ -96,8 +91,6 @@ describe('bulkDeleteReports', () => {
                     canUnhold: false,
                     policyID: 'policy456',
                     amount: 1000,
-                    convertedAmount: 1000,
-                    convertedCurrency: 'USD',
                     currency: 'USD',
                 },
                 transaction_101: {
@@ -111,17 +104,16 @@ describe('bulkDeleteReports', () => {
                     canUnhold: false,
                     policyID: 'policy456',
                     amount: 500,
-                    convertedAmount: 500,
-                    convertedCurrency: 'USD',
                     currency: 'USD',
                 },
             };
 
-            bulkDeleteReports(hash, selectedTransactions);
+            const currentUserEmail = '';
+            bulkDeleteReports(hash, selectedTransactions, currentUserEmail);
 
             // Should call deleteAppReport for empty report
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
-            expect(deleteAppReport).toHaveBeenCalledWith('report_123');
+            expect(deleteAppReport).toHaveBeenCalledWith('report_123', currentUserEmail);
         });
 
         it('should not delete reports when no empty reports are selected', () => {
@@ -138,8 +130,6 @@ describe('bulkDeleteReports', () => {
                     canUnhold: false,
                     policyID: 'policy456',
                     amount: 1000,
-                    convertedAmount: 1000,
-                    convertedCurrency: 'USD',
                     currency: 'USD',
                 },
                 transaction_101: {
@@ -153,13 +143,11 @@ describe('bulkDeleteReports', () => {
                     canUnhold: false,
                     policyID: 'policy456',
                     amount: 500,
-                    convertedAmount: 500,
-                    convertedCurrency: 'USD',
                     currency: 'USD',
                 },
             };
 
-            bulkDeleteReports(hash, selectedTransactions);
+            bulkDeleteReports(hash, selectedTransactions, '');
 
             // Should not call deleteAppReport
             expect(deleteAppReport).not.toHaveBeenCalled();
@@ -169,7 +157,7 @@ describe('bulkDeleteReports', () => {
             const hash = 12345;
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {};
 
-            bulkDeleteReports(hash, selectedTransactions);
+            bulkDeleteReports(hash, selectedTransactions, '');
 
             // Should not call any deletion functions
             expect(deleteAppReport).not.toHaveBeenCalled();
@@ -189,8 +177,6 @@ describe('bulkDeleteReports', () => {
                     canUnhold: false,
                     policyID: 'policy123',
                     amount: 0,
-                    convertedAmount: 0,
-                    convertedCurrency: 'USD',
                     currency: 'USD',
                 },
                 different_key: {
@@ -204,18 +190,17 @@ describe('bulkDeleteReports', () => {
                     canUnhold: false,
                     policyID: 'policy456',
                     amount: 0,
-                    convertedAmount: 0,
-                    convertedCurrency: 'USD',
                     currency: 'USD',
                 },
             };
 
-            bulkDeleteReports(hash, selectedTransactions);
+            const currentUserEmail = '';
+            bulkDeleteReports(hash, selectedTransactions, currentUserEmail);
 
             // Should only call deleteAppReport for the first report where key === reportID
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
-            expect(deleteAppReport).toHaveBeenCalledWith('report_123');
-            expect(deleteAppReport).not.toHaveBeenCalledWith('report_456');
+            expect(deleteAppReport).toHaveBeenCalledWith('report_123', currentUserEmail);
+            expect(deleteAppReport).not.toHaveBeenCalledWith('report_456', currentUserEmail);
         });
     });
 
@@ -234,8 +219,6 @@ describe('bulkDeleteReports', () => {
                     canUnhold: false,
                     policyID: 'policy456',
                     amount: 1000,
-                    convertedAmount: 1000,
-                    convertedCurrency: 'USD',
                     currency: 'USD',
                 },
                 transaction_101: {
@@ -249,13 +232,11 @@ describe('bulkDeleteReports', () => {
                     canUnhold: false,
                     policyID: 'policy456',
                     amount: 500,
-                    convertedAmount: 500,
-                    convertedCurrency: 'USD',
                     currency: 'USD',
                 },
             };
 
-            bulkDeleteReports(hash, selectedTransactions);
+            bulkDeleteReports(hash, selectedTransactions, '');
 
             // Should not call deleteAppReport for transactions
             expect(deleteAppReport).not.toHaveBeenCalled();
