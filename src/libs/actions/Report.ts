@@ -1155,31 +1155,6 @@ function openReport(
             },
         });
 
-        // Update the snapshot with the new transactionThreadReportID and moneyRequestReportActionID if we're coming from search
-        // preventing duplicate reportActionID when moneyRequestReportActionID still empty
-        const currentSearchQueryJSON = getCurrentSearchQueryJSON();
-        if (currentSearchQueryJSON?.hash) {
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
-                value: {
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
-                            transactionThreadReportID: reportID,
-                            moneyRequestReportActionID: iouReportActionID,
-                        },
-                        // Add the IOU report action to the snapshot so that reportAction?.actorAccountID is available
-                        // This ensures the `from` object can be properly populated in SearchUIUtils when it calls
-                        // createReportActionsLookupMaps to build moneyRequestReportActionsByTransactionID map
-                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`]: {
-                            [iouReportActionID]: optimisticIOUAction,
-                        },
-                    },
-                },
-            });
-        }
-
         parameters.moneyRequestPreviewReportActionID = iouReportActionID;
 
         // Log how often the legacy transaction fallback path is taken

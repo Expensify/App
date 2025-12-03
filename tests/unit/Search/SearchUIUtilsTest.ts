@@ -2895,7 +2895,7 @@ describe('SearchUIUtils', () => {
                 moneyRequestReportActionID: '0',
             };
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(legacyTransactionItem, hash, backTo);
+            SearchUIUtils.createAndOpenSearchTransactionThread(legacyTransactionItem, backTo);
 
             // Extract the transaction by removing UI-specific and search-specific fields
             const {
@@ -2918,9 +2918,6 @@ describe('SearchUIUtils', () => {
                 hash: itemHash,
                 moneyRequestReportActionID,
                 canDelete,
-                convertedAmount,
-                convertedCurrency,
-                transactionThreadReportID,
                 accountID,
                 policyID: searchPolicyID,
                 ...expectedTransaction
