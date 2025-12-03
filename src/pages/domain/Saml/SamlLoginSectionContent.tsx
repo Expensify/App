@@ -64,49 +64,47 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
             </OfflineWithFeedback>
 
             {isSamlEnabled && (
-                <>
-                    <OfflineWithFeedback
-                        pendingAction={domain?.isSamlRequiredLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
-                        errors={getLatestErrorMessageField({errors: domain?.samlRequiredError})}
-                        onClose={() => resetSamlRequiredError(accountID)}
-                        dismissError={() => resetSamlRequiredError(accountID)}
-                    >
-                        <View style={styles.sectionMenuItemTopDescription}>
-                            <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3, styles.pv1]}>
-                                <Text>{translate('domain.samlLogin.requireSamlLogin')}</Text>
-                                <Switch
-                                    accessibilityLabel={translate('domain.samlLogin.requireSamlLogin')}
-                                    isOn={isSamlRequired}
-                                    onToggle={() => {
-                                        if (isSamlRequired && isOktaScimEnabled) {
-                                            setIsScimConfirmModalVisible(true);
-                                            return;
-                                        }
-                                        setSamlRequired(!isSamlRequired, accountID, domainName);
-                                    }}
-                                />
-                            </View>
-
-                            <Text style={[styles.formHelp, styles.pr15]}>{translate('domain.samlLogin.anyMemberWillBeRequired')}</Text>
+                <OfflineWithFeedback
+                    pendingAction={domain?.isSamlRequiredLoading ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
+                    errors={getLatestErrorMessageField({errors: domain?.samlRequiredError})}
+                    onClose={() => resetSamlRequiredError(accountID)}
+                    dismissError={() => resetSamlRequiredError(accountID)}
+                >
+                    <View style={styles.sectionMenuItemTopDescription}>
+                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3, styles.pv1]}>
+                            <Text>{translate('domain.samlLogin.requireSamlLogin')}</Text>
+                            <Switch
+                                accessibilityLabel={translate('domain.samlLogin.requireSamlLogin')}
+                                isOn={isSamlRequired}
+                                onToggle={() => {
+                                    if (isSamlRequired && isOktaScimEnabled) {
+                                        setIsScimConfirmModalVisible(true);
+                                        return;
+                                    }
+                                    setSamlRequired(!isSamlRequired, accountID, domainName);
+                                }}
+                            />
                         </View>
-                    </OfflineWithFeedback>
 
-                    <ConfirmModal
-                        isVisible={isOktaScimConfirmModalVisible}
-                        onConfirm={() => {
-                            setSamlRequired(false, accountID, domainName);
-                            setIsScimConfirmModalVisible(false);
-                        }}
-                        title={translate('domain.samlLogin.disableSamlRequired')}
-                        prompt={translate('domain.samlLogin.oktaWarningPrompt')}
-                        confirmText={translate('common.disable')}
-                        cancelText={translate('common.cancel')}
-                        onCancel={() => setIsScimConfirmModalVisible(false)}
-                        danger
-                        shouldHandleNavigationBack
-                    />
-                </>
+                        <Text style={[styles.formHelp, styles.pr15]}>{translate('domain.samlLogin.anyMemberWillBeRequired')}</Text>
+                    </View>
+                </OfflineWithFeedback>
             )}
+
+            <ConfirmModal
+                isVisible={isOktaScimConfirmModalVisible}
+                onConfirm={() => {
+                    setSamlRequired(false, accountID, domainName);
+                    setIsScimConfirmModalVisible(false);
+                }}
+                title={translate('domain.samlLogin.disableSamlRequired')}
+                prompt={translate('domain.samlLogin.oktaWarningPrompt')}
+                confirmText={translate('common.disable')}
+                cancelText={translate('common.cancel')}
+                onCancel={() => setIsScimConfirmModalVisible(false)}
+                danger
+                shouldHandleNavigationBack
+            />
         </>
     );
 }
