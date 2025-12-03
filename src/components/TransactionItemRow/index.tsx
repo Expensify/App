@@ -14,6 +14,7 @@ import DateCell from '@components/SelectionListWithSections/Search/DateCell';
 import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -158,6 +159,7 @@ function TransactionItemRow({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
 
@@ -404,116 +406,154 @@ function TransactionItemRow({
     }, [columns]);
 
     if (shouldUseNarrowLayout) {
-        return (
+        const content = (
             <>
-                <View
-                    style={[styles.expenseWidgetRadius, bgActiveStyles, styles.justifyContentEvenly, style, styles.overflowHidden]}
-                    testID="transaction-item-row"
-                >
-                    <View style={[styles.flexRow]}>
-                        {shouldShowCheckbox && (
-                            <Checkbox
-                                disabled={isDisabled}
-                                onPress={() => {
-                                    onCheckboxPress(transactionItem.transactionID);
-                                }}
-                                accessibilityLabel={CONST.ROLE.CHECKBOX}
-                                isChecked={isSelected}
-                                style={styles.mr3}
-                                wrapperStyle={styles.justifyContentCenter}
-                            />
-                        )}
-                        <ReceiptCell
-                            transactionItem={transactionItem}
-                            isSelected={isSelected}
+                <View style={[styles.flexRow]}>
+                    {shouldShowCheckbox && (
+                        <Checkbox
+                            disabled={isDisabled}
+                            onPress={() => {
+                                onCheckboxPress(transactionItem.transactionID);
+                            }}
+                            accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            isChecked={isSelected}
                             style={styles.mr3}
+                            wrapperStyle={styles.justifyContentCenter}
                         />
-                        <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
-                                <DateCell
-                                    created={createdAt}
-                                    showTooltip={shouldShowTooltip}
-                                    isLargeScreenWidth={!shouldUseNarrowLayout}
-                                />
-                                <Text style={[styles.textMicroSupporting]}> • </Text>
-                                <TypeCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                />
-                                {!merchantOrDescription && (
-                                    <View style={[styles.mlAuto]}>
-                                        <TotalCell
-                                            transactionItem={transactionItem}
-                                            shouldShowTooltip={shouldShowTooltip}
-                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                        />
-                                    </View>
-                                )}
-                            </View>
-                            {!!merchantOrDescription && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                                    <MerchantOrDescriptionCell
-                                        merchantOrDescription={merchantOrDescription}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                        isDescription={!merchant}
-                                    />
+                    )}
+                    <ReceiptCell
+                        transactionItem={transactionItem}
+                        isSelected={isSelected}
+                        style={styles.mr3}
+                    />
+                    <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
+                            <DateCell
+                                created={createdAt}
+                                showTooltip={shouldShowTooltip}
+                                isLargeScreenWidth={!shouldUseNarrowLayout}
+                            />
+                            <Text style={[styles.textMicroSupporting]}> • </Text>
+                            <TypeCell
+                                transactionItem={transactionItem}
+                                shouldShowTooltip={shouldShowTooltip}
+                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            />
+                            {!merchantOrDescription && (
+                                <View style={[styles.mlAuto, styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                                     <TotalCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
+                                    {!!onArrowRightPress && (
+                                        <Icon
+                                            src={Expensicons.ArrowRight}
+                                            fill={theme.icon}
+                                            small
+                                        />
+                                    )}
                                 </View>
                             )}
                         </View>
-                        {shouldShowRadioButton && (
-                            <View style={[styles.ml3, styles.justifyContentCenter]}>
-                                <RadioButton
-                                    isChecked={isSelected}
-                                    disabled={isDisabled}
-                                    onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
-                                    accessibilityLabel={CONST.ROLE.RADIO}
-                                    shouldUseNewStyle
+                        {!!merchantOrDescription && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                <MerchantOrDescriptionCell
+                                    merchantOrDescription={merchantOrDescription}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    isDescription={!merchant}
                                 />
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                                    <TotalCell
+                                        transactionItem={transactionItem}
+                                        shouldShowTooltip={shouldShowTooltip}
+                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                    />
+                                    {!!onArrowRightPress && (
+                                        <Icon
+                                            src={Expensicons.ArrowRight}
+                                            fill={theme.icon}
+                                            small
+                                            additionalStyles={styles.opacitySemiTransparent}
+                                        />
+                                    )}
+                                </View>
                             </View>
                         )}
                     </View>
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
-                        <View style={[styles.flexColumn, styles.flex1]}>
-                            {hasCategoryOrTag && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
-                                    <CategoryCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                    />
-                                    <TagCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                    />
-                                </View>
-                            )}
-                            {shouldShowErrors && (
-                                <TransactionItemRowRBR
-                                    transaction={transactionItem}
-                                    violations={violations}
-                                    report={report}
-                                    containerStyles={[styles.mt2, styles.minHeight4]}
-                                    missingFieldError={missingFieldError}
-                                />
-                            )}
+                    {shouldShowRadioButton && (
+                        <View style={[styles.ml3, styles.justifyContentCenter]}>
+                            <RadioButton
+                                isChecked={isSelected}
+                                disabled={isDisabled}
+                                onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
+                                accessibilityLabel={CONST.ROLE.RADIO}
+                                shouldUseNewStyle
+                            />
                         </View>
-                        {shouldRenderChatBubbleCell && (
-                            <ChatBubbleCell
+                    )}
+                </View>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
+                    <View style={[styles.flexColumn, styles.flex1]}>
+                        {hasCategoryOrTag && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
+                                <CategoryCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                                <TagCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                            </View>
+                        )}
+                        {shouldShowErrors && (
+                            <TransactionItemRowRBR
                                 transaction={transactionItem}
-                                containerStyles={[styles.mt2]}
-                                isInSingleTransactionReport={isInSingleTransactionReport}
+                                violations={violations}
+                                report={report}
+                                containerStyles={[styles.mt2, styles.minHeight4]}
+                                missingFieldError={missingFieldError}
                             />
                         )}
                     </View>
+                    {shouldRenderChatBubbleCell && (
+                        <ChatBubbleCell
+                            transaction={transactionItem}
+                            containerStyles={[styles.mt2]}
+                            isInSingleTransactionReport={isInSingleTransactionReport}
+                        />
+                    )}
                 </View>
+            </>
+        );
+
+        const handleOnPress = () => {
+            if (isMobileSelectionModeEnabled) {
+                onCheckboxPress(transactionItem.transactionID);
+                return;
+            }
+            onArrowRightPress?.();
+        };
+
+        return (
+            <>
+                <PressableWithFeedback
+                    onPress={handleOnPress}
+                    disabled={isDisabled || !onArrowRightPress}
+                    accessibilityRole={CONST.ROLE.BUTTON}
+                    accessibilityLabel={merchantOrDescription || CONST.ROLE.BUTTON}
+                >
+                    <View
+                        style={[styles.expenseWidgetRadius, bgActiveStyles, styles.justifyContentEvenly, style, styles.overflowHidden]}
+                        testID="transaction-item-row"
+                    >
+                        {content}
+                    </View>
+                </PressableWithFeedback>
                 {!!shouldShowBottomBorder && (
                     <View style={bgActiveStyles}>
                         <View style={styles.ph3}>
