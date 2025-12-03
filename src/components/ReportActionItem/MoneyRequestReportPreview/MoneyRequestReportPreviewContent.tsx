@@ -694,12 +694,14 @@ function MoneyRequestReportPreviewContent({
                                             <View style={[styles.flexColumn, styles.gap1, styles.flexShrink1]}>
                                                 <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
                                                     <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
-                                                        <Text
-                                                            style={[styles.headerText]}
-                                                            testID="MoneyRequestReportPreview-reportName"
-                                                        >
-                                                            {reportPreviewName}
-                                                        </Text>
+                                                        <OfflineWithFeedback pendingAction={iouReport?.pendingFields?.reportName}>
+                                                            <Text
+                                                                style={[styles.headerText]}
+                                                                testID="MoneyRequestReportPreview-reportName"
+                                                            >
+                                                                {reportPreviewName}
+                                                            </Text>
+                                                        </OfflineWithFeedback>
                                                     </Animated.View>
                                                 </View>
                                                 {showStatusAndSkeleton && shouldShowSkeleton ? (
