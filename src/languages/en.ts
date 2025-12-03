@@ -7690,7 +7690,7 @@ const translations = {
         },
         accessRestricted: {
             title: 'Access restricted',
-            subtitle: ({domainName}: {domainName: string}) => `Please verify yourself as an authorized company administrator for <strong>${domainName}</strong> if you need control over:`,
+            subtitle: (domainName: string) => `Please verify yourself as an authorized company administrator for <strong>${domainName}</strong> if you need control over:`,
             companyCardManagement: 'Company card management',
             accountCreationAndDeletion: 'Account creation and deletion',
             workspaceCreation: 'Workspace creation',

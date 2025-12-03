@@ -38,12 +38,13 @@ function AddDomainPage() {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>) => {
             const errors = getFieldRequiredErrors(values, [INPUT_IDS.DOMAIN_NAME]);
             const domainName = values[INPUT_IDS.DOMAIN_NAME];
-            if (values[INPUT_IDS.DOMAIN_NAME]) {
-                if (!Str.isValidDomainName(domainName)) {
-                    errors[INPUT_IDS.DOMAIN_NAME] = translate('iou.invalidDomainError');
-                } else if (isPublicDomain(domainName)) {
-                    errors[INPUT_IDS.DOMAIN_NAME] = translate('iou.publicDomainError');
-                }
+            if (!domainName) {
+                return errors;
+            }
+            if (!Str.isValidDomainName(domainName)) {
+                errors[INPUT_IDS.DOMAIN_NAME] = translate('iou.invalidDomainError');
+            } else if (isPublicDomain(domainName)) {
+                errors[INPUT_IDS.DOMAIN_NAME] = translate('iou.publicDomainError');
             }
             return errors;
         },
@@ -66,9 +67,7 @@ function AddDomainPage() {
 
     useEffect(() => {
         resetCreateDomainForm();
-        return () => {
-            clearDraftValues(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
-        };
+        return () => clearDraftValues(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
     }, []);
 
     return (

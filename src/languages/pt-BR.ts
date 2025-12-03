@@ -7714,7 +7714,7 @@ ${
         },
         accessRestricted: {
             title: 'Acesso restrito',
-            subtitle: ({domainName}: {domainName: string}) => `Confirme que você é um administrador autorizado da empresa para <strong>${domainName}</strong> se precisar de controle sobre:`,
+            subtitle: (domainName: string) => `Confirme que você é um administrador autorizado da empresa para <strong>${domainName}</strong> se precisar de controle sobre:`,
             companyCardManagement: 'Gerenciamento de cartões corporativos',
             accountCreationAndDeletion: 'Criação e exclusão de conta',
             workspaceCreation: 'Criação do espaço de trabalho',

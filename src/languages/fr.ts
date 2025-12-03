@@ -7758,7 +7758,7 @@ ${
         },
         accessRestricted: {
             title: 'Accès restreint',
-            subtitle: ({domainName}: {domainName: string}) =>
+            subtitle: (domainName: string) =>
                 `Veuillez vous authentifier en tant qu’administrateur d’entreprise autorisé pour <strong>${domainName}</strong> si vous avez besoin d’avoir le contrôle sur :`,
             companyCardManagement: 'Gestion des cartes d’entreprise',
             accountCreationAndDeletion: 'Création et suppression de compte',

@@ -7738,7 +7738,7 @@ ${
         },
         accessRestricted: {
             title: 'Accesso limitato',
-            subtitle: ({domainName}: {domainName: string}) => `Verificati come amministratore aziendale autorizzato per <strong>${domainName}</strong> se hai bisogno di gestire:`,
+            subtitle: (domainName: string) => `Verificati come amministratore aziendale autorizzato per <strong>${domainName}</strong> se hai bisogno di gestire:`,
             companyCardManagement: 'Gestione delle carte aziendali',
             accountCreationAndDeletion: "Creazione e cancellazione dell'account",
             workspaceCreation: 'Creazione dello spazio di lavoro',

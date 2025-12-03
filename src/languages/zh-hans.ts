@@ -7544,7 +7544,7 @@ ${
         },
         accessRestricted: {
             title: '访问受限',
-            subtitle: ({domainName}: {domainName: string}) => `如果您需要对以下内容进行管理，请验证您是 <strong>${domainName}</strong> 的授权公司管理员：`,
+            subtitle: (domainName: string) => `如果您需要对以下内容进行管理，请验证您是 <strong>${domainName}</strong> 的授权公司管理员：`,
             companyCardManagement: '公司卡管理',
             accountCreationAndDeletion: '账户创建和删除',
             workspaceCreation: '工作区创建',

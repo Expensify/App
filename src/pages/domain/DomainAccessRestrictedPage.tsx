@@ -63,7 +63,7 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
                 keyboardShouldPersistTaps="always"
             >
                 <View style={styles.flexRow}>
-                    <RenderHTML html={translate('domain.accessRestricted.subtitle', {domainName})} />
+                    <RenderHTML html={translate('domain.accessRestricted.subtitle', domainName)} />
                 </View>
 
                 <View style={styles.gap2}>

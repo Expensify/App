@@ -7710,7 +7710,7 @@ ${
         },
         accessRestricted: {
             title: 'Toegang beperkt',
-            subtitle: ({domainName}: {domainName: string}) => `Bevestig dat u een geautoriseerde bedrijfsbeheerder bent voor <strong>${domainName}</strong> als u controle nodig hebt over:`,
+            subtitle: (domainName: string) => `Bevestig dat u een geautoriseerde bedrijfsbeheerder bent voor <strong>${domainName}</strong> als u controle nodig hebt over:`,
             companyCardManagement: 'Beheer van bedrijfskaarten',
             accountCreationAndDeletion: 'Accountaanmaak en -verwijdering',
             workspaceCreation: 'Werkruimte aanmaken',

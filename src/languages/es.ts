@@ -7809,8 +7809,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         accessRestricted: {
             title: 'Acceso restringido',
-            subtitle: ({domainName}: {domainName: string}) =>
-                `Por favor, verifícate como un administrador autorizado de la empresa para <strong>${domainName}</strong> si necesitas control sobre:`,
+            subtitle: (domainName: string) => `Por favor, verifícate como un administrador autorizado de la empresa para <strong>${domainName}</strong> si necesitas control sobre:`,
             companyCardManagement: 'Gestión de tarjetas de la empresa',
             accountCreationAndDeletion: 'Creación y eliminación de cuentas',
             workspaceCreation: 'Creación de espacios de trabajo',

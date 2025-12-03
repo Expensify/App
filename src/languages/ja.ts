@@ -7666,7 +7666,7 @@ ${
         },
         accessRestricted: {
             title: 'アクセスが制限されています',
-            subtitle: ({domainName}: {domainName: string}) => `以下を管理する必要がある場合は、<strong>${domainName}</strong> の認可された会社管理者であることを確認してください:`,
+            subtitle: (domainName: string) => `以下を管理する必要がある場合は、<strong>${domainName}</strong> の認可された会社管理者であることを確認してください:`,
             companyCardManagement: '法人カードの管理',
             accountCreationAndDeletion: 'アカウントの作成と削除',
             workspaceCreation: 'ワークスペースの作成',

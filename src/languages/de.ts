@@ -7754,7 +7754,7 @@ ${
         },
         accessRestricted: {
             title: 'Zugriff eingeschränkt',
-            subtitle: ({domainName}: {domainName: string}) =>
+            subtitle: (domainName: string) =>
                 `Bitte verifizieren Sie sich als autorisierte/r Unternehmensadministrator/in für <strong>${domainName}</strong>, wenn Sie Kontrolle über Folgendes benötigen:`,
             companyCardManagement: 'Firmenkartenverwaltung',
             accountCreationAndDeletion: 'Kontoerstellung und -löschung',

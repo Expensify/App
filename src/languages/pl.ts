@@ -7698,8 +7698,7 @@ ${
         },
         accessRestricted: {
             title: 'Dostęp ograniczony',
-            subtitle: ({domainName}: {domainName: string}) =>
-                `Proszę zweryfikować się jako autoryzowany administrator firmy dla <strong>${domainName}</strong>, jeśli potrzebujesz kontroli nad:`,
+            subtitle: (domainName: string) => `Proszę zweryfikować się jako autoryzowany administrator firmy dla <strong>${domainName}</strong>, jeśli potrzebujesz kontroli nad:`,
             companyCardManagement: 'Zarządzanie kartami firmowymi',
             accountCreationAndDeletion: 'Tworzenie i usuwanie konta',
             workspaceCreation: 'Tworzenie obszaru roboczego',

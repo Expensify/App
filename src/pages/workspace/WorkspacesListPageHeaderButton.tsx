@@ -30,38 +30,40 @@ function WorkspacesListPageHeaderButton({isRestrictedPolicyCreation, hasWorkspac
         return null;
     }
 
-    return !hasDomains ? (
+    if (hasDomains) {
+        return (
+            <ButtonWithDropdownMenu
+                success={false}
+                onPress={() => {}}
+                customText={translate('common.new')}
+                options={[
+                    {
+                        value: 'workspace',
+                        text: translate('workspace.new.newWorkspace'),
+                        icon: icons.Building,
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
+                    },
+                    {
+                        value: 'domain',
+                        text: translate('domain.addDomain.newDomain'),
+                        icon: icons.Globe,
+                        onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN)),
+                    },
+                ]}
+                isSplitButton={false}
+                wrapperStyle={styles.flexGrow1}
+                testID="dropdown-button-new"
+            />
+        );
+    }
+
+    return (
         <Button
             accessibilityLabel={translate('workspace.new.newWorkspace')}
             text={translate('workspace.new.newWorkspace')}
             onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
             icon={icons.Plus}
             style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
-        />
-    ) : (
-        <ButtonWithDropdownMenu
-            success={false}
-            onPress={() => {}}
-            customText={translate('common.new')}
-            options={[
-                !isRestrictedPolicyCreation
-                    ? {
-                          value: 'workspace',
-                          text: translate('workspace.new.newWorkspace'),
-                          icon: icons.Building,
-                          onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route))),
-                      }
-                    : undefined,
-                {
-                    value: 'domain',
-                    text: translate('domain.addDomain.newDomain'),
-                    icon: icons.Globe,
-                    onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN)),
-                },
-            ].filter((option) => option !== undefined)}
-            isSplitButton={false}
-            wrapperStyle={styles.flexGrow1}
-            testID="dropdown-button-new"
         />
     );
 }
