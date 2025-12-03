@@ -259,7 +259,7 @@ function useAdvancedSearchFilters() {
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
-    const shouldDisplayGroupCurrencyFilter = true;
+    const shouldDisplayGroupCurrencyFilter = !!searchAdvancedFilters.groupBy;
     const shouldDisplayReportFieldFilter = Object.values(policies).some((policy): policy is NonNullable<Policy> => {
         return Object.values(policy?.fieldList ?? {}).some((val) => val.type !== CONST.POLICY.DEFAULT_FIELD_LIST_TYPE);
     });
