@@ -12,6 +12,7 @@ import FS from '@libs/Fullstory';
 import Performance from '@libs/Performance';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {isIOUReport} from '@libs/ReportUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import Timing from '@userActions/Timing';
@@ -47,7 +48,7 @@ function MoneyRequestReportPreview({
     const invoiceReceiverPolicy =
         policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`];
     const invoiceReceiverPersonalDetail = chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? personalDetailsList?.[chatReport.invoiceReceiver.accountID] : null;
-    const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
+    const [iouReport, transactions] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
@@ -96,7 +97,7 @@ function MoneyRequestReportPreview({
         }
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
+        return transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
     }, [transactions, action.childType, iouReport]);
 
     const openReportFromPreview = useCallback(() => {
@@ -106,6 +107,10 @@ function MoneyRequestReportPreview({
 
         Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
+        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
+            name: 'MoneyRequestReportPreview',
+            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
+        });
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
@@ -149,7 +154,6 @@ function MoneyRequestReportPreview({
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             transactions={transactions}
-            violations={violations}
             policy={policy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             invoiceReceiverPolicy={invoiceReceiverPolicy}

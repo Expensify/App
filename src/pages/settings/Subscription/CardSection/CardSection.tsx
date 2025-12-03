@@ -8,6 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -42,9 +43,10 @@ import CardSectionUtils from './utils';
 
 function CardSection() {
     const [isRequestRefundModalVisible, setIsRequestRefundModalVisible] = useState(false);
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes'] as const);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
@@ -60,7 +62,7 @@ function CardSection() {
     const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
-    const cardMonth = useMemo(() => DateUtils.getMonthNames()[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth]);
+    const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
     const hasFailedLastBilling = useMemo(
         () => purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_STRIPE_FAILED_AUTHENTICATION || purchaseList?.[0]?.message.billingType === CONST.BILLING.TYPE_FAILED_2018,
         [purchaseList],
@@ -89,10 +91,12 @@ function CardSection() {
             retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
             billingDisputePending,
             retryBillingFailed: subscriptionRetryBillingStatusFailed,
+            creditCardEyesIcon: illustrations.CreditCardEyes,
+            locale: preferredLocale,
         }),
     );
 
-    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
+    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate(preferredLocale) : undefined;
 
     const sectionSubtitle = getSectionSubtitle({
         translate,
@@ -110,6 +114,8 @@ function CardSection() {
                 retryBillingSuccessful: subscriptionRetryBillingStatusSuccessful,
                 billingDisputePending,
                 retryBillingFailed: subscriptionRetryBillingStatusFailed,
+                creditCardEyesIcon: illustrations.CreditCardEyes,
+                locale: preferredLocale,
             }),
         );
     }, [
@@ -121,6 +127,8 @@ function CardSection() {
         privateStripeCustomerID,
         purchaseList,
         billingDisputePending,
+        illustrations.CreditCardEyes,
+        preferredLocale,
     ]);
 
     const handleRetryPayment = () => {

@@ -3,13 +3,14 @@ import {View} from 'react-native';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,6 +42,7 @@ function NewChatConfirmPage() {
     const personalData = useCurrentUserPersonalDetails();
     const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const icons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
 
     const selectedOptions = useMemo((): Participant[] => {
         if (!newGroupDraft?.participants) {
@@ -53,7 +55,7 @@ function NewChatConfirmPage() {
     }, [allPersonalDetails, newGroupDraft?.participants]);
 
     const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(newGroupDraft?.participants);
-    const sections: ListItem[] = useMemo(
+    const selectedParticipants: ListItem[] = useMemo(
         () =>
             selectedOptions
                 .map((selectedOption: Participant) => {
@@ -144,7 +146,7 @@ function NewChatConfirmPage() {
                     }}
                     size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={styles.avatarXLarge}
-                    editIcon={Expensicons.Camera}
+                    editIcon={icons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
                     style={styles.w100}
                 />
@@ -159,14 +161,20 @@ function NewChatConfirmPage() {
             />
             <View style={[styles.flex1, styles.mt3]}>
                 <SelectionList
-                    canSelectMultiple
-                    sections={[{title: translate('common.members'), data: sections}]}
+                    data={selectedParticipants}
                     ListItem={InviteMemberListItem}
                     onSelectRow={unselectOption}
-                    showConfirmButton={!!selectedOptions.length}
-                    confirmButtonText={translate('newChatPage.startGroup')}
-                    onConfirm={createGroup}
-                    shouldHideListOnInitialRender={false}
+                    canSelectMultiple
+                    confirmButtonOptions={{
+                        showButton: !!selectedOptions.length,
+                        text: translate('newChatPage.startGroup'),
+                        onConfirm: createGroup,
+                    }}
+                    customListHeader={
+                        <View style={[styles.mt8, styles.mb4, styles.justifyContentCenter]}>
+                            <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.members')}</Text>
+                        </View>
+                    }
                 />
             </View>
         </ScreenWrapper>

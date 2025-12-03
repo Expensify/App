@@ -19,10 +19,10 @@ type TrainTripDetailsProps = {
 
 function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
-    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
-    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
+    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), preferredLocale);
+    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), preferredLocale);
     const trainRouteDescription = `${reservation.start.longName} (${reservation.start.shortName}) ${translate('common.conjunctionTo')} ${reservation.end.longName} (${
         reservation.end.shortName
     })`;
@@ -38,6 +38,8 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 description={`${translate('travel.train')} ${trainDuration ? `${CONST.DOT_SEPARATOR} ${trainDuration}` : ''}`}
                 title={reservation.route?.name}
                 copyValue={reservation.route?.name}
+                copyable
+                interactive={false}
             />
             <MenuItemWithTopDescription
                 description={translate('common.date')}
@@ -87,6 +89,8 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                     description={translate('travel.trainDetails.confirmation')}
                     title={reservation.confirmations?.at(0)?.value}
                     copyValue={reservation.confirmations?.at(0)?.value}
+                    interactive={false}
+                    copyable
                 />
             )}
 

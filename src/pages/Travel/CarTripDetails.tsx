@@ -18,14 +18,14 @@ type CarTripDetailsProps = {
 
 function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
-    const pickUpDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
-    const dropOffDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
+    const pickUpDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), preferredLocale);
+    const dropOffDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), preferredLocale);
 
     let cancellationText = reservation.cancellationPolicy;
     if (reservation.cancellationDeadline) {
-        cancellationText = `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(new Date(reservation.cancellationDeadline))}`;
+        cancellationText = `${translate('travel.carDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(new Date(reservation.cancellationDeadline), preferredLocale)}`;
     }
 
     if (reservation.cancellationPolicy === null && reservation.cancellationDeadline === null) {
@@ -78,7 +78,9 @@ function CarTripDetails({reservation, personalDetails}: CarTripDetailsProps) {
                 <MenuItemWithTopDescription
                     description={translate('travel.carDetails.confirmation')}
                     title={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
+                    interactive={false}
                     copyValue={reservation.confirmations?.at(0)?.value ?? reservation.reservationID}
+                    copyable
                 />
             )}
             {!!displayName && (
