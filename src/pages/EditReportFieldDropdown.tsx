@@ -83,7 +83,6 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
             onChangeText={setSearchValue}
             headerMessage={headerMessage}
             ListItem={RadioListItem}
-            isRowMultilineSupported
             rightHandSideComponent={itemRightSideComponent}
         />
     );

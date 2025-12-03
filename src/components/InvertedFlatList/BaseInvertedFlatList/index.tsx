@@ -1,10 +1,8 @@
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {FlatListProps, ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollViewProps} from 'react-native';
+import React from 'react';
+import type {FlatListProps, ListRenderItem, FlatList as RNFlatList} from 'react-native';
 import FlatList from '@components/FlatList';
-import usePrevious from '@hooks/usePrevious';
-import getInitialPaginationSize from './getInitialPaginationSize';
-import RenderTaskQueue from './RenderTaskQueue';
+import useFlatListScrollKey from '@hooks/useFlatListScrollKey';
 
 // Adapted from https://github.com/facebook/react-native/blob/29a0d7c3b201318a873db0d1b62923f4ce720049/packages/virtualized-lists/Lists/VirtualizeUtils.js#L237
 function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: number): string {
@@ -28,108 +26,17 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
     shouldDisableVisibleContentPosition?: boolean;
 };
 
-const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
-
 function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
     const {shouldEnableAutoScrollToTopThreshold, initialScrollKey, data, onStartReached, renderItem, keyExtractor = defaultKeyExtractor, ...rest} = props;
-    // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
-    // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
-    // previous items, until everything is rendered. We also progressively render new data that is added at the start of the
-    // list to make sure `maintainVisibleContentPosition` works as expected.
-    const [currentDataId, setCurrentDataId] = useState(() => {
-        if (initialScrollKey) {
-            return initialScrollKey;
-        }
-        return null;
-    });
-    const [isInitialData, setIsInitialData] = useState(true);
-    const [isQueueRendering, setIsQueueRendering] = useState(false);
-
-    const currentDataIndex = useMemo(() => (currentDataId === null ? 0 : data.findIndex((item, index) => keyExtractor(item, index) === currentDataId)), [currentDataId, data, keyExtractor]);
-    const displayedData = useMemo(() => {
-        if (currentDataIndex <= 0) {
-            return data;
-        }
-        return data.slice(Math.max(0, currentDataIndex - (isInitialData ? 0 : getInitialPaginationSize)));
-    }, [currentDataIndex, data, isInitialData]);
-
-    const isLoadingData = data.length > displayedData.length;
-    const wasLoadingData = usePrevious(isLoadingData);
-    const dataIndexDifference = data.length - displayedData.length;
-
-    // Queue up updates to the displayed data to avoid adding too many at once and cause jumps in the list.
-    const renderQueue = useMemo(() => new RenderTaskQueue(setIsQueueRendering), []);
-    useEffect(() => {
-        return () => {
-            renderQueue.cancel();
-        };
-    }, [renderQueue]);
-
-    renderQueue.setHandler((info) => {
-        if (!isLoadingData) {
-            onStartReached?.(info);
-        }
-        setIsInitialData(false);
-        const firstDisplayedItem = displayedData.at(0);
-        setCurrentDataId(firstDisplayedItem ? keyExtractor(firstDisplayedItem, currentDataIndex) : '');
-    });
-
-    const handleStartReached = useCallback(
-        (info: {distanceFromStart: number}) => {
-            renderQueue.add(info);
-        },
-        [renderQueue],
-    );
-
-    const handleRenderItem = useCallback(
-        ({item, index, separators}: ListRenderItemInfo<T>) => {
-            // Adjust the index passed here so it matches the original data.
-            return renderItem({item, index: index + dataIndexDifference, separators});
-        },
-        [renderItem, dataIndexDifference],
-    );
-
-    const maintainVisibleContentPosition = useMemo(() => {
-        if (!initialScrollKey && (!isInitialData || !isQueueRendering)) {
-            return undefined;
-        }
-
-        const config: ScrollViewProps['maintainVisibleContentPosition'] = {
-            // This needs to be 1 to avoid using loading views as anchors.
-            minIndexForVisible: data.length ? Math.min(1, data.length - 1) : 0,
-        };
-
-        if (shouldEnableAutoScrollToTopThreshold && !isLoadingData && !wasLoadingData) {
-            config.autoscrollToTopThreshold = AUTOSCROLL_TO_TOP_THRESHOLD;
-        }
-
-        return config;
-    }, [initialScrollKey, isInitialData, isQueueRendering, data.length, shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
-
-    const listRef = useRef<RNFlatList | null>(null);
-    useImperativeHandle(ref, () => {
-        // If we're trying to scroll at the start of the list we need to make sure to
-        // render all items.
-        const scrollToOffsetFn: RNFlatList['scrollToOffset'] = (params) => {
-            if (params.offset === 0) {
-                setCurrentDataId(null);
-            }
-            requestAnimationFrame(() => {
-                listRef.current?.scrollToOffset(params);
-            });
-        };
-
-        return new Proxy(
-            {},
-            {
-                get: (_target, prop) => {
-                    if (prop === 'scrollToOffset') {
-                        return scrollToOffsetFn;
-                    }
-                    return listRef.current?.[prop as keyof RNFlatList];
-                },
-            },
-        ) as RNFlatList;
+    const {displayedData, maintainVisibleContentPosition, handleStartReached, handleRenderItem, listRef} = useFlatListScrollKey<T>({
+        data,
+        keyExtractor,
+        initialScrollKey,
+        inverted: true,
+        onStartReached,
+        shouldEnableAutoScrollToTopThreshold,
+        renderItem,
+        ref,
     });
 
     return (
@@ -150,7 +57,5 @@ function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) 
 BaseInvertedFlatList.displayName = 'BaseInvertedFlatList';
 
 export default BaseInvertedFlatList;
-
-export {AUTOSCROLL_TO_TOP_THRESHOLD};
 
 export type {BaseInvertedFlatListProps};
