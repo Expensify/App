@@ -5,6 +5,7 @@ import type {TNode} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import FontUtils from '@styles/utils/FontUtils';
+import variables from '@styles/variables';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
@@ -150,7 +151,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'account-manager-link': HTMLElementModel.fromCustomModel({tagName: 'account-manager-link', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
-                mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
+                mixedUAStyles: {...styles.textLabelSupporting, paddingVertical: variables.labelPaddingVertical},
                 contentModel: HTMLContentModel.textual,
             }),
             'next-step-email': HTMLElementModel.fromCustomModel({tagName: 'next-step-email', contentModel: HTMLContentModel.textual}),
