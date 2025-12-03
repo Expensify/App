@@ -10610,10 +10610,7 @@ describe('actions/IOU', () => {
     });
 
     describe('duplicateExpenseTransaction', () => {
-        const DUPLICATION_EXCEPTIONS = [
-            'transactionID', 'createdAccountID', 'reportID', 'status', 'created', 
-            'parentTransactionID', 'isTestDrive', 'source', 'receipt', 'filename',
-        ];
+        const DUPLICATION_EXCEPTIONS = ['transactionID', 'createdAccountID', 'reportID', 'status', 'created', 'parentTransactionID', 'isTestDrive', 'source', 'receipt', 'filename'];
 
         function isTransactionDuplicated(originalTransaction: Transaction, duplicatedTransaction: Transaction) {
             Object.keys(duplicatedTransaction).forEach((k) => {
@@ -10636,7 +10633,7 @@ describe('actions/IOU', () => {
                 if (originalValue == 0 && duplicatedValue == 0) {
                     return;
                 }
-                
+
                 expect(duplicatedValue).toEqual(originalValue);
             });
         }
@@ -10657,19 +10654,12 @@ describe('actions/IOU', () => {
                 comment: {
                     ...restOfComment,
                 },
-            }
+            };
 
-            duplicateExpenseTransaction(
-                mockCashExpenseTransaction,
-                mockOptimisticChatReportID,
-                mockOptimisticIOUReportID,
-                mockIsASAPSubmitBetaEnabled,
-                mockPolicy,
-                policyExpenseChat,
-            );
+            duplicateExpenseTransaction(mockCashExpenseTransaction, mockOptimisticChatReportID, mockOptimisticIOUReportID, mockIsASAPSubmitBetaEnabled, mockPolicy, policyExpenseChat);
 
             await waitForBatchedUpdates();
-            
+
             let duplicatedTransaction: OnyxEntry<Transaction>;
 
             await getOnyxData({
@@ -10679,7 +10669,7 @@ describe('actions/IOU', () => {
                     duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
                 },
             });
-            
+
             if (!duplicatedTransaction) {
                 return;
             }
@@ -10693,19 +10683,12 @@ describe('actions/IOU', () => {
             const mockDistanceTransaction = {
                 ...randomDistanceTransaction,
                 amount: randomDistanceTransaction.amount * -1,
-            }
-            
-            duplicateExpenseTransaction(
-                mockDistanceTransaction,
-                mockOptimisticChatReportID,
-                mockOptimisticIOUReportID,
-                mockIsASAPSubmitBetaEnabled,
-                mockPolicy,
-                policyExpenseChat,
-            );
-            
+            };
+
+            duplicateExpenseTransaction(mockDistanceTransaction, mockOptimisticChatReportID, mockOptimisticIOUReportID, mockIsASAPSubmitBetaEnabled, mockPolicy, policyExpenseChat);
+
             await waitForBatchedUpdates();
-            
+
             let duplicatedTransaction: OnyxEntry<Transaction>;
 
             await getOnyxData({
@@ -10719,7 +10702,7 @@ describe('actions/IOU', () => {
             if (!duplicatedTransaction) {
                 return;
             }
-            
+
             isTransactionDuplicated(mockDistanceTransaction, duplicatedTransaction);
         });
     });
