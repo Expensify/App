@@ -154,7 +154,6 @@ import {
     getDisplayNamesWithTooltips,
     getDowngradeWorkspaceMessage,
     getForcedCorporateUpgradeMessage,
-    getHarvestOriginalReportID,
     getMovedActionMessage,
     getMovedTransactionMessage,
     getPolicyChangeMessage,
@@ -409,8 +408,11 @@ type PureReportActionItemProps = {
     /** The bank account list */
     bankAccountList?: OnyxTypes.BankAccountList | undefined;
 
-    /** Report name value pairs */
-    reportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
+    /** Report name value pairs origin */
+    reportNameValuePairsOrigin?: string;
+
+    /** Report name value pairs originalID */
+    reportNameValuePairsOriginalID?: string;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -479,7 +481,8 @@ function PureReportActionItem({
     isTryNewDotNVPDismissed = false,
     currentUserAccountID,
     bankAccountList,
-    reportNameValuePairs,
+    reportNameValuePairsOrigin,
+    reportNameValuePairsOriginalID,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
@@ -509,7 +512,7 @@ function PureReportActionItem({
         isActionableMentionWhisper(action) || isActionableMentionInviteToSubmitExpenseConfirmWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
     const isReportArchived = useReportIsArchived(reportID);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairs);
+    const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1470,7 +1473,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport) {
-            const harvestReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${getHarvestOriginalReportID(reportNameValuePairs)}`];
+            const harvestReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportNameValuePairsOriginalID}`];
             const harvestReportName = getReportName(harvestReport);
             children = (
                 <ReportActionItemBasicMessage>
@@ -1930,7 +1933,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.taskReport, nextProps.taskReport) &&
         prevProps.shouldHighlight === nextProps.shouldHighlight &&
         deepEqual(prevProps.bankAccountList, nextProps.bankAccountList) &&
-        prevProps.reportNameValuePairs?.origin === nextProps.reportNameValuePairs?.origin &&
-        prevProps.reportNameValuePairs?.originalID === nextProps.reportNameValuePairs?.originalID
+        prevProps.reportNameValuePairsOrigin === nextProps.reportNameValuePairsOrigin &&
+        prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID
     );
 });

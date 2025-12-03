@@ -2306,19 +2306,19 @@ function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValu
 /**
  * Whether the report was created during harvesting
  */
-function isHarvestCreatedExpenseReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): boolean {
-    return !!reportNameValuePairs?.originalID && reportNameValuePairs?.origin === 'harvest';
+function isHarvestCreatedExpenseReport(origin?: string, originalID?: string): boolean {
+    return !!originalID && origin === 'harvest';
 }
 
 /**
  * Returns the original reportID for a harvest-created report
  */
-function getHarvestOriginalReportID(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>): string | undefined {
-    if (!reportNameValuePairs?.originalID || !isHarvestCreatedExpenseReport(reportNameValuePairs)) {
+function getHarvestOriginalReportID(origin?: string, originalID?: string): string | undefined {
+    if (!originalID || !isHarvestCreatedExpenseReport(origin, originalID)) {
         return undefined;
     }
 
-    return reportNameValuePairs.originalID;
+    return originalID;
 }
 
 /**
@@ -11151,7 +11151,7 @@ function getReportActionActorAccountID(
             return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
         case CONST.REPORT.ACTIONS.TYPE.CREATED: {
             const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
-            if (isHarvestCreatedExpenseReport(reportNameValuePairs)) {
+            if (isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
                 return CONST.ACCOUNT_ID.CONCIERGE;
             }
             return reportAction?.actorAccountID;

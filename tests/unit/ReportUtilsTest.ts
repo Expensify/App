@@ -818,20 +818,15 @@ describe('ReportUtils', () => {
 
         describe('Harvest-created reports', () => {
             test('detects harvest-created report from name value pairs', () => {
-                const reportNameValuePairs = {
-                    origin: 'harvest',
-                    originalID: '12345',
-                };
-
-                expect(isHarvestCreatedExpenseReport(reportNameValuePairs)).toBe(true);
-                expect(getHarvestOriginalReportID(reportNameValuePairs)).toBe('12345');
+                expect(isHarvestCreatedExpenseReport('harvest', '12345')).toBe(true);
+                expect(getHarvestOriginalReportID('harvest', '12345')).toBe('12345');
             });
 
             test('returns false when origin or originalID missing', () => {
-                expect(isHarvestCreatedExpenseReport(undefined)).toBe(false);
-                expect(isHarvestCreatedExpenseReport({origin: 'harvest'})).toBe(false);
-                expect(isHarvestCreatedExpenseReport({originalID: '123'})).toBe(false);
-                expect(getHarvestOriginalReportID({origin: 'harvest'})).toBe('');
+                expect(isHarvestCreatedExpenseReport(undefined, undefined)).toBe(false);
+                expect(isHarvestCreatedExpenseReport('harvest', undefined)).toBe(false);
+                expect(isHarvestCreatedExpenseReport(undefined, '123')).toBe(false);
+                expect(getHarvestOriginalReportID('harvest', undefined)).toBe(undefined);
             });
         });
 

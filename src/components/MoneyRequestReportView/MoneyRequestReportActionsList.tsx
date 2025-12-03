@@ -170,7 +170,7 @@ function MoneyRequestReportActionsList({
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`, {canBeMissing: true});
-    const shouldShowHarvestCreatedAction = isHarvestCreatedExpenseReport(reportNameValuePairs);
+    const shouldShowHarvestCreatedAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
@@ -574,7 +574,8 @@ function MoneyRequestReportActionsList({
                     isReportArchived={isReportArchived}
                     draftMessage={matchingDraftMessageString}
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                    reportNameValuePairs={reportNameValuePairs}
+                    reportNameValuePairsOrigin={reportNameValuePairs?.origin}
+                    reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
                 />
             );
         },
@@ -598,7 +599,8 @@ function MoneyRequestReportActionsList({
             draftMessage,
             isTryNewDotNVPDismissed,
             isReportArchived,
-            reportNameValuePairs,
+            reportNameValuePairs?.origin,
+            reportNameValuePairs?.originalID,
         ],
     );
 

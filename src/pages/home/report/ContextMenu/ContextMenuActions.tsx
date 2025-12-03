@@ -828,7 +828,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionableJoinRequest(reportAction)) {
                     const displayMessage = getJoinRequestMessage(reportAction);
                     Clipboard.setString(displayMessage);
-                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport(reportNameValuePairs)) {
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
                     const harvestReportName = getReportName(harvestReport);
                     const displayMessage = getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate);
                     setClipboardMessage(displayMessage);

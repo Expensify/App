@@ -98,8 +98,11 @@ type ReportActionsListItemRendererProps = {
     /** Whether the report is archived */
     isReportArchived: boolean;
 
-    /** Report name value pairs */
-    reportNameValuePairs?: OnyxEntry<ReportNameValuePairs>;
+    /** Report name value pairs origin */
+    reportNameValuePairsOrigin?: string;
+
+    /** Report name value pairs originalID */
+    reportNameValuePairsOriginalID?: string;
 };
 
 function ReportActionsListItemRenderer({
@@ -133,7 +136,8 @@ function ReportActionsListItemRenderer({
     allEmojiReactions,
     isTryNewDotNVPDismissed = false,
     isReportArchived = false,
-    reportNameValuePairs,
+    reportNameValuePairsOrigin,
+    reportNameValuePairsOriginalID,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -264,7 +268,8 @@ function ReportActionsListItemRenderer({
             linkedTransactionRouteError={linkedTransactionRouteError}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-            reportNameValuePairs={reportNameValuePairs}
+            reportNameValuePairsOrigin={reportNameValuePairsOrigin}
+            reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
         />
     );
 }
