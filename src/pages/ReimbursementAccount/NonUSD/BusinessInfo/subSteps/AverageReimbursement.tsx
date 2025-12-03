@@ -21,7 +21,10 @@ function AverageReimbursement({onNext, onMove, isEditing}: AverageReimbursementP
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
 
-    const tradeVolumeRangeListOptions = useMemo(() => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange), [corpayOnboardingFields]);
+    const tradeVolumeRangeListOptions = useMemo(
+        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange),
+        [corpayOnboardingFields?.picklists.TradeVolumeRange],
+    );
 
     const pushRowFields = useMemo(
         () => [
