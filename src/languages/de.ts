@@ -7737,6 +7737,8 @@ ${
             anyMemberWillBeRequired: 'Jedes Mitglied, das sich mit einer anderen Methode angemeldet hat, muss sich mithilfe von SAML erneut authentifizieren.',
             enableError: 'Konnte die SAML-Aktivierungseinstellung nicht aktualisieren',
             requireError: 'Die SAML-Anforderungseinstellung konnte nicht aktualisiert werden.',
+            disableSamlRequired: 'SAML-Pflicht deaktivieren',
+            oktaWarningPrompt: 'Bist du sicher? Dadurch wird auch Okta SCIM deaktiviert.',
         },
         samlConfigurationDetails: {
             title: 'SAML-Konfigurationsdetails',

@@ -7690,6 +7690,8 @@ ${
             anyMemberWillBeRequired: 'Elk lid dat met een andere methode is aangemeld, moet zich opnieuw authenticeren via SAML.',
             enableError: 'Kon de instelling voor SAML-inschakeling niet bijwerken',
             requireError: 'Kan SAML-vereiste-instelling niet bijwerken',
+            disableSamlRequired: 'SAML vereist uitschakelen',
+            oktaWarningPrompt: 'Weet je het zeker? Dit schakelt ook Okta SCIM uit.',
         },
         samlConfigurationDetails: {
             title: 'SAML-configuratiedetails',

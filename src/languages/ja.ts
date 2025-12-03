@@ -7646,6 +7646,8 @@ ${
             anyMemberWillBeRequired: '別の方法でサインインしたメンバーは、SAMLを使用して再認証する必要があります。',
             enableError: 'SAMLの有効化設定を更新できませんでした',
             requireError: 'SAML の要件設定を更新できませんでした',
+            disableSamlRequired: 'SAML 必須を無効にする',
+            oktaWarningPrompt: '本当に実行しますか？これによりOkta SCIMも無効になります。',
         },
         samlConfigurationDetails: {
             title: 'SAML 設定の詳細',

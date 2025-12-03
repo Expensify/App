@@ -7721,6 +7721,8 @@ ${
             anyMemberWillBeRequired: 'Qualsiasi membro che ha effettuato l’accesso con un metodo diverso dovrà autenticarsi nuovamente tramite SAML.',
             enableError: "Impossibile aggiornare l'impostazione di abilitazione SAML",
             requireError: "Impossibile aggiornare l'impostazione del requisito SAML",
+            disableSamlRequired: 'Disattiva SAML obbligatorio',
+            oktaWarningPrompt: 'Sei sicuro? Questo disattiverà anche Okta SCIM.',
         },
         samlConfigurationDetails: {
             title: 'Dettagli della configurazione SAML',
