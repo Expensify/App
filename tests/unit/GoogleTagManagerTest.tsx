@@ -220,15 +220,19 @@ describe('GoogleTagManagerTest', () => {
 
     test('paid_adoption - addSubscriptionPaymentCard', async () => {
         // When we add a payment card
-        addSubscriptionPaymentCard(accountID, {
-            cardNumber: 'cardNumber',
-            cardYear: 'cardYear',
-            cardMonth: 'cardMonth',
-            cardCVV: 'cardCVV',
-            addressName: 'addressName',
-            addressZip: 'addressZip',
-            currency: 'USD',
-        });
+        addSubscriptionPaymentCard(
+            accountID,
+            {
+                cardNumber: 'cardNumber',
+                cardYear: 'cardYear',
+                cardMonth: 'cardMonth',
+                cardCVV: 'cardCVV',
+                addressName: 'addressName',
+                addressZip: 'addressZip',
+                currency: 'USD',
+            },
+            FUND_LIST,
+        );
 
         await waitForBatchedUpdatesWithAct();
 
@@ -244,15 +248,19 @@ describe('GoogleTagManagerTest', () => {
             });
         });
 
-        addSubscriptionPaymentCard(accountID, {
-            cardNumber: 'cardNumber',
-            cardYear: 'cardYear',
-            cardMonth: 'cardMonth',
-            cardCVV: 'cardCVV',
-            addressName: 'addressName',
-            addressZip: 'addressZip',
-            currency: 'USD',
-        });
+        addSubscriptionPaymentCard(
+            accountID,
+            {
+                cardNumber: 'cardNumber',
+                cardYear: 'cardYear',
+                cardMonth: 'cardMonth',
+                cardCVV: 'cardCVV',
+                addressName: 'addressName',
+                addressZip: 'addressZip',
+                currency: 'USD',
+            },
+            FUND_LIST,
+        );
 
         await waitForBatchedUpdatesWithAct();
 
