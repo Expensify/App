@@ -12330,7 +12330,11 @@ function getBypassApproverAccountIDIfTakenControl(expenseReport: OnyxEntry<Repor
             return null;
         }
 
-        if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REROUTE) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+        if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
+            return expenseReport.managerID ?? null;
+        }
+
+        if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
             return action.actorAccountID ?? null;
         }
     }
