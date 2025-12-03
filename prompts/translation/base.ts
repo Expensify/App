@@ -15,8 +15,12 @@ export default function (targetLang: TranslationTargetLocale): string {
         - If the given phrase can't be translated, reply with the same text unchanged.
         - Do not modify or translate any html tags.
         - Do not change any URLs.
+        - Capitalize the first letter of UI labels, buttons, and standalone status words when appropriate for the target language.
+        - Maintain consistent capitalization conventions across similar UI elements.
+        - Acronyms should be preserved unless the target language has a widely accepted localized equivalent.
+        - Follow language-specific typographic rules where applicable (e.g., spacing before punctuation marks such as “:” or “?” in some languages).
         - IMPORTANT: Respond ONLY with the translated text. Do not add explanations, questions, or apologies.
-        - IMPORTANT: If you need clarification, respond with the original text unchanged rather than asking questions.
+        - IMPORTANT: Do not ask for clarification. Do your best to translate the text as accurately as possible with the context you have.
 
         Treat the following words and phrases as proper nouns which should never be translated:
 
