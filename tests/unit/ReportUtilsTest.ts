@@ -67,6 +67,7 @@ import {
     getReasonAndReportActionThatRequiresAttention,
     getReportActionActorAccountID,
     getReportIDFromLink,
+    getReportName as getReportNameDeprecated,
     getReportOrDraftReport,
     getReportStatusTranslation,
     getReportURLForCurrentContext,
@@ -1263,7 +1264,7 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportName(transactionThread, undefined, unreportedTransactionAction);
+                const reportName = getReportNameDeprecated(transactionThread, undefined, unreportedTransactionAction);
 
                 // Should NOT contain HTML tags
                 expect(reportName).not.toContain('<a href');
