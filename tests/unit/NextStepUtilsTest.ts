@@ -1057,6 +1057,7 @@ describe('libs/NextStepUtils', () => {
                 message: [
                     {
                         text: "This report can't be submitted. Please review the comments to resolve.",
+                        type: 'alert-text',
                     },
                 ],
             });
