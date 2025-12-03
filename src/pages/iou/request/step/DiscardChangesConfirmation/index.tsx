@@ -89,6 +89,7 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
             }}
             onModalHide={() => {
                 if (isConfirmed.current) {
+                    isConfirmed.current = false;
                     navigateBack();
                 } else {
                     shouldNavigateBack.current = false;
