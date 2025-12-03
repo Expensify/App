@@ -49,6 +49,7 @@ function BaseSelectionList<TItem extends ListItem>({
     children,
     customListHeader,
     customListHeaderContent,
+    customLoadingPlaceholder,
     footerContent,
     listEmptyContent,
     listFooterContent,
@@ -79,6 +80,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
     shouldHighlightSelectedItem = true,
+    shouldUseDefaultRightHandSideCheckmark,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
 }: SelectionListProps<TItem>) {
@@ -330,6 +332,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     isDisabled={isItemDisabled}
                     canSelectMultiple={canSelectMultiple}
                     shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                    shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     rightHandSideComponent={rightHandSideComponent}
                     isMultilineSupported={isRowMultilineSupported}
@@ -350,7 +353,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
-            return <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
+            return customLoadingPlaceholder ?? <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
         }
         if (showListEmptyContent) {
             return listEmptyContent;
