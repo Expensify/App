@@ -4601,6 +4601,7 @@ ${amount} para ${merchant} - ${date}`,
                 subtitle: 'Importar gastos de las tarjetas de empresa existentes.',
                 feed: {
                     title: 'Importar tarjetas de empresa',
+                    subtitle: 'Vincula las tarjetas que ya tienes para la importación automática de transacciones, coincidencia de recibos y conciliación.',
                     features: {
                         support: 'Compatibilidad con los principales proveedores de tarjetas',
                         assignCards: 'Asignar tarjetas a todo el equipo',
