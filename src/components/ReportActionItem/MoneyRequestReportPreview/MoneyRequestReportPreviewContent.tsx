@@ -169,7 +169,7 @@ function MoneyRequestReportPreviewContent({
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false, shouldCheckApprovedState = true) =>
@@ -497,6 +497,7 @@ function MoneyRequestReportPreviewContent({
             violations,
             isIouReportArchived || isChatReportArchived,
             currentUserDetails.email ?? '',
+            currentUserDetails.accountID,
             iouReport,
             policy,
             transactions,
@@ -519,6 +520,7 @@ function MoneyRequestReportPreviewContent({
         isChatReportArchived,
         areStrictPolicyRulesEnabled,
         currentUserDetails.email,
+        currentUserDetails.accountID,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
