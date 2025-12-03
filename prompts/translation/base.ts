@@ -19,6 +19,7 @@ export default function (targetLang: TranslationTargetLocale): string {
         - Maintain consistent capitalization conventions across similar UI elements.
         - Acronyms should be preserved unless the target language has a widely accepted localized equivalent.
         - Follow language-specific typographic rules where applicable (e.g., spacing before punctuation marks such as “:” or “?” in some languages).
+        - Abbreviations such as "e.g." should be translated to the target language's equivalent abbreviation.
         - IMPORTANT: Respond ONLY with the translated text. Do not add explanations, questions, or apologies.
         - IMPORTANT: Do not ask for clarification. Do your best to translate the text as accurately as possible with the context you have.
 
