@@ -11835,7 +11835,7 @@ function payMoneyRequest(
 
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    notifyNewAction(Navigation.getTopmostReportId() ?? iouReport?.reportID, userAccountID);
+    notifyNewAction(iouReport?.reportID, userAccountID);
 }
 
 function payInvoice(
