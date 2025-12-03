@@ -14832,6 +14832,7 @@ function assignReportToMe(report: OnyxTypes.Report, accountID: number, email: st
         currentUserEmailParam: email,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        bypassNextApproverID: accountID
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: accountID},
@@ -14843,6 +14844,7 @@ function assignReportToMe(report: OnyxTypes.Report, accountID: number, email: st
         currentUserEmailParam: email,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        bypassNextApproverID: accountID
     });
 
     const onyxData: OnyxData = {
@@ -14946,6 +14948,7 @@ function addReportApprover(
         currentUserEmailParam: email,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        bypassNextApproverID: newApproverAccountID
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: newApproverAccountID},
@@ -14957,6 +14960,7 @@ function addReportApprover(
         currentUserEmailParam: email,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        bypassNextApproverID: newApproverAccountID
     });
     const onyxData: OnyxData = {
         optimisticData: [
