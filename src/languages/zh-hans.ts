@@ -7292,7 +7292,6 @@ ${
             hasChildReportAwaitingAction: '有子报告等待处理',
             hasMissingInvoiceBankAccount: '缺少发票银行账户',
             hasUnresolvedCardFraudAlert: '有未解决的卡片欺诈警告',
-            hasDEWError: '有DEW错误',
         },
         reasonRBR: {
             hasErrors: '报告或报告操作数据中有错误',
