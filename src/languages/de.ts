@@ -1190,7 +1190,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Ausgabe finden',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `hat eine Ausgabe gelöscht (${amount} für ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verschob eine Ausgabe${reportName ? `von ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `verschob diese Ausgabe${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `hat diese Ausgabe verschoben${reportName ? `zu <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `diese Ausgabe verschoben${reportName ? `von <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `diese Ausgabe aus Ihrem <a href="${reportUrl}">persönlichen Bereich</a> verschoben`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `diese Ausgabe in Ihren <a href="${reportUrl}">persönlichen Bereich</a> verschoben`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -6281,6 +6283,36 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Kategorien`;
+                case 'tags':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Stichwörter`;
+                case 'workflows':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Workflows`;
+                case 'distance rates':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Entfernungsraten`;
+                case 'accounting':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Buchhaltung`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Expensify-Karten`;
+                case 'company cards':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Firmenkarten`;
+                case 'invoicing':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Rechnungsstellung`;
+                case 'per diem':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Tagespauschale`;
+                case 'receipt partners':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Belegpartner`;
+                case 'rules':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Regeln`;
+                case 'tax tracking':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Steuerverfolgung`;
+                default:
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Teilnehmerverfolgung`,
     },
     roomMembersPage: {
@@ -7174,9 +7206,9 @@ ${
                 `Sie haben die Belastung von ${amountOwed} auf der Karte mit der Endung ${cardEnding} angefochten. Ihr Konto wird gesperrt, bis der Streit mit Ihrer Bank geklärt ist.`,
             preTrial: {
                 title: 'Kostenlose Testversion starten',
-                subtitleStart: 'Als nächsten Schritt,',
-                subtitleLink: 'Schließen Sie Ihre Einrichtungs-Checkliste ab',
-                subtitleEnd: 'damit dein Team mit dem Einreichen von Spesen beginnen kann.',
+                subtitleStart: 'Als nächster Schritt,',
+                subtitleLink: 'Vervollständigen Sie Ihre Einrichtungsliste',
+                subtitleEnd: 'damit Ihr Team mit der Spesenabrechnung beginnen kann.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Testversion: ${numOfDays} ${numOfDays === 1 ? 'Tag' : 'Tage'} übrig!`,
