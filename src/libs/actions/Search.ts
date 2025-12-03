@@ -42,7 +42,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -694,23 +694,23 @@ function bulkDeleteReports(hash: number, selectedTransactions: Record<string, Se
     const transactionIDList: string[] = [];
     const reportIDList: string[] = [];
 
-    Object.keys(selectedTransactions).forEach((key) => {
+    for (const key of Object.keys(selectedTransactions)) {
         const selectedItem = selectedTransactions[key];
         if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
             reportIDList.push(selectedItem.reportID);
         } else {
             transactionIDList.push(key);
         }
-    });
+    }
 
     if (transactionIDList.length > 0) {
         deleteMoneyRequestOnSearch(hash, transactionIDList);
     }
 
     if (reportIDList.length > 0) {
-        reportIDList.forEach((reportID) => {
+        for (const reportID of reportIDList) {
             deleteAppReport(reportID, currentUserEmailParam);
-        });
+        }
     }
 }
 

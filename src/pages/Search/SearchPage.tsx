@@ -822,14 +822,14 @@ function SearchPage({route}: SearchPageProps) {
         let reports = 0;
         let expenses = 0;
 
-        Object.keys(selectedTransactions).forEach((key) => {
+        for (const key of Object.keys(selectedTransactions)) {
             const selectedItem = selectedTransactions[key];
             if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
                 reports += 1;
             } else {
                 expenses += 1;
             }
-        });
+        };
 
         return {reportCount: reports, expenseCount: expenses};
     }, [selectedTransactions]);
