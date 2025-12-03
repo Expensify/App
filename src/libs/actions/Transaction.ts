@@ -820,7 +820,7 @@ function changeTransactionsReport(
 
         transactionsMoved = true;
 
-        const oldReportID = transaction.reportID;
+        const oldReportID = isUnreportedExpense ? CONST.REPORT.UNREPORTED_REPORT_ID : transaction.reportID;
         const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
 
         // 1. Optimistically change the reportID on the passed transactions
@@ -1147,7 +1147,7 @@ function changeTransactionsReport(
         const movedAction =
             reportID === CONST.REPORT.UNREPORTED_REPORT_ID
                 ? buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID)
-                : buildOptimisticMovedTransactionAction(transactionThreadReportID, reportID);
+                : buildOptimisticMovedTransactionAction(transactionThreadReportID, oldReportID);
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1307,7 +1307,7 @@ function changeTransactionsReport(
         reportID: destinationReport?.reportID ?? destinationReportID ?? reportID,
         total: destinationTotal,
     };
-    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
+    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation, accountID, email ?? '');
 
     // buildOptimisticNextStep is used in parallel
     // eslint-disable-next-line @typescript-eslint/no-deprecated
