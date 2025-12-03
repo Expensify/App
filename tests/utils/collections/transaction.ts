@@ -42,7 +42,7 @@ export default function createRandomTransaction(index: number): Transaction {
         receipt: {},
         reimbursable: randBoolean(),
         hasEReceipt: randBoolean(),
-        modifiedAmount: '',
+        modifiedAmount: 0,
     };
 }
 

@@ -26,6 +26,7 @@ function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: 
     const signerDetails: Record<string, string | boolean | FileObject[]> = {};
     const signerFiles: Record<string, string | FileObject | boolean> = {};
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     signerDetailsFields.forEach((fieldName: keyof SignerInfoStepProps) => {
         if (fieldName === EMAIL) {
             signerDetails[fieldName] = signerEmail;

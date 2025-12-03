@@ -1,7 +1,7 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {PixelRatio, View} from 'react-native';
-import LogoComponent from '@assets/images/expensify-wordmark.svg';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -38,6 +38,8 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
     const [primaryBreadcrumb, secondaryBreadcrumb] = breadcrumbs;
     const isRootBreadcrumb = primaryBreadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT;
     const fontScale = PixelRatio.getFontScale() > CONST.LOGO_MAX_SCALE ? CONST.LOGO_MAX_SCALE : PixelRatio.getFontScale();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
+
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.w100, styles.breadcrumbsContainer, style]}>
             {isRootBreadcrumb ? (
@@ -46,7 +48,7 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
                         title={
                             <ImageSVG
                                 contentFit="contain"
-                                src={LogoComponent}
+                                src={icons.ExpensifyWordmark}
                                 fill={theme.text}
                                 width={variables.lhnLogoWidth * fontScale}
                                 height={variables.lhnLogoHeight * fontScale}

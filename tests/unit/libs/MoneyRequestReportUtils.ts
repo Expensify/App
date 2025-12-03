@@ -1,4 +1,4 @@
-import {getAllNonDeletedTransactions, getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
+import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import type {ReportAction, Transaction} from '@src/types/onyx';
 import {actionR14932, actionR98765} from '../../../__mocks__/reportData/actions';
 import {transactionR14932, transactionR98765} from '../../../__mocks__/reportData/transactions';
@@ -29,45 +29,5 @@ describe('getThreadReportIDsForTransactions', () => {
 
         const result = getThreadReportIDsForTransactions(reportActions, transactions);
         expect(result).toEqual([]);
-    });
-});
-
-describe('getAllNonDeletedTransactions', () => {
-    test('should return all transactions that have IOU actions', () => {
-        const transactions = {
-            [transactionR14932.transactionID]: transactionR14932,
-            [transactionR98765.transactionID]: transactionR98765,
-        };
-        const reportActions = [actionR14932, actionR98765];
-
-        const result = getAllNonDeletedTransactions(transactions, reportActions);
-        expect(result).toHaveLength(2);
-    });
-
-    test('should filter out transactions without IOU actions by default', () => {
-        const orphanedTransaction = {...transactionR98765, transactionID: 'orphaned123'};
-        const transactions = {
-            [transactionR14932.transactionID]: transactionR14932,
-            [orphanedTransaction.transactionID]: orphanedTransaction,
-        };
-        const reportActions = [actionR14932]; // Only has action for transactionR14932
-
-        const result = getAllNonDeletedTransactions(transactions, reportActions, false, false);
-        expect(result).toHaveLength(1);
-        expect(result.at(0)?.transactionID).toBe(transactionR14932.transactionID);
-    });
-
-    test('should include transactions without IOU actions when includeOrphanedTransactions is true', () => {
-        const orphanedTransaction = {...transactionR98765, transactionID: 'orphaned123'};
-        const transactions = {
-            [transactionR14932.transactionID]: transactionR14932,
-            [orphanedTransaction.transactionID]: orphanedTransaction,
-        };
-        const reportActions = [actionR14932]; // Only has action for transactionR14932
-
-        const result = getAllNonDeletedTransactions(transactions, reportActions, false, true);
-        expect(result).toHaveLength(2);
-        expect(result.map((t) => t.transactionID)).toContain(transactionR14932.transactionID);
-        expect(result.map((t) => t.transactionID)).toContain(orphanedTransaction.transactionID);
     });
 });
