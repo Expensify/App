@@ -1186,7 +1186,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Znajdź wydatek',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `usunął wydatek (${amount} dla ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `przeniósł wydatek${reportName ? `z ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `przeniesiono ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `przeniósł ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `przeniósł ten wydatek${reportName ? `z <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `przeniósł ten wydatek z twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `przeniósł ten wydatek do twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -6238,6 +6240,36 @@ ${
                 default: {
                     return '';
                 }
+            }
+        },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'włączone' : 'wyłączone'} kategorii`;
+                case 'tags':
+                    return `${enabled ? 'włączone' : 'wyłączone'} tagów`;
+                case 'workflows':
+                    return `${enabled ? 'włączone' : 'wyłączone'} przepływów pracy`;
+                case 'distance rates':
+                    return `${enabled ? 'włączone' : 'wyłączone'} stawki za dystans`;
+                case 'accounting':
+                    return `${enabled ? 'włączone' : 'wyłączone'} księgowość`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'włączone' : 'wyłączone'} Karty Expensify`;
+                case 'company cards':
+                    return `${enabled ? 'włączone' : 'wyłączone'} kart firmowych`;
+                case 'invoicing':
+                    return `${enabled ? 'włączone' : 'wyłączone'} fakturowanie`;
+                case 'per diem':
+                    return `${enabled ? 'włączone' : 'wyłączone'} dieta dzienna`;
+                case 'receipt partners':
+                    return `${enabled ? 'włączone' : 'wyłączone'} partnerzy paragonów`;
+                case 'rules':
+                    return `${enabled ? 'włączone' : 'wyłączone'} reguły`;
+                case 'tax tracking':
+                    return `${enabled ? 'włączone' : 'wyłączone'} śledzenie podatków`;
+                default:
+                    return `${enabled ? 'włączone' : 'wyłączone'} ${featureName}`;
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'Wyłączone'} śledzenie uczestników`,
