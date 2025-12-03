@@ -5715,8 +5715,10 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connection);
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE && report?.policyID === policyID);
 
-                                    expect(expenseReport?.stateNum).toBe(1);
-                                    expect(expenseReport?.statusNum).toBe(1);
+                                    // For DEW policies, stateNum and statusNum should remain OPEN (0) because
+                                    // we don't optimistically update them - DEW determines the actual workflow on the backend
+                                    expect(expenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+                                    expect(expenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
                                     expect(expenseReport?.nextStep).toBeUndefined();
                                     expect(expenseReport?.pendingFields?.nextStep).toBeUndefined();
 
