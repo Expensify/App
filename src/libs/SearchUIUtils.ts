@@ -88,7 +88,6 @@ import {
     isWhisperActionTargetedToOthers,
     shouldReportActionBeVisible,
 } from './ReportActionsUtils';
-import {canReview} from './ReportPreviewActionUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canUserPerformWriteAction,
@@ -99,8 +98,8 @@ import {
     getReportStatusTranslation,
     getSearchReportName,
     hasAnyViolations,
+    hasHeldExpenses,
     hasInvoiceReports,
-    hasOnlyHeldExpenses,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
@@ -125,7 +124,6 @@ import {
     getMerchant as getTransactionMerchant,
     isPending,
     isScanning,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
     isViolationDismissed,
 } from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
@@ -1113,7 +1111,7 @@ function getTransactionsSections(
                 formatPhoneNumber,
                 report,
             );
-            const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail);
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail);
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 keyForList: transactionItem.transactionID,
@@ -1199,26 +1197,6 @@ function getReportNameValuePairsFromKey(data: OnyxTypes.SearchResults['data'], r
 }
 
 /**
- * @private
- * Determines the permission flags for a user reviewing a report.
- */
-function getReviewerPermissionFlags(
-    report: OnyxTypes.Report,
-    policy: OnyxTypes.Policy,
-    currentAccountID: number | undefined,
-): {
-    isSubmitter: boolean;
-    isAdmin: boolean;
-    isApprover: boolean;
-} {
-    return {
-        isSubmitter: report.ownerAccountID === currentAccountID,
-        isAdmin: policy.role === CONST.POLICY.ROLE.ADMIN,
-        isApprover: report.managerID === currentAccountID,
-    };
-}
-
-/**
  * Returns the action that can be taken on a given transaction or report
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -1228,7 +1206,6 @@ function getActions(
     allViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     key: string,
     currentSearch: SearchKey,
-    currentAccountID: number | undefined,
     currentUserEmail: string,
     reportActions: OnyxTypes.ReportAction[] = [],
 ): SearchTransactionAction[] {
@@ -1244,9 +1221,6 @@ function getActions(
     }
 
     const transaction = isTransaction ? data[key] : undefined;
-    if (isUnreportedAndHasInvalidDistanceRateTransaction(transaction)) {
-        return [CONST.SEARCH.ACTION_TYPES.REVIEW];
-    }
     // Tracked and unreported expenses don't have a report, so we return early.
     if (!report) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
@@ -1262,7 +1236,7 @@ function getActions(
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (transaction?.errors || report?.errors) {
-        return [CONST.SEARCH.ACTION_TYPES.REVIEW];
+        return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
     // Check for DEW submit failed - if the report has a DEW_SUBMIT_FAILED action and is still OPEN, show Review
@@ -1285,32 +1259,12 @@ function getActions(
         allReportTransactions = transaction ? [transaction] : [];
     }
 
-    const {isSubmitter, isAdmin, isApprover} = getReviewerPermissionFlags(report, policy, currentAccountID);
-
     const reportNVP = getReportNameValuePairsFromKey(data, report);
     const isIOUReportArchived = isArchivedReport(reportNVP);
 
     const chatReportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`] ?? undefined;
     const isChatReportArchived = isArchivedReport(chatReportRNVP);
 
-    const hasAnyViolationsForReport = hasAnyViolations(report.reportID, allViolations, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserEmail, allReportTransactions, report, policy);
-    const hasVisibleViolationsForReport =
-        hasAnyViolationsForReport &&
-        ViolationsUtils.hasVisibleViolationsForUser(report, allViolations, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, policy, allReportTransactions);
-
-    // Only check for violations if we need to (when user has permission to review)
-    if ((isSubmitter || isApprover || isAdmin) && hasVisibleViolationsForReport) {
-        if (
-            isSubmitter &&
-            !isApprover &&
-            !isAdmin &&
-            !canReview(report, allViolations, isIOUReportArchived || isChatReportArchived, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, policy, allReportTransactions)
-        ) {
-            allActions.push(CONST.SEARCH.ACTION_TYPES.VIEW);
-        } else {
-            allActions.push(CONST.SEARCH.ACTION_TYPES.REVIEW);
-        }
-    }
     // Submit/Approve/Pay can only be taken on transactions if the transaction is the only one on the report, otherwise `View` is the only option.
     // If this condition is not met, return early for performance reasons
     if (isTransaction && !isOneTransactionReport(report)) {
@@ -1326,7 +1280,8 @@ function getActions(
     const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
     const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(report, chatReport, policy, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
 
-    if ((canBePaid || shouldOnlyShowElsewhere) && !hasOnlyHeldExpenses(report.reportID, allReportTransactions)) {
+    // We're not supporting pay partial amount on search page now.
+    if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(report.reportID, allReportTransactions)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.PAY);
     }
 
@@ -1334,18 +1289,20 @@ function getActions(
         allActions.push(CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING);
     }
 
-    if (isClosedReport(report)) {
+    if (isClosedReport(report) && !(canBePaid || shouldOnlyShowElsewhere)) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.DONE];
     }
 
     const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isScanning(t) || isPending(t));
 
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, undefined, policy);
+
+    // We're not supporting approve partial amount on search page now
     if (
         canApproveIOU(report, policy, allReportTransactions) &&
         isAllowedToApproveExpenseReport &&
         !hasOnlyPendingCardOrScanningTransactions &&
-        !hasOnlyHeldExpenses(report.reportID, allReportTransactions)
+        !hasHeldExpenses(report.reportID, allReportTransactions)
     ) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
@@ -1356,7 +1313,7 @@ function getActions(
     }
 
     if (reportNVP?.exportFailedTime) {
-        return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.REVIEW];
+        return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
     return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
@@ -1603,7 +1560,7 @@ function getReportSections(
             if (shouldShow) {
                 const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
-                const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail, actions);
+                const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions);
 
                 const fromDetails =
                     data.personalDetailsList?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
@@ -1616,6 +1573,22 @@ function getReportSections(
 
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate: translateLocal});
+
+                const allReportTransactions = getTransactionsForReport(data, reportItem.reportID);
+                const policy = getPolicyFromKey(data, reportItem);
+
+                const hasAnyViolationsForReport = hasAnyViolations(
+                    reportItem.reportID,
+                    allViolations,
+                    currentAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserEmail,
+                    allReportTransactions,
+                    reportItem,
+                    policy,
+                );
+                const hasVisibleViolationsForReport =
+                    hasAnyViolationsForReport &&
+                    ViolationsUtils.hasVisibleViolationsForUser(reportItem, allViolations, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, policy, allReportTransactions);
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
@@ -1631,6 +1604,7 @@ function getReportSections(
                     transactions,
                     ...(reportPendingAction ? {pendingAction: reportPendingAction} : {}),
                     shouldShowYear: doesDataContainAPastYearReport,
+                    hasVisibleViolations: hasVisibleViolationsForReport,
                 };
 
                 if (isIOUReport) {
@@ -1659,7 +1633,7 @@ function getReportSections(
                 report,
             );
 
-            const allActions = getActions(data, allViolations, key, currentSearch, currentAccountID, currentUserEmail, actions);
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions);
             const transaction = {
                 ...transactionItem,
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
