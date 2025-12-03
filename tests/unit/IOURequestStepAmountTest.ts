@@ -1,5 +1,5 @@
-import {isParticipantP2P, shouldAutoNavigateToDefaultWorkspace} from '@pages/iou/request/step/IOURequestStepAmount';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {isParticipantP2P, shouldAutoNavigateToDefaultWorkspace} from '@pages/iou/request/step/IOURequestStepAmount';
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
 

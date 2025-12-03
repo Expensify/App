@@ -1,8 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import reportsSelector from '@selectors/Attributes';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
