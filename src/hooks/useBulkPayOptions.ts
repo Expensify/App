@@ -219,7 +219,6 @@ function useBulkPayOptions({
 
         return buttonOptions;
     }, [
-        hasActivatedWallet,
         translate,
         icons.Building,
         icons.User,
