@@ -9,5 +9,5 @@
 
   This allows us to identify UI elements by meaningful labels rather than just CSS selectors, making Sentry spans more actionable.
 - Upstream PR/issue: N/A (Expensify-specific enhancement)
-- E/App issue: N/A
-- PR Introducing Patch: TBD
+- E/App issue: https://github.com/Expensify/App/issues/76128
+- PR Introducing Patch: https://github.com/Expensify/App/pull/76547
