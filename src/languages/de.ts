@@ -7206,9 +7206,7 @@ ${
                 `Sie haben die Belastung von ${amountOwed} auf der Karte mit der Endung ${cardEnding} angefochten. Ihr Konto wird gesperrt, bis der Streit mit Ihrer Bank geklärt ist.`,
             preTrial: {
                 title: 'Kostenlose Testversion starten',
-                subtitleStart: 'Als nächster Schritt,',
-                subtitleLink: 'Vervollständigen Sie Ihre Einrichtungsliste',
-                subtitleEnd: 'damit Ihr Team mit der Spesenabrechnung beginnen kann.',
+                subtitle: 'Als Nächstes <a href="#">schließen Sie Ihre Einrichtungs-Checkliste ab</a>, damit Ihr Team mit dem Einreichen von Spesen beginnen kann.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Testversion: ${numOfDays} ${numOfDays === 1 ? 'Tag' : 'Tage'} übrig!`,
