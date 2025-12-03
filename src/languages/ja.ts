@@ -1189,7 +1189,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: '経費を検索',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `経費を削除しました (${merchant}の${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `費用${reportName ? `${reportName} から` : ''}を移動しました`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `この経費${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}を移動しました`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `この経費${reportName ? `<a href="${reportUrl}">${reportName}</a> に` : ''}を移動しました`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a>から` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `この経費を<a href="${reportUrl}">個人スペース</a>から移動しました。`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `この経費をあなたの<a href="${reportUrl}">個人スペース</a>に移動しました。`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2538,17 +2540,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `[あなたの法人カード](${corporateCardLink})を接続する`,
+                title: ({corporateCardLink}) => `[法人カード](${corporateCardLink})を連携する`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        法人カードを接続して、経費を自動で取り込み・仕訳しましょう。
+                        既にお持ちのカードを接続すると、取引の自動取り込み、レシートの照合、消込が行えます。
 
                         1. *Workspaces* をクリックします。
                         2. ワークスペースを選択します。
-                        3. *Corporate cards* をクリックします。
-                        4. 表示される手順に従ってカードを接続します。
+                        3. *Company cards* をクリックします。
+                        4. 案内に従ってカードを接続します。
 
-                        [法人カードの接続に進む](${corporateCardLink}).`),
+                        [Company cards に移動](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `[あなたのチーム](${workspaceMembersLink})を招待する`,
@@ -6996,6 +6998,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName}は必須です`,
+        reportContainsExpensesWithViolations: 'レポートに違反がある経費が含まれています。',
     },
     violationDismissal: {
         rter: {
