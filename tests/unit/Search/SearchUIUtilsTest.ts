@@ -412,7 +412,6 @@ const searchResults: OnyxTypes.SearchResults = {
             modifiedMCCGroup: undefined,
             moneyRequestReportActionID: '789',
             errors: undefined,
-            filename: undefined,
             groupAmount: -5000,
             groupCurrency: 'USD',
         },
@@ -444,7 +443,6 @@ const searchResults: OnyxTypes.SearchResults = {
             moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
-            filename: undefined,
             groupAmount: -5000,
             groupCurrency: 'USD',
         },
@@ -477,7 +475,6 @@ const searchResults: OnyxTypes.SearchResults = {
             moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
-            filename: undefined,
             groupAmount: -5000,
             groupCurrency: 'USD',
         },
@@ -509,7 +506,6 @@ const searchResults: OnyxTypes.SearchResults = {
             moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
-            filename: undefined,
             groupAmount: -5000,
             groupCurrency: 'USD',
         },
@@ -812,14 +808,13 @@ const transactionsListItems = [
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
         errors: undefined,
-        filename: undefined,
         violations: [],
         groupAmount: -5000,
         groupCurrency: 'USD',
     },
     {
-        action: 'review',
-        allActions: ['review', 'approve'],
+        action: 'approve',
+        allActions: ['approve'],
         amount: -5000,
         report: report2,
         policy,
@@ -871,7 +866,6 @@ const transactionsListItems = [
         moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
-        filename: undefined,
         violations: [
             {
                 name: CONST.VIOLATIONS.MISSING_CATEGORY,
@@ -935,7 +929,6 @@ const transactionsListItems = [
         moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
-        filename: undefined,
         violations: [],
         groupAmount: -5000,
         groupCurrency: 'USD',
@@ -994,7 +987,6 @@ const transactionsListItems = [
         moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
-        filename: undefined,
         violations: [],
         groupAmount: -5000,
         groupCurrency: 'USD',
@@ -1019,6 +1011,7 @@ const transactionReportGroupListItems = [
             displayName: 'Admin',
             login: 'admin@policy.com',
         },
+        hasVisibleViolations: false,
         isOneTransactionReport: true,
         isWaitingOnBankAccount: false,
         keyForList: '123456789',
@@ -1084,7 +1077,6 @@ const transactionReportGroupListItems = [
                 modifiedMCCGroup: undefined,
                 moneyRequestReportActionID: '789',
                 errors: undefined,
-                filename: undefined,
                 violations: [],
                 groupAmount: -5000,
                 groupCurrency: 'USD',
@@ -1096,8 +1088,8 @@ const transactionReportGroupListItems = [
     {
         groupedBy: 'expense-report',
         accountID: 18439984,
-        action: 'review',
-        allActions: ['review', 'approve'],
+        action: 'approve',
+        allActions: ['approve'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
@@ -1110,6 +1102,7 @@ const transactionReportGroupListItems = [
             displayName: 'Admin',
             login: adminEmail,
         },
+        hasVisibleViolations: true,
         isOneTransactionReport: true,
         isWaitingOnBankAccount: false,
         keyForList: '11111',
@@ -1132,8 +1125,8 @@ const transactionReportGroupListItems = [
         transactionCount: 1,
         transactions: [
             {
-                action: 'review',
-                allActions: ['review', 'approve'],
+                action: 'approve',
+                allActions: ['approve'],
                 report: report2,
                 policy,
                 reportAction: reportAction2,
@@ -1191,7 +1184,6 @@ const transactionReportGroupListItems = [
                 moneyRequestReportActionID: '789',
                 pendingAction: undefined,
                 errors: undefined,
-                filename: undefined,
                 groupAmount: -5000,
                 groupCurrency: 'USD',
             },
@@ -1209,6 +1201,7 @@ const transactionReportGroupListItems = [
         formattedFrom: 'Admin',
         formattedStatus: 'Outstanding',
         formattedTo: 'Approver',
+        hasVisibleViolations: false,
         isOneTransactionReport: false,
         isOwnPolicyExpenseChat: false,
         isWaitingOnBankAccount: false,
@@ -1261,6 +1254,7 @@ const transactionReportGroupListItems = [
             displayName: 'Admin',
             login: 'admin@policy.com',
         },
+        hasVisibleViolations: false,
         isOneTransactionReport: true,
         isWaitingOnBankAccount: false,
         keyForList: reportID5,
@@ -1474,15 +1468,15 @@ describe('SearchUIUtils', () => {
     });
     describe('Test getAction', () => {
         test('Should return `View` action for an invalid key', () => {
-            const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
         test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
-            let action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            let action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
-            action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
@@ -1505,36 +1499,12 @@ describe('SearchUIUtils', () => {
                     managerID: adminAccountID,
                 },
             };
-            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, submitterAccountID, '').at(0)).toStrictEqual(
+            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0)).toStrictEqual(
                 CONST.SEARCH.ACTION_TYPES.VIEW,
             );
-            expect(
-                SearchUIUtils.getActions(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, submitterAccountID, '').at(0),
-            ).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
-        });
-
-        test('Should return `Review` action for transaction with duplicate violation', async () => {
-            const duplicateViolation = {
-                [`transactionViolations_${transactionID2}`]: [
-                    {
-                        name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-                        type: CONST.VIOLATION_TYPES.WARNING,
-                        showInReview: true,
-                    },
-                ],
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`]);
-
-            const action = SearchUIUtils.getActions(searchResults.data, duplicateViolation, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
-        });
-
-        test('Should return `Review` action for transaction on policy with delayed submission and with violations', () => {
-            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
-
-            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0)).toStrictEqual(
+                CONST.SEARCH.ACTION_TYPES.VIEW,
+            );
         });
 
         test('Should return `Paid` action for a manually settled report', () => {
@@ -1552,7 +1522,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -1576,7 +1546,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -1592,7 +1562,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
@@ -1610,27 +1580,13 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.DONE);
         });
 
-        test('Should return `Review` action if report has errors', () => {
-            const errorReportID = 'report_error';
-            const localSearchResults = {
-                ...searchResults.data,
-                [`report_${errorReportID}`]: {
-                    ...searchResults.data[`report_${reportID}`],
-                    reportID: errorReportID,
-                    errors: {error: 'An error'},
-                },
-            };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${errorReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
-        });
-
         test('Should return `View` action for non-money request reports', () => {
-            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
@@ -1644,7 +1600,7 @@ describe('SearchUIUtils', () => {
                     reportID: 'non_existent_report',
                 },
             };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${orphanedTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${orphanedTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `View` action for a transaction in a multi-transaction report', () => {
@@ -1662,44 +1618,14 @@ describe('SearchUIUtils', () => {
                     reportID: multiTransactionReportID,
                 },
             };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
-        });
-        test('Should return `Review` action if report export has failed', () => {
-            const failedExportReportID = 'report_failed_export';
-            const localSearchResults = {
-                ...searchResults.data,
-                [`report_${failedExportReportID}`]: {
-                    ...searchResults.data[`report_${reportID}`],
-                    reportID: failedExportReportID,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                },
-                [`reportNameValuePairs_${failedExportReportID}`]: {
-                    exportFailedTime: '2024-01-01',
-                },
-            };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${failedExportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
-        });
-        test('Should return `Review` action if transaction has errors', () => {
-            const errorTransactionID = 'transaction_error';
-            const localSearchResults = {
-                ...searchResults.data,
-                [`transactions_${errorTransactionID}`]: {
-                    ...searchResults.data[`transactions_${transactionID}`],
-                    transactionID: errorTransactionID,
-                    errors: {error: 'An error'},
-                },
-            };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${errorTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
         test('Should return `Pay` action for an IOU report ready to be paid', async () => {
             Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
             await waitForBatchedUpdates();
             const iouReportKey = `report_${reportID3}`;
-            const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
     });
@@ -1790,7 +1716,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 48;
+            const expectedPropertyCount = 47;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1823,7 +1749,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 48;
+            const expectedPropertyCount = 47;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -2476,10 +2402,10 @@ describe('SearchUIUtils', () => {
         Onyx.merge(ONYXKEYS.SESSION, {accountID: overlimitApproverAccountID});
         searchResults.data[`policy_${policyID}`].role = CONST.POLICY.ROLE.USER;
         return waitForBatchedUpdates().then(() => {
-            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, overlimitApproverAccountID, '').at(0);
+            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
 
-            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, overlimitApproverAccountID, '').at(0);
+            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
     });
@@ -2593,7 +2519,7 @@ describe('SearchUIUtils', () => {
             },
         };
         return waitForBatchedUpdates().then(() => {
-            const action = SearchUIUtils.getActions(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.APPROVE);
         });
     });
