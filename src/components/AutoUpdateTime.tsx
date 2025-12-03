@@ -16,7 +16,7 @@ type AutoUpdateTimeProps = {
 };
 
 function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
-    const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {translate, getLocalDateFromDatetime, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     /** @returns Returns the locale Date object */
     const getCurrentUserLocalTime = useCallback(() => getLocalDateFromDatetime(undefined, timezone.selected), [getLocalDateFromDatetime, timezone.selected]);
@@ -50,7 +50,7 @@ function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
         <View style={[styles.w100, styles.detailsPageSectionContainer]}>
             <MenuItemWithTopDescription
                 style={[styles.ph0]}
-                title={`${DateUtils.formatToLocalTime(currentUserLocalTime)} ${timezoneName}`}
+                title={`${DateUtils.formatToLocalTime(currentUserLocalTime, preferredLocale)} ${timezoneName}`}
                 description={translate('detailsPage.localTime')}
                 interactive={false}
             />
