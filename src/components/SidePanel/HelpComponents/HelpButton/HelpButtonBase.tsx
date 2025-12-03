@@ -1,8 +1,8 @@
 import React from 'react';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSidePanel from '@hooks/useSidePanel';
 import useTheme from '@hooks/useTheme';
@@ -14,6 +14,7 @@ function HelpButton({style}: HelpButtonProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {openSidePanel, shouldHideHelpButton} = useSidePanel();
+    const {ConciergeAvatar} = useMemoizedLazyExpensifyIcons(['ConciergeAvatar']);
 
     if (shouldHideHelpButton) {
         return null;
@@ -27,7 +28,7 @@ function HelpButton({style}: HelpButtonProps) {
                 onPress={openSidePanel}
             >
                 <Icon
-                    src={Expensicons.ConciergeAvatar}
+                    src={ConciergeAvatar}
                     fill={theme.icon}
                     width={28}
                     height={28}
