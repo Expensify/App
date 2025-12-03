@@ -64,7 +64,7 @@ import {hasSynchronizationErrorMessage} from './actions/connections';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
 import {createNewReport, createTransactionThreadReport} from './actions/Report';
 import type {TransactionPreviewData} from './actions/Search';
-import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from './actions/Search';
+import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {convertToDisplayString, getCurrencySymbol} from './CurrencyUtils';
@@ -1404,6 +1404,7 @@ function getTaskSections(
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const policy = getPolicy(parentReport.policyID);
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const parentReportName = getReportName(parentReport, policy, undefined, undefined, undefined, undefined, undefined, isParentReportArchived);
                 const icons = getIcons(parentReport, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
@@ -1422,16 +1423,19 @@ function getTaskSections(
 }
 
 /** Creates transaction thread report and navigates to it from the search page */
-function createAndOpenSearchTransactionThread(item: TransactionListItemType, hash: number, backTo: string, transactionPreviewData?: TransactionPreviewData, shouldNavigate = true) {
+function createAndOpenSearchTransactionThread(
+    item: TransactionListItemType,
+    backTo: string,
+    IOUTransactionID?: string,
+    transactionPreviewData?: TransactionPreviewData,
+    shouldNavigate = true,
+) {
     const iouReportAction = getIOUActionForReportID(item.reportID, item.transactionID);
     const moneyRequestReportActionID = item.moneyRequestReportActionID !== '0' ? item.moneyRequestReportActionID : undefined;
-
-    // If the IOU action exists in the backend, populate Onyx with data from the search snapshot
-    // This shows the transaction thread immediately while waiting for OpenReport to return the real data
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-    setOptimisticDataForTransactionThreadPreview(item, previewData);
+    setOptimisticDataForTransactionThreadPreview(item, previewData, IOUTransactionID);
 
     const hasActualTransactionThread = iouReportAction?.childReportID && iouReportAction?.childReportID !== CONST.FAKE_REPORT_ID;
     let transactionThreadReport;
@@ -1446,10 +1450,6 @@ function createAndOpenSearchTransactionThread(item: TransactionListItemType, has
         const transaction = !reportActionID ? getTransactionFromTransactionListItem(item) : undefined;
         const transactionViolations = !reportActionID ? item.violations : undefined;
         transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID} as OnyxTypes.ReportAction, transaction, transactionViolations);
-    }
-
-    if (transactionThreadReport?.reportID) {
-        updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, transactionThreadReport?.reportID);
     }
 
     if (shouldNavigate) {
@@ -1514,6 +1514,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): [Repor
                 reportActionItems.push({
                     ...reportAction,
                     from,
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, policies, isReportArchived}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
