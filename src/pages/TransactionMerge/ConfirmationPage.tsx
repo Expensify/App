@@ -93,7 +93,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         hash,
     ]);
 
-    if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionReport?.reportID) {
+    if (isLoadingOnyxValue(mergeTransactionMetadata)) {
         return <FullScreenLoadingIndicator />;
     }
 
