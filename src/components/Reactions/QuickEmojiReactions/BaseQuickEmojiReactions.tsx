@@ -28,7 +28,7 @@ function BaseQuickEmojiReactions({
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {canBeMissing: true});
 
-    const onEmojiSelectedWithReactions = useCallback(
+    const selectEmojiWithReaction = useCallback(
         (emoji: Emoji, skinTone: number) => {
             onEmojiSelected(emoji, emojiReactions, skinTone);
         },
@@ -55,7 +55,7 @@ function BaseQuickEmojiReactions({
                 isContextMenu
                 onPressOpenPicker={onPressOpenPicker}
                 onWillShowPicker={onWillShowPicker}
-                onSelectEmoji={onEmojiSelectedWithReactions}
+                onSelectEmoji={selectEmojiWithReaction}
                 reportAction={reportAction}
                 setIsEmojiPickerActive={setIsEmojiPickerActive}
             />

@@ -42,7 +42,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {canBeMissing: true});
 
-    const onEmojiSelectedWithReactions = useCallback(
+    const selectEmojiWithReaction = useCallback(
         (emoji: Emoji, skinTone: number) => {
             onEmojiSelected(emoji, emojiReactions, skinTone);
         },
@@ -54,7 +54,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
         showEmojiPicker({
             onModalHide: onEmojiPickerClosed,
             onEmojiSelected: (_emojiCode, emojiObject, skinTone) => {
-                onEmojiSelectedWithReactions(emojiObject, skinTone);
+                selectEmojiWithReaction(emojiObject, skinTone);
             },
             emojiPopoverAnchor: ref,
             id: reportAction.reportActionID,
