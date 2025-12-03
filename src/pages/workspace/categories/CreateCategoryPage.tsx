@@ -6,7 +6,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
-import useParentReportAction from '@hooks/useParentReportAction';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createPolicyCategory} from '@libs/actions/Policy/Category';
 import Navigation from '@libs/Navigation/Navigation';
