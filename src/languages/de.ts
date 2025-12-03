@@ -2561,17 +2561,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Verbinde [deine Firmenkarte](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Verbinden Sie [Ihre Firmenkarten](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Verbinden Sie Ihre Firmenkarte, um Ausgaben automatisch zu importieren und zu kontieren.
+                        Verbinden Sie Ihre bestehenden Karten, um Transaktionen automatisch zu importieren, Belege abzugleichen und Abstimmungen durchzuführen.
 
-                        1. Klicken Sie auf *Workspaces*.
-                        2. Wählen Sie Ihren Workspace aus.
-                        3. Klicken Sie auf *Corporate cards*.
-                        4. Folgen Sie den Anweisungen, um Ihre Karte zu verknüpfen.
+                        1. Klicken Sie auf „Arbeitsbereiche“.
+                        2. Wählen Sie Ihren Arbeitsbereich aus.
+                        3. Klicken Sie auf „Firmenkarten“.
+                        4. Folgen Sie den Anweisungen, um Ihre Karten zu verbinden.
 
-                        [Zum Verbinden meiner Firmenkarten](${corporateCardLink}).`),
+                        [Zu den Firmenkarten](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Lade [dein Team](${workspaceMembersLink}) ein`,
