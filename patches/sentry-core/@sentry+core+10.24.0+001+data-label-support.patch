@@ -1,9 +1,9 @@
 diff --git a/node_modules/@sentry/core/build/cjs/utils/browser.js b/node_modules/@sentry/core/build/cjs/utils/browser.js
-index 3169c25..c267268 100644
+index 3169c25..f2770da 100644
 --- a/node_modules/@sentry/core/build/cjs/utils/browser.js
 +++ b/node_modules/@sentry/core/build/cjs/utils/browser.js
 @@ -9,8 +9,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
-
+ 
  /**
   * Given a child DOM element, returns a query-selector statement describing that
 - * and its ancestors
@@ -16,7 +16,7 @@ index 3169c25..c267268 100644
 @@ -53,7 +53,30 @@ function htmlTreeAsString(
        currentElem = currentElem.parentNode;
      }
-
+ 
 -    return out.reverse().join(separator);
 +    const cssSelector = out.reverse().join(separator);
 +
@@ -47,7 +47,7 @@ index 3169c25..c267268 100644
    }
 @@ -91,9 +114,11 @@ function _htmlElementAsString(el, keyAttrs) {
    out.push(elem.tagName.toLowerCase());
-
+ 
    // Pairs of attribute keys defined in `serializeAttribute` and their values on element.
 -  const keyAttrPairs = keyAttrs?.length
 -    ? keyAttrs.filter(keyAttr => elem.getAttribute(keyAttr)).map(keyAttr => [keyAttr, elem.getAttribute(keyAttr)])
@@ -57,15 +57,15 @@ index 3169c25..c267268 100644
 +  const keyAttrPairs = attrsToCheck
 +    .filter(keyAttr => elem.getAttribute(keyAttr))
 +    .map(keyAttr => [keyAttr, elem.getAttribute(keyAttr)]);
-
+ 
    if (keyAttrPairs?.length) {
      keyAttrPairs.forEach(keyAttrPair => {
 diff --git a/node_modules/@sentry/core/build/esm/utils/browser.js b/node_modules/@sentry/core/build/esm/utils/browser.js
-index 2ad52b0..a3c95ad 100644
+index 2ad52b0..274249f 100644
 --- a/node_modules/@sentry/core/build/esm/utils/browser.js
 +++ b/node_modules/@sentry/core/build/esm/utils/browser.js
 @@ -7,8 +7,8 @@ const DEFAULT_MAX_STRING_LENGTH = 80;
-
+ 
  /**
   * Given a child DOM element, returns a query-selector statement describing that
 - * and its ancestors
@@ -78,7 +78,7 @@ index 2ad52b0..a3c95ad 100644
 @@ -51,7 +51,30 @@ function htmlTreeAsString(
        currentElem = currentElem.parentNode;
      }
-
+ 
 -    return out.reverse().join(separator);
 +    const cssSelector = out.reverse().join(separator);
 +
@@ -109,7 +109,7 @@ index 2ad52b0..a3c95ad 100644
    }
 @@ -89,9 +112,11 @@ function _htmlElementAsString(el, keyAttrs) {
    out.push(elem.tagName.toLowerCase());
-
+ 
    // Pairs of attribute keys defined in `serializeAttribute` and their values on element.
 -  const keyAttrPairs = keyAttrs?.length
 -    ? keyAttrs.filter(keyAttr => elem.getAttribute(keyAttr)).map(keyAttr => [keyAttr, elem.getAttribute(keyAttr)])
@@ -119,6 +119,6 @@ index 2ad52b0..a3c95ad 100644
 +  const keyAttrPairs = attrsToCheck
 +    .filter(keyAttr => elem.getAttribute(keyAttr))
 +    .map(keyAttr => [keyAttr, elem.getAttribute(keyAttr)]);
-
+ 
    if (keyAttrPairs?.length) {
      keyAttrPairs.forEach(keyAttrPair => {
