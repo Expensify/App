@@ -12,7 +12,7 @@ import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getReportTransactions, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
-import {getCurrency, getTagArrayFromName, isMerchantMissing, isScanRequest} from './TransactionUtils';
+import {getCurrency, getTagArrayFromName, isScanRequest} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
