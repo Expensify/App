@@ -63,12 +63,12 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         Animated.parallel([
             Animated.timing(sidePanelOffset.current, {
                 toValue: shouldApplySidePanelOffset ? variables.sideBarWidth : 0,
-                duration: CONST.ANIMATED_TRANSITION,
+                duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
             Animated.timing(sidePanelTranslateX.current, {
                 toValue: shouldHideSidePanel ? sidePanelWidth : 0,
-                duration: CONST.ANIMATED_TRANSITION,
+                duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
         ]).start(() => setIsSidePanelTransitionEnded(true));
@@ -87,7 +87,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth || shouldUpdateNarrow);
 
             // Focus the composer after closing the Side Panel
-            focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
+            focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
         },
         [isExtraLargeScreenWidth, sidePanelNVP],
     );
