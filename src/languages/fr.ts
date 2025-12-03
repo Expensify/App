@@ -2564,17 +2564,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Connecter [votre carte pro](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Connectez [vos cartes d’entreprise](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Connectez votre carte d’entreprise pour importer et coder automatiquement les dépenses.
+                        Connectez les cartes que vous avez déjà pour l’importation automatique des transactions, l’association des reçus et le rapprochement.
 
                         1. Cliquez sur *Espaces de travail*.
                         2. Sélectionnez votre espace de travail.
                         3. Cliquez sur *Cartes d’entreprise*.
-                        4. Suivez les instructions pour connecter votre carte.
+                        4. Suivez les instructions pour connecter vos cartes.
 
-                        [Aller connecter mes cartes d’entreprise](${corporateCardLink}).`),
+                        [Accéder aux cartes d’entreprise](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Invitez [votre équipe](${workspaceMembersLink})`,
