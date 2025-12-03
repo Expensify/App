@@ -41,7 +41,7 @@ import navigationRef from './Navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
-import {getReportName} from './ReportUtils';
+import {computeReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -1050,7 +1050,7 @@ function getFilterDisplayValue(
         return getCardDescription(cardList?.[cardID]) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
+        return computeReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
