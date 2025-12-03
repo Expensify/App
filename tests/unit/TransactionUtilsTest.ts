@@ -86,30 +86,7 @@ const defaultDistanceRatePolicyID1: Record<string, Rate> = {
         subRates: [],
     },
 };
-const distanceRateTransactionID1: TransactionCustomUnit = {
-    customUnitID: 'customUnitID1',
-    customUnitRateID: 'customUnitRateID1',
-    distanceUnit: 'mi',
-    name: 'Distance',
-};
-const distanceRateTransactionID2: TransactionCustomUnit = {
-    customUnitID: 'customUnitID2',
-    customUnitRateID: 'customUnitRateID2',
-    distanceUnit: 'mi',
-    name: 'Distance',
-};
-const defaultCustomUnitPolicyID1: Record<string, CustomUnit> = {
-    customUnitID1: {
-        attributes: {
-            unit: 'mi',
-        },
-        customUnitID: 'customUnitID1',
-        defaultCategory: 'Car',
-        enabled: true,
-        name: 'Distance',
-        rates: defaultDistanceRatePolicyID1,
-    },
-};
+
 const currentUserPersonalDetails = {
     accountID: CURRENT_USER_ID,
     login: CURRENT_USER_EMAIL,

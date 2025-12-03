@@ -840,15 +840,6 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: OnyxEntry<Policy> = undefined): string {
-    if (transaction && isDistanceRequest(transaction)) {
-        const report = getReportOrDraftReport(transaction.reportID);
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const policy = policyParam ?? getPolicy(report?.policyID);
-        const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
-        const {unit, rate} = mileageRate;
-        const distanceInMeters = getDistanceInMeters(transaction, unit);
-    }
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? '');
 }
 
