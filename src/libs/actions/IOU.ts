@@ -11451,10 +11451,10 @@ function submitReport(
                       lastMessageHtml: getReportActionHtml(optimisticSubmittedReportAction),
                       stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                       statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                      ...(isDEWPolicy ? {} : {nextStep: optimisticNextStep}),
                       ...(isDEWPolicy
                           ? {}
                           : {
+                                nextStep: optimisticNextStep,
                                 pendingFields: {
                                     nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
@@ -11468,10 +11468,10 @@ function submitReport(
                       ...expenseReport,
                       stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                       statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                      ...(isDEWPolicy ? {} : {nextStep: optimisticNextStep}),
                       ...(isDEWPolicy
                           ? {}
                           : {
+                                nextStep: optimisticNextStep,
                                 pendingFields: {
                                     nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
@@ -11530,10 +11530,10 @@ function submitReport(
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                ...(isDEWPolicy ? {} : {nextStep: expenseReport.nextStep ?? null}),
                 ...(isDEWPolicy
                     ? {}
                     : {
+                          nextStep: expenseReport.nextStep ?? null,
                           pendingFields: {
                               nextStep: null,
                           },

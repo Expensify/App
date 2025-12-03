@@ -239,6 +239,41 @@ function isDynamicExternalWorkflowSubmitFailedAction(reportAction: OnyxInputOrEn
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED);
 }
 
+function getMostRecentActiveDEWSubmitFailedAction(reportActions: OnyxEntry<ReportActions> | ReportAction[]): ReportAction | undefined {
+    const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
+
+    // Find the most recent DEW_SUBMIT_FAILED action
+    const mostRecentDewSubmitFailedAction = actionsArray
+        .filter((action): action is ReportAction => isDynamicExternalWorkflowSubmitFailedAction(action))
+        .reduce<ReportAction | undefined>((latest, current) => {
+            if (!latest || (current.created && latest.created && current.created > latest.created)) {
+                return current;
+            }
+            return latest;
+        }, undefined);
+
+    if (!mostRecentDewSubmitFailedAction) {
+        return undefined;
+    }
+
+    // Find the most recent SUBMITTED action
+    const mostRecentSubmittedAction = actionsArray
+        .filter((action): action is ReportAction => isSubmittedAction(action))
+        .reduce<ReportAction | undefined>((latest, current) => {
+            if (!latest || (current.created && latest.created && current.created > latest.created)) {
+                return current;
+            }
+            return latest;
+        }, undefined);
+
+    // Return the DEW action if there's no SUBMITTED action, or if DEW_SUBMIT_FAILED is more recent
+    if (!mostRecentSubmittedAction || mostRecentDewSubmitFailedAction.created > mostRecentSubmittedAction.created) {
+        return mostRecentDewSubmitFailedAction;
+    }
+
+    return undefined;
+}
+
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
 }
@@ -3487,6 +3522,7 @@ export {
     isUnapprovedAction,
     isForwardedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
+    getMostRecentActiveDEWSubmitFailedAction,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,
