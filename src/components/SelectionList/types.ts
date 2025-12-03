@@ -1,9 +1,10 @@
 import type {ReactElement, RefObject} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ListItem, ValidListItem} from './ListItem/types';
 
-type SelectionListProps<TItem extends ListItem> = {
+type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Array of items to display in the list */
     data: TItem[];
 
@@ -45,6 +46,9 @@ type SelectionListProps<TItem extends ListItem> = {
 
     /** Custom content to display in the header of list component. */
     customListHeaderContent?: React.JSX.Element | null;
+
+    /** Custom component to render while data is loading */
+    customLoadingPlaceholder?: React.JSX.Element;
 
     /** Custom content to display in the footer */
     footerContent?: React.ReactNode;
@@ -146,6 +150,9 @@ type SelectionListProps<TItem extends ListItem> = {
 
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Whether to show the default right hand side checkmark */
+    shouldUseDefaultRightHandSideCheckmark?: boolean;
 
     /** Whether hover style should be disabled */
     shouldDisableHoverStyle?: boolean;

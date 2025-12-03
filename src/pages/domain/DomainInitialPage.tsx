@@ -6,11 +6,11 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import {UserLock} from '@components/Icon/Expensicons';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -18,6 +18,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {openDomainInitialPage} from '@libs/actions/Domain';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type DOMAIN_TO_RHP from '@navigation/linkingConfig/RELATIONS/DOMAIN_TO_RHP';
@@ -44,6 +45,7 @@ type DomainMenuItem = {
 type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.INITIAL>;
 
 function DomainInitialPage({route}: DomainInitialPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['UserLock'] as const);
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -61,14 +63,21 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         const menuItems: DomainMenuItem[] = [
             {
                 translationKey: 'domain.saml',
-                icon: UserLock,
+                icon: icons.UserLock,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(accountID)))),
                 screenName: SCREENS.DOMAIN.SAML,
             },
         ];
 
         return menuItems;
-    }, [accountID, singleExecution, waitForNavigate]);
+    }, [accountID, singleExecution, waitForNavigate, icons.UserLock]);
+
+    useEffect(() => {
+        if (!domainName) {
+            return;
+        }
+        openDomainInitialPage(domainName);
+    }, [domainName]);
 
     useEffect(() => {
         confirmReadyToOpenApp();

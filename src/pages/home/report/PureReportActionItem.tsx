@@ -93,12 +93,14 @@ import {
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
     getWhisperedTo,
+    getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
+    getWorkspaceFeatureEnabledMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
     getWorkspaceReportFieldAddMessage,
@@ -118,6 +120,7 @@ import {
     isCardIssuedAction,
     isChronosOOOListAction,
     isConciergeCategoryOptions,
+    isConciergeDescriptionOptions,
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
@@ -130,6 +133,7 @@ import {
     isReimbursementQueuedAction,
     isRenamedAction,
     isResolvedConciergeCategoryOptions,
+    isResolvedConciergeDescriptionOptions,
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTagModificationAction,
     isTaskAction,
@@ -147,6 +151,7 @@ import {
     getDeletedTransactionMessage,
     getDisplayNamesWithTooltips,
     getDowngradeWorkspaceMessage,
+    getForcedCorporateUpgradeMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
     getPolicyChangeMessage,
@@ -171,7 +176,13 @@ import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {resolveFraudAlert} from '@userActions/Card';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
-import {createTransactionThreadReport, expandURLPreview, resolveActionableMentionConfirmWhisper, resolveConciergeCategoryOptions} from '@userActions/Report';
+import {
+    createTransactionThreadReport,
+    expandURLPreview,
+    resolveActionableMentionConfirmWhisper,
+    resolveConciergeCategoryOptions,
+    resolveConciergeDescriptionOptions,
+} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -695,7 +706,8 @@ function PureReportActionItem({
         },
         [
             draftMessage,
-            action,
+            action.errors,
+            action.reportActionID,
             reportID,
             toggleContextMenuFromActiveReportAction,
             originalReportID,
@@ -772,6 +784,29 @@ function PureReportActionItem({
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
                     resolveConciergeCategoryOptions(reportActionReportID, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                },
+            }));
+        }
+
+        if (isConciergeDescriptionOptions(action)) {
+            const options = getOriginalMessage(action)?.options;
+            if (!options) {
+                return [];
+            }
+
+            if (isResolvedConciergeDescriptionOptions(action)) {
+                return [];
+            }
+
+            if (!reportActionReportID) {
+                return [];
+            }
+
+            return options.map((option, i) => ({
+                text: `${i + 1} - ${option}`,
+                key: `${action.reportActionID}-conciergeDescriptionOptions-${option}`,
+                onPress: () => {
+                    resolveConciergeDescriptionOptions(reportActionReportID, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                 },
             }));
         }
@@ -1136,7 +1171,11 @@ function PureReportActionItem({
         } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
-            children = <ReportActionItemBasicMessage message={modifiedExpenseMessage} />;
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<comment><muted-text>${modifiedExpenseMessage}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
             const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
             if (wasSubmittedViaHarvesting) {
@@ -1223,6 +1262,12 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getRejectedReportMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
             children = <ReportActionItemBasicMessage message={getUpgradeWorkspaceMessage()} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<muted-text>${getForcedCorporateUpgradeMessage()}</muted-text>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
             children = <ReportActionItemBasicMessage message={getDowngradeWorkspaceMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
@@ -1245,17 +1290,20 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
             const movedTransactionOriginalMessage = getOriginalMessage(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
-            const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+            const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
             const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-            // When expenses are merged multiple times, the previous toReportID may reference a deleted report,
+            const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+            // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
+            const hasFromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!fromReport;
+            // When expenses are merged multiple times, the previous fromReportID may reference a deleted report,
             // making it impossible to retrieve the report name for display
             // Ref: https://github.com/Expensify/App/issues/70338
-            if (!toReport) {
+            if (!toReport && !hasFromReport) {
                 children = emptyHTML;
             } else {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(toReport)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             }
@@ -1274,7 +1322,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getUnreportedTransactionMessage()}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getUnreportedTransactionMessage(action)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
@@ -1322,6 +1370,10 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getWorkspaceReportFieldDeleteMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceUpdateFieldMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED)) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceFeatureEnabledMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED)) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceAttendeeTrackingUpdateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceReimbursementUpdateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
@@ -1464,8 +1516,15 @@ function PureReportActionItem({
                                     {actionableItemButtons.length > 0 && (
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
-                                            layout={isActionableTrackExpense(action) || isConciergeCategoryOptions(action) || isActionableMentionWhisper(action) ? 'vertical' : 'horizontal'}
-                                            shouldUseLocalization={!isConciergeCategoryOptions(action)}
+                                            layout={
+                                                isActionableTrackExpense(action) ||
+                                                isConciergeCategoryOptions(action) ||
+                                                isConciergeDescriptionOptions(action) ||
+                                                isActionableMentionWhisper(action)
+                                                    ? 'vertical'
+                                                    : 'horizontal'
+                                            }
+                                            shouldUseLocalization={!isConciergeCategoryOptions(action) && !isConciergeDescriptionOptions(action)}
                                         />
                                     )}
                                 </View>

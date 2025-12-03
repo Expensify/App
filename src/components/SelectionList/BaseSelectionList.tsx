@@ -12,6 +12,7 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
+import usePrevious from '@hooks/usePrevious';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -45,8 +46,10 @@ function BaseSelectionList<TItem extends ListItem>({
     onEndReached,
     onEndReachedThreshold,
     confirmButtonOptions,
+    children,
     customListHeader,
     customListHeaderContent,
+    customLoadingPlaceholder,
     footerContent,
     listEmptyContent,
     listFooterContent,
@@ -77,6 +80,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
     shouldHighlightSelectedItem = true,
+    shouldUseDefaultRightHandSideCheckmark,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
 }: SelectionListProps<TItem>) {
@@ -287,7 +291,6 @@ function BaseSelectionList<TItem extends ListItem>({
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
                 showLoadingPlaceholder={showLoadingPlaceholder}
                 isLoadingNewOptions={isLoadingNewOptions}
-                setFocusedIndex={setFocusedIndex}
             />
         );
     };
@@ -329,6 +332,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     isDisabled={isItemDisabled}
                     canSelectMultiple={canSelectMultiple}
                     shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                    shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     rightHandSideComponent={rightHandSideComponent}
                     isMultilineSupported={isRowMultilineSupported}
@@ -349,7 +353,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
-            return <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
+            return customLoadingPlaceholder ?? <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
         }
         if (showListEmptyContent) {
             return listEmptyContent;
@@ -390,6 +394,56 @@ function BaseSelectionList<TItem extends ListItem>({
         },
         [data.length, scrollToIndex, setFocusedIndex],
     );
+
+    const prevSearchValue = usePrevious(textInputOptions?.value);
+    const prevSelectedOptionsLength = usePrevious(dataDetails.selectedOptions.length);
+    const prevAllOptionsLength = usePrevious(data.length);
+
+    useEffect(() => {
+        const currentSearchValue = textInputOptions?.value;
+        const searchChanged = prevSearchValue !== currentSearchValue;
+        const selectedOptionsChanged = dataDetails.selectedOptions.length !== prevSelectedOptionsLength;
+        // Do not change focus if:
+        // 1. Input value is the same or
+        // 2. Data length is 0 or
+        // 3. shouldUpdateFocusedIndex is true => other function handles the focus
+        if ((!searchChanged && !selectedOptionsChanged) || data.length === 0 || shouldUpdateFocusedIndex) {
+            return;
+        }
+
+        const hasSearchBeenCleared = prevSearchValue && !currentSearchValue;
+        if (hasSearchBeenCleared) {
+            const foundSelectedItemIndex = data.findIndex(isItemSelected);
+
+            if (foundSelectedItemIndex !== -1 && !canSelectMultiple) {
+                scrollToIndex(foundSelectedItemIndex);
+                setFocusedIndex(foundSelectedItemIndex);
+                return;
+            }
+        }
+
+        // Remove focus (set focused index to -1) if:
+        // 1. If the search is idle or
+        // 2. If the user is just toggling options without changing the list content
+        // Otherwise (e.g. when filtering/typing), focus on the first item (0)
+        const isSearchIdle = !prevSearchValue && !currentSearchValue;
+        const newSelectedIndex = isSearchIdle || (selectedOptionsChanged && prevAllOptionsLength === data.length) ? -1 : 0;
+
+        scrollToIndex(newSelectedIndex);
+        setFocusedIndex(newSelectedIndex);
+    }, [
+        canSelectMultiple,
+        data,
+        dataDetails.selectedOptions.length,
+        isItemSelected,
+        prevAllOptionsLength,
+        prevSelectedOptionsLength,
+        prevSearchValue,
+        scrollToIndex,
+        setFocusedIndex,
+        shouldUpdateFocusedIndex,
+        textInputOptions?.value,
+    ]);
 
     useEffect(() => {
         if (!itemFocusTimeoutRef.current) {
@@ -445,6 +499,7 @@ function BaseSelectionList<TItem extends ListItem>({
                             </>
                         }
                     />
+                    {children}
                 </>
             )}
 
