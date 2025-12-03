@@ -29,8 +29,9 @@ describe('actions/Domain', () => {
             WRITE_COMMANDS.CREATE_DOMAIN,
             {domainName: 'test.com'},
             {
-                successData: [expect.objectContaining({value: {hasCreationSucceeded: true}})],
-                optimisticData: [expect.objectContaining({value: {hasCreationSucceeded: null}})],
+                successData: [expect.objectContaining({value: {hasCreationSucceeded: true, isLoading: null}})],
+                optimisticData: [expect.objectContaining({value: {hasCreationSucceeded: null, isLoading: true}})],
+                failureData: [expect.objectContaining({value: {isLoading: null}})],
             },
         );
 
