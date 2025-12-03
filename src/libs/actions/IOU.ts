@@ -13358,6 +13358,21 @@ function prepareRejectMoneyRequestData(
     let expenseCreatedReportActionID;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
+    const transactionCommentCleanup = (() => {
+        if (!transaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE]) {
+            return undefined;
+        }
+
+        const dismissedViolations = {...(transaction.comment.dismissedViolations ?? {})};
+        delete dismissedViolations[CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE];
+
+        return {
+            comment: {
+                ...(transaction.comment ?? {}),
+                dismissedViolations: isEmptyObject(dismissedViolations) ? null : dismissedViolations,
+            },
+        };
+    })();
 
     // Build optimistic data updates
     const optimisticData: OnyxUpdate[] = [];
@@ -13392,6 +13407,7 @@ function prepareRejectMoneyRequestData(
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID: null,
+                        ...(transactionCommentCleanup ?? {}),
                     },
                 },
             );
@@ -13444,6 +13460,7 @@ function prepareRejectMoneyRequestData(
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        ...(transactionCommentCleanup ?? {}),
                     },
                 },
             );
@@ -13781,6 +13798,7 @@ function prepareRejectMoneyRequestData(
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     reportID: rejectedToReportID,
+                    ...(transactionCommentCleanup ?? {}),
                 },
             },
         );
@@ -13830,6 +13848,14 @@ function prepareRejectMoneyRequestData(
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            },
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                ...(transactionCommentCleanup ?? {}),
             },
         });
 
