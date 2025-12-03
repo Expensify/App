@@ -322,7 +322,7 @@ function MoneyRequestConfirmationList({
         setCustomUnitRateID(transactionID, lastSelectedRate);
     }, [customUnitRateID, transactionID, lastSelectedRate, isDistanceRequest, isPolicyExpenseChat, isMovingTransactionFromTrackExpense]);
 
-    const mileageRate = DistanceRequestUtils.getRate({transaction, policy: isMovingTransactionFromTrackExpense ? policyForMovingExpenses : policy, policyDraft});
+    const mileageRate = DistanceRequestUtils.getRate({transaction, policy, ...(isMovingTransactionFromTrackExpense && {policyForMovingExpenses}), policyDraft});
     const rate = mileageRate.rate;
     const prevRate = usePrevious(rate);
     const unit = mileageRate.unit;

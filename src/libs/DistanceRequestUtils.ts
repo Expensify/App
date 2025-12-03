@@ -289,7 +289,7 @@ function getCustomUnitRateID({
     reportID,
     isPolicyExpenseChat,
     policy,
-    isTrackDistanceExpense,
+    isTrackDistanceExpense = false,
     lastSelectedDistanceRates,
 }: {
     reportID: string | undefined;
@@ -316,7 +316,7 @@ function getCustomUnitRateID({
         const distanceUnit = Object.values(policy.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
         const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;
-        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
+        if (!isTrackDistanceExpense && lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
             customUnitRateID = lastSelectedDistanceRateID;
         } else {
             const defaultMileageRate = getDefaultMileageRate(policy);
@@ -361,24 +361,27 @@ function getRate({
     policy,
     policyDraft,
     useTransactionDistanceUnit = true,
-    isTrackExpense,
+    policyForMovingExpenses,
 }: {
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     policyDraft?: OnyxEntry<Policy>;
+    policyForMovingExpenses?: OnyxEntry<Policy>;
     useTransactionDistanceUnit?: boolean;
-    isTrackExpense?: boolean;
 }): MileageRate {
     let mileageRates = getMileageRates(policy, true, transaction?.comment?.customUnit?.customUnitRateID);
     if (isEmptyObject(mileageRates) && policyDraft) {
         mileageRates = getMileageRates(policyDraft, true, transaction?.comment?.customUnit?.customUnitRateID);
+    }
+    if (isEmptyObject(mileageRates) && policyForMovingExpenses) {
+        mileageRates = getMileageRates(policyForMovingExpenses, true, transaction?.comment?.customUnit?.customUnitRateID);
     }
     const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const customMileageRate = (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
-    const mileageRate = isCustomUnitRateIDForP2P(transaction) && (!isTrackExpense || !customMileageRate) ? getRateForP2P(policyCurrency, transaction) : customMileageRate;
+    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(policyCurrency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
         ...mileageRate,

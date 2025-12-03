@@ -528,7 +528,6 @@ function MoneyRequestConfirmationListFooter({
                         if (!transactionID) {
                             return;
                         }
-                        const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
 
                         if (!isPolicyExpenseChat && (!isTrackExpense || !policyForMovingExpensesID)) {
                             Navigation.navigate(
