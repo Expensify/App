@@ -22,6 +22,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -89,6 +90,7 @@ function IOURequestStepDistanceMap({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -337,7 +339,7 @@ function IOURequestStepDistanceMap({
                             participant,
                         },
                         policyParams: {
-                            policy,
+                            policy: policyForMovingExpenses,
                         },
                         transactionParams: {
                             amount: 0,
@@ -348,7 +350,12 @@ function IOURequestStepDistanceMap({
                             billable: false,
                             reimbursable: true,
                             validWaypoints: getValidWaypoints(waypoints, true),
-                            customUnitRateID,
+                            customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({
+                                reportID: report.reportID,
+                                isTrackDistanceExpense: true,
+                                policy: policyForMovingExpenses,
+                                isPolicyExpenseChat: false,
+                            }),
                             attendees: transaction?.comment?.attendees,
                         },
                         isASAPSubmitBetaEnabled,

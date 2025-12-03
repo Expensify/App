@@ -5,7 +5,6 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {Rate} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Policy, Report, Transaction} from '../../src/types/onyx';
