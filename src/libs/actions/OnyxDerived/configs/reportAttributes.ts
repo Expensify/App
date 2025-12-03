@@ -63,7 +63,8 @@ export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     dependencies: [
         ONYXKEYS.COLLECTION.REPORT,
-        ONYXKEYS.NVP_PREFERRED_LOCALE,
+        ONYXKEYS.NVP_PREFERRED_LOCALE,        
+        ONYXKEYS.COUNTRY_CODE,
         ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
@@ -71,10 +72,10 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.PERSONAL_DETAILS_LIST,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
-        ONYXKEYS.COUNTRY_CODE,
+
     ],
     compute: (
-        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, policies, reportMetadata, countryCode],
+        [reports, preferredLocale, countryCode, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, policies],
         {currentValue, sourceValues, areAllConnectionsSet},
     ) => {
         if (!areAllConnectionsSet) {
