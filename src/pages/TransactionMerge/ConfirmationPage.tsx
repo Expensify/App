@@ -74,7 +74,10 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             isASAPSubmitBetaEnabled,
         });
 
-        if (hash) {
+        // If the kept transaction is unreported, there's no report to navigate to.
+        if (reportID === '0') {
+            Navigation.dismissModal();
+        } else if (hash) {
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID}));
         } else {
             Navigation.dismissModalWithReport({reportID});
@@ -97,6 +100,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         return <FullScreenLoadingIndicator />;
     }
 
+    console.log('ok');
     return (
         <ScreenWrapper
             testID={ConfirmationPage.displayName}
