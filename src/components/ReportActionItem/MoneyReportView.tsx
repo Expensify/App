@@ -72,8 +72,8 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const isTotalUpdated = hasUpdatedTotal(report, policy);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
-    const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend && shouldShowTotal;
 
+    const shouldShowBreakdown = nonReimbursableSpend && reimbursableSpend && shouldShowTotal;
     const formattedTotalAmount = convertToDisplayString(totalDisplaySpend, report?.currency);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
