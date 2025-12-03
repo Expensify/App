@@ -33,4 +33,4 @@
     ```
 - Upstream PR/issue: 🛑 (must merge https://github.com/react-navigation/react-navigation/pull/12627 first)
 - E/App issue: https://github.com/Expensify/App/issues/71913#issuecomment-3584103273
-- PR Introducing Patch: [#000000](https://github.com/Expensify/App/pull/000000)
+- PR Introducing Patch: [#76586](https://github.com/Expensify/App/pull/76586)
