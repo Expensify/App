@@ -7045,6 +7045,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is vereist`,
+        reportContainsExpensesWithViolations: 'Het rapport bevat uitgaven met overtredingen.',
     },
     violationDismissal: {
         rter: {
