@@ -18,8 +18,9 @@ export default function (targetLang: TranslationTargetLocale): string {
         - Capitalize the first letter of UI labels, buttons, and standalone status words when appropriate for the target language.
         - Maintain consistent capitalization conventions across similar UI elements.
         - Acronyms should be preserved unless the target language has a widely accepted localized equivalent.
-        - Follow language-specific typographic rules where applicable (e.g., spacing before punctuation marks such as “:” or “?” in some languages).
         - Abbreviations such as "e.g." should be translated to the target language's equivalent abbreviation.
+        - Follow language-specific typographic rules where applicable (e.g., spacing before punctuation marks such as “:” or “?” in some languages).
+        - Keep in mind that you are translating for an app, not for conversation. Therefore, most phrases should be assumed to be in a UI context, such as a label, button, or status word.
         - IMPORTANT: Respond ONLY with the translated text. Do not add explanations, questions, or apologies.
         - IMPORTANT: Do not ask for clarification. Do your best to translate the text as accurately as possible with the context you have.
 
