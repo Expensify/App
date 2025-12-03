@@ -2479,7 +2479,7 @@ function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
 
 /**
  * @deprecated Use isTrackExpenseReportNew function instead
- * 
+ *
  */
 function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
@@ -2609,6 +2609,7 @@ function isOneTransactionThread(report: OnyxEntry<Report>, parentReport: OnyxEnt
  * Checks if given report is a transaction thread
  */
 function isReportTransactionThread(report: OnyxEntry<Report>) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return isMoneyRequest(report) || isTrackExpenseReport(report);
 }
 
@@ -4849,6 +4850,7 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>): bool
 }
 
 function canModifyHoldStatus(report: Report, reportAction: ReportAction): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (!isMoneyRequestReport(report) || isTrackExpenseReport(report)) {
         return false;
     }
@@ -4878,6 +4880,7 @@ function canHoldUnholdReportAction(
     const isApproved = isReportApproved({report});
     const isRequestIOU = isIOUReport(report);
     const isHoldActionCreator = isActionCreator(holdReportAction);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseMoneyReport = isTrackExpenseReport(report);
     const isActionOwner = isActionCreator(reportAction);
     const isApprover = isMoneyRequestReport(report) && report.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;
