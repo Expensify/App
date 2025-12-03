@@ -1687,6 +1687,7 @@ const CONST = {
             NAVIGATION: 'BootsplashNavigationInit',
             ONYX: 'BootsplashOnyxInit',
             LOCALE: 'BootsplashLocaleInit',
+            SPLASH_HIDER: 'BootsplashHider',
         },
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',

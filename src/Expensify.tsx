@@ -158,22 +158,7 @@ function Expensify() {
             op: CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE,
             parentSpan: bootsplashSpan.current,
         });
-
-        return () => {
-            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
-            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX);
-            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
-            endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
-        };
     }, []);
-
-    useEffect(() => {
-        if (!preferredLocale) {
-            return;
-        }
-
-        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
-    }, [preferredLocale]);
 
     const isAuthenticated = useIsAuthenticated();
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session?.autoAuthState]);
@@ -183,6 +168,18 @@ function Expensify() {
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
+
+    useEffect(() => {
+        if (!shouldHideSplash) {
+            return;
+        }
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER,
+            parentSpan: bootsplashSpan.current,
+        });
+    }, [shouldHideSplash]);
 
     useEffect(() => {
         if (!shouldInit || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
@@ -221,7 +218,7 @@ function Expensify() {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
-        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX);
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER);
     }, [setSplashScreenState]);
 
     useLayoutEffect(() => {
