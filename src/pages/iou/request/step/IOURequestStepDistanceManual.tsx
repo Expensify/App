@@ -80,8 +80,17 @@ function IOURequestStepDistanceManual({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
+    const shouldUseDefaultExpensePolicy = useMemo(
+        () =>
+            iouType === CONST.IOU.TYPE.CREATE &&
+            isPaidGroupPolicy(defaultExpensePolicy) &&
+            defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
+            !shouldRestrictUserBillableActions(defaultExpensePolicy.id),
+        [iouType, defaultExpensePolicy],
+    );
+
     const customUnitRateID = getRateID(transaction);
-    const unit = DistanceRequestUtils.getRate({transaction, policy}).unit;
+    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
     const distance = transaction?.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -180,7 +189,7 @@ function IOURequestStepDistanceManual({
             report,
             reportNameValuePairs,
             iouType,
-            defaultExpensePolicy,
+            shouldUseDefaultExpensePolicy,
             distance,
             transaction,
             reportID,
@@ -195,6 +204,7 @@ function IOURequestStepDistanceManual({
             backToReport,
             isASAPSubmitBetaEnabled,
             customUnitRateID,
+            defaultExpensePolicy,
             personalPolicy?.autoReporting,
             transactionViolations,
         ],
