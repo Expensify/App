@@ -8456,10 +8456,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         receipt,
     } = transactionParams;
 
-    // Temp debug
-    console.error('distanceRequestInformation', distanceRequestInformation);
-    console.error('transactionParams', transactionParams);
-
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
@@ -8627,9 +8623,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     });
 
     playSound(SOUNDS.DONE);
-
-    console.error('final createdistancerequest params', parameters);
-    console.error('final createdistancerequest onyxdata', onyxData);
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
