@@ -1740,4 +1740,57 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions)).toBeUndefined();
         });
     });
+
+    describe('hasPendingSubmittedAction', () => {
+        it('should return true when there is a pending SUBMITTED action', () => {
+            const actionId1 = '1';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    reportActionID: '1',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    originalMessage: {amount: 10000, currency: 'USD'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+            };
+            expect(ReportActionsUtils.hasPendingSubmittedAction(reportActions)).toBe(true);
+        });
+
+        it('should return false when SUBMITTED action is not pending', () => {
+            const actionId1 = '1';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    reportActionID: '1',
+                    pendingAction: undefined,
+                    originalMessage: {amount: 10000, currency: 'USD'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+            };
+            expect(ReportActionsUtils.hasPendingSubmittedAction(reportActions)).toBe(false);
+        });
+
+        it('should return false for empty report actions', () => {
+            expect(ReportActionsUtils.hasPendingSubmittedAction({})).toBe(false);
+        });
+
+        it('should return false when there are no SUBMITTED actions', () => {
+            const actionId1 = '1';
+            const reportActions: ReportActions = {
+                [actionId1]: {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    reportActionID: '1',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED>,
+            };
+            expect(ReportActionsUtils.hasPendingSubmittedAction(reportActions)).toBe(false);
+        });
+    });
 });
