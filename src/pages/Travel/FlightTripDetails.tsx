@@ -2,13 +2,11 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,8 +25,7 @@ type FlightTripDetailsProps = {
 function FlightTripDetails({reservation, prevReservation, personalDetails}: FlightTripDetailsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const {translate, preferredLocale} = useLocalize();
 
     const cabinClassMapping: Record<string, string> = {
         UNKNOWN_CABIN: translate('travel.flightDetails.cabinClasses.unknown'),
@@ -38,8 +35,8 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
         FIRST: translate('travel.flightDetails.cabinClasses.first'),
     };
 
-    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
-    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
+    const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), preferredLocale);
+    const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), preferredLocale);
 
     const prevFlightEndDate = prevReservation?.end.date;
     const layover = prevFlightEndDate && DateUtils.getFormattedDurationBetweenDates(translate, new Date(prevFlightEndDate), new Date(reservation.start.date));
@@ -140,7 +137,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
                 <MenuItem
                     label={translate('travel.flightDetails.passenger')}
                     title={displayName}
-                    icon={personalDetails?.avatar ?? expensifyIcons.FallbackAvatar}
+                    icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
                     interactive={false}

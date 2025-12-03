@@ -2,11 +2,11 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
@@ -29,7 +29,6 @@ function VacationDelegatePage() {
     const [newVacationDelegate, setNewVacationDelegate] = useState('');
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
@@ -83,7 +82,7 @@ function VacationDelegatePage() {
                         shouldShowSubscript: undefined,
                         icons: [
                             {
-                                source: delegatePersonalDetails?.avatar ?? expensifyIcons.FallbackAvatar,
+                                source: delegatePersonalDetails?.avatar ?? Expensicons.FallbackAvatar,
                                 name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
                                 type: CONST.ICON_TYPE_AVATAR,
                                 id: delegatePersonalDetails?.accountID,
@@ -128,15 +127,7 @@ function VacationDelegatePage() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [
-        vacationDelegate,
-        delegatePersonalDetails,
-        availableOptions.personalDetails,
-        availableOptions.recentReports,
-        translate,
-        availableOptions.userToInvite,
-        expensifyIcons.FallbackAvatar,
-    ]);
+    }, [vacationDelegate, delegatePersonalDetails, availableOptions.personalDetails, availableOptions.recentReports, translate, availableOptions.userToInvite]);
 
     const onSelectRow = useCallback(
         (option: Participant) => {

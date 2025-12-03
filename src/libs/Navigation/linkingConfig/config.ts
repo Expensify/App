@@ -879,6 +879,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
                             path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
                         },
+                        [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE_UPGRADE]: {
+                            path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.route,
+                        },
                         [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.route,
                         },
@@ -993,6 +996,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
+                            exact: true,
+                        },
+                        [SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: {
+                            path: ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.route,
                             exact: true,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.route,
@@ -1135,6 +1142,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.REPORT_DETAILS.EXPORT]: ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.REPORT_CARD_ACTIVATE]: {
+                    screens: {
+                        [SCREENS.REPORT_CARD_ACTIVATE]: ROUTES.REPORT_CARD_ACTIVATE.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE]: {
                     screens: {
                         [SCREENS.REPORT_CHANGE_WORKSPACE.ROOT]: ROUTES.REPORT_WITH_ID_CHANGE_WORKSPACE.route,
@@ -1156,6 +1168,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
                             path: ROUTES.REPORT_SETTINGS_VISIBILITY.route,
+                        },
+                        [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: {
+                            path: ROUTES.REPORT_SETTINGS_REPORT_LAYOUT.route,
                         },
                     },
                 },
@@ -1565,11 +1580,16 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
                     screens: {
-                        [SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT]: ROUTES.SEARCH_ROOT_VERIFY_ACCOUNT,
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS]: {
+                    screens: {
+                        [SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT]: ROUTES.SEARCH_ROOT_VERIFY_ACCOUNT,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_VERIFY_ACCOUNT]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.route,
                         [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.route,
                         [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: ROUTES.TRANSACTION_HOLD_REASON_RHP,
+                        [SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP]: ROUTES.SEARCH_REJECT_REASON_RHP,
                         [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP,
                         [SCREENS.SEARCH.EDIT_MULTIPLE_TRANSACTIONS_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP,
                         [SCREENS.SEARCH.EDIT_MULTIPLE_AMOUNT_RHP]: ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP,

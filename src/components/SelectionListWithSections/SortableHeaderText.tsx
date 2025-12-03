@@ -2,10 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -25,7 +25,6 @@ type SearchTableHeaderColumnProps = {
 export default function SortableHeaderText({text, icon, sortOrder, isActive, textStyle, containerStyle, isSortable = true, onPress}: SearchTableHeaderColumnProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowDownLong', 'ArrowUpLong'] as const);
 
     if (!isSortable) {
         return (
@@ -52,7 +51,7 @@ export default function SortableHeaderText({text, icon, sortOrder, isActive, tex
         );
     }
 
-    const sortArrowIcon = sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? expensifyIcons.ArrowUpLong : expensifyIcons.ArrowDownLong;
+    const sortArrowIcon = sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? Expensicons.ArrowUpLong : Expensicons.ArrowDownLong;
     const displayIcon = isActive;
     const activeColumnStyle = isSortable && isActive && styles.searchTableHeaderActive;
 
