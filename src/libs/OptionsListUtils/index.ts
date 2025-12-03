@@ -822,6 +822,12 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
     }
 
+    // If the last action differs from last original action, it means there's a hidden action (like a whisper), then use getLastVisibleMessage to get the preview text
+    const isLastActionHidden = !lastReportAction && !!lastOriginalReportAction;
+    if (isLastActionHidden && !lastMessageTextFromReport) {
+        return lastVisibleMessage?.lastMessageText ?? '';
+    }
+
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
