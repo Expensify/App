@@ -1,6 +1,6 @@
 # `@sentry/core` patches
 
-### [@sentry+core+10.20.0+001+data-label-support.patch](@sentry+core+10.20.0+001+data-label-support.patch)
+### [@sentry+core+10.24.0+001+data-label-support.patch](@sentry+core+10.24.0+001+data-label-support.patch)
 
 - Reason: Enhances the `htmlTreeAsString` function to support `data-label` attributes for better element identification in Sentry spans. The patch:
   - Always includes `data-label` in the list of checked attributes for each DOM element
