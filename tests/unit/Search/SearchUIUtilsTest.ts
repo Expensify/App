@@ -436,7 +436,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -469,7 +468,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -501,7 +499,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-
             pendingAction: undefined,
             errors: undefined,
             filename: undefined,
@@ -805,7 +802,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-
         errors: undefined,
         filename: undefined,
         violations: [],
@@ -863,7 +859,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -927,7 +922,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -986,7 +980,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-
         pendingAction: undefined,
         errors: undefined,
         filename: undefined,
@@ -1077,7 +1070,6 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-
                 errors: undefined,
                 filename: undefined,
                 violations: [],
@@ -1183,7 +1175,6 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-
                 pendingAction: undefined,
                 errors: undefined,
                 filename: undefined,

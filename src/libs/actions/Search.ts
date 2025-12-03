@@ -1121,7 +1121,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
     }
 
     // Set optimistic parent report action
-    if (!hasParentReportAction && item?.reportAction?.reportActionID) {
+    if (!hasParentReportAction && moneyRequestReportActionID) {
         const optimisticIOUAction = buildOptimisticIOUReportAction({
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount,
