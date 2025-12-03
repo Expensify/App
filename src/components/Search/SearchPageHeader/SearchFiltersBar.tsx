@@ -734,13 +734,6 @@ function SearchFiltersBar({
             return filterFormValues[key as SearchAdvancedFiltersKey];
         });
     }, [filterFormValues, filters, typeFiltersKeys]);
-    const prevFiltersLength = useRef(0);
-
-    useEffect(() => {
-        return () => {
-            prevFiltersLength.current = filters.length;
-        };
-    }, [filters.length]);
 
     const adjustScroll = useCallback(
         (info: {distanceFromEnd: number}) => {
@@ -752,7 +745,6 @@ function SearchFiltersBar({
             if (!shouldAdjustScroll || info.distanceFromEnd > 0) {
                 return;
             }
-            prevFiltersLength.current = filters.length;
             scrollRef.current?.scrollToEnd();
         },
         [filters.length],
