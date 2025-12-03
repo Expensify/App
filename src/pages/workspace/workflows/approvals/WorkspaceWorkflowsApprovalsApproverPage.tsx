@@ -19,7 +19,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import {personalDetailsByEmailSelector} from '@src/selectors/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -165,16 +165,20 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 personalDetailsByEmail,
             });
 
-            if (currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
-                goBack();
+            const isLimitPageInStack = rhpRoutes.some((rhpRoute) => rhpRoute.name === SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT);
+            if (isLimitPageInStack) {
+                Navigation.goBack();
                 return;
             }
 
-            Navigation.navigate(
-                ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID)),
-            );
+            const backToRoute =
+                currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
+                    ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover)
+                    : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
+
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex, backToRoute));
         },
-        [approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail],
+        [approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail, firstApprover, rhpRoutes],
     );
 
     const subtitle = useMemo(

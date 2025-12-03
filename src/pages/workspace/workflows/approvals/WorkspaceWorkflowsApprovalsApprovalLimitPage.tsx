@@ -65,9 +65,10 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
     useEffect(() => {
-        if (selectedApproverEmail) {
-            setHasSubmitted(false);
+        if (!selectedApproverEmail) {
+            return;
         }
+        setHasSubmitted(false);
     }, [selectedApproverEmail]);
 
     const selectedApproverDisplayName = useMemo(() => {
@@ -208,7 +209,8 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const navigateToApproverChange = useCallback(() => {
         saveCurrentStateToOnyx();
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, backTo));
+        const approvalLimitBackTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex, backTo);
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, approvalLimitBackTo));
     }, [saveCurrentStateToOnyx, policyID, approverIndex, backTo]);
 
     const buttonContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mh5, styles.mb5]});
