@@ -7452,7 +7452,6 @@ ${
             hasChildReportAwaitingAction: 'Heeft kindrapport wachtend op actie',
             hasMissingInvoiceBankAccount: 'Heeft een ontbrekende factuur bankrekening',
             hasUnresolvedCardFraudAlert: 'Heeft een onopgeloste kaartfraude waarschuwing',
-            hasDEWError: 'Heeft DEW-fout',
         },
         reasonRBR: {
             hasErrors: 'Heeft fouten in rapport of rapportacties gegevens',
