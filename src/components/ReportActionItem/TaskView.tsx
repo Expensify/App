@@ -5,6 +5,7 @@ import {AttachmentContext} from '@components/AttachmentContext';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -14,7 +15,6 @@ import RenderHTML from '@components/RenderHTML';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -44,12 +44,11 @@ type TaskViewProps = {
 };
 
 function TaskView({report, parentReport, action}: TaskViewProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     useEffect(() => {
         setTaskReport(report);
@@ -149,7 +148,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                 <View style={styles.taskRightIconContainer}>
                                                     <Icon
                                                         additionalStyles={[styles.alignItemsCenter]}
-                                                        src={expensifyIcons.ArrowRight}
+                                                        src={Expensicons.ArrowRight}
                                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
                                                     />
                                                 </View>
@@ -179,7 +178,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                         {report?.managerID ? (
                             <MenuItem
                                 label={translate('task.assignee')}
-                                title={getDisplayNameForParticipant({accountID: report.managerID})}
+                                title={getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber})}
                                 iconAccountID={report.managerID}
                                 iconType={CONST.ICON_TYPE_AVATAR}
                                 avatarSize={CONST.AVATAR_SIZE.SMALLER}

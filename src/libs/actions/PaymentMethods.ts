@@ -42,7 +42,7 @@ function continueSetup(kycWallRef: RefObject<KYCWallRef | null>, fallbackRoute?:
     kycWallRef.current.continueAction({goBackRoute: fallbackRoute});
 }
 
-function getPaymentMethods() {
+function getPaymentMethods(includePartiallySetupBankAccounts?: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -65,11 +65,15 @@ function getPaymentMethods() {
         },
     ];
 
-    return API.read(READ_COMMANDS.OPEN_PAYMENTS_PAGE, null, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    return API.read(
+        READ_COMMANDS.OPEN_PAYMENTS_PAGE,
+        {includePartiallySetupBankAccounts},
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
 function getMakeDefaultPaymentOnyxData(
