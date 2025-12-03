@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {getExpensifyIconsChunkSync, loadExpensifyIconsChunk} from '@components/Icon/ExpensifyIconLoader';
+import {getExpensifyIconsChunk, loadExpensifyIconsChunk} from '@components/Icon/ExpensifyIconLoader';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
-import {getIllustrationsChunkSync, loadIllustrationsChunk} from '@components/Icon/IllustrationLoader';
+import {getIllustrationsChunk, loadIllustrationsChunk} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import PlaceholderIcon from '@components/Icon/PlaceholderIcon';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -107,7 +107,7 @@ function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => {default: T} 
  * @returns Object with illustration names as keys and IconAsset as values
  */
 function useMemoizedLazyIllustrations<const TName extends readonly IllustrationName[]>(names: TName): Record<TName[number], IconAsset> {
-    const cachedChunk = getIllustrationsChunkSync();
+    const cachedChunk = getIllustrationsChunk();
     const namesKey = useMemo(() => names.join(','), [names]);
     const namesList = useMemo(() => namesKey.split(',') as Array<TName[number]>, [namesKey]);
 
@@ -171,7 +171,7 @@ function useMemoizedLazyIllustrations<const TName extends readonly IllustrationN
  * @returns Object with icon names as keys and IconAsset as values
  */
 function useMemoizedLazyExpensifyIcons<const TName extends readonly ExpensifyIconName[]>(names: TName): Record<TName[number], IconAsset> {
-    const cachedChunk = getExpensifyIconsChunkSync();
+    const cachedChunk = getExpensifyIconsChunk();
     const namesKey = useMemo(() => names.join(','), [names]);
     const namesList = useMemo(() => namesKey.split(',') as Array<TName[number]>, [namesKey]);
 

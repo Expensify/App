@@ -46,7 +46,7 @@ function loadExpensifyIconsChunk(): Promise<ExpensifyIconsChunk> {
  * This function provides immediate access once the chunk is loaded
  */
 function loadExpensifyIcon(iconName: ExpensifyIconName): {default: IconAsset} | Promise<{default: IconAsset}> {
-    const cachedChunk = getExpensifyIconsChunkSync();
+    const cachedChunk = getExpensifyIconsChunk();
     if (cachedChunk) {
         const icon = cachedChunk.getExpensifyIcon(iconName);
         if (!icon) {
@@ -76,10 +76,10 @@ function loadExpensifyIcon(iconName: ExpensifyIconName): {default: IconAsset} | 
  * Returns null if the chunk hasn't been loaded yet
  * Use this to avoid Promise microtask delay when chunk is already loaded
  */
-function getExpensifyIconsChunkSync(): ExpensifyIconsChunk | null {
+function getExpensifyIconsChunk(): ExpensifyIconsChunk | null {
     return expensifyIconsChunk;
 }
 
-export {loadExpensifyIcon, loadExpensifyIconsChunk, getExpensifyIconsChunkSync};
+export {loadExpensifyIcon, loadExpensifyIconsChunk, getExpensifyIconsChunk};
 
 export type {ExpensifyIconName, ExpensifyIconsChunk};

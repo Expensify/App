@@ -44,7 +44,7 @@ function loadIllustrationsChunk(): Promise<IllustrationsChunk> {
  * This function provides immediate access once the chunk is loaded
  */
 function loadIllustration(illustrationName: IllustrationName): {default: IconAsset} | Promise<{default: IconAsset}> {
-    const cachedChunk = getIllustrationsChunkSync();
+    const cachedChunk = getIllustrationsChunk();
     if (cachedChunk) {
         const illustration = cachedChunk.getIllustration(illustrationName);
         if (!illustration) {
@@ -74,10 +74,10 @@ function loadIllustration(illustrationName: IllustrationName): {default: IconAss
  * Returns null if the chunk hasn't been loaded yet
  * Use this to avoid Promise microtask delay when chunk is already loaded
  */
-function getIllustrationsChunkSync(): IllustrationsChunk | null {
+function getIllustrationsChunk(): IllustrationsChunk | null {
     return illustrationsChunk;
 }
 
-export {loadIllustration, loadIllustrationsChunk, getIllustrationsChunkSync};
+export {loadIllustration, loadIllustrationsChunk, getIllustrationsChunk};
 
 export type {IllustrationName, IllustrationsChunk};

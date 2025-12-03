@@ -17,13 +17,13 @@ jest.mock('@components/Icon/PlaceholderIcon', () => {
 });
 
 jest.mock('@components/Icon/ExpensifyIconLoader', () => ({
-    getExpensifyIconsChunkSync: jest.fn(),
+    getExpensifyIconsChunk: jest.fn(),
     loadExpensifyIconsChunk: jest.fn(),
     loadExpensifyIcon: jest.fn(),
 }));
 
 jest.mock('@components/Icon/IllustrationLoader', () => ({
-    getIllustrationsChunkSync: jest.fn(),
+    getIllustrationsChunk: jest.fn(),
     loadIllustrationsChunk: jest.fn(),
     loadIllustration: jest.fn(),
 }));
@@ -357,7 +357,7 @@ describe('useMemoizedLazyExpensifyIcons', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const ExpensifyIconLoader = require('@components/Icon/ExpensifyIconLoader');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const mockGetExpensifyIconsChunkSync = ExpensifyIconLoader.getExpensifyIconsChunkSync as jest.Mock;
+    const mockGetExpensifyIconsChunk = ExpensifyIconLoader.getExpensifyIconsChunk as jest.Mock;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const mockLoadExpensifyIconsChunk = ExpensifyIconLoader.loadExpensifyIconsChunk as jest.Mock;
 
@@ -377,7 +377,7 @@ describe('useMemoizedLazyExpensifyIcons', () => {
             AVAILABLE_EXPENSIFY_ICONS: ['AddReaction', 'Apple'],
         };
 
-        mockGetExpensifyIconsChunkSync.mockReturnValue(mockChunk);
+        mockGetExpensifyIconsChunk.mockReturnValue(mockChunk);
 
         const names = ['AddReaction', 'Apple'] as const;
 
@@ -385,7 +385,7 @@ describe('useMemoizedLazyExpensifyIcons', () => {
         const {result} = renderHook(() => useMemoizedLazyExpensifyIcons(names));
 
         // Then: The synchronous chunk should be used to initialize state
-        expect(mockGetExpensifyIconsChunkSync).toHaveBeenCalled();
+        expect(mockGetExpensifyIconsChunk).toHaveBeenCalled();
         expect(mockChunk.getExpensifyIcon).toHaveBeenCalledWith('AddReaction');
         expect(mockChunk.getExpensifyIcon).toHaveBeenCalledWith('Apple');
 
@@ -403,7 +403,7 @@ describe('useMemoizedLazyIllustrations', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const IllustrationLoader = require('@components/Icon/IllustrationLoader');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const mockGetIllustrationsChunkSync = IllustrationLoader.getIllustrationsChunkSync as jest.Mock;
+    const mockGetIllustrationsChunk = IllustrationLoader.getIllustrationsChunk as jest.Mock;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const mockLoadIllustrationsChunk = IllustrationLoader.loadIllustrationsChunk as jest.Mock;
 
@@ -423,7 +423,7 @@ describe('useMemoizedLazyIllustrations', () => {
             AVAILABLE_ILLUSTRATIONS: ['Building', 'Tag'],
         };
 
-        mockGetIllustrationsChunkSync.mockReturnValue(mockChunk);
+        mockGetIllustrationsChunk.mockReturnValue(mockChunk);
 
         const names = ['Building', 'Tag'] as const;
 
@@ -431,7 +431,7 @@ describe('useMemoizedLazyIllustrations', () => {
         const {result} = renderHook(() => useMemoizedLazyIllustrations(names));
 
         // Then: The synchronous chunk should be used to initialize state
-        expect(mockGetIllustrationsChunkSync).toHaveBeenCalled();
+        expect(mockGetIllustrationsChunk).toHaveBeenCalled();
         expect(mockChunk.getIllustration).toHaveBeenCalledWith('Building');
         expect(mockChunk.getIllustration).toHaveBeenCalledWith('Tag');
 
