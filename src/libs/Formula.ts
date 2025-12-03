@@ -1,5 +1,5 @@
 import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMonth, startOfWeek, subDays} from 'date-fns';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
@@ -32,7 +32,6 @@ type FormulaContext = {
     submitterPersonalDetails?: PersonalDetails;
     managerPersonalDetails?: PersonalDetails;
     allTransactions?: Record<string, Transaction>;
-    pendingUpdates?: OnyxUpdate[];
 };
 
 type FieldList = Record<string, {name: string; defaultValue: string}>;
@@ -818,15 +817,11 @@ function computeSubmitPart(path: string[], context: FormulaContext): string {
         case 'to':
             return computePersonalDetailsField(subPath, context.managerPersonalDetails, context.policy);
         case 'date': {
-            // TODO: Waiting for backend to add report.submitted field
-            // Backend issue: https://github.com/Expensify/Expensify/issues/568267
-            // Backend uses report.submitted for {report:submit:date} but this field is not currently returned to App.
-            // Decision: Do NOT compute optimistically - leave uncomputed/grayed out while offline to avoid timestamp mismatch.
-            // Temporary: Using report.created as placeholder until backend adds report.submitted field.
+            // TODO: Use report.submitted once backend adds it (issue #568267)
+            // Using report.created as placeholder until then
             const submittedDate = context.report.created;
             const format = subPath.length > 0 ? subPath.join(':') : undefined;
-            const formattedDate = formatDate(submittedDate, format);
-            return formattedDate;
+            return formatDate(submittedDate, format);
         }
         default:
             return '';
@@ -855,21 +850,24 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
             return personalDetails.displayName || personalDetails.login || '';
         case 'email':
             return personalDetails.login ?? '';
+        // userid/customfield1 returns employeeUserID from policy.employeeList
+        // TODO: Check policy.glCodes once backend adds it (issue #568268)
         case 'userid':
-            // eslint-disable-next-line rulesdir/no-default-id-values
-            return String(personalDetails.accountID ?? '');
-        case 'customfield1':
-        case 'customfield2': {
-            // TODO: Waiting for backend to add policy.glCodes field
-            // Backend issue: https://github.com/Expensify/Expensify/issues/568268
-            // Backend checks policy.glCodes (areGlCodesEnabled) before returning employeeUserID/employeePayrollID
-            // We need policy.glCodes field in Onyx to match backend behavior
+        case 'customfield1': {
             const email = personalDetails.login;
             if (!email || !policy?.employeeList) {
                 return '';
             }
-            const fieldKey = field.toLowerCase() === 'customfield1' ? 'employeeUserID' : 'employeePayrollID';
-            return policy.employeeList[email]?.[fieldKey] ?? '';
+            return policy.employeeList[email]?.employeeUserID ?? '';
+        }
+        // payrollid/customfield2 returns employeePayrollID from policy.employeeList
+        case 'payrollid':
+        case 'customfield2': {
+            const email = personalDetails.login;
+            if (!email || !policy?.employeeList) {
+                return '';
+            }
+            return policy.employeeList[email]?.employeePayrollID ?? '';
         }
         default:
             return '';

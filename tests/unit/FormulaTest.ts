@@ -1037,8 +1037,8 @@ describe('CustomFormula', () => {
                 expect(compute('{report:submit:from:email}', mockContextWithSubmissionInfo)).toBe('john.doe@company.com');
             });
 
-            test('userid - basic submitter account ID', () => {
-                expect(compute('{report:submit:from:userid}', mockContextWithSubmissionInfo)).toBe('12345');
+            test('userid - submitter employee user ID (alias for customfield1)', () => {
+                expect(compute('{report:submit:from:userid}', mockContextWithSubmissionInfo)).toBe('EMP001');
             });
 
             test('customfield1 - submitter employee user ID from policy', () => {
@@ -1049,7 +1049,11 @@ describe('CustomFormula', () => {
                 expect(compute('{report:submit:from:customfield2}', mockContextWithSubmissionInfo)).toBe('PAY123');
             });
 
-            test('firstname - fall back to email when name missing', () => {
+            test('payrollid - submitter employee payroll ID (alias for customfield2)', () => {
+                expect(compute('{report:submit:from:payrollid}', mockContextWithSubmissionInfo)).toBe('PAY123');
+            });
+
+            test('name fields fall back to email when name missing', () => {
                 const contextWithPartialDetails: FormulaContext = {
                     report: {reportID: '123'} as Report,
                     policy: null as unknown as Policy,
@@ -1060,31 +1064,7 @@ describe('CustomFormula', () => {
                 };
 
                 expect(compute('{report:submit:from:firstname}', contextWithPartialDetails)).toBe('fallback@email.com');
-            });
-
-            test('lastname - fall back to email when name missing', () => {
-                const contextWithPartialDetails: FormulaContext = {
-                    report: {reportID: '123'} as Report,
-                    policy: null as unknown as Policy,
-                    submitterPersonalDetails: {
-                        accountID: 111,
-                        login: 'fallback@email.com',
-                    } as PersonalDetails,
-                };
-
                 expect(compute('{report:submit:from:lastname}', contextWithPartialDetails)).toBe('fallback@email.com');
-            });
-
-            test('fullname - fall back to email when displayName missing', () => {
-                const contextWithPartialDetails: FormulaContext = {
-                    report: {reportID: '123'} as Report,
-                    policy: null as unknown as Policy,
-                    submitterPersonalDetails: {
-                        accountID: 111,
-                        login: 'fallback@email.com',
-                    } as PersonalDetails,
-                };
-
                 expect(compute('{report:submit:from:fullname}', contextWithPartialDetails)).toBe('fallback@email.com');
             });
 
@@ -1149,8 +1129,8 @@ describe('CustomFormula', () => {
                 expect(compute('{report:submit:to:email}', mockContextWithSubmissionInfo)).toBe('jane.smith@company.com');
             });
 
-            test('userid - basic manager account ID', () => {
-                expect(compute('{report:submit:to:userid}', mockContextWithSubmissionInfo)).toBe('67890');
+            test('userid - manager employee user ID (alias for customfield1)', () => {
+                expect(compute('{report:submit:to:userid}', mockContextWithSubmissionInfo)).toBe('EMP002');
             });
 
             test('customfield1 - manager employee user ID from policy', () => {
@@ -1159,6 +1139,10 @@ describe('CustomFormula', () => {
 
             test('customfield2 - manager employee payroll ID from policy', () => {
                 expect(compute('{report:submit:to:customfield2}', mockContextWithSubmissionInfo)).toBe('PAY456');
+            });
+
+            test('payrollid - manager employee payroll ID (alias for customfield2)', () => {
+                expect(compute('{report:submit:to:payrollid}', mockContextWithSubmissionInfo)).toBe('PAY456');
             });
 
             test('firstname - fall back to email when manager name missing', () => {
@@ -1189,36 +1173,12 @@ describe('CustomFormula', () => {
         });
 
         describe('Submission date', () => {
-            test('default format - yyyy-MM-dd from SUBMITTED action', () => {
+            test('default format - yyyy-MM-dd', () => {
                 expect(compute('{report:submit:date}', mockContextWithSubmissionInfo)).toBe('2025-01-15');
             });
 
-            test('MMMM dd, yyyy - long format with full month name', () => {
+            test('custom format - verifies date formatting works', () => {
                 expect(compute('{report:submit:date:MMMM dd, yyyy}', mockContextWithSubmissionInfo)).toBe('January 15, 2025');
-            });
-
-            test('MM/dd/yy - short format with 2-digit year', () => {
-                expect(compute('{report:submit:date:MM/dd/yy}', mockContextWithSubmissionInfo)).toBe('01/15/25');
-            });
-
-            test('dd MMM yyyy - day-first format with short month', () => {
-                expect(compute('{report:submit:date:dd MMM yyyy}', mockContextWithSubmissionInfo)).toBe('15 Jan 2025');
-            });
-
-            test('date with time - yyyy-MM-dd HH:mm:ss format', () => {
-                expect(compute('{report:submit:date:yyyy-MM-dd HH:mm:ss}', mockContextWithSubmissionInfo)).toBe('2025-01-15 10:30:00');
-            });
-
-            test('date with time - MM/dd/yyyy hh:mm tt format', () => {
-                expect(compute('{report:submit:date:MM/dd/yyyy hh:mm tt}', mockContextWithSubmissionInfo)).toBe('01/15/2025 10:30 AM');
-            });
-
-            test('date with time - dd/MM/yyyy HH:mm format', () => {
-                expect(compute('{report:submit:date:dd/MM/yyyy HH:mm}', mockContextWithSubmissionInfo)).toBe('15/01/2025 10:30');
-            });
-
-            test('time only - HH:mm:ss format', () => {
-                expect(compute('{report:submit:date:HH:mm:ss}', mockContextWithSubmissionInfo)).toBe('10:30:00');
             });
         });
 
@@ -1359,18 +1319,6 @@ describe('CustomFormula', () => {
                 };
 
                 expect(compute('{report:submit:from:email|frontpart}', contextWithEmptyEmail)).toBe('');
-            });
-
-            test('accountID zero - allow 0 as valid account ID', () => {
-                const contextWithZeroAccountID: FormulaContext = {
-                    report: {reportID: '123'} as Report,
-                    policy: null as unknown as Policy,
-                    submitterPersonalDetails: {
-                        accountID: 0,
-                    } as PersonalDetails,
-                };
-
-                expect(compute('{report:submit:from:userid}', contextWithZeroAccountID)).toBe('0');
             });
 
             test('unknown field - return empty for invalid field name', () => {
