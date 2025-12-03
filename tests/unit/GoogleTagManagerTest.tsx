@@ -219,7 +219,7 @@ describe('GoogleTagManagerTest', () => {
     });
 
     test('paid_adoption - addSubscriptionPaymentCard', async () => {
-        // When we add a payment card
+        // When we add a payment card (with no existing billing card)
         addSubscriptionPaymentCard(
             accountID,
             {
@@ -231,7 +231,7 @@ describe('GoogleTagManagerTest', () => {
                 addressZip: 'addressZip',
                 currency: 'USD',
             },
-            FUND_LIST,
+            undefined,
         );
 
         await waitForBatchedUpdatesWithAct();
