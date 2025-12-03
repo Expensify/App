@@ -4,6 +4,7 @@ import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -90,7 +91,7 @@ function DiscardChangesConfirmation({getHasUnsavedChanges, onCancel}: DiscardCha
             onModalHide={() => {
                 if (isConfirmed.current) {
                     isConfirmed.current = false;
-                    navigateBack();
+                    setNavigationActionToMicrotaskQueue(navigateBack);
                 } else {
                     shouldNavigateBack.current = false;
                     onCancel?.();
