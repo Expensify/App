@@ -66,8 +66,19 @@ function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContext
 }
 
 function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
-    const {report, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus, shouldFixViolations, isUnapprove, isReopen, bypassNextApproverID} =
-        params;
+    const {
+        report,
+        policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        predictedNextStatus,
+        shouldFixViolations,
+        isUnapprove,
+        isReopen,
+        bypassNextApproverID,
+    } = params;
 
     if (!isExpenseReport(report)) {
         return null;
@@ -336,8 +347,19 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
  * @deprecated This function will be removed soon. You should still use it though but also use buildOptimisticNextStep in parallel.
  */
 function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDeprecated | null {
-    const {report, policy, currentUserAccountIDParam, currentUserEmailParam, hasViolations, isASAPSubmitBetaEnabled, predictedNextStatus, shouldFixViolations, isUnapprove, isReopen, bypassNextApproverID} =
-        params;
+    const {
+        report,
+        policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        predictedNextStatus,
+        shouldFixViolations,
+        isUnapprove,
+        isReopen,
+        bypassNextApproverID,
+    } = params;
 
     if (!isExpenseReport(report)) {
         return null;
@@ -365,7 +387,9 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         policyOwnerPersonalDetails?.displayName ??
         policyOwnerPersonalDetails?.login ??
         getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
-    const nextApproverDisplayName = bypassNextApproverID ? getDisplayNameForParticipant({accountID: bypassNextApproverID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(bypassNextApproverID).login : getNextApproverDisplayName(report, isUnapprove);
+    const nextApproverDisplayName = bypassNextApproverID
+        ? (getDisplayNameForParticipant({accountID: bypassNextApproverID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(bypassNextApproverID).login)
+        : getNextApproverDisplayName(report, isUnapprove);
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
