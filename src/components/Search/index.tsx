@@ -598,7 +598,8 @@ function Search({
                 };
             }
         }
-        if (isEmptyObject(newTransactionList)) {
+
+        if (isEmptyObject(newTransactionList) && isEmptyObject(selectedTransactions)) {
             return;
         }
 
