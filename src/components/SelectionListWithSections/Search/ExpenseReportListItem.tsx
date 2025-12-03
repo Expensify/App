@@ -1,13 +1,19 @@
 import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+import Icon from '@components/Icon';
 import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType, ListItem} from '@components/SelectionListWithSections/types';
+import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
+import {isSettled} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
@@ -31,12 +37,13 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
     const theme = useTheme();
-
+    const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchContext();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
 
     const snapshotData = snapshot?.data;
 
@@ -99,6 +106,36 @@ function ExpenseReportListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
+    const getDescription = useMemo(() => {
+        if (!reportItem?.hasVisibleViolations || isSettled(reportItem.reportID)) {
+            return;
+        }
+        return (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                <Icon
+                    src={expensifyIcons.DotIndicator}
+                    fill={theme.danger}
+                    additionalStyles={[styles.mr1]}
+                    width={12}
+                    height={12}
+                />
+                <Text style={[styles.textMicro, styles.textDanger]}>{translate('reportViolations.reportContainsExpensesWithViolations')}</Text>
+            </View>
+        );
+    }, [
+        reportItem?.hasVisibleViolations,
+        reportItem.reportID,
+        styles.alignItemsCenter,
+        styles.flexRow,
+        styles.mr1,
+        styles.mt2,
+        styles.textDanger,
+        styles.textMicro,
+        theme.danger,
+        translate,
+        expensifyIcons.DotIndicator,
+    ]);
+
     return (
         <BaseListItem
             item={item}
@@ -116,25 +153,27 @@ function ExpenseReportListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
-            shouldShowRightCaret={isLargeScreenWidth}
+            shouldShowRightCaret={false}
             shouldUseDefaultRightHandSideCheckmark={false}
         >
             {(hovered) => (
-                <ExpenseReportListItemRow
-                    item={reportItem}
-                    policy={snapshotPolicy}
-                    isActionLoading={isActionLoading ?? isLoading}
-                    showTooltip={showTooltip}
-                    canSelectMultiple={canSelectMultiple}
-                    onCheckboxPress={handleCheckboxPress}
-                    onButtonPress={handleOnButtonPress}
-                    avatarBorderColor={theme.highlightBG}
-                    isSelectAllChecked={!!reportItem.isSelected}
-                    isIndeterminate={false}
-                    isDisabledCheckbox={isDisabledCheckbox}
-                    isHovered={hovered}
-                    isFocused={isFocused}
-                />
+                <View style={[styles.flex1]}>
+                    <ExpenseReportListItemRow
+                        item={reportItem}
+                        policy={snapshotPolicy}
+                        isActionLoading={isActionLoading ?? isLoading}
+                        showTooltip={showTooltip}
+                        canSelectMultiple={canSelectMultiple}
+                        onCheckboxPress={handleCheckboxPress}
+                        onButtonPress={handleOnButtonPress}
+                        isSelectAllChecked={!!reportItem.isSelected}
+                        isIndeterminate={false}
+                        isDisabledCheckbox={isDisabledCheckbox}
+                        isHovered={hovered}
+                        isFocused={isFocused}
+                    />
+                    {getDescription}
+                </View>
             )}
         </BaseListItem>
     );

@@ -154,7 +154,7 @@ function AuthScreens() {
     const {initialURL, isAuthenticatedAtStartup, setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const archivedReportsIdSet = useArchivedReportsIdSet();
-    const {shouldRenderSecondaryOverlay, dismissToWideReport} = useContext(WideRHPContext);
+    const {shouldRenderSecondaryOverlay, shouldRenderTertiaryOverlay} = useContext(WideRHPContext);
 
     // State to track whether the delegator's authentication is completed before displaying data
     const [isDelegatorFromOldDotIsReady, setIsDelegatorFromOldDotIsReady] = useState(false);
@@ -342,7 +342,12 @@ function AuthScreens() {
                 }
 
                 if (shouldRenderSecondaryOverlay) {
-                    dismissToWideReport();
+                    Navigation.dismissToFirstRHP();
+                    return;
+                }
+
+                if (shouldRenderTertiaryOverlay) {
+                    Navigation.dismissToSecondRHP();
                     return;
                 }
 
@@ -354,7 +359,7 @@ function AuthScreens() {
             true,
         );
         return () => unsubscribeEscapeKey();
-    }, [dismissToWideReport, modal?.disableDismissOnEscape, modal?.willAlertModalBecomeVisible, shouldRenderSecondaryOverlay]);
+    }, [modal?.disableDismissOnEscape, modal?.willAlertModalBecomeVisible, shouldRenderSecondaryOverlay, shouldRenderTertiaryOverlay]);
 
     // Animation is disabled when navigating to the sidebar screen
     const getWorkspaceOrDomainSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
@@ -372,6 +377,7 @@ function AuthScreens() {
         return {
             ...rootNavigatorScreenOptions.splitNavigator,
             animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            gestureEnabled: true,
             web: {
                 ...rootNavigatorScreenOptions.splitNavigator.web,
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled}),

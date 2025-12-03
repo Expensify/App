@@ -28,7 +28,7 @@ import {
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {isManagedCardTransaction, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,6 +50,7 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyTagsData} from './Policy/Tag';
+import {getCurrentUserAccountID} from './Report';
 
 const allTransactions: Record<string, Transaction> = {};
 Onyx.connect({
@@ -722,6 +723,7 @@ function changeTransactionsReport(
     const existingSelfDMReportID = findSelfDMReportID();
     let selfDMReport: Report | undefined;
     let selfDMCreatedReportAction: ReportAction | undefined;
+    const currentUserAccountID = getCurrentUserAccountID();
 
     if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
@@ -818,7 +820,7 @@ function changeTransactionsReport(
 
         transactionsMoved = true;
 
-        const oldReportID = transaction.reportID;
+        const oldReportID = isUnreportedExpense ? CONST.REPORT.UNREPORTED_REPORT_ID : transaction.reportID;
         const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
 
         // 1. Optimistically change the reportID on the passed transactions
@@ -1051,16 +1053,22 @@ function changeTransactionsReport(
             );
         }
 
-        // 5. Optimistically update the transaction thread and all threads in the transaction thread
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
-            value: {
-                parentReportID: targetReportID,
-                parentReportActionID: optimisticMoneyRequestReportActionID,
-                policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
-            },
-        });
+        const shouldRemoveOtherParticipants = !isManagedCardTransaction(transaction);
+        const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`];
+        if (childReport) {
+            const participants = childReport.participants;
+            // 5. Optimistically update the transaction thread and all threads in the transaction thread
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`,
+                value: {
+                    parentReportID: targetReportID,
+                    parentReportActionID: optimisticMoneyRequestReportActionID,
+                    policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && newReport ? newReport.policyID : CONST.POLICY.ID_FAKE,
+                    participants: isUnreported && shouldRemoveOtherParticipants ? {[currentUserAccountID]: participants?.[currentUserAccountID]} : participants,
+                },
+            });
+        }
 
         if (oldIOUAction) {
             failureData.push({
@@ -1139,7 +1147,7 @@ function changeTransactionsReport(
         const movedAction =
             reportID === CONST.REPORT.UNREPORTED_REPORT_ID
                 ? buildOptimisticUnreportedTransactionAction(transactionThreadReportID, oldReportID)
-                : buildOptimisticMovedTransactionAction(transactionThreadReportID, reportID);
+                : buildOptimisticMovedTransactionAction(transactionThreadReportID, oldReportID);
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1299,7 +1307,7 @@ function changeTransactionsReport(
         reportID: destinationReport?.reportID ?? destinationReportID ?? reportID,
         total: destinationTotal,
     };
-    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation);
+    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation, accountID, email ?? '');
 
     // buildOptimisticNextStep is used in parallel
     // eslint-disable-next-line @typescript-eslint/no-deprecated

@@ -148,7 +148,7 @@ function PopoverWithMeasuredContentBase({
             ...horizontalConstraint,
             ...verticalConstraint,
         };
-    }, [anchorPosition, anchorAlignment, popoverWidth, popoverHeight]);
+    }, [anchorPosition.horizontal, anchorPosition.vertical, anchorAlignment.horizontal, anchorAlignment.vertical, popoverWidth, popoverHeight]);
 
     const positionCalculations = useMemo(() => {
         const horizontalShift = PopoverWithMeasuredContentUtils.computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, availableWidth);
@@ -182,7 +182,16 @@ function PopoverWithMeasuredContentBase({
         }
 
         return result;
-    }, [adjustedAnchorPosition, positionCalculations, anchorAlignment.vertical, windowHeight, popoverHeight, shouldMeasureAnchorPositionFromTop]);
+    }, [
+        adjustedAnchorPosition.left,
+        adjustedAnchorPosition.top,
+        positionCalculations.horizontalShift,
+        positionCalculations.verticalShift,
+        anchorAlignment.vertical,
+        windowHeight,
+        popoverHeight,
+        shouldMeasureAnchorPositionFromTop,
+    ]);
 
     return isContentMeasured ? (
         <Popover
