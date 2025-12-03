@@ -43,12 +43,14 @@ function BaseSelectionList<TItem extends ListItem>({
     onSelectAll,
     onCheckboxPress,
     onScrollBeginDrag,
+    onDismissError,
     onEndReached,
     onEndReachedThreshold,
     confirmButtonOptions,
     children,
     customListHeader,
     customListHeaderContent,
+    customLoadingPlaceholder,
     footerContent,
     listEmptyContent,
     listFooterContent,
@@ -330,6 +332,7 @@ function BaseSelectionList<TItem extends ListItem>({
                     isFocused={isItemFocused}
                     isDisabled={isItemDisabled}
                     canSelectMultiple={canSelectMultiple}
+                    onDismissError={onDismissError}
                     shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
@@ -352,7 +355,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
-            return <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
+            return customLoadingPlaceholder ?? <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
         }
         if (showListEmptyContent) {
             return listEmptyContent;

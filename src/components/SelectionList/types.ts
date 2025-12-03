@@ -32,6 +32,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Called when the list is scrolled and the user begins dragging */
     onScrollBeginDrag?: () => void;
 
+    /** Callback to fire when an error is dismissed */
+    onDismissError?: (item: TItem) => void;
+
     /** Called once when the scroll position gets within onEndReachedThreshold of the rendered content */
     onEndReached?: () => void;
 
@@ -46,6 +49,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Custom content to display in the header of list component. */
     customListHeaderContent?: React.JSX.Element | null;
+
+    /** Custom component to render while data is loading */
+    customLoadingPlaceholder?: React.JSX.Element;
 
     /** Custom content to display in the footer */
     footerContent?: React.ReactNode;
