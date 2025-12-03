@@ -2499,7 +2499,7 @@ const ROUTES = {
         route: 'travel/terms/:domain/accept',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
+        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_UPGRADE: {
         route: 'travel/upgrade',
@@ -2562,7 +2562,8 @@ const ROUTES = {
     },
     TRAVEL_VERIFY_ACCOUNT: {
         route: `travel/:domain/${VERIFY_ACCOUNT}`,
-        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/${VERIFY_ACCOUNT}`, backTo),
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/${VERIFY_ACCOUNT}?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     ONBOARDING_ROOT: {
         route: 'onboarding',

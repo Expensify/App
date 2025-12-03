@@ -61,9 +61,11 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
         // Always validate OTP first before proceeding to address details or terms acceptance
         if (!isUserValidated) {
             // Determine where to redirect after OTP validation
-            const nextStep = isEmptyObject(policy?.address) ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()) : ROUTES.TRAVEL_TCS.getRoute(domain);
+            const nextStep = isEmptyObject(policy?.address)
+                ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute())
+                : ROUTES.TRAVEL_TCS.getRoute(domain, policyID);
             setTravelProvisioningNextStep(nextStep);
-            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
+            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID));
             return;
         }
         if (isEmptyObject(policy?.address)) {
@@ -71,7 +73,7 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
             Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute()));
         } else {
             cleanupTravelProvisioningSession();
-            Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
+            Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain, policyID));
         }
     };
 

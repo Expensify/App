@@ -36,14 +36,14 @@ type BookTravelButtonProps = {
     setShouldScrollToBottom?: (shouldScrollToBottom: boolean) => void;
 };
 
-const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
+const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean, policyID?: string) => {
     // Remove the previous provision session information if any is cached.
     cleanupTravelProvisioningSession();
     if (isUserValidated) {
-        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain, policyID, Navigation.getActiveRoute()));
         return;
     }
-    Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, Navigation.getActiveRoute()));
+    Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID, Navigation.getActiveRoute()));
 };
 
 function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, activePolicyID, setShouldScrollToBottom}: BookTravelButtonProps) {
@@ -114,7 +114,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, ac
         if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
             openTravelDotLink(policy?.id);
         } else if (isPolicyProvisioned) {
-            navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
+            navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN, undefined, activePolicyID ?? undefined);
         } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             setVerificationModalVisibility(true);
             if (!travelSettings?.lastTravelSignupRequestTime) {
@@ -132,16 +132,16 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, ac
                 // Determine where to redirect after OTP validation
                 const nextStep = isEmptyObject(policy?.address)
                     ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute())
-                    : ROUTES.TRAVEL_TCS.getRoute(domain);
+                    : ROUTES.TRAVEL_TCS.getRoute(domain, activePolicyID);
                 setTravelProvisioningNextStep(nextStep);
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, Navigation.getActiveRoute()));
+                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
                 return;
             }
             if (isEmptyObject(policy?.address)) {
                 // Spotnana requires an address anytime an entity is created for a policy
                 Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
             } else {
-                navigateToAcceptTerms(domain, !!isUserValidated);
+                navigateToAcceptTerms(domain, !!isUserValidated, activePolicyID ?? undefined);
             }
         } else {
             Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(activePolicyID, Navigation.getActiveRoute()));

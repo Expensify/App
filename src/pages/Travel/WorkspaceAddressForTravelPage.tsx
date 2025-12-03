@@ -33,9 +33,9 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
         // Always validate OTP first before allowing address submission
         if (!isUserValidated) {
             // After OTP validation, redirect back to this address page
-            const currentRoute = ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(route.params.domain, route.params.backTo);
+            const currentRoute = ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(route.params.domain, policyID, route.params.backTo);
             setTravelProvisioningNextStep(currentRoute);
-            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain));
+            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(route.params.domain, policyID));
             return;
         }
 
@@ -46,7 +46,7 @@ function WorkspaceAddressForTravelPage({route}: WorkspaceAddressForTravelPagePro
             zipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
             country: values.country,
         });
-        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(route.params.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN), {forceReplace: true});
+        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(route.params.domain ?? CONST.TRAVEL.DEFAULT_DOMAIN, policyID), {forceReplace: true});
     };
 
     return (

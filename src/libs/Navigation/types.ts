@@ -2165,6 +2165,7 @@ type TravelNavigatorParamList = {
     };
     [SCREENS.TRAVEL.TCS]: {
         domain?: string;
+        policyID?: string;
     };
     [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: {
         domain: string;
