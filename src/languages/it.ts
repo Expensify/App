@@ -2572,17 +2572,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Collega [la tua carta aziendale](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Collega [le tue carte aziendali](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Collega la tua carta aziendale per importare e codificare automaticamente le spese.
+                        Collega le carte che hai già per l'importazione automatica delle transazioni, l'abbinamento delle ricevute e la riconciliazione.
 
-                        1. Fai clic su *Workspaces*.
-                        2. Seleziona il tuo workspace.
-                        3. Fai clic su *Corporate cards*.
-                        4. Segui le istruzioni per collegare la tua carta.
+                        1. Fai clic su *Spazi di lavoro*.
+                        2. Seleziona il tuo spazio di lavoro.
+                        3. Fai clic su *Carte aziendali*.
+                        4. Segui le istruzioni per collegare le tue carte.
 
-                        [Portami a collegare le mie carte aziendali](${corporateCardLink}).`),
+                        [Portami alle carte aziendali](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Invita [il tuo team](${workspaceMembersLink})`,
