@@ -74,8 +74,8 @@ function IOURequestStepDestination({
     const shouldShowNotFoundPage = isEmptyObject(policy);
 
     const {isOffline} = useNetwork();
-    const isLoading = !isOffline && isLoadingOnyxValue(policyMetadata);
-    const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline;
+    const isLoading = !isOffline && (!customUnit?.rates || isLoadingOnyxValue(policyMetadata));
+    const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline && !isLoading;
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
 
     const navigateBack = () => {
@@ -92,7 +92,7 @@ function IOURequestStepDestination({
                 const shouldAutoReport = !!policy?.autoReporting || !!personalPolicy?.autoReporting || action !== CONST.IOU.ACTION.CREATE || !transaction?.isFromGlobalCreate;
                 const transactionReportID = shouldAutoReport ? policyExpenseReport?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
+                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, accountID);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '');
             }

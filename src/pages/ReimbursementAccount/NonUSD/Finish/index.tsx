@@ -5,8 +5,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 // eslint-disable-next-line no-restricted-imports
 import {ChatBubble} from '@components/Icon/Expensicons';
-// eslint-disable-next-line no-restricted-imports
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -27,7 +25,7 @@ function Finish() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow'] as const);
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -66,7 +64,7 @@ function Finish() {
                 </Section>
                 <Section
                     title={translate('finishStep.enable2FA')}
-                    icon={Illustrations.ShieldYellow}
+                    icon={illustrations.ShieldYellow}
                     titleStyles={[styles.mb4, styles.textHeadline]}
                     containerStyles={[styles.mh5]}
                     menuItems={[
