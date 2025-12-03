@@ -396,6 +396,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
+    const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy);
 
     if (isMarkAsCashAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
@@ -409,7 +410,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
-    if (isRemoveHoldAction(report, chatReport, reportTransactions) || isPayActionWithAllExpensesHeld) {
+    if (isRemoveHoldAction(report, chatReport, reportTransactions) || (isPayActionWithAllExpensesHeld && expensesToHold.length)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
@@ -428,7 +429,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 
-    if (getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy).length) {
+    if (expensesToHold.length) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
