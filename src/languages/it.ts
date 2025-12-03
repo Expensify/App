@@ -7477,7 +7477,6 @@ ${
             hasChildReportAwaitingAction: 'Ha un rapporto figlio in attesa di azione',
             hasMissingInvoiceBankAccount: 'Manca il conto bancario della fattura',
             hasUnresolvedCardFraudAlert: 'Ha una alerta di fraude di carta non risolta',
-            hasDEWError: 'Ha errore DEW',
         },
         reasonRBR: {
             hasErrors: 'Ha errori nei dati del report o delle azioni del report',

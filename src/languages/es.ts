@@ -7668,7 +7668,6 @@ ${amount} para ${merchant} - ${date}`,
             hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
             hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
             hasUnresolvedCardFraudAlert: 'Tiene una alerta de fraude de tarjeta sin resolver',
-            hasDEWError: 'Tiene error de DEW',
         },
         reasonRBR: {
             hasErrors: 'Tiene errores en los datos o las acciones del informe',
