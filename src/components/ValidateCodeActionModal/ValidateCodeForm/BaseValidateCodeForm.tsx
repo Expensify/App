@@ -19,7 +19,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import ValidateCodeCountdown from '@pages/signin/ValidateCodeCountdown';
 import type {ValidateCodeCountdownHandle} from '@pages/signin/ValidateCodeCountdown/types';

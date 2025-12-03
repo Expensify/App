@@ -221,6 +221,8 @@ function useBulkPayOptions({
     }, [
         hasActivatedWallet,
         translate,
+        icons.Building,
+        icons.User,
         selectedReportID,
         selectedPolicyID,
         shouldShowBusinessBankAccountOptions,
