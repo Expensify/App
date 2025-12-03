@@ -164,6 +164,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         });
 
         if (!shouldUseNarrowLayout && isRoutePreloaded(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
+            // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
             navigationRef.dispatch(StackActions.push(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
             return;
         }
