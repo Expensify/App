@@ -447,39 +447,11 @@ function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountLis
 }
 
 /**
- * Returns business bank accounts that are currently being set up for the specified policy.
- *
- * An account is considered eligible if:
- * - Its currency matches the policy currency (`bankCurrency === policyCurrency`),
- * - Its state is `SETUP`,
- * - Its type is `BUSINESS`,
- * - It is associated with the specified policy (`additionalData.policyID === policyID`).
- *
- * @param bankAccountList - list of bank accounts
- * @param policyCurrency - given policy currency
- * @param policyID - given policy ID
- */
-function getBusinessBankAccountsThatAreBeingSetUp(bankAccountList: BankAccountList | undefined, policyCurrency: string | undefined, policyID: string | undefined) {
-    if (!bankAccountList || policyCurrency === undefined) {
-        return [];
-    }
-
-    return Object.values(bankAccountList).filter((account) => {
-        return (
-            account.bankCurrency === policyCurrency &&
-            account.accountData?.state === CONST.BANK_ACCOUNT.STATE.SETUP &&
-            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
-            account?.accountData?.additionalData?.policyID === policyID
-        );
-    });
-}
-
-/**
  * Returns business bank accounts that are eligible to be connected to the given policy.
  *
  * An account is considered eligible if:
  * - It has the same currency as the policy (`bankCurrency === policy.outputCurrency`),
- * - Its state is `OPEN`,
+ * - Its state is not `LOCKED` or `DELETED`,
  * - Its type is `BUSINESS`,
  * - It is not already linked to the policy's ACH account.
  *
@@ -494,9 +466,35 @@ function getValidBusinessBankAccountToConnectToPolicy(bankAccountList: BankAccou
     return Object.values(bankAccountList).filter((account) => {
         return (
             account.bankCurrency === policy?.outputCurrency &&
-            account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN &&
+            account.accountData?.state !== CONST.BANK_ACCOUNT.STATE.LOCKED &&
+            account.accountData?.state !== CONST.BANK_ACCOUNT.STATE.DELETED &&
             account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
             account?.accountData?.bankAccountID !== policy?.achAccount?.bankAccountID
+        );
+    });
+}
+
+/**
+ * Returns business bank accounts that are:
+ * - It has the same currency as the policy (`bankCurrency === policy.outputCurrency`),
+ * - Its state is `OPEN`
+ * - Its type is `BUSINESS`,
+ * - It's linked to the policy's ACH account.
+ *
+ * @param bankAccountList - list of bank accounts
+ * @param policy - given policy
+ */
+function getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policy: OnyxEntry<Policy> | undefined) {
+    if (!bankAccountList || policy === undefined) {
+        return [];
+    }
+
+    return Object.values(bankAccountList).filter((account) => {
+        return (
+            account.bankCurrency === policy?.outputCurrency &&
+            account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN &&
+            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+            account?.accountData?.bankAccountID === policy?.achAccount?.bankAccountID
         );
     });
 }
@@ -506,8 +504,8 @@ export {
     convertPolicyEmployeesToApprovalWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
     getValidBusinessBankAccountToConnectToPolicy,
-    getBusinessBankAccountsThatAreBeingSetUp,
     getEligibleExistingBusinessBankAccounts,
+    getOpenConnectedToPolicyBusinessBankAccounts,
     INITIAL_APPROVAL_WORKFLOW,
     updateWorkflowDataOnApproverRemoval,
 };
