@@ -93,6 +93,7 @@ function CardSection() {
             retryBillingFailed: subscriptionRetryBillingStatusFailed,
             creditCardEyesIcon: illustrations.CreditCardEyes,
             locale: preferredLocale,
+            fundList,
         }),
     );
 
@@ -116,6 +117,7 @@ function CardSection() {
                 retryBillingFailed: subscriptionRetryBillingStatusFailed,
                 creditCardEyesIcon: illustrations.CreditCardEyes,
                 locale: preferredLocale,
+                fundList,
             }),
         );
     }, [
@@ -129,6 +131,7 @@ function CardSection() {
         billingDisputePending,
         illustrations.CreditCardEyes,
         preferredLocale,
+        fundList,
     ]);
 
     const handleRetryPayment = () => {

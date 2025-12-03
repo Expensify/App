@@ -256,7 +256,7 @@ describe('GoogleTagManagerTest', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(!!getCardForSubscriptionBilling()).toBe(true);
+        expect(!!getCardForSubscriptionBilling(FUND_LIST)).toBe(true);
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(0);
     });
 });

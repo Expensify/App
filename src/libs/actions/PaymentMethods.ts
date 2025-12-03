@@ -266,7 +266,8 @@ function addSubscriptionPaymentCard(
             failureData,
         });
     }
-    if (getCardForSubscriptionBilling()) {
+    const fundList = Onyx.get(ONYXKEYS.FUND_LIST);
+    if (getCardForSubscriptionBilling(fundList)) {
         Log.info(`[GTM] Not logging ${CONST.ANALYTICS.EVENT.PAID_ADOPTION} because a card was already added`);
     } else {
         GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
