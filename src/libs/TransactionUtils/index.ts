@@ -308,7 +308,11 @@ function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isScanning(transaction));
+    return (
+        (isExpensifyCardTransaction(transaction) && isPending(transaction)) ||
+        (isScanRequest(transaction) && isMerchantMissing(transaction) && isAmountMissing(transaction)) ||
+        (isScanRequest(transaction) && isScanning(transaction))
+    );
 }
 
 /**

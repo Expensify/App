@@ -1162,7 +1162,6 @@ const CONST = {
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
             ADD_EXPENSE: 'addExpense',
-            REVIEW: 'review',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -6631,7 +6630,6 @@ const CONST = {
         },
         ACTION_TYPES: {
             VIEW: 'view',
-            REVIEW: 'review',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',

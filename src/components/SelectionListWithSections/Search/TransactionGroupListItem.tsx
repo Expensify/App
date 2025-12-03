@@ -293,6 +293,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             isSelectAllChecked,
             isIndeterminate,
             onDEWModalOpen,
+            isDEWBetaEnabled,
             groupBy,
             isExpanded,
             onExpandIconPress,
