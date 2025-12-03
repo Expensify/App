@@ -14,7 +14,7 @@ function clearAutoOffTimeout() {
     if (!autoOffTimeout) {
         return;
     }
-    
+
     clearTimeout(autoOffTimeout);
     autoOffTimeout = null;
 }
