@@ -93,7 +93,7 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
                         </PressableWithFeedback>
                     );
                 })}
-                {/* We need to several invisible items at the end of the avatar list to guarantee that the last row avatars are aligned properly */}
+                {/* We need to add several invisible items at the end of the avatar list to guarantee that the last row avatars are aligned properly */}
                 {[...Array(SPACER_SIZE).keys()].map((i) => (
                     <View
                         key={`spacer-${i}`}
