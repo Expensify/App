@@ -212,6 +212,7 @@ function BaseValidateCodeForm({
             inputValidateCodeRef.current?.clear();
         }
     }, [validateCodeSent, wideRHPRouteKeys.length, isInPageModal]);
+
     /**
      * Request a validate code / magic code be sent to verify this contact method
      */
