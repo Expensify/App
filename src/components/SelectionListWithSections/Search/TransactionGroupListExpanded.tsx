@@ -114,11 +114,11 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const {markReportIDAsExpense} = useContext(WideRHPContext);
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
-        const reportID = getReportIDForTransaction(transactionItem);
+        const reportID = getReportIDForTransaction(transactionItem, transactionItem?.reportAction?.childReportID);
 
         const navigateToTransactionThread = () => {
-            if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                createAndOpenSearchTransactionThread(transactionItem, currentSearchHash, backTo);
+            if (!transactionItem?.reportAction?.childReportID) {
+                createAndOpenSearchTransactionThread(transactionItem, backTo, transactionItem?.reportAction?.childReportID);
                 return;
             }
             markReportIDAsExpense(reportID);
