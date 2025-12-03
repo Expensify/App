@@ -5,7 +5,7 @@ import {endSpan, startSpan} from './activeSpans';
 /**
  * Create a span for a skeleton component. This helps identify "infinite skeleton" issues where loading states don't resolve.
  */
-function useSkeletonSpan(component: string ) {
+function useSkeletonSpan(component: string) {
     const reactId = useId();
 
     useEffect(() => {
