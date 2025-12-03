@@ -11,10 +11,12 @@ let autoOffTimeout: NodeJS.Timeout | null = null;
  * Clear the auto-off timeout if it exists
  */
 function clearAutoOffTimeout() {
-    if (autoOffTimeout) {
-        clearTimeout(autoOffTimeout);
-        autoOffTimeout = null;
+    if (!autoOffTimeout) {
+        return;
     }
+    
+    clearTimeout(autoOffTimeout);
+    autoOffTimeout = null;
 }
 
 /**
