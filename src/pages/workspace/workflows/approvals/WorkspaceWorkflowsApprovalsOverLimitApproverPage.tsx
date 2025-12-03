@@ -45,6 +45,8 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const isDefault = approvalWorkflow?.isDefault;
     const membersEmail = useMemo(() => approvalWorkflow?.members.map((member) => member.email), [approvalWorkflow?.members]);
 
+    const currentApproverEmail = currentApprover?.email;
+
     const allApprovers: SelectionListApprover[] = useMemo(() => {
         if (isApprovalWorkflowLoading || !employeeList) {
             return [];
@@ -61,6 +63,10 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 }
 
                 if (!isDefault && policy?.preventSelfApproval && membersEmail?.includes(email)) {
+                    return null;
+                }
+
+                if (email === currentApproverEmail) {
                     return null;
                 }
 
@@ -94,6 +100,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
         expensifyIcons.FallbackAvatar,
         isDefault,
         membersEmail,
+        currentApproverEmail,
     ]);
 
     const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading;

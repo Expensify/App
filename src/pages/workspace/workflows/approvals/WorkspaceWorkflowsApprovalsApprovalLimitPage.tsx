@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -52,16 +52,23 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const currentApprover = approvalWorkflow?.approvers?.[approverIndex];
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const [approvalLimit, setApprovalLimit] = useState<string>(() => {
+    const selectedApproverEmail = currentApprover?.overLimitForwardsTo ?? '';
+
+    const defaultApprovalLimit = useMemo(() => {
         if (currentApprover?.approvalLimit) {
             return convertToFrontendAmountAsString(currentApprover.approvalLimit, currency);
         }
         return '';
-    });
+    }, [currentApprover?.approvalLimit, currency]);
 
+    const [approvalLimit, setApprovalLimit] = useState(defaultApprovalLimit);
     const [hasSubmitted, setHasSubmitted] = useState(false);
 
-    const selectedApproverEmail = currentApprover?.overLimitForwardsTo ?? '';
+    useEffect(() => {
+        if (selectedApproverEmail) {
+            setHasSubmitted(false);
+        }
+    }, [selectedApproverEmail]);
 
     const selectedApproverDisplayName = useMemo(() => {
         if (!selectedApproverEmail) {
@@ -71,40 +78,22 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         return Str.removeSMSDomain(personalDetails?.displayName ?? selectedApproverEmail);
     }, [selectedApproverEmail, personalDetailsByEmail]);
 
-    const isCircularReference = useMemo(() => {
-        if (!selectedApproverEmail || !currentApprover?.email) {
-            return false;
-        }
-        return currentApprover.email === selectedApproverEmail;
-    }, [selectedApproverEmail, currentApprover?.email]);
-
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
-
-    const hasAmount = approvalLimit.length > 0 && Number(approvalLimit) > 0;
-    const hasApprover = selectedApproverEmail.length > 0;
-
-    const bothEmpty = !hasAmount && !hasApprover;
-    const onlyAmountEmpty = !hasAmount && hasApprover;
-    const onlyApproverEmpty = hasAmount && !hasApprover;
 
     const approverDisplayName = currentApprover ? Str.removeSMSDomain(currentApprover.displayName) : '';
     const isApproverSelected = isEditFlow ? approverDisplayName.length > 0 : true;
     const areLimitFieldsDisabled = isEditFlow && !isApproverSelected;
-    const shouldShowRemoveLimitRow = isEditFlow && (hasAmount || hasApprover);
 
-    // In edit mode, user can save with both empty (removes limit). In create mode, show error on submit.
-    const bottomErrorMessage = hasSubmitted && bothEmpty && !isEditFlow ? translate('workflowsApprovalLimitPage.enterBothError') : '';
-    const amountErrorText = onlyAmountEmpty ? translate('workflowsApprovalLimitPage.enterAmountError') : undefined;
-    const approverErrorText = useMemo(() => {
-        if (isCircularReference) {
-            return translate('workflowsApprovalLimitPage.circularReferenceError', {approverName: selectedApproverDisplayName});
-        }
-        if (onlyApproverEmpty) {
-            return translate('workflowsApprovalLimitPage.enterApproverError');
-        }
-        return undefined;
-    }, [onlyApproverEmpty, isCircularReference, selectedApproverDisplayName, translate]);
+    const hasAmount = approvalLimit.length > 0 && Number(approvalLimit) > 0;
+    const hasApprover = selectedApproverEmail.length > 0;
+    const bothEmpty = !hasAmount && !hasApprover;
+    const onlyAmountEmpty = !hasAmount && hasApprover;
+    const onlyApproverEmpty = hasAmount && !hasApprover;
+
+    const amountError = hasSubmitted && onlyAmountEmpty ? translate('workflowsApprovalLimitPage.enterAmountError') : undefined;
+    const approverErrorText = hasSubmitted && onlyApproverEmpty ? translate('workflowsApprovalLimitPage.enterApproverError') : undefined;
+    const bottomError = hasSubmitted && bothEmpty && !isEditFlow ? translate('workflowsApprovalLimitPage.enterBothError') : undefined;
 
     const handleSkip = useCallback(() => {
         if (approvalWorkflow && currentApprover) {
@@ -128,15 +117,11 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         }
     }, [approvalWorkflow, currentApprover, approverIndex, policy, personalDetailsByEmail, isEditFlow, backTo, policyID]);
 
-    const handleNext = useCallback(() => {
-        setHasSubmitted(true);
-
-        const hasValidationError = isCircularReference || onlyAmountEmpty || onlyApproverEmpty || (!isEditFlow && bothEmpty);
-        if (hasValidationError || !approvalWorkflow || !currentApprover) {
+    const handleSubmit = useCallback(() => {
+        if (!approvalWorkflow || !currentApprover) {
             return;
         }
 
-        // In edit mode with both empty, clear the limit (same as Remove limit)
         if (isEditFlow && bothEmpty) {
             setApprovalWorkflowApprover({
                 approver: {
@@ -150,6 +135,11 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                 personalDetailsByEmail,
             });
             Navigation.goBack(backTo);
+            return;
+        }
+
+        if (bothEmpty || onlyAmountEmpty || onlyApproverEmpty) {
+            setHasSubmitted(true);
             return;
         }
 
@@ -173,12 +163,11 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
         }
     }, [
-        approvalLimit,
-        selectedApproverEmail,
-        isCircularReference,
+        bothEmpty,
         onlyAmountEmpty,
         onlyApproverEmpty,
-        bothEmpty,
+        approvalLimit,
+        selectedApproverEmail,
         isEditFlow,
         approvalWorkflow,
         currentApprover,
@@ -189,42 +178,42 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         policyID,
     ]);
 
-    const navigateToApproverSelector = useCallback(() => {
-        if (approvalWorkflow && currentApprover && approvalLimit) {
-            const limitInCents = convertToBackendAmount(Number.parseFloat(approvalLimit));
-            setApprovalWorkflowApprover({
-                approver: {
-                    ...currentApprover,
-                    approvalLimit: limitInCents,
-                },
-                approverIndex,
-                currentApprovalWorkflow: approvalWorkflow,
-                policy,
-                personalDetailsByEmail,
-            });
+    const handleAmountChange = useCallback((value: string) => {
+        setApprovalLimit(value);
+        setHasSubmitted(false);
+    }, []);
+
+    const saveCurrentStateToOnyx = useCallback(() => {
+        if (!approvalWorkflow || !currentApprover) {
+            return;
         }
+        const limitInCents = approvalLimit ? convertToBackendAmount(Number.parseFloat(approvalLimit)) : null;
+        setApprovalWorkflowApprover({
+            approver: {
+                ...currentApprover,
+                approvalLimit: limitInCents,
+                overLimitForwardsTo: selectedApproverEmail,
+            },
+            approverIndex,
+            currentApprovalWorkflow: approvalWorkflow,
+            policy,
+            personalDetailsByEmail,
+        });
+    }, [approvalWorkflow, currentApprover, approvalLimit, selectedApproverEmail, approverIndex, policy, personalDetailsByEmail]);
+
+    const navigateToApproverSelector = useCallback(() => {
+        saveCurrentStateToOnyx();
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(policyID, approverIndex, backTo));
-    }, [policyID, approverIndex, approvalWorkflow, currentApprover, approvalLimit, policy, personalDetailsByEmail, backTo]);
+    }, [saveCurrentStateToOnyx, policyID, approverIndex, backTo]);
 
     const navigateToApproverChange = useCallback(() => {
-        if (approvalWorkflow && currentApprover) {
-            const limitInCents = approvalLimit ? convertToBackendAmount(Number.parseFloat(approvalLimit)) : currentApprover.approvalLimit;
-            setApprovalWorkflowApprover({
-                approver: {
-                    ...currentApprover,
-                    approvalLimit: limitInCents,
-                    overLimitForwardsTo: selectedApproverEmail || currentApprover.overLimitForwardsTo,
-                },
-                approverIndex,
-                currentApprovalWorkflow: approvalWorkflow,
-                policy,
-                personalDetailsByEmail,
-            });
-        }
+        saveCurrentStateToOnyx();
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, backTo));
-    }, [policyID, approverIndex, backTo, approvalWorkflow, currentApprover, approvalLimit, selectedApproverEmail, policy, personalDetailsByEmail]);
+    }, [saveCurrentStateToOnyx, policyID, approverIndex, backTo]);
 
     const buttonContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mh5, styles.mb5]});
+
+    const shouldShowRemoveLimitRow = isEditFlow && (hasAmount || hasApprover);
 
     return (
         <AccessOrNotFoundWrapper
@@ -280,11 +269,11 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                     label={translate('workflowsApprovalLimitPage.reportAmountLabel')}
                                     currency={currency}
                                     value={approvalLimit}
-                                    onInputChange={setApprovalLimit}
+                                    onInputChange={handleAmountChange}
                                     isCurrencyPressable={false}
                                     displayAsTextInput
-                                    errorText={amountErrorText}
                                     disabled={areLimitFieldsDisabled}
+                                    errorText={amountError}
                                 />
                             </View>
 
@@ -298,7 +287,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 brickRoadIndicator={approverErrorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 errorText={approverErrorText}
-                                shouldRenderErrorAsHTML
                                 disabled={areLimitFieldsDisabled}
                                 shouldGreyOutWhenDisabled
                             />
@@ -312,15 +300,15 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                 />
                             )}
                         </View>
-
-                        {!!bottomErrorMessage && (
-                            <DotIndicatorMessage
-                                type="error"
-                                messages={{error: bottomErrorMessage}}
-                                style={[styles.mh5, styles.mb3]}
-                            />
-                        )}
                     </ScrollView>
+
+                    {!!bottomError && (
+                        <DotIndicatorMessage
+                            type="error"
+                            messages={{error: bottomError}}
+                            style={[styles.mh5, styles.mb3]}
+                        />
+                    )}
 
                     <View style={buttonContainerStyle}>
                         {!isEditFlow && (
@@ -335,7 +323,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                             large
                             success
                             text={isEditFlow ? translate('common.save') : translate('workflowsApprovalLimitPage.next')}
-                            onPress={handleNext}
+                            onPress={handleSubmit}
                         />
                     </View>
                 </FullPageNotFoundView>
