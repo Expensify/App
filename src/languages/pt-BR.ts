@@ -4827,14 +4827,15 @@ ${
             },
             companyCards: {
                 title: 'Cartões corporativos',
-                subtitle: 'Importar despesas de cartões corporativos existentes.',
+                subtitle: 'Conecte os cartões que você já tem.',
                 feed: {
-                    title: 'Importar cartões corporativos',
+                    title: 'Traga seus próprios cartões (BYOC)',
                     features: {
-                        support: 'Suporte para todos os principais provedores de cartão',
-                        assignCards: 'Atribuir cartões para toda a equipe',
-                        automaticImport: 'Importação automática de transações',
+                        support: 'Conecte cartões de mais de 10.000 bancos',
+                        assignCards: 'Vincule os cartões existentes da sua equipe',
+                        automaticImport: 'Importaremos as transações automaticamente',
                     },
+                    subtitle: 'Conecte os cartões que você já tem para importação automática de transações, associação de recibos e conciliação.',
                 },
                 bankConnectionError: 'Problema de conexão bancária',
                 connectWithPlaid: 'conectar via Plaid',
@@ -7137,7 +7138,7 @@ ${
             preTrial: {
                 title: 'Inicie uma avaliação gratuita',
                 subtitleStart: 'Como próximo passo,',
-                subtitleLink: 'complete sua lista de verificação de configuração',
+                subtitleLink: 'conclua sua lista de verificação de configuração',
                 subtitleEnd: 'para que sua equipe possa começar a registrar despesas.',
             },
             trialStarted: {

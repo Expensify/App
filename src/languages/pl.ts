@@ -4823,14 +4823,15 @@ ${
             },
             companyCards: {
                 title: 'Karty firmowe',
-                subtitle: 'Importuj wydatki z istniejących kart firmowych.',
+                subtitle: 'Połącz karty, które już masz.',
                 feed: {
-                    title: 'Importuj karty firmowe',
+                    title: 'Używaj własnych kart (BYOC)',
                     features: {
-                        support: 'Obsługa wszystkich głównych dostawców kart',
-                        assignCards: 'Przypisz karty do całego zespołu',
-                        automaticImport: 'Automatyczny import transakcji',
+                        support: 'Połącz karty z ponad 10 000 banków',
+                        assignCards: 'Połącz istniejące karty Twojego zespołu',
+                        automaticImport: 'Będziemy automatycznie importować transakcje',
                     },
+                    subtitle: 'Połącz posiadane karty w celu automatycznego importu transakcji, dopasowywania paragonów i uzgadniania.',
                 },
                 bankConnectionError: 'Problem z połączeniem z bankiem',
                 connectWithPlaid: 'Połącz przez Plaid',
@@ -7125,9 +7126,9 @@ ${
                 `Zakwestionowałeś opłatę w wysokości ${amountOwed} na karcie kończącej się na ${cardEnding}. Twoje konto zostanie zablokowane do czasu rozwiązania sporu z bankiem.`,
             preTrial: {
                 title: 'Rozpocznij darmowy okres próbny',
-                subtitleStart: 'Jako kolejny krok,',
-                subtitleLink: 'ukończ listę kontrolną konfiguracji',
-                subtitleEnd: 'aby Twój zespół mógł zacząć rozliczać wydatki.',
+                subtitleStart: 'W kolejnym kroku,',
+                subtitleLink: 'Ukończ listę kontrolną konfiguracji',
+                subtitleEnd: 'aby twój zespół mógł zacząć rozliczać wydatki.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Okres próbny: ${numOfDays} ${numOfDays === 1 ? 'dzień' : 'dni'} pozostało!`,

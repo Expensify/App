@@ -4853,14 +4853,15 @@ ${
             },
             companyCards: {
                 title: 'Unternehmenskarten',
-                subtitle: 'Ausgaben von bestehenden Firmenkarten importieren.',
+                subtitle: 'Verknüpfe die Karten, die du bereits hast.',
                 feed: {
-                    title: 'Unternehmens-Karten importieren',
+                    title: 'Eigene Karten verwenden (BYOC)',
                     features: {
-                        support: 'Unterstützung für alle großen Kartenanbieter',
-                        assignCards: 'Karten dem gesamten Team zuweisen',
-                        automaticImport: 'Automatischer Transaktionsimport',
+                        support: 'Verbinde Karten von über 10.000 Banken',
+                        assignCards: 'Verknüpfe die vorhandenen Karten deines Teams',
+                        automaticImport: 'Wir importieren Transaktionen automatisch.',
                     },
+                    subtitle: 'Verknüpfe die Karten, die du bereits hast, für den automatischen Transaktionsimport, Belegabgleich und Abstimmung.',
                 },
                 bankConnectionError: 'Problem mit der Bankverbindung',
                 connectWithPlaid: 'Verbindung über Plaid herstellen',
@@ -7173,9 +7174,9 @@ ${
                 `Sie haben die Belastung von ${amountOwed} auf der Karte mit der Endung ${cardEnding} angefochten. Ihr Konto wird gesperrt, bis der Streit mit Ihrer Bank geklärt ist.`,
             preTrial: {
                 title: 'Kostenlose Testversion starten',
-                subtitleStart: 'Als nächster Schritt,',
-                subtitleLink: 'Vervollständigen Sie Ihre Einrichtungsliste',
-                subtitleEnd: 'damit Ihr Team mit der Spesenabrechnung beginnen kann.',
+                subtitleStart: 'Als nächsten Schritt,',
+                subtitleLink: 'Schließen Sie Ihre Einrichtungs-Checkliste ab',
+                subtitleEnd: 'damit dein Team mit dem Einreichen von Spesen beginnen kann.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Testversion: ${numOfDays} ${numOfDays === 1 ? 'Tag' : 'Tage'} übrig!`,

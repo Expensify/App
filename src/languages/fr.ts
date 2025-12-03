@@ -4862,14 +4862,15 @@ ${
             },
             companyCards: {
                 title: "Cartes d'entreprise",
-                subtitle: "Importer les dépenses à partir des cartes d'entreprise existantes.",
+                subtitle: 'Connectez les cartes que vous avez déjà.',
                 feed: {
-                    title: "Importer des cartes d'entreprise",
+                    title: 'Apportez vos propres cartes (BYOC)',
                     features: {
-                        support: 'Prise en charge de tous les principaux fournisseurs de cartes',
-                        assignCards: "Attribuer des cartes à toute l'équipe",
-                        automaticImport: 'Importation automatique des transactions',
+                        support: 'Connectez des cartes de plus de 10 000 banques',
+                        assignCards: 'Associez les cartes existantes de votre équipe',
+                        automaticImport: 'Nous importerons les transactions automatiquement.',
                     },
+                    subtitle: 'Liez les cartes que vous avez déjà pour l’importation automatique des transactions, la correspondance des reçus et le rapprochement.',
                 },
                 bankConnectionError: 'Problème de connexion bancaire',
                 connectWithPlaid: 'Connexion via Plaid',
@@ -7179,9 +7180,9 @@ ${
                 `Vous avez contesté le débit de ${amountOwed} sur la carte se terminant par ${cardEnding}. Votre compte sera verrouillé jusqu'à ce que le litige soit résolu avec votre banque.`,
             preTrial: {
                 title: 'Commencer un essai gratuit',
-                subtitleStart: 'Comme prochaine étape,',
-                subtitleLink: 'complétez votre liste de vérification de configuration',
-                subtitleEnd: 'afin que votre équipe puisse commencer à soumettre des notes de frais.',
+                subtitleStart: 'Pour la prochaine étape,',
+                subtitleLink: 'Terminez votre liste de contrôle de configuration',
+                subtitleEnd: 'pour que votre équipe puisse commencer à soumettre des notes de frais.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Essai : ${numOfDays} ${numOfDays === 1 ? 'jour' : 'jours'} restants !`,

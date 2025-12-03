@@ -4835,14 +4835,15 @@ ${
             },
             companyCards: {
                 title: 'Bedrijfskaarten',
-                subtitle: 'Importeer uitgaven van bestaande bedrijfskaarten.',
+                subtitle: 'Koppel de kaarten die je al hebt.',
                 feed: {
-                    title: 'Bedrijfspassen importeren',
+                    title: 'Gebruik je eigen kaarten (BYOC)',
                     features: {
-                        support: 'Ondersteuning voor alle grote kaartaanbieders',
-                        assignCards: 'Wijs kaarten toe aan het hele team',
-                        automaticImport: 'Automatische transactie-import',
+                        support: 'Verbind kaarten van 10.000+ banken',
+                        assignCards: 'Koppel de bestaande kaarten van je team',
+                        automaticImport: 'We halen transacties automatisch binnen',
                     },
+                    subtitle: 'Koppel de kaarten die je al hebt voor het automatisch importeren van transacties, het matchen van bonnen en het afstemmen.',
                 },
                 bankConnectionError: 'Probleem met bankverbinding',
                 connectWithPlaid: 'verbinding maken via Plaid',
@@ -7137,8 +7138,8 @@ ${
                 `U betwistte de ${amountOwed} kosten op de kaart die eindigt op ${cardEnding}. Uw account wordt geblokkeerd totdat het geschil met uw bank is opgelost.`,
             preTrial: {
                 title: 'Begin een gratis proefperiode',
-                subtitleStart: 'Als een volgende stap,',
-                subtitleLink: 'voltooi uw setupchecklist',
+                subtitleStart: 'Als volgende stap,',
+                subtitleLink: 'rond je instellingschecklist af',
                 subtitleEnd: 'zodat je team kan beginnen met declareren.',
             },
             trialStarted: {

@@ -4736,14 +4736,11 @@ ${
             },
             companyCards: {
                 title: '公司卡片',
-                subtitle: '从现有公司卡导入支出。',
+                subtitle: '连接您已有的卡片。',
                 feed: {
-                    title: '导入公司卡片',
-                    features: {
-                        support: '支持所有主要的信用卡提供商',
-                        assignCards: '将卡片分配给整个团队',
-                        automaticImport: '自动交易导入',
-                    },
+                    title: '自带卡（BYOC）',
+                    features: {support: '连接来自10,000+家银行的卡片', assignCards: '关联您团队现有的卡片', automaticImport: '我们会自动导入交易'},
+                    subtitle: '关联你已有的卡片，以便自动导入交易、匹配收据并进行对账。',
                 },
                 bankConnectionError: '银行连接问题',
                 connectWithPlaid: '通过 Plaid 连接',
@@ -6981,12 +6978,7 @@ ${
             },
             cardOnDispute: ({amountOwed, cardEnding}: BillingBannerCardOnDisputeParams) =>
                 `您对卡号以${cardEnding}结尾的卡上的${amountOwed}费用提出了异议。在与您的银行解决争议之前，您的账户将被锁定。`,
-            preTrial: {
-                title: '开始免费试用',
-                subtitleStart: '作为下一步，',
-                subtitleLink: '完成您的设置清单',
-                subtitleEnd: '这样您的团队就可以开始报销了。',
-            },
+            preTrial: {title: '开始免费试用', subtitleStart: '作为下一步，', subtitleLink: '完成您的设置清单', subtitleEnd: '这样您的团队就可以开始报销了。'},
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `试用期：剩余 ${numOfDays} ${numOfDays === 1 ? '天' : '天'} 天！`,
                 subtitle: '添加支付卡以继续使用您所有喜爱的功能。',

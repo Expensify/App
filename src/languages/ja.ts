@@ -4799,14 +4799,11 @@ ${
             },
             companyCards: {
                 title: '会社カード',
-                subtitle: '既存の会社カードから支出をインポートします。',
+                subtitle: 'すでにお持ちのカードを連携しましょう。',
                 feed: {
-                    title: '会社カードをインポート',
-                    features: {
-                        support: 'すべての主要カードプロバイダーに対応',
-                        assignCards: 'チーム全体にカードを割り当てる',
-                        automaticImport: '自動取引インポート',
-                    },
+                    title: 'お手持ちのカードを持ち込む（BYOC）',
+                    features: {support: '10,000以上の銀行のカードを連携', assignCards: 'チームの既存のカードをリンクする', automaticImport: '取引を自動的に取り込みます'},
+                    subtitle: '自動で取引を取り込み、レシートを照合し、消込できるよう、既にお持ちのカードをリンクしましょう。',
                 },
                 bankConnectionError: '銀行接続の問題',
                 connectWithPlaid: 'Plaid経由で接続してください',
@@ -7092,7 +7089,7 @@ ${
                 title: '無料トライアルを開始',
                 subtitleStart: '次のステップとして、',
                 subtitleLink: 'セットアップチェックリストを完了する',
-                subtitleEnd: 'あなたのチームが経費精算を始められるように。',
+                subtitleEnd: 'チームが経費精算を開始できるようにしましょう。',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `トライアル: ${numOfDays} ${numOfDays === 1 ? '日' : '日'} 日残り！`,

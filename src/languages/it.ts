@@ -4841,14 +4841,15 @@ ${
             },
             companyCards: {
                 title: 'Carte aziendali',
-                subtitle: 'Importa le spese dalle carte aziendali esistenti.',
+                subtitle: 'Collega le carte che hai già.',
                 feed: {
-                    title: 'Importa carte aziendali',
+                    title: 'Porta le tue carte (BYOC)',
                     features: {
-                        support: 'Supporto per tutti i principali fornitori di carte',
-                        assignCards: "Assegna le carte all'intero team",
-                        automaticImport: 'Importazione automatica delle transazioni',
+                        support: 'Collega carte di oltre 10.000 banche',
+                        assignCards: 'Collega le carte esistenti del tuo team',
+                        automaticImport: 'Importeremo automaticamente le transazioni',
                     },
+                    subtitle: "Collega le carte che hai già per l'importazione automatica delle transazioni, l'abbinamento delle ricevute e la riconciliazione.",
                 },
                 bankConnectionError: 'Problema di connessione alla banca',
                 connectWithPlaid: 'Connettiti tramite Plaid',
@@ -7160,8 +7161,8 @@ ${
             preTrial: {
                 title: 'Inizia una prova gratuita',
                 subtitleStart: 'Come passo successivo,',
-                subtitleLink: 'completa la tua lista di controllo per la configurazione',
-                subtitleEnd: 'così il tuo team può iniziare a registrare le spese.',
+                subtitleLink: 'completa la checklist di configurazione',
+                subtitleEnd: 'così il tuo team può iniziare a rendicontare le spese.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Prova: ${numOfDays} ${numOfDays === 1 ? 'giorno' : 'giorni'} rimasti!`,
