@@ -96,6 +96,9 @@ describe('getReportPreviewAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const transaction = {
             reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
         } as unknown as Transaction;
 
         // Simulate how components use a hook to pass the isReportArchived parameter
@@ -131,6 +134,9 @@ describe('getReportPreviewAction', () => {
 
         const transaction = {
             reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
         } as unknown as Transaction;
 
         // Simulate how components use a hook to pass the isReportArchived parameter
@@ -196,6 +202,9 @@ describe('getReportPreviewAction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
             const transaction = {
                 reportID: `${REPORT_ID}`,
+                amount: 100,
+                merchant: 'Test Merchant',
+                created: '2025-01-01',
             } as unknown as Transaction;
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
@@ -283,6 +292,9 @@ describe('getReportPreviewAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const transaction = {
             reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
         } as unknown as Transaction;
 
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
