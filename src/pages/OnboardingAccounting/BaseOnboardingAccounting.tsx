@@ -105,7 +105,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
 
     const isVsb = onboarding?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
-    // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
+    // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup.
     useEffect(() => {
         if (!paidGroupPolicy || onboardingPolicyID) {
             return;
