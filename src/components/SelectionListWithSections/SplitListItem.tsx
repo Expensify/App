@@ -77,7 +77,10 @@ function SplitListItem<TItem extends ListItem>({
             return;
         }
 
-        //eslint-disable-next-line @typescript-eslint/no-deprecated
+        // Use InteractionManager to ensure input focus happens after all animations/interactions complete.
+        // This prevents focus from interrupting modal close/open animations which would cause UI glitches
+        // and "jumping" behavior when quickly navigating between screens.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             inputRef.current?.focus();
         });
