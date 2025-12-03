@@ -263,8 +263,7 @@ function shouldRequireMerchant(transaction: OnyxInputOrEntry<Transaction> | unde
         return false;
     }
 
-    // Return true if merchant is required and missing
-    return isMerchantRequired && isMerchantMissing(transaction);
+    return isMerchantRequired;
 }
 
 export {
