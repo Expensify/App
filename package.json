@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.2.67-10",
+  "version": "9.2.67-11",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -420,7 +420,7 @@
     ]
   },
   "engines": {
-    "node": "20.19.4",
+    "node": "20.19.5",
     "npm": "10.8.2"
   }
 }
