@@ -818,25 +818,34 @@ function SearchPage({route}: SearchPageProps) {
         });
     };
 
-    const {reportCount, expenseCount} = useMemo(() => {
+    const {reportCount, expenseCount, isAllOneTransactionReports} = useMemo(() => {
         let reports = 0;
         let expenses = 0;
+        let hasNonOneTransactionReport = false;
 
         for (const key of Object.keys(selectedTransactions)) {
             const selectedItem = selectedTransactions[key];
             if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
                 reports += 1;
+                hasNonOneTransactionReport = true;
             } else {
                 expenses += 1;
+                if (!selectedItem.isFromOneTransactionReport) {
+                    hasNonOneTransactionReport = true;
+                }
             }
-        };
+        }
 
-        return {reportCount: reports, expenseCount: expenses};
+        return {reportCount: reports, expenseCount: expenses, isAllOneTransactionReports: !hasNonOneTransactionReport && expenses > 0};
     }, [selectedTransactions]);
 
-    const isDeletingOnlyReports = reportCount > 0 && expenseCount === 0;
-    const deleteModalTitle = isDeletingOnlyReports ? translate('iou.deleteReport', {count: reportCount}) : translate('iou.deleteExpense', {count: expenseCount});
-    const deleteModalPrompt = isDeletingOnlyReports ? translate('iou.deleteReportConfirmation', {count: reportCount}) : translate('iou.deleteConfirmation', {count: expenseCount});
+    // Show "delete expense" only when ALL selected items are from one-transaction reports
+    // Show "delete report" in all other cases (empty reports, multi-expense reports, or mixtures)
+    const isDeletingOnlyExpenses = isAllOneTransactionReports;
+    const deleteModalTitle = isDeletingOnlyExpenses ? translate('iou.deleteExpense', {count: expenseCount}) : translate('iou.deleteReport', {count: reportCount || expenseCount});
+    const deleteModalPrompt = isDeletingOnlyExpenses
+        ? translate('iou.deleteConfirmation', {count: expenseCount})
+        : translate('iou.deleteReportConfirmation', {count: reportCount || expenseCount});
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         const initialTransaction = initMoneyRequest({

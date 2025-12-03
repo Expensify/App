@@ -212,7 +212,7 @@ function SearchList({
         }
 
         return flattenedItems.length;
-    }, [data, type, flattenedItems, emptyReports]);
+    }, [data, type, flattenedItems.length, emptyReports.length]);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
