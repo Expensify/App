@@ -7,14 +7,14 @@ type WideRHPContextType = {
     // Route keys of screens that should be displayed in super wide format
     superWideRHPRouteKeys: string[];
 
-    // If the secondary overlay for wide RHP should be rendered. This value takes into account the delay of closing transition.
+    // If the secondary overlay for wide RHP on super wide RHP should be rendered. This value takes into account the delay of closing transition.
     shouldRenderSecondaryOverlayForWideRHP: boolean;
 
-    // If the secondary overlay for single RHP on Wide RHP should be rendered. This value takes into account the delay of closing transition.
-    shouldRenderSecondaryOverlayForSingleRHPOnWideRHP: boolean;
+    // If the secondary overlay for single RHP on wide RHP should be rendered. This value takes into account the delay of closing transition.
+    shouldRenderSecondaryOverlayForRHPOnWideRHP: boolean;
 
-    // If the secondary overlay for single RHP on Super Wide RHP should be rendered. This value takes into account the delay of closing transition.
-    shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP: boolean;
+    // If the secondary overlay for single RHP on super wide RHP should be rendered. This value takes into account the delay of closing transition.
+    shouldRenderSecondaryOverlayForRHPOnSuperWideRHP: boolean;
 
     // If the tertiary overlay should be rendered. This value takes into account the delay of closing transition.
     shouldRenderTertiaryOverlay: boolean;

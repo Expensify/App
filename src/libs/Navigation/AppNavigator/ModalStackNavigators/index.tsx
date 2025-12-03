@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
@@ -6,9 +6,9 @@ import {
     animatedReceiptPaneRHPWidth,
     modalStackOverlaySuperWideRHPPositionLeft,
     modalStackOverlayWideRHPPositionLeft,
-    secondOverlayForSingleRHPOnSuperWideRHPProgress,
-    secondOverlayForSingleRHPOnWideRHPProgress,
-    secondOverlayForWideRHPProgress,
+    secondOverlayRHPOnSuperWideRHPProgress,
+    secondOverlayRHPOnWideRHPProgress,
+    secondOverlayWideRHPProgress,
     thirdOverlayProgress,
     WideRHPContext,
 } from '@components/WideRHPContextProvider';
@@ -111,6 +111,60 @@ function isWideRHPRouteName(routeName: string) {
     return routeName === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
 }
 
+function SecondaryOverlay() {
+    const {shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForWideRHP, superWideRHPRouteKeys, wideRHPRouteKeys} =
+        useContext(WideRHPContext);
+    const route = useRoute();
+
+    const isRHPDisplayedOnWideRHP = useMemo(
+        () => shouldRenderSecondaryOverlayForRHPOnWideRHP && ((isSuperWideRHPRouteName(route.name) && superWideRHPRouteKeys.length === 0) || isWideRHPRouteName(route.name)),
+        [route.name, shouldRenderSecondaryOverlayForRHPOnWideRHP, superWideRHPRouteKeys.length],
+    );
+
+    const isRHPDisplayedOnSuperWideRHP = useMemo(
+        () => shouldRenderSecondaryOverlayForRHPOnSuperWideRHP && isSuperWideRHPRouteName(route.name),
+        [route.name, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP],
+    );
+
+    const isWideRHPDisplayedOnSuperWideRHP = useMemo(
+        () => shouldRenderSecondaryOverlayForWideRHP && isSuperWideRHPRouteName(route.name),
+        [route.name, shouldRenderSecondaryOverlayForWideRHP],
+    );
+
+    if (isRHPDisplayedOnWideRHP) {
+        if (isWideRHPRouteName(route.name) && wideRHPRouteKeys.length === 1 && wideRHPRouteKeys.at(0)?.startsWith(SCREENS.SEARCH.MONEY_REQUEST_REPORT)) {
+            return null;
+        }
+
+        return (
+            <Overlay
+                progress={secondOverlayRHPOnWideRHPProgress}
+                positionLeftValue={superWideRHPRouteKeys.length > 0 ? modalStackOverlayWideRHPPositionLeft : animatedReceiptPaneRHPWidth}
+            />
+        );
+    }
+
+    if (isWideRHPDisplayedOnSuperWideRHP) {
+        return (
+            <Overlay
+                progress={secondOverlayWideRHPProgress}
+                positionLeftValue={modalStackOverlayWideRHPPositionLeft}
+            />
+        );
+    }
+
+    if (isRHPDisplayedOnSuperWideRHP) {
+        return (
+            <Overlay
+                progress={secondOverlayRHPOnSuperWideRHPProgress}
+                positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
+            />
+        );
+    }
+
+    return null;
+}
+
 /**
  * Create a modal stack navigator with an array of sub-screens.
  *
@@ -122,13 +176,22 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
-        const {
-            shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP,
-            shouldRenderSecondaryOverlayForSingleRHPOnWideRHP,
-            shouldRenderSecondaryOverlayForWideRHP,
-            shouldRenderTertiaryOverlay,
-        } = useContext(WideRHPContext);
+        const {shouldRenderTertiaryOverlay, syncWideRHPKeys, syncSuperWideRHPKeys} = useContext(WideRHPContext);
         const route = useRoute();
+
+        useFocusEffect(
+            useCallback(
+                () => () => {
+                    if (!isWideRHPRouteName(route.name) && !isSuperWideRHPRouteName(route.name)) {
+                        return;
+                    }
+
+                    syncWideRHPKeys();
+                    syncSuperWideRHPKeys();
+                },
+                [route.name, syncSuperWideRHPKeys, syncWideRHPKeys],
+            ),
+        );
 
         // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout, because we want to have information about screen width without the context of side modal.
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -143,21 +206,6 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 return screenOptions({route: optionRoute});
             },
             [screenOptions],
-        );
-
-        const isRHPDisplayedOnWideRHP = useMemo(
-            () => !isSmallScreenWidth && shouldRenderSecondaryOverlayForSingleRHPOnWideRHP && isWideRHPRouteName(route.name),
-            [isSmallScreenWidth, route.name, shouldRenderSecondaryOverlayForSingleRHPOnWideRHP],
-        );
-
-        const isRHPDisplayedOnSuperWideRHP = useMemo(
-            () => !isSmallScreenWidth && shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP && isSuperWideRHPRouteName(route.name),
-            [isSmallScreenWidth, route.name, shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP],
-        );
-
-        const isWideRHPDisplayedOnSuperWideRHP = useMemo(
-            () => !isSmallScreenWidth && shouldRenderSecondaryOverlayForWideRHP && isSuperWideRHPRouteName(route.name),
-            [isSmallScreenWidth, route.name, shouldRenderSecondaryOverlayForWideRHP],
         );
 
         return (
@@ -184,24 +232,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 {/* 2. Wide RHP is displayed on Super Wide RHP route. */}
                 {/* Please note that in these cases, the overlay is rendered from the RHP screen displayed below. For example, if we display RHP on Wide RHP, the secondary overlay is rendered from Wide RHP, etc. */}
                 {/* There is also a special case where three different RHP widths are displayed at the same time. In this case, an overlay under RHP should be rendered from Wide RHP. */}
-                {isRHPDisplayedOnWideRHP ? (
-                    <Overlay
-                        progress={secondOverlayForSingleRHPOnWideRHPProgress}
-                        positionLeftValue={animatedReceiptPaneRHPWidth}
-                    />
-                ) : null}
-                {isRHPDisplayedOnSuperWideRHP ? (
-                    <Overlay
-                        progress={secondOverlayForSingleRHPOnSuperWideRHPProgress}
-                        positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
-                    />
-                ) : null}
-                {isWideRHPDisplayedOnSuperWideRHP ? (
-                    <Overlay
-                        progress={secondOverlayForWideRHPProgress}
-                        positionLeftValue={modalStackOverlayWideRHPPositionLeft}
-                    />
-                ) : null}
+                {!isSmallScreenWidth && <SecondaryOverlay />}
                 {!isSmallScreenWidth && shouldRenderTertiaryOverlay && isWideRHPRouteName(route.name) ? (
                     <Overlay
                         progress={thirdOverlayProgress}

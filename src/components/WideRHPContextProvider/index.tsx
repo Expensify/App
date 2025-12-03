@@ -24,9 +24,9 @@ import useShouldRenderOverlay from './useShouldRenderOverlay';
 // 0 is folded/hidden, 1 is expanded/shown
 const expandedRHPProgress = new Animated.Value(0);
 const innerRHPProgress = new Animated.Value(0);
-const secondOverlayForWideRHPProgress = new Animated.Value(0);
-const secondOverlayForSingleRHPOnWideRHPProgress = new Animated.Value(0);
-const secondOverlayForSingleRHPOnSuperWideRHPProgress = new Animated.Value(0);
+const secondOverlayWideRHPProgress = new Animated.Value(0);
+const secondOverlayRHPOnWideRHPProgress = new Animated.Value(0);
+const secondOverlayRHPOnSuperWideRHPProgress = new Animated.Value(0);
 const thirdOverlayProgress = new Animated.Value(0);
 
 // This array contains the names of wide and super wide right modals.
@@ -105,8 +105,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const focusedRoute = useRootNavigationState((state) => (state ? findFocusedRoute(state) : undefined));
 
     const isWideRHPFocused = useMemo(() => {
-        return !!focusedRoute?.key && wideRHPRouteKeys.includes(focusedRoute.key);
-    }, [focusedRoute?.key, wideRHPRouteKeys]);
+        return !!focusedRoute?.key && allWideRHPRouteKeys.includes(focusedRoute.key);
+    }, [focusedRoute?.key, allWideRHPRouteKeys]);
 
     // Whether Wide RHP is displayed below the currently displayed screen
     const isWideRHPBelow = useMemo(() => getIsWideRHPOpenedBelow(focusedRoute, allWideRHPRouteKeys), [allWideRHPRouteKeys, focusedRoute]);
@@ -140,16 +140,20 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     }, [allSuperWideRHPRouteKeys, syncSuperWideRHPKeys]);
 
     /**
-     * Effect that manages the secondary overlay animation for single RHP and rendering state.
+     * Effect that manages the secondary overlay animation for single RHP displayed on Super Wide RHP and rendering state.
      */
-    const shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP = useShouldRenderOverlay(isSuperWideRHPBelow && !isWideRHPFocused, secondOverlayForSingleRHPOnSuperWideRHPProgress);
-
-    const shouldRenderSecondaryOverlayForSingleRHPOnWideRHP = useShouldRenderOverlay(isWideRHPBelow && !isWideRHPFocused, secondOverlayForSingleRHPOnWideRHPProgress);
+    const shouldRenderSecondaryOverlayForRHPOnSuperWideRHP = useShouldRenderOverlay(isSuperWideRHPBelow && !isWideRHPBelow, secondOverlayRHPOnSuperWideRHPProgress);
 
     /**
-     * Effect that manages the secondary overlay animation for Wide RHP and rendering state.
+     * Effect that manages the secondary overlay animation for single RHP displayed on Wide RHP and rendering state.
      */
-    const shouldRenderSecondaryOverlayForWideRHP = useShouldRenderOverlay(isSuperWideRHPBelow && !!isWideRHPFocused, secondOverlayForWideRHPProgress);
+    const shouldRenderSecondaryOverlayForRHPOnWideRHP = useShouldRenderOverlay(isWideRHPBelow && !isWideRHPFocused, secondOverlayRHPOnWideRHPProgress);
+
+    /**
+     * Effect that manages the secondary overlay animation for Wide RHP displayed on Super Wide RHP and rendering state.
+     */
+    const shouldRenderSecondaryOverlayForWideRHP = useShouldRenderOverlay(isSuperWideRHPBelow && (!!isWideRHPFocused || isWideRHPBelow), secondOverlayWideRHPProgress);
+
     /**
      * Effect that manages the tertiary overlay animation and rendering state.
      */
@@ -161,7 +165,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     useEffect(() => {
         const numberOfSuperWideRoutes = superWideRHPRouteKeys.length;
         const numberOfWideRoutes = wideRHPRouteKeys.length;
-
         if (numberOfSuperWideRoutes > 0) {
             expandedRHPProgress.setValue(2);
             innerRHPProgress.setValue(numberOfWideRoutes > 0 ? 1 : 0);
@@ -314,8 +317,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             showSuperWideRHPVersion,
             removeWideRHPRouteKey,
             removeSuperWideRHPRouteKey,
-            shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP,
-            shouldRenderSecondaryOverlayForSingleRHPOnWideRHP,
+            shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
+            shouldRenderSecondaryOverlayForRHPOnWideRHP,
             shouldRenderSecondaryOverlayForWideRHP,
             shouldRenderTertiaryOverlay,
             markReportIDAsExpense,
@@ -335,8 +338,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             showSuperWideRHPVersion,
             removeWideRHPRouteKey,
             removeSuperWideRHPRouteKey,
-            shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP,
-            shouldRenderSecondaryOverlayForSingleRHPOnWideRHP,
+            shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
+            shouldRenderSecondaryOverlayForRHPOnWideRHP,
             shouldRenderSecondaryOverlayForWideRHP,
             shouldRenderTertiaryOverlay,
             markReportIDAsExpense,
@@ -366,9 +369,9 @@ export {
     innerRHPProgress,
     modalStackOverlaySuperWideRHPPositionLeft,
     modalStackOverlayWideRHPPositionLeft,
-    secondOverlayForWideRHPProgress,
-    secondOverlayForSingleRHPOnWideRHPProgress,
-    secondOverlayForSingleRHPOnSuperWideRHPProgress,
+    secondOverlayWideRHPProgress,
+    secondOverlayRHPOnWideRHPProgress,
+    secondOverlayRHPOnSuperWideRHPProgress,
     thirdOverlayProgress,
     WideRHPContext,
     WIDE_RIGHT_MODALS,
