@@ -8,18 +8,32 @@ import Text from '@components/Text';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReceiptImage from '@components/ReceiptImage';
 import TextInput from '@components/TextInput';
+import FormHelpMessage from '@components/FormHelpMessage';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import {Gallery} from '@components/Icon/Expensicons';
+import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getRateID} from '@libs/TransactionUtils';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isArchivedReport} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import variables from '@styles/variables';
-import {setMoneyRequestOdometerReading, setMoneyRequestOdometerImage, setMoneyRequestDistance} from '@libs/actions/IOU';
-import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {
+    setMoneyRequestOdometerReading,
+    setMoneyRequestOdometerImage,
+    setMoneyRequestDistance,
+    setMoneyRequestParticipantsFromReport,
+} from '@libs/actions/IOU';
+import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import CONST from '@src/CONST';
@@ -31,7 +45,6 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import FormHelpMessage from '@components/FormHelpMessage';
 
 type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER | typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE> & {
@@ -60,9 +73,26 @@ function IOURequestStepDistanceOdometer({
     const [endReading, setEndReading] = useState<string>('');
     const [formError, setFormError] = useState<string>('');
 
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const policy = usePolicy(report?.policyID);
+    const personalPolicy = usePersonalPolicy();
+    const defaultExpensePolicy = useDefaultExpensePolicy();
+
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
+
+    const shouldUseDefaultExpensePolicy = useMemo(
+        () =>
+            iouType === CONST.IOU.TYPE.CREATE &&
+            isPaidGroupPolicy(defaultExpensePolicy) &&
+            defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
+            !shouldRestrictUserBillableActions(defaultExpensePolicy.id),
+        [iouType, defaultExpensePolicy],
+    );
+
+    const customUnitRateID = getRateID(transaction);
+    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
     // Get odometer readings from transaction
     const odometerStart = transaction?.comment?.odometerStart;
@@ -87,7 +117,9 @@ function IOURequestStepDistanceOdometer({
         if (isNaN(start) || isNaN(end) || !startReading || !endReading) {
             return null;
         }
-        return end - start;
+        const distance = end - start;
+        // Show 0 if distance is negative
+        return distance <= 0 ? 0 : distance;
     }, [startReading, endReading]);
 
     // Get image source for web (blob URL) or native (URI string)
@@ -162,8 +194,73 @@ function IOURequestStepDistanceOdometer({
         [transactionID],
     );
 
+    // Navigate to confirmation page helper - following Manual tab pattern
+    const navigateToConfirmationPage = useCallback(() => {
+        switch (iouType) {
+            case CONST.IOU.TYPE.REQUEST:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
+                break;
+            default:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
+        }
+    }, [iouType, transactionID, reportID, backToReport]);
+
+    // Navigate to next page following Manual tab pattern
+    const navigateToNextPage = useCallback(() => {
+        const start = parseFloat(startReading);
+        const end = parseFloat(endReading);
+
+        // Store odometer readings in transaction.comment.odometerStart/odometerEnd
+        setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
+
+        // Calculate total distance (endReading - startReading)
+        const distance = end - start;
+        const calculatedDistance = roundToTwoDecimalPlaces(distance);
+
+        // Store total distance in transaction.comment.customUnit.quantity
+        setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft);
+
+        if (isEditing) {
+            // Update existing transaction
+            // TODO: Implement update logic similar to updateMoneyRequestDistance
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+
+        // If a reportID exists in the report object, use it to set participants and navigate to confirmation
+        // Following Manual tab pattern
+        if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+            setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
+                navigateToConfirmationPage();
+            });
+            return;
+        }
+
+        // If there was no reportID, navigate to participant page
+        navigateToParticipantPage(iouType, transactionID, reportID);
+    }, [
+        startReading,
+        endReading,
+        transactionID,
+        isTransactionDraft,
+        isEditing,
+        backTo,
+        report,
+        reportNameValuePairs,
+        iouType,
+        currentUserPersonalDetails.accountID,
+        navigateToConfirmationPage,
+        reportID,
+    ]);
+
+    // Handle form submission with validation
     const handleNext = useCallback(() => {
-        // Validation
+        // Validation: Start and end readings must not be empty
         if (!startReading || !endReading) {
             setFormError(translate('distance.odometer.readingRequired'));
             return;
@@ -177,28 +274,16 @@ function IOURequestStepDistanceOdometer({
             return;
         }
 
+        // Validation: Calculated distance (end - start) must be > 0
         const distance = end - start;
         if (distance <= 0) {
             setFormError(translate('distance.odometer.negativeDistanceNotAllowed'));
             return;
         }
 
-        // Save readings
-        setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
-        // Calculate and save total distance
-        const distanceAsFloat = roundToTwoDecimalPlaces(distance);
-        setMoneyRequestDistance(transactionID, distanceAsFloat, isTransactionDraft);
-
-        if (isEditing) {
-            // Update existing transaction
-            // TODO: Implement update logic similar to updateMoneyRequestDistance
-            Navigation.goBack(backTo);
-            return;
-        }
-
-        // Navigate to confirmation page
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
-    }, [startReading, endReading, transactionID, isTransactionDraft, isEditing, backTo, iouType, reportID, backToReport, translate]);
+        // When validation passes, call navigateToNextPage
+        navigateToNextPage();
+    }, [startReading, endReading, navigateToNextPage, translate]);
 
     return (
         <StepScreenWrapper
@@ -286,10 +371,10 @@ function IOURequestStepDistanceOdometer({
                     </View>
 
                     {/* Total Distance Display - always shown, updated live */}
-                    <View style={[styles.mb4, styles.p3, styles.borderRadiusComponentNormal, {backgroundColor: theme.componentBG}]}>
-                        <Text style={[styles.textStrong]}>
+                    <View style={[styles.mb4, styles.borderRadiusComponentNormal, {backgroundColor: theme.componentBG}]}>
+                        <Text style={[styles.textSupporting]}>
                             {translate('distance.odometer.totalDistance')}:{' '}
-                            {totalDistance !== null ? roundToTwoDecimalPlaces(totalDistance) : '—'}
+                            {totalDistance !== null ? roundToTwoDecimalPlaces(totalDistance) : '0'} {unit}
                         </Text>
                     </View>
                 </View>

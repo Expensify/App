@@ -808,6 +808,8 @@ const ONYXKEYS = {
         MONEY_REQUEST_TIME_FORM_DRAFT: 'moneyRequestTimeFormDraft',
         MONEY_REQUEST_SUBRATE_FORM: 'moneyRequestSubrateForm',
         MONEY_REQUEST_SUBRATE_FORM_DRAFT: 'moneyRequestSubrateFormDraft',
+        MONEY_REQUEST_ODOMETER_FORM: 'moneyRequestOdometerForm',
+        MONEY_REQUEST_ODOMETER_FORM_DRAFT: 'moneyRequestOdometerFormDraft',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
         NEW_CONTACT_METHOD_FORM_DRAFT: 'newContactMethodFormDraft',
         WAYPOINT_FORM: 'waypointForm',
@@ -974,6 +976,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM]: FormTypes.MoneyRequestHoldReasonForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM]: FormTypes.MoneyRequestRejectReasonForm;
     [ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM]: FormTypes.MoneyRequestCompanyInfoForm;
+    [ONYXKEYS.FORMS.MONEY_REQUEST_ODOMETER_FORM]: FormTypes.MoneyRequestOdometerForm;
     [ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM]: FormTypes.NewContactMethodForm;
     [ONYXKEYS.FORMS.WAYPOINT_FORM]: FormTypes.WaypointForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: FormTypes.SettingsStatusSetForm;
