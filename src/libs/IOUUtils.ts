@@ -157,11 +157,13 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
             let maxError = -Infinity;
 
             for (let i = 0; i < adjustedPercentages.length; i += 1) {
-                if (adjustedPercentages[i] <= 0) {
+                const currentAdjusted = adjustedPercentages.at(i) ?? 0;
+                if (currentAdjusted <= 0) {
                     continue;
                 }
 
-                const error = adjustedPercentages[i] - exactPercentages[i];
+                const currentExact = exactPercentages.at(i) ?? 0;
+                const error = currentAdjusted - currentExact;
 
                 if (error > maxError) {
                     maxError = error;
@@ -181,7 +183,9 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
             let minError = Infinity;
 
             for (let i = 0; i < adjustedPercentages.length; i += 1) {
-                const error = adjustedPercentages[i] - exactPercentages[i];
+                const currentAdjusted = adjustedPercentages.at(i) ?? 0;
+                const currentExact = exactPercentages.at(i) ?? 0;
+                const error = currentAdjusted - currentExact;
 
                 if (error < minError) {
                     minError = error;
@@ -204,7 +208,7 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
     const maxAmount = Math.max(...amountsAbs);
     const indicesWithMaxAmount: number[] = [];
     for (let i = 0; i < amountsAbs.length; i += 1) {
-        if (amountsAbs[i] === maxAmount) {
+        if (amountsAbs.at(i) === maxAmount) {
             indicesWithMaxAmount.push(i);
         }
     }
@@ -215,7 +219,7 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
 
     const isUniqueMaxAmount = indicesWithMaxAmount.length === 1;
 
-    const getMaxAmountPercentage = () => Math.max(...indicesWithMaxAmount.map((index) => adjustedPercentages[index]));
+    const getMaxAmountPercentage = () => Math.max(...indicesWithMaxAmount.map((index) => adjustedPercentages.at(index) ?? 0));
     const getMaxNonMaxPercentage = () => {
         let maxNonMax = -Infinity;
         for (let i = 0; i < adjustedPercentages.length; i += 1) {
@@ -223,7 +227,8 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
                 continue;
             }
 
-            maxNonMax = Math.max(maxNonMax, adjustedPercentages[i]);
+            const currentAdjusted = adjustedPercentages.at(i) ?? 0;
+            maxNonMax = Math.max(maxNonMax, currentAdjusted);
         }
         return maxNonMax;
     };
@@ -248,15 +253,16 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
                 continue;
             }
 
-            if (adjustedPercentages[i] <= 0) {
+            const currentAdjusted = adjustedPercentages.at(i) ?? 0;
+            if (currentAdjusted <= 0) {
                 continue;
             }
 
-            if (
-                donorIndex === -1 ||
-                adjustedPercentages[i] > adjustedPercentages[donorIndex] ||
-                (adjustedPercentages[i] === adjustedPercentages[donorIndex] && amountsAbs[i] < amountsAbs[donorIndex])
-            ) {
+            const donorAdjusted = donorIndex === -1 ? undefined : adjustedPercentages.at(donorIndex);
+            const currentAmount = amountsAbs.at(i) ?? 0;
+            const donorAmount = donorIndex === -1 ? undefined : amountsAbs.at(donorIndex);
+
+            if (donorIndex === -1 || (donorAdjusted ?? -Infinity) < currentAdjusted || (donorAdjusted === currentAdjusted && (donorAmount ?? Infinity) > currentAmount)) {
                 donorIndex = i;
             }
         }
@@ -266,7 +272,7 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
         }
 
         // Shift 1% from donor to one of the max-amount indices (use the last one for stability).
-        const receiverIndex = indicesWithMaxAmount[indicesWithMaxAmount.length - 1];
+        const receiverIndex = indicesWithMaxAmount.at(-1) ?? 0;
 
         adjustedPercentages[donorIndex] -= 1;
         adjustedPercentages[receiverIndex] += 1;
