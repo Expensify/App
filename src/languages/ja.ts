@@ -700,6 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'ドメイン',
         reportName: 'レポート名',
         showLess: '表示を減らす',
+        actionRequired: 'アクションが必要',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -1188,7 +1189,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: '経費を検索',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `経費を削除しました (${merchant}の${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `費用${reportName ? `${reportName} から` : ''}を移動しました`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `この経費${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}を移動しました`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `この経費${reportName ? `<a href="${reportUrl}">${reportName}</a> に` : ''}を移動しました`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a>から` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `この経費を<a href="${reportUrl}">個人スペース</a>から移動しました。`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `この経費をあなたの<a href="${reportUrl}">個人スペース</a>に移動しました。`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -1339,7 +1342,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `${translatedChangedField}を${newMerchant}に変更しました（以前は${oldMerchant}）、これにより金額が${newAmountToDisplay}に更新されました（以前は${oldAmountToDisplay}）。`,
         basedOnAI: '過去のアクティビティに基づく',
-        basedOnMCC: 'ワークスペースルールに基づく',
+        basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `<a href="${rulesLink}">ワークスペースのルール</a>に基づいて` : 'ワークスペースのルールに基づく'),
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `${comment}用` : '経費'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `請求書レポート #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} 送信済み${comment ? `${comment} のために` : ''}`,
@@ -2899,6 +2902,8 @@ ${
         hasBeenThrottledError: '銀行口座の追加中にエラーが発生しました。数分待ってから再試行してください。',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `おっと！ワークスペースの通貨がUSDとは異なる通貨に設定されているようです。続行するには、こちらにアクセスしてください。<a href="${workspaceRoute}">ワークスペースの設定</a> USDに設定して、もう一度お試しください。`,
+        bbaAdded: 'ビジネス銀行口座が追加されました！',
+        bbaAddedDescription: '支払いに使用する準備ができています。',
         error: {
             youNeedToSelectAnOption: 'オプションを選択してください',
             noBankAccountAvailable: '申し訳ありませんが、利用可能な銀行口座がありません。',
@@ -4687,6 +4692,10 @@ ${
             addShippingDetails: '配送詳細を追加',
             issuedCard: ({assignee}: AssigneeParams) => `${assignee}にExpensifyカードを発行しました！カードは2～3営業日で到着します。`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `${assignee} に Expensify Card を発行しました！配送情報が確認され次第、カードは発送されます。`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee}はバーチャルExpensifyカードを再発行しました！${link}はすぐに使用できます。`,
+            card: 'カード',
+            replacementCard: '交換カード',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee}はExpensifyカードを交換しました。新しいカードは2〜3営業日以内に到着します。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `${assignee}にバーチャル${link}を発行しました！カードはすぐに使用できます。`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} が配送情報を追加しました。Expensify Card は2～3営業日で到着します。`,
             verifyingHeader: '確認中',
@@ -6196,6 +6205,36 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? '有効' : '無効'} 個のカテゴリ`;
+                case 'tags':
+                    return `${enabled ? '有効' : '無効'} 個のタグ`;
+                case 'workflows':
+                    return `${enabled ? '有効' : '無効'}件のワークフロー`;
+                case 'distance rates':
+                    return `${enabled ? '有効' : '無効'} の距離単価`;
+                case 'accounting':
+                    return `${enabled ? '有効' : '無効'} 会計`;
+                case 'Expensify Cards':
+                    return `${enabled ? '有効' : '無効'} Expensify カード`;
+                case 'company cards':
+                    return `${enabled ? '有効' : '無効'} 枚の法人カード`;
+                case 'invoicing':
+                    return `${enabled ? '有効' : '無効'} 請求書発行`;
+                case 'per diem':
+                    return `${enabled ? '有効' : '無効'} 日当`;
+                case 'receipt partners':
+                    return `${enabled ? '有効' : '無効'} 領収書パートナー`;
+                case 'rules':
+                    return `${enabled ? '有効' : '無効'} 件のルール`;
+                case 'tax tracking':
+                    return `${enabled ? '有効' : '無効'} 税金追跡`;
+                default:
+                    return `${enabled ? '有効' : '無効'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 参加者の追跡`,
     },
     roomMembersPage: {
@@ -6335,6 +6374,7 @@ ${
             delete: '削除',
             hold: '保留',
             unhold: '保留を解除',
+            reject: '却下',
             noOptionsAvailable: '選択した経費グループには利用可能なオプションがありません。',
         },
         filtersHeader: 'フィルター',
@@ -6515,6 +6555,15 @@ ${
             title: '更新の確認に失敗しました',
             message: '更新を確認できませんでした。しばらくしてからもう一度お試しください。',
         },
+    },
+    settlement: {
+        status: {
+            pending: '保留中',
+            cleared: '決済済み',
+            failed: '失敗',
+        },
+        failedError: ({link}: {link: string}) => `この決済は<a href="${link}">アカウントのロックを解除</a>すると再試行されます。`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 出金ID: ${withdrawalID}`,
     },
     reportLayout: {
         reportLayout: 'レポートレイアウト',
@@ -7071,12 +7120,7 @@ ${
             },
             cardOnDispute: ({amountOwed, cardEnding}: BillingBannerCardOnDisputeParams) =>
                 `あなたは、${cardEnding}で終わるカードの${amountOwed}の請求を異議申し立てしました。異議が銀行で解決されるまで、あなたのアカウントはロックされます。`,
-            preTrial: {
-                title: '無料トライアルを開始',
-                subtitleStart: '次のステップとして、',
-                subtitleLink: 'セットアップチェックリストを完了する',
-                subtitleEnd: 'あなたのチームが経費精算を始められるように。',
-            },
+            preTrial: {title: '無料トライアルを開始', subtitle: '次のステップとして、チームが経費精算を開始できるよう、<a href="#">セットアップチェックリストを完了</a>してください。'},
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `トライアル: ${numOfDays} ${numOfDays === 1 ? '日' : '日'} 日残り！`,
                 subtitle: 'お気に入りの機能を引き続き利用するために、支払いカードを追加してください。',
