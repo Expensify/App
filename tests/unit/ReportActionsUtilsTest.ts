@@ -1517,8 +1517,9 @@ describe('ReportActionsUtils', () => {
 
     describe('getMostRecentActiveDEWSubmitFailedAction', () => {
         it('should return the DEW action when DEW_SUBMIT_FAILED exists and no SUBMITTED action exists', () => {
+            const actionId1 = '1';
             const reportActions: ReportActions = {
-                '1': {
+                [actionId1]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
                     created: '2025-11-21 10:00:00',
@@ -1536,8 +1537,10 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return the DEW action when DEW_SUBMIT_FAILED is more recent than SUBMITTED', () => {
+            const actionId1 = '1';
+            const actionId2 = '2';
             const reportActions: ReportActions = {
-                '1': {
+                [actionId1]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     created: '2025-11-21 09:00:00',
@@ -1549,7 +1552,7 @@ describe('ReportActionsUtils', () => {
                     message: [],
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
-                '2': {
+                [actionId2]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
                     created: '2025-11-21 10:00:00',
@@ -1567,8 +1570,10 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return undefined when SUBMITTED is more recent than DEW_SUBMIT_FAILED', () => {
+            const actionId1 = '1';
+            const actionId2 = '2';
             const reportActions: ReportActions = {
-                '1': {
+                [actionId1]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
                     created: '2025-11-21 09:00:00',
@@ -1579,7 +1584,7 @@ describe('ReportActionsUtils', () => {
                     message: [],
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
-                '2': {
+                [actionId2]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     created: '2025-11-21 10:00:00',
@@ -1596,8 +1601,9 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return undefined when no DEW_SUBMIT_FAILED action exists', () => {
+            const actionId1 = '1';
             const reportActions: ReportActions = {
-                '1': {
+                [actionId1]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     created: '2025-11-21 10:00:00',
@@ -1649,8 +1655,12 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return the most recent DEW action when multiple DEW_SUBMIT_FAILED and SUBMITTED actions exist', () => {
+            const actionId1 = '1';
+            const actionId2 = '2';
+            const actionId3 = '3';
+            const actionId4 = '4';
             const reportActions: ReportActions = {
-                '1': {
+                [actionId1]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     created: '2025-11-21 08:00:00',
@@ -1659,7 +1669,7 @@ describe('ReportActionsUtils', () => {
                     message: [],
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
-                '2': {
+                [actionId2]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
                     created: '2025-11-21 09:00:00',
@@ -1668,7 +1678,7 @@ describe('ReportActionsUtils', () => {
                     message: [],
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
-                '3': {
+                [actionId3]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     created: '2025-11-21 10:00:00',
@@ -1677,7 +1687,7 @@ describe('ReportActionsUtils', () => {
                     message: [],
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
-                '4': {
+                [actionId4]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
                     created: '2025-11-21 11:00:00',
@@ -1694,8 +1704,11 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return undefined when most recent SUBMITTED is after all DEW_SUBMIT_FAILED actions', () => {
+            const actionId1 = '1';
+            const actionId2 = '2';
+            const actionId3 = '3';
             const reportActions: ReportActions = {
-                '1': {
+                [actionId1]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
                     created: '2025-11-21 08:00:00',
@@ -1704,7 +1717,7 @@ describe('ReportActionsUtils', () => {
                     message: [],
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
-                '2': {
+                [actionId2]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
                     created: '2025-11-21 09:00:00',
@@ -1713,7 +1726,7 @@ describe('ReportActionsUtils', () => {
                     message: [],
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
-                '3': {
+                [actionId3]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     created: '2025-11-21 10:00:00',
