@@ -259,6 +259,7 @@ import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
+import {getPolicyCategoriesData} from './Policy/Category';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from './Policy/Member';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
@@ -6954,6 +6955,7 @@ function duplicateExpenseTransaction(
             isTestDrive: transaction?.receipt?.isTestDriveReceipt,
             merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
             originalTransactionID: transaction?.comment?.originalTransactionID,
+            receipt: undefined,
             source: transaction?.comment?.source,
             waypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
         },
@@ -6991,6 +6993,8 @@ function duplicateExpenseTransaction(
 
     params.policyParams = {
         policy: targetPolicy,
+        policyTagList: getPolicyTagsData(targetPolicy.id),
+        policyCategories: getPolicyCategoriesData(targetPolicy.id),
     };
 
     const transactionType = getTransactionType(transaction);
@@ -7000,6 +7004,11 @@ function duplicateExpenseTransaction(
             const distanceParams: CreateDistanceRequestInformation = {
                 ...params,
                 participants,
+                existingTransaction: {
+                    ...(params.transactionParams ?? {}),
+                    comment: transaction.comment,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                },
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
                     comment: transactionDetails?.comment ?? '',
@@ -8447,6 +8456,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         receipt,
     } = transactionParams;
 
+    // Temp debug
+    console.error('distanceRequestInformation', distanceRequestInformation);
+    console.error('transactionParams', transactionParams);
+
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
@@ -8614,6 +8627,9 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     });
 
     playSound(SOUNDS.DONE);
+
+    console.error('final createdistancerequest params', parameters);
+    console.error('final createdistancerequest onyxdata', onyxData);
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
