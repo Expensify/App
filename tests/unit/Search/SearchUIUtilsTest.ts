@@ -45,6 +45,10 @@ jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
     createTransactionThreadReport: jest.fn(),
 }));
+jest.mock('@userActions/Search', () => ({
+    ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
+    setOptimisticDataForTransactionThreadPreview: jest.fn(),
+}));
 
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
@@ -2869,7 +2873,6 @@ describe('SearchUIUtils', () => {
         const threadReport = {reportID: threadReportID};
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
-        const iouReportAction = {reportActionID: transactionListItem.moneyRequestReportActionID} as OnyxTypes.ReportAction;
         const backTo = '/search/all';
 
         beforeEach(() => {
@@ -2877,13 +2880,12 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
-            const setOptimisticDataForTransactionThreadMock = jest.spyOn(require('@userActions/Search'), 'setOptimisticDataForTransactionThreadPreview');
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
 
-            expect(setOptimisticDataForTransactionThreadMock).toHaveBeenCalled();
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction);
+            expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, {reportActionID: transactionListItem.moneyRequestReportActionID}, undefined, undefined);
         });
 
         test('Should create transaction thread report for legacy transactions without IOU action (moneyRequestReportActionID = "0")', () => {
@@ -2895,7 +2897,7 @@ describe('SearchUIUtils', () => {
                 moneyRequestReportActionID: '0',
             };
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(legacyTransactionItem, backTo);
+            SearchUIUtils.createAndOpenSearchTransactionThread(legacyTransactionItem, backTo, undefined, undefined, false);
 
             // Extract the transaction by removing UI-specific and search-specific fields
             const {
@@ -2935,11 +2937,21 @@ describe('SearchUIUtils', () => {
 
         test('Should handle navigation if shouldNavigate = true', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, true);
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
+            // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
+            // instead of the transaction thread report
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
         });
     });
 
     describe('setOptimisticDataForTransactionThreadPreview', () => {
+        // These tests need the real implementation, so restore it before each test
+        beforeEach(() => {
+            (setOptimisticDataForTransactionThreadPreview as jest.Mock).mockRestore();
+            // Re-import the real implementation
+            const realModule = jest.requireActual<typeof SearchUtils>('@userActions/Search');
+            (setOptimisticDataForTransactionThreadPreview as jest.Mock).mockImplementation(realModule.setOptimisticDataForTransactionThreadPreview);
+        });
+
         it('Should create an optimistic parent report if the hasParentReport is false', async () => {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
