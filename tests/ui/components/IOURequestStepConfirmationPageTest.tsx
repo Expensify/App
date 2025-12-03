@@ -201,7 +201,10 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
 describe('IOURequestStepConfirmationPageTest', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        Onyx.init({keys: ONYXKEYS});
+        Onyx.init({
+            keys: ONYXKEYS,
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
     });
 
     it('should not restart the money request creation flow when sending invoice from global FAB', async () => {
