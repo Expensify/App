@@ -21,7 +21,7 @@ function useLazyAsset<T>(importFn: () => {default: T} | Promise<{default: T}>, f
     const versionRef = useRef(0);
 
     const [isLoaded, setIsLoaded] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
 
     useEffect(() => {
@@ -39,11 +39,6 @@ function useLazyAsset<T>(importFn: () => {default: T} | Promise<{default: T}>, f
             setIsLoading(false);
             return;
         }
-
-        // Handle async imports
-        setIsLoading(true);
-        setIsLoaded(false);
-        setHasError(false);
 
         importFnResult
             .then((module) => {
