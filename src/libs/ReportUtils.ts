@@ -183,6 +183,7 @@ import {
     getLastVisibleMessage as getLastVisibleMessageActionUtils,
     getLastVisibleMessage as getLastVisibleMessageReportActionsUtils,
     getMessageOfOldDotReportAction,
+    getMostRecentActiveDEWSubmitFailedAction,
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,
@@ -243,7 +244,6 @@ import {
     isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction as isSplitBillReportAction,
-    isSubmittedAction,
     isTagModificationAction,
     isThreadParentMessage,
     isTrackExpenseAction,
@@ -9302,35 +9302,10 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     }
 
     if (!isReportArchived && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
-        // Find the most recent DEW_SUBMIT_FAILED action
-        const mostRecentDewSubmitFailedAction = reportActionsArray
-            .filter((action) => isDynamicExternalWorkflowSubmitFailedAction(action))
-            .reduce<ReportAction | undefined>((latest, current) => {
-                if (!latest || (current.created && latest.created && current.created > latest.created)) {
-                    return current;
-                }
-                return latest;
-            }, undefined);
-
-        if (mostRecentDewSubmitFailedAction) {
-            // find the most recent SUBMITTED action
-            const mostRecentSubmittedAction = reportActionsArray
-                .filter((action) => isSubmittedAction(action))
-                .reduce<ReportAction | undefined>((latest, current) => {
-                    if (!latest || (current.created && latest.created && current.created > latest.created)) {
-                        return current;
-                    }
-                    return latest;
-                }, undefined);
-
-            const shouldShowDEWError = !mostRecentSubmittedAction || (mostRecentSubmittedAction.created && mostRecentDewSubmitFailedAction.created > mostRecentSubmittedAction.created);
-
-            if (shouldShowDEWError) {
-                reportActionErrors.dewSubmitFailed = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDEWSubmitFailureMessage');
-                if (!reportAction) {
-                    reportAction = mostRecentDewSubmitFailedAction;
-                }
-            }
+        const mostRecentActiveDEWAction = getMostRecentActiveDEWSubmitFailedAction(reportActionsArray);
+        if (mostRecentActiveDEWAction) {
+            reportActionErrors.dewSubmitFailed = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDEWSubmitFailureMessage');
+            reportAction = mostRecentActiveDEWAction;
         }
     }
 

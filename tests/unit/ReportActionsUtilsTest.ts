@@ -9,7 +9,7 @@ import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {getCardIssuedMessage, getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import type {Card, OriginalMessageIOU, Report, ReportAction} from '../../src/types/onyx';
+import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -1512,6 +1512,219 @@ describe('ReportActionsUtils', () => {
 
         it('should return false for null action', () => {
             expect(ReportActionsUtils.isDynamicExternalWorkflowSubmitFailedAction(null)).toBe(false);
+        });
+    });
+
+    describe('getMostRecentActiveDEWSubmitFailedAction', () => {
+        it('should return the DEW action when DEW_SUBMIT_FAILED exists and no SUBMITTED action exists', () => {
+            const reportActions: ReportActions = {
+                '1': {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: '1',
+                    originalMessage: {
+                        message: 'DEW submit failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+            };
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+            expect(result).toBeDefined();
+            expect(result?.reportActionID).toBe('1');
+        });
+
+        it('should return the DEW action when DEW_SUBMIT_FAILED is more recent than SUBMITTED', () => {
+            const reportActions: ReportActions = {
+                '1': {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: '1',
+                    originalMessage: {
+                        amount: 10000,
+                        currency: 'USD',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+                '2': {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: '2',
+                    originalMessage: {
+                        message: 'DEW submit failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+            };
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+            expect(result).toBeDefined();
+            expect(result?.reportActionID).toBe('2');
+        });
+
+        it('should return undefined when SUBMITTED is more recent than DEW_SUBMIT_FAILED', () => {
+            const reportActions: ReportActions = {
+                '1': {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: '1',
+                    originalMessage: {
+                        message: 'DEW submit failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+                '2': {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: '2',
+                    originalMessage: {
+                        amount: 10000,
+                        currency: 'USD',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+            };
+            expect(ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions)).toBeUndefined();
+        });
+
+        it('should return undefined when no DEW_SUBMIT_FAILED action exists', () => {
+            const reportActions: ReportActions = {
+                '1': {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: '1',
+                    originalMessage: {
+                        amount: 10000,
+                        currency: 'USD',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+            };
+            expect(ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions)).toBeUndefined();
+        });
+
+        it('should return undefined for empty report actions', () => {
+            expect(ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction({})).toBeUndefined();
+        });
+
+        it('should work with array input', () => {
+            const reportActionsArray: ReportAction[] = [
+                {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: '1',
+                    originalMessage: {
+                        amount: 10000,
+                        currency: 'USD',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+                {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: '2',
+                    originalMessage: {
+                        message: 'DEW submit failed',
+                    },
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+            ];
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActionsArray);
+            expect(result).toBeDefined();
+            expect(result?.reportActionID).toBe('2');
+        });
+
+        it('should return the most recent DEW action when multiple DEW_SUBMIT_FAILED and SUBMITTED actions exist', () => {
+            const reportActions: ReportActions = {
+                '1': {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 08:00:00',
+                    reportActionID: '1',
+                    originalMessage: {amount: 10000, currency: 'USD'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+                '2': {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: '2',
+                    originalMessage: {message: 'First DEW failure'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+                '3': {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: '3',
+                    originalMessage: {amount: 10000, currency: 'USD'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+                '4': {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 11:00:00',
+                    reportActionID: '4',
+                    originalMessage: {message: 'Second DEW failure'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+            };
+            // Most recent DEW_SUBMIT_FAILED (11:00) is after most recent SUBMITTED (10:00)
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+            expect(result).toBeDefined();
+            expect(result?.reportActionID).toBe('4');
+        });
+
+        it('should return undefined when most recent SUBMITTED is after all DEW_SUBMIT_FAILED actions', () => {
+            const reportActions: ReportActions = {
+                '1': {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 08:00:00',
+                    reportActionID: '1',
+                    originalMessage: {message: 'First DEW failure'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+                '2': {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    created: '2025-11-21 09:00:00',
+                    reportActionID: '2',
+                    originalMessage: {message: 'Second DEW failure'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
+                '3': {
+                    ...createRandomReportAction(0),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '2025-11-21 10:00:00',
+                    reportActionID: '3',
+                    originalMessage: {amount: 10000, currency: 'USD'},
+                    message: [],
+                    previousMessage: [],
+                } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
+            };
+            // Most recent SUBMITTED (10:00) is after all DEW_SUBMIT_FAILED actions
+            expect(ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions)).toBeUndefined();
         });
     });
 });
