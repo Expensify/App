@@ -25,7 +25,8 @@ import useShouldRenderOverlay from './useShouldRenderOverlay';
 const expandedRHPProgress = new Animated.Value(0);
 const innerRHPProgress = new Animated.Value(0);
 const secondOverlayForWideRHPProgress = new Animated.Value(0);
-const secondOverlayForSingleRHPProgress = new Animated.Value(0);
+const secondOverlayForSingleRHPOnWideRHPProgress = new Animated.Value(0);
+const secondOverlayForSingleRHPOnSuperWideRHPProgress = new Animated.Value(0);
 const thirdOverlayProgress = new Animated.Value(0);
 
 // This array contains the names of wide and super wide right modals.
@@ -141,7 +142,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     /**
      * Effect that manages the secondary overlay animation for single RHP and rendering state.
      */
-    const shouldRenderSecondaryOverlayForSingleRHP = useShouldRenderOverlay((isSuperWideRHPBelow || isWideRHPBelow) && !isWideRHPFocused, secondOverlayForSingleRHPProgress);
+    const shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP = useShouldRenderOverlay(isSuperWideRHPBelow && !isWideRHPFocused, secondOverlayForSingleRHPOnSuperWideRHPProgress);
+
+    const shouldRenderSecondaryOverlayForSingleRHPOnWideRHP = useShouldRenderOverlay(isWideRHPBelow && !isWideRHPFocused, secondOverlayForSingleRHPOnWideRHPProgress);
 
     /**
      * Effect that manages the secondary overlay animation for Wide RHP and rendering state.
@@ -311,7 +314,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             showSuperWideRHPVersion,
             removeWideRHPRouteKey,
             removeSuperWideRHPRouteKey,
-            shouldRenderSecondaryOverlayForSingleRHP,
+            shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP,
+            shouldRenderSecondaryOverlayForSingleRHPOnWideRHP,
             shouldRenderSecondaryOverlayForWideRHP,
             shouldRenderTertiaryOverlay,
             markReportIDAsExpense,
@@ -331,7 +335,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             showSuperWideRHPVersion,
             removeWideRHPRouteKey,
             removeSuperWideRHPRouteKey,
-            shouldRenderSecondaryOverlayForSingleRHP,
+            shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP,
+            shouldRenderSecondaryOverlayForSingleRHPOnWideRHP,
             shouldRenderSecondaryOverlayForWideRHP,
             shouldRenderTertiaryOverlay,
             markReportIDAsExpense,
@@ -362,7 +367,8 @@ export {
     modalStackOverlaySuperWideRHPPositionLeft,
     modalStackOverlayWideRHPPositionLeft,
     secondOverlayForWideRHPProgress,
-    secondOverlayForSingleRHPProgress,
+    secondOverlayForSingleRHPOnWideRHPProgress,
+    secondOverlayForSingleRHPOnSuperWideRHPProgress,
     thirdOverlayProgress,
     WideRHPContext,
     WIDE_RIGHT_MODALS,

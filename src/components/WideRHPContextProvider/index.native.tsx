@@ -8,7 +8,8 @@ import defaultWideRHPContextValue from './default';
 import type {WideRHPContextType} from './types';
 
 const secondOverlayForWideRHPProgress = new Animated.Value(0);
-const secondOverlayForSingleRHPProgress = new Animated.Value(0);
+const secondOverlayForSingleRHPOnWideRHPProgress = new Animated.Value(0);
+const secondOverlayForSingleRHPOnSuperWideRHPProgress = new Animated.Value(0);
 const thirdOverlayProgress = new Animated.Value(0);
 
 const animatedReceiptPaneRHPWidth = new Animated.Value(0);
@@ -44,7 +45,8 @@ export {
     modalStackOverlaySuperWideRHPPositionLeft,
     modalStackOverlayWideRHPPositionLeft,
     secondOverlayForWideRHPProgress,
-    secondOverlayForSingleRHPProgress,
+    secondOverlayForSingleRHPOnWideRHPProgress,
+    secondOverlayForSingleRHPOnSuperWideRHPProgress,
     thirdOverlayProgress,
     WideRHPContext,
     WIDE_RIGHT_MODALS,

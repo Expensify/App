@@ -6,7 +6,8 @@ import {
     animatedReceiptPaneRHPWidth,
     modalStackOverlaySuperWideRHPPositionLeft,
     modalStackOverlayWideRHPPositionLeft,
-    secondOverlayForSingleRHPProgress,
+    secondOverlayForSingleRHPOnSuperWideRHPProgress,
+    secondOverlayForSingleRHPOnWideRHPProgress,
     secondOverlayForWideRHPProgress,
     thirdOverlayProgress,
     WideRHPContext,
@@ -121,7 +122,12 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
-        const {shouldRenderSecondaryOverlayForSingleRHP, shouldRenderSecondaryOverlayForWideRHP, shouldRenderTertiaryOverlay, superWideRHPRouteKeys} = useContext(WideRHPContext);
+        const {
+            shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP,
+            shouldRenderSecondaryOverlayForSingleRHPOnWideRHP,
+            shouldRenderSecondaryOverlayForWideRHP,
+            shouldRenderTertiaryOverlay,
+        } = useContext(WideRHPContext);
         const route = useRoute();
 
         // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout, because we want to have information about screen width without the context of side modal.
@@ -140,8 +146,13 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
         );
 
         const isRHPDisplayedOnWideRHP = useMemo(
-            () => !isSmallScreenWidth && shouldRenderSecondaryOverlayForSingleRHP && (isSuperWideRHPRouteName(route.name) || isWideRHPRouteName(route.name)),
-            [isSmallScreenWidth, route.name, shouldRenderSecondaryOverlayForSingleRHP],
+            () => !isSmallScreenWidth && shouldRenderSecondaryOverlayForSingleRHPOnWideRHP && isWideRHPRouteName(route.name),
+            [isSmallScreenWidth, route.name, shouldRenderSecondaryOverlayForSingleRHPOnWideRHP],
+        );
+
+        const isRHPDisplayedOnSuperWideRHP = useMemo(
+            () => !isSmallScreenWidth && shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP && isSuperWideRHPRouteName(route.name),
+            [isSmallScreenWidth, route.name, shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP],
         );
 
         const isWideRHPDisplayedOnSuperWideRHP = useMemo(
@@ -175,8 +186,14 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 {/* There is also a special case where three different RHP widths are displayed at the same time. In this case, an overlay under RHP should be rendered from Wide RHP. */}
                 {isRHPDisplayedOnWideRHP ? (
                     <Overlay
-                        progress={secondOverlayForSingleRHPProgress}
-                        positionLeftValue={superWideRHPRouteKeys.length > 0 ? modalStackOverlaySuperWideRHPPositionLeft : animatedReceiptPaneRHPWidth}
+                        progress={secondOverlayForSingleRHPOnWideRHPProgress}
+                        positionLeftValue={animatedReceiptPaneRHPWidth}
+                    />
+                ) : null}
+                {isRHPDisplayedOnSuperWideRHP ? (
+                    <Overlay
+                        progress={secondOverlayForSingleRHPOnSuperWideRHPProgress}
+                        positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
                     />
                 ) : null}
                 {isWideRHPDisplayedOnSuperWideRHP ? (

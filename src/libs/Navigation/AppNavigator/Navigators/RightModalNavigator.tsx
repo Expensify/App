@@ -9,7 +9,8 @@ import {
     animatedWideRHPWidth,
     expandedRHPProgress,
     innerRHPProgress,
-    secondOverlayForSingleRHPProgress,
+    secondOverlayForSingleRHPOnSuperWideRHPProgress,
+    secondOverlayForSingleRHPOnWideRHPProgress,
     secondOverlayForWideRHPProgress,
     thirdOverlayProgress,
     WideRHPContext,
@@ -49,8 +50,15 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForSingleRHP, shouldRenderTertiaryOverlay, clearWideRHPKeys, syncWideRHPKeys, syncSuperWideRHPKeys} =
-        useContext(WideRHPContext);
+    const {
+        shouldRenderSecondaryOverlayForWideRHP,
+        shouldRenderSecondaryOverlayForSingleRHPOnWideRHP,
+        shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP,
+        shouldRenderTertiaryOverlay,
+        clearWideRHPKeys,
+        syncWideRHPKeys,
+        syncSuperWideRHPKeys,
+    } = useContext(WideRHPContext);
     const {windowWidth} = useWindowDimensions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
     const styles = useThemeStyles();
@@ -358,11 +366,18 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 {/* The third and second overlays are displayed here to cover RHP screens wider than the currently focused screen. */}
                 {/* Clicking on these overlays redirects you to the RHP screen below them. */}
                 {/* The width of these overlays is equal to the width of the screen minus the width of the currently focused RHP screen (positionRightValue) */}
-                {shouldRenderSecondaryOverlayForSingleRHP && !shouldUseNarrowLayout && (
+                {shouldRenderSecondaryOverlayForSingleRHPOnWideRHP && !shouldUseNarrowLayout && (
                     <Overlay
-                        progress={secondOverlayForSingleRHPProgress}
+                        progress={secondOverlayForSingleRHPOnWideRHPProgress}
                         positionRightValue={variables.sideBarWidth}
-                        onPress={Navigation.dismissToFirstRHP}
+                        onPress={Navigation.dismissToWideRHP}
+                    />
+                )}
+                {shouldRenderSecondaryOverlayForSingleRHPOnSuperWideRHP && !shouldUseNarrowLayout && (
+                    <Overlay
+                        progress={secondOverlayForSingleRHPOnSuperWideRHPProgress}
+                        positionRightValue={variables.sideBarWidth}
+                        onPress={Navigation.dismissToSuperWideRHP}
                     />
                 )}
                 {shouldRenderSecondaryOverlayForWideRHP && !shouldUseNarrowLayout && (
