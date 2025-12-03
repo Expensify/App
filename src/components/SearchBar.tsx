@@ -46,7 +46,7 @@ function SearchBar({label, style, icon = MagnifyingGlass, inputValue, onChangeTe
             </View>
             {!!shouldShowEmptyState && inputValue.length !== 0 && (
                 <View style={[styles.ph5, styles.pt3, styles.pb5]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', {searchString: inputValue})}</Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', inputValue)}</Text>
                 </View>
             )}
         </>

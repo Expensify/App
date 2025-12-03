@@ -1,11 +1,11 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import {workspaceSplitsWithoutEnteringAnimation} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import useThemeStyles from '@hooks/useThemeStyles';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
-import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import useNoAnimationWhenOpenedFromTabBar from '@libs/Navigation/helpers/useNoAnimationWhenOpenedFromTabBar';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -39,30 +39,16 @@ const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 
 function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
+    const styles = useThemeStyles();
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
 
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('transitionEnd', () => {
-            // We want to call this function only once.
-            unsubscribe();
-
-            // If we open this screen from a different tab, then it won't have animation.
-            if (!workspaceSplitsWithoutEnteringAnimation.has(route.key)) {
-                return;
-            }
-
-            // We want to set animation after mounting so it will animate on going UP to the settings split.
-            navigation.setOptions({animation: Animations.SLIDE_FROM_RIGHT});
-        });
-
-        return unsubscribe;
-    }, [navigation, route.key]);
+    useNoAnimationWhenOpenedFromTabBar(navigation, route.key);
 
     return (
         <FocusTrapForScreens>
-            <View style={{flex: 1}}>
+            <View style={styles.flex1}>
                 <Split.Navigator
                     persistentScreens={[SCREENS.WORKSPACE.INITIAL]}
                     sidebarScreen={SCREENS.WORKSPACE.INITIAL}

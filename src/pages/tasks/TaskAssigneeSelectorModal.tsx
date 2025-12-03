@@ -90,7 +90,7 @@ function TaskAssigneeSelectorModal() {
             });
         }
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
-    }, [reports, route]);
+    }, [reports, route.params?.reportID]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -133,9 +133,14 @@ function TaskAssigneeSelectorModal() {
                 isDisabled: option.isDisabled ?? undefined,
                 login: option.login ?? undefined,
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
+                isSelected: task?.assigneeAccountID === option.accountID,
             })),
         }));
-    }, [optionsWithoutCurrentUser, translate]);
+    }, [optionsWithoutCurrentUser, task?.assigneeAccountID, translate]);
+
+    const initiallyFocusedOptionKey = useMemo(() => {
+        return sections.flatMap((section) => section.data).find((mode) => mode.isSelected === true)?.keyForList;
+    }, [sections]);
 
     const selectReport = useCallback(
         (option: ListItem) => {
@@ -153,7 +158,7 @@ function TaskAssigneeSelectorModal() {
             // Check to see if we're editing a task and if so, update the assignee
             if (report) {
                 if (option.accountID !== report.managerID) {
-                    const assigneeChatReport = setAssigneeValue(
+                    const {report: assigneeChatReport, isOptimisticReport} = setAssigneeValue(
                         currentUserPersonalDetails.accountID,
                         assigneePersonalDetails,
                         report.reportID,
@@ -168,6 +173,7 @@ function TaskAssigneeSelectorModal() {
                         currentUserPersonalDetails.accountID,
                         option?.accountID,
                         assigneeChatReport,
+                        isOptimisticReport,
                     );
                 }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -222,6 +228,8 @@ function TaskAssigneeSelectorModal() {
                         onChangeText={setSearchTerm}
                         textInputValue={searchTerm}
                         headerMessage={headerMessage}
+                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        shouldUpdateFocusedIndex
                         textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}

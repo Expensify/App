@@ -7,8 +7,11 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
+import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
+import {setDraftValues} from '@userActions/FormActions';
+import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
@@ -17,6 +20,15 @@ type AddressValues = {
     city: string;
     state: string;
     zipCode: string;
+    country?: Country | '';
+};
+
+type AddressInputIDs = {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country?: string;
 };
 
 type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
@@ -39,7 +51,7 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
     stepFields: Array<FormOnyxKeys<TFormID>>;
 
     /** The IDs of the input fields */
-    inputFieldsIDs: AddressValues;
+    inputFieldsIDs: AddressInputIDs;
 
     /** The default values for the form */
     defaultValues: AddressValues;
@@ -73,6 +85,9 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
 
     /** Indicates if zip code format should be validated */
     shouldValidateZipCodeFormat?: boolean;
+
+    /** Whether to show the Patriot Act help link (EnablePayments-only) */
+    shouldShowPatriotActLink?: boolean;
 };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -95,6 +110,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     streetTranslationKey = 'common.streetAddress',
     shouldAllowCountryChange = true,
     shouldValidateZipCodeFormat = true,
+    shouldShowPatriotActLink = false,
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -105,6 +121,15 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
         // When stepFields change (e.g. country changes) we need to reset state errors manually
         formRef.current?.resetFormFieldError(inputFieldsIDs.state);
     }, [inputFieldsIDs.state, stepFields]);
+
+    useEffect(() => {
+        // When country is not editable we need to manually set its draft value in case user enters address manually
+        if (shouldAllowCountryChange || inputFieldsIDs.country === undefined) {
+            return;
+        }
+
+        setDraftValues(formID, {[inputFieldsIDs.country]: defaultValues.country});
+    }, [defaultValues.country, formID, inputFieldsIDs.country, shouldAllowCountryChange]);
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
@@ -154,7 +179,12 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldAllowCountryChange={shouldAllowCountryChange}
                     shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
                 />
-                {!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
+                {!!shouldShowHelpLinks && (
+                    <>
+                        <HelpLinks containerStyles={[styles.mt6]} />
+                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                    </>
+                )}
             </View>
         </FormProvider>
     );

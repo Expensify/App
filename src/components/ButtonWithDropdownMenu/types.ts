@@ -30,12 +30,12 @@ type DropdownOption<TValueType> = {
     iconHeight?: number;
     iconDescription?: string;
     additionalIconStyles?: StyleProp<ViewStyle>;
-    onSelected?: () => void;
+    onSelected?: () => void | Promise<void>;
     disabled?: boolean;
     iconFill?: string;
     interactive?: boolean;
     numberOfLinesTitle?: number;
-    titleStyle?: ViewStyle;
+    titleStyle?: StyleProp<TextStyle>;
     shouldCloseModalOnSelect?: boolean;
     description?: string;
     descriptionTextStyle?: StyleProp<TextStyle>;
@@ -84,6 +84,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Should the confirmation button be disabled? */
     isDisabled?: boolean;
+
+    /** Whether the button should stay visually normal even when disabled. */
+    shouldStayNormalOnDisable?: boolean;
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;

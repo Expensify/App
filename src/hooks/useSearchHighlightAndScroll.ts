@@ -92,7 +92,7 @@ function useSearchHighlightAndScroll({
 
         // Only proceed if we have previous data to compare against
         // This prevents triggering on initial data load
-        if (previousTransactionsIDs.length === 0 && previousReportActionsIDs.length === 0) {
+        if ((previousTransactionsIDs.length === 0 && previousReportActionsIDs.length === 0) || searchTriggeredRef.current) {
             return;
         }
 
@@ -139,7 +139,7 @@ function useSearchHighlightAndScroll({
             // Trigger the search
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                search({queryJSON, searchKey, offset, shouldCalculateTotals});
+                search({queryJSON, searchKey, offset, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading});
             });
 
             // Set the ref to prevent further triggers until reset
@@ -159,7 +159,16 @@ function useSearchHighlightAndScroll({
         searchResults?.data,
         existingSearchResultIDs,
         isOffline,
+        searchResults?.search?.isLoading,
     ]);
+
+    useEffect(() => {
+        if (searchResults?.search?.isLoading) {
+            return;
+        }
+
+        searchTriggeredRef.current = false;
+    }, [searchResults?.search?.isLoading]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {
@@ -194,11 +203,11 @@ function useSearchHighlightAndScroll({
             }
 
             const newKeys = new Set<string>();
-            newReportActionIDs.forEach((id) => {
+            for (const id of newReportActionIDs) {
                 const newReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${id}`;
                 highlightedIDs.current.add(newReportActionKey);
                 newKeys.add(newReportActionKey);
-            });
+            }
             setNewSearchResultKeys(newKeys);
             // Reset after using to prevent stale value in next render
             hasNewItemsRef.current = false;
@@ -214,11 +223,11 @@ function useSearchHighlightAndScroll({
             }
 
             const newKeys = new Set<string>();
-            newTransactionIDs.forEach((id) => {
+            for (const id of newTransactionIDs) {
                 const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
                 highlightedIDs.current.add(newTransactionKey);
                 newKeys.add(newTransactionKey);
-            });
+            }
             setNewSearchResultKeys(newKeys);
             // Reset after using to prevent stale value in next render
             hasNewItemsRef.current = false;
@@ -296,7 +305,7 @@ function useSearchHighlightAndScroll({
 function extractTransactionIDsFromSearchResults(searchResultsData: Partial<SearchResults['data']>): string[] {
     const transactionIDs: string[] = [];
 
-    Object.values(searchResultsData).forEach((item) => {
+    for (const item of Object.values(searchResultsData)) {
         // Check for transactionID directly on the item (TransactionListItemType)
         if ((item as TransactionListItemType)?.transactionID) {
             transactionIDs.push((item as TransactionListItemType).transactionID);
@@ -304,14 +313,14 @@ function extractTransactionIDsFromSearchResults(searchResultsData: Partial<Searc
 
         // Check for transactions array within the item (TransactionGroupListItemType)
         if (Array.isArray((item as TransactionGroupListItemType)?.transactions)) {
-            (item as TransactionGroupListItemType).transactions.forEach((transaction) => {
+            for (const transaction of (item as TransactionGroupListItemType).transactions) {
                 if (!transaction?.transactionID) {
-                    return;
+                    continue;
                 }
                 transactionIDs.push(transaction.transactionID);
-            });
+            }
         }
-    });
+    }
 
     return transactionIDs;
 }

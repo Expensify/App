@@ -109,16 +109,16 @@ const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: 
 
     if (data.errors?.length) {
         mainFile += '\n\n### Errors\n';
-        data.errors.forEach((message) => {
+        for (const message of data.errors) {
             mainFile += ` 1. 🛑 ${message}\n`;
-        });
+        }
     }
 
     if (data.warnings?.length) {
         mainFile += '\n\n### Warnings\n';
-        data.warnings.forEach((message) => {
+        for (const message of data.warnings) {
             mainFile += ` 1. 🟡 ${message}\n`;
-        });
+        }
     }
 
     if (skippedTests.length > 0) {

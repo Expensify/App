@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need CurrencyUtils to mock
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {FormulaContext} from '@libs/Formula';
-import {compute, extract, parse} from '@libs/Formula';
+import {compute, extract, hasCircularReferences, parse} from '@libs/Formula';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
@@ -223,6 +223,67 @@ describe('CustomFormula', () => {
             expect(result).toBe('Test Policy');
         });
 
+        test('should compute report ID in base62 format', () => {
+            const result = compute('{report:id}', mockContext);
+            expect(result).toBe('R0000000001z');
+        });
+
+        test('should compute report status', () => {
+            const contextWithStatus: FormulaContext = {
+                ...mockContext,
+                report: {
+                    ...mockContext.report,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                },
+            };
+            const result = compute('{report:status}', contextWithStatus);
+            expect(result).toBe('Submitted');
+        });
+
+        test('should compute expenses count', () => {
+            const result = compute('{report:expensescount}', mockContext);
+            expect(result).toBe('0');
+        });
+
+        test('should compute expenses count using allTransactions from context', () => {
+            const allTransactions = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                transactions_trans1: {
+                    transactionID: 'trans1',
+                    reportID: '123',
+                    created: '2025-01-08T12:00:00Z',
+                    amount: 5000,
+                    merchant: 'ACME Ltd.',
+                } as Transaction,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                transactions_trans2: {
+                    transactionID: 'trans2',
+                    reportID: '123',
+                    created: '2025-01-14T16:45:00Z',
+                    amount: 3000,
+                    merchant: 'ACME Ltd.',
+                } as Transaction,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                transactions_trans3: {
+                    transactionID: 'trans3',
+                    reportID: '123',
+                    created: '2025-01-11T09:15:00Z',
+                    amount: 2000,
+                    merchant: 'ACME Ltd.',
+                } as Transaction,
+            };
+
+            const contextWithAllTransactions: FormulaContext = {
+                ...mockContext,
+                allTransactions,
+            };
+
+            const result = compute('{report:expensescount}', contextWithAllTransactions);
+            expect(result).toBe('3');
+            // Verify that getReportTransactions was NOT called when allTransactions is provided
+            expect(mockReportUtils.getReportTransactions).not.toHaveBeenCalled();
+        });
+
         test('should handle empty formula', () => {
             expect(compute('', mockContext)).toBe('');
         });
@@ -251,78 +312,168 @@ describe('CustomFormula', () => {
             expect(result).toBe('Report with type after 4 spaces   Expense Report-and no space after computed part');
         });
 
-        describe('Reimbursable Amount', () => {
-            const reimbursableContext: FormulaContext = {
+        test('should compute complex formula with multiple new parts', () => {
+            const contextWithStatus: FormulaContext = {
+                ...mockContext,
                 report: {
-                    reportID: '123',
-                    reportName: '',
-                    type: 'expense',
-                    policyID: 'policy1',
+                    ...mockContext.report,
+                    transactionCount: 3,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                 },
-                policy: {
-                    name: 'Test Policy',
-                } as Policy,
             };
+            const result = compute('Report {report:id} has {report:expensescount} expenses and is {report:status}', contextWithStatus);
+            expect(result).toBe('Report R0000000001z has 3 expenses and is Approved');
+        });
 
-            const calculateExpectedReimbursable = (total: number, nonReimbursableTotal: number) => {
-                const reimbursableAmount = total - nonReimbursableTotal;
-                return Math.abs(reimbursableAmount) / 100;
+        test('should handle combination of new and existing formula parts', () => {
+            const contextWithStatus: FormulaContext = {
+                ...mockContext,
+                report: {
+                    ...mockContext.report,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    transactionCount: 3,
+                },
             };
+            const result = compute('{report:type} {report:id} - {report:status} - Total: {report:total} ({report:expensescount} expenses)', contextWithStatus);
+            expect(result).toBe('Expense Report R0000000001z - Submitted - Total: $100.00 (3 expenses)');
+        });
 
-            beforeEach(() => {
-                jest.clearAllMocks();
-            });
+        test('should handle different status numbers', () => {
+            const testCases = [
+                {statusNum: CONST.REPORT.STATUS_NUM.OPEN, expected: 'Open'},
+                {statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, expected: 'Submitted'},
+                {statusNum: CONST.REPORT.STATUS_NUM.CLOSED, expected: 'Closed'},
+                {statusNum: CONST.REPORT.STATUS_NUM.APPROVED, expected: 'Approved'},
+                {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, expected: 'Reimbursed'},
+            ];
 
-            test('should compute reimbursable amount', () => {
-                reimbursableContext.report.currency = 'USD';
-                reimbursableContext.report.total = -10000; // -$100.00
-                reimbursableContext.report.nonReimbursableTotal = -2500; // -$25.00
+            for (const {statusNum, expected} of testCases) {
+                const contextWithStatus: FormulaContext = {
+                    ...mockContext,
+                    report: {
+                        ...mockContext.report,
+                        statusNum,
+                    },
+                };
+                const result = compute('{report:status}', contextWithStatus);
+                expect(result).toBe(expected);
+            }
+        });
 
-                const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total, reimbursableContext.report.nonReimbursableTotal);
-                const result = compute('{report:reimbursable}', reimbursableContext);
-                expect(result).toBe(`$${expectedReimbursable.toFixed(2)}`);
-            });
+        test('should handle undefined status number', () => {
+            const contextWithUndefinedStatus: FormulaContext = {
+                ...mockContext,
+                report: {
+                    ...mockContext.report,
+                    statusNum: undefined,
+                },
+            };
+            const result = compute('{report:status}', contextWithUndefinedStatus);
+            expect(result).toBe('{report:status}');
+        });
 
-            test('should compute reimbursable amount with different currency', () => {
-                reimbursableContext.report.currency = 'EUR';
-                reimbursableContext.report.total = -8000; // -€80.00
-                reimbursableContext.report.nonReimbursableTotal = -3000; // -€30.00
+        test('should return 0 for expensescount when no transactions exist', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+            const result = compute('{report:expensescount}', mockContext);
+            expect(result).toBe('0');
+        });
 
-                const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total, reimbursableContext.report.nonReimbursableTotal);
-                const result = compute('{report:reimbursable}', reimbursableContext);
+        test('should return 0 for expensescount when reportID is empty', () => {
+            const contextWithEmptyReportID: FormulaContext = {
+                ...mockContext,
+                report: {
+                    ...mockContext.report,
+                    reportID: '',
+                },
+            };
+            const result = compute('{report:expensescount}', contextWithEmptyReportID);
+            expect(result).toBe('0');
+        });
 
-                expect(result).toBe(`€${expectedReimbursable.toFixed(2)}`);
-            });
+        test('should compute report ID with different reportID values', () => {
+            const contextWithDifferentID: FormulaContext = {
+                ...mockContext,
+                report: {
+                    ...mockContext.report,
+                    reportID: '456789',
+                },
+            };
+            const result = compute('{report:id}', contextWithDifferentID);
+            expect(result).toBe('R00000001upZ');
+        });
+    });
 
-            test('should handle zero reimbursable amount', () => {
-                reimbursableContext.report.currency = 'USD';
-                reimbursableContext.report.total = -10000; // -$100.00
-                reimbursableContext.report.nonReimbursableTotal = -10000; // -$100.00 (all non-reimbursable)
+    describe('Reimbursable Amount', () => {
+        const reimbursableContext: FormulaContext = {
+            report: {
+                reportID: '123',
+                reportName: '',
+                type: 'expense',
+                policyID: 'policy1',
+            },
+            policy: {
+                name: 'Test Policy',
+            } as Policy,
+        };
 
-                const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total, reimbursableContext.report.nonReimbursableTotal);
-                const result = compute('{report:reimbursable}', reimbursableContext);
-                expect(result).toBe(`$${expectedReimbursable.toFixed(2)}`);
-            });
+        const calculateExpectedReimbursable = (total: number, nonReimbursableTotal: number) => {
+            const reimbursableAmount = total - nonReimbursableTotal;
+            return Math.abs(reimbursableAmount) / 100;
+        };
 
-            test('should handle undefined reimbursable amount', () => {
-                reimbursableContext.report.currency = 'USD';
-                reimbursableContext.report.total = undefined;
-                reimbursableContext.report.nonReimbursableTotal = undefined;
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
 
-                const result = compute('{report:reimbursable}', reimbursableContext);
-                expect(result).toBe('$0.00');
-            });
+        test('should compute reimbursable amount', () => {
+            reimbursableContext.report.currency = 'USD';
+            reimbursableContext.report.total = -10000; // -$100.00
+            reimbursableContext.report.nonReimbursableTotal = -2500; // -$25.00
 
-            test('should handle missing currency gracefully', () => {
-                reimbursableContext.report.currency = undefined;
-                reimbursableContext.report.total = -10000; // -100.00
-                reimbursableContext.report.nonReimbursableTotal = -2500; // -25.00
+            const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total, reimbursableContext.report.nonReimbursableTotal);
+            const result = compute('{report:reimbursable}', reimbursableContext);
+            expect(result).toBe(`$${expectedReimbursable.toFixed(2)}`);
+        });
 
-                const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total, reimbursableContext.report.nonReimbursableTotal);
-                mockCurrencyUtils.getCurrencySymbol.mockReturnValue(undefined);
-                const result = compute('{report:reimbursable}', reimbursableContext);
-                expect(result).toBe(`${expectedReimbursable.toFixed(2)}`);
-            });
+        test('should compute reimbursable amount with different currency', () => {
+            reimbursableContext.report.currency = 'EUR';
+            reimbursableContext.report.total = -8000; // -€80.00
+            reimbursableContext.report.nonReimbursableTotal = -3000; // -€30.00
+
+            const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total, reimbursableContext.report.nonReimbursableTotal);
+            const result = compute('{report:reimbursable}', reimbursableContext);
+
+            expect(result).toBe(`€${expectedReimbursable.toFixed(2)}`);
+        });
+
+        test('should handle zero reimbursable amount', () => {
+            reimbursableContext.report.currency = 'USD';
+            reimbursableContext.report.total = -10000; // -$100.00
+            reimbursableContext.report.nonReimbursableTotal = -10000; // -$100.00 (all non-reimbursable)
+
+            const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total, reimbursableContext.report.nonReimbursableTotal);
+            const result = compute('{report:reimbursable}', reimbursableContext);
+            expect(result).toBe(`$${expectedReimbursable.toFixed(2)}`);
+        });
+
+        test('should handle undefined reimbursable amount', () => {
+            reimbursableContext.report.currency = 'USD';
+            reimbursableContext.report.total = undefined;
+            reimbursableContext.report.nonReimbursableTotal = undefined;
+
+            const result = compute('{report:reimbursable}', reimbursableContext);
+            expect(result).toBe('$0.00');
+        });
+
+        test('should handle missing currency gracefully', () => {
+            reimbursableContext.report.currency = undefined;
+            reimbursableContext.report.total = -10000; // -100.00
+            reimbursableContext.report.nonReimbursableTotal = -2500; // -25.00
+
+            const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total, reimbursableContext.report.nonReimbursableTotal);
+            mockCurrencyUtils.getCurrencySymbol.mockReturnValue(undefined);
+            const result = compute('{report:reimbursable}', reimbursableContext);
+            expect(result).toBe(`${expectedReimbursable.toFixed(2)}`);
         });
     });
 
@@ -803,6 +954,43 @@ describe('CustomFormula', () => {
             expect(compute('{report:startdate:yyyy-MM-dd HH:mm:ss}', mockContextWithDate)).toBe('2025-01-08 15:30:45');
             expect(compute('{report:created:HH:mm:ss}', mockContextWithDate)).toBe('15:30:45');
             expect(compute('{report:startdate:g:i a}', mockContextWithDate)).toBe('3:30 pm');
+        });
+    });
+
+    describe('hasCircularReferences()', () => {
+        // Given the example data of consisting of report field lists
+        const fieldList = {
+            test0: {name: 'test-o', defaultValue: 'test value'},
+            test1: {name: 'test-a', defaultValue: '{field:test-example}'},
+            test2: {name: 'test-b', defaultValue: '{field:test-a}'},
+            test3: {name: 'test-c', defaultValue: '{field:test-b}'},
+            test4: {name: 'test-d', defaultValue: ''},
+            test6: {name: 'test-f', defaultValue: '{field:test-d}'},
+        };
+
+        // Then make sure the circular references work as expected
+        test('should detect 2-level circular reference', () => {
+            expect(hasCircularReferences('{field:test-b}', 'test-example', fieldList)).toBe(true);
+        });
+
+        test('should detect circular reference with mixed text', () => {
+            expect(hasCircularReferences('text {field:test-a}', 'test-example', fieldList)).toBe(true);
+        });
+
+        test('should detect direct self-reference', () => {
+            expect(hasCircularReferences('{field:test-example}', 'test-example', fieldList)).toBe(true);
+        });
+
+        test('should detect more than > 2 level circular reference', () => {
+            expect(hasCircularReferences('{field:test-c}', 'test-example', fieldList)).toBe(true);
+        });
+
+        test('should allow when there is no circular references', () => {
+            expect(hasCircularReferences('{field:test-o}', 'test-example', fieldList)).toBe(false);
+        });
+
+        test('should return false when there is no formula field', () => {
+            expect(hasCircularReferences('hi test', 'test-example', fieldList)).toBe(false);
         });
     });
 });

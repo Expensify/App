@@ -11,6 +11,7 @@ import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeSplitBill, setDraftSplitTransaction} from '@libs/actions/IOU';
@@ -38,8 +39,9 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & Plat
 
 function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const theme = useTheme();
+    const {isBetaEnabled} = usePermissions();
 
     const reportID = report?.reportID;
     const originalMessage = reportAction && isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
@@ -74,6 +76,8 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
     const [isConfirmed, setIsConfirmed] = useState(false);
 
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {
         amount: splitAmount,
         currency: splitCurrency,
@@ -82,12 +86,12 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
         created: splitCreated,
         category: splitCategory,
         billable: splitBillable,
-    } = getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
+    } = getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction, undefined, undefined, undefined, undefined, undefined, preferredLocale) ?? {};
 
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
-        completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email);
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email]);
+        completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, isASAPSubmitBetaEnabled, transactionViolations, session?.email);
+    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, transactionViolations]);
 
     return (
         <ScreenWrapper testID={SplitBillDetailsPage.displayName}>

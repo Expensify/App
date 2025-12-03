@@ -1,12 +1,15 @@
+import {renderHook} from '@testing-library/react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
+import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {BillingStatusResult} from '@src/pages/settings/Subscription/CardSection/utils';
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- this param is required for the mock
@@ -14,6 +17,7 @@ function translateMock<TPath extends TranslationPaths>(path: TPath, ...phrasePar
     return path;
 }
 
+const LOCALE = CONST.LOCALES.DEFAULT;
 const AMOUNT_OWED = 100;
 const GRACE_PERIOD_DATE = 1750819200;
 
@@ -47,17 +51,17 @@ describe('getNextBillingDate', () => {
     it('should return the next billing date when initial date is valid', () => {
         const expectedNextBillingDate = 'August 1, 2024';
 
-        expect(CardSectionUtils.getNextBillingDate()).toEqual(expectedNextBillingDate);
+        expect(CardSectionUtils.getNextBillingDate(LOCALE)).toEqual(expectedNextBillingDate);
     });
 
     it('should handle end-of-month edge cases correctly', () => {
-        const nextBillingDate = CardSectionUtils.getNextBillingDate();
+        const nextBillingDate = CardSectionUtils.getNextBillingDate(LOCALE);
         const expectedNextBillingDate = 'August 1, 2024';
         expect(nextBillingDate).toBe(expectedNextBillingDate);
     });
 
     it('should handle date when it at the current month', () => {
-        const nextBillingDate = CardSectionUtils.getNextBillingDate();
+        const nextBillingDate = CardSectionUtils.getNextBillingDate(LOCALE);
         const expectedNextBillingDate = 'August 1, 2024';
         expect(nextBillingDate).toBe(expectedNextBillingDate);
     });
@@ -65,16 +69,22 @@ describe('getNextBillingDate', () => {
     it('should return the next billing date when initial date is invalid', () => {
         const expectedNextBillingDate = 'August 1, 2024';
 
-        expect(CardSectionUtils.getNextBillingDate()).toEqual(expectedNextBillingDate);
+        expect(CardSectionUtils.getNextBillingDate(LOCALE)).toEqual(expectedNextBillingDate);
     });
 });
 
 describe('CardSectionUtils', () => {
+    let creditCardEyesIcon: IconAsset;
+
     afterEach(() => {
         jest.restoreAllMocks();
     });
 
     beforeAll(() => {
+        // Get illustrations using renderHook BEFORE fake timers to avoid timing issues
+        const {result} = renderHook(() => useMemoizedLazyIllustrations(['CreditCardEyes'] as const));
+        creditCardEyesIcon = result.current.CreditCardEyes;
+
         mockGetSubscriptionStatus.mockReturnValue('');
 
         jest.useFakeTimers();
@@ -88,7 +98,15 @@ describe('CardSectionUtils', () => {
 
     it('should return undefined by default', () => {
         expect(
-            CardSectionUtils.getBillingStatus({translate: translateMock, stripeCustomerId, accountData: ACCOUNT_DATA, retryBillingSuccessful: false, billingDisputePending: undefined}),
+            CardSectionUtils.getBillingStatus({
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+            }),
         ).toBeUndefined();
     });
 
@@ -97,7 +115,15 @@ describe('CardSectionUtils', () => {
             status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
         });
         expect(
-            CardSectionUtils.getBillingStatus({translate: translateMock, stripeCustomerId, accountData: ACCOUNT_DATA, retryBillingSuccessful: false, billingDisputePending: undefined}),
+            CardSectionUtils.getBillingStatus({
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+            }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwed.title',
             subtitle: 'subscription.billingBanner.policyOwnerAmountOwed.subtitle',
@@ -130,6 +156,8 @@ describe('CardSectionUtils', () => {
                 purchase: mockPurchase,
                 retryBillingSuccessful: false,
                 billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
@@ -145,7 +173,15 @@ describe('CardSectionUtils', () => {
         });
 
         expect(
-            CardSectionUtils.getBillingStatus({translate: translateMock, stripeCustomerId, accountData: undefined, retryBillingSuccessful: false, billingDisputePending: undefined}),
+            CardSectionUtils.getBillingStatus({
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: undefined,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+            }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
             subtitle: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle',
@@ -160,7 +196,15 @@ describe('CardSectionUtils', () => {
         });
 
         expect(
-            CardSectionUtils.getBillingStatus({translate: translateMock, stripeCustomerId, accountData: ACCOUNT_DATA, retryBillingSuccessful: false, billingDisputePending: undefined}),
+            CardSectionUtils.getBillingStatus({
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+            }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerUnderInvoicing.title',
             subtitle: 'subscription.billingBanner.policyOwnerUnderInvoicing.subtitle',
@@ -175,7 +219,15 @@ describe('CardSectionUtils', () => {
         });
 
         expect(
-            CardSectionUtils.getBillingStatus({translate: translateMock, stripeCustomerId, accountData: ACCOUNT_DATA, retryBillingSuccessful: false, billingDisputePending: undefined}),
+            CardSectionUtils.getBillingStatus({
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+            }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerUnderInvoicingOverdue.title',
             subtitle: 'subscription.billingBanner.policyOwnerUnderInvoicingOverdue.subtitle',
@@ -189,7 +241,17 @@ describe('CardSectionUtils', () => {
             status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
         });
 
-        expect(CardSectionUtils.getBillingStatus({translate: translateMock, stripeCustomerId, accountData: ACCOUNT_DATA, retryBillingSuccessful: false, billingDisputePending: 1})).toEqual({
+        expect(
+            CardSectionUtils.getBillingStatus({
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: 1,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+            }),
+        ).toEqual({
             title: 'subscription.billingBanner.billingDisputePending.title',
             subtitle: 'subscription.billingBanner.billingDisputePending.subtitle',
             isError: true,
@@ -203,7 +265,15 @@ describe('CardSectionUtils', () => {
         });
 
         expect(
-            CardSectionUtils.getBillingStatus({translate: translateMock, stripeCustomerId, accountData: ACCOUNT_DATA, retryBillingSuccessful: false, billingDisputePending: undefined}),
+            CardSectionUtils.getBillingStatus({
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+            }),
         ).toEqual({
             title: 'subscription.billingBanner.cardAuthenticationRequired.title',
             subtitle: 'subscription.billingBanner.cardAuthenticationRequired.subtitle',
@@ -218,7 +288,15 @@ describe('CardSectionUtils', () => {
         });
 
         expect(
-            CardSectionUtils.getBillingStatus({translate: translateMock, stripeCustomerId, accountData: ACCOUNT_DATA, retryBillingSuccessful: false, billingDisputePending: undefined}),
+            CardSectionUtils.getBillingStatus({
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+            }),
         ).toEqual({
             title: 'subscription.billingBanner.insufficientFunds.title',
             subtitle: 'subscription.billingBanner.insufficientFunds.subtitle',
@@ -239,6 +317,8 @@ describe('CardSectionUtils', () => {
                 accountData: {...ACCOUNT_DATA, cardYear: 2023},
                 retryBillingSuccessful: false,
                 billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpired.title',
@@ -248,7 +328,15 @@ describe('CardSectionUtils', () => {
         });
 
         expect(
-            CardSectionUtils.getBillingStatus({translate: translateMock, stripeCustomerId, accountData: ACCOUNT_DATA, retryBillingSuccessful: false, billingDisputePending: undefined}),
+            CardSectionUtils.getBillingStatus({
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+            }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpired.title',
             subtitle: 'subscription.billingBanner.cardExpired.subtitle',
@@ -263,12 +351,20 @@ describe('CardSectionUtils', () => {
         });
 
         expect(
-            CardSectionUtils.getBillingStatus({translate: translateMock, stripeCustomerId, accountData: ACCOUNT_DATA, retryBillingSuccessful: false, billingDisputePending: undefined}),
+            CardSectionUtils.getBillingStatus({
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: true,
+                creditCardEyesIcon,
+            }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpireSoon.title',
             subtitle: 'subscription.billingBanner.cardExpireSoon.subtitle',
             isError: false,
-            icon: Illustrations.CreditCardEyes,
+            icon: creditCardEyesIcon,
         });
     });
 
@@ -278,7 +374,15 @@ describe('CardSectionUtils', () => {
         });
 
         expect(
-            CardSectionUtils.getBillingStatus({translate: translateMock, stripeCustomerId, accountData: ACCOUNT_DATA, retryBillingSuccessful: false, billingDisputePending: undefined}),
+            CardSectionUtils.getBillingStatus({
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+            }),
         ).toEqual({
             title: 'subscription.billingBanner.retryBillingSuccess.title',
             subtitle: 'subscription.billingBanner.retryBillingSuccess.subtitle',
@@ -293,7 +397,15 @@ describe('CardSectionUtils', () => {
         });
 
         expect(
-            CardSectionUtils.getBillingStatus({translate: translateMock, stripeCustomerId, accountData: ACCOUNT_DATA, retryBillingSuccessful: false, billingDisputePending: undefined}),
+            CardSectionUtils.getBillingStatus({
+                translate: translateMock,
+                stripeCustomerId,
+                accountData: ACCOUNT_DATA,
+                retryBillingSuccessful: false,
+                billingDisputePending: undefined,
+                retryBillingFailed: undefined,
+                creditCardEyesIcon,
+            }),
         ).toEqual({
             title: 'subscription.billingBanner.retryBillingError.title',
             subtitle: 'subscription.billingBanner.retryBillingError.subtitle',

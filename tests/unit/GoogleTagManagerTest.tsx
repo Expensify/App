@@ -191,6 +191,7 @@ describe('GoogleTagManagerTest', () => {
                 linkedTrackedExpenseReportAction: {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
                 linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
             },
+            isASAPSubmitBetaEnabled: false,
         });
 
         await waitForBatchedUpdatesWithAct();
