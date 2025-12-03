@@ -11046,13 +11046,24 @@ function isAdminOwnerApproverOrReportOwner(report: OnyxEntry<Report>, policy: On
 function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>, policy: OnyxInputOrEntry<Policy>, isReportArchived = false): boolean {
     // We disabled thread functions for whisper action
     // So we should not show join option for existing thread on whisper message that has already been left, or manually leave it
-    if (isWhisperAction(parentReportAction)) {
+    if (parentReportAction && isWhisperAction(parentReportAction)) {
         return false;
     }
+    const isChatThreadReport = isChatThread(report);
 
-    // If the notification preference of the chat is not hidden that means we have already joined the chat
-    if (!isHiddenForCurrentUser(report)) {
-        return false;
+    if (isChatThreadReport) {
+        const isHidden = isHiddenForCurrentUser(report);
+        const isCreator = currentUserAccountID && report?.ownerAccountID === currentUserAccountID;
+        // Creator with non-HIDDEN preference has already joined (they created it)
+        if (isCreator && !isHidden) {
+            return false;
+        }
+        // Non-creators can always join (even with non-HIDDEN preference, they might have been auto-added)
+    } else {
+        // For non-thread reports, if preference is not HIDDEN, user has already joined
+        if (!isHiddenForCurrentUser(report)) {
+            return false;
+        }
     }
 
     const isExpenseChat = isMoneyRequestReport(report) || isMoneyRequest(report) || isInvoiceReport(report) || isTrackExpenseReport(report);
