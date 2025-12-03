@@ -451,6 +451,8 @@ const CONST = {
         SHORT_DATE_FORMAT: 'MM-dd',
         MONTH_DAY_YEAR_ABBR_FORMAT: 'MMM d, yyyy',
         MONTH_DAY_YEAR_FORMAT: 'MMMM d, yyyy',
+        MONTH_DAY_WEEKDAY_ABBR_FORMAT: 'EEEE, MMM d',
+        MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT: 'EEEE, MMM d, yyyy',
         FNS_TIMEZONE_FORMAT_STRING: "yyyy-MM-dd'T'HH:mm:ssXXX",
         FNS_DB_FORMAT_STRING: 'yyyy-MM-dd HH:mm:ss.SSS',
         LONG_DATE_FORMAT_WITH_WEEKDAY: 'eeee, MMMM d, yyyy',
@@ -1198,6 +1200,8 @@ const CONST = {
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
                 CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
+                CARD_REPLACED_VIRTUAL: 'CARDREPLACEDVIRTUAL',
+                CARD_REPLACED: 'CARDREPLACED',
                 CARD_ASSIGNED: 'CARDASSIGNED',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY',
@@ -1324,6 +1328,7 @@ const CONST = {
                     UPDATE_DISABLED_FIELDS: 'POLICYCHANGELOG_UPDATE_DISABLED_FIELDS',
                     UPDATE_EMPLOYEE: 'POLICYCHANGELOG_UPDATE_EMPLOYEE',
                     UPDATE_FIELD: 'POLICYCHANGELOG_UPDATE_FIELD',
+                    UPDATE_FEATURE_ENABLED: 'POLICYCHANGELOG_UPDATE_FEATURE_ENABLED',
                     UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
                     UPDATE_MANUAL_APPROVAL_THRESHOLD: 'POLICYCHANGELOG_UPDATE_MANUAL_APPROVAL_THRESHOLD',
                     UPDATE_MAX_EXPENSE_AMOUNT: 'POLICYCHANGELOG_UPDATE_MAX_EXPENSE_AMOUNT',
@@ -3455,6 +3460,11 @@ const CONST = {
         FREQUENCY_SETTING: {
             DAILY: 'daily',
             MONTHLY: 'monthly',
+        },
+        TERMINATION_REASON: {
+            LOST: 'lost',
+            STOLEN: 'stolen',
+            DAMAGED: 'damaged',
         },
         MANAGE_EXPENSIFY_CARDS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/expensify-card/Manage-Expensify-Cards',
     },
@@ -6649,6 +6659,11 @@ const CONST = {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
         },
+        SETTLEMENT_STATUS: {
+            PENDING: 'pending',
+            CLEARED: 'cleared',
+            FAILED: 'failed',
+        },
         IS_VALUES: {
             READ: 'read',
             UNREAD: 'unread',
@@ -7225,6 +7240,7 @@ const CONST = {
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
         HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
+        HAS_PENDING_CARD_INFO: 'hasPendingCardInfo',
         HAS_UBER_CREDENTIALS_ERROR: 'hasUberCredentialsError',
         HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO: 'hasPartiallySetupBankAccountInfo',
     },
@@ -7488,6 +7504,20 @@ const FRAUD_PROTECTION_EVENT = {
     NEW_EMAILS_INVITED: 'NewEmailsInvited',
 };
 
+const DATE_TIME_FORMAT_OPTIONS: Record<string, Intl.DateTimeFormatOptions> = {
+    [CONST.DATE.FNS_FORMAT_STRING]: {year: 'numeric', month: '2-digit', day: '2-digit'},
+    [CONST.DATE.LOCAL_TIME_FORMAT]: {timeStyle: 'short'},
+    [CONST.DATE.MONTH_FORMAT]: {month: 'long'},
+    [CONST.DATE.WEEKDAY_TIME_FORMAT]: {weekday: 'long'},
+    [CONST.DATE.MONTH_DAY_WEEKDAY_ABBR_FORMAT]: {weekday: 'long', month: 'short', day: 'numeric'},
+    [CONST.DATE.MONTH_DAY_WEEKDAY_YEAR_ABBR_FORMAT]: {weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'},
+    [CONST.DATE.MONTH_DAY_YEAR_FORMAT]: {dateStyle: 'long'},
+    [CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT]: {month: 'short', day: 'numeric', year: 'numeric'},
+    [CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY]: {dateStyle: 'full'},
+    FNS_DATE_WITH_LOCAL_TIME_FORMAT: {year: 'numeric', month: '2-digit', day: '2-digit', hour: 'numeric', minute: '2-digit'},
+    SHORT_DATE_WITH_LOCAL_TIME_FORMAT: {month: '2-digit', day: '2-digit', hour: 'numeric', minute: '2-digit'},
+};
+
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
@@ -7501,6 +7531,6 @@ type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
 
 export type {Country, IOUAction, IOUType, IOURequestType, SubscriptionType, FeedbackSurveyOptionID, CancellationType, OnboardingInvite, OnboardingAccounting, IOUActionParams};
 
-export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT};
+export {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS, TASK_TO_FEATURE, FRAUD_PROTECTION_EVENT, DATE_TIME_FORMAT_OPTIONS};
 
 export default CONST;
