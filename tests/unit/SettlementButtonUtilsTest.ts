@@ -115,7 +115,7 @@ describe('handleUnvalidatedUserNavigation', () => {
 
 describe('useSettlementButtonPaymentMethods', () => {
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle'] as const);
+    const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle'] as const));
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -125,7 +125,7 @@ describe('useSettlementButtonPaymentMethods', () => {
         const {result} = renderHook(() => useSettlementButtonPaymentMethods(true, translate));
         expect(result.current[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]).toEqual({
             text: translate('iou.settleWallet', {formattedAmount: ''}),
-            icon: icons.User,
+            icon: icons.current.User,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         });
     });
@@ -134,7 +134,7 @@ describe('useSettlementButtonPaymentMethods', () => {
         const {result} = renderHook(() => useSettlementButtonPaymentMethods(false, translate));
         expect(result.current[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]).toEqual({
             text: translate('iou.settlePersonal', {formattedAmount: ''}),
-            icon: icons.User,
+            icon: icons.current.User,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         });
     });
@@ -143,7 +143,7 @@ describe('useSettlementButtonPaymentMethods', () => {
         const {result} = renderHook(() => useSettlementButtonPaymentMethods(true, translate));
         expect(result.current[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]).toEqual({
             text: translate('iou.settleBusiness', {formattedAmount: ''}),
-            icon: icons.Building,
+            icon: icons.current.Building,
             value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
         });
     });
@@ -152,7 +152,7 @@ describe('useSettlementButtonPaymentMethods', () => {
         const {result} = renderHook(() => useSettlementButtonPaymentMethods(true, translate));
         expect(result.current[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]).toEqual({
             text: translate('iou.payElsewhere', {formattedAmount: ''}),
-            icon: icons.CheckCircle,
+            icon: icons.current.CheckCircle,
             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             shouldUpdateSelectedIndex: false,
         });
@@ -183,19 +183,19 @@ describe('useSettlementButtonPaymentMethods', () => {
     it.each([
         {
             method: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-            expectedIcon: icons.User,
+            expectedIcon: icons.current.User,
             expectedValue: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
             description: 'PERSONAL_BANK_ACCOUNT',
         },
         {
             method: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-            expectedIcon: icons.Building,
+            expectedIcon: icons.current.Building,
             expectedValue: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             description: 'BUSINESS_BANK_ACCOUNT',
         },
         {
             method: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-            expectedIcon: icons.CheckCircle,
+            expectedIcon: icons.current.CheckCircle,
             expectedValue: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             description: 'ELSEWHERE',
         },
