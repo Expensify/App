@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
@@ -10,6 +10,7 @@ import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicC
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -114,6 +115,7 @@ function BaseValidateCodeForm({
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {wideRHPRouteKeys} = useContext(WideRHPContext);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -203,14 +205,14 @@ function BaseValidateCodeForm({
         }
         // Delay prevents the input from gaining focus before the RHP slide-out animation finishes,
         // which would cause issues with the RHP sliding out smoothly and flickering of the wide RHP in the background.
-        if (Navigation.isTopmostRouteModalScreen() && !isMobileSafari()) {
+        if ((wideRHPRouteKeys.length > 0 && !isMobileSafari()) || isInPageModal) {
             focusTimeoutRef.current = setTimeout(() => {
                 inputValidateCodeRef.current?.clear();
             }, CONST.ANIMATED_TRANSITION);
         } else {
             inputValidateCodeRef.current?.clear();
         }
-    }, [validateCodeSent]);
+    }, [validateCodeSent, wideRHPRouteKeys.length, isInPageModal]);
     /**
      * Request a validate code / magic code be sent to verify this contact method
      */
