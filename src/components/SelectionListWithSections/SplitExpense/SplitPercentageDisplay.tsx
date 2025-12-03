@@ -6,7 +6,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type SplitPercentageDisplayProps = {
+    /**
+     * Split list item associated with this row, containing the amount, currency and symbol to display.
+     */
     splitItem: SplitListItemType;
+    /**
+     * Width of the editable amount input content area in pixels.
+     */
     contentWidth: number;
 };
 

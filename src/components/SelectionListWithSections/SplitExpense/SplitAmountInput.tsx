@@ -7,12 +7,33 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import SplitAmountDisplay from './SplitAmountDisplay';
 
 type SplitAmountInputProps = {
+    /**
+     * Split list item associated with this row, containing the amount, currency and symbol to display.
+     */
     splitItem: SplitListItemType;
+    /**
+     * Original total amount formatted as a string, used to determine the maximum input length for this split.
+     */
     formattedOriginalAmount: string;
+    /**
+     * Width of the editable amount input content area in pixels.
+     */
     contentWidth: number;
+    /**
+     * Callback invoked when the split amount value changes, receiving the new amount as a string.
+     */
     onSplitExpenseValueChange: (value: string) => void;
+    /**
+     * Callback fired when the amount input gains focus (e.g. to mark the row as active).
+     */
     focusHandler: () => void;
+    /**
+     * Optional callback fired when the amount input loses focus.
+     */
     onInputBlur: ((e: BlurEvent) => void) | undefined;
+    /**
+     * Ref callback used to capture the underlying text input instance for programmatic focus/blur.
+     */
     inputCallbackRef: (ref: BaseTextInputRef | null) => void;
 };
 

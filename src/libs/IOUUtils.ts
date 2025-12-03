@@ -140,29 +140,140 @@ function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInC
         return roundedPercentages;
     }
 
-    // Otherwise, compute base percentages by flooring the exact percentages and then allocating the full remainder
-    // to the row with the largest amount (last one in case of ties). This ensures the first N rows share the same
-    // base percentage and any leftover is applied entirely to the last row, matching how we treat remainder in
-    // split amounts.
-    const flooredPercentages = amountsAbs.map((amount) => (totalAbs > 0 ? Math.floor((amount / totalAbs) * 100) : 0));
-    const sumOfFlooredPercentages = flooredPercentages.reduce((sum, current) => sum + current, 0);
-    const remainder = 100 - sumOfFlooredPercentages;
+    // Refine rounded percentages so that:
+    // - The sum is exactly 100
+    // - Values stay as close as possible to the exact percentages
+    // - Rows with the largest amount never end up with a lower percentage than smaller rows
+    const exactPercentages = amountsAbs.map((amount) => (totalAbs > 0 ? (amount / totalAbs) * 100 : 0));
+    const adjustedPercentages = [...roundedPercentages];
+    let currentSum = sumOfRoundedPercentages;
 
-    if (remainder === 0) {
-        return flooredPercentages;
-    }
+    // First, adjust the rounded values so that they sum exactly to 100 by
+    // repeatedly nudging the values that are farthest from their exact percentages.
+    while (currentSum !== 100) {
+        if (currentSum > 100) {
+            // Need to decrement from the entry that most overestimates its exact percentage.
+            let indexToDecrement = -1;
+            let maxError = -Infinity;
 
-    const maxAmount = Math.max(...amountsAbs);
-    let lastMaxIndex = 0;
-    for (let i = 0; i < amountsAbs.length; i += 1) {
-        if (amountsAbs.at(i) === maxAmount) {
-            lastMaxIndex = i;
+            for (let i = 0; i < adjustedPercentages.length; i += 1) {
+                if (adjustedPercentages[i] <= 0) {
+                    continue;
+                }
+
+                const error = adjustedPercentages[i] - exactPercentages[i];
+
+                if (error > maxError) {
+                    maxError = error;
+                    indexToDecrement = i;
+                }
+            }
+
+            if (indexToDecrement < 0) {
+                break;
+            }
+
+            adjustedPercentages[indexToDecrement] -= 1;
+            currentSum -= 1;
+        } else {
+            // Need to increment the entry that most underestimates its exact percentage.
+            let indexToIncrement = -1;
+            let minError = Infinity;
+
+            for (let i = 0; i < adjustedPercentages.length; i += 1) {
+                const error = adjustedPercentages[i] - exactPercentages[i];
+
+                if (error < minError) {
+                    minError = error;
+                    indexToIncrement = i;
+                }
+            }
+
+            if (indexToIncrement < 0) {
+                break;
+            }
+
+            adjustedPercentages[indexToIncrement] += 1;
+            currentSum += 1;
         }
     }
 
-    const adjustedPercentages = [...flooredPercentages];
-    const baseValue = adjustedPercentages.at(lastMaxIndex) ?? 0;
-    adjustedPercentages[lastMaxIndex] = Math.max(0, baseValue + remainder);
+    // Next, ensure that rows with the largest amount (typically the remainder holder)
+    // never end up with a lower percentage than smaller rows. When there is a unique
+    // largest amount, we also ensure it has at least 1% more than any smaller row.
+    const maxAmount = Math.max(...amountsAbs);
+    const indicesWithMaxAmount: number[] = [];
+    for (let i = 0; i < amountsAbs.length; i += 1) {
+        if (amountsAbs[i] === maxAmount) {
+            indicesWithMaxAmount.push(i);
+        }
+    }
+
+    if (indicesWithMaxAmount.length === 0) {
+        return adjustedPercentages;
+    }
+
+    const isUniqueMaxAmount = indicesWithMaxAmount.length === 1;
+
+    const getMaxAmountPercentage = () => Math.max(...indicesWithMaxAmount.map((index) => adjustedPercentages[index]));
+    const getMaxNonMaxPercentage = () => {
+        let maxNonMax = -Infinity;
+        for (let i = 0; i < adjustedPercentages.length; i += 1) {
+            if (indicesWithMaxAmount.includes(i)) {
+                continue;
+            }
+
+            maxNonMax = Math.max(maxNonMax, adjustedPercentages[i]);
+        }
+        return maxNonMax;
+    };
+
+    let maxAmountPercentage = getMaxAmountPercentage();
+    let maxNonMaxPercentage = getMaxNonMaxPercentage();
+
+    // If all rows have the same amount, no further adjustment is needed.
+    if (maxNonMaxPercentage === -Infinity) {
+        return adjustedPercentages;
+    }
+
+    // Shift 1 percentage point at a time from the largest smaller rows to the largest-amount row(s)
+    // until the constraint is satisfied.
+    while (maxAmountPercentage < maxNonMaxPercentage || (isUniqueMaxAmount && maxAmountPercentage === maxNonMaxPercentage)) {
+        // Find the best donor among the non-max rows:
+        // - highest current percentage
+        // - for ties, smallest amount (so we adjust smaller shares first)
+        let donorIndex = -1;
+        for (let i = 0; i < adjustedPercentages.length; i += 1) {
+            if (indicesWithMaxAmount.includes(i)) {
+                continue;
+            }
+
+            if (adjustedPercentages[i] <= 0) {
+                continue;
+            }
+
+            if (
+                donorIndex === -1 ||
+                adjustedPercentages[i] > adjustedPercentages[donorIndex] ||
+                (adjustedPercentages[i] === adjustedPercentages[donorIndex] && amountsAbs[i] < amountsAbs[donorIndex])
+            ) {
+                donorIndex = i;
+            }
+        }
+
+        if (donorIndex === -1) {
+            break;
+        }
+
+        // Shift 1% from donor to one of the max-amount indices (use the last one for stability).
+        const receiverIndex = indicesWithMaxAmount[indicesWithMaxAmount.length - 1];
+
+        adjustedPercentages[donorIndex] -= 1;
+        adjustedPercentages[receiverIndex] += 1;
+
+        maxAmountPercentage = getMaxAmountPercentage();
+        maxNonMaxPercentage = getMaxNonMaxPercentage();
+    }
 
     return adjustedPercentages;
 }

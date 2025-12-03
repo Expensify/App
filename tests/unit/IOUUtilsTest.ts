@@ -197,15 +197,15 @@ describe('IOUUtils', () => {
             expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(100);
         });
 
-        test('Ensures larger amounts receive the full remainder so first N are even and the last is highest', () => {
+        test('Balances remainder across rows while keeping the largest amount highest', () => {
             // 2.00 split as 0.33, 0.33, 0.33, 0.33, 0.33, 0.35
             const totalInCents = 200;
             const amounts = [33, 33, 33, 33, 33, 35];
             const percentages = IOUUtils.calculateSplitPercentagesFromAmounts(amounts, totalInCents);
 
-            // The first 5 rows share the same base percentage and the last one gets the full remainder.
+            // Percentages remain close to the exact values while the largest amount has the highest percentage.
             // eslint-disable-next-line rulesdir/prefer-at
-            expect(percentages).toEqual([16, 16, 16, 16, 16, 20]);
+            expect(percentages).toEqual([16, 16, 16, 17, 17, 18]);
             expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(100);
         });
 
