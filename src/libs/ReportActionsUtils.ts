@@ -274,6 +274,15 @@ function getMostRecentActiveDEWSubmitFailedAction(reportActions: OnyxEntry<Repor
     return undefined;
 }
 
+/**
+ * Checks if there's a pending SUBMITTED action (pendingAction: 'add').
+ * This is used to detect when a submission is in progress for DEW policies.
+ */
+function hasPendingSubmittedAction(reportActions: OnyxEntry<ReportActions> | ReportAction[]): boolean {
+    const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
+    return actionsArray.some((action): action is ReportAction => isSubmittedAction(action) && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+}
+
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
 }
@@ -3523,6 +3532,7 @@ export {
     isForwardedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     getMostRecentActiveDEWSubmitFailedAction,
+    hasPendingSubmittedAction,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,

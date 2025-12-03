@@ -11446,14 +11446,19 @@ function submitReport(
                   key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                   value: {
                       ...expenseReport,
-                      managerID,
-                      lastMessageText: getReportActionText(optimisticSubmittedReportAction),
-                      lastMessageHtml: getReportActionHtml(optimisticSubmittedReportAction),
-                      stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                      statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                      // For DEW policies, don't optimistically update managerID, stateNum, or statusNum
+                      // because DEW determines the actual workflow on the backend
                       ...(isDEWPolicy
-                          ? {}
+                          ? {
+                                lastMessageText: getReportActionText(optimisticSubmittedReportAction),
+                                lastMessageHtml: getReportActionHtml(optimisticSubmittedReportAction),
+                            }
                           : {
+                                managerID,
+                                lastMessageText: getReportActionText(optimisticSubmittedReportAction),
+                                lastMessageHtml: getReportActionHtml(optimisticSubmittedReportAction),
+                                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                                 nextStep: optimisticNextStep,
                                 pendingFields: {
                                     nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -11466,11 +11471,12 @@ function submitReport(
                   key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                   value: {
                       ...expenseReport,
-                      stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                      statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                      // For DEW policies, don't optimistically update stateNum or statusNum
                       ...(isDEWPolicy
                           ? {}
                           : {
+                                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                                 nextStep: optimisticNextStep,
                                 pendingFields: {
                                     nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
