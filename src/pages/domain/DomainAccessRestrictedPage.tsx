@@ -68,8 +68,8 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
 
                 <View style={styles.gap2}>
                     {FEATURES.map((featureTranslationPath) => (
-                        <Text
-                            style={[styles.dFlex, styles.alignItemsCenter]}
+                        <View
+                            style={[styles.alignItemsCenter, styles.flexRow]}
                             key={featureTranslationPath}
                         >
                             <Icon
@@ -77,8 +77,8 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
                                 additionalStyles={styles.mr2}
                                 fill={theme.iconSuccessFill}
                             />
-                            {translate(featureTranslationPath)}
-                        </Text>
+                            <Text>{translate(featureTranslationPath)}</Text>
+                        </View>
                     ))}
                 </View>
             </ScrollView>
