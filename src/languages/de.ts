@@ -5994,7 +5994,7 @@ ${
                     expense: 'Einzelausgabe',
                     expenseSubtitle: 'Beträge von Ausgaben nach Kategorie kennzeichnen. Diese Regel überschreibt die allgemeine Arbeitsbereichsregel für den maximalen Ausgabenbetrag.',
                     daily: 'Kategorietotal',
-                    dailySubtitle: 'Gesamtausgaben pro Kategorie pro Spesenbericht kennzeichnen.',
+                    dailySubtitle: 'Gesamtausgaben pro Tag pro Kategorie pro Spesenbericht kennzeichnen.',
                 },
                 requireReceiptsOver: 'Belege über erforderlich',
                 requireReceiptsOverList: {
