@@ -209,7 +209,7 @@ function getMergeableDataAndConflictFields(
     localeCompare: (a: string, b: string) => number,
 ) {
     const conflictFields: string[] = [];
-    const mergeableData: Record<string, unknown> = {};
+    const mergeableData: Record<string, unknown> = {selectedTransactionByField: {}};
 
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const sourceTransactionDetails = getTransactionDetails(sourceTransaction);
@@ -296,6 +296,9 @@ function getMergeableDataAndConflictFields(
                 mergeTransaction: mergeableData as MergeTransaction,
             });
             Object.assign(mergeableData, updatedValues);
+            if (updatedValues[field]) {
+                (mergeableData.selectedTransactionByField as Record<string, string | undefined>)[field] = selectedTransaction?.transactionID;
+            }
         } else {
             conflictFields.push(field);
         }
