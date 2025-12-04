@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import FormProvider from '@components/Form/FormProvider';
@@ -181,11 +181,7 @@ function WorkspaceInviteMessageComponent({
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.dismissModal();
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
-            });
+            Navigation.dismissModal({callback: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))});
         });
     };
 
