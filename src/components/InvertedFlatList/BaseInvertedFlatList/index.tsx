@@ -24,6 +24,7 @@ type BaseInvertedFlatListProps<T> = Omit<FlatListProps<T>, 'data' | 'renderItem'
     initialScrollKey?: string | null;
     ref?: ForwardedRef<RNFlatList>;
     shouldDisableVisibleContentPosition?: boolean;
+    shouldHideContent?: boolean;
 };
 
 function BaseInvertedFlatList<T>({ref, ...props}: BaseInvertedFlatListProps<T>) {
