@@ -202,7 +202,7 @@ function TaskAssigneeSelectorModal() {
                 });
             }
         },
-        [report, currentUserPersonalDetails.accountID, task?.shareDestination, backTo, hasOutstandingChildTask, allPersonalDetails],
+        [report, currentUserPersonalDetails.accountID, task?.shareDestination, backTo, hasOutstandingChildTask, allPersonalDetails, parentReport],
     );
 
     const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);

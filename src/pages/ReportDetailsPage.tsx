@@ -581,6 +581,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
         introSelected,
+        parentReport,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -868,6 +869,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isChatIOUReportArchived,
         hasOutstandingChildTask,
         parentReportAction,
+        parentReport,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
