@@ -2210,22 +2210,9 @@ function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
         return false;
     }
 
-    let hasReimbursable = false;
-    let hasNonReimbursable = false;
-
-    for (const transaction of transactions) {
-        if (getReimbursable(transaction)) {
-            hasReimbursable = true;
-        } else {
-            hasNonReimbursable = true;
-        }
-
-        if (hasReimbursable && hasNonReimbursable) {
-            return true;
-        }
-    }
-
-    return hasNonReimbursable;
+    // Show breakdown if there is ANY non-reimbursable expense.
+    // If there are no non-reimbursable expenses (i.e., all are reimbursable), do not show the breakdown.
+    return transactions.some((transaction) => !getReimbursable(transaction));
 }
 
 /**
