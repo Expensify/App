@@ -8,7 +8,7 @@ import type SCREENS from '@src/SCREENS';
 type NewBankAccountVerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT>;
 
 function NewBankAccountVerifyAccountPage({route}: NewBankAccountVerifyAccountPageProps) {
-    const navigateBackTo = route.params?.backToWallet ? ROUTES.SETTINGS_WALLET : undefined;
+    const navigateBackTo = route.params?.backTo ?? ROUTES.SETTINGS_WALLET;
     return (
         <VerifyAccountPageBase
             navigateBackTo={navigateBackTo}

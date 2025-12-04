@@ -321,9 +321,7 @@ const ROUTES = {
     },
     SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: {
         route: `settings/wallet/add-bank-account/${VERIFY_ACCOUNT}`,
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (params: {backToWallet?: boolean}) => getUrlWithParams(`settings/wallet/add-bank-account/${VERIFY_ACCOUNT}`, params),
+        getRoute: (params: {backTo?: string}) => getUrlWithParams(`settings/wallet/add-bank-account/${VERIFY_ACCOUNT}`, params),
     },
 
     SETTINGS_ADD_US_BANK_ACCOUNT: 'settings/wallet/add-us-bank-account',
