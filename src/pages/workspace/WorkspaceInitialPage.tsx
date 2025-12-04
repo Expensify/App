@@ -176,6 +176,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             policy?.arePerDiemRatesEnabled,
             policy?.receiptPartners?.enabled,
             isUberForBusinessEnabled,
+            policy?.isTravelEnabled,
         ],
     ) as PolicyFeatureStates;
 

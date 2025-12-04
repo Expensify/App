@@ -37,6 +37,15 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string) {
                 isLoading: false,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                travelSettings: {
+                    hasAcceptedTerms: true,
+                },
+            },
+        },
     ];
 
     const failureData: OnyxUpdate[] = [

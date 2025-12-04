@@ -110,10 +110,9 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, ac
             return;
         }
 
-        const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID ?? policy?.travelSettings?.associatedTravelDomainAccountID;
-        if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
+        if (policy?.travelSettings?.hasAcceptedTerms ?? travelSettings?.hasAcceptedTerms) {
             openTravelDotLink(policy?.id);
-        } else if (isPolicyProvisioned) {
+        } else if (!policy?.travelSettings?.hasAcceptedTerms) {
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN, undefined, activePolicyID ?? undefined);
         } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             setVerificationModalVisibility(true);

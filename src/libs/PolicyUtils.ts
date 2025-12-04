@@ -1590,8 +1590,7 @@ function getTravelStep(
     policies: OnyxCollection<Policy>,
     currentUserLogin: string | undefined,
 ): TravelStep {
-    const isPolicyProvisioned = policy?.travelSettings?.spotnanaCompanyID ?? policy?.travelSettings?.associatedTravelDomainAccountID;
-    const hasAcceptedTerms = policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
+    const hasAcceptedTerms = policy?.travelSettings?.hasAcceptedTerms ?? travelSettings?.hasAcceptedTerms;
 
     const adminDomains = getAdminsPrivateEmailDomains(policy);
     const activePolicies = getActivePolicies(policies, currentUserLogin);
@@ -1603,7 +1602,7 @@ function getTravelStep(
     if (hasAcceptedTerms) {
         return CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP;
     }
-    if (!isPolicyProvisioned && !isTravelVerifiedBetaEnabled && travelSettings?.lastTravelSignupRequestTime) {
+    if (!policy?.travelSettings?.hasAcceptedTerms && !isTravelVerifiedBetaEnabled && travelSettings?.lastTravelSignupRequestTime) {
         return CONST.TRAVEL.STEPS.REVIEWING_REQUEST;
     }
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
