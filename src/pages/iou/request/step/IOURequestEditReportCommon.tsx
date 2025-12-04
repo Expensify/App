@@ -80,7 +80,7 @@ function IOURequestEditReportCommon({
     const {options} = useOptionsList();
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionIDs?.at(0))}`, {canBeMissing: true});
+    const [firstTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionIDs?.at(0))}`, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
     const resolvedReportOwnerAccountID = useMemo(() => {
@@ -97,7 +97,7 @@ function IOURequestEditReportCommon({
     const reportPolicy = usePolicy(selectedReport?.policyID);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest);
 
-    const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
+    const perDiemOriginalPolicy = getPolicyByCustomUnitID(firstTransaction, allPolicies);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
 
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});

@@ -41,6 +41,7 @@ import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
     getLengthOfTag,
+    getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
@@ -96,6 +97,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
 
 type MoneyRequestViewProps = {
@@ -124,7 +126,16 @@ type MoneyRequestViewProps = {
     mergeTransactionID?: string;
 };
 
-const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.arePerDiemRatesEnabled));
+const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => {
+    return Object.fromEntries(
+        Object.entries(policies ?? {}).filter(([, policy]) => {
+            const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+            const hasPolicyPerDiemRates = !isEmptyObject(perDiemCustomUnit?.rates);
+
+            return policy?.arePerDiemRatesEnabled && hasPolicyPerDiemRates;
+        }),
+    );
+};
 
 function MoneyRequestView({
     allReports,
