@@ -4,7 +4,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Alert} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import DeviceInfo from 'react-native-device-info';
-import {startProfiling, stopProfiling} from 'react-native-release-profiler';
+import {stopProfiling} from 'react-native-release-profiler';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
@@ -12,9 +12,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {disableLoggingAndFlushLogs, setShouldStoreLogs} from '@libs/actions/Console';
-import toggleProfileTool from '@libs/actions/ProfilingTool';
-import {setShouldRecordTroubleshootData} from '@libs/actions/Troubleshoot';
+import {disableRecording, enableRecording} from '@libs/actions/Troubleshoot';
 import {parseStringifiedMessages} from '@libs/Console';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -88,28 +86,11 @@ function BaseRecordTroubleshootDataToolMenu({
     const styles = useThemeStyles();
     const [shouldRecordTroubleshootData] = useOnyx(ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA, {canBeMissing: true});
     const [capturedLogs] = useOnyx(ONYXKEYS.LOGS, {canBeMissing: true});
-    const [isProfilingInProgress] = useOnyx(ONYXKEYS.APP_PROFILING_IN_PROGRESS, {canBeMissing: true});
     const [shareUrls, setShareUrls] = useState<string[]>();
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
     const [profileTracePath, setProfileTracePath] = useState<string>();
 
     const shouldShowProfileTool = useMemo(() => shouldShowProfileToolUtil(), []);
-
-    const onToggleProfiling = useCallback(() => {
-        const shouldProfiling = !isProfilingInProgress;
-        if (shouldProfiling) {
-            setShareUrls(undefined);
-            Memoize.startMonitoring();
-            Performance.enableMonitoring();
-            startProfiling();
-        } else {
-            Performance.disableMonitoring();
-        }
-        toggleProfileTool(shouldProfiling);
-        return () => {
-            Performance.disableMonitoring();
-        };
-    }, [isProfilingInProgress]);
 
     const getAppInfo = useCallback(() => {
         return Promise.all([DeviceInfo.getTotalMemory(), DeviceInfo.getUsedMemory()]).then(([totalMemory, usedMemory]) => {
@@ -128,12 +109,8 @@ function BaseRecordTroubleshootDataToolMenu({
     const onStopProfiling = useMemo(() => (shouldShowProfileTool ? stopProfiling : () => Promise.resolve()), [shouldShowProfileTool]);
 
     const onToggle = () => {
-        if (shouldShowProfileTool) {
-            onToggleProfiling();
-        }
         if (!shouldRecordTroubleshootData) {
-            setShouldStoreLogs(true);
-            setShouldRecordTroubleshootData(true);
+            enableRecording();
 
             if (onEnableLogging) {
                 onEnableLogging();
@@ -146,8 +123,7 @@ function BaseRecordTroubleshootDataToolMenu({
 
         if (!capturedLogs) {
             Alert.alert(translate('initialSettingsPage.troubleshoot.noLogsToShare'));
-            disableLoggingAndFlushLogs();
-            setShouldRecordTroubleshootData(false);
+            disableRecording();
             return;
         }
 
@@ -162,8 +138,7 @@ function BaseRecordTroubleshootDataToolMenu({
                     zipRef.current?.file(infoFileName, appInfo);
 
                     onDisableLogging(logsWithParsedMessages).then(() => {
-                        disableLoggingAndFlushLogs();
-                        setShouldRecordTroubleshootData(false);
+                        disableRecording();
                         setIsDisabled(false);
                         onDownloadZip?.();
                     });
@@ -198,8 +173,7 @@ function BaseRecordTroubleshootDataToolMenu({
                                     zipRef.current?.file(infoFileName, appInfo);
 
                                     onDisableLogging(logsWithParsedMessages).then(() => {
-                                        disableLoggingAndFlushLogs();
-                                        setShouldRecordTroubleshootData(false);
+                                        disableRecording();
                                         setIsDisabled(false);
                                         onDownloadZip?.();
                                     });
@@ -233,8 +207,7 @@ function BaseRecordTroubleshootDataToolMenu({
                     zipRef.current?.file(infoFileName, appInfo);
 
                     onDisableLogging(logsWithParsedMessages).then(() => {
-                        disableLoggingAndFlushLogs();
-                        setShouldRecordTroubleshootData(false);
+                        disableRecording();
                         setIsDisabled(false);
                     });
                 });
@@ -246,8 +219,7 @@ function BaseRecordTroubleshootDataToolMenu({
                     zipRef.current?.file(infoFileName, appInfo);
 
                     onDisableLogging(logsWithParsedMessages).then(() => {
-                        disableLoggingAndFlushLogs();
-                        setShouldRecordTroubleshootData(false);
+                        disableRecording();
                         setIsDisabled(false);
                     });
                 });
