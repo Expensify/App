@@ -78,7 +78,11 @@ namespace margelo::nitro::utils {
      */
     [[maybe_unused]]
     static jni::local_ref<JContact::javaobject> fromCpp(const Contact& value) {
-      return newInstance(
+      using JSignature = JContact(jni::alias_ref<jni::JString>, jni::alias_ref<jni::JString>, jni::alias_ref<jni::JArrayClass<JStringHolder>>, jni::alias_ref<jni::JArrayClass<JStringHolder>>, jni::alias_ref<jni::JString>);
+      static const auto clazz = javaClassStatic();
+      static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
+      return create(
+        clazz,
         value.firstName.has_value() ? jni::make_jstring(value.firstName.value()) : nullptr,
         value.lastName.has_value() ? jni::make_jstring(value.lastName.value()) : nullptr,
         value.phoneNumbers.has_value() ? [&]() {
@@ -86,7 +90,8 @@ namespace margelo::nitro::utils {
           jni::local_ref<jni::JArrayClass<JStringHolder>> __array = jni::JArrayClass<JStringHolder>::newArray(__size);
           for (size_t __i = 0; __i < __size; __i++) {
             const auto& __element = value.phoneNumbers.value()[__i];
-            __array->setElement(__i, *JStringHolder::fromCpp(__element));
+            auto __elementJni = JStringHolder::fromCpp(__element);
+            __array->setElement(__i, *__elementJni);
           }
           return __array;
         }() : nullptr,
@@ -95,7 +100,8 @@ namespace margelo::nitro::utils {
           jni::local_ref<jni::JArrayClass<JStringHolder>> __array = jni::JArrayClass<JStringHolder>::newArray(__size);
           for (size_t __i = 0; __i < __size; __i++) {
             const auto& __element = value.emailAddresses.value()[__i];
-            __array->setElement(__i, *JStringHolder::fromCpp(__element));
+            auto __elementJni = JStringHolder::fromCpp(__element);
+            __array->setElement(__i, *__elementJni);
           }
           return __array;
         }() : nullptr,

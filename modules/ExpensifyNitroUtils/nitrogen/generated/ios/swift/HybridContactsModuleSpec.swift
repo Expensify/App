@@ -17,6 +17,13 @@ public protocol HybridContactsModuleSpec_protocol: HybridObject {
   func getAll(keys: [ContactFields]) throws -> Promise<[Contact]>
 }
 
+public extension HybridContactsModuleSpec_protocol {
+  /// Default implementation of ``HybridObject.toString``
+  func toString() -> String {
+    return "[HybridObject ContactsModule]"
+  }
+}
+
 /// See ``HybridContactsModuleSpec``
 open class HybridContactsModuleSpec_base {
   private weak var cxxWrapper: HybridContactsModuleSpec_cxx? = nil

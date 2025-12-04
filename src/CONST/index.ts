@@ -7470,6 +7470,13 @@ const CONST = {
     MODAL_EVENTS: {
         CLOSED: 'modalClosed',
     },
+
+    PERFORMANCE: {
+        MARKERS: {
+            RUN_JS_BUNDLE_START: 'runJsBundleStart',
+            HERMES_YOUNG_GC_START: 'hermesYoungGcStart',
+        },
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [

@@ -48,6 +48,12 @@ namespace margelo::nitro::utils {
     method(_javaPart);
   }
 
+  std::string JHybridContactsModuleSpec::toString() {
+    static const auto method = javaClassStatic()->getMethod<jni::JString()>("toString");
+    auto javaString = method(_javaPart);
+    return javaString->toStdString();
+  }
+
   // Properties
   
 
@@ -59,7 +65,8 @@ namespace margelo::nitro::utils {
       jni::local_ref<jni::JArrayClass<JContactFields>> __array = jni::JArrayClass<JContactFields>::newArray(__size);
       for (size_t __i = 0; __i < __size; __i++) {
         const auto& __element = keys[__i];
-        __array->setElement(__i, *JContactFields::fromCpp(__element));
+        auto __elementJni = JContactFields::fromCpp(__element);
+        __array->setElement(__i, *__elementJni);
       }
       return __array;
     }());

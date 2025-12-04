@@ -41,6 +41,7 @@ namespace margelo::nitro::utils {
   public:
     size_t getExternalMemorySize() noexcept override;
     void dispose() noexcept override;
+    std::string toString() override;
 
   public:
     inline const jni::global_ref<JHybridContactsModuleSpec::javaobject>& getJavaPart() const noexcept {

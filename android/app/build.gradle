@@ -83,7 +83,7 @@ project.ext.envConfigFiles = [
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
-def enableProguardInReleaseBuilds = true
+def enableProguardInReleaseBuilds = false
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -153,10 +153,10 @@ android {
 
     signingConfigs {
         release {
-            storeFile file(MYAPP_UPLOAD_STORE_FILE)
-            storePassword System.getenv('MYAPP_UPLOAD_STORE_PASSWORD')
-            keyAlias MYAPP_UPLOAD_KEY_ALIAS
-            keyPassword System.getenv('MYAPP_UPLOAD_KEY_PASSWORD')
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
         }
         debug {
             storeFile file('debug.keystore')
@@ -175,7 +175,7 @@ android {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
 
-            signingConfig null
+            signingConfigs.debug
             // buildTypes take precedence over productFlavors when it comes to the signing configuration,
             // thus we need to manually set the signing config, so that the e2e uses the debug config again.
             // In other words, the signingConfig setting above will be ignored when we build the flavor in release mode.

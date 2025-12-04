@@ -14,18 +14,31 @@ namespace margelo::nitro::utils { enum class ContactFields; }
 namespace margelo::nitro::utils { struct Contact; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
+// Forward declaration of `HybridTtiLoggerSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridTtiLoggerSpec; }
+// Forward declaration of `HybridTtiMeasurementViewSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridTtiMeasurementViewSpec; }
 // Forward declaration of `StringHolder` to properly resolve imports.
 namespace margelo::nitro::utils { struct StringHolder; }
+// Forward declaration of `TtiMeasurementValue` to properly resolve imports.
+namespace margelo::nitro::utils { struct TtiMeasurementValue; }
 
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
+// Forward declaration of `HybridTtiLoggerSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridTtiLoggerSpec_cxx; }
+// Forward declaration of `HybridTtiMeasurementViewSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridTtiMeasurementViewSpec_cxx; }
 
 // Include C++ defined types
 #include "Contact.hpp"
 #include "ContactFields.hpp"
 #include "HybridContactsModuleSpec.hpp"
+#include "HybridTtiLoggerSpec.hpp"
+#include "HybridTtiMeasurementViewSpec.hpp"
 #include "StringHolder.hpp"
+#include "TtiMeasurementValue.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/PromiseHolder.hpp>
 #include <NitroModules/Result.hpp>
@@ -123,7 +136,7 @@ namespace margelo::nitro::utils::bridge::swift {
   private:
     std::unique_ptr<std::function<void(const std::vector<Contact>& /* result */)>> _function;
   } SWIFT_NONCOPYABLE;
-  Func_void_std__vector_Contact_ create_Func_void_std__vector_Contact_(void* _Nonnull swiftClosureWrapper) noexcept;
+  Func_void_std__vector_Contact_ create_Func_void_std__vector_Contact_(void* NON_NULL swiftClosureWrapper) noexcept;
   inline Func_void_std__vector_Contact__Wrapper wrap_Func_void_std__vector_Contact_(Func_void_std__vector_Contact_ value) noexcept {
     return Func_void_std__vector_Contact__Wrapper(std::move(value));
   }
@@ -145,7 +158,7 @@ namespace margelo::nitro::utils::bridge::swift {
   private:
     std::unique_ptr<std::function<void(const std::exception_ptr& /* error */)>> _function;
   } SWIFT_NONCOPYABLE;
-  Func_void_std__exception_ptr create_Func_void_std__exception_ptr(void* _Nonnull swiftClosureWrapper) noexcept;
+  Func_void_std__exception_ptr create_Func_void_std__exception_ptr(void* NON_NULL swiftClosureWrapper) noexcept;
   inline Func_void_std__exception_ptr_Wrapper wrap_Func_void_std__exception_ptr(Func_void_std__exception_ptr value) noexcept {
     return Func_void_std__exception_ptr_Wrapper(std::move(value));
   }
@@ -166,8 +179,8 @@ namespace margelo::nitro::utils::bridge::swift {
    * Specialized version of `std::shared_ptr<HybridContactsModuleSpec>`.
    */
   using std__shared_ptr_HybridContactsModuleSpec_ = std::shared_ptr<HybridContactsModuleSpec>;
-  std::shared_ptr<HybridContactsModuleSpec> create_std__shared_ptr_HybridContactsModuleSpec_(void* _Nonnull swiftUnsafePointer) noexcept;
-  void* _Nonnull get_std__shared_ptr_HybridContactsModuleSpec_(std__shared_ptr_HybridContactsModuleSpec_ cppType) noexcept;
+  std::shared_ptr<HybridContactsModuleSpec> create_std__shared_ptr_HybridContactsModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_HybridContactsModuleSpec_(std__shared_ptr_HybridContactsModuleSpec_ cppType);
   
   // pragma MARK: std::weak_ptr<HybridContactsModuleSpec>
   using std__weak_ptr_HybridContactsModuleSpec_ = std::weak_ptr<HybridContactsModuleSpec>;
@@ -181,5 +194,75 @@ namespace margelo::nitro::utils::bridge::swift {
   inline Result_std__shared_ptr_Promise_std__vector_Contact____ create_Result_std__shared_ptr_Promise_std__vector_Contact____(const std::exception_ptr& error) noexcept {
     return Result<std::shared_ptr<Promise<std::vector<Contact>>>>::withError(error);
   }
+  
+  // pragma MARK: std::function<void(const TtiMeasurementValue& /* measurement */)>
+  /**
+   * Specialized version of `std::function<void(const TtiMeasurementValue&)>`.
+   */
+  using Func_void_TtiMeasurementValue = std::function<void(const TtiMeasurementValue& /* measurement */)>;
+  /**
+   * Wrapper class for a `std::function<void(const TtiMeasurementValue& / * measurement * /)>`, this can be used from Swift.
+   */
+  class Func_void_TtiMeasurementValue_Wrapper final {
+  public:
+    explicit Func_void_TtiMeasurementValue_Wrapper(std::function<void(const TtiMeasurementValue& /* measurement */)>&& func): _function(std::make_unique<std::function<void(const TtiMeasurementValue& /* measurement */)>>(std::move(func))) {}
+    inline void call(TtiMeasurementValue measurement) const noexcept {
+      _function->operator()(measurement);
+    }
+  private:
+    std::unique_ptr<std::function<void(const TtiMeasurementValue& /* measurement */)>> _function;
+  } SWIFT_NONCOPYABLE;
+  Func_void_TtiMeasurementValue create_Func_void_TtiMeasurementValue(void* NON_NULL swiftClosureWrapper) noexcept;
+  inline Func_void_TtiMeasurementValue_Wrapper wrap_Func_void_TtiMeasurementValue(Func_void_TtiMeasurementValue value) noexcept {
+    return Func_void_TtiMeasurementValue_Wrapper(std::move(value));
+  }
+  
+  // pragma MARK: std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>>
+  /**
+   * Specialized version of `std::optional<std::function<void(const TtiMeasurementValue& / * measurement * /)>>`.
+   */
+  using std__optional_std__function_void_const_TtiMeasurementValue_____measurement______ = std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>>;
+  inline std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>> create_std__optional_std__function_void_const_TtiMeasurementValue_____measurement______(const std::function<void(const TtiMeasurementValue& /* measurement */)>& value) noexcept {
+    return std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>>(value);
+  }
+  inline bool has_value_std__optional_std__function_void_const_TtiMeasurementValue_____measurement______(const std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline std::function<void(const TtiMeasurementValue& /* measurement */)> get_std__optional_std__function_void_const_TtiMeasurementValue_____measurement______(const std::optional<std::function<void(const TtiMeasurementValue& /* measurement */)>>& optional) noexcept {
+    return *optional;
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridTtiLoggerSpec>
+  /**
+   * Specialized version of `std::shared_ptr<HybridTtiLoggerSpec>`.
+   */
+  using std__shared_ptr_HybridTtiLoggerSpec_ = std::shared_ptr<HybridTtiLoggerSpec>;
+  std::shared_ptr<HybridTtiLoggerSpec> create_std__shared_ptr_HybridTtiLoggerSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_HybridTtiLoggerSpec_(std__shared_ptr_HybridTtiLoggerSpec_ cppType);
+  
+  // pragma MARK: std::weak_ptr<HybridTtiLoggerSpec>
+  using std__weak_ptr_HybridTtiLoggerSpec_ = std::weak_ptr<HybridTtiLoggerSpec>;
+  inline std__weak_ptr_HybridTtiLoggerSpec_ weakify_std__shared_ptr_HybridTtiLoggerSpec_(const std::shared_ptr<HybridTtiLoggerSpec>& strong) noexcept { return strong; }
+  
+  // pragma MARK: Result<void>
+  using Result_void_ = Result<void>;
+  inline Result_void_ create_Result_void_() noexcept {
+    return Result<void>::withValue();
+  }
+  inline Result_void_ create_Result_void_(const std::exception_ptr& error) noexcept {
+    return Result<void>::withError(error);
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridTtiMeasurementViewSpec>
+  /**
+   * Specialized version of `std::shared_ptr<HybridTtiMeasurementViewSpec>`.
+   */
+  using std__shared_ptr_HybridTtiMeasurementViewSpec_ = std::shared_ptr<HybridTtiMeasurementViewSpec>;
+  std::shared_ptr<HybridTtiMeasurementViewSpec> create_std__shared_ptr_HybridTtiMeasurementViewSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_HybridTtiMeasurementViewSpec_(std__shared_ptr_HybridTtiMeasurementViewSpec_ cppType);
+  
+  // pragma MARK: std::weak_ptr<HybridTtiMeasurementViewSpec>
+  using std__weak_ptr_HybridTtiMeasurementViewSpec_ = std::weak_ptr<HybridTtiMeasurementViewSpec>;
+  inline std__weak_ptr_HybridTtiMeasurementViewSpec_ weakify_std__shared_ptr_HybridTtiMeasurementViewSpec_(const std::shared_ptr<HybridTtiMeasurementViewSpec>& strong) noexcept { return strong; }
 
 } // namespace margelo::nitro::utils::bridge::swift

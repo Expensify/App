@@ -15,19 +15,20 @@ import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
-import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.modules.i18nmanager.I18nUtil
-import com.facebook.react.soloader.OpenSourceMergedSoMapping
-import com.facebook.soloader.SoLoader
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.oblador.performance.RNPerformance
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
+import com.margelo.nitro.utils.HybridTtiLogger
+import java.util.concurrent.TimeUnit
 
 class MainApplication : MultiDexApplication(), ReactApplication {
+    val applicationStartedTimestamp = TimeUnit.NANOSECONDS.toMillis(System.nanoTime())
+
     override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(this, object : DefaultReactNativeHost(this) {
         override fun getUseDeveloperSupport() = BuildConfig.DEBUG
 
@@ -78,6 +79,8 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         // module in the JS so we can measure total time starting in the native layer and ending in
         // the JS layer.
         StartupTimer.start()
+
+        HybridTtiLogger.applicationStartupTimestamp = applicationStartedTimestamp.toDouble()
 
         // Increase SQLite DB write size
         try {
