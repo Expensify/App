@@ -876,9 +876,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        // Check if IOU action exists - if not, it's a legacy transaction
+        // Check if it's a legacy transaction from:
+        // - IOU action exists
+        // - Transaction is pending addition
         const iouAction = getIOUActionForReportID(reportID, transaction.transactionID);
-        if (iouAction) {
+        if (iouAction || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             return;
         }
 
