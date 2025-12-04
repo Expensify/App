@@ -11,10 +11,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,6 +34,7 @@ function TextSelectorModal({
     customValidate,
     enabledWhenOffline = true,
     allowHTML,
+    autoGrowHeight,
     ...rest
 }: TextSelectorModalProps) {
     const {translate} = useLocalize();
@@ -45,7 +46,9 @@ function TextSelectorModal({
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const inputValueRef = useRef(value);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const {inputCallbackRef} = useAutoFocusInput(true);
+    const inputCallbackRef = (ref: BaseTextInputRef | null) => {
+        inputRef.current = ref;
+    };
 
     const hide = useCallback(() => {
         onClose();
@@ -97,6 +100,10 @@ function TextSelectorModal({
                 if (inputRef.current && isVisible) {
                     inputRef.current.focus();
                     (inputRef.current as TextInputType).setSelection?.(inputValueRef.current?.length ?? 0, inputValueRef.current?.length ?? 0);
+                    if (autoGrowHeight) {
+                        scrollToBottom(inputRef.current as TextInputType);
+                        moveSelectionToEnd(inputRef.current as TextInputType);
+                    }
                 }
                 return () => {
                     if (!focusTimeoutRef.current || !isVisible) {
@@ -105,7 +112,7 @@ function TextSelectorModal({
                     clearTimeout(focusTimeoutRef.current);
                 };
             }, CONST.ANIMATED_TRANSITION);
-        }, [isVisible]),
+        }, [isVisible, autoGrowHeight]),
     );
 
     const handleSubmit = useCallback(
@@ -169,6 +176,7 @@ function TextSelectorModal({
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...rest}
                         inputID={rest.inputID}
+                        autoGrowHeight={autoGrowHeight}
                     />
                 </FormProvider>
             </ScreenWrapper>
