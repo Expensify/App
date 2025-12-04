@@ -232,7 +232,7 @@ function IOURequestStepAmount({
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         },
                         isASAPSubmitBetaEnabled,
-                        quikAction,
+                        quickAction,
                     });
                     return;
                 }
