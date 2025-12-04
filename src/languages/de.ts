@@ -483,8 +483,7 @@ const translations: TranslationDeepObject<typeof en> = {
         error: {
             invalidAmount: 'Ungültiger Betrag',
             acceptTerms: 'Sie müssen die Nutzungsbedingungen akzeptieren, um fortzufahren',
-            phoneNumber: `Bitte geben Sie eine vollständige Telefonnummer ein
-(z. B. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
+            phoneNumber: `Bitte geben Sie eine vollständige Telefonnummer ein (z. B. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Dieses Feld ist erforderlich',
             requestModified: 'Diese Anfrage wird gerade von einem anderen Mitglied bearbeitet',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Zeichenlimit überschritten (${length}/${limit})`,
@@ -498,7 +497,7 @@ const translations: TranslationDeepObject<typeof en> = {
             missingAmount: 'Fehlender Betrag',
             missingDate: 'Datum fehlt',
             enterDate: 'Datum eingeben',
-            invalidTimeRange: 'Bitte gib eine Uhrzeit im 12-Stunden-Format ein (z. B. 14:30 PM)',
+            invalidTimeRange: 'Bitte gib eine Uhrzeit im 12-Stunden-Format ein (z. B. 14:30 PM)',
             pleaseCompleteForm: 'Bitte füllen Sie das obige Formular aus, um fortzufahren',
             pleaseSelectOne: 'Bitte wählen Sie oben eine Option aus',
             invalidRateError: 'Bitte geben Sie einen gültigen Satz ein',
@@ -2605,7 +2604,7 @@ ${amount} für ${merchant} – ${date}`,
             magicCodeSent: ({workEmail}: WorkEmailResendCodeParams) => `Bitte gib den magischen Code ein, der an ${workEmail} gesendet wurde. Er sollte in ein bis zwei Minuten ankommen.`,
         },
         workEmailValidationError: {
-            publicEmail: 'Bitte gib eine gültige geschäftliche E-Mail-Adresse von einer privaten Domain ein, z. B. mitch@company.com',
+            publicEmail: 'Bitte gib eine gültige geschäftliche E-Mail-Adresse von einer privaten Domain ein, z. B. mitch@company.com',
             offline: 'Wir konnten deine geschäftliche E-Mail nicht hinzufügen, da du offenbar offline bist',
         },
         mergeBlockScreen: {
@@ -2928,7 +2927,7 @@ ${
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Datum sollte nach ${dateString} liegen`,
             hasInvalidCharacter: 'Name darf nur lateinische Zeichen enthalten',
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Ungültiges Postleitzahlformat${zipFormat ? `Zulässiges Format: ${zipFormat}` : ''}`,
-            invalidPhoneNumber: `Bitte stellen Sie sicher, dass die Telefonnummer gültig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            invalidPhoneNumber: `Bitte stellen Sie sicher, dass die Telefonnummer gültig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },
     resendValidationForm: {
@@ -3178,7 +3177,7 @@ ${
         retry: 'Erneut versuchen',
     },
     messages: {
-        errorMessageInvalidPhone: `Bitte gib eine gültige Telefonnummer ohne Klammern oder Bindestriche ein. Wenn du dich außerhalb der USA befindest, gib bitte deine Landesvorwahl an (z. B. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+        errorMessageInvalidPhone: `Bitte gib eine gültige Telefonnummer ohne Klammern oder Bindestriche ein. Wenn du dich außerhalb der USA befindest, gib bitte deine Landesvorwahl an (z. B. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Ungültige E-Mail',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} ist bereits Mitglied von ${name}`,
     },
@@ -3583,7 +3582,7 @@ ${
         jobTitle: 'Berufsbezeichnung',
         whatsYourDOB: 'Wie ist dein Geburtsdatum?',
         uploadID: 'Laden Sie einen Ausweis und einen Adressnachweis hoch',
-        personalAddress: 'Adressnachweis (z. B. Versorgerrechnung)',
+        personalAddress: 'Adressnachweis (z. B. Versorgerrechnung)',
         letsDoubleCheck: 'Lass uns noch einmal überprüfen, ob alles richtig aussieht.',
         legalName: 'Rechtlicher Name',
         proofOf: 'Nachweis der Privatadresse',
@@ -3760,7 +3759,7 @@ ${
         },
         publicDomainError: {
             title: 'Erste Schritte mit Expensify Travel',
-            message: `Du musst deine geschäftliche E-Mail-Adresse (z. B. name@company.com) mit Expensify Travel verwenden, nicht deine private E-Mail-Adresse (z. B. name@gmail.com).`,
+            message: `Du musst deine geschäftliche E-Mail-Adresse (z. B. name@company.com) mit Expensify Travel verwenden, nicht deine private E-Mail-Adresse (z. B. name@gmail.com).`,
         },
         blockedFeatureModal: {
             title: 'Expensify Travel wurde deaktiviert',
@@ -5799,7 +5798,7 @@ _Für detailliertere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSUI
             members: 'Mitglieder einladen',
             invitePeople: 'Neue Mitglieder einladen',
             genericFailureMessage: 'Beim Einladen des Mitglieds in den Workspace ist ein Fehler aufgetreten. Bitte versuche es erneut.',
-            pleaseEnterValidLogin: `Bitte stelle sicher, dass die E‑Mail-Adresse oder Telefonnummer gültig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            pleaseEnterValidLogin: `Bitte stelle sicher, dass die E‑Mail-Adresse oder Telefonnummer gültig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
             user: 'Benutzer',
             users: 'Benutzer',
             invited: 'Eingeladen',
@@ -6046,7 +6045,7 @@ Fordere Ausgabendetails wie Belege und Beschreibungen an, lege Limits und Standa
             multiLevelTags: {
                 title: 'Mehrstufige Tags',
                 description:
-                    'Mehrstufige Tags helfen Ihnen, Ausgaben präziser zu verfolgen. Weisen Sie jeder Position mehrere Tags zu – z. B. Abteilung, Kunde oder Kostenstelle – um den vollständigen Kontext jeder Ausgabe zu erfassen. Dies ermöglicht detailliertere Berichte, Genehmigungs-Workflows und Buchhaltungsexporte.',
+                    'Mehrstufige Tags helfen Ihnen, Ausgaben präziser zu verfolgen. Weisen Sie jeder Position mehrere Tags zu – z. B. Abteilung, Kunde oder Kostenstelle – um den vollständigen Kontext jeder Ausgabe zu erfassen. Dies ermöglicht detailliertere Berichte, Genehmigungs-Workflows und Buchhaltungsexporte.',
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Mehrstufige Tags sind nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },

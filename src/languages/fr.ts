@@ -831,7 +831,7 @@ const translations: TranslationDeepObject<typeof en> = {
         youCanAlso: 'Vous pouvez également',
         openLinkInBrowser: 'ouvrez ce lien dans votre navigateur',
         loggedInAs: ({email}: LoggedInAsParams) =>
-            `Vous êtes connecté en tant que ${email}. Cliquez sur « Ouvrir le lien » dans l’invite pour vous connecter à l’application de bureau avec ce compte.`,
+            `Vous êtes connecté en tant que ${email}. Cliquez sur « Ouvrir le lien » dans l’invite pour vous connecter à l’application de bureau avec ce compte.`,
         doNotSeePrompt: 'Vous ne voyez pas l’invite ?',
         tryAgain: 'Réessayer',
         or: ', ou',
@@ -850,7 +850,7 @@ const translations: TranslationDeepObject<typeof en> = {
         `),
         doNotShare: dedent(`
             Ne partagez votre code avec personne.
-            Expensify ne vous le demandera jamais !
+            Expensify ne vous le demandera jamais !
         `),
         or: ', ou',
         signInHere: 'il suffit de vous connecter ici',
@@ -1086,7 +1086,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fileContainsHeader: 'Le fichier contient des en-têtes de colonnes',
         column: ({name}: SpreadSheetColumnParams) => `Colonne ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Oups ! Un champ obligatoire (« ${fieldName} ») n’a pas été associé. Veuillez vérifier et réessayer.`,
-        singleFieldMultipleColumns: ({fieldName}: SpreadFieldNameParams) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
+        singleFieldMultipleColumns: ({fieldName}: SpreadFieldNameParams) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
         emptyMappedField: ({fieldName}: SpreadFieldNameParams) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
         importSuccessfulTitle: 'Importation réussie',
         importCategoriesSuccessfulDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `${categories} catégories ont été ajoutées.` : '1 catégorie a été ajoutée.'),
@@ -1473,7 +1473,7 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmPayAmount: 'Payez ce qui n’est pas en attente, ou payez l’intégralité du rapport.',
         confirmPayAllHoldAmount: () => ({
             one: 'Cette dépense est en attente. Voulez-vous quand même la payer ?',
-            other: 'Ces dépenses sont en attente. Voulez-vous quand même payer ?',
+            other: 'Ces dépenses sont en attente. Voulez-vous quand même payer ?',
         }),
         payOnly: 'Payer seulement',
         approveOnly: 'Approuver uniquement',
@@ -1533,7 +1533,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rates: 'Taux',
         submitsTo: ({name}: SubmitsToParams) => `Soumet à ${name}`,
         reject: {
-            educationalTitle: 'Devriez-vous conserver ou rejeter ?',
+            educationalTitle: 'Devriez-vous conserver ou rejeter ?',
             educationalText: 'Si vous n’êtes pas prêt à approuver ou à payer une dépense, vous pouvez la mettre en attente ou la rejeter.',
             holdExpenseTitle: 'Suspendre une dépense pour demander plus de détails avant approbation ou paiement.',
             approveExpenseTitle: 'Approuvez d’autres dépenses tandis que les dépenses bloquées restent affectées à vous.',
@@ -1950,7 +1950,7 @@ const translations: TranslationDeepObject<typeof en> = {
     closeAccountPage: {
         // @context close as a verb, not an adjective
         closeAccount: 'Fermer le compte',
-        reasonForLeavingPrompt: 'Nous serions désolés de vous voir partir ! Pourriez-vous nous dire pourquoi, afin que nous puissions nous améliorer ?',
+        reasonForLeavingPrompt: 'Nous serions désolés de vous voir partir ! Pourriez-vous nous dire pourquoi, afin que nous puissions nous améliorer ?',
         enterMessageHere: 'Saisissez le message ici',
         closeAccountWarning: 'La fermeture de votre compte est irréversible.',
         closeAccountPermanentlyDeleteData: 'Êtes-vous sûr de vouloir supprimer votre compte ? Cela supprimera définitivement toutes les dépenses en attente.',
@@ -1983,7 +1983,7 @@ const translations: TranslationDeepObject<typeof en> = {
         mergePendingSAML: {
             weAreWorkingOnIt: 'Nous y travaillons',
             limitedSupport: 'Nous ne prenons pas encore en charge la fusion de comptes sur New Expensify. Veuillez effectuer cette action sur Expensify Classic à la place.',
-            reachOutForHelp: '<muted-text><centered-text>N’hésitez pas à <concierge-link>contacter Concierge</concierge-link> si vous avez des questions !</centered-text></muted-text>',
+            reachOutForHelp: '<muted-text><centered-text>N’hésitez pas à <concierge-link>contacter Concierge</concierge-link> si vous avez des questions !</centered-text></muted-text>',
             goToExpensifyClassic: 'Aller à Expensify Classic',
         },
         mergeFailureSAMLDomainControlDescription: ({email}: MergeFailureDescriptionGenericParams) =>
@@ -2544,7 +2544,7 @@ ${amount} pour ${merchant} - ${date}`,
     onboarding: {
         welcome: 'Bienvenue !',
         welcomeSignOffTitleManageTeam:
-            'Une fois que vous aurez terminé les tâches ci-dessus, nous pourrons explorer davantage de fonctionnalités comme les workflows d’approbation et les règles !',
+            'Une fois que vous aurez terminé les tâches ci-dessus, nous pourrons explorer davantage de fonctionnalités comme les workflows d’approbation et les règles !',
         welcomeSignOffTitle: 'C’est un plaisir de vous rencontrer !',
         explanationModal: {
             title: 'Bienvenue sur Expensify',
@@ -2576,8 +2576,8 @@ ${amount} pour ${merchant} - ${date}`,
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1 à 10 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11 à 50 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51–100 employés',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1 000 employés',
-            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Plus de 1 000 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1 000 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Plus de 1 000 employés',
         },
         accounting: {
             title: 'Utilisez-vous un logiciel de comptabilité ?',
@@ -2711,7 +2711,7 @@ ${amount} pour ${merchant} - ${date}`,
                     4. Choisissez votre espace *personnel*.
                     5. Cliquez sur *Créer*.
 
-                    Et voilà ! Oui, c’est aussi simple que ça.
+                    Et voilà ! Oui, c’est aussi simple que ça.
                 `),
             },
             addAccountingIntegrationTask: {
@@ -2828,7 +2828,7 @@ ${
                     4. Cliquez sur le bouton *+* gris dans la discussion > *Diviser la dépense*.
                     5. Créez la dépense en sélectionnant *Manuel*, *Scan* ou *Distance*.
 
-                    N’hésitez pas à ajouter plus de détails si vous le souhaitez, ou envoyez-la simplement. Récupérons votre remboursement !
+                    N’hésitez pas à ajouter plus de détails si vous le souhaitez, ou envoyez-la simplement. Récupérons votre remboursement !
                 `),
             },
             reviewWorkspaceSettingsTask: {
@@ -2901,7 +2901,7 @@ ${
         },
         inviteMembers: {
             title: 'Inviter des membres',
-            subtitle: 'Ajoutez votre équipe ou invitez votre comptable. Plus on est de fous, plus on rit !',
+            subtitle: 'Ajoutez votre équipe ou invitez votre comptable. Plus on est de fous, plus on rit !',
         },
     },
     featureTraining: {
@@ -2951,7 +2951,7 @@ ${
         ourEmailProvider: ({login}: OurEmailProviderParams) =>
             `Notre fournisseur de messagerie a temporairement suspendu les e-mails vers ${login} en raison de problèmes de distribution. Pour débloquer votre identifiant, veuillez suivre ces étapes :`,
         confirmThat: ({login}: ConfirmThatParams) =>
-            `<strong>Confirmez que ${login} est correctement orthographié et qu’il s’agit d’une adresse e-mail réelle et délivrable.</strong> Les alias d’e-mail tels que « expenses@domain.com » doivent avoir accès à leur propre boîte de réception pour être des identifiants Expensify valides.`,
+            `<strong>Confirmez que ${login} est correctement orthographié et qu’il s’agit d’une adresse e-mail réelle et délivrable.</strong> Les alias d’e-mail tels que « expenses@domain.com » doivent avoir accès à leur propre boîte de réception pour être des identifiants Expensify valides.`,
         ensureYourEmailClient: `<strong>Assurez-vous que votre client de messagerie autorise les e-mails en provenance de expensify.com.</strong> Vous pouvez trouver des instructions pour effectuer cette étape <a href="${CONST.SET_NOTIFICATION_LINK}">ici</a>, mais vous devrez peut-être demander à votre service informatique de vous aider à configurer vos paramètres de messagerie.`,
         onceTheAbove: `Une fois les étapes ci-dessus terminées, veuillez contacter <a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a> pour débloquer votre connexion.`,
     },
@@ -2994,7 +2994,7 @@ ${
             } else if (timeParts.length === 3) {
                 timeText = `${timeParts.at(0)}, ${timeParts.at(1)}, and ${timeParts.at(2)}`;
             }
-            return `Accrochez-vous ! Vous devez attendre ${timeText} avant d’essayer de valider à nouveau votre numéro.`;
+            return `Accrochez-vous ! Vous devez attendre ${timeText} avant d’essayer de valider à nouveau votre numéro.`;
         },
     },
     welcomeSignUpForm: {
@@ -3106,7 +3106,7 @@ ${
             `Pour connecter un compte bancaire, veuillez <a href="${contactMethodRoute}">ajouter une adresse e-mail comme identifiant principal</a> puis réessayer. Vous pouvez ajouter votre numéro de téléphone comme identifiant secondaire.`,
         hasBeenThrottledError: 'Une erreur s’est produite lors de l’ajout de votre compte bancaire. Veuillez patienter quelques minutes, puis réessayer.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
-            `Oups ! Il semble que la devise de votre espace de travail soit différente du USD. Pour continuer, veuillez accéder aux <a href="${workspaceRoute}">paramètres de votre espace de travail</a> pour la définir sur USD, puis réessayez.`,
+            `Oups ! Il semble que la devise de votre espace de travail soit différente du USD. Pour continuer, veuillez accéder aux <a href="${workspaceRoute}">paramètres de votre espace de travail</a> pour la définir sur USD, puis réessayez.`,
         bbaAdded: 'Compte bancaire professionnel ajouté !',
         bbaAddedDescription: 'Elle est prête à être utilisée pour les paiements.',
         error: {
@@ -3683,7 +3683,7 @@ ${
             subtitle: `Veuillez accepter les <a href="${CONST.TRAVEL_TERMS_URL}">conditions générales</a> d’Expensify Travel.`,
             error: 'Vous devez accepter les conditions générales d’Expensify Travel pour continuer',
             defaultWorkspaceError:
-                'Vous devez définir un espace de travail par défaut pour activer Expensify Travel. Accédez à Paramètres > Espaces de travail > cliquez sur les trois points verticaux à côté d’un espace de travail > Définir comme espace de travail par défaut, puis réessayez !',
+                'Vous devez définir un espace de travail par défaut pour activer Expensify Travel. Accédez à Paramètres > Espaces de travail > cliquez sur les trois points verticaux à côté d’un espace de travail > Définir comme espace de travail par défaut, puis réessayez !',
         },
         flight: 'Vol',
         flightDetails: {
@@ -3932,7 +3932,7 @@ ${
             defaultCategory: 'Catégorie par défaut',
             viewTransactions: 'Afficher les transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Notes de frais de ${displayName}`,
-            deepDiveExpensifyCard: `<muted-text-label>Les transactions de la carte Expensify seront automatiquement exportées vers un « compte de responsabilité de carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
+            deepDiveExpensifyCard: `<muted-text-label>Les transactions de la carte Expensify seront automatiquement exportées vers un « compte de responsabilité de carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
         },
         receiptPartners: {
             connect: 'Connecter maintenant',
@@ -4042,7 +4042,7 @@ ${
                 [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}Description`]:
                     'Nous créerons un chèque détaillé pour chaque rapport Expensify et l’enverrons à partir du compte bancaire ci-dessous.',
                 [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
-                    'Nous associerons automatiquement le nom du commerçant sur la transaction par carte de crédit à tout fournisseur correspondant dans QuickBooks. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Credit Card Misc. » pour l’association.',
+                    'Nous associerons automatiquement le nom du commerçant sur la transaction par carte de crédit à tout fournisseur correspondant dans QuickBooks. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Credit Card Misc. » pour l’association.',
                 [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Nous créerons une facture fournisseur détaillée pour chaque rapport Expensify avec la date de la dernière dépense et l’ajouterons au compte ci-dessous. Si cette période est clôturée, nous l’enregistrerons au 1er du prochain exercice ouvert.',
                 [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Choisissez où exporter les transactions par carte de crédit.',
@@ -4187,9 +4187,9 @@ ${
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Écriture comptable',
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Vérifier',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
-                    'Nous ferons automatiquement correspondre le nom du commerçant de la transaction par carte de débit aux fournisseurs correspondants dans QuickBooks. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Debit Card Misc. » pour l’association.',
+                    'Nous ferons automatiquement correspondre le nom du commerçant de la transaction par carte de débit aux fournisseurs correspondants dans QuickBooks. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Debit Card Misc. » pour l’association.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
-                    'Nous associerons automatiquement le nom du commerçant sur la transaction par carte de crédit à tout fournisseur correspondant dans QuickBooks. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Credit Card Misc. » pour l’association.',
+                    'Nous associerons automatiquement le nom du commerçant sur la transaction par carte de crédit à tout fournisseur correspondant dans QuickBooks. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Credit Card Misc. » pour l’association.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Nous créerons une facture fournisseur détaillée pour chaque rapport Expensify avec la date de la dernière dépense et l’ajouterons au compte ci-dessous. Si cette période est clôturée, nous l’enregistrerons au 1er du prochain exercice ouvert.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Choisissez où exporter les transactions de carte de débit.',
@@ -4640,7 +4640,7 @@ ${
                             customSegmentNameFooter: `Vous pouvez trouver les noms de segments personnalisés dans NetSuite sous la page *Customizations > Links, Records & Fields > Custom Segments*.
 
 _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
-                            customRecordNameFooter: `Vous pouvez trouver les noms d’enregistrements personnalisés dans NetSuite en saisissant « Transaction Column Field » dans la recherche globale.
+                            customRecordNameFooter: `Vous pouvez trouver les noms d’enregistrements personnalisés dans NetSuite en saisissant « Transaction Column Field » dans la recherche globale.
 
 _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentInternalIDTitle: 'Quel est l’ID interne ?',
@@ -4656,7 +4656,7 @@ Vous pouvez trouver les IDs internes des segments personnalisés dans NetSuite s
 _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
                             customRecordInternalIDFooter: `Vous pouvez trouver les ID internes d’enregistrements personnalisés dans NetSuite en suivant ces étapes :
 
-1. Saisissez « Transaction Line Fields » dans la recherche globale.
+1. Saisissez « Transaction Line Fields » dans la recherche globale.
 2. Cliquez sur un enregistrement personnalisé.
 3. Trouvez l’ID interne sur le côté gauche.
 
@@ -4707,7 +4707,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             transactionFieldIDTitle: 'Quel est l’ID du champ de transaction ?',
                             transactionFieldIDFooter: `Vous pouvez trouver les ID de champs de transaction dans NetSuite en suivant ces étapes :
 
-1. Saisissez « Transaction Line Fields » dans la recherche globale.
+1. Saisissez « Transaction Line Fields » dans la recherche globale.
 2. Cliquez sur une liste personnalisée.
 3. Trouvez l’ID du champ de transaction sur le côté gauche.
 
@@ -4860,8 +4860,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         helpLabel: 'Où puis-je trouver l’ID de distribution ?',
                     },
                 },
-                amexCorporate: 'Sélectionnez ceci si le recto de vos cartes indique « Corporate »',
-                amexBusiness: 'Sélectionnez cette option si le recto de vos cartes indique « Business »',
+                amexCorporate: 'Sélectionnez ceci si le recto de vos cartes indique « Corporate »',
+                amexBusiness: 'Sélectionnez cette option si le recto de vos cartes indique « Business »',
                 amexPersonal: 'Sélectionnez ceci si vos cartes sont personnelles',
                 error: {
                     pleaseSelectProvider: 'Veuillez sélectionner un fournisseur de carte avant de continuer',
@@ -5510,7 +5510,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 fixedAmount: 'Montant fixe',
                 fixedAmountDescription: 'Dépenser jusqu’à un certain montant une seule fois',
                 setLimit: 'Définir une limite',
-                cardLimitError: 'Veuillez saisir un montant inférieur à 21 474 836 $',
+                cardLimitError: 'Veuillez saisir un montant inférieur à 21 474 836 $',
                 giveItName: 'Donnez-lui un nom',
                 giveItNameInstruction: 'Rendez-la suffisamment unique pour la distinguer des autres cartes. Des cas d’utilisation spécifiques, c’est encore mieux !',
                 cardName: 'Nom de la carte',
@@ -6216,7 +6216,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 randomReportAuditDescription: 'Exiger que certains rapports soient approuvés manuellement, même s’ils sont éligibles à l’auto-approbation.',
                 autoPayApprovedReportsTitle: 'Rapports approuvés avec paiement automatique',
                 autoPayApprovedReportsSubtitle: 'Configurez quels rapports de dépenses sont éligibles au paiement automatique.',
-                autoPayApprovedReportsLimitError: ({currency}: AutoPayApprovedReportsLimitErrorParams = {}) => `Veuillez saisir un montant inférieur à ${currency ?? ''}20 000`,
+                autoPayApprovedReportsLimitError: ({currency}: AutoPayApprovedReportsLimitErrorParams = {}) => `Veuillez saisir un montant inférieur à ${currency ?? ''}20 000`,
                 autoPayApprovedReportsLockedSubtitle: 'Accédez à Plus de fonctionnalités et activez les flux de travail, puis ajoutez les paiements pour déverrouiller cette fonctionnalité.',
                 autoPayReportsUnderTitle: 'Rapports de paiement automatique inférieurs à',
                 autoPayReportsUnderDescription: 'Les notes de frais entièrement conformes en dessous de ce montant seront payées automatiquement.',
@@ -6427,7 +6427,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
             `a modifié le ${customUnitName} ${updatedField} en « ${newValue} » (auparavant « ${oldValue} »)`,
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'activé' : 'désactivé'} suivi fiscal sur les indemnités kilométriques`,
-        addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `a ajouté un nouveau tarif « ${customUnitName} » « ${rateName} »`,
+        addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `a ajouté un nouveau tarif « ${customUnitName} » « ${rateName} »`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
             `a modifié le taux de ${customUnitName} ${updatedField} « ${customUnitRateName} » à « ${newValue} » (auparavant « ${oldValue} »)`,
         updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
@@ -6662,7 +6662,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             },
             emptySubmitResults: {
                 title: 'Aucune dépense à soumettre',
-                subtitle: 'Tout est en ordre. Faites un tour d’honneur !',
+                subtitle: 'Tout est en ordre. Faites un tour d’honneur !',
                 buttonText: 'Créer un rapport',
             },
             emptyApproveResults: {
@@ -6784,7 +6784,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         suggestions: 'Suggestions',
         exportSearchResults: {
             title: 'Créer l’export',
-            description: 'Ouah, ça fait beaucoup d’éléments ! Nous allons les regrouper et Concierge vous enverra bientôt un fichier.',
+            description: 'Ouah, ça fait beaucoup d’éléments ! Nous allons les regrouper et Concierge vous enverra bientôt un fichier.',
         },
         exportAll: {
             selectAllMatchingItems: 'Sélectionner tous les éléments correspondants',
@@ -7106,10 +7106,10 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
     teachersUnitePage: {
         teachersUnite: 'Les enseignants unis',
         joinExpensifyOrg:
-            'Rejoignez Expensify.org pour éliminer l’injustice dans le monde entier. La campagne actuelle « Teachers Unite » soutient les enseignants partout en partageant les coûts des fournitures scolaires essentielles.',
+            'Rejoignez Expensify.org pour éliminer l’injustice dans le monde entier. La campagne actuelle « Teachers Unite » soutient les enseignants partout en partageant les coûts des fournitures scolaires essentielles.',
         iKnowATeacher: 'Je connais un enseignant',
         iAmATeacher: 'Je suis enseignant',
-        getInTouch: 'Excellent ! Veuillez partager leurs informations afin que nous puissions les contacter.',
+        getInTouch: 'Excellent ! Veuillez partager leurs informations afin que nous puissions les contacter.',
         introSchoolPrincipal: "Présentation de votre directeur d'école",
         schoolPrincipalVerifyExpense:
             'Expensify.org partage le coût des fournitures scolaires essentielles afin que les élèves issus de foyers à faible revenu puissent bénéficier d’une meilleure expérience d’apprentissage. Votre directeur ou directrice sera invité(e) à vérifier vos dépenses.',
@@ -7356,19 +7356,19 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'Je comprends comment utiliser le nouveau Expensify, mais je préfère Expensify Classic.',
         },
         prompts: {
-            [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: 'De quelle fonctionnalité avez-vous besoin qui n’est pas disponible dans le nouveau Expensify ?',
+            [CONST.EXIT_SURVEY.REASONS.FEATURE_NOT_AVAILABLE]: 'De quelle fonctionnalité avez-vous besoin qui n’est pas disponible dans le nouveau Expensify ?',
             [CONST.EXIT_SURVEY.REASONS.DONT_UNDERSTAND]: 'Que cherchez-vous à faire ?',
             [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'Pourquoi préférez-vous Expensify Classic ?',
         },
         responsePlaceholder: 'Votre réponse',
-        thankYou: 'Merci pour le retour !',
+        thankYou: 'Merci pour le retour !',
         thankYouSubtitle: 'Vos réponses nous aideront à créer un meilleur produit pour accomplir les tâches. Merci beaucoup !',
         goToExpensifyClassic: 'Passer à Expensify Classic',
         offlineTitle: 'On dirait que vous êtes coincé ici…',
         offline:
             'Vous semblez être hors ligne. Malheureusement, Expensify Classic ne fonctionne pas hors ligne, mais New Expensify oui. Si vous préférez utiliser Expensify Classic, réessayez lorsque vous aurez une connexion Internet.',
         quickTip: 'Astuce rapide...',
-        quickTipSubTitle: 'Vous pouvez accéder directement à Expensify Classic en visitant expensify.com. Ajoutez-le à vos favoris pour y accéder rapidement !',
+        quickTipSubTitle: 'Vous pouvez accéder directement à Expensify Classic en visitant expensify.com. Ajoutez-le à vos favoris pour y accéder rapidement !',
         bookACall: 'Réserver un appel',
         bookACallTitle: 'Souhaitez-vous parler à un chef de produit ?',
         benefits: {
@@ -7467,7 +7467,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             earlyDiscount: {
                 claimOffer: 'Profiter de l’offre',
                 subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
-                    `<strong>${discountType} % de réduction sur votre première année !</strong> Ajoutez simplement une carte de paiement et commencez un abonnement annuel.`,
+                    `<strong>${discountType} % de réduction sur votre première année !</strong> Ajoutez simplement une carte de paiement et commencez un abonnement annuel.`,
                 onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `Offre limitée dans le temps : ${discountType}% de réduction sur votre première année !`,
                 subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `Réclamer dans ${days > 0 ? `${days}j :` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
@@ -7812,7 +7812,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         callScheduled: 'Appel planifié',
     },
     autoSubmitModal: {
-        title: 'Tout est clair et soumis !',
+        title: 'Tout est clair et soumis !',
         description: 'Tous les avertissements et violations ont été levés, donc :',
         submittedExpensesTitle: 'Ces dépenses ont été soumises',
         submittedExpensesDescription: 'Ces notes de frais ont été envoyées à votre approbateur, mais peuvent encore être modifiées jusqu’à leur approbation.',

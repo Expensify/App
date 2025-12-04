@@ -3208,7 +3208,7 @@ ${
             sendingFundsDetails: '使用您的余额、银行账户或借记卡向另一位账户持有人汇款不收取任何费用。',
             electronicFundsStandardDetails: '使用标准选项从您的 Expensify Wallet 转账到您的银行账户无需支付任何费用。该转账通常会在 1–3 个工作日内完成。',
             electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
-                '从您的 Expensify 钱包通过即时转账选项向关联借记卡转账会收取费用。此类转账通常会在几分钟内完成。' + `费用为转账金额的 ${percentage}%（最低收费为 ${amount}）。`,
+                `从您的 Expensify 钱包通过即时转账选项向关联借记卡转账会收取费用。此类转账通常会在几分钟内完成。费用为转账金额的 ${percentage}%（最低收费为 ${amount}）。`,
             fdicInsuranceBancorp: ({amount}: TermsParams) =>
                 `您的资金符合 FDIC 保险资格。您的资金将存放于或转入 ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}，一家受 FDIC 保险保障的金融机构。` +
                 `一旦资金转入后，在满足特定存款保险要求且您的卡已注册的前提下，如若 ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK} 发生倒闭，您的资金将由 FDIC 提供最高 ${amount} 的保险保障。详情请参阅 ${CONST.TERMS.FDIC_PREPAID}。`,
@@ -7470,7 +7470,7 @@ ${reportName}
         changeAccessLevel: '更改访问级别',
         makeSureItIsYou: '让我们确认是你',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到 ${contactMethod} 的验证码以添加副驾驶。验证码应在一两分钟内送达。`,
-        enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到 ${contactMethod} 的验证码以更新你的 copil​​ot。`,
+        enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `请输入发送到 ${contactMethod} 的验证码以更新你的 copilot。`,
         notAllowed: '别那么快……',
         noAccessMessage: dedent(`
             作为副驾驶，你无权访问此页面。抱歉！
