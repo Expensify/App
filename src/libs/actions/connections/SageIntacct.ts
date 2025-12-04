@@ -929,7 +929,11 @@ function updateSageIntacctSyncReimbursementAccountID(policyID: string | undefine
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSEMENT_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctEntity(policyID: string, entity: string, oldEntity: string) {
+function updateSageIntacctEntity(policyID: string | undefined, entity: string, oldEntity: string) {
+    if (!policyID) {
+        return;
+    }
+
     const parameters = {
         policyID,
         entity,

@@ -37,6 +37,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceList from '@hooks/useWorkspaceList';
 import {close} from '@libs/actions/Modal';
 import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -116,6 +117,29 @@ function SearchFiltersBar({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter'] as const);
 
     const taxRates = getAllTaxRates(allPolicies);
+
+    // Get workspace data for the filter
+    const {sections: workspaces} = useWorkspaceList({
+        policies: allPolicies,
+        currentUserLogin: email,
+        shouldShowPendingDeletePolicy: false,
+        selectedPolicyIDs: undefined,
+        searchTerm: '',
+        localeCompare,
+    });
+
+    const shouldDisplayWorkspaceFilter = useMemo(() => workspaces.some((section) => section.data.length > 1), [workspaces]);
+
+    const workspaceOptions = useMemo<Array<MultiSelectItem<string>>>(() => {
+        return workspaces
+            .flatMap((section) => section.data)
+            .filter((workspace): workspace is typeof workspace & {policyID: string} => !!workspace.policyID)
+            .map((workspace) => ({
+                text: workspace.text,
+                value: workspace.policyID,
+            }));
+    }, [workspaces]);
+
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
     const hasMultipleOutputCurrency = useMemo(() => {
@@ -128,20 +152,51 @@ function SearchFiltersBar({
         return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
     }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
+    // Get selected workspace options from filterFormValues or queryJSON
+    const selectedWorkspaceOptions = useMemo(() => {
+        const policyIDs = filterFormValues.policyID ?? queryJSON.policyID;
+        if (!policyIDs) {
+            return [];
+        }
+        const normalizedIDs = Array.isArray(policyIDs) ? policyIDs : [policyIDs];
+        return workspaceOptions.filter((option) => normalizedIDs.includes(option.value));
+    }, [filterFormValues.policyID, queryJSON.policyID, workspaceOptions]);
+
     const hasErrors = Object.keys(searchResultsErrors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || isMobileSelectionModeEnabled);
 
     const [typeOptions, type] = useMemo(() => {
-        const options = getTypeOptions(allPolicies, email);
+        const options = getTypeOptions(translate, allPolicies, email);
         const value = options.find((option) => option.value === unsafeType) ?? null;
         return [options, value];
-    }, [allPolicies, email, unsafeType]);
+    }, [translate, allPolicies, email, unsafeType]);
+
+    const isExpenseReportType = useMemo(() => type?.value === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [type?.value]);
+
+    const selectedItemsCount = useMemo(() => {
+        if (!selectedTransactions) {
+            return 0;
+        }
+
+        if (isExpenseReportType) {
+            // In expense report mode, count unique reports instead of individual transactions
+            const reportIDs = new Set(
+                Object.values(selectedTransactions)
+                    .map((transaction) => transaction?.reportID)
+                    .filter((reportID): reportID is string => !!reportID),
+            );
+            return reportIDs.size;
+        }
+
+        // Otherwise count transactions
+        return selectedTransactionsKeys.length;
+    }, [selectedTransactions, isExpenseReportType, selectedTransactionsKeys.length]);
 
     const [groupByOptions, groupBy] = useMemo(() => {
-        const options = getGroupByOptions();
+        const options = getGroupByOptions(translate);
         const value = options.find((option) => option.value === unsafeGroupBy) ?? null;
         return [options, value];
-    }, [unsafeGroupBy]);
+    }, [translate, unsafeGroupBy]);
 
     const [groupCurrencyOptions, groupCurrency] = useMemo(() => {
         const options = getGroupCurrencyOptions(currencyList);
@@ -166,10 +221,10 @@ function SearchFiltersBar({
 
     const [hasOptions, has] = useMemo(() => {
         const hasFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS)?.filters?.map((filter) => filter.value);
-        const options = getHasOptions(type?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
+        const options = getHasOptions(translate, type?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
         const value = hasFilterValues ? options.filter((option) => hasFilterValues.includes(option.value)) : [];
         return [options, value];
-    }, [flatFilters, type]);
+    }, [translate, flatFilters, type?.value]);
 
     const [isOptions, is] = useMemo(() => {
         const isFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS)?.filters?.map((filter) => filter.value);
@@ -257,7 +312,8 @@ function SearchFiltersBar({
             const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
 
             close(() => {
-                Navigation.setParams({q: queryString});
+                // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+                Navigation.setParams({q: queryString, rawQuery: undefined});
             });
         },
         [filterFormValues],
@@ -454,6 +510,15 @@ function SearchFiltersBar({
         [filterFormValues.from, updateFilterForm],
     );
 
+    const workspaceComponent = useMemo(() => {
+        const updateWorkspaceFilterForm = (items: Array<MultiSelectItem<string>>) => {
+            updateFilterForm({policyID: items.map((item) => item.value)});
+        };
+        return createMultiSelectComponent('workspace.common.workspace', workspaceOptions, selectedWorkspaceOptions, updateWorkspaceFilterForm);
+    }, [createMultiSelectComponent, workspaceOptions, selectedWorkspaceOptions, updateFilterForm]);
+
+    const workspaceValue = useMemo(() => selectedWorkspaceOptions.map((option) => option.text), [selectedWorkspaceOptions]);
+
     const {typeFiltersKeys} = useAdvancedSearchFilters();
 
     /**
@@ -575,14 +640,26 @@ function SearchFiltersBar({
                 value: fromValue,
                 filterKey: FILTER_KEYS.FROM,
             },
+            ...(shouldDisplayWorkspaceFilter
+                ? [
+                      {
+                          label: translate('workspace.common.workspace'),
+                          PopoverComponent: workspaceComponent,
+                          value: workspaceValue,
+                          filterKey: FILTER_KEYS.POLICY_ID,
+                      },
+                  ]
+                : []),
         ].filter((filterItem) => isFilterSupported(filterItem.filterKey, type?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE));
 
         return filterList;
     }, [
-        type,
-        groupBy,
-        groupCurrency,
-        withdrawalType,
+        type?.value,
+        type?.text,
+        groupBy?.value,
+        groupBy?.text,
+        groupCurrency?.value,
+        withdrawalType?.text,
         displayDate,
         displayPosted,
         displayWithdrawn,
@@ -615,6 +692,9 @@ function SearchFiltersBar({
         hasMultipleOutputCurrency,
         has,
         is,
+        shouldDisplayWorkspaceFilter,
+        workspaceComponent,
+        workspaceValue,
     ]);
 
     const hiddenSelectedFilters = useMemo(() => {
@@ -663,9 +743,7 @@ function SearchFiltersBar({
         return <SearchFiltersSkeleton shouldAnimate />;
     }
 
-    const selectionButtonText = areAllMatchingItemsSelected
-        ? translate('search.exportAll.allMatchingItemsSelected')
-        : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
+    const selectionButtonText = areAllMatchingItemsSelected ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedItemsCount});
 
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>

@@ -159,7 +159,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
             onFinish(CONST.IOU.TYPE.SUBMIT);
         },
-        [shouldShowErrorMessage, onFinish, selectedOptions],
+        [shouldShowErrorMessage, onFinish, selectedOptions.length],
     );
 
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
@@ -274,6 +274,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         personalDetails,
         translate,
         reportAttributesDerived,
+        countryCode,
     ]);
 
     const optionLength = useMemo(() => {

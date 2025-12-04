@@ -63,6 +63,7 @@ const mockReportItemWithHold = {
         phoneNumber: '',
         validated: false,
     },
+    shouldShowYear: false,
     transactions: [
         {
             report: {
@@ -100,7 +101,6 @@ const mockReportItemWithHold = {
             created: '2024-12-04',
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             managerID: 1206,
             merchant: 'Qatar',
             modifiedAmount: 0,
@@ -155,8 +155,8 @@ const mockReportItemWithHold = {
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
-            convertedAmount: 1200,
-            convertedCurrency: 'USD',
+            groupAmount: 1200,
+            groupCurrency: 'USD',
         },
         {
             report: {
@@ -189,7 +189,6 @@ const mockReportItemWithHold = {
             created: '2024-12-04',
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             merchant: 'Forbes',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -200,7 +199,6 @@ const mockReportItemWithHold = {
             reportID: '1350959062018695',
             tag: '',
             transactionID: '5345995386715609966',
-            transactionThreadReportID: '740282333335072',
             from: {
                 accountID: 1206,
                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_7.png',
@@ -223,8 +221,8 @@ const mockReportItemWithHold = {
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
             shouldAnimateInHighlight: false,
-            convertedAmount: 1200,
-            convertedCurrency: 'USD',
+            groupAmount: 1200,
+            groupCurrency: 'USD',
         },
     ],
     isSelected: false,
