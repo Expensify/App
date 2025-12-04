@@ -145,29 +145,125 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 ### [PERF-4] Memoize objects and functions passed as props
 
-- **Search patterns**: `useMemo`, `useCallback`, and prop passing patterns
+- **Search patterns**: `useMemo`, `useCallback`, `useOnyx`, `.map(`, `renderItem`, `React.memo`, `memo(`
 
-- **Condition**: Objects and functions passed as props should be properly memoized or simplified to primitive values to prevent unnecessary re-renders.
-- **Reasoning**: React uses referential equality to determine if props changed. New object/function instances on every render trigger unnecessary re-renders of child components, even when the actual data hasn't changed. Memoization preserves referential stability.
+- **Condition**: Objects and functions passed as props to memoized children should be properly memoized to prevent unnecessary re-renders.
+
+  **Understanding memoization boundaries:**
+  - "Memoized child" = component wrapped in `React.memo`/`memo()` OR compiled by React Compiler
+  - React Compiler auto-memoizes inline functions EXCEPT inside `.map()` or `renderItem` (each iteration creates new references)
+  - Memoizing props only matters when the child is memoized
+
+  **Flag when:**
+  - Child is memoized/compiled by React Compiler AND parent is NOT compiled by React Compiler AND prop creates new reference on each render (function/object not wrapped in `useCallback`/`useMemo`)
+  - Inside `.map()` or `renderItem` with props that create new references per item to memoized children, even if parent is compiled (React Compiler does NOT memoize per-item)
+
+  **DO NOT flag:**
+  - Child is NOT memoized (memoizing props has no effect)
+  - Parent IS compiled AND NOT in a loop (compiler handles it)
+
+- **Reasoning**: React uses referential equality to determine if props changed. New object/function instances break memoization of child components. React Compiler automatically memoizes props in most cases, but NOT inside `.map()` or `renderItem` - there you still need manual memoization. Note: Compiler caches the outer function, but inside the loop each iteration still creates new callbacks.
+
+#### Examples
+
+**1. Callbacks inside `.map()` / `renderItem` (HOT PATH)**
+
+Bad ([see compiled output](../docs/perf4-playground-examples.md#1-callbacks-inside-map---bad)):
+```tsx
+// ❌ Callback created in parent - new function per item on EVERY render
+
+// .map() example
+{items.map(item => (
+    <ListItem
+        key={item.id}
+        label={item.name}
+        onPress={() => handleClick(item.id)}  // ❌ New function per item
+    />
+))}
+
+// renderItem example - same problem
+<FlatList
+    data={items}
+    renderItem={({item}) => (
+        <ListItem
+            label={item.name}
+            onPress={() => handleClick(item.id)}  // ❌ New function per item
+        />
+    )}
+/>
+```
+
+Good ([see compiled output](../docs/perf4-playground-examples.md#2-callbacks-inside-map---good)):
+```tsx
+// ✅ Pass primitives to child, let child create callback internally
+
+const ListItem = memo(function ListItem({ itemId, onPressItem, label }) {
+    const handlePress = useCallback(() => {
+        onPressItem(itemId);
+    }, [itemId, onPressItem]);
+
+    return <Button onPress={handlePress}>{label}</Button>;
+});
+
+// .map() example - parent passes stable props
+{items.map(item => (
+    <ListItem
+        key={item.id}
+        itemId={item.id}        // primitive - stable
+        onPressItem={handleClick}  // same reference
+        label={item.name}       // primitive - stable
+    />
+))}
+
+// renderItem example - same pattern
+<FlatList
+    data={items}
+    renderItem={({item}) => (
+        <ListItem
+            itemId={item.id}
+            onPressItem={handleClick}
+            label={item.name}
+        />
+    )}
+/>
+```
+
+**2. Single callback outside loop (COMPILER HANDLES)**
+
+Good ([see compiled output](../docs/perf4-playground-examples.md#3-single-callback-outside-loop---good-compiler-handles)):
+```tsx
+// ✅ React Compiler auto-memoizes this - no useCallback needed
+function MyComponent({ id, onSelect }) {
+    return <MemoizedButton onPress={() => onSelect(id)} />;
+}
+```
+
+Bad (only when parent NOT compiled):
+```tsx
+// ❌ If parent fails React Compiler healthcheck, this breaks memoization
+// Fix: Add useCallback OR fix compiler compliance issues
+function MyComponent({ id, onSelect }) {
+    return <MemoizedButton onPress={() => onSelect(id)} />;
+}
+```
+
+**3. Extracting data from Onyx**
 
 Good:
-
 ```tsx
-const reportData = useMemo(() => ({
-    reportID: report.reportID,
-    type: report.type,
-    isPinned: report.isPinned,
-}), [report.reportID, report.type, report.isPinned]);
+// ✅ Use Onyx selector - component only re-renders when selected value changes
+const reportNameSelector = (report: OnyxEntry<Report>) => report?.reportName;
 
-return <ReportActionItem report={reportData} />
+const [reportName] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+    selector: reportNameSelector
+});
 ```
 
 Bad:
-
 ```tsx
-const [report] = useOnyx(`ONYXKEYS.COLLECTION.REPORT${iouReport.id}`);
-
-return <ReportActionItem report={report} />
+// ❌ Component re-renders on ANY change to report, then useMemo runs
+const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+const reportName = useMemo(() => report?.reportName, [report]);
 ```
 
 ---
