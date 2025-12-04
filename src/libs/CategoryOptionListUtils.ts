@@ -57,7 +57,12 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
 
         const array = option.name.split(CONST.PARENT_CHILD_SEPARATOR);
 
-        for (const [index, optionName] of array.entries()) {
+        for (let index = 0; index < array.length; index++) {
+            const optionName = array.at(index);
+            if (!optionName) {
+                continue;
+            }
+
             const indents = times(index, () => CONST.INDENTS).join('');
             const isChild = array.length - 1 === index;
             const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);

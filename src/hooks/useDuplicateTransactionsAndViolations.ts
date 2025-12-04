@@ -82,18 +82,22 @@ function selectTransactionsWithDuplicates(
             continue;
         }
 
-        for (const duplicateID of transactionViolations
-            .filter((violations) => violations.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-            .flatMap((violations) => violations?.data?.duplicates ?? [])) {
-            if (!duplicateID) {
+        for (const violation of transactionViolations) {
+            if (violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION) {
                 continue;
             }
 
-            const duplicateKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateID}`;
-            const duplicateTransaction = allTransactions[duplicateKey];
+            for (const duplicateID of violation.data?.duplicates ?? []) {
+                if (!duplicateID) {
+                    continue;
+                }
 
-            if (duplicateTransaction) {
-                result[duplicateKey] = duplicateTransaction;
+                const duplicateKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${duplicateID}`;
+                const duplicateTransaction = allTransactions[duplicateKey];
+
+                if (duplicateTransaction) {
+                    result[duplicateKey] = duplicateTransaction;
+                }
             }
         }
     }
