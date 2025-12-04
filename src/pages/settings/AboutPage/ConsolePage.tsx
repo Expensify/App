@@ -119,7 +119,7 @@ function ConsolePage() {
     const saveLogs = () => {
         const logsWithParsedMessages = parseStringifiedMessages(filteredLogsList);
 
-        localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2));
+        localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2), translate);
     };
 
     const shareLogs = () => {
