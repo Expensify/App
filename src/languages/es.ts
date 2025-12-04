@@ -2032,6 +2032,7 @@ ${amount} para ${merchant} - ${date}`,
         inWorkspace: ({policyName}) => `en ${policyName}`,
         generatingPDF: 'Creando PDF...',
         waitForPDF: 'Por favor, espera mientras creamos el PDF',
+        successPDF: '¡Tu PDF ha sido generado! Si no se descargó automáticamente, usa el botón de abajo.',
         errorPDF: 'Ocurrió un error al crear el PDF',
     },
     reportDescriptionPage: {
