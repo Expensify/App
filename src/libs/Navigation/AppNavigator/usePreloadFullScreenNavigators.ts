@@ -25,7 +25,7 @@ import {getPreservedNavigatorState} from './createSplitNavigator/usePreserveNavi
 const TIMING_TO_CALL_PRELOAD = 1000;
 
 // Currently the Inbox, Workspaces and Account tabs are preloaded, while Search is not preloaded due to its potential complexity.
-const TABS_TO_PRELOAD = [NAVIGATION_TABS.HOME, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES];
+const TABS_TO_PRELOAD = [NAVIGATION_TABS.HOME, NAVIGATION_TABS.WORKSPACES, NAVIGATION_TABS.SETTINGS];
 
 function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     const state = getWorkspacesTabStateFromSessionStorage() ?? navigation.getState();
