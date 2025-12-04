@@ -9,9 +9,10 @@ import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
+import type PersonalDetails from './PersonalDetails';
 import type Policy from './Policy';
 import type {InvoiceReceiver, Participants} from './Report';
-import type ReportActionName from './ReportActionName';
+import type ReportAction from './ReportAction';
 import type ReportNameValuePairs from './ReportNameValuePairs';
 import type {TransactionViolation} from './TransactionViolation';
 
@@ -63,21 +64,6 @@ type SearchResultsInfo = {
 
     /** The currency of the total spend */
     currency?: string;
-};
-
-/** Model of personal details search result */
-type SearchPersonalDetails = {
-    /** ID of user account */
-    accountID: number;
-
-    /** User's avatar URL */
-    avatar: string;
-
-    /** User's display name */
-    displayName?: string;
-
-    /** User's email */
-    login?: string;
 };
 
 /** The action that can be performed for the transaction */
@@ -136,11 +122,11 @@ type SearchReport = {
     /** The status of the current report */
     statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
+    /** Number of transactions in the report */
+    transactionCount?: number;
+
     /** For expense reports, this is the total amount requested */
     unheldTotal?: number;
-
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
 
     /** Whether the report has violations or errors */
     errors?: OnyxCommon.Errors;
@@ -173,43 +159,10 @@ type SearchReport = {
     pendingAction?: OnyxCommon.PendingAction;
 };
 
-/** Model of report action search result */
-type SearchReportAction = {
-    /** The report action sender ID */
-    accountID: number;
-
-    /** The name (or type) of the action */
-    actionName: ReportActionName;
-
-    /** The report action created date */
-    created: string;
-
-    /** report action message */
-    message: Array<{
-        /** The type of the action item fragment. Used to render a corresponding component */
-        type: string;
-
-        /** The text content of the fragment. */
-        text: string;
-
-        /** The html content of the fragment. */
-        html: string;
-
-        /** Collection of accountIDs of users mentioned in message */
-        whisperedTo?: number[];
-    }>;
-
-    /** The ID of the report action */
-    reportActionID: string;
-
-    /** The ID of the report */
-    reportID: string;
-
-    /** The name of the report */
-    reportName: string;
-};
-
-/** Model of transaction search result */
+/** Model of transaction search result
+ *
+ * @deprecated - Use Transaction instead
+ */
 type SearchTransaction = {
     /** The ID of the transaction */
     transactionID: string;
@@ -225,12 +178,6 @@ type SearchTransaction = {
 
     /** If the transaction can be deleted */
     canDelete: boolean;
-
-    /** If the transaction can be put on hold */
-    canHold: boolean;
-
-    /** If the transaction can be removed from hold */
-    canUnhold: boolean;
 
     /** The edited transaction amount */
     modifiedAmount: number;
@@ -266,25 +213,19 @@ type SearchTransaction = {
     comment?: {
         /** Content of the transaction description */
         comment?: string;
+
+        /** The HOLD report action ID if the transaction is on hold */
+        hold?: string;
     };
 
     /** The transaction category */
     category: string;
-
-    /** The type of request */
-    transactionType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
-    /** The type of report the transaction is associated with */
-    reportType: string;
 
     /** The ID of the parent of the transaction */
     parentTransactionID?: string;
 
     /** If the transaction has an Ereceipt */
     hasEReceipt?: boolean;
-
-    /** The transaction sender ID */
-    accountID: number;
 
     /** Used during the creation flow before the transaction is saved to the server */
     iouRequestType?: IOURequestType;
@@ -295,11 +236,12 @@ type SearchTransaction = {
     /** The ID of the report the transaction is associated with */
     reportID: string;
 
-    /** The name of the file used for a receipt */
+    /**
+     * @deprecated - Use getReceiptFilenameFromTransaction to get filename
+     *
+     * The name of the file used for a receipt
+     */
     filename?: string;
-
-    /** The report ID of the transaction thread associated with the transaction */
-    transactionThreadReportID: string;
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -309,12 +251,6 @@ type SearchTransaction = {
 
     /** The ID of the money request reportAction associated with the transaction */
     moneyRequestReportActionID?: string;
-
-    /** Whether the transaction report has only a single transaction */
-    isFromOneTransactionReport?: boolean;
-
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
 
     /** Whether the transaction has violations or errors */
     errors?: OnyxCommon.Errors;
@@ -328,11 +264,11 @@ type SearchTransaction = {
     /** The display name of the purchaser card, if any */
     cardName?: string;
 
-    /** The converted amount of the transaction, defaults to the active policies currency, or the converted currency if a currency conversion is used */
-    convertedAmount: number;
+    /** The transaction converted amount in `groupCurrency` currency */
+    groupAmount?: number;
 
-    /** The currency that the converted amount is in */
-    convertedCurrency: string;
+    /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
+    groupCurrency?: string;
 };
 
 /** Model of tasks search result */
@@ -432,10 +368,10 @@ type SearchWithdrawalIDGroup = {
 
     /** When the withdrawal completed */
     debitPosted: string;
-};
 
-/** Types of searchable transactions */
-type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
+    /** Settlement state (5/6/7=failed, 8=cleared, others=pending) */
+    state: number;
+};
 
 /**
  * A utility type that creates a record where all keys are strings that start with a specified prefix.
@@ -448,9 +384,10 @@ type SearchResults = {
     search: SearchResultsInfo;
 
     /** Search results data */
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
-        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, SearchPersonalDetails>> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
+        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails>> &
+        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
@@ -471,14 +408,12 @@ export type {
     ListItemType,
     ListItemDataType,
     SearchTask,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchTransaction,
-    SearchTransactionType,
     SearchTransactionAction,
-    SearchPersonalDetails,
     SearchDataTypes,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     SearchReport,
-    SearchReportAction,
     SearchResultsInfo,
     SearchMemberGroup,
     SearchCardGroup,

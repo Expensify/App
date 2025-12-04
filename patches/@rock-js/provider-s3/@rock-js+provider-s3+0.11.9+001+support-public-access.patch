@@ -1,0 +1,72 @@
+diff --git a/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.d.ts b/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.d.ts
+index 8c4160c..1038c91 100644
+--- a/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.d.ts
++++ b/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.d.ts
+@@ -49,6 +49,10 @@ type ProviderConfig = {
+      * External ID when assuming a role (for additional security).
+      */
+     externalId?: string;
++    /**
++     * If true, the provider will not sign requests and will try to access the S3 bucket without authentication.
++     */
++    publicAccess?: boolean;
+ };
+ export declare class S3BuildCache implements RemoteBuildCache {
+     name: string;
+diff --git a/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js b/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js
+index 1d9331b..1e794b9 100644
+--- a/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js
++++ b/node_modules/@rock-js/provider-s3/dist/src/lib/providerS3.js
+@@ -49,6 +49,18 @@ export class S3BuildCache {
+             // Use shared config file (e.g. ~/.aws/credentials) with a profile
+             s3Config.credentials = fromIni({ profile: config.profile });
+         }
++        else if (config.publicAccess) {
++            // Access the S3 bucket without authentication
++            s3Config.signer = {
++              sign: async (request) => request,
++            };
++            s3Config.credentials = {
++              accessKeyId: '',
++              secretAccessKey: '',
++            };
++          }
++      
++        
+         this.s3 = new clientS3.S3Client(s3Config);
+         const awsBucket = config.bucket ?? '';
+         const bucketTokens = awsBucket.split('/');
+@@ -98,15 +110,24 @@ export class S3BuildCache {
+         return results;
+     }
+     async download({ artifactName, }) {
+-        const res = await this.s3.send(new clientS3.GetObjectCommand({
+-            Bucket: this.bucket,
+-            Key: `${this.directory}/${artifactName}.zip`,
+-        }));
+-        return new Response(toWebStream(res.Body), {
+-            headers: {
+-                'content-length': String(res.ContentLength),
+-            },
+-        });
++        try{
++            const res = await this.s3.send(new clientS3.GetObjectCommand({
++                Bucket: this.bucket,
++                Key: `${this.directory}/${artifactName}.zip`,
++            }));
++            return new Response(toWebStream(res.Body), {
++                headers: {
++                    'content-length': String(res.ContentLength),
++                },
++            });
++        }
++        catch(error){
++            if(this.config.publicAccess){
++                // Avoid misleading Access Denied error message
++                error.message = `Build not found or not accessible to the public`;
++            }
++            throw error;
++        }
+     }
+     async delete({ artifactName, skipLatest, }) {
+         if (skipLatest) {

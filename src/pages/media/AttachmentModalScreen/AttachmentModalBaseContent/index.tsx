@@ -12,8 +12,8 @@ import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -21,6 +21,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -59,11 +60,14 @@ function AttachmentModalBaseContent({
     onConfirm,
     AttachmentContent,
     onCarouselAttachmentChange = () => {},
+    transaction: transactionProp,
+    shouldCloseOnSwipeDown = false,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
 
     // This logic is used to ensure that the source is updated when the source changes and
     // that the initially provided source is always used as a fallback.
@@ -82,7 +86,8 @@ function AttachmentModalBaseContent({
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) ?? CONST.DEFAULT_NUMBER_ID;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const transaction = transactionProp ?? transactionFromOnyx;
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
     const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);
@@ -181,14 +186,15 @@ function AttachmentModalBaseContent({
     }, [clearAttachmentErrors]);
 
     const {isAttachmentLoaded} = useContext(AttachmentStateContext);
+    const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const shouldShowDownloadButton = useMemo(() => {
         const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH;
-        if (!isValidContext || isErrorInAttachment(source)) {
+        if (!isValidContext || isErrorInAttachment(source) || isEReceipt) {
             return false;
         }
 
         return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && isAttachmentLoaded?.(source);
-    }, [isAttachmentLoaded, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type]);
+    }, [isAttachmentLoaded, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type, isEReceipt]);
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);
@@ -202,8 +208,9 @@ function AttachmentModalBaseContent({
             onTap: () => {},
             onScaleChanged: () => {},
             onAttachmentError: setAttachmentError,
+            ...(shouldCloseOnSwipeDown ? {onSwipeDown: onClose} : {}),
         }),
-        [falseSV, sourceForAttachmentView, setAttachmentError],
+        [falseSV, sourceForAttachmentView, setAttachmentError, shouldCloseOnSwipeDown, onClose],
     );
 
     const shouldDisplayContent = !shouldShowNotFoundPage && !isLoading;
@@ -243,6 +250,7 @@ function AttachmentModalBaseContent({
                         fallbackSource={fallbackSource}
                         isUsedInAttachmentModal
                         transactionID={transaction?.transactionID}
+                        transaction={transaction}
                         isUploaded={!isEmptyObject(report)}
                         reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
                     />
@@ -270,7 +278,7 @@ function AttachmentModalBaseContent({
         sourceForAttachmentView,
         sourceProp,
         styles.mh5,
-        transaction?.transactionID,
+        transaction,
         type,
     ]);
 
@@ -302,7 +310,7 @@ function AttachmentModalBaseContent({
                 {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
                 {shouldShowNotFoundPage && !isLoading && (
                     <BlockingView
-                        icon={Illustrations.ToddBehindCloud}
+                        icon={illustrations.ToddBehindCloud}
                         iconWidth={variables.modalTopIconWidth}
                         iconHeight={variables.modalTopIconHeight}
                         title={translate('notFound.notHere')}

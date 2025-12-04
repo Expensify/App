@@ -152,6 +152,9 @@ type GetValidReportsConfig = {
     isPerDiemRequest?: boolean;
     showRBR?: boolean;
     shouldShowGBR?: boolean;
+    isRestrictedToPreferredPolicy?: boolean;
+    preferredPolicyID?: string;
+    shouldUnreadBeBold?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -171,6 +174,8 @@ type IsValidReportsConfig = Pick<
     | 'includeDomainEmail'
     | 'loginsToExclude'
     | 'excludeNonAdminWorkspaces'
+    | 'isRestrictedToPreferredPolicy'
+    | 'preferredPolicyID'
 >;
 
 type GetOptionsConfig = {

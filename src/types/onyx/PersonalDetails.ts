@@ -93,6 +93,14 @@ type PersonalDetailsMetadata = {
 /** Record of user personal details, indexed by user id */
 type PersonalDetailsList = Record<string, PersonalDetails | null>;
 
+/** Current user's personal details */
+type CurrentUserPersonalDetails = PersonalDetails & {
+    /**
+     * Current user's email address
+     */
+    email?: string;
+};
+
 export default PersonalDetails;
 
-export type {Timezone, Status, SelectedTimezone, PersonalDetailsList, PersonalDetailsMetadata};
+export type {Timezone, Status, SelectedTimezone, PersonalDetailsList, PersonalDetailsMetadata, CurrentUserPersonalDetails};

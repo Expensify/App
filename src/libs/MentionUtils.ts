@@ -22,12 +22,12 @@ const getReportMentionDetails = (htmlAttributeReportID: string, currentReport: O
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
         mentionDisplayText = removeLeadingLTRAndHash(tnode.data);
 
-        Object.values(reports ?? {}).forEach((report) => {
+        for (const report of Object.values(reports ?? {})) {
             if (report?.policyID !== currentReport?.policyID || !isChatRoom(report) || removeLeadingLTRAndHash(report?.reportName ?? '') !== mentionDisplayText) {
-                return;
+                continue;
             }
             reportID = report?.reportID;
-        });
+        }
     } else {
         return null;
     }

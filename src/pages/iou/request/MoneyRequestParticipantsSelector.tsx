@@ -12,7 +12,6 @@ import Button from '@components/Button';
 import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
-import {UserPlus} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
@@ -21,10 +20,11 @@ import InviteMemberListItem from '@components/SelectionListWithSections/InviteMe
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useContactImport from '@hooks/useContactImport';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,7 +35,7 @@ import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPersonalDetailSearchTerms, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, isPaidGroupPolicy as isPaidGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -100,6 +100,7 @@ function MoneyRequestParticipantsSelector({
     isCorporateCardTransaction = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['UserPlus'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactImport();
@@ -109,9 +110,11 @@ function MoneyRequestParticipantsSelector({
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const policy = usePolicy(activePolicyID);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
@@ -122,6 +125,7 @@ function MoneyRequestParticipantsSelector({
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyUtil(policy), [policy]);
+    const activeAdminWorkspaces = useMemo(() => getActiveAdminWorkspaces(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: true});
@@ -145,7 +149,7 @@ function MoneyRequestParticipantsSelector({
             const newParticipants: Participant[] = [sanitizedSelectedParticipant(option, iouType)];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                const policyID = option.item && isInvoiceRoom(option.item) ? option.policyID : getInvoicePrimaryWorkspace(currentUserLogin)?.id;
+                const policyID = option.item && isInvoiceRoom(option.item) ? option.policyID : getInvoicePrimaryWorkspace(policy, activeAdminWorkspaces)?.id;
                 newParticipants.push({
                     policyID,
                     isSender: true,
@@ -161,14 +165,14 @@ function MoneyRequestParticipantsSelector({
             }
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
-        [onFinish, onParticipantsAdded, currentUserLogin],
+        [onFinish, onParticipantsAdded, policy, activeAdminWorkspaces],
     );
 
     const getValidOptionsConfig = useMemo(
         () => ({
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
+            includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
             excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
             includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
             includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
@@ -181,8 +185,21 @@ function MoneyRequestParticipantsSelector({
             showRBR: false,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
+            isRestrictedToPreferredPolicy,
+            preferredPolicyID,
         }),
-        [participants, iouType, action, isCategorizeOrShareAction, isPerDiemRequest, isCorporateCardTransaction, canShowManagerMcTest, isPaidGroupPolicy],
+        [
+            participants,
+            iouType,
+            action,
+            isCategorizeOrShareAction,
+            isPerDiemRequest,
+            isCorporateCardTransaction,
+            canShowManagerMcTest,
+            isPaidGroupPolicy,
+            isRestrictedToPreferredPolicy,
+            preferredPolicyID,
+        ],
     );
 
     const handleSelectionChange = useCallback(
@@ -383,7 +400,7 @@ function MoneyRequestParticipantsSelector({
 
             onFinish(CONST.IOU.TYPE.SPLIT);
         },
-        [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, selectedOptions],
+        [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, selectedOptions.length],
     );
 
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
@@ -393,9 +410,9 @@ function MoneyRequestParticipantsSelector({
             return 0;
         }
         let length = 0;
-        sections.forEach((section) => {
+        for (const section of sections) {
             length += section.data.length;
-        });
+        }
         return length;
     }, [areOptionsInitialized, sections]);
 
@@ -490,13 +507,13 @@ function MoneyRequestParticipantsSelector({
         return (
             <MenuItem
                 title={translate('contact.importContacts')}
-                icon={UserPlus}
+                icon={icons.UserPlus}
                 onPress={goToSettings}
                 shouldShowRightIcon
                 style={styles.mb3}
             />
         );
-    }, [contactState?.showImportUI, showImportContacts, styles.mb3, translate]);
+    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, styles.mb3, translate]);
 
     const ClickableImportContactTextComponent = useMemo(() => {
         if (searchTerm.length || isSearchingForReports) {
@@ -509,7 +526,7 @@ function MoneyRequestParticipantsSelector({
                 isInSearch={false}
             />
         );
-    }, [searchTerm, isSearchingForReports, contactState?.showImportUI, showImportContacts, translate]);
+    }, [searchTerm.length, isSearchingForReports, contactState?.showImportUI, showImportContacts, translate]);
     const EmptySelectionListContentWithPermission = useMemo(() => {
         return (
             <>

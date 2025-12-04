@@ -30,6 +30,26 @@ jest.mock('@hooks/useNetwork', () =>
     })),
 );
 
+jest.mock('react-native-permissions', () => ({
+    RESULTS: {
+        UNAVAILABLE: 'unavailable',
+        BLOCKED: 'blocked',
+        DENIED: 'denied',
+        GRANTED: 'granted',
+        LIMITED: 'limited',
+    },
+    check: jest.fn(() => Promise.resolve('granted')),
+    request: jest.fn(() => Promise.resolve('granted')),
+    PERMISSIONS: {
+        IOS: {
+            CONTACTS: 'ios.permission.CONTACTS',
+        },
+        ANDROID: {
+            READ_CONTACTS: 'android.permission.READ_CONTACTS',
+        },
+    },
+}));
+
 jest.mock('@rnmapbox/maps', () => {
     return {
         default: jest.fn(),

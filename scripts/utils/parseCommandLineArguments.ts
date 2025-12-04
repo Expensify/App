@@ -4,7 +4,7 @@ type ArgsMap = Record<string, string | undefined>;
 export default function parseCommandLineArguments(): ArgsMap {
     const args = process.argv.slice(2); // Skip node and script paths
     const argsMap: ArgsMap = {};
-    args.forEach((arg) => {
+    for (const arg of args) {
         const [key, value] = arg.split('=');
         if (key.startsWith('--')) {
             const name = key.substring(2);
@@ -14,6 +14,6 @@ export default function parseCommandLineArguments(): ArgsMap {
                 argsMap[name] = 'true';
             }
         }
-    });
+    }
     return argsMap;
 }
