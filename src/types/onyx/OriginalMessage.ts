@@ -469,8 +469,11 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Array of field changes for consolidated employee updates */
     fields?: Array<{
+        /** The name of the field being updated */
         field: string;
+        /** The previous value of the field */
         oldValue: string;
+        /** The new value of the field */
         newValue: string;
     }>;
 
