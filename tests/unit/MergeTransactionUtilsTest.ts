@@ -383,7 +383,7 @@ describe('MergeTransactionUtils', () => {
                     merchant: targetTransaction.transactionID,
                     category: targetTransaction.transactionID,
                     tag: sourceTransaction.transactionID,
-                    billable: sourceTransaction.transactionID,
+                    billable: targetTransaction.transactionID,
                 },
             });
         });
