@@ -235,7 +235,6 @@ function useBulkPayOptions({
         personalBankAccountList.length,
         canUsePersonalBankAccount,
         activeAdminPolicies,
-        translate,
         currency,
         chatReport,
         getPaymentSubitems,
