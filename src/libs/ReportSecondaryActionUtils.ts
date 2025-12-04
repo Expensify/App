@@ -56,6 +56,7 @@ import {getSession} from './SessionUtils';
 import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
+    getTransactionViolations,
     hasReceipt as hasReceiptTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
@@ -131,6 +132,9 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], origin
 function isSubmitAction(
     report: Report,
     reportTransactions: Transaction[],
+    violations: OnyxCollection<TransactionViolation[]>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
     reportActions?: ReportAction[],
@@ -150,6 +154,15 @@ function isSubmitAction(
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
 
     if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    const hasSmartScanFailedViolation = reportTransactions.some((transaction) => {
+        const transactionViolations = getTransactionViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy);
+        return transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
+    });
+
+    if (hasSmartScanFailedViolation) {
         return false;
     }
 
@@ -681,7 +694,7 @@ function getSecondaryReportActions({
         isChatReportArchived,
     });
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction)) {
+    if (isSubmitAction(report, reportTransactions, violations, currentUserEmail, currentUserAccountID, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
