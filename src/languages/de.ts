@@ -6656,6 +6656,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Ausgabe erstellen',
             createReport: 'Bericht erstellen',
             chooseWorkspace: 'Wählen Sie einen Arbeitsbereich für diesen Bericht aus.',
             emptyReportConfirmationTitle: 'Du hast bereits einen leeren Bericht',

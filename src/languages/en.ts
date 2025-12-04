@@ -6730,6 +6730,7 @@ const translations = {
     },
     report: {
         newReport: {
+            createExpense: 'Create expense',
             createReport: 'Create report',
             chooseWorkspace: 'Choose a workspace for this report.',
             emptyReportConfirmationTitle: 'You already have an empty report',

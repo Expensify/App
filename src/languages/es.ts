@@ -6379,6 +6379,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     report: {
         newReport: {
+            createExpense: 'Crear gasto',
             createReport: 'Crear informe',
             chooseWorkspace: 'Elige un espacio de trabajo para este informe.',
             emptyReportConfirmationTitle: 'Ya tienes un informe vacío',

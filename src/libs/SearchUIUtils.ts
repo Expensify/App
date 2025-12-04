@@ -61,8 +61,9 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {hasSynchronizationErrorMessage} from './actions/connections';
-import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
-import {createNewReport, createTransactionThreadReport} from './actions/Report';
+import {canApproveIOU, canIOUBePaid, canSubmitReport, startMoneyRequest} from './actions/IOU';
+import {setIsOpenConfirmNavigateExpensifyClassicModalOpen} from './actions/isOpenConfirmNavigateExpensifyClassicModal';
+import {createTransactionThreadReport} from './actions/Report';
 import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import type {CardFeedForDisplay} from './CardFeedUtils';
@@ -90,6 +91,7 @@ import {
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canUserPerformWriteAction,
+    generateReportID,
     getIcons,
     getPersonalDetailsForAccountID,
     getReportName,
@@ -111,7 +113,6 @@ import {
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from './SearchQueryUtils';
 import StringUtils from './StringUtils';
-import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
     getCategory,
@@ -2105,13 +2106,11 @@ function createTypeMenuSections(
     cardFeedsByPolicy: Record<string, CardFeedForDisplay[]>,
     defaultCardFeed: CardFeedForDisplay | undefined,
     policies: OnyxCollection<OnyxTypes.Policy>,
-    activePolicyID: string | undefined,
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>,
     isOffline: boolean,
     defaultExpensifyCard: CardFeedForDisplay | undefined,
-    isASAPSubmitBetaEnabled: boolean,
-    hasViolations: boolean,
-    createReportWithConfirmation?: (params: {policyID: string; policyName?: string; onSuccess: (reportID: string) => void; personalDetails?: OnyxTypes.PersonalDetails}) => void,
+    shouldRedirectToExpensifyClassic: boolean,
+    draftTransactions: OnyxCollection<OnyxTypes.Transaction>,
 ): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -2138,65 +2137,15 @@ function createTypeMenuSections(
                             ? [
                                   {
                                       success: true,
-                                      buttonText: 'report.newReport.createReport',
+                                      buttonText: 'report.newReport.createExpense',
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
-                                              const activePolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
-                                              const personalDetails = getPersonalDetailsForAccountID(currentUserAccountID) as OnyxTypes.PersonalDetails;
-
-                                              let workspaceIDForReportCreation: string | undefined;
-
-                                              // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
-                                              if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                                  workspaceIDForReportCreation = activePolicy.id;
-                                              } else if (groupPoliciesWithChatEnabled.length === 1) {
-                                                  workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
-                                              }
-
-                                              if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation) && personalDetails) {
-                                                  const policyForCreation =
-                                                      policies?.[`${ONYXKEYS.COLLECTION.POLICY}${workspaceIDForReportCreation}`] ??
-                                                      groupPoliciesWithChatEnabled.find((policy) => policy?.id === workspaceIDForReportCreation);
-                                                  const policyName = policyForCreation?.name ?? activePolicy?.name ?? groupPoliciesWithChatEnabled.at(0)?.name ?? '';
-
-                                                  if (createReportWithConfirmation) {
-                                                      createReportWithConfirmation({
-                                                          policyID: workspaceIDForReportCreation,
-                                                          policyName,
-                                                          personalDetails,
-                                                          onSuccess: (createdReportID) => {
-                                                              Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                                  Navigation.navigate(
-                                                                      ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}),
-                                                                  );
-                                                              });
-                                                          },
-                                                      });
-                                                  } else {
-                                                      const {reportID: createdReportID} = createNewReport(
-                                                          personalDetails,
-                                                          isASAPSubmitBetaEnabled,
-                                                          hasViolations,
-                                                          workspaceIDForReportCreation,
-                                                      );
-                                                      Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                                          Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                                      });
-                                                  }
+                                              if (shouldRedirectToExpensifyClassic) {
+                                                  setIsOpenConfirmNavigateExpensifyClassicModalOpen(true);
                                                   return;
                                               }
 
-                                              if (
-                                                  workspaceIDForReportCreation &&
-                                                  shouldRestrictUserBillableActions(workspaceIDForReportCreation) &&
-                                                  groupPoliciesWithChatEnabled.length === 1
-                                              ) {
-                                                  Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-                                                  return;
-                                              }
-
-                                              // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
-                                              Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                                              startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, draftTransactions);
                                           });
                                       },
                                   },

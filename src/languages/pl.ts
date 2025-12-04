@@ -6613,6 +6613,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Utwórz wydatek',
             createReport: 'Utwórz raport',
             chooseWorkspace: 'Wybierz przestrzeń roboczą dla tego raportu.',
             emptyReportConfirmationTitle: 'Masz już pusty raport',

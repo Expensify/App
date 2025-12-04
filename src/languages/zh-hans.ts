@@ -6489,6 +6489,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: '创建报销单',
             createReport: '创建报告',
             chooseWorkspace: '为此报告选择一个工作区。',
             emptyReportConfirmationTitle: '你已经有一个空报告',

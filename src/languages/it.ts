@@ -6645,6 +6645,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Crea spesa',
             createReport: 'Crea rapporto',
             chooseWorkspace: "Scegli un'area di lavoro per questo report.",
             emptyReportConfirmationTitle: 'Hai già un rapporto vuoto',
