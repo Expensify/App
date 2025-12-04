@@ -363,4 +363,72 @@ describe('useAccountTabIndicatorStatus', () => {
             expect(indicatorColor).toBe(defaultTheme.success);
         });
     });
+
+    describe('card connection RBR logic', () => {
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('shows error for third party card with broken connection', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.CARD_LIST}`]: {
+                        card1: {
+                            bank: 'Chase',
+                            lastScrapeResult: 403,
+                        },
+                    },
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status, indicatorColor} = result.current;
+
+            expect(status).toBe(CONST.INDICATOR_STATUS.HAS_CARD_CONNECTION_ERROR);
+            expect(indicatorColor).toBe(defaultTheme.danger);
+        });
+
+        it('does not show error for Expensify Card with broken connection', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.CARD_LIST}`]: {
+                        card1: {
+                            bank: CONST.EXPENSIFY_CARD.BANK,
+                            lastScrapeResult: 403,
+                        },
+                    },
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status} = result.current;
+
+            expect(status).toBeUndefined();
+        });
+
+        it('does not show error for third party card with good connection', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.CARD_LIST}`]: {
+                        card1: {
+                            bank: 'Chase',
+                            lastScrapeResult: 200,
+                        },
+                    },
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status} = result.current;
+
+            expect(status).toBeUndefined();
+        });
+    });
 });

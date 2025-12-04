@@ -1,77 +1,50 @@
-import {describe, expect} from '@jest/globals';
-import {cleanup, render} from '@testing-library/react-native';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import CONST from '@src/CONST';
-import Navigation from '@src/libs/Navigation/Navigation';
-import navigationRef from '@src/libs/Navigation/navigationRef';
-import NAVIGATORS from '@src/NAVIGATORS';
+import {afterEach, beforeEach, describe, expect, it, jest} from '@jest/globals';
+import type {getPathFromState as GetPathFromState} from '@react-navigation/native';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 import type {Route} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import TestNavigationContainer from '../utils/TestNavigationContainer';
 
-jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
-jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
+jest.mock('@libs/Navigation/navigationRef', () => {
+    const navigationRefMock = {
+        current: {getCurrentRoute: jest.fn()},
+        getRootState: jest.fn(),
+        isReady: jest.fn(),
+    };
 
-jest.mock('@pages/home/sidebar/NavigationTabBarAvatar');
-jest.mock('@src/components/Navigation/TopLevelNavigationTabBar');
+    return {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        __esModule: true,
+        default: navigationRefMock,
+    };
+});
 
-const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
-const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    const actual = jest.requireActual('@react-navigation/native') as {getPathFromState: typeof GetPathFromState};
+    return {
+        ...actual,
+        getPathFromState: jest.fn<typeof GetPathFromState>(() => '/settings/profile?backTo=settings'),
+    };
+});
 
 describe('Navigation', () => {
     afterEach(() => {
-        // Ensure mounted components are unmounted
-        cleanup();
-
-        // Clear timers and restore real timers (in case fake timers are used anywhere)
-        jest.clearAllTimers();
-        jest.useRealTimers();
-
-        // Reset any mocks used by this file
-        jest.restoreAllMocks();
-        jest.resetModules();
-
-        // Clear the navigation ref so listeners/hooks attached to it don't keep the worker alive.
-        // This is intentionally type-unsafe to forcibly drop the ref between tests.
-        if (navigationRef.current) {
-            navigationRef.current = null;
-        }
+        jest.clearAllMocks();
     });
+
     beforeEach(() => {
-        mockedGetIsNarrowLayout.mockReturnValue(true);
-        mockedUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
+        const navigationRefMock = navigationRef as typeof navigationRef & {
+            current: {getCurrentRoute: jest.Mock};
+            getRootState: jest.Mock;
+            isReady: jest.Mock;
+        };
+
+        navigationRefMock.current.getCurrentRoute.mockReturnValue({name: 'test'});
+        navigationRefMock.getRootState.mockReturnValue({} as ReturnType<typeof navigationRef.getRootState>);
+        navigationRefMock.isReady.mockReturnValue(true);
     });
 
     it('Should correctly identify active routes', () => {
-        // Given current active route is "/settings/profile?backTo=settings%2profile"
-        render(
-            <TestNavigationContainer
-                initialState={{
-                    index: 0,
-                    routes: [
-                        {
-                            name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
-                            state: {
-                                index: 1,
-                                routes: [
-                                    {
-                                        name: SCREENS.SETTINGS.ROOT,
-                                    },
-                                    {
-                                        name: SCREENS.SETTINGS.PROFILE.ROOT,
-                                        params: {
-                                            backTo: 'settings/profile',
-                                        },
-                                    },
-                                ],
-                            },
-                        },
-                    ],
-                }}
-            />,
-        );
-
         expect(Navigation.isActiveRoute('settings/profile' as Route)).toBe(true);
         expect(Navigation.isActiveRoute('settings/profile/' as Route)).toBe(true);
         expect(Navigation.isActiveRoute('settings/profile?param=1' as Route)).toBe(true);

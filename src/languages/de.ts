@@ -235,6 +235,7 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
+    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -269,6 +270,7 @@ import type {
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatedPolicyReportFieldDefaultValueParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyTagNameParams,
@@ -696,6 +698,9 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'In die Zwischenablage kopieren',
         thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet...',
         domains: 'Domänen',
+        reportName: 'Berichtsname',
+        showLess: 'Weniger anzeigen',
+        actionRequired: 'Erforderliche Aktion',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -1185,7 +1190,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Ausgabe finden',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `hat eine Ausgabe gelöscht (${amount} für ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verschob eine Ausgabe${reportName ? `von ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `verschob diese Ausgabe${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `hat diese Ausgabe verschoben${reportName ? `zu <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `diese Ausgabe verschoben${reportName ? `von <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `diese Ausgabe aus Ihrem <a href="${reportUrl}">persönlichen Bereich</a> verschoben`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `diese Ausgabe in Ihren <a href="${reportUrl}">persönlichen Bereich</a> verschoben`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -1335,14 +1342,14 @@ const translations: TranslationDeepObject<typeof en> = {
         updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
             `änderte das ${translatedChangedField} zu ${newMerchant} (zuvor ${oldMerchant}), wodurch der Betrag auf ${newAmountToDisplay} aktualisiert wurde (zuvor ${oldAmountToDisplay})`,
         basedOnAI: 'basierend auf früheren Aktivitäten',
-        basedOnMCC: 'basierend auf Arbeitsbereichsregel',
+        basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `gemäß den <a href="${rulesLink}">Regeln des Arbeitsbereichs</a>` : 'gemäß der Arbeitsbereichsregel'),
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `für ${comment}` : 'Ausgabe'}`,
         invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Rechnungsbericht Nr. ${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} gesendet${comment ? `für ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `verschobene Ausgabe von persönlichem Bereich zu ${workspaceName ?? `chatten mit ${reportName}`}`,
         movedToPersonalSpace: 'Ausgabe in den persönlichen Bereich verschoben',
-        tagSelection: 'Wählen Sie ein Tag aus, um Ihre Ausgaben besser zu organisieren.',
+        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => `Wählen Sie ${policyTagListName ?? 'ein Tag'}, um Ihre Ausgaben besser zu organisieren.`,
         categorySelection: 'Wählen Sie eine Kategorie, um Ihre Ausgaben besser zu organisieren.',
         error: {
             invalidCategoryLength: 'Der Kategoriename überschreitet 255 Zeichen. Bitte kürzen Sie ihn oder wählen Sie eine andere Kategorie.',
@@ -1492,6 +1499,7 @@ const translations: TranslationDeepObject<typeof en> = {
             educationalTitle: 'Solltest du halten oder ablehnen?',
             educationalText: 'Wenn du noch nicht bereit bist, eine Ausgabe zu genehmigen oder zu bezahlen, kannst du sie halten oder ablehnen.',
             holdExpenseTitle: 'Halte eine Ausgabe zurück, um vor der Genehmigung oder Zahlung weitere Details anzufordern.',
+            approveExpenseTitle: 'Genehmige eine Ausgabe, um sie vor der Zahlung weitere Details anzufordern.',
             heldExpenseLeftBehindTitle: 'Zurückgehaltene Ausgaben bleiben zurück, wenn du einen gesamten Bericht genehmigst.',
             rejectExpenseTitle: 'Lehne eine Ausgabe ab, die du nicht genehmigen oder bezahlen möchtest.',
             reasonPageTitle: 'Ausgabe ablehnen',
@@ -1620,9 +1628,9 @@ const translations: TranslationDeepObject<typeof en> = {
         featureRequiresValidate: 'Diese Funktion erfordert, dass Sie Ihr Konto verifizieren.',
         validateAccount: 'Bestätigen Sie Ihr Konto',
         helpText: ({email}: {email: string}) =>
-            `Fügen Sie weitere Möglichkeiten hinzu, Belege zu senden. Leiten Sie sie weiter an <copy-text text="${email}"/> oder senden Sie ihnen eine SMS an 47777 (nur US-Nummern).`,
-        pleaseVerify: 'Bitte überprüfen Sie diese Kontaktmethode',
-        getInTouch: 'Wann immer wir mit Ihnen in Kontakt treten müssen, werden wir diese Kontaktmethode verwenden.',
+            `Fügen Sie weitere Möglichkeiten hinzu, sich anzumelden und Belege an Expensify zu senden.<br/><br/>Fügen Sie eine E-Mail-Adresse hinzu, um Belege an <a href="mailto:${email}">${email}</a> weiterzuleiten, oder fügen Sie eine Telefonnummer hinzu, um Belege per SMS an 47777 zu senden (nur US-Nummern).`,
+        pleaseVerify: 'Bitte überprüfen Sie diese Kontaktmethode.',
+        getInTouch: 'Wir verwenden diese Methode, um Sie zu kontaktieren.',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Bitte geben Sie den magischen Code ein, der an ${contactMethod} gesendet wurde. Er sollte in ein bis zwei Minuten ankommen.`,
         setAsDefault: 'Als Standard festlegen',
@@ -2105,6 +2113,10 @@ ${amount} für ${merchant} - ${date}`,
         addApprovalsDescription: 'Zusätzliche Genehmigung erforderlich, bevor eine Zahlung autorisiert wird.',
         makeOrTrackPaymentsTitle: 'Zahlungen vornehmen oder verfolgen',
         makeOrTrackPaymentsDescription: 'Fügen Sie einen autorisierten Zahler für Zahlungen in Expensify hinzu oder verfolgen Sie Zahlungen, die anderswo getätigt wurden.',
+        customApprovalWorkflowEnabled:
+            '<muted-text-label>Für diesen Workspace ist ein benutzerdefinierter Genehmigungsworkflow aktiviert. Um diesen Workflow zu überprüfen oder zu ändern, wenden Sie sich bitte an Ihren <account-manager-link>Account Manager</account-manager-link> oder <concierge-link>Concierge</concierge-link>.</muted-text-label>',
+        customApprovalWorkflowEnabledConciergeOnly:
+            '<muted-text-label>Für diesen Workspace ist ein benutzerdefinierter Genehmigungsworkflow aktiviert. Um diesen Workflow zu überprüfen oder zu ändern, wenden Sie sich bitte an <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         editor: {
             submissionFrequency: 'Wählen Sie, wie lange Expensify warten soll, bevor fehlerfreie Ausgaben geteilt werden.',
         },
@@ -2551,17 +2563,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Verbinde [deine Firmenkarte](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Verbinden Sie [Ihre Firmenkarten](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Verbinden Sie Ihre Firmenkarte, um Ausgaben automatisch zu importieren und zu kontieren.
+                        Verbinden Sie Ihre bestehenden Karten, um Transaktionen automatisch zu importieren, Belege abzugleichen und Abstimmungen durchzuführen.
 
-                        1. Klicken Sie auf *Workspaces*.
-                        2. Wählen Sie Ihren Workspace aus.
-                        3. Klicken Sie auf *Corporate cards*.
-                        4. Folgen Sie den Anweisungen, um Ihre Karte zu verknüpfen.
+                        1. Klicken Sie auf „Arbeitsbereiche“.
+                        2. Wählen Sie Ihren Arbeitsbereich aus.
+                        3. Klicken Sie auf „Firmenkarten“.
+                        4. Folgen Sie den Anweisungen, um Ihre Karten zu verbinden.
 
-                        [Zum Verbinden meiner Firmenkarten](${corporateCardLink}).`),
+                        [Zu den Firmenkarten](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Lade [dein Team](${workspaceMembersLink}) ein`,
@@ -2680,12 +2692,18 @@ ${
         messages: {
             onboardingEmployerOrSubmitMessage: 'Erstattungen zu erhalten ist so einfach wie eine Nachricht zu senden. Lass uns die Grundlagen durchgehen.',
             onboardingPersonalSpendMessage: 'So verfolgst du deine Ausgaben mit nur wenigen Klicks.',
-            onboardingManageTeamMessage: dedent(`
-                # Deine kostenlose Testversion hat begonnen! Lass uns dich einrichten.
-                👋 Hallo! Ich bin dein Expensify-Einrichtungsspezialist. Da du einen Workspace erstellt hast, nutze deine 30-tägige kostenlose Testversion optimal, indem du die folgenden Schritte befolgst!
-            `),
+            onboardingManageTeamMessage: ({isOnboardingFlow = false}: {isOnboardingFlow?: boolean}) =>
+                isOnboardingFlow
+                    ? dedent(`
+                        # Deine kostenlose Testphase hat begonnen! Lass uns dich einrichten.
+                        👋 Hey, ich bin dein Expensify-Setup-Spezialist. Ich habe bereits einen Arbeitsbereich erstellt, um die Belege und Ausgaben deines Teams zu verwalten. Um das Beste aus deiner 30-tägigen kostenlosen Testphase herauszuholen, befolge einfach die restlichen Einrichtungsschritte unten!
+                    `)
+                    : dedent(`
+                        # Deine kostenlose Testphase hat begonnen! Lass uns dich einrichten.
+                        👋 Hey, ich bin dein Expensify-Einrichtungsspezialist. Da du jetzt einen Arbeitsbereich erstellt hast, nutze deine 30-tägige kostenlose Testphase bestmöglich, indem du die folgenden Schritte befolgst!
+                    `),
             onboardingTrackWorkspaceMessage:
-                '# Lass uns loslegen\n👋 Ich helfe dir! Ich habe deine Workspace-Einstellungen für Einzelunternehmer und ähnliche Unternehmen angepasst. Du kannst sie über den folgenden Link anpassen!\n\nSo verfolgst du deine Ausgaben mit nur wenigen Klicks:',
+                '# Legen wir mit der Einrichtung los\n👋 Hey! Ich bin dein Expensify-Einrichtungsspezialist. Ich habe bereits einen Workspace erstellt, um deine Belege und Ausgaben zu verwalten. Um das Beste aus deiner 30-tägigen kostenlosen Testversion herauszuholen, folge einfach den verbleibenden Einrichtungsschritten unten!',
             onboardingChatSplitMessage: 'Rechnungen mit Freunden zu teilen ist so einfach wie eine Nachricht zu senden. So funktioniert’s.',
             onboardingAdminMessage: 'Lerne, wie du den Workspace deines Teams als Admin verwaltest und eigene Ausgaben einreichst.',
             onboardingLookingAroundMessage:
@@ -2910,6 +2928,8 @@ ${
         hasBeenThrottledError: 'Beim Hinzufügen Ihres Bankkontos ist ein Fehler aufgetreten. Bitte warten Sie ein paar Minuten und versuchen Sie es erneut.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Ups! Es scheint, dass die Währung Ihres Arbeitsbereichs auf eine andere Währung als USD eingestellt ist. Um fortzufahren, gehen Sie bitte zu <a href="${workspaceRoute}">Ihre Arbeitsbereichseinstellungen</a> um es auf USD zu setzen und es erneut zu versuchen.`,
+        bbaAdded: 'Geschäftsbankkonto hinzugefügt!',
+        bbaAddedDescription: 'Es ist bereit für Zahlungen verwendet zu werden.',
         error: {
             youNeedToSelectAnOption: 'Bitte wählen Sie eine Option, um fortzufahren.',
             noBankAccountAvailable: 'Entschuldigung, es ist kein Bankkonto verfügbar.',
@@ -3305,6 +3325,9 @@ ${
         whatsYourAddress: 'Wie lautet Ihre Adresse?',
         whatAreTheLast: 'Was sind die letzten 4 Ziffern der Sozialversicherungsnummer des Eigentümers?',
         whatsYourLast: 'Was sind die letzten 4 Ziffern Ihrer Sozialversicherungsnummer?',
+        whatsYourNationality: 'Was ist Ihr Staatsangehörigkeitsland?',
+        whatsTheOwnersNationality: 'Was ist das Staatsangehörigkeitsland des Eigentümers?',
+        countryOfCitizenship: 'Staatsangehörigkeitsland',
         dontWorry: 'Keine Sorge, wir führen keine persönlichen Bonitätsprüfungen durch!',
         last4: 'Letzte 4 der SSN',
         whyDoWeAsk: 'Warum fragen wir danach?',
@@ -4656,7 +4679,7 @@ ${
             companyCard: 'Firmenkarte',
             chooseCardFeed: 'Karten-Feed auswählen',
             ukRegulation:
-                'Expensify, Inc. ist ein Agent von Plaid Financial Ltd., einem autorisierten Zahlungsinstitut, das von der Financial Conduct Authority gemäß den Payment Services Regulations 2017 reguliert wird (Firmennummer: 804718). Plaid bietet Ihnen regulierte Kontoinformationsdienste über Expensify Limited als seinen Agenten an.',
+                'Expensify Limited ist ein Agent von Plaid Financial Ltd., einem autorisierten Zahlungsinstitut, das von der Financial Conduct Authority gemäß den Payment Services Regulations 2017 reguliert wird (Firmennummer: 804718). Plaid bietet Ihnen regulierte Kontoinformationsdienste über Expensify Limited als seinen Agenten an.',
         },
         expensifyCard: {
             issueAndManageCards: 'Ausstellen und Verwalten Ihrer Expensify-Karten',
@@ -4724,6 +4747,10 @@ ${
                 `Für ${assignee} wurde eine Expensify Card ausgestellt! Die Karte wird versendet, sobald die Versanddetails bestätigt wurden.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `hat ${assignee} eine virtuelle ${link} ausgestellt! Die Karte kann sofort verwendet werden.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} hat Versanddetails hinzugefügt. Die Expensify Card trifft in 2–3 Werktagen ein.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} hat ihre virtuelle Expensify-Karte ersetzt! ${link} kann sofort verwendet werden.`,
+            card: 'Karte',
+            replacementCard: 'Ersatzkarte',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} hat ihre Expensify-Karte ersetzt. Die neue Karte wird in 2–3 Werktagen ankommen.`,
             verifyingHeader: 'Überprüfen',
             bankAccountVerifiedHeader: 'Bankkonto verifiziert',
             verifyingBankAccount: 'Bankkonto wird überprüft...',
@@ -5232,6 +5259,7 @@ ${
             issueCard: 'Karte ausstellen',
             issueNewCard: {
                 whoNeedsCard: 'Wer braucht eine Karte?',
+                inviteNewMember: 'Neues Mitglied einladen',
                 findMember: 'Mitglied finden',
                 chooseCardType: 'Wählen Sie einen Kartentyp aus',
                 physicalCard: 'Physische Karte',
@@ -5913,8 +5941,8 @@ ${
                 billableDescription: 'Spesen werden meist an Kunden weiterberechnet.',
                 nonBillable: 'Nicht abrechenbar',
                 nonBillableDescription: 'Spesen werden gelegentlich an Kunden weiterberechnet.',
-                eReceipts: 'eReceipts',
-                eReceiptsHint: `eReceipts werden automatisch erstellt [für die meisten USD-Kredit-Transaktionen](${CONST.DEEP_DIVE_ERECEIPTS}).`,
+                eReceipts: 'eQuittungen',
+                eReceiptsHint: `eQuittungen werden automatisch erstellt [für die meisten USD-Kredit-Transaktionen](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Teilnehmerverfolgung',
                 attendeeTrackingHint: 'Verfolgen Sie die Kosten pro Person für jede Ausgabe.',
                 prohibitedDefaultDescription:
@@ -6223,11 +6251,13 @@ ${
             `hat die automatische Berichterstattungshäufigkeit auf "${newFrequency}" aktualisiert (zuvor "${oldFrequency}")`,
         updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `hat den Genehmigungsmodus auf "${newValue}" aktualisiert (zuvor "${oldValue}")`,
         upgradedWorkspace: 'dieses Arbeitsbereich auf den Control-Plan hochgestuft',
+        forcedCorporateUpgrade: `Dieser Arbeitsbereich wurde auf den Control-Tarif hochgestuft. Klicken Sie <a href="${CONST.COLLECT_UPGRADE_HELP_URL}">hier</a> für weitere Informationen.`,
         downgradedWorkspace: 'hat dieses Arbeitsbereich auf den Collect-Plan herabgestuft',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `änderte die Rate der Berichte, die zufällig zur manuellen Genehmigung weitergeleitet werden, auf ${Math.round(newAuditRate * 100)}% (zuvor ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `hat das manuelle Genehmigungslimit für alle Ausgaben auf ${newLimit} geändert (vorher ${oldLimit})`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'aktiviert' : 'Deaktiviert'} Erstattungen für diesen Arbeitsbereich`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `hat die Steuer "${taxName}" hinzugefügt`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `hat die Steuer "${taxName}" entfernt`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6252,6 +6282,37 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Kategorien`;
+                case 'tags':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Stichwörter`;
+                case 'workflows':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Workflows`;
+                case 'distance rates':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Entfernungsraten`;
+                case 'accounting':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Buchhaltung`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Expensify-Karten`;
+                case 'company cards':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Firmenkarten`;
+                case 'invoicing':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Rechnungsstellung`;
+                case 'per diem':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Tagespauschale`;
+                case 'receipt partners':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Belegpartner`;
+                case 'rules':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Regeln`;
+                case 'tax tracking':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Steuerverfolgung`;
+                default:
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} ${featureName}`;
+            }
+        },
+        updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Teilnehmerverfolgung`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
@@ -6390,6 +6451,7 @@ ${
             delete: 'Löschen',
             hold: 'Halten',
             unhold: 'Halten entfernen',
+            reject: 'Ablehnen',
             noOptionsAvailable: 'Keine Optionen verfügbar für die ausgewählte Gruppe von Ausgaben.',
         },
         filtersHeader: 'Filter',
@@ -6569,6 +6631,27 @@ ${
         error: {
             title: 'Aktualisierungsprüfung fehlgeschlagen',
             message: 'Wir konnten nicht nach einem Update suchen. Bitte versuchen Sie es in Kürze erneut.',
+        },
+    },
+    settlement: {
+        status: {
+            pending: 'Ausstehend',
+            cleared: 'Abgewickelt',
+            failed: 'Fehlgeschlagen',
+        },
+        failedError: ({link}: {link: string}) => `Wir werden diese Abwicklung erneut versuchen, wenn Sie <a href="${link}">Ihr Konto entsperren</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • Auszahlungs-ID: ${withdrawalID}`,
+    },
+    reportLayout: {
+        reportLayout: 'Berichtslayout',
+        groupByLabel: 'Gruppieren nach:',
+        selectGroupByOption: 'Wählen Sie aus, wie die Berichtsausgaben gruppiert werden sollen',
+        uncategorized: 'Nicht kategorisiert',
+        noTag: 'Kein Tag',
+        selectGroup: ({groupName}: {groupName: string}) => `Alle Ausgaben in ${groupName} auswählen`,
+        groupBy: {
+            category: 'Kategorie',
+            tag: 'Tag',
         },
     },
     report: {
@@ -6993,6 +7076,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} ist erforderlich`,
+        reportContainsExpensesWithViolations: 'Der Bericht enthält Ausgaben mit Verstößen.',
     },
     violationDismissal: {
         rter: {
@@ -7122,9 +7206,7 @@ ${
                 `Sie haben die Belastung von ${amountOwed} auf der Karte mit der Endung ${cardEnding} angefochten. Ihr Konto wird gesperrt, bis der Streit mit Ihrer Bank geklärt ist.`,
             preTrial: {
                 title: 'Kostenlose Testversion starten',
-                subtitleStart: 'Als nächster Schritt,',
-                subtitleLink: 'Vervollständigen Sie Ihre Einrichtungsliste',
-                subtitleEnd: 'damit Ihr Team mit der Spesenabrechnung beginnen kann.',
+                subtitle: 'Als Nächstes <a href="#">schließen Sie Ihre Einrichtungs-Checkliste ab</a>, damit Ihr Team mit dem Einreichen von Spesen beginnen kann.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Testversion: ${numOfDays} ${numOfDays === 1 ? 'Tag' : 'Tage'} übrig!`,
@@ -7437,13 +7519,14 @@ ${
     },
     migratedUserWelcomeModal: {
         title: 'Willkommen bei New Expensify!',
-        subtitle: 'New Expensify hat die gleiche großartige Automatisierung, aber jetzt mit erstaunlicher Zusammenarbeit:',
+        subtitle: 'Es enthält alles, was du an unserem klassischen Erlebnis liebst, mit einer ganzen Reihe von Verbesserungen, die dein Leben noch einfacher machen:',
         confirmText: "Los geht's!",
         features: {
-            chat: '<strong>Chatten Sie direkt über jede Ausgabe</strong>, jeden Bericht oder Arbeitsbereich',
-            scanReceipt: '<strong>Belege scannen</strong> und Rückerstattung erhalten',
-            crossPlatform: 'Erledigen Sie <strong>alles</strong> von Ihrem Telefon oder Browser aus',
+            chat: 'Chatte zu jeder Ausgabe, um Fragen schnell zu klären',
+            search: 'Leistungsstärkere Suche auf Mobilgeräten, im Web und auf dem Desktop',
+            concierge: 'Integrierte Concierge-KI zur Automatisierung Ihrer Ausgaben',
         },
+        helpText: '2-Minuten-Demo ausprobieren',
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
@@ -7596,6 +7679,17 @@ ${
                         return `Warten darauf, dass ein Admin die Ausgaben genehmigt.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Es wird darauf gewartet, dass <strong>Sie</strong> diesen Bericht exportieren.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Warten darauf, dass <strong>${actor}</strong> diesen Bericht exportiert.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Warten darauf, dass ein Administrator diesen Bericht exportiert.`;
+                }
+            },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
@@ -7667,6 +7761,32 @@ ${
             onePasswordForAnything: 'Ein Passwort für alles',
         },
         goToDomain: 'Zur Domain wechseln',
+        samlLogin: {
+            title: 'SAML-Anmeldung',
+            subtitle: `<muted-text>Konfigurieren Sie die Mitgliederanmeldung mit <a href="${CONST.SAML_HELP_URL}">SAML Single Sign-On (SSO).</a></muted-text>`,
+            enableSamlLogin: 'SAML-Anmeldung aktivieren',
+            allowMembers: 'Mitgliedern die Anmeldung mit SAML erlauben.',
+            requireSamlLogin: 'SAML-Anmeldung erforderlich',
+            anyMemberWillBeRequired: 'Jedes Mitglied, das sich mit einer anderen Methode angemeldet hat, muss sich mithilfe von SAML erneut authentifizieren.',
+            enableError: 'Konnte die SAML-Aktivierungseinstellung nicht aktualisieren',
+            requireError: 'Die SAML-Anforderungseinstellung konnte nicht aktualisiert werden.',
+        },
+        samlConfigurationDetails: {
+            title: 'SAML-Konfigurationsdetails',
+            subtitle: 'Verwenden Sie diese Angaben, um SAML einzurichten.',
+            identityProviderMetaData: 'Metadaten des Identitätsanbieters',
+            entityID: 'Entitäts-ID',
+            nameIDFormat: 'Name-ID-Format',
+            loginUrl: 'Anmelde-URL',
+            acsUrl: 'ACS-URL (Assertion Consumer Service)',
+            logoutUrl: 'Abmelde-URL',
+            sloUrl: 'SLO (Single Logout)-URL',
+            serviceProviderMetaData: 'Metadaten des Dienstanbieters',
+            oktaScimToken: 'Okta SCIM-Token',
+            revealToken: 'Token anzeigen',
+            fetchError: 'SAML-Konfigurationsdetails konnten nicht abgerufen werden',
+            setMetadataGenericError: 'SAML-Metadaten konnten nicht gesetzt werden',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
