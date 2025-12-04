@@ -55,7 +55,9 @@ function AddDomainPage() {
         }
 
         // Find the newly created domain because the accountID is not optimistically created in App, but created in BE
-        const accountID = Object.values(allDomains ?? {})?.find((domain) => domain && Str.extractEmailDomain(domain.email) === submittedDomainName.current)?.accountID;
+        const accountID = Object.values(allDomains ?? {})?.find(
+            (domain) => domain && Str.extractEmailDomain(domain.email).toLowerCase() === submittedDomainName.current?.toLowerCase(),
+        )?.accountID;
         if (accountID) {
             Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ADDED.getRoute(accountID), {forceReplace: true});
         }
