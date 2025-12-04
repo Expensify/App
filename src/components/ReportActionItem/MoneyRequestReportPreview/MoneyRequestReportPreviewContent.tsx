@@ -499,6 +499,8 @@ function MoneyRequestReportPreviewContent({
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
+            currentUserDetails.email ?? '',
+            transactionViolations,
         );
     }, [
         isPaidAnimationRunning,
@@ -511,6 +513,8 @@ function MoneyRequestReportPreviewContent({
         invoiceReceiverPolicy,
         isChatReportArchived,
         currentUserDetails.accountID,
+        currentUserDetails.email,
+        transactionViolations,
     ]);
 
     const addExpenseDropdownOptions = useMemo(

@@ -1,6 +1,7 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
@@ -19,9 +20,17 @@ import {
     isSettled,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
-import {isPending, isScanning} from './TransactionUtils';
+import {getTransactionViolations, isPending, isScanning} from './TransactionUtils';
 
-function canSubmit(report: Report, isReportArchived: boolean, currentUserAccountID: number, policy?: Policy, transactions?: Transaction[]) {
+function canSubmit(
+    report: Report,
+    isReportArchived: boolean,
+    currentUserAccountID: number,
+    currentUserEmail: string,
+    violations?: OnyxCollection<TransactionViolation[]>,
+    policy?: Policy,
+    transactions?: Transaction[],
+) {
     if (isReportArchived) {
         return false;
     }
@@ -37,6 +46,15 @@ function canSubmit(report: Report, isReportArchived: boolean, currentUserAccount
     }
 
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
+
+    const hasSmartScanFailedViolation = transactions?.some((transaction) => {
+        const transactionViolations = getTransactionViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy);
+        return transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
+    });
+
+    if (hasSmartScanFailedViolation) {
+        return false;
+    }
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
@@ -159,6 +177,8 @@ function getReportPreviewAction(
     isPaidAnimationRunning?: boolean,
     isApprovedAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
+    currentUserEmail?: string,
+    violations?: OnyxCollection<TransactionViolation[]>,
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -177,7 +197,7 @@ function getReportPreviewAction(
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
-    if (canSubmit(report, isReportArchived, currentUserAccountID, policy, transactions)) {
+    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserEmail ?? '', violations, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, policy, transactions)) {
