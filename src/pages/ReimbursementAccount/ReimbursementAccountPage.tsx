@@ -89,6 +89,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     const prevIsOffline = usePrevious(isOffline);
     const policyCurrency = policy?.outputCurrency ?? '';
     const prevPolicyCurrency = usePrevious(policyCurrency);
+    const isLoadingWorkspaceReimbursement = policy?.isLoadingWorkspaceReimbursement;
     const isNonUSDWorkspace = policyCurrency !== CONST.CURRENCY.USD;
     const hasUnsupportedCurrency =
         isComingFromExpensifyCard && isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) && isNonUSDWorkspace
@@ -424,7 +425,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
     // eslint-disable-next-line react-compiler/react-compiler
-    if ((!hasACHDataBeenLoaded || isLoading) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef?.current)) {
+    if ((!hasACHDataBeenLoaded || isLoading || isLoadingWorkspaceReimbursement) && shouldShowOfflineLoader && (shouldReopenOnfido || !requestorStepRef?.current)) {
         return <ReimbursementAccountLoadingIndicator onBackButtonPress={goBack} />;
     }
 

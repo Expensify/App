@@ -18,7 +18,6 @@ import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ConnectExistingBusinessBankAccountPageProps = PlatformStackScreenProps<ConnectExistingBankAccountNavigatorParamList, typeof SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT>;
@@ -54,7 +53,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             if (isBankAccountPartiallySetup(accountData?.state)) {
-                navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+                navigateToBankAccountRoute(route.params.policyID);
             } else {
                 Navigation.closeRHPFlow();
             }
