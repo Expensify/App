@@ -86,6 +86,15 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
         closeOverlay();
     }, [closeOverlay, onChange]);
 
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchTerm,
+            label: isSearchable ? (searchPlaceholder ?? translate('common.search')) : undefined,
+            onChangeText: setSearchTerm,
+        }),
+        [searchTerm, isSearchable, searchPlaceholder, translate, setSearchTerm],
+    );
+
     return (
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
             {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
@@ -96,12 +105,7 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
                     data={listData}
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
-                    shouldShowTextInput={isSearchable}
-                    textInputOptions={{
-                        value: searchTerm,
-                        onChangeText: setSearchTerm,
-                        label: searchPlaceholder ?? translate('common.search'),
-                    }}
+                    textInputOptions={textInputOptions}
                 />
             </View>
 

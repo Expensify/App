@@ -8,9 +8,8 @@ import RadioListItem from './RadioListItem';
 import type {ListItem, MultiSelectListItemProps} from './types';
 
 /**
- * MultiSelectListItem mirrors the behavior of a default RadioListItem, but adds support
- * for the new style of multi selection lists.
- * When icons are provided, an avatar is rendered on the left side of the item.
+ * MultiSelectListItem extends RadioListItem with multi-selection support.
+ * Renders an avatar when icons are provided.
  */
 function MultiSelectListItem<TItem extends ListItem>({
     item,
@@ -29,6 +28,7 @@ function MultiSelectListItem<TItem extends ListItem>({
     titleStyles,
 }: MultiSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
+    const icon = item.icons?.at(0);
 
     const checkboxComponent = useCallback(() => {
         return (
@@ -41,14 +41,16 @@ function MultiSelectListItem<TItem extends ListItem>({
         );
     }, [item, onSelectRow]);
 
-    const icon = item.icons?.at(0);
-
-    const avatarElement = useMemo(() => {
+    const {itemWithAvatar, computedWrapperStyle} = useMemo(() => {
         if (!icon) {
-            return null;
+            return {
+                itemWithAvatar: item,
+                computedWrapperStyle: [wrapperStyle, styles.optionRowCompact],
+            };
         }
-        return (
-            <View style={styles.mentionSuggestionsAvatarContainer}>
+
+        const avatarElement = (
+            <View style={[styles.mentionSuggestionsAvatarContainer, styles.mr3]}>
                 <Avatar
                     source={icon.source}
                     size={CONST.AVATAR_SIZE.SMALLER}
@@ -59,18 +61,12 @@ function MultiSelectListItem<TItem extends ListItem>({
                 />
             </View>
         );
-    }, [icon, styles.mentionSuggestionsAvatarContainer]);
 
-    // Use a modified item with leftElement if we have icons
-    const itemWithAvatar = useMemo(() => {
-        if (!avatarElement) {
-            return item;
-        }
         return {
-            ...item,
-            leftElement: avatarElement,
+            itemWithAvatar: {...item, leftElement: avatarElement},
+            computedWrapperStyle: [wrapperStyle, styles.pv0, styles.mnh13],
         };
-    }, [item, avatarElement]);
+    }, [icon, item, wrapperStyle, styles.mentionSuggestionsAvatarContainer, styles.mr3, styles.optionRowCompact, styles.pv0, styles.mnh13]);
 
     return (
         <RadioListItem
@@ -88,7 +84,7 @@ function MultiSelectListItem<TItem extends ListItem>({
             alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={[wrapperStyle, styles.optionRowCompact]}
+            wrapperStyle={computedWrapperStyle}
             titleStyles={titleStyles}
         />
     );
