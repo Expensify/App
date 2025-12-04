@@ -6055,6 +6055,10 @@ const translations = {
                 title: 'Category rules',
                 approver: 'Approver',
                 requireDescription: 'Require description',
+                requireFields: 'Require fields',
+                requiredFieldsTitle: 'Required fields',
+                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `This will apply to all expenses categorized as <strong>${categoryName}</strong>`,
+                requireAttendees: 'Require attendees',
                 descriptionHint: 'Description hint',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) =>
                     `Remind employees to provide additional information for “${categoryName}” spend. This hint appears in the description field on expenses.`,
@@ -7036,6 +7040,7 @@ const translations = {
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
+        missingAttendees: 'Attendees required for this category',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

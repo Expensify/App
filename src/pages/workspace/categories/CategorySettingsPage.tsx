@@ -17,7 +17,14 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate, getDecodedCategoryName} from '@libs/CategoryUtils';
+import {
+    formatDefaultTaxRateText,
+    formatRequiredFieldsTitle,
+    formatRequireReceiptsOverText,
+    getCategoryApproverRule,
+    getCategoryDefaultTaxRate,
+    getDecodedCategoryName,
+} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,13 +35,7 @@ import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtil
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {
-    clearCategoryErrors,
-    deleteWorkspaceCategories,
-    setPolicyCategoryDescriptionRequired,
-    setWorkspaceCategoryDescriptionHint,
-    setWorkspaceCategoryEnabled,
-} from '@userActions/Policy/Category';
+import {clearCategoryErrors, deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -65,7 +66,6 @@ function CategorySettingsPage({
 
     const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
-    const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
     const {
         taskReport: setupCategoryTaskReport,
@@ -126,6 +126,13 @@ function CategorySettingsPage({
         }
         return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
     }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
+
+    const requiredFieldsTitle = useMemo(() => {
+        if (!policyCategory) {
+            return '';
+        }
+        return formatRequiredFieldsTitle(translate, policyCategory);
+    }, [policyCategory, translate]);
 
     if (!policyCategory) {
         return <NotFoundPage />;
@@ -287,41 +294,23 @@ function CategorySettingsPage({
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
-
+                    {!!policyCategory?.areCommentsRequired && (
+                        <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
+                            <MenuItemWithTopDescription
+                                title={policyCategory?.commentHint}
+                                description={translate('workspace.rules.categoryRules.descriptionHint')}
+                                onPress={() => {
+                                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
+                                }}
+                                shouldShowRightIcon
+                            />
+                        </OfflineWithFeedback>
+                    )}
                     {!!policy?.areRulesEnabled && (
                         <>
                             <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
                                 <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.rules.categoryRules.title')}</Text>
                             </View>
-                            <OfflineWithFeedback pendingAction={policyCategory?.pendingFields?.areCommentsRequired}>
-                                <View style={[styles.mt2, styles.mh5]}>
-                                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                        <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.categoryRules.requireDescription')}</Text>
-                                        <Switch
-                                            isOn={policyCategory?.areCommentsRequired ?? false}
-                                            accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
-                                            onToggle={() => {
-                                                if (policyCategory.commentHint && areCommentsRequired) {
-                                                    setWorkspaceCategoryDescriptionHint(policyID, categoryName, '', policyCategories);
-                                                }
-                                                setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired, policyCategories);
-                                            }}
-                                        />
-                                    </View>
-                                </View>
-                            </OfflineWithFeedback>
-                            {!!policyCategory?.areCommentsRequired && (
-                                <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
-                                    <MenuItemWithTopDescription
-                                        title={policyCategory?.commentHint}
-                                        description={translate('workspace.rules.categoryRules.descriptionHint')}
-                                        onPress={() => {
-                                            Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
-                                        }}
-                                        shouldShowRightIcon
-                                    />
-                                </OfflineWithFeedback>
-                            )}
                             <MenuItemWithTopDescription
                                 title={approverText}
                                 description={translate('workspace.rules.categoryRules.approver')}
@@ -366,6 +355,16 @@ function CategorySettingsPage({
                                     description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
+                                    }}
+                                    shouldShowRightIcon
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.areCommentsRequired || policyCategory.pendingFields?.areAttendeesRequired}>
+                                <MenuItemWithTopDescription
+                                    title={requiredFieldsTitle}
+                                    description={translate('workspace.rules.categoryRules.requireFields')}
+                                    onPress={() => {
+                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.getRoute(policyID, policyCategory.name));
                                     }}
                                     shouldShowRightIcon
                                 />

@@ -333,6 +333,7 @@ const ViolationsUtils = {
         // const hasOverTripLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_TRIP_LIMIT);
         const hasCategoryOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_CATEGORY_LIMIT);
         const hasMissingCommentViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_COMMENT);
+        const hasMissingAttendeesViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
         const hasTaxOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
         const isDistanceRequest = TransactionUtils.isDistanceRequest(updatedTransaction);
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
@@ -380,6 +381,11 @@ const ViolationsUtils = {
         const shouldCategoryShowOverLimitViolation =
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment = !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy;
+
+        const attendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees ?? [];
+        const shouldShowMissingAttendees =
+            !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areAttendeesRequired && isControlPolicy && (attendees.length === 0 || attendees.length === 1);
+
         const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
         // Add 'futureDate' violation if transaction date is in the future and policy type is corporate
         if (!hasFutureDateViolation && shouldDisplayFutureDateViolation) {
@@ -462,6 +468,18 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_COMMENT});
         }
 
+        if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.MISSING_ATTENDEES,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            });
+        }
+
+        if (hasMissingAttendeesViolation && !shouldShowMissingAttendees) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_ATTENDEES});
+        }
+
         if (isPolicyTrackTaxEnabled && !hasTaxOutOfPolicyViolation && !isTaxInPolicy) {
             newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION});
         }
@@ -531,6 +549,8 @@ const ViolationsUtils = {
                 return translate('violations.missingCategory');
             case 'missingComment':
                 return translate('violations.missingComment');
+            case 'missingAttendees':
+                return translate('violations.missingAttendees');
             case 'missingTag':
                 return translate('violations.missingTag', {tagName});
             case 'modifiedAmount':

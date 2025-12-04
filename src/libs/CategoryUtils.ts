@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import {convertToShortDisplayString} from './CurrencyUtils';
 
@@ -42,6 +42,33 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
     return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, {
         defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
     });
+}
+
+function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], policyCategory: PolicyCategory): string {
+    const enabledFields: string[] = [];
+
+    const areCommentsRequired =
+        policyCategory.pendingFields?.areCommentsRequired === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE ? !policyCategory.areCommentsRequired : !!policyCategory.areCommentsRequired;
+
+    const areAttendeesRequired =
+        policyCategory.pendingFields?.areAttendeesRequired === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE ? !policyCategory.areAttendeesRequired : !!policyCategory.areAttendeesRequired;
+
+    if (areAttendeesRequired) {
+        enabledFields.push(translate('iou.attendees'));
+    }
+
+    if (areCommentsRequired) {
+        enabledFields.push(translate('common.description'));
+    }
+
+    if (enabledFields.length === 0) {
+        return '';
+    }
+
+    const [first, ...rest] = enabledFields;
+    const capitalizedFirst = first.charAt(0).toUpperCase() + first.slice(1);
+    const lowercasedRest = rest.map((field) => field.charAt(0).toLowerCase() + field.slice(1));
+    return [capitalizedFirst, ...lowercasedRest].join(', ');
 }
 
 function getCategoryApproverRule(approvalRules: ApprovalRule[], categoryName: string) {
@@ -117,6 +144,7 @@ function getDecodedCategoryName(categoryName: string) {
 export {
     formatDefaultTaxRateText,
     formatRequireReceiptsOverText,
+    formatRequiredFieldsTitle,
     getCategoryApproverRule,
     getCategoryExpenseRule,
     getCategoryDefaultTaxRate,
