@@ -977,7 +977,6 @@ function MoneyRequestConfirmationList({
             isMerchantEmpty,
             shouldDisplayFieldError,
             transaction,
-            iouCategory.length,
             policyTags,
             isPerDiemRequest,
             reportID,
