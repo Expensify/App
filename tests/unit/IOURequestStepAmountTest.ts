@@ -7,10 +7,14 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => (Component: unknow
 jest.mock('@pages/iou/request/step/withWritableReportOrNotFound', () => () => (Component: unknown) => Component);
 jest.mock('@pages/iou/request/step/withFullTransactionOrNotFound', () => (Component: unknown) => Component);
 jest.mock('@src/hooks/useResponsiveLayout');
-jest.mock('@libs/SubscriptionUtils', () => ({
-    ...jest.requireActual('@libs/SubscriptionUtils'),
-    shouldRestrictUserBillableActions: jest.fn(),
-}));
+jest.mock('@libs/SubscriptionUtils', () => {
+    const actual = jest.requireActual<typeof import('@libs/SubscriptionUtils')>('@libs/SubscriptionUtils');
+
+    return {
+        ...actual,
+        shouldRestrictUserBillableActions: jest.fn(),
+    };
+});
 jest.mock('@react-navigation/native', () => ({
     useFocusEffect: jest.fn(),
     createNavigationContainerRef: jest.fn(() => ({
