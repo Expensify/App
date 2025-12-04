@@ -569,16 +569,7 @@ function getForReportActionTemp({
 
     if (reportActionOriginalMessage?.oldCreated && reportActionOriginalMessage?.created) {
         const formattedOldCreated = DateUtils.formatWithUTCTimeZone(reportActionOriginalMessage.oldCreated, CONST.DATE.FNS_FORMAT_STRING);
-        buildMessageFragmentForValue(
-            translate,
-            reportActionOriginalMessage.created,
-            formattedOldCreated,
-            translate('common.date'),
-            false,
-            setFragments,
-            removalFragments,
-            changeFragments,
-        );
+        buildMessageFragmentForValue(translate, reportActionOriginalMessage.created, formattedOldCreated, translate('common.date'), false, setFragments, removalFragments, changeFragments);
     }
 
     if (hasModifiedMerchant) {
