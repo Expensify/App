@@ -1728,6 +1728,7 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
  */
 function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing - transaction?.taxCode may be an empty string
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode || defaultTaxCode))?.modifiedName;
 }
 
