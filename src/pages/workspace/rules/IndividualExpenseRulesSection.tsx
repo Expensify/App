@@ -5,6 +5,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -69,6 +70,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const [cardFeeds] = useCardFeeds(policyID);
     const {environmentURL} = useEnvironment();
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -174,6 +176,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const requireCompanyCardsEnabled = policy?.requireCompanyCardsEnabled ?? false;
+    const disableRequireCompanyCardToggle = Object.keys(cardFeeds ?? {}).length === 0;
 
     // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
     // Control policies if the policy does not contain the attribute
@@ -219,11 +222,8 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     isActive={requireCompanyCardsEnabled}
                     onToggle={() => setPolicyRequireCompanyCardsEnabled(policyID, !requireCompanyCardsEnabled)}
                     pendingAction={policy?.pendingFields?.requireCompanyCardsEnabled}
-
-                    // isActive={areEReceiptsEnabled}
-                    // disabled={policyCurrency !== CONST.CURRENCY.USD}
-                    // onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
-                    // pendingAction={policy?.pendingFields?.eReceipts}
+                    showLockIcon={disableRequireCompanyCardToggle}
+                    disabled={disableRequireCompanyCardToggle}
                 />
 
                 <ToggleSettingOptionRow
