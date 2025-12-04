@@ -16,6 +16,7 @@ import DateUtils from '@libs/DateUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {translate} from '@libs/Localize';
+import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, getReportAction, isWhisperAction} from '@libs/ReportActionsUtils';
@@ -71,7 +72,6 @@ import {
     getReportName as getReportNameDeprecated,
     getReportOrDraftReport,
     getReportStatusTranslation,
-    getReportURLForCurrentContext,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
     hasEmptyReportsForPolicy,

@@ -32,6 +32,7 @@ import {formatPhoneNumber} from './LocalePhoneNumber';
 import {formatMessageElementList, translateLocal} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
+import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
@@ -3173,7 +3174,7 @@ function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.T
 }
 
 function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate) {
-    const reportUrl = `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`;
+    const reportUrl = getReportURLForCurrentContext(reportID);
     return translate('reportAction.harvestCreatedExpenseReport', {reportUrl, reportName});
 }
 
