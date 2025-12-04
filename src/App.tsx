@@ -76,13 +76,6 @@ function App() {
     OnyxUpdateManager();
 
     useEffect(() => {
-        performance.mark(CONST.PERFORMANCE.MARKERS.HERMES_YOUNG_GC_START);
-
-        gc?.();
-        // @ts-expect-error HermesInternal is not typed
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        HermesInternal?.ttiReached?.();
-
         setTimeout(() => {
             stopProfiling(true);
         }, 10000);
