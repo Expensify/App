@@ -106,7 +106,6 @@ describe('Url', () => {
             ['merges with existing query params', '/search?q=old', {page: 2, q: 'new'}, '/search?q=new&page=2'],
             ['works with absolute URL', 'https://example.com/items?sort=asc', {page: 5}, 'https://example.com/items?sort=asc&page=5'],
             ['encodes special characters', '/search', {q: 'hello & world'}, '/search?q=hello+%26+world'],
-            ['encodes boolean', '/search', {flag: true}, '/search?flag=true'],
             ['returns same URL if no params', '/search', {}, '/search'],
             ['returns same URL if params are undefined', '/search', {q: undefined}, '/search'],
         ])('%s', (_, baseUrl, params, expected) => {

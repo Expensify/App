@@ -71,7 +71,7 @@ function getSearchParamFromUrl(currentUrl: string, param: string) {
 }
 
 type UrlWithParams<TBase extends string> = `${TBase}${'' | `?${string}` | `&${string}`}`;
-type UrlParams = {backTo?: string; forwardTo?: string} & Record<string, string | number | boolean | undefined>;
+type UrlParams = {backTo?: string; forwardTo?: string} & Record<string, string | number | undefined>;
 /**
  * Generate a URL with properly encoded query parameters.
  *
