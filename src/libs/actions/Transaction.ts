@@ -1303,12 +1303,11 @@ function changeTransactionsReport(
           (destinationReportID === selfDMReport?.reportID ? selfDMReport : undefined))
         : undefined;
     const destinationTotal = (destinationReportID ? updatedReportTotals[destinationReportID] : undefined) ?? destinationReport?.total ?? newReport?.total;
-    const nextStepReport = {
+    const nextStepDestinationReport = {
         ...destinationReport,
         reportID: destinationReport?.reportID ?? destinationReportID ?? reportID,
         total: destinationTotal,
     };
-    const hasViolations = hasViolationsReportUtils(nextStepReport?.reportID, allTransactionViolation, accountID, email ?? '');
 
     Object.keys(updatedReportTotals).forEach((reportIDToUpdate) => affectedReportIDs.add(reportIDToUpdate));
     if (destinationReportID) {
@@ -1333,12 +1332,12 @@ function changeTransactionsReport(
         };
 
         let predictedNextStatus = updatedReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN;
-        if (updatedTotal === 0 && updatedReport.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
-            predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
-        }
 
-        const hasViolations = hasViolationsReportUtils(updatedReport.reportID, allTransactionViolation);
-        const shouldFixViolationsForReport = affectedReportID === destinationReportID ? shouldFixViolations : false;
+        const hasViolations = hasViolationsReportUtils(updatedReport.reportID, allTransactionViolation, accountID, email ?? '');
+        const isDestinationReport = affectedReportID === destinationReportID;
+        const shouldFixViolationsForReport = isDestinationReport ? shouldFixViolations : false;
+        const shouldUseUnreportedNextStepKey = reportID === CONST.REPORT.UNREPORTED_REPORT_ID && isDestinationReport;
+        const nextStepOnyxReportID = shouldUseUnreportedNextStepKey ? reportID : affectedReportID;
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepForCollection = buildNextStepNew({
@@ -1364,7 +1363,7 @@ function changeTransactionsReport(
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${affectedReportID}`,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${nextStepOnyxReportID}`,
             value: optimisticNextStepForCollection,
         });
         optimisticData.push({
@@ -1389,8 +1388,8 @@ function changeTransactionsReport(
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${affectedReportID}`,
-            value: affectedReportID === reportID ? reportNextStep : (affectedReport.nextStep ?? null),
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${nextStepOnyxReportID}`,
+            value: nextStepOnyxReportID === reportID ? reportNextStep : (affectedReport.nextStep ?? null),
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
