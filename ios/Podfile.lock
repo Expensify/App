@@ -2650,7 +2650,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-performance (5.1.4):
+  - react-native-performance (6.0.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3439,7 +3439,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNAppleAuthentication (2.2.2):
+  - RNAppleAuthentication (2.5.0):
     - React-Core
   - RNCClipboard (1.15.0):
     - boost
@@ -3902,7 +3902,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNSentry (7.4.0):
+  - RNSentry (7.6.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3929,7 +3929,7 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - Sentry/HybridSDK (= 8.57.0)
+    - Sentry/HybridSDK (= 8.57.2)
     - SocketRocket
     - Yoga
   - RNShare (11.0.2):
@@ -4145,7 +4145,7 @@ PODS:
   - SDWebImageWebPCoder (0.14.6):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
-  - Sentry/HybridSDK (8.57.0)
+  - Sentry/HybridSDK (8.57.2)
   - SocketRocket (0.7.1)
   - Turf (2.8.0)
   - TweetNacl (1.0.2)
@@ -4764,7 +4764,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: b88a57a1f93f4d63aeab839d51c746484641564b
   react-native-pager-view: 0e228ec2dfdd87807d125c7bbfb83299edede19c
   react-native-pdf: 6a09a9be0e7ee954ea671437483316f9a28f8572
-  react-native-performance: d77c7992b9ebf63be75f95bcdcafd12048fac487
+  react-native-performance: a7a65d0b0f3055c5db33e1433e4345143ef6a100
   react-native-plaid-link-sdk: 425c0a3a923310fcd8489142209ff1508372a7bf
   react-native-release-profiler: 6c3ed1765fee48e869170e4af339c838a747eaee
   react-native-safe-area-context: 138d5c5f300c6568f2a64a7c01906ae3fcce0330
@@ -4802,7 +4802,7 @@ SPEC CHECKSUMS:
   ReactCodegen: 2cfa890e84ecf7f3a708f1ed9c0f2c0b22a23c9a
   ReactCommon: e9ab32f1d1482d207867b4fdd139361302b9dcc6
   ReactNativeHybridApp: 16ebccf5382436fcb9303ab5f4b50d9942bccf5c
-  RNAppleAuthentication: 4272012a6745519a2411889894eb69a3f553c9f9
+  RNAppleAuthentication: 9027af8aa92b4719ef1b6030a8e954d37079473a
   RNCClipboard: e7da00b1612a8faf2309c6636043713cfe11092e
   RNCPicker: eb89e9d8bbd728bc00c48d294553f5968900f874
   RNDeviceInfo: f4e8dcaba08a5d3a703d30ad41e964e21148d7e2
@@ -4821,7 +4821,7 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: 5f1542065f0b24c9252bd8cf3e83bc9c548182e4
   RNReanimated: c3de6d69dba4054d4f35562b14c84061699188e5
   RNScreens: 4f2aed147a2775017923789d8a0a2d377712ec2e
-  RNSentry: e26e131780fc2a8b31b8fb030b7882af615d05ac
+  RNSentry: 4832a7acd1fe48982149f585e1802f4d9fc7b00a
   RNShare: 1c1fde2c4134b9cf220ffebbd6df9c414036d382
   RNSound: 80f864773ff8f670fc8f052a3e478cec201d9b43
   RNSVG: 94a1be05fab4043354bcf7104f0f9b0e2231ef05
@@ -4830,7 +4830,7 @@ SPEC CHECKSUMS:
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
-  Sentry: e1b49e5f49367ff211b25c431a60e2bd83b792aa
+  Sentry: 83a3814c3ca042874b39c5c5bdffb6570d4d760e
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
