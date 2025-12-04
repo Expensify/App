@@ -2526,27 +2526,27 @@ ${amount} para ${merchant} - ${date}`,
                     `Conecte-se${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' ao'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'seu' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        Conecte ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'seu' : 'para'} ${integrationName} para classificação e sincronização automáticas de despesas que tornam o fechamento de fim de mês muito mais simples.
+                        Conecte ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'seu' : 'para'} ${integrationName} para classificação e sincronização automáticas de despesas que facilitam o fechamento de fim de mês.
 
-                        1. Clique em *Espaços de trabalho*.
-                        2. Selecione seu espaço de trabalho.
-                        3. Clique em *Contabilidade*.
+                        1. Clique em *Workspaces*.
+                        2. Selecione seu workspace.
+                        3. Clique em *Accounting*.
                         4. Encontre ${integrationName}.
-                        5. Clique em *Conectar*.
+                        5. Clique em *Connect*.
 
 ${
     integrationName && CONST.connectionsVideoPaths[integrationName]
         ? dedent(`[Ir para a contabilidade](${workspaceAccountingLink}).
 
-                                      ![Conectar ao ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Ir para a contabilidade](${workspaceAccountingLink}).`
+![Conectar a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
+        : `[Leve-me para a contabilidade](${workspaceAccountingLink}).`
 }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Conecte [seu cartão corporativo](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Conecte seu cartão corporativo para importar e categorizar despesas automaticamente.
+                        Conecte seu cartão corporativo para importar e classificar despesas automaticamente.
 
                         1. Clique em *Espaços de trabalho*.
                         2. Selecione seu espaço de trabalho.
@@ -5921,6 +5921,8 @@ ${
                 gambling: 'Jogos de azar',
                 tobacco: 'Tabaco',
                 adultEntertainment: 'Entretenimento adulto',
+                requireCompanyCard: 'Exigir cartões corporativos para todas as compras',
+                requireCompanyCardDescription: 'Sinalize todas as despesas em dinheiro, incluindo quilometragem e diárias.',
             },
             expenseReportRules: {
                 title: 'Relatórios de despesas',
@@ -5961,7 +5963,7 @@ ${
                     expense: 'Despesa individual',
                     expenseSubtitle: 'Marcar valores de despesas por categoria. Esta regra substitui a regra geral do espaço de trabalho para o valor máximo de despesa.',
                     daily: 'Total da categoria',
-                    dailySubtitle: 'Marcar o total de gastos por categoria em cada relatório de despesas.',
+                    dailySubtitle: 'Sinalizar o total de gastos por categoria em cada relatório de despesas.',
                 },
                 requireReceiptsOver: 'Exigir recibos acima de',
                 requireReceiptsOverList: {
@@ -7008,6 +7010,7 @@ ${
         confirmDuplicatesInfo: `Os duplicados que você não mantiver serão retidos para que o remetente os exclua.`,
         hold: 'Esta despesa foi colocada em espera',
         resolvedDuplicates: 'resolvido o duplicado',
+        requiredCompanyCard: 'Compras com cartão da empresa obrigatórias',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} é obrigatório`,

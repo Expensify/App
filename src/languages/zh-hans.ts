@@ -1173,7 +1173,7 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: '查找费用',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `删除了一笔费用 (${merchant} 的 ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔费用${reportName ? `来自${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `至 <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `已移动此费用${reportName ? `到 <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此费用移动到您的<a href="${reportUrl}">个人空间</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2494,34 +2494,34 @@ ${merchant}的${amount} - ${date}`,
                     `连接${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : '到'}[${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '您的' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        连接 ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '您的' : '至'} ${integrationName}，实现自动费用编码与同步，让月末结账轻松无忧。
+                        连接 ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '你的' : '到'} ${integrationName}，实现费用的自动编码与同步，让月末结账轻松自如。
 
-                        1. 点击*工作区*。
+                        1. 点击 *Workspaces*。
                         2. 选择您的工作区。
-                        3. 点击*会计*。
+                        3. 点击 *Accounting*。
                         4. 找到 ${integrationName}。
-                        5. 点击*连接*。
+                        5. 点击 *Connect*。
 
 ${
     integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[前往会计](${workspaceAccountingLink}).
+        ? dedent(`[带我到会计](${workspaceAccountingLink}).
 
 ![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
         : `[前往会计](${workspaceAccountingLink}).`
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `连接[您的公司信用卡](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        连接您的公司信用卡，以自动导入并进行费用编码。
+                        连接您的公司卡以自动导入并为费用编码。
 
-                        1. 点击*工作区*。
+                        1. 点击*Workspaces*。
                         2. 选择您的工作区。
-                        3. 点击*公司信用卡*。
-                        4. 按照提示连接您的卡片。
+                        3. 点击*Corporate cards*。
+                        4. 按照提示连接您的公司卡。
 
-                        [带我去连接我的公司信用卡](${corporateCardLink})。`),
+                        [前往连接我的公司卡](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `邀请[您的团队](${workspaceMembersLink})`,
@@ -5804,6 +5804,8 @@ ${
                 gambling: '赌博',
                 tobacco: '烟草',
                 adultEntertainment: '成人娱乐',
+                requireCompanyCard: '所有购买均需使用公司卡',
+                requireCompanyCardDescription: '标记所有现金支出，包括里程和日津贴费用。',
             },
             expenseReportRules: {
                 title: '费用报告',
@@ -5842,7 +5844,7 @@ ${
                     expense: '单笔费用',
                     expenseSubtitle: '按类别标记费用金额。此规则会覆盖工作区的一般最大费用金额规则。',
                     daily: '类别总计',
-                    dailySubtitle: '标记每个费用报告的类别总支出。',
+                    dailySubtitle: '为每份费用报表标记各类别总支出。',
                 },
                 requireReceiptsOver: '要求超过',
                 requireReceiptsOverList: {
@@ -6862,6 +6864,7 @@ ${
         confirmDuplicatesInfo: `你不保留的重复项将被保留，供提交者删除。`,
         hold: '此费用已被搁置',
         resolvedDuplicates: '解决了重复问题',
+        requiredCompanyCard: '需要公司卡消费',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} 是必需的`,

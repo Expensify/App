@@ -1186,7 +1186,12 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Znajdź wydatek',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `usunął wydatek (${amount} dla ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `przeniósł wydatek${reportName ? `z ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `przeniesiono ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) =>
+            `przeniesiono ten wydatek${
+                reportName
+                    ? `do <a href="${reportUrl}">${reportName}</a>` //_/\__/_/  \_,_/\__/\__/\_,_/
+                    : ''
+            }`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `przeniósł ten wydatek do twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2526,10 +2531,10 @@ ${amount} dla ${merchant} - ${date}`,
                     `Połącz${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' z'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'swoim' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        Połącz ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'twój' : 'Do'} ${integrationName}, aby umożliwić automatyczne kategoryzowanie wydatków i synchronizację, co ułatwia zamknięcie miesiąca.
+                        Połącz ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'twój' : 'do'} ${integrationName}, aby włączyć automatyczne kodowanie wydatków i synchronizację, co znacznie ułatwia zamknięcie miesiąca.
 
                         1. Kliknij *Workspaces*.
-                        2. Wybierz swoją przestrzeń roboczą.
+                        2. Wybierz swój workspace.
                         3. Kliknij *Accounting*.
                         4. Znajdź ${integrationName}.
                         5. Kliknij *Connect*.
@@ -2543,17 +2548,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Verbind [uw bedrijfskaart](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Połącz [swoją kartę firmową](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
                         Połącz swoją kartę służbową, aby automatycznie importować i kategoryzować wydatki.
 
                         1. Kliknij *Workspaces*.
-                        2. Wybierz swój workspace.
+                        2. Wybierz swój obszar roboczy.
                         3. Kliknij *Corporate cards*.
                         4. Postępuj zgodnie z instrukcjami, aby połączyć swoją kartę.
 
-                        [Przejdź do połączenia moich kart służbowych](${corporateCardLink}).`),
+                        [Przejdź, aby połączyć moje karty służbowe](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Nodig [uw team](${workspaceMembersLink}) uit`,
@@ -5912,6 +5917,8 @@ ${
                 gambling: 'Hazardowanie',
                 tobacco: 'Tytoń',
                 adultEntertainment: 'Rozrywka dla dorosłych',
+                requireCompanyCard: 'Wymagaj kart firmowych dla wszystkich zakupów',
+                requireCompanyCardDescription: 'Oznacz wszystkie wydatki gotówkowe, w tym koszty za przejechane kilometry i diety.',
             },
             expenseReportRules: {
                 title: 'Raporty wydatków',
@@ -5952,7 +5959,7 @@ ${
                     expense: 'Pojedynczy wydatek',
                     expenseSubtitle: 'Oznacz kwoty wydatków według kategorii. Ta zasada zastępuje ogólną zasadę przestrzeni roboczej dotyczącą maksymalnej kwoty wydatku.',
                     daily: 'Suma kategorii',
-                    dailySubtitle: 'Oznacz całkowite wydatki kategorii na raport wydatków.',
+                    dailySubtitle: 'Oznaczaj łączną kwotę wydatków w kategorii w każdym raporcie wydatków.',
                 },
                 requireReceiptsOver: 'Wymagaj paragonów powyżej',
                 requireReceiptsOverList: {
@@ -6996,6 +7003,7 @@ ${
         confirmDuplicatesInfo: `Duplikaty, których nie zachowasz, zostaną pozostawione do usunięcia przez osobę zgłaszającą.`,
         hold: 'Ten wydatek został wstrzymany',
         resolvedDuplicates: 'rozwiązano duplikat',
+        requiredCompanyCard: 'Wymagane zakupy kartą firmową',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `Pole ${fieldName} jest wymagane`,

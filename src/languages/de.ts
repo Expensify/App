@@ -1190,7 +1190,7 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Ausgabe finden',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `hat eine Ausgabe gelöscht (${amount} für ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verschob eine Ausgabe${reportName ? `von ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `verschob diese Ausgabe${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `hat diese Ausgabe${reportName ? `zu <a href="${reportUrl}">${reportName}</a>` : ''} verschoben`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `diese Ausgabe in Ihren <a href="${reportUrl}">persönlichen Bereich</a> verschoben`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2544,19 +2544,23 @@ ${amount} für ${merchant} - ${date}`,
                     `Verbinde${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' mit'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'deiner' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        Verbinde ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'Ihr' : 'bis'} ${integrationName} für die automatische Kategorisierung und Synchronisierung von Ausgaben, damit der Monatsabschluss zum Kinderspiel wird.
+                        Verbinde ${
+                            integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other
+                                ? 'dein' //_/\__/_/  \_,_/\__/\__/\_,_/
+                                : 'bis'
+                        } ${integrationName} für automatische Ausgabenkodierung und Synchronisierung, die den Monatsabschluss zum Kinderspiel macht.
 
-                        1. Klicke auf *Workspaces*.
-                        2. Wähle deinen Workspace aus.
-                        3. Klicke auf *Accounting*.
-                        4. Suche nach ${integrationName}.
-                        5. Klicke auf *Connect*.
+                        1. Klicke auf *Arbeitsbereiche*.
+                        2. Wähle deinen Arbeitsbereich aus.
+                        3. Klicke auf *Buchhaltung*.
+                        4. Suche ${integrationName}.
+                        5. Klicke auf *Verbinden*.
 
 ${
     integrationName && CONST.connectionsVideoPaths[integrationName]
         ? dedent(`[Zur Buchhaltung](${workspaceAccountingLink}).
 
-![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
+                                      ![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
         : `[Zur Buchhaltung](${workspaceAccountingLink}).`
 }`),
             },
@@ -2564,14 +2568,14 @@ ${
                 title: ({corporateCardLink}) => `Verbinde [deine Firmenkarte](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Verbinden Sie Ihre Firmenkarte, um Ausgaben automatisch zu importieren und zu kontieren.
+                        Verbinde deine Firmenkarte, um Ausgaben automatisch zu importieren und zu kontieren.
 
-                        1. Klicken Sie auf *Workspaces*.
-                        2. Wählen Sie Ihren Workspace aus.
-                        3. Klicken Sie auf *Corporate cards*.
-                        4. Folgen Sie den Anweisungen, um Ihre Karte zu verknüpfen.
+                        1. Klicke auf *Arbeitsbereiche*.
+                        2. Wähle deinen Arbeitsbereich aus.
+                        3. Klicke auf *Firmenkarten*.
+                        4. Folge den Anweisungen, um deine Karte zu verbinden.
 
-                        [Zum Verbinden meiner Firmenkarten](${corporateCardLink}).`),
+                        [Bring mich zum Verbinden meiner Firmenkarten](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Lade [dein Team](${workspaceMembersLink}) ein`,
@@ -5951,6 +5955,8 @@ ${
                 gambling: 'Glücksspiel',
                 tobacco: 'Tabak',
                 adultEntertainment: 'Erwachsenenunterhaltung',
+                requireCompanyCard: 'Firmenkarten für alle Einkäufe erforderlich machen',
+                requireCompanyCardDescription: 'Kennzeichnen Sie alle Barausgaben, einschließlich Kilometer- und Tagegeldspesen.',
             },
             expenseReportRules: {
                 title: 'Spesenabrechnungen',
@@ -5992,7 +5998,7 @@ ${
                     expense: 'Einzelausgabe',
                     expenseSubtitle: 'Beträge von Ausgaben nach Kategorie kennzeichnen. Diese Regel überschreibt die allgemeine Arbeitsbereichsregel für den maximalen Ausgabenbetrag.',
                     daily: 'Kategorietotal',
-                    dailySubtitle: 'Gesamtausgaben pro Kategorie pro Spesenbericht kennzeichnen.',
+                    dailySubtitle: 'Gesamtausgaben je Kategorie pro Spesenbericht kennzeichnen.',
                 },
                 requireReceiptsOver: 'Belege über erforderlich',
                 requireReceiptsOverList: {
@@ -7041,6 +7047,7 @@ ${
         confirmDuplicatesInfo: `Die Duplikate, die Sie nicht behalten, werden für den Einreicher zum Löschen bereitgehalten.`,
         hold: 'Diese Ausgabe wurde zurückgestellt.',
         resolvedDuplicates: 'den doppelten Eintrag gelöst',
+        requiredCompanyCard: 'Firmenkartenkäufe erforderlich',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} ist erforderlich`,

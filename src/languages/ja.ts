@@ -1189,7 +1189,7 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: '経費を検索',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `経費を削除しました (${merchant}の${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `費用${reportName ? `${reportName} から` : ''}を移動しました`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `この経費${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}を移動しました`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a> へ` : ''}`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `この経費をあなたの<a href="${reportUrl}">個人スペース</a>に移動しました。`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2521,34 +2521,34 @@ ${date} - ${merchant}に${amount}`,
                     `${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'と'}[${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : ''} ${integrationName}](${workspaceAccountingLink})と接続する`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : 'まで'} の ${integrationName} を接続して、経費の自動分類と同期で月末締めをスムーズに。
+${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : 'to'} の ${integrationName} を接続して、自動的な経費のコード付けと同期により月末締めを簡単にしましょう。
 
                         1. *Workspaces* をクリックします。
-                        2. ワークスペースを選択します。
+                        2. ご自身のワークスペースを選択します。
                         3. *Accounting* をクリックします。
-                        4. ${integrationName} を見つけます。
+                        4. ${integrationName} を探します。
                         5. *Connect* をクリックします。
 
 ${
     integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[会計に移動](${workspaceAccountingLink}).
+        ? dedent(`[会計へ移動](${workspaceAccountingLink}).
 
-                                      ![${integrationName} に接続](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
+![${integrationName}に接続](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
         : `[会計に移動](${workspaceAccountingLink}).`
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `[あなたの法人カード](${corporateCardLink})を接続する`,
+                title: ({corporateCardLink}) => `[あなたのコーポレートカード](${corporateCardLink})を接続`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        法人カードを接続して、経費を自動で取り込み・仕訳しましょう。
+                        法人カードを接続して、経費を自動で取り込み、コード化します。
 
-                        1. *Workspaces* をクリックします。
+                        1. *ワークスペース* をクリックします。
                         2. ワークスペースを選択します。
-                        3. *Corporate cards* をクリックします。
+                        3. *コーポレートカード* をクリックします。
                         4. 表示される手順に従ってカードを接続します。
 
-                        [法人カードの接続に進む](${corporateCardLink}).`),
+                        [コーポレートカードの接続に進む](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `[あなたのチーム](${workspaceMembersLink})を招待する`,
@@ -5882,6 +5882,8 @@ ${
                 gambling: 'ギャンブル',
                 tobacco: 'タバコ',
                 adultEntertainment: 'アダルトエンターテインメント',
+                requireCompanyCard: 'すべての購入に会社カードを必須にする',
+                requireCompanyCardDescription: 'マイレージや日当の経費を含む、すべての現金支出にフラグを付けます。',
             },
             expenseReportRules: {
                 title: '経費報告書',
@@ -5922,7 +5924,7 @@ ${
                     expense: '個別経費',
                     expenseSubtitle: 'カテゴリ別に経費金額をフラグします。このルールは、最大経費金額に関する一般的なワークスペースルールを上書きします。',
                     daily: 'カテゴリ合計',
-                    dailySubtitle: '経費報告書ごとにカテゴリ別の合計支出をフラグ付けします。',
+                    dailySubtitle: '経費レポートごとにカテゴリ合計の支出にフラグを付ける',
                 },
                 requireReceiptsOver: 'を超える領収書を必須にする',
                 requireReceiptsOverList: {
@@ -6963,6 +6965,7 @@ ${
         confirmDuplicatesInfo: `保持しなかった重複は、提出者が削除できるように保留されます。`,
         hold: 'この経費は保留されました',
         resolvedDuplicates: '重複を解決しました',
+        requiredCompanyCard: '法人カードでの購入が必須',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName}は必須です`,

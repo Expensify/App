@@ -1187,7 +1187,7 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Trova spesa',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `ha eliminato una spesa (${amount} per ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `ha spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `spostato questa spesa nel tuo <a href="${reportUrl}">spazio personale</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2532,13 +2532,13 @@ ${amount} per ${merchant} - ${date}`,
                     `Connetti${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' a'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'il tuo' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        Collega ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'il tuo' : 'a'} ${integrationName} per la codifica e la sincronizzazione automatiche delle spese che rendono la chiusura di fine mese un gioco da ragazzi.
+                        Connetti ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'tuo' : 'a'} ${integrationName} per la codifica e la sincronizzazione automatica delle spese che rendono la chiusura di fine mese un gioco da ragazzi.
 
-                        1. Fai clic su *Workspaces*.
-                        2. Seleziona il tuo workspace.
-                        3. Fai clic su *Accounting*.
+                        1. Fai clic su *Spazi di lavoro*.
+                        2. Seleziona il tuo spazio di lavoro.
+                        3. Fai clic su *Contabilità*.
                         4. Trova ${integrationName}.
-                        5. Fai clic su *Connect*.
+                        5. Fai clic su *Connetti*.
 
 ${
     integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -2554,9 +2554,9 @@ ${
                     dedent(`
                         Collega la tua carta aziendale per importare e codificare automaticamente le spese.
 
-                        1. Fai clic su *Workspaces*.
-                        2. Seleziona il tuo workspace.
-                        3. Fai clic su *Corporate cards*.
+                        1. Fai clic su *Spazi di lavoro*.
+                        2. Seleziona il tuo spazio di lavoro.
+                        3. Fai clic su *Carte aziendali*.
                         4. Segui le istruzioni per collegare la tua carta.
 
                         [Portami a collegare le mie carte aziendali](${corporateCardLink}).`),
@@ -5937,6 +5937,8 @@ ${
                 gambling: "Gioco d'azzardo",
                 tobacco: 'Tabacco',
                 adultEntertainment: 'Intrattenimento per adulti',
+                requireCompanyCard: 'Richiedi carte aziendali per tutti gli acquisti',
+                requireCompanyCardDescription: 'Contrassegna tutte le spese in contanti, incluse le spese per chilometraggio e le diarie.',
             },
             expenseReportRules: {
                 title: 'Report di spesa',
@@ -5978,7 +5980,7 @@ ${
                     expenseSubtitle:
                         "Contrassegna gli importi delle spese per categoria. Questa regola sostituisce la regola generale dello spazio di lavoro per l'importo massimo delle spese.",
                     daily: 'Totale categoria',
-                    dailySubtitle: 'Segnala la spesa totale per categoria per ogni rapporto di spesa.',
+                    dailySubtitle: 'Contrassegna la spesa totale per categoria per ciascun report spese.',
                 },
                 requireReceiptsOver: 'Richiedi ricevute superiori a',
                 requireReceiptsOverList: {
@@ -7028,6 +7030,7 @@ ${
         confirmDuplicatesInfo: `I duplicati che non conservi verranno mantenuti per consentire al mittente di eliminarli.`,
         hold: 'Questa spesa è stata messa in sospeso',
         resolvedDuplicates: 'risolto il duplicato',
+        requiredCompanyCard: 'Acquisti con carta aziendale obbligatori',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} è obbligatorio`,

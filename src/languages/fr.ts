@@ -1192,7 +1192,15 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Trouver une dépense',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `supprimé une dépense (${amount} pour ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `déplacé cette dépense${reportName ? `à <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) =>
+            `a déplacé cette dépense${
+                reportName
+                    ? `à <a href="${reportUrl}">${
+                          //_/\__/_/  \_,_/\__/\__/\_,_/
+                          reportName
+                      }</a>`
+                    : ''
+            }`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `déplacé cette dépense vers votre <a href="${reportUrl}">espace personnel</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2544,24 +2552,28 @@ ${amount} pour ${merchant} - ${date}`,
                     `Connecter${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' à'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'votre' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        Connectez ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'votre' : 'à'} ${integrationName} pour un codage et une synchronisation automatiques des dépenses qui rendent la clôture de fin de mois un jeu d'enfant.
+                        Connectez ${
+                            integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other
+                                ? 'votre' //_/\__/_/  \_,_/\__/\__/\_,_/
+                                : 'à'
+                        } ${integrationName} pour un codage et une synchronisation automatiques des dépenses qui rendent la clôture de fin de mois un jeu d’enfant.
 
-                        1. Cliquez sur *Workspaces*.
+                        1. Cliquez sur *Espaces de travail*.
                         2. Sélectionnez votre espace de travail.
-                        3. Cliquez sur *Accounting*.
+                        3. Cliquez sur *Comptabilité*.
                         4. Recherchez ${integrationName}.
-                        5. Cliquez sur *Connect*.
+                        5. Cliquez sur *Connecter*.
 
 ${
     integrationName && CONST.connectionsVideoPaths[integrationName]
         ? dedent(`[Accéder à la comptabilité](${workspaceAccountingLink}).
 
-                                      ![Se connecter à ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
+                                      ![Connecter à ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
         : `[Accéder à la comptabilité](${workspaceAccountingLink}).`
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Connecter [votre carte pro](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Connectez [votre carte d’entreprise](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
                         Connectez votre carte d’entreprise pour importer et coder automatiquement les dépenses.
@@ -2571,7 +2583,7 @@ ${
                         3. Cliquez sur *Cartes d’entreprise*.
                         4. Suivez les instructions pour connecter votre carte.
 
-                        [Aller connecter mes cartes d’entreprise](${corporateCardLink}).`),
+                        [M’emmener pour connecter mes cartes d’entreprise](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Invitez [votre équipe](${workspaceMembersLink})`,
@@ -5959,6 +5971,8 @@ ${
                 gambling: "Jeux d'argent",
                 tobacco: 'Tabac',
                 adultEntertainment: 'Divertissement pour adultes',
+                requireCompanyCard: 'Exiger des cartes d’entreprise pour tous les achats',
+                requireCompanyCardDescription: 'Marquez toutes les dépenses payées en espèces, y compris les frais kilométriques et les indemnités journalières.',
             },
             expenseReportRules: {
                 title: 'Rapports de dépenses',
@@ -5999,7 +6013,7 @@ ${
                     expense: 'Dépense individuelle',
                     expenseSubtitle: "Marquer les montants des dépenses par catégorie. Cette règle remplace la règle générale de l'espace de travail pour le montant maximal des dépenses.",
                     daily: 'Total de la catégorie',
-                    dailySubtitle: 'Indiquer le total des dépenses par catégorie pour chaque rapport de dépenses.',
+                    dailySubtitle: 'Signaler le total des dépenses par catégorie pour chaque note de frais.',
                 },
                 requireReceiptsOver: 'Exiger des reçus au-dessus de',
                 requireReceiptsOverList: {
@@ -7047,6 +7061,7 @@ ${
         confirmDuplicatesInfo: `Les doublons que vous ne conservez pas seront conservés afin que l’expéditeur puisse les supprimer.`,
         hold: 'Cette dépense a été mise en attente',
         resolvedDuplicates: 'résolu le doublon',
+        requiredCompanyCard: 'Achats avec carte d’entreprise requis',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} est requis`,

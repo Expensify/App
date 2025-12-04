@@ -2531,32 +2531,32 @@ ${amount} voor ${merchant} - ${date}`,
                     `Verbind${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' met'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'uw' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        Verbind ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'jouw' : 'tot'} ${integrationName} voor automatische onkostencodering en synchronisatie, waardoor de maandafsluiting een fluitje van een cent wordt.
+                        Verbind ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'uw' : 'tot'} ${integrationName} voor automatische onkostencodering en synchronisatie, waardoor de maandafsluiting een fluitje van een cent wordt.
 
                         1. Klik op *Werkruimtes*.
                         2. Selecteer je werkruimte.
                         3. Klik op *Boekhouding*.
-                        4. Zoek ${integrationName}.
+                        4. Zoek ${integrationName} op.
                         5. Klik op *Verbinden*.
 
 ${
     integrationName && CONST.connectionsVideoPaths[integrationName]
         ? dedent(`[Breng me naar de boekhouding](${workspaceAccountingLink}).
 
-                                      ![Verbinding maken met ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Breng me naar de boekhouding](${workspaceAccountingLink}).`
+                                      ![Verbind met ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
+        : `[Ga naar boekhouding](${workspaceAccountingLink}).`
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Verbind [uw bedrijfskaart](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Koppel [uw bedrijfskaart](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Koppel je zakelijke kaart om automatisch onkosten te importeren en te coderen.
+                        Verbind uw zakelijke kaart om automatisch uitgaven te importeren en te coderen.
 
                         1. Klik op *Workspaces*.
-                        2. Selecteer je werkruimte.
+                        2. Selecteer uw workspace.
                         3. Klik op *Corporate cards*.
-                        4. Volg de aanwijzingen om je kaart te koppelen.
+                        4. Volg de aanwijzingen om uw kaart te koppelen.
 
                         [Ga naar het koppelen van mijn zakelijke kaarten](${corporateCardLink}).`),
             },
@@ -5922,6 +5922,8 @@ ${
                 gambling: 'Gokken',
                 tobacco: 'Tabak',
                 adultEntertainment: 'Volwassenenentertainment',
+                requireCompanyCard: 'Bedrijfskaarten vereisen voor alle aankopen',
+                requireCompanyCardDescription: 'Markeer alle contante uitgaven, inclusief kilometer- en dagvergoedingen.',
             },
             expenseReportRules: {
                 title: 'Onkostendeclaraties',
@@ -5962,7 +5964,7 @@ ${
                     expense: 'Individuele uitgave',
                     expenseSubtitle: 'Markeer onkostbedragen per categorie. Deze regel overschrijft de algemene werkruimte-regel voor het maximale onkostbedrag.',
                     daily: 'Categorietotaal',
-                    dailySubtitle: 'Vlag totale categorie-uitgaven per onkostennota.',
+                    dailySubtitle: 'Markeer de totale categorie-uitgaven per onkostenrapport.',
                 },
                 requireReceiptsOver: 'Vereis bonnen boven',
                 requireReceiptsOverList: {
@@ -7009,6 +7011,7 @@ ${
         confirmDuplicatesInfo: `De duplicaten die je niet behoudt, worden bewaard zodat de indiener ze kan verwijderen.`,
         hold: 'Deze uitgave is in de wacht gezet',
         resolvedDuplicates: 'dubbel opgelost',
+        requiredCompanyCard: 'Aankopen met bedrijfskaart verplicht',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is vereist`,
