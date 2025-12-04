@@ -64,9 +64,9 @@ Onyx.connect({
 });
 
 function completeSetupTagsTask() {
-    const setupCategoriesAndTagsTaskReportID = deprecatedIntroSelected?.setupCategoriesAndTags;
-    if (setupCategoriesAndTagsTaskReportID) {
-        const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${setupCategoriesAndTagsTaskReportID}`];
+    const setupTagsTaskReportID = deprecatedIntroSelected?.setupTags;
+    if (setupTagsTaskReportID) {
+        const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${setupTagsTaskReportID}`];
 
         if (taskReport) {
             Task.completeTask(taskReport, false, undefined);
