@@ -551,6 +551,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceCategoriesPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen

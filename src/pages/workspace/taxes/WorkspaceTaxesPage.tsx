@@ -392,6 +392,7 @@ function WorkspaceTaxesPage({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceTaxesPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
