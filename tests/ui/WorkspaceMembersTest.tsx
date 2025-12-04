@@ -9,7 +9,9 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import * as workflow from '@libs/actions/Workflow';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import * as workflowUtils from '@libs/WorkflowUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import WorkspaceMembersPage from '@pages/workspace/WorkspaceMembersPage';
 import CONST from '@src/CONST';
@@ -23,6 +25,12 @@ jest.unmock('react-native-reanimated');
 jest.unmock('react-native-worklets');
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+
+const updateWorkflowDataOnApproverRemovalMock = jest
+    .spyOn(workflowUtils, 'updateWorkflowDataOnApproverRemoval')
+    .mockImplementation(() => [{members: [], approvers: [], isDefault: false, removeApprovalWorkflow: true}]);
+
+const removeApprovalWorkflowActionMock = jest.spyOn(workflow, 'removeApprovalWorkflow').mockImplementation(() => {});
 
 TestHelper.setupGlobalFetchMock();
 
@@ -66,6 +74,7 @@ describe('WorkspaceMembers', () => {
         owner: ownerEmail,
         ownerAccountID,
         type: CONST.POLICY.TYPE.CORPORATE,
+        approver: adminEmail,
         employeeList: {
             [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN},
             [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
@@ -291,6 +300,52 @@ describe('WorkspaceMembers', () => {
             // Find and verify "Make auditor" dropdown menu item
             const makeAuditorMenuItem = screen.getByTestId('PopoverMenuItem-Make auditor');
             expect(makeAuditorMenuItem).toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
+    describe('Removing members who are approvers and non-approvers', () => {
+        it('should not call workflow actions when removing only non-approvers', async () => {
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await screen.findByText(ADMIN_OPTION);
+
+            // Select all
+            fireEvent.press(screen.getByTestId('selection-list-select-all-checkbox'));
+
+            // Open dropdown
+            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Click "Remove members"
+            const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 3});
+            const removeMenuItem = screen.getByText(removeText);
+            fireEvent.press(removeMenuItem, {
+                nativeEvent: {},
+                type: 'press',
+                target: removeMenuItem,
+                currentTarget: removeMenuItem,
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Wait until confirm modal confirm button exists
+            const confirmText = TestHelper.translateLocal('common.remove');
+
+            await waitFor(() => {
+                expect(screen.getByLabelText(confirmText)).toBeOnTheScreen();
+            });
+
+            // Press confirm button
+            fireEvent.press(screen.getByLabelText(confirmText));
+
+            await waitForBatchedUpdatesWithAct();
+
+            expect(updateWorkflowDataOnApproverRemovalMock).toHaveBeenCalledTimes(1);
+            expect(removeApprovalWorkflowActionMock).toHaveBeenCalledTimes(1);
 
             unmount();
             await waitForBatchedUpdatesWithAct();
