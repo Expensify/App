@@ -15109,7 +15109,6 @@ function updateMultipleMoneyRequests(
         // Generate optimistic report action ID
         const modifiedExpenseReportActionID = NumberUtils.rand64();
 
-        // Build optimistic data
         const optimisticData: OnyxUpdate[] = [];
         const successData: OnyxUpdate[] = [];
         const failureData: OnyxUpdate[] = [];
@@ -15201,6 +15200,23 @@ function updateMultipleMoneyRequests(
 
         API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST, params, {optimisticData, successData, failureData});
     });
+}
+
+/**
+ * Initializes the draft transaction for bulk editing multiple expenses
+ */
+function initBulkEditDraftTransaction(currency: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+        transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+        currency,
+    });
+}
+
+/**
+ * Clears the draft transaction used for bulk editing
+ */
+function clearBulkEditDraftTransaction() {
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, null);
 }
 
 export {
@@ -15332,6 +15348,8 @@ export {
     getUpdateTrackExpenseParams,
     getReportPreviewAction,
     updateMultipleMoneyRequests,
+    initBulkEditDraftTransaction,
+    clearBulkEditDraftTransaction,
 };
 export type {
     GPSPoint as GpsPoint,

@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -11,7 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateMultipleMoneyRequests} from '@libs/actions/IOU';
+import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -50,17 +49,17 @@ function SearchEditMultiplePage() {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID ?? '-1'}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID ?? '-1'}`, {canBeMissing: true});
 
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+
     useEffect(() => {
-        // Initialize the draft transaction with minimal values
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
-            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-            currency: policy?.outputCurrency ?? CONST.CURRENCY.USD,
-        });
+        if (!draftTransaction) {
+            initBulkEditDraftTransaction(currency);
+        }
 
         return () => {
-            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, null);
+            clearBulkEditDraftTransaction();
         };
-    }, [policy?.outputCurrency]);
+    }, []);
 
     const save = () => {
         if (!draftTransaction) {
@@ -106,7 +105,7 @@ function SearchEditMultiplePage() {
         Navigation.dismissModal();
     };
 
-    const currency = draftTransaction?.currency ?? policy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const displayCurrency = draftTransaction?.currency ?? currency;
 
     const attendeesTitle = useMemo(() => {
         const attendees = draftTransaction?.comment?.attendees;
@@ -120,7 +119,7 @@ function SearchEditMultiplePage() {
         const allFields = [
             {
                 description: translate('iou.amount'),
-                title: draftTransaction?.amount ? convertToDisplayString(Math.abs(draftTransaction.amount), currency) : '',
+                title: draftTransaction?.amount ? convertToDisplayString(Math.abs(draftTransaction.amount), displayCurrency) : '',
                 route: ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP,
             },
             {
@@ -161,7 +160,7 @@ function SearchEditMultiplePage() {
         ];
 
         return allFields;
-    }, [draftTransaction, translate, currency, attendeesTitle]);
+    }, [draftTransaction, translate, displayCurrency, attendeesTitle]);
 
     return (
         <ScreenWrapper testID={SearchEditMultiplePage.displayName}>
