@@ -598,8 +598,6 @@ const translations: TranslationDeepObject<typeof en> = {
         draft: '草稿',
         finished: '完成',
         upgrade: '升级',
-        upgradeWorkspaceWarning: '无法升级工作区',
-        upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '您的公司已限制工作区创建。请联系管理员寻求帮助。',
         downgradeWorkspace: '降级工作区',
         companyID: '公司ID',
         userID: '用户 ID',
@@ -5716,6 +5714,8 @@ ${
                     toUpgrade: '要升级，请点击',
                     selectWorkspace: '选择一个工作区，并将计划类型更改为',
                 },
+                upgradeWorkspaceWarning: '无法升级工作区',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '您的公司已限制工作区创建。请联系管理员寻求帮助。',
             },
         },
         downgrade: {

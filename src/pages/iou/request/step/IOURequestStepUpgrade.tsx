@@ -128,15 +128,16 @@ function IOURequestStepUpgrade({
     }, [isDistanceRateUpgrade, transaction?.participants, personalDetails]);
 
     const onUpgrade = useCallback(() => {
+        if (isRestrictedPolicyCreation) {
+            setIsUpgradeWarningModalOpen(true);
+            return;
+        }
+
         if (isCategorizing || isReporting) {
             setShowConfirmationForm(true);
             return;
         }
 
-        if (isRestrictedPolicyCreation) {
-            setIsUpgradeWarningModalOpen(true);
-            return;
-        }
         const policyData = Policy.createWorkspace({
             policyOwnerEmail: undefined,
             policyName: undefined,
@@ -227,8 +228,8 @@ function IOURequestStepUpgrade({
                 isVisible={isUpgradeWarningModalOpen}
                 shouldShowCancelButton={false}
                 onConfirm={handleConfirmUpgradeWarning}
-                title={translate('common.upgradeWorkspaceWarning')}
-                prompt={translate('common.upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt')}
+                title={translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarning')}
+                prompt={translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt')}
                 confirmText={translate('common.buttonConfirm')}
             />
         </ScreenWrapper>

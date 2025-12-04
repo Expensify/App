@@ -599,8 +599,6 @@ const translations: TranslationDeepObject<typeof en> = {
         draft: 'Entwurf',
         finished: 'Fertiggestellt',
         upgrade: 'Upgrade',
-        upgradeWorkspaceWarning: 'Arbeitsbereich kann nicht aktualisiert werden',
-        upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Ihr Unternehmen hat die Erstellung von Arbeitsbereichen eingeschränkt. Bitte wenden Sie sich an einen Administrator.',
         downgradeWorkspace: 'Arbeitsbereich herabstufen',
         companyID: 'Unternehmens-ID',
         userID: 'Benutzer-ID',
@@ -5859,6 +5857,9 @@ ${
                     toUpgrade: 'Zum Upgrade klicken',
                     selectWorkspace: 'Wählen Sie einen Arbeitsbereich aus und ändern Sie den Plantyp in',
                 },
+                upgradeWorkspaceWarning: 'Arbeitsbereich kann nicht aktualisiert werden',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
+                    'Ihr Unternehmen hat die Erstellung von Arbeitsbereichen eingeschränkt. Bitte wenden Sie sich an einen Administrator.',
             },
         },
         downgrade: {

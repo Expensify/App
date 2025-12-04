@@ -599,8 +599,6 @@ const translations: TranslationDeepObject<typeof en> = {
         draft: '下書き',
         finished: '完了',
         upgrade: 'アップグレード',
-        upgradeWorkspaceWarning: 'ワークスペースをアップグレードできません',
-        upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '会社がワークスペースの作成を制限しています。管理者に連絡してください。',
         downgradeWorkspace: 'ワークスペースをダウングレードする',
         companyID: '会社ID',
         userID: 'ユーザーID',
@@ -5791,6 +5789,8 @@ ${
                     toUpgrade: 'アップグレードするには、クリックしてください',
                     selectWorkspace: 'ワークスペースを選択し、プランタイプを変更します',
                 },
+                upgradeWorkspaceWarning: 'ワークスペースをアップグレードできません',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '会社がワークスペースの作成を制限しています。管理者に連絡してください。',
             },
         },
         downgrade: {

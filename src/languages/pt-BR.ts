@@ -599,8 +599,6 @@ const translations: TranslationDeepObject<typeof en> = {
         draft: 'Rascunho',
         finished: 'Concluído',
         upgrade: 'Atualizar',
-        upgradeWorkspaceWarning: 'Não é possível atualizar o espaço de trabalho',
-        upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Sua empresa restringiu a criação de espaços de trabalho. Entre em contato com um administrador para obter ajuda.',
         downgradeWorkspace: 'Reduzir espaço de trabalho',
         companyID: 'ID da Empresa',
         userID: 'ID do Usuário',
@@ -5829,6 +5827,8 @@ ${
                     toUpgrade: 'Para atualizar, clique',
                     selectWorkspace: 'selecione um espaço de trabalho e altere o tipo de plano para',
                 },
+                upgradeWorkspaceWarning: 'Não é possível atualizar o espaço de trabalho',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Sua empresa restringiu a criação de espaços de trabalho. Entre em contato com um administrador para obter ajuda.',
             },
         },
         downgrade: {
