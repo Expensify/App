@@ -2665,17 +2665,17 @@ const translations = {
                     `),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Connect [your corporate card](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Connect [your corporate cards](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Connect your corporate card to automatically import and code expenses.
+                        Connect the cards you already have for automatic transaction import, receipt matching, and reconciliation.
 
                         1. Click *Workspaces*.
                         2. Select your workspace.
-                        3. Click *Corporate cards*.
-                        4. Follow the prompts to connect your card.
+                        3. Click *Company cards*.
+                        4. Follow the prompts to connect your cards.
 
-                        [Take me to connect my corporate cards](${corporateCardLink}).
+                        [Take me to company cards](${corporateCardLink}).
                     `),
             },
 
@@ -7152,6 +7152,7 @@ const translations = {
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,
+        reportContainsExpensesWithViolations: 'Report contains expenses with violations.',
     },
     violationDismissal: {
         rter: {
