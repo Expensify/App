@@ -183,7 +183,7 @@ function MoneyRequestAmountForm({
 
             onSubmitButtonPress({amount: newAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P],
+        [taxAmount, currency, isNegative, onSubmitButtonPress, translate, formattedTaxAmount, iouType, isP2P, isBetaEnabled()],
     );
 
     const buttonText: string = useMemo(() => {
