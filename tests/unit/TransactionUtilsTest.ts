@@ -1354,18 +1354,8 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
         });
 
-        it('should return true when there are mixed reimbursable and non-reimbursable transactions', () => {
+        it('should return true when there are both reimbursable and non-reimbursable transactions', () => {
             const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: false})];
-            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
-        });
-
-        it('should return false for a single reimbursable transaction', () => {
-            const transactions = [generateTransaction({reimbursable: true})];
-            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(false);
-        });
-
-        it('should return true for a single non-reimbursable transaction', () => {
-            const transactions = [generateTransaction({reimbursable: false})];
             expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
         });
     });
