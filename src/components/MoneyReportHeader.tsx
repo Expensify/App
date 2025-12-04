@@ -1328,7 +1328,7 @@ function MoneyReportHeader({
         }
         downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '', translate);
         setIsPDFModalVisible(false);
-    }, [isPDFModalVisible, reportPDFFilename, isDownloadingPDF, moneyRequestReport?.reportName]);
+    }, [isPDFModalVisible, reportPDFFilename, isDownloadingPDF, moneyRequestReport?.reportName, translate]);
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
