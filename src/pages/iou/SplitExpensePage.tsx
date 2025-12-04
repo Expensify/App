@@ -55,7 +55,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {listRef, viewRef, footerRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
@@ -101,8 +101,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const splitFieldDataFromChildTransactions = useMemo(() => childTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction)), [childTransactions]);
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const currentUserLogin = currentUserPersonalDetails.login ?? '';
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
 
     const {isBetaEnabled} = usePermissions();
@@ -193,8 +191,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             iouReport,
             firstIOU: iouActions.at(0),
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-            currentUserAccountIDParam: currentUserAccountID,
-            currentUserEmailParam: currentUserLogin,
+            currentUserPersonalDetails,
             transactionViolations,
         });
     }, [
@@ -218,14 +215,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         policyRecentlyUsedCategories,
         iouReport,
         iouActions,
+        currentUserPersonalDetails,
         splitFieldDataFromOriginalTransaction,
         translate,
         transactionID,
         transactionDetails?.currency,
         isBetaEnabled,
         transactionViolations,
-        currentUserAccountID,
-        currentUserLogin,
     ]);
 
     const onSplitExpenseAmountChange = useCallback(
@@ -254,6 +250,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             const date = DateUtils.formatWithUTCTimeZone(
                 item.created,
                 DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+                preferredLocale,
             );
             previewHeaderText.unshift({text: date}, dotSeparator);
 
@@ -299,6 +296,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         splitExpenseTransactionID,
         translate,
         getTranslatedText,
+        preferredLocale,
     ]);
 
     const listFooterContent = useMemo(() => {
