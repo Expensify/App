@@ -2516,14 +2516,14 @@ ${
                 title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        连接您的公司信用卡，以自动导入并进行费用编码。
+                        连接你已有的卡片，以自动导入交易、匹配收据并进行对账。
 
                         1. 点击*工作区*。
-                        2. 选择您的工作区。
-                        3. 点击*公司信用卡*。
-                        4. 按照提示连接您的卡片。
+                        2. 选择你的工作区。
+                        3. 点击*公司卡*。
+                        4. 按照提示连接你的卡片。
 
-                        [带我去连接我的公司信用卡](${corporateCardLink})。`),
+                        [带我前往公司卡](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `邀请[您的团队](${workspaceMembersLink})`,
@@ -5844,7 +5844,7 @@ ${
                     expense: '单笔费用',
                     expenseSubtitle: '按类别标记费用金额。此规则会覆盖工作区的一般最大费用金额规则。',
                     daily: '类别总计',
-                    dailySubtitle: '标记每个费用报告的类别总支出。',
+                    dailySubtitle: '标记每个费用报告的类别每日总支出。',
                 },
                 requireReceiptsOver: '要求超过',
                 requireReceiptsOverList: {
@@ -6489,6 +6489,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: '创建报销单',
             createReport: '创建报告',
             chooseWorkspace: '为此报告选择一个工作区。',
             emptyReportConfirmationTitle: '你已经有一个空报告',
@@ -6897,6 +6898,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} 是必需的`,
+        reportContainsExpensesWithViolations: '报告包含违反规定的费用。',
     },
     violationDismissal: {
         rter: {

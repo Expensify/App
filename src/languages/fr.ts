@@ -2563,17 +2563,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Connecter [votre carte pro](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Connectez [vos cartes d’entreprise](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Connectez votre carte d’entreprise pour importer et coder automatiquement les dépenses.
+                        Connectez les cartes que vous avez déjà pour l’importation automatique des transactions, l’association des reçus et le rapprochement.
 
                         1. Cliquez sur *Espaces de travail*.
                         2. Sélectionnez votre espace de travail.
                         3. Cliquez sur *Cartes d’entreprise*.
-                        4. Suivez les instructions pour connecter votre carte.
+                        4. Suivez les instructions pour connecter vos cartes.
 
-                        [Aller connecter mes cartes d’entreprise](${corporateCardLink}).`),
+                        [Accéder aux cartes d’entreprise](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Invitez [votre équipe](${workspaceMembersLink})`,
@@ -6001,7 +6001,7 @@ ${
                     expense: 'Dépense individuelle',
                     expenseSubtitle: "Marquer les montants des dépenses par catégorie. Cette règle remplace la règle générale de l'espace de travail pour le montant maximal des dépenses.",
                     daily: 'Total de la catégorie',
-                    dailySubtitle: 'Indiquer le total des dépenses par catégorie pour chaque rapport de dépenses.',
+                    dailySubtitle: 'Indiquer le total des dépenses par jour par catégorie pour chaque rapport de dépenses.',
                 },
                 requireReceiptsOver: 'Exiger des reçus au-dessus de',
                 requireReceiptsOverList: {
@@ -6664,6 +6664,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Créer une dépense',
             createReport: 'Créer un rapport',
             chooseWorkspace: 'Choisissez un espace de travail pour ce rapport.',
             emptyReportConfirmationTitle: 'Vous avez déjà un rapport vide',
@@ -7082,6 +7083,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} est requis`,
+        reportContainsExpensesWithViolations: 'Le rapport contient des dépenses avec des violations.',
     },
     violationDismissal: {
         rter: {
