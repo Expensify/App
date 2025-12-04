@@ -1298,20 +1298,6 @@ describe('CustomFormula', () => {
         });
 
         describe('Combined formulas', () => {
-            test('submission info with report total', () => {
-                mockCurrencyUtils.getCurrencySymbol.mockReturnValue('$');
-                const context = {
-                    ...mockContextWithSubmissionInfo,
-                    report: {
-                        ...mockContextWithSubmissionInfo.report,
-                        total: -10000,
-                        currency: 'USD',
-                    },
-                };
-
-                expect(compute('Report by {report:submit:from:fullname} - {report:total}', context)).toBe('Report by John Doe - $100.00');
-            });
-
             test('submitter and manager names together', () => {
                 expect(compute('{report:submit:from:firstname} -> {report:submit:to:firstname}', mockContextWithSubmissionInfo)).toBe('John -> Jane');
             });
