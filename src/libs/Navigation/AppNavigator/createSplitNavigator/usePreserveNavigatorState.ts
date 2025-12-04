@@ -1,5 +1,6 @@
 import type {NavigationState, ParamListBase, RouteProp, StackNavigationState} from '@react-navigation/native';
 import {useEffect} from 'react';
+import NAVIGATORS from '@src/NAVIGATORS';
 
 const preservedNavigatorStates: Record<string, StackNavigationState<ParamListBase>> = {};
 
@@ -8,6 +9,14 @@ const cleanPreservedNavigatorStates = (state: NavigationState) => {
 
     for (const key of Object.keys(preservedNavigatorStates)) {
         if (!currentSplitNavigatorKeys.has(key)) {
+            delete preservedNavigatorStates[key];
+        }
+    }
+};
+
+const clearPreservedSearchNavigatorStates = () => {
+    for (const key of Object.keys(preservedNavigatorStates)) {
+        if (key.startsWith(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)) {
             delete preservedNavigatorStates[key];
         }
     }
@@ -26,4 +35,4 @@ function usePreserveNavigatorState(state: StackNavigationState<ParamListBase>, r
 
 export default usePreserveNavigatorState;
 
-export {getPreservedNavigatorState, cleanPreservedNavigatorStates};
+export {getPreservedNavigatorState, cleanPreservedNavigatorStates, clearPreservedSearchNavigatorStates};

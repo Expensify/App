@@ -211,7 +211,7 @@ function MapView({
             animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
             zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
         });
-    }, [directionCoordinates, currentPosition, mapPadding, waypoints]);
+    }, [directionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapPadding, waypoints]);
 
     const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
 

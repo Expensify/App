@@ -58,7 +58,12 @@ const useSearchTypeMenuSections = () => {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(
+        undefined,
+        transactionViolations,
+        currentUserLoginAndAccountID?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        currentUserLoginAndAccountID?.email ?? '',
+    );
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: () => void} | null>(null);
 
     const handlePendingConfirm = useCallback(() => {
@@ -115,6 +120,12 @@ const useSearchTypeMenuSections = () => {
         openCreateReportConfirmation();
     }, [pendingReportCreation, openCreateReportConfirmation]);
 
+    const isSuggestedSearchDataReady = useMemo(() => {
+        const policiesList = Object.values(allPolicies ?? {}).filter((policy): policy is NonNullable<typeof policy> => policy !== null && policy !== undefined);
+
+        return policiesList.some((policy) => policy.employeeList !== undefined && policy.exporter !== undefined);
+    }, [allPolicies]);
+
     const typeMenuSections = useMemo(
         () =>
             createTypeMenuSections(
@@ -149,7 +160,11 @@ const useSearchTypeMenuSections = () => {
         ],
     );
 
-    return {typeMenuSections, CreateReportConfirmationModal};
+    return {
+        typeMenuSections,
+        CreateReportConfirmationModal,
+        shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
+    };
 };
 
 export default useSearchTypeMenuSections;

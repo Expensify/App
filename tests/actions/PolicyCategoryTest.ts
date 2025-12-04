@@ -76,7 +76,7 @@ describe('actions/PolicyCategory', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            Category.createPolicyCategory(fakePolicy.id, newCategoryName, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+            Category.createPolicyCategory(fakePolicy.id, newCategoryName, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID, false, undefined);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -178,7 +178,7 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            Category.setWorkspaceCategoryEnabled(policyData.current, categoriesToUpdate, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+            Category.setWorkspaceCategoryEnabled(policyData.current, categoriesToUpdate, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID, false, undefined);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -225,7 +225,7 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            Category.deleteWorkspaceCategories(policyData.current, categoriesToDelete, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID);
+            Category.deleteWorkspaceCategories(policyData.current, categoriesToDelete, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID, false, undefined);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({

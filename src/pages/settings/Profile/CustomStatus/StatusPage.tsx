@@ -18,6 +18,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,6 +44,14 @@ function StatusPage() {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+
+    // We intentionally use isSmallScreenWidth here. Since the Status page is displayed
+    // inside the RHP, shouldUseNarrowLayout is always true. However, we still need to
+    // distinguish between large and small screens, so we rely on isSmallScreenWidth
+    // to accurately detect the screen size.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+
     const [draftStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const formRef = useRef<FormRef>(null);
@@ -231,7 +240,7 @@ function StatusPage() {
                         />
                         <InputWrapper
                             InputComponent={TextInput}
-                            ref={inputCallbackRef}
+                            ref={isSmallScreenWidth ? undefined : inputCallbackRef}
                             inputID={INPUT_IDS.STATUS_TEXT}
                             role={CONST.ROLE.PRESENTATION}
                             label={translate('statusPage.message')}

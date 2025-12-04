@@ -67,7 +67,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
-    }, [assignCard, backTo, policyID, currentFullScreenRoute?.state?.routes]);
+    }, [assignCard?.isAssigned, backTo, policyID, currentFullScreenRoute?.state?.routes]);
 
     const submit = () => {
         if (!policyID) {

@@ -28,6 +28,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -161,6 +162,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
 
     const parentReportAction = useParentReportAction(report);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: false});
 
@@ -199,7 +201,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isCanceledTaskReport = isCanceledTaskReportUtil(report, parentReportAction);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails?.accountID, isParentReportArchived);
-    const isTaskActionable = canActionTask(report, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
+    const isTaskActionable = canActionTask(report, parentReportAction, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
     const canEditReportDescription = useMemo(() => canEditReportDescriptionUtil(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '') && (isTaskReport ? isTaskModifiable : true);
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
@@ -724,6 +726,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     <View style={styles.mw100}>
                         <ParentNavigationSubtitle
                             parentNavigationSubtitleData={parentNavigationSubtitleData}
+                            reportID={report?.reportID}
                             parentReportID={report?.parentReportID}
                             parentReportActionID={report?.parentReportActionID}
                             pressableStyles={[styles.mt1, styles.mw100]}
@@ -775,6 +778,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const nameSectionFurtherDetailsContent = (
         <ParentNavigationSubtitle
             parentNavigationSubtitleData={parentNavigationSubtitleData}
+            reportID={report?.reportID}
             parentReportID={report?.parentReportID}
             parentReportActionID={report?.parentReportActionID}
             pressableStyles={[styles.mt1, styles.mw100]}
@@ -815,7 +819,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, ancestors);
+            deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction, ancestors);
             return;
         }
 
@@ -862,6 +866,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         deleteTransactions,
         currentSearchHash,
         isChatIOUReportArchived,
+        hasOutstandingChildTask,
+        parentReportAction,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
