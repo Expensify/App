@@ -19,7 +19,6 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
@@ -727,8 +726,6 @@ function WorkspacesListPage() {
         [getWorkspaceMenuItem, styles, translate],
     );
 
-    const shouldShowEmptyState = !workspaces.length && !domains.length;
-
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
@@ -743,27 +740,15 @@ function WorkspacesListPage() {
                     />
                 )
             }
-            shouldEnableMaxHeight={shouldShowEmptyState}
         >
-            {shouldShowEmptyState ? (
-                <>
-                    <View style={styles.topBarWrapper}>
-                        <TopBar breadcrumbLabel={translate('common.workspaces')} />
+            <View style={styles.flex1}>
+                <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={styles.pr2}>{headerButton}</View>}</TopBar>
+                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
+                {shouldShowLoadingIndicator ? (
+                    <View style={[styles.flex1]}>
+                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     </View>
-                    {shouldShowLoadingIndicator ? (
-                        <View style={[styles.flex1]}>
-                            <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-                        </View>
-                    ) : (
-                        <ScrollView contentContainerStyle={[styles.pt2, styles.flexGrow1, styles.flexShrink0]}>
-                            <WorkspacesEmptyStateComponent />
-                        </ScrollView>
-                    )}
-                </>
-            ) : (
-                <View style={styles.flex1}>
-                    <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{headerButton}</View>}</TopBar>
-                    {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
+                ) : (
                     <FlatList
                         ref={flatlistRef}
                         data={data}
@@ -778,8 +763,8 @@ function WorkspacesListPage() {
                         keyboardShouldPersistTaps="handled"
                         contentContainerStyle={styles.pb20}
                     />
-                </View>
-            )}
+                )}
+            </View>
             <ConfirmModal
                 title={translate('workspace.common.delete')}
                 isVisible={isDeleteModalOpen}
