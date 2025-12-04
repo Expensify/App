@@ -76,7 +76,48 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
+
+    /** Whether the report is displayed in the Concierge side panel */
+    isInSidePanel?: boolean;
 };
+
+/**
+ * Captures simplified HTML of the main page content (excluding the side panel)
+ * This is used to provide context to the LLM when the user sends a message from the Concierge side panel
+ */
+function captureSimplifiedPageHTML(): string {
+    if (typeof document === 'undefined') {
+        return '';
+    }
+
+    try {
+        // Find the main content area, excluding the side panel
+        const mainContent = document.querySelector('[data-testid="ReportScreen"]') ?? document.querySelector('main') ?? document.body;
+
+        // Clone the element to avoid modifying the original
+        const clone = mainContent.cloneNode(true) as HTMLElement;
+
+        // Remove scripts, styles, and other non-content elements
+        const elementsToRemove = clone.querySelectorAll('script, style, noscript, svg, img, video, audio, iframe, canvas, [data-testid="SidePanel"]');
+        elementsToRemove.forEach((el) => el.remove());
+
+        // Get the simplified HTML
+        let html = clone.innerHTML;
+
+        // Remove excessive whitespace and limit size
+        html = html.replace(/\s+/g, ' ').trim();
+
+        // Limit to ~10KB to avoid sending too much data
+        const maxLength = 10000;
+        if (html.length > maxLength) {
+            html = `${html.substring(0, maxLength)}... [truncated]`;
+        }
+
+        return html;
+    } catch (error) {
+        return '';
+    }
+}
 
 function ReportFooter({
     lastReportAction,
@@ -89,6 +130,7 @@ function ReportFooter({
     onComposerFocus,
     reportTransactions,
     transactionThreadReportID,
+    isInSidePanel = false,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -191,10 +233,15 @@ function ReportFooter({
             // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
             // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
             const targetReportID = transactionThreadReportID ?? report.reportID;
-            addComment(targetReportID, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
+
+            // When sending from the Concierge side panel, capture the simplified HTML of the main page
+            // to provide context to the LLM about what the user is viewing
+            const simplifiedPageHTML = isInSidePanel ? captureSimplifiedPageHTML() : undefined;
+
+            addComment(targetReportID, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true, simplifiedPageHTML);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [report.reportID, handleCreateTask, transactionThreadReportID, targetReportAncestors],
+        [report.reportID, handleCreateTask, transactionThreadReportID, targetReportAncestors, isInSidePanel],
     );
 
     const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
