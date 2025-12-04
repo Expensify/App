@@ -10610,18 +10610,19 @@ describe('actions/IOU', () => {
     });
 
     describe('duplicateExpenseTransaction', () => {
-        const DUPLICATION_EXCEPTIONS = ['transactionID', 'createdAccountID', 'reportID', 'status', 'created', 'parentTransactionID', 'isTestDrive', 'source', 'receipt', 'filename'];
+        const DUPLICATION_EXCEPTIONS = new Set(['transactionID', 'createdAccountID', 'reportID', 'status', 'created', 'parentTransactionID', 'isTestDrive', 'source', 'receipt', 'filename']);
 
         function isTransactionDuplicated(originalTransaction: Transaction, duplicatedTransaction: Transaction) {
-            Object.keys(duplicatedTransaction).forEach((k) => {
+            for (const k of Object.keys(duplicatedTransaction)) {
                 const key = k as keyof Transaction;
 
-                if (DUPLICATION_EXCEPTIONS.includes(key) || !originalTransaction.hasOwnProperty(key) || key.startsWith('original')) {
-                    return;
+                if (DUPLICATION_EXCEPTIONS.has(key) || !Object.hasOwn(originalTransaction, key) || key.startsWith('original')) {
+                    continue;
                 }
 
                 let originalTransactionKey = key;
                 const modifiedKey = `modified${key.charAt(0).toUpperCase()}${key.slice(1)}` as keyof Transaction;
+
                 if (modifiedKey in originalTransaction && !!originalTransaction[modifiedKey]) {
                     originalTransactionKey = modifiedKey;
                 }
@@ -10630,12 +10631,12 @@ describe('actions/IOU', () => {
                 const duplicatedValue = duplicatedTransaction[key];
 
                 // This handles cases such as modifiedAmount where the sign is flipped for zero values
-                if (originalValue == 0 && duplicatedValue == 0) {
-                    return;
+                if ((originalValue as number) === 0 && (duplicatedValue as number) === 0) {
+                    continue;
                 }
 
                 expect(duplicatedValue).toEqual(originalValue);
-            });
+            }
         }
 
         const mockOptimisticChatReportID = '789';

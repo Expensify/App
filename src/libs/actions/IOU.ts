@@ -6951,7 +6951,6 @@ function duplicateExpenseTransaction(
             attendees: transactionDetails?.attendees as Attendee[] | undefined,
             comment: transactionDetails?.comment,
             created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
-            modifiedCreated: '',
             customUnitRateID: transaction?.comment?.customUnit?.customUnitRateID,
             isTestDrive: transaction?.receipt?.isTestDriveReceipt,
             merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
@@ -6994,8 +6993,8 @@ function duplicateExpenseTransaction(
 
     params.policyParams = {
         policy: targetPolicy,
-        policyTagList: getPolicyTagsData(targetPolicy.id),
-        policyCategories: getPolicyCategoriesData(targetPolicy.id),
+        policyTagList: getPolicyTagsData(targetPolicy.id) ?? {},
+        policyCategories: getPolicyCategoriesData(targetPolicy.id) ?? {},
     };
 
     const transactionType = getTransactionType(transaction);
@@ -7009,6 +7008,9 @@ function duplicateExpenseTransaction(
                     ...(params.transactionParams ?? {}),
                     comment: transaction.comment,
                     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    modifiedCreated: '',
+                    reportID: '1',
+                    transactionID: '1',
                 },
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
