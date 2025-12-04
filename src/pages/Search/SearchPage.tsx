@@ -37,6 +37,7 @@ import {openWorkspace} from '@libs/actions/Policy/Policy';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, openReport, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
+    bulkDeleteReports,
     deleteMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     getExportTemplates,
@@ -812,10 +813,40 @@ function SearchPage({route}: SearchPageProps) {
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
+            bulkDeleteReports(hash, selectedTransactions, currentUserPersonalDetails.email ?? '');
             deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
             clearSelectedTransactions();
         });
     };
+
+    const {reportCount, expenseCount, isAllOneTransactionReports} = useMemo(() => {
+        let reports = 0;
+        let expenses = 0;
+        let hasNonOneTransactionReport = false;
+
+        for (const key of Object.keys(selectedTransactions)) {
+            const selectedItem = selectedTransactions[key];
+            if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+                reports += 1;
+                hasNonOneTransactionReport = true;
+            } else {
+                expenses += 1;
+                if (!selectedItem.isFromOneTransactionReport) {
+                    hasNonOneTransactionReport = true;
+                }
+            }
+        }
+
+        return {reportCount: reports, expenseCount: expenses, isAllOneTransactionReports: !hasNonOneTransactionReport && expenses > 0};
+    }, [selectedTransactions]);
+
+    // Show "delete expense" only when ALL selected items are from one-transaction reports
+    // Show "delete report" in all other cases (empty reports, multi-expense reports, or mixtures)
+    const isDeletingOnlyExpenses = isAllOneTransactionReports;
+    const deleteModalTitle = isDeletingOnlyExpenses ? translate('iou.deleteExpense', {count: expenseCount}) : translate('iou.deleteReport', {count: reportCount || expenseCount});
+    const deleteModalPrompt = isDeletingOnlyExpenses
+        ? translate('iou.deleteConfirmation', {count: expenseCount})
+        : translate('iou.deleteReportConfirmation', {count: reportCount || expenseCount});
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         const initialTransaction = initMoneyRequest({
@@ -963,11 +994,16 @@ function SearchPage({route}: SearchPageProps) {
         const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
         const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency;
-        const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
+        const numberOfExpense = shouldUseClientTotal
+            ? selectedTransactionsKeys.filter((key) => {
+                  const item = selectedTransactions[key];
+                  return !(item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID);
+              }).length
+            : metadata?.count;
         const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : metadata?.total;
 
-        return {count, total, currency};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
+        return {count: numberOfExpense, total, currency};
+    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys]);
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
@@ -1098,8 +1134,8 @@ function SearchPage({route}: SearchPageProps) {
                         isVisible={isDeleteExpensesConfirmModalVisible}
                         onConfirm={handleDeleteExpenses}
                         onCancel={handleDeleteExpensesCancel}
-                        title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                        title={deleteModalTitle}
+                        prompt={deleteModalPrompt}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
                         danger
@@ -1112,15 +1148,6 @@ function SearchPage({route}: SearchPageProps) {
                         secondOptionText={translate('common.buttonConfirm')}
                         isVisible={isOfflineModalVisible}
                         onClose={handleOfflineModalClose}
-                    />
-                    <DecisionModal
-                        title={translate('common.downloadFailedTitle')}
-                        prompt={translate('common.downloadFailedDescription')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={handleDownloadErrorModalClose}
-                        secondOptionText={translate('common.buttonConfirm')}
-                        isVisible={isDownloadErrorModalVisible}
-                        onClose={handleDownloadErrorModalClose}
                     />
                     <ConfirmModal
                         isVisible={isExportWithTemplateModalVisible}
@@ -1165,6 +1192,15 @@ function SearchPage({route}: SearchPageProps) {
                     )}
                 </View>
             )}
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={handleDownloadErrorModalClose}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={isDownloadErrorModalVisible}
+                onClose={handleDownloadErrorModalClose}
+            />
         </>
     );
 }
