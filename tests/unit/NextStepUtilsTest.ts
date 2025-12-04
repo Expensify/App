@@ -1048,9 +1048,13 @@ describe('libs/NextStepUtils', () => {
     });
 
     describe('buildOptimisticNextStepForDynamicExternalWorkflowError', () => {
-        test('returns correct next step message for DEW submit failed', () => {
+        test('should return alert next step with error message when DEW submit fails', () => {
+            // Given a scenario where Dynamic External Workflow submission has failed
+
+            // When buildOptimisticNextStepForDynamicExternalWorkflowError is called
             const result = buildOptimisticNextStepForDynamicExternalWorkflowError();
 
+            // Then it should return an alert-type next step with the appropriate error message and dot indicator icon
             expect(result).toEqual({
                 type: 'alert',
                 icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
