@@ -123,7 +123,6 @@ function getTransactionsForMerging({
     report: OnyxEntry<Report>;
     currentUserLogin: string | undefined;
 }) {
-    console.log('getting transactions');
     const transactionID = targetTransaction.transactionID;
 
     // Collect/Control workspaces:
