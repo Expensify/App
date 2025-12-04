@@ -1,5 +1,5 @@
-import React, {useCallback} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useCallback, useRef} from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -37,19 +37,17 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
             Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
         }
-        InteractionManager.runAfterInteractions(() => {
-            clearWorkspaceOwnerChangeFlow(policyID);
-        });
+        clearWorkspaceOwnerChangeFlow(policyID);
     }, [accountID, backTo, policyID]);
 
     const policy = usePolicy(policyID);
-    const shouldShow = !policy?.errorFields && policy?.isChangeOwnerFailed;
+    const shouldShowRef = useRef(!policy?.errorFields && policy?.isChangeOwnerFailed);
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            shouldBeBlocked={!shouldShow}
+            shouldBeBlocked={!shouldShowRef.current}
         >
             <ScreenWrapper
                 testID={WorkspaceOwnerChangeErrorPage.displayName}

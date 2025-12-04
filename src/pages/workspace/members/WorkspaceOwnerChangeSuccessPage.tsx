@@ -1,5 +1,4 @@
-import React, {useCallback} from 'react';
-import {InteractionManager} from 'react-native';
+import React, {useCallback, useRef} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
@@ -33,19 +32,17 @@ function WorkspaceOwnerChangeSuccessPage({route}: WorkspaceOwnerChangeSuccessPag
             Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
         }
-        InteractionManager.runAfterInteractions(() => {
-            clearWorkspaceOwnerChangeFlow(policyID);
-        });
+        clearWorkspaceOwnerChangeFlow(policyID);
     }, [accountID, backTo, policyID]);
 
     const policy = usePolicy(policyID);
-    const shouldShow = !policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful;
+    const shouldShowRef = useRef(!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful);
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            shouldBeBlocked={!shouldShow}
+            shouldBeBlocked={!shouldShowRef.current}
         >
             <ScreenWrapper testID={WorkspaceOwnerChangeSuccessPage.displayName}>
                 <HeaderWithBackButton
