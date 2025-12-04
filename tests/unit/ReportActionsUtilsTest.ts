@@ -1478,7 +1478,8 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('isDynamicExternalWorkflowSubmitFailedAction', () => {
-        it('should return true for DEW_SUBMIT_FAILED action', () => {
+        it('should return true for DEW_SUBMIT_FAILED action type', () => {
+            // Given a report action with DEW_SUBMIT_FAILED action type
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
@@ -1491,10 +1492,16 @@ describe('ReportActionsUtils', () => {
                 message: [],
                 previousMessage: [],
             };
-            expect(ReportActionsUtils.isDynamicExternalWorkflowSubmitFailedAction(action)).toBe(true);
+
+            // When checking if the action is a DEW submit failed action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowSubmitFailedAction(action);
+
+            // Then it should return true because the action type is DEW_SUBMIT_FAILED
+            expect(result).toBe(true);
         });
 
-        it('should return false for non-DEW_SUBMIT_FAILED action', () => {
+        it('should return false for non-DEW_SUBMIT_FAILED action type', () => {
+            // Given a report action with SUBMITTED action type (not DEW_SUBMIT_FAILED)
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> = {
                 ...createRandomReportAction(0),
                 actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -1507,23 +1514,35 @@ describe('ReportActionsUtils', () => {
                 message: [],
                 previousMessage: [],
             };
-            expect(ReportActionsUtils.isDynamicExternalWorkflowSubmitFailedAction(action)).toBe(false);
+
+            // When checking if the action is a DEW submit failed action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowSubmitFailedAction(action);
+
+            // Then it should return false because the action type is not DEW_SUBMIT_FAILED
+            expect(result).toBe(false);
         });
 
         it('should return false for null action', () => {
-            expect(ReportActionsUtils.isDynamicExternalWorkflowSubmitFailedAction(null)).toBe(false);
+            // Given a null action
+
+            // When checking if the action is a DEW submit failed action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowSubmitFailedAction(null);
+
+            // Then it should return false because the action is null
+            expect(result).toBe(false);
         });
     });
 
     describe('getMostRecentActiveDEWSubmitFailedAction', () => {
         it('should return the DEW action when DEW_SUBMIT_FAILED exists and no SUBMITTED action exists', () => {
+            // Given report actions containing only a DEW_SUBMIT_FAILED action
             const actionId1 = '1';
             const reportActions: ReportActions = {
                 [actionId1]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
                     created: '2025-11-21 10:00:00',
-                    reportActionID: '1',
+                    reportActionID: actionId1,
                     originalMessage: {
                         message: 'DEW submit failed',
                     },
@@ -1531,12 +1550,17 @@ describe('ReportActionsUtils', () => {
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
             };
+
+            // When getting the most recent active DEW submit failed action
             const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+
+            // Then it should return the DEW action because there's no subsequent SUBMITTED action
             expect(result).toBeDefined();
-            expect(result?.reportActionID).toBe('1');
+            expect(result?.reportActionID).toBe(actionId1);
         });
 
         it('should return the DEW action when DEW_SUBMIT_FAILED is more recent than SUBMITTED', () => {
+            // Given report actions where DEW_SUBMIT_FAILED occurred after SUBMITTED
             const actionId1 = '1';
             const actionId2 = '2';
             const reportActions: ReportActions = {
@@ -1544,7 +1568,7 @@ describe('ReportActionsUtils', () => {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     created: '2025-11-21 09:00:00',
-                    reportActionID: '1',
+                    reportActionID: actionId1,
                     originalMessage: {
                         amount: 10000,
                         currency: 'USD',
@@ -1556,7 +1580,7 @@ describe('ReportActionsUtils', () => {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
                     created: '2025-11-21 10:00:00',
-                    reportActionID: '2',
+                    reportActionID: actionId2,
                     originalMessage: {
                         message: 'DEW submit failed',
                     },
@@ -1564,12 +1588,17 @@ describe('ReportActionsUtils', () => {
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
             };
+
+            // When getting the most recent active DEW submit failed action
             const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+
+            // Then it should return the DEW action because it's more recent than the SUBMITTED action
             expect(result).toBeDefined();
-            expect(result?.reportActionID).toBe('2');
+            expect(result?.reportActionID).toBe(actionId2);
         });
 
         it('should return undefined when SUBMITTED is more recent than DEW_SUBMIT_FAILED', () => {
+            // Given report actions where SUBMITTED occurred after DEW_SUBMIT_FAILED
             const actionId1 = '1';
             const actionId2 = '2';
             const reportActions: ReportActions = {
@@ -1577,7 +1606,7 @@ describe('ReportActionsUtils', () => {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
                     created: '2025-11-21 09:00:00',
-                    reportActionID: '1',
+                    reportActionID: actionId1,
                     originalMessage: {
                         message: 'DEW submit failed',
                     },
@@ -1588,7 +1617,7 @@ describe('ReportActionsUtils', () => {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     created: '2025-11-21 10:00:00',
-                    reportActionID: '2',
+                    reportActionID: actionId2,
                     originalMessage: {
                         amount: 10000,
                         currency: 'USD',
@@ -1597,17 +1626,23 @@ describe('ReportActionsUtils', () => {
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
             };
-            expect(ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions)).toBeUndefined();
+
+            // When getting the most recent active DEW submit failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+
+            // Then it should return undefined because a successful SUBMITTED action supersedes the DEW failure
+            expect(result).toBeUndefined();
         });
 
         it('should return undefined when no DEW_SUBMIT_FAILED action exists', () => {
+            // Given report actions containing only a SUBMITTED action (no DEW failures)
             const actionId1 = '1';
             const reportActions: ReportActions = {
                 [actionId1]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     created: '2025-11-21 10:00:00',
-                    reportActionID: '1',
+                    reportActionID: actionId1,
                     originalMessage: {
                         amount: 10000,
                         currency: 'USD',
@@ -1616,14 +1651,26 @@ describe('ReportActionsUtils', () => {
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
             };
-            expect(ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions)).toBeUndefined();
+
+            // When getting the most recent active DEW submit failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+
+            // Then it should return undefined because there are no DEW failures
+            expect(result).toBeUndefined();
         });
 
         it('should return undefined for empty report actions', () => {
-            expect(ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction({})).toBeUndefined();
+            // Given an empty report actions object
+
+            // When getting the most recent active DEW submit failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction({});
+
+            // Then it should return undefined because there are no actions
+            expect(result).toBeUndefined();
         });
 
-        it('should work with array input', () => {
+        it('should handle array input and return the DEW action when it is most recent', () => {
+            // Given an array of report actions where DEW_SUBMIT_FAILED is more recent
             const reportActionsArray: ReportAction[] = [
                 {
                     ...createRandomReportAction(0),
@@ -1649,12 +1696,17 @@ describe('ReportActionsUtils', () => {
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
             ];
+
+            // When getting the most recent active DEW submit failed action
             const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActionsArray);
+
+            // Then it should return the DEW action because it's the most recent
             expect(result).toBeDefined();
             expect(result?.reportActionID).toBe('2');
         });
 
-        it('should return the most recent DEW action when multiple DEW_SUBMIT_FAILED and SUBMITTED actions exist', () => {
+        it('should return the most recent DEW action when multiple DEW failures and submissions exist', () => {
+            // Given report actions with multiple DEW failures and submissions, where the latest DEW failure is most recent
             const actionId1 = '1';
             const actionId2 = '2';
             const actionId3 = '3';
@@ -1664,7 +1716,7 @@ describe('ReportActionsUtils', () => {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     created: '2025-11-21 08:00:00',
-                    reportActionID: '1',
+                    reportActionID: actionId1,
                     originalMessage: {amount: 10000, currency: 'USD'},
                     message: [],
                     previousMessage: [],
@@ -1673,7 +1725,7 @@ describe('ReportActionsUtils', () => {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
                     created: '2025-11-21 09:00:00',
-                    reportActionID: '2',
+                    reportActionID: actionId2,
                     originalMessage: {message: 'First DEW failure'},
                     message: [],
                     previousMessage: [],
@@ -1682,7 +1734,7 @@ describe('ReportActionsUtils', () => {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     created: '2025-11-21 10:00:00',
-                    reportActionID: '3',
+                    reportActionID: actionId3,
                     originalMessage: {amount: 10000, currency: 'USD'},
                     message: [],
                     previousMessage: [],
@@ -1691,19 +1743,23 @@ describe('ReportActionsUtils', () => {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
                     created: '2025-11-21 11:00:00',
-                    reportActionID: '4',
+                    reportActionID: actionId4,
                     originalMessage: {message: 'Second DEW failure'},
                     message: [],
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED>,
             };
-            // Most recent DEW_SUBMIT_FAILED (11:00) is after most recent SUBMITTED (10:00)
+
+            // When getting the most recent active DEW submit failed action
             const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+
+            // Then it should return the most recent DEW action (11:00) because it's after the most recent SUBMITTED (10:00)
             expect(result).toBeDefined();
-            expect(result?.reportActionID).toBe('4');
+            expect(result?.reportActionID).toBe(actionId4);
         });
 
-        it('should return undefined when most recent SUBMITTED is after all DEW_SUBMIT_FAILED actions', () => {
+        it('should return undefined when most recent SUBMITTED is after all DEW failures', () => {
+            // Given report actions where SUBMITTED is more recent than all DEW failures
             const actionId1 = '1';
             const actionId2 = '2';
             const actionId3 = '3';
@@ -1712,7 +1768,7 @@ describe('ReportActionsUtils', () => {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
                     created: '2025-11-21 08:00:00',
-                    reportActionID: '1',
+                    reportActionID: actionId1,
                     originalMessage: {message: 'First DEW failure'},
                     message: [],
                     previousMessage: [],
@@ -1721,7 +1777,7 @@ describe('ReportActionsUtils', () => {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
                     created: '2025-11-21 09:00:00',
-                    reportActionID: '2',
+                    reportActionID: actionId2,
                     originalMessage: {message: 'Second DEW failure'},
                     message: [],
                     previousMessage: [],
@@ -1730,67 +1786,95 @@ describe('ReportActionsUtils', () => {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
                     created: '2025-11-21 10:00:00',
-                    reportActionID: '3',
+                    reportActionID: actionId3,
                     originalMessage: {amount: 10000, currency: 'USD'},
                     message: [],
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
             };
-            // Most recent SUBMITTED (10:00) is after all DEW_SUBMIT_FAILED actions
-            expect(ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions)).toBeUndefined();
+
+            // When getting the most recent active DEW submit failed action
+            const result = ReportActionsUtils.getMostRecentActiveDEWSubmitFailedAction(reportActions);
+
+            // Then it should return undefined because the successful submission supersedes all prior DEW failures
+            expect(result).toBeUndefined();
         });
     });
 
     describe('hasPendingSubmittedAction', () => {
         it('should return true when there is a pending SUBMITTED action', () => {
+            // Given report actions containing a SUBMITTED action with pendingAction = ADD
             const actionId1 = '1';
             const reportActions: ReportActions = {
                 [actionId1]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    reportActionID: '1',
+                    reportActionID: actionId1,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     originalMessage: {amount: 10000, currency: 'USD'},
                     message: [],
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
             };
-            expect(ReportActionsUtils.hasPendingSubmittedAction(reportActions)).toBe(true);
+
+            // When checking if there is a pending submitted action
+            const result = ReportActionsUtils.hasPendingSubmittedAction(reportActions);
+
+            // Then it should return true because the SUBMITTED action is pending
+            expect(result).toBe(true);
         });
 
         it('should return false when SUBMITTED action is not pending', () => {
+            // Given report actions containing a SUBMITTED action without pendingAction
             const actionId1 = '1';
             const reportActions: ReportActions = {
                 [actionId1]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                    reportActionID: '1',
+                    reportActionID: actionId1,
                     pendingAction: undefined,
                     originalMessage: {amount: 10000, currency: 'USD'},
                     message: [],
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED>,
             };
-            expect(ReportActionsUtils.hasPendingSubmittedAction(reportActions)).toBe(false);
+
+            // When checking if there is a pending submitted action
+            const result = ReportActionsUtils.hasPendingSubmittedAction(reportActions);
+
+            // Then it should return false because the SUBMITTED action is not pending
+            expect(result).toBe(false);
         });
 
         it('should return false for empty report actions', () => {
-            expect(ReportActionsUtils.hasPendingSubmittedAction({})).toBe(false);
+            // Given an empty report actions object
+
+            // When checking if there is a pending submitted action
+            const result = ReportActionsUtils.hasPendingSubmittedAction({});
+
+            // Then it should return false because there are no actions
+            expect(result).toBe(false);
         });
 
         it('should return false when there are no SUBMITTED actions', () => {
+            // Given report actions containing only a CREATED action (no SUBMITTED)
             const actionId1 = '1';
             const reportActions: ReportActions = {
                 [actionId1]: {
                     ...createRandomReportAction(0),
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                    reportActionID: '1',
+                    reportActionID: actionId1,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     message: [],
                     previousMessage: [],
                 } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED>,
             };
-            expect(ReportActionsUtils.hasPendingSubmittedAction(reportActions)).toBe(false);
+
+            // When checking if there is a pending submitted action
+            const result = ReportActionsUtils.hasPendingSubmittedAction(reportActions);
+
+            // Then it should return false because there are no SUBMITTED actions
+            expect(result).toBe(false);
         });
     });
 });

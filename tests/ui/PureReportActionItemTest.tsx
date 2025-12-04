@@ -225,7 +225,8 @@ describe('PureReportActionItem', () => {
     });
 
     describe('DEW (Dynamic External Workflow) actions', () => {
-        it('SUBMITTED action with pendingAction when policy has DEW enabled', async () => {
+        it('should display DEW queued message for pending SUBMITTED action when policy has DEW enabled', async () => {
+            // Given a SUBMITTED action with pendingAction on a policy with DEW (Dynamic External Workflow) enabled
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: false});
             action.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
@@ -245,6 +246,7 @@ describe('PureReportActionItem', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
+            // When the PureReportActionItem is rendered with the pending SUBMITTED action
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
@@ -274,11 +276,13 @@ describe('PureReportActionItem', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
+            // Then it should display the DEW queued message because submission is pending via external workflow
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('iou.queuedToSubmitViaDEW'))).toBeOnTheScreen();
         });
 
-        it('SUBMITTED action with pendingAction when policy does NOT have DEW enabled', async () => {
+        it('should display standard submitted message for pending SUBMITTED action when policy does not have DEW enabled', async () => {
+            // Given a SUBMITTED action with pendingAction on a policy with basic approval mode (no DEW)
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: false});
             action.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
@@ -298,6 +302,7 @@ describe('PureReportActionItem', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
+            // When the PureReportActionItem is rendered with the pending SUBMITTED action
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <OptionsListContextProvider>
@@ -327,6 +332,7 @@ describe('PureReportActionItem', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
+            // Then it should display the standard submitted message and not the DEW queued message
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('iou.submitted', {}))).toBeOnTheScreen();
             expect(screen.queryByText(translateLocal('iou.queuedToSubmitViaDEW'))).not.toBeOnTheScreen();
