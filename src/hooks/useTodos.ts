@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {emailSelector} from '@src/selectors/Session';
 import type {Report, SearchResults} from '@src/types/onyx';
 import useOnyx from './useOnyx';
+import { useSearchContext } from '@components/Search/SearchContext';
 
 export default function useTodos() {
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
@@ -13,6 +14,7 @@ export default function useTodos() {
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
+    const {currentSearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES} = useSearchContext();
 
     const data = useMemo(
         () => ({...allReports, ...allPolicies, ...allReportNameValuePairs, ...allTransactions}) as SearchResults['data'],
@@ -34,7 +36,7 @@ export default function useTodos() {
                 continue;
             }
 
-            const actions = getActions(data, allTransactionViolations, `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, currentUserEmail ?? '');
+            const actions = getActions(data, allTransactionViolations, `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, currentSearchKey, currentUserEmail ?? '');
 
             if (actions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT)) {
                 reportsToSubmit.push(report);
