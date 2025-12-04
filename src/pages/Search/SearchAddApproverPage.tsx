@@ -85,6 +85,10 @@ function SearchAddApproverPage() {
                         return false;
                     }
 
+                    if (report.managerID === accountID) {
+                        return true;
+                    }
+
                     return isAllowedToApproveExpenseReport(report, accountID, policy);
                 });
 
