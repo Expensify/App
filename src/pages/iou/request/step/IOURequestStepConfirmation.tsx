@@ -78,8 +78,6 @@ import {
     getReceiverType,
     requestMoney as requestMoneyIOUActions,
     sendInvoice,
-    sendMoneyElsewhere,
-    sendMoneyWithWallet,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestReceipt,
@@ -111,6 +109,8 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import { sendMoneyElsewhere, sendMoneyWithWallet } from '@userActions/IOU/SendMoney';
+
 
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
@@ -194,6 +194,8 @@ function IOURequestStepConfirmation({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
@@ -1108,6 +1110,7 @@ function IOURequestStepConfirmation({
                 setIsConfirmed(true);
                 sendMoneyElsewhere(
                     report,
+                    quickAction,
                     transaction.amount,
                     currency,
                     trimmedComment,
@@ -1124,6 +1127,7 @@ function IOURequestStepConfirmation({
                 setIsConfirmed(true);
                 sendMoneyWithWallet(
                     report,
+                    quickAction,
                     transaction.amount,
                     currency,
                     trimmedComment,
@@ -1146,6 +1150,7 @@ function IOURequestStepConfirmation({
             report,
             currentUserPersonalDetails.accountID,
             receiptFiles,
+            quickAction,
         ],
     );
 
