@@ -5536,7 +5536,7 @@ function setWorkspaceEReceiptsEnabled(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.SET_WORKSPACE_ERECEIPTS_ENABLED, parameters, onyxData);
 }
 
-function setPolicyRequireCompanyCardsEnabled(policyID: string, requireCompanyCardsEnabled: boolean) {
+function setPolicyRequireCompanyCardsEnabled(policy: Policy, requireCompanyCardsEnabled: boolean) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(policyID);

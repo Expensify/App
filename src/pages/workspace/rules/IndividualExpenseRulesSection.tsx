@@ -216,14 +216,14 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     title="Require company cards for all purchases"
                     subtitle="Flag all cash spend, including mileage and per-diem expenses."
                     switchAccessibilityLabel="Require company cards for all purchases"
+                    disabled={disableRequireCompanyCardToggle}
+                    showLockIcon={disableRequireCompanyCardToggle}
                     wrapperStyle={[styles.mt3]}
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
                     isActive={requireCompanyCardsEnabled}
-                    onToggle={() => setPolicyRequireCompanyCardsEnabled(policyID, !requireCompanyCardsEnabled)}
                     pendingAction={policy?.pendingFields?.requireCompanyCardsEnabled}
-                    showLockIcon={disableRequireCompanyCardToggle}
-                    disabled={disableRequireCompanyCardToggle}
+                    onToggle={() => (policy ? setPolicyRequireCompanyCardsEnabled(policy, !requireCompanyCardsEnabled) : undefined)}
                 />
 
                 <ToggleSettingOptionRow
