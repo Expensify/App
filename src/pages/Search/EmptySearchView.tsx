@@ -56,7 +56,7 @@ type EmptySearchViewProps = {
     similarSearchHash: number;
     type: SearchDataTypes;
     hasResults: boolean;
-    queryJSON: SearchQueryJSON;
+    queryJSON?: SearchQueryJSON;
 };
 
 type EmptySearchViewContentProps = EmptySearchViewProps & {
@@ -130,8 +130,7 @@ const hasTransactionsSelector = (transactions: OnyxCollection<Transaction>) =>
     Object.values(transactions ?? {}).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
 
 const hasExpenseReportsSelector = (reports: OnyxCollection<Report>) =>
-    Object.values(reports ?? {}).filter((report) => report?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && report?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length >
-    0;
+    Object.values(reports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.EXPENSE && report?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
 
 function EmptySearchViewContent({
     similarSearchHash,
@@ -344,7 +343,7 @@ function EmptySearchViewContent({
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-                if (hasResults && (!isDefaultExpenseReportsQuery(queryJSON) || hasExpenseReports)) {
+                if (hasResults && (!queryJSON || !isDefaultExpenseReportsQuery(queryJSON) || hasExpenseReports)) {
                     return {
                         ...defaultViewItemHeader,
                         title: translate('search.searchResults.emptyResults.title'),
@@ -398,7 +397,7 @@ function EmptySearchViewContent({
                 }
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                if (hasResults && (!isDefaultExpensesQuery(queryJSON) || hasTransactions)) {
+                if (hasResults && (!queryJSON || !isDefaultExpensesQuery(queryJSON) || hasTransactions)) {
                     return {
                         ...defaultViewItemHeader,
                         title: translate('search.searchResults.emptyResults.title'),
@@ -500,6 +499,7 @@ function EmptySearchViewContent({
         hasExpenseReports,
         defaultChatEnabledPolicyID,
         handleCreateReportClick,
+        queryJSON,
     ]);
 
     return (
