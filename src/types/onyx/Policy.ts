@@ -2000,7 +2000,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         isAttendeeTrackingEnabled?: boolean;
 
         /** Whether the policy requires purchases to be on a company card */
-        requireCompanyCardEnabled?: boolean;
+        requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;

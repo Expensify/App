@@ -9,7 +9,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setPolicyRequireCompanyCardsEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -173,7 +173,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     });
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
-    const requireCompanyCardsEnabled = policy?.requireCompanyCards ?? false;
+    const requireCompanyCardsEnabled = policy?.requireCompanyCardsEnabled ?? false;
 
     // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
     // Control policies if the policy does not contain the attribute
@@ -217,6 +217,8 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
                     isActive={requireCompanyCardsEnabled}
+                    onToggle={() => setPolicyRequireCompanyCardsEnabled(policyID, !requireCompanyCardsEnabled)}
+                    pendingAction={policy?.pendingFields?.requireCompanyCardsEnabled}
 
                     // isActive={areEReceiptsEnabled}
                     // disabled={policyCurrency !== CONST.CURRENCY.USD}

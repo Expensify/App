@@ -5586,7 +5586,7 @@ function setPolicyRequireCompanyCardsEnabled(policyID: string, requireCompanyCar
         enabled: requireCompanyCardsEnabled,
     };
 
-    API.write(WRITE_COMMANDS.SET_POLICY_ATTENDEE_TRACKING_ENABLED, parameters, onyxData);
+    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRE_COMPANY_CARDS_ENABLED, parameters, onyxData);
 }
 
 function setPolicyAttendeeTrackingEnabled(policyID: string, isAttendeeTrackingEnabled: boolean) {
@@ -6653,4 +6653,5 @@ export {
     clearPolicyTitleFieldError,
     inviteWorkspaceEmployeesToUber,
     setWorkspaceConfirmationCurrency,
+    setPolicyRequireCompanyCardsEnabled,
 };
