@@ -10658,7 +10658,15 @@ describe('actions/IOU', () => {
                 },
             };
 
-            duplicateExpenseTransaction(mockCashExpenseTransaction, mockOptimisticChatReportID, mockOptimisticIOUReportID, mockIsASAPSubmitBetaEnabled, mockPolicy, fakePolicyCategories, policyExpenseChat);
+            duplicateExpenseTransaction(
+                mockCashExpenseTransaction,
+                mockOptimisticChatReportID,
+                mockOptimisticIOUReportID,
+                mockIsASAPSubmitBetaEnabled,
+                mockPolicy,
+                fakePolicyCategories,
+                policyExpenseChat,
+            );
 
             await waitForBatchedUpdates();
 
@@ -10687,7 +10695,15 @@ describe('actions/IOU', () => {
                 amount: randomDistanceTransaction.amount * -1,
             };
 
-            duplicateExpenseTransaction(mockDistanceTransaction, mockOptimisticChatReportID, mockOptimisticIOUReportID, mockIsASAPSubmitBetaEnabled, mockPolicy, fakePolicyCategories, policyExpenseChat);
+            duplicateExpenseTransaction(
+                mockDistanceTransaction,
+                mockOptimisticChatReportID,
+                mockOptimisticIOUReportID,
+                mockIsASAPSubmitBetaEnabled,
+                mockPolicy,
+                fakePolicyCategories,
+                policyExpenseChat,
+            );
 
             await waitForBatchedUpdates();
 
