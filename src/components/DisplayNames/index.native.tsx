@@ -10,11 +10,9 @@ import type DisplayNamesProps from './types';
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
 function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfLines = 1, renderAdditionalText, forwardedFSClass, testID, shouldParseHtml = true}: DisplayNamesProps) {
     const {translate} = useLocalize();
-    const title = useMemo(() => {
-        const processedTitle = shouldParseHtml ? Parser.htmlToText(fullTitle) : fullTitle;
-        return StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
-    }, [fullTitle, shouldParseHtml, translate]);
-    const titleContainsTextAndCustomEmoji = useMemo(() => containsCustomEmoji(title) && !containsOnlyCustomEmoji(title), [title]);
+    const processedTitle = shouldParseHtml ? Parser.htmlToText(fullTitle) : fullTitle;
+    const processed = StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
+    const titleContainsTextAndCustomEmoji = useMemo(() => containsCustomEmoji(fullTitle) && !containsOnlyCustomEmoji(fullTitle), [fullTitle]);
     return (
         <Text
             accessibilityLabel={accessibilityLabel}
@@ -25,11 +23,11 @@ function DisplayNames({accessibilityLabel, fullTitle, textStyles = [], numberOfL
         >
             {titleContainsTextAndCustomEmoji ? (
                 <TextWithEmojiFragment
-                    message={StringUtils.lineBreaksToSpaces(title) || translate('common.hidden')}
+                    message={processed}
                     style={textStyles}
                 />
             ) : (
-                StringUtils.lineBreaksToSpaces(title) || translate('common.hidden')
+                processed
             )}
             {renderAdditionalText?.()}
         </Text>
