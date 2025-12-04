@@ -1384,6 +1384,13 @@ function getOneTransactionThreadReportAction(
         return;
     }
 
+    // If there are multiple visible transactions, return undefined to indicate this is not a one-transaction report,
+    // even if we only found one IOU action. This handles edge cases like importing legacy transactions
+    // where the transactions exist but their corresponding IOU actions haven't been created yet.
+    if (reportTransactionIDs && reportTransactionIDs.length > 1) {
+        return;
+    }
+
     const originalMessage = getOriginalMessage(iouRequestAction);
 
     // If there's only one IOU request action associated with the report but it's been deleted, then we don't consider this a oneTransaction report
@@ -1443,11 +1450,8 @@ function isReportActionAttachment(reportAction: OnyxInputOrEntry<ReportAction>):
 }
 
 // We pass getReportName as a param to avoid cyclic dependency.
-function getMemberChangeMessageElements(
-    reportAction: OnyxEntry<ReportAction>,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportNameCallback: typeof getReportName,
-): readonly MemberChangeMessageElement[] {
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
     const isLeaveAction = isLeavePolicyAction(reportAction);
 
@@ -1857,11 +1861,8 @@ function getTravelUpdateMessage(action: ReportAction<'TRAVEL_TRIP_ROOM_UPDATE'>,
     }
 }
 
-function getMemberChangeMessageFragment(
-    reportAction: OnyxEntry<ReportAction>,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportNameCallback: typeof getReportName,
-): Message {
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): Message {
     const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(reportAction, getReportNameCallback);
     const html = messageElements
         .map((messageElement) => {

@@ -63,8 +63,9 @@ describe('actions/Tour', () => {
             const conciergeChatReport: Report = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
             const testDriveTaskReport: Report = {...LHNTestUtils.getFakeReport(), ownerAccountID: accountID};
 
+            let testDriveTaskAction: ReportAction;
             const setTestDriveTaskData = async () => {
-                const testDriveTaskAction: ReportAction = {
+                testDriveTaskAction = {
                     ...LHNTestUtils.getFakeReportAction(),
                     childType: CONST.REPORT.TYPE.TASK,
                     childReportName: Parser.replace(
