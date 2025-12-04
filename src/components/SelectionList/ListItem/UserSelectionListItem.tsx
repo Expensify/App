@@ -4,8 +4,6 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
-import type {ListItem, UserSelectionListItemProps} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -16,6 +14,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import BaseListItem from './BaseListItem';
+import type {ListItem, UserSelectionListItemProps} from './types';
 
 function UserSelectionListItem<TItem extends ListItem>({
     item,

@@ -236,7 +236,11 @@ type SearchTransaction = {
     /** The ID of the report the transaction is associated with */
     reportID: string;
 
-    /** The name of the file used for a receipt */
+    /**
+     * @deprecated - Use getReceiptFilenameFromTransaction to get filename
+     *
+     * The name of the file used for a receipt
+     */
     filename?: string;
 
     /** The MCC Group associated with the transaction */
