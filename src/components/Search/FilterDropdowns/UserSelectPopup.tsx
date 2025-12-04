@@ -5,9 +5,9 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionListWithSections';
-import UserSelectionListItem from '@components/SelectionListWithSections/Search/UserSelectionListItem';
-import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import memoize from '@libs/memoize';
-import type {Option, Section} from '@libs/OptionsListUtils';
+import type {Option} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -118,11 +118,13 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
         const personalDetailList = filteredOptions.personalDetails.map((participant) => ({
             ...participant,
             isSelected: selectedAccountIDs.has(participant.accountID),
+            keyForList: String(participant.accountID),
         }));
 
         const recentReportsList = filteredOptions.recentReports.map((report) => ({
             ...report,
             isSelected: selectedAccountIDs.has(report.accountID),
+            keyForList: String(report.reportID),
         }));
 
         const combined = [...personalDetailList, ...recentReportsList];
@@ -149,22 +151,9 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
         return combined;
     }, [filteredOptions, accountID, selectedAccountIDs]);
 
-    const {sections, headerMessage} = useMemo(() => {
-        const newSections: Section[] = [
-            {
-                title: '',
-                data: listData,
-                shouldShow: !isEmpty(listData),
-            },
-        ];
-
+    const headerMessage = useMemo(() => {
         const noResultsFound = isEmpty(listData);
-        const message = noResultsFound ? translate('common.noResultsFound') : undefined;
-
-        return {
-            sections: newSections,
-            headerMessage: message,
-        };
+        return noResultsFound ? translate('common.noResultsFound') : undefined;
     }, [listData, translate]);
 
     const selectUser = useCallback(
@@ -172,7 +161,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             const isSelected = selectedOptions.some((selected) => optionsMatch(selected, option));
 
             setSelectedOptions((prev) => (isSelected ? prev.filter((selected) => !optionsMatch(selected, option)) : [...prev, getSelectedOptionData(option)]));
-            selectionListRef?.current?.scrollToIndex(0, true);
+            selectionListRef?.current?.scrollToIndex(0);
         },
         [selectedOptions],
     );
@@ -189,24 +178,33 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     }, [closeOverlay, onChange]);
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const dataLength = sections.flatMap((section) => section.data).length;
+    const dataLength = listData.length;
     const shouldShowSearchInput = isSearchable ?? dataLength >= CONST.STANDARD_LIST_ITEM_LIMIT;
+
+    const textInputOptions = useMemo(
+        () =>
+            shouldShowSearchInput
+                ? {
+                      value: searchTerm,
+                      label: translate('selectionList.searchForSomeone'),
+                      onChangeText: setSearchTerm,
+                      headerMessage,
+                      disableAutoFocus: !shouldFocusInputOnScreenFocus,
+                  }
+                : undefined,
+        [searchTerm, translate, headerMessage, shouldFocusInputOnScreenFocus, shouldShowSearchInput],
+    );
 
     return (
         <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}>
             <SelectionList
+                data={listData}
                 ref={selectionListRef}
+                textInputOptions={textInputOptions}
                 canSelectMultiple
-                textInputAutoFocus={shouldFocusInputOnScreenFocus}
-                headerMessage={headerMessage}
-                sections={sections}
                 ListItem={UserSelectionListItem}
-                containerStyle={[!shouldUseNarrowLayout && styles.pt4]}
-                contentContainerStyle={[styles.pb2]}
-                textInputLabel={shouldShowSearchInput ? translate('selectionList.searchForSomeone') : undefined}
-                textInputValue={searchTerm}
+                style={{containerStyle: [!shouldUseNarrowLayout && styles.pt4], listStyle: styles.pb2}}
                 onSelectRow={selectUser}
-                onChangeText={setSearchTerm}
                 isLoadingNewOptions={isLoadingNewOptions}
             />
 
