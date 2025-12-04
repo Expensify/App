@@ -18,6 +18,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {openDomainInitialPage} from '@libs/actions/Domain';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type DOMAIN_TO_RHP from '@navigation/linkingConfig/RELATIONS/DOMAIN_TO_RHP';
@@ -69,7 +70,14 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         ];
 
         return menuItems;
-    }, [icons.UserLock, accountID, singleExecution, waitForNavigate]);
+    }, [accountID, singleExecution, waitForNavigate, icons.UserLock]);
+
+    useEffect(() => {
+        if (!domainName) {
+            return;
+        }
+        openDomainInitialPage(domainName);
+    }, [domainName]);
 
     useEffect(() => {
         confirmReadyToOpenApp();
@@ -79,7 +87,14 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         <ScreenWrapper
             testID={DomainInitialPage.displayName}
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            bottomContent={
+                !shouldDisplayLHB && (
+                    <NavigationTabBar
+                        selectedTab={NAVIGATION_TABS.WORKSPACES}
+                        shouldShowFloatingCameraButton={false}
+                    />
+                )
+            }
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.dismissModal()}
