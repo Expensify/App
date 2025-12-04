@@ -104,6 +104,7 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: undefined,
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
+                fundList: undefined,
             }),
         ).toBeUndefined();
     });
@@ -121,6 +122,7 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: undefined,
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
+                fundList: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwed.title',
@@ -156,6 +158,7 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: undefined,
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
+                fundList: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
@@ -179,6 +182,7 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: undefined,
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
+                fundList: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
@@ -202,6 +206,7 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: undefined,
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
+                fundList: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerUnderInvoicing.title',
@@ -225,6 +230,7 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: undefined,
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
+                fundList: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.policyOwnerUnderInvoicingOverdue.title',
@@ -248,6 +254,7 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: 1,
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
+                fundList: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.billingDisputePending.title',
@@ -271,6 +278,7 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: undefined,
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
+                fundList: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardAuthenticationRequired.title',
@@ -294,6 +302,7 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: undefined,
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
+                fundList: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.insufficientFunds.title',
@@ -317,6 +326,7 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: undefined,
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
+                fundList: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpired.title',
@@ -334,6 +344,7 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: undefined,
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
+                fundList: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpired.title',
@@ -357,6 +368,7 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: undefined,
                 retryBillingFailed: true,
                 creditCardEyesIcon,
+                fundList: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.cardExpireSoon.title',
@@ -380,6 +392,7 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: undefined,
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
+                fundList: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.retryBillingSuccess.title',
@@ -403,6 +416,7 @@ describe('CardSectionUtils', () => {
                 billingDisputePending: undefined,
                 retryBillingFailed: undefined,
                 creditCardEyesIcon,
+                fundList: undefined,
             }),
         ).toEqual({
             title: 'subscription.billingBanner.retryBillingError.title',
