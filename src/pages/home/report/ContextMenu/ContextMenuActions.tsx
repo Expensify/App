@@ -125,6 +125,7 @@ import {
     getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
+    isActionCreator,
     isExpenseReport,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
@@ -492,8 +493,11 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
+            const isThreadCreator = isActionCreator(reportAction);
+
             return (
                 subscribed &&
+                !isThreadCreator &&
                 !isWhisperAction &&
                 !isTaskAction &&
                 !isExpenseReportAction &&
