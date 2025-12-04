@@ -10,7 +10,6 @@ import useOnyx from '@hooks/useOnyx';
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
-import {getReceiptFileName} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -56,7 +55,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return {
                 ...transactionMain,
                 receipt: mergeTransaction.receipt,
-                filename: getReceiptFileName(mergeTransaction.receipt),
             };
         }
 
