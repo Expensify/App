@@ -136,6 +136,7 @@ import {
     getAccountIDsByLogins,
     getDisplayNameOrDefault,
     getEffectiveDisplayName,
+    getLoginByAccountID,
     getLoginsByAccountIDs,
     getPersonalDetailByEmail,
     getPersonalDetailsByIDs,
@@ -147,6 +148,7 @@ import {
     getCleanedTagName,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
+    getDefaultApprover,
     getForwardsToAccount,
     getManagerAccountEmail,
     getManagerAccountID,
@@ -1970,6 +1972,18 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
         return false;
     }
 
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const submitsToAccountID = getSubmitToAccountID(getPolicy(report.policyID), report);
+
+    return isProcessingReport(report) && submitsToAccountID === report.managerID;
+}
+
+function isAwaitingFirstLevelApprovalNew(report: OnyxEntry<Report>, reportActions: ReportAction[], policyParam?: OnyxEntry<Policy>): boolean {
+    if (!report) {
+        return false;
+    }
+
     if (!isProcessingReport(report)) {
         return false;
     }
@@ -1980,7 +1994,7 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(report?.policyID);
+    const policy = policyParam ?? getPolicy(report?.policyID);
 
     if (hasDynamicExternalWorkflow(policy)) {
         return false;
@@ -1990,11 +2004,33 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
         return true;
     }
 
-    const submitsToAccountID = getSubmitToAccountID(policy, report);
+    const usedReportAction = isInstantSubmitEnabled(policy)
+        ? reportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
+        : reportActions
+              ?.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED)
+              ?.sort((a, b) => {
+                  if (!a.created || !b.created) {
+                      return !a.created ? 1 : -1;
+                  }
+                  return a.created < b.created ? 1 : -1;
+              })
+              ?.at(0);
 
-    // Fallback to comparing current manager of the report to the submitsTo in the policy.
-    // If they match, then the report should still be awaiting first level approval.
-    return submitsToAccountID === report?.managerID;
+    const originalMessage = getOriginalMessage(usedReportAction);
+    let submittedTo = originalMessage?.submittedTo;
+
+    if (!submittedTo) {
+        submittedTo = getAccountIDsByLogins([originalMessage?.to])?.at(0);
+    }
+
+    if (!submittedTo) {
+        const managerID = originalMessage?.managerOnVacation ?? report.managerID;
+        const approverAccountID =
+            policy?.employeeList?.[getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? '']?.submitsTo ?? getAccountIDsByLogins([getDefaultApprover(policy)])?.at(0);
+        return report.managerID === approverAccountID;
+    }
+
+    return report.managerID === submittedTo;
 }
 
 /**
@@ -2716,7 +2752,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, polic
     }
 
     if (isInstantSubmitEnabled(policy) && isProcessingReport(moneyRequestReport)) {
-        return isAwaitingFirstLevelApproval(moneyRequestReport);
+        return isAwaitingFirstLevelApprovalNew(moneyRequestReport, Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`] ?? {}), policy);
     }
 
     if (isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
@@ -13206,6 +13242,7 @@ export {
     requiresManualSubmission,
     isReportIDApproved,
     isAwaitingFirstLevelApproval,
+    isAwaitingFirstLevelApprovalNew,
     isPublicAnnounceRoom,
     isPublicRoom,
     isReportApproved,
