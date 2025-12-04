@@ -2,8 +2,6 @@ import lodashCloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
-import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
-import useParentReportAction from '@hooks/useParentReportAction';
 import type PolicyData from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
 import type {
@@ -52,15 +50,12 @@ Onyx.connect({
     callback: (value) => (allReports = value),
 });
 
-function completeSetupCategoriesAndTagsTask() {
+function completeSetupCategoriesTask() {
     const setupCategoriesAndTagsTaskReportID = deprecatedIntroSelected?.setupCategoriesAndTags;
     if (setupCategoriesAndTagsTaskReportID) {
         const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${setupCategoriesAndTagsTaskReportID}`];
-        const hasOutstandingChildTask = useHasOutstandingChildTask(taskReport);
-        const parentReportAction = useParentReportAction(taskReport);
-
         if (taskReport) {
-            completeTask(taskReport, hasOutstandingChildTask, parentReportAction);
+            completeTask(taskReport, false, undefined);
         }
     }
 }
@@ -445,7 +440,7 @@ function setWorkspaceCategoryEnabled(
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED, parameters, onyxData);
 
-    completeSetupCategoriesAndTagsTask();
+    completeSetupCategoriesTask();
 }
 
 function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: string, areCommentsRequired: boolean, policyCategories: PolicyCategories = {}) {
@@ -673,7 +668,7 @@ function createPolicyCategory(
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
 
-    completeSetupCategoriesAndTagsTask();
+    completeSetupCategoriesTask();
 }
 
 function importPolicyCategories(policyID: string, categories: PolicyCategory[]) {
@@ -695,7 +690,7 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[]) 
 
     API.write(WRITE_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET, parameters, onyxData);
 
-    completeSetupCategoriesAndTagsTask();
+    completeSetupCategoriesTask();
 }
 
 function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: string; newName: string}) {
@@ -838,8 +833,6 @@ function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: 
     };
 
     API.write(WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY, parameters, onyxData);
-
-    completeSetupCategoriesAndTagsTask();
 }
 
 function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, payrollCode: string, policyCategories: PolicyCategories = {}) {

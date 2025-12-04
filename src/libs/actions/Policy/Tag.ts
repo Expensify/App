@@ -1,8 +1,6 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
-import useParentReportAction from '@hooks/useParentReportAction';
 import type PolicyData from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
 import type {
@@ -65,15 +63,13 @@ Onyx.connect({
     callback: (value) => (allReports = value),
 });
 
-function completeSetupCategoriesAndTagsTask() {
+function completeSetupTagsTask() {
     const setupCategoriesAndTagsTaskReportID = deprecatedIntroSelected?.setupCategoriesAndTags;
     if (setupCategoriesAndTagsTaskReportID) {
         const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${setupCategoriesAndTagsTaskReportID}`];
-        const hasOutstandingChildTask = useHasOutstandingChildTask(taskReport);
-        const parentReportAction = useParentReportAction(taskReport);
 
         if (taskReport) {
-            Task.completeTask(taskReport, hasOutstandingChildTask, parentReportAction);
+            Task.completeTask(taskReport, false, undefined);
         }
     }
 }
@@ -217,7 +213,7 @@ function createPolicyTag(policyID: string, tagName: string, policyTags: PolicyTa
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 
-    completeSetupCategoriesAndTagsTask();
+    completeSetupTagsTask();
 }
 
 function importPolicyTags(policyID: string, tags: PolicyTag[]) {
@@ -231,7 +227,7 @@ function importPolicyTags(policyID: string, tags: PolicyTag[]) {
 
     API.write(WRITE_COMMANDS.IMPORT_TAGS_SPREADSHEET, parameters, onyxData);
 
-    completeSetupCategoriesAndTagsTask();
+    completeSetupTagsTask();
 }
 
 function setWorkspaceTagEnabled(policyData: PolicyData, tagsToUpdate: Record<string, {name: string; enabled: boolean}>, tagListIndex: number) {
@@ -344,7 +340,7 @@ function setWorkspaceTagEnabled(policyData: PolicyData, tagsToUpdate: Record<str
 
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
 
-    completeSetupCategoriesAndTagsTask();
+    completeSetupTagsTask();
 }
 
 function setWorkspaceTagRequired(policyData: PolicyData, tagListIndexes: number[], isRequired: boolean) {
@@ -719,8 +715,6 @@ function renamePolicyTag(policyData: PolicyData, policyTag: {oldName: string; ne
     };
 
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
-
-    completeSetupCategoriesAndTagsTask();
 }
 
 function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
@@ -834,7 +828,7 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
         goBackWhenEnableFeature(policyID);
     }
 
-    completeSetupCategoriesAndTagsTask();
+    completeSetupTagsTask();
 }
 
 function cleanPolicyTags(policyID: string) {
@@ -923,7 +917,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
             };
 
             API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData);
-            completeSetupCategoriesAndTagsTask();
+            completeSetupTagsTask();
         },
         () => {},
         spreadsheet?.fileType ?? CONST.SHARE_FILE_MIMETYPE.CSV,
