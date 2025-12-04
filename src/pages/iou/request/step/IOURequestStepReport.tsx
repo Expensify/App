@@ -220,7 +220,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 isUnreported={isUnreported}
                 shouldShowNotFoundPage={shouldShowNotFoundPage}
                 isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
-                createReport={action === CONST.IOU.ACTION.EDIT && (policyForMovingExpensesID || shouldSelectPolicy) ? createReport : undefined}
+                createReport={policyForMovingExpensesID || shouldSelectPolicy ? createReport : undefined}
             />
         </>
     );
