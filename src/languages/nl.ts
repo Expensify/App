@@ -5951,6 +5951,10 @@ ${
                 title: 'Categoriewetten',
                 approver: 'Goedkeurder',
                 requireDescription: 'Beschrijving vereist',
+                requireFields: 'Velden verplicht stellen',
+                requiredFieldsTitle: 'Verplichte velden',
+                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `Dit is van toepassing op alle uitgaven die zijn gecategoriseerd als <strong>${categoryName}</strong>`,
+                requireAttendees: 'Aanwezigen verplicht stellen',
                 descriptionHint: 'Beschrijving hint',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) =>
                     `Herinner werknemers eraan om aanvullende informatie te verstrekken voor uitgaven in de categorie “${categoryName}”. Deze hint verschijnt in het beschrijvingsveld van uitgaven.`,
@@ -6935,6 +6939,7 @@ ${
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Datum ouder dan ${maxAge} dagen`,
         missingCategory: 'Categorie ontbreekt',
         missingComment: 'Beschrijving vereist voor geselecteerde categorie',
+        missingAttendees: 'Deelnemers verplicht voor deze categorie',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

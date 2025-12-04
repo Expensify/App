@@ -625,6 +625,7 @@ function MoneyRequestConfirmationListFooter({
             ),
             shouldShow: shouldShowCategories,
         },
+        // ikevin127-TODO: Add category Attendees field
         {
             item: (
                 <MenuItemWithTopDescription

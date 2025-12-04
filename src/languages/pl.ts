@@ -5941,6 +5941,11 @@ ${
                 title: 'Zasady kategorii',
                 approver: 'Aprobujący',
                 requireDescription: 'Wymagany opis',
+                requireFields: 'Wymagaj pól',
+                requiredFieldsTitle: 'Wymagane pola',
+                requiredFieldsDescription: ({categoryName}: CategoryNameParams) =>
+                    `To będzie miało zastosowanie do wszystkich wydatków skategoryzowanych jako <strong>${categoryName}</strong>`,
+                requireAttendees: 'Wymagaj uczestników',
                 descriptionHint: 'Podpowiedź opisu',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) =>
                     `Przypomnij pracownikom o dostarczeniu dodatkowych informacji dotyczących wydatków w kategorii „${categoryName}”. Ta wskazówka pojawia się w polu opisu wydatków.`,
@@ -6922,6 +6927,7 @@ ${
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data starsza niż ${maxAge} dni`,
         missingCategory: 'Brakująca kategoria',
         missingComment: 'Wymagany opis dla wybranej kategorii',
+        missingAttendees: 'Wymagani uczestnicy dla tej kategorii',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Brakujący ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

@@ -5981,6 +5981,10 @@ ${
                 title: 'Kategorienregeln',
                 approver: 'Genehmiger',
                 requireDescription: 'Beschreibung erforderlich',
+                requireFields: 'Felder verpflichtend machen',
+                requiredFieldsTitle: 'Pflichtfelder',
+                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `Dies gilt für alle Ausgaben, die als <strong>${categoryName}</strong> kategorisiert sind.`,
+                requireAttendees: 'Teilnehmer erforderlich machen',
                 descriptionHint: 'Beschreibungshinweis',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) =>
                     `Erinnern Sie die Mitarbeiter daran, zusätzliche Informationen für Ausgaben der Kategorie „${categoryName}“ bereitzustellen. Dieser Hinweis erscheint im Beschreibungsfeld der Ausgaben.`,
@@ -6965,6 +6969,7 @@ ${
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Datum älter als ${maxAge} Tage`,
         missingCategory: 'Fehlende Kategorie',
         missingComment: 'Beschreibung für die ausgewählte Kategorie erforderlich',
+        missingAttendees: 'Für diese Kategorie sind Teilnehmende erforderlich',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

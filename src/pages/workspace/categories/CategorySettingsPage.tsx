@@ -66,6 +66,7 @@ function CategorySettingsPage({
 
     const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
+    const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
     const {
         taskReport: setupCategoryTaskReport,
@@ -294,7 +295,8 @@ function CategorySettingsPage({
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
-                    {!!policyCategory?.areCommentsRequired && (
+
+                    {areCommentsRequired && (
                         <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
                             <MenuItemWithTopDescription
                                 title={policyCategory?.commentHint}
@@ -306,6 +308,20 @@ function CategorySettingsPage({
                             />
                         </OfflineWithFeedback>
                     )}
+                    {!isThereAnyAccountingConnection && (
+                        <MenuItem
+                            icon={Trashcan}
+                            title={translate('workspace.categories.deleteCategory')}
+                            onPress={() => {
+                                if (shouldPreventDisableOrDelete) {
+                                    setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                                    return;
+                                }
+                                setDeleteCategoryConfirmModalVisible(true);
+                            }}
+                        />
+                    )}
+
                     {!!policy?.areRulesEnabled && (
                         <>
                             <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
@@ -370,19 +386,6 @@ function CategorySettingsPage({
                                 />
                             </OfflineWithFeedback>
                         </>
-                    )}
-                    {!isThereAnyAccountingConnection && (
-                        <MenuItem
-                            icon={Trashcan}
-                            title={translate('common.delete')}
-                            onPress={() => {
-                                if (shouldPreventDisableOrDelete) {
-                                    setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
-                                    return;
-                                }
-                                setDeleteCategoryConfirmModalVisible(true);
-                            }}
-                        />
                     )}
                 </ScrollView>
             </ScreenWrapper>

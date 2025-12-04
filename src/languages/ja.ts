@@ -5911,6 +5911,10 @@ ${
                 title: 'カテゴリールール',
                 approver: '承認者',
                 requireDescription: '説明が必要です',
+                requireFields: 'フィールドを必須にする',
+                requiredFieldsTitle: '必須項目',
+                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `これは<strong>${categoryName}</strong>として分類されたすべての経費に適用されます`,
+                requireAttendees: '参加者の入力を必須にする',
                 descriptionHint: '説明のヒント',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) =>
                     `従業員に「${categoryName}」の支出に関する追加情報を提供するようにリマインドしてください。このヒントは経費の説明欄に表示されます。`,
@@ -6886,6 +6890,7 @@ ${
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `${maxAge}日より古い日付`,
         missingCategory: 'カテゴリがありません',
         missingComment: '選択したカテゴリーの説明が必要です。',
+        missingAttendees: 'このカテゴリでは参加者が必須です',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

@@ -5950,6 +5950,10 @@ ${
                 title: 'Regras de categoria',
                 approver: 'Aprovador',
                 requireDescription: 'Requer descrição',
+                requireFields: 'Exigir campos',
+                requiredFieldsTitle: 'Campos obrigatórios',
+                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `Isso será aplicado a todas as despesas categorizadas como <strong>${categoryName}</strong>`,
+                requireAttendees: 'Exigir participantes',
                 descriptionHint: 'Dica de descrição',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) =>
                     `Lembre os funcionários de fornecer informações adicionais para gastos com “${categoryName}”. Esta dica aparece no campo de descrição das despesas.`,
@@ -6934,6 +6938,7 @@ ${
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data anterior a ${maxAge} dias`,
         missingCategory: 'Categoria ausente',
         missingComment: 'Descrição necessária para a categoria selecionada',
+        missingAttendees: 'Participantes obrigatórios para esta categoria',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Faltando ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

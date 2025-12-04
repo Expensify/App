@@ -5966,6 +5966,10 @@ ${
                 title: 'Regole di categoria',
                 approver: 'Approvante',
                 requireDescription: 'Richiede descrizione',
+                requireFields: 'Rendi obbligatori i campi',
+                requiredFieldsTitle: 'Campi obbligatori',
+                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `Questo si applicherà a tutte le spese classificate come <strong>${categoryName}</strong>`,
+                requireAttendees: 'Richiedi partecipanti',
                 descriptionHint: 'Suggerimento descrizione',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) =>
                     `Ricorda ai dipendenti di fornire informazioni aggiuntive per la spesa di “${categoryName}”. Questo suggerimento appare nel campo descrizione delle spese.`,
@@ -6954,6 +6958,7 @@ ${
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data più vecchia di ${maxAge} giorni`,
         missingCategory: 'Categoria mancante',
         missingComment: 'Descrizione richiesta per la categoria selezionata',
+        missingAttendees: 'Partecipanti obbligatori per questa categoria',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

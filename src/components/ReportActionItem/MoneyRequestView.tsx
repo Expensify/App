@@ -843,6 +843,7 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
+                {/* ikevin127-TODO: Add category Attendees field */}
                 {shouldShowTag && tagList}
                 {!!shouldShowCard && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
