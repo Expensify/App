@@ -62,13 +62,6 @@ const secureURLRoot = useNgrok && secureNgrokURL ? secureNgrokURL : secureExpens
 // To enable, set the USE_NGROK value to true in .env and update the NGROK_URL
 const expensifyURLRoot = useNgrok && ngrokURL ? ngrokURL : expensifyComWithProxy;
 
-let siteTitle = 'New Expensify';
-if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
-    siteTitle = 'New Expensify [dev]';
-} else if (ENVIRONMENT === CONST.ENVIRONMENT.STAGING) {
-    siteTitle = 'New Expensify [staging]';
-}
-
 export default {
     APP_NAME: 'NewExpensify',
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
@@ -106,7 +99,7 @@ export default {
         SUFFIX: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? get(Config, 'PUSHER_DEV_SUFFIX', '') : '',
         CLUSTER: 'mt1',
     },
-    SITE_TITLE: siteTitle,
+    SITE_TITLE: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? 'New Expensify [dev]' : 'New Expensify',
     FAVICON: {
         DEFAULT: '/favicon.png',
         UNREAD: '/favicon-unread.png',
