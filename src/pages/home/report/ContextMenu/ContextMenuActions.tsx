@@ -456,7 +456,9 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
+            const hasThread = !!reportAction?.childReportID;
             return (
+                hasThread &&
                 !subscribed &&
                 !isWhisperAction &&
                 !isTaskAction &&
@@ -494,8 +496,10 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
             const isThreadCreator = isActionCreator(reportAction);
+            const hasThread = !!reportAction?.childReportID;
 
             return (
+                hasThread &&
                 subscribed &&
                 !isThreadCreator &&
                 !isWhisperAction &&
