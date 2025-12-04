@@ -100,11 +100,9 @@ function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     const addExpenseApprovalsTaskReportID = deprecatedIntroSelected?.addExpenseApprovals;
     if (addExpenseApprovalsTaskReportID) {
         const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`];
-        const hasOutstandingChildTask = useHasOutstandingChildTask(taskReport);
-        const parentReportAction = useParentReportAction(taskReport);
 
         if (taskReport) {
-            Task.completeTask(taskReport, hasOutstandingChildTask, parentReportAction);
+            Task.completeTask(taskReport, false, undefined);
         }
     }
 }
