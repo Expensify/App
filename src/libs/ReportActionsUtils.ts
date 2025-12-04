@@ -2358,7 +2358,17 @@ function getPolicyChangeLogUpdateEmployee(reportAction: OnyxInputOrEntry<ReportA
 
     if (Array.isArray(fieldChanges) && fieldChanges.length > 0) {
         const messages = fieldChanges
-            .map((fieldChange) => buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(fieldChange?.field, fieldChange?.oldValue, fieldChange?.newValue, email))
+            .map((fieldChange) => {
+                if (!fieldChange || typeof fieldChange !== 'object') {
+                    return '';
+                }
+                return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(
+                    fieldChange.field,
+                    fieldChange.oldValue,
+                    fieldChange.newValue,
+                    email,
+                );
+            })
             .filter(Boolean);
 
         return messages.join(', ');

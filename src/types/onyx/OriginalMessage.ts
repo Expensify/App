@@ -467,6 +467,13 @@ type OriginalMessagePolicyChangeLog = {
     /** Custom field type  */
     field?: string;
 
+    /** Array of field changes for consolidated employee updates */
+    fields?: Array<{
+        field: string;
+        oldValue: string;
+        newValue: string;
+    }>;
+
     /** Report field name */
     fieldName?: string;
 
