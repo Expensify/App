@@ -12,6 +12,7 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useDebounce from '@hooks/useDebounce';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
+import usePrevious from '@hooks/usePrevious';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -42,11 +43,14 @@ function BaseSelectionList<TItem extends ListItem>({
     onSelectAll,
     onCheckboxPress,
     onScrollBeginDrag,
+    onDismissError,
     onEndReached,
     onEndReachedThreshold,
-    confirmButtonConfig,
+    confirmButtonOptions,
+    children,
     customListHeader,
     customListHeaderContent,
+    customLoadingPlaceholder,
     footerContent,
     listEmptyContent,
     listFooterContent,
@@ -66,6 +70,7 @@ function BaseSelectionList<TItem extends ListItem>({
     showScrollIndicator = true,
     canSelectMultiple = false,
     disableKeyboardShortcuts = false,
+    disableMaintainingScrollPosition = false,
     shouldUseUserSkeletonView,
     shouldShowTooltips = true,
     shouldIgnoreFocus = false,
@@ -77,6 +82,9 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
     shouldHighlightSelectedItem = true,
+    shouldUseDefaultRightHandSideCheckmark,
+    shouldDisableHoverStyle = false,
+    setShouldDisableHoverStyle = () => {},
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
@@ -102,7 +110,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const paddingBottomStyle = useMemo(() => !isKeyboardShown && safeAreaPaddingBottomStyle, [isKeyboardShown, safeAreaPaddingBottomStyle]);
 
-    const hasFooter = !!footerContent || confirmButtonConfig?.showButton;
+    const hasFooter = !!footerContent || confirmButtonOptions?.showButton;
 
     const dataDetails = useMemo<DataDetailsType<TItem>>(() => {
         const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions} = data.reduce(
@@ -110,7 +118,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 const idx = item.index ?? index;
                 const isItemDisabled = isDisabled || (!!item?.isDisabled && !isItemSelected(item));
 
-                if (isItemSelected(item)) {
+                if (isItemSelected(item) && (canSelectMultiple || acc.selectedOptions.length === 0)) {
                     acc.selectedOptions.push(item);
                 }
                 if (isItemDisabled) {
@@ -131,7 +139,7 @@ function BaseSelectionList<TItem extends ListItem>({
         const someSelected = selectedOptions.length > 0 && selectedOptions.length < totalSelectable;
 
         return {data, allSelected, someSelected, selectedOptions, disabledIndexes, disabledArrowKeyIndexes};
-    }, [data, isDisabled, isItemSelected]);
+    }, [canSelectMultiple, data, isDisabled, isItemSelected]);
 
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
@@ -153,7 +161,11 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+    const onArrowUpDownCallback = useCallback(() => {
+        setShouldDisableHoverStyle(true);
+    }, [setShouldDisableHoverStyle]);
+
+    const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
         initialFocusedIndex,
         maxIndex: data.length - 1,
         disabledIndexes: dataDetails.disabledArrowKeyIndexes,
@@ -167,6 +179,7 @@ function BaseSelectionList<TItem extends ListItem>({
         },
         ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
         isFocused,
+        onArrowUpDownCallback,
     });
 
     const selectRow = useCallback(
@@ -238,8 +251,8 @@ function BaseSelectionList<TItem extends ListItem>({
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
         (e) => {
-            if (confirmButtonConfig?.onConfirm) {
-                confirmButtonConfig?.onConfirm(e, focusedOption);
+            if (confirmButtonOptions?.onConfirm) {
+                confirmButtonOptions?.onConfirm(e, focusedOption);
                 return;
             }
             selectFocusedOption();
@@ -247,7 +260,7 @@ function BaseSelectionList<TItem extends ListItem>({
         {
             captureOnInputs: true,
             shouldBubble: !focusedOption,
-            isActive: !disableKeyboardShortcuts && isFocused && !confirmButtonConfig?.isDisabled,
+            isActive: !disableKeyboardShortcuts && isFocused && !confirmButtonOptions?.isDisabled,
         },
     );
     const textInputKeyPress = useCallback((event: TextInputKeyPressEvent) => {
@@ -258,11 +271,8 @@ function BaseSelectionList<TItem extends ListItem>({
     }, []);
 
     const focusTextInput = useCallback(() => {
-        if (!innerTextInputRef) {
-            return;
-        }
         innerTextInputRef.current?.focus();
-    }, [innerTextInputRef]);
+    }, []);
 
     const textInputComponent = ({shouldBeInsideList}: {shouldBeInsideList?: boolean}) => {
         if (shouldBeInsideList !== (textInputOptions?.shouldBeInsideList ?? false)) {
@@ -283,10 +293,19 @@ function BaseSelectionList<TItem extends ListItem>({
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
                 showLoadingPlaceholder={showLoadingPlaceholder}
                 isLoadingNewOptions={isLoadingNewOptions}
-                setFocusedIndex={setFocusedIndex}
             />
         );
     };
+
+    const setCurrentHoverIndex = useCallback(
+        (hoverIndex: number | null) => {
+            if (shouldDisableHoverStyle) {
+                return;
+            }
+            currentHoverIndexRef.current = hoverIndex;
+        },
+        [currentHoverIndexRef, shouldDisableHoverStyle],
+    );
 
     const renderItem: ListRenderItem<TItem> = ({item, index}: ListRenderItemInfo<TItem>) => {
         const isItemDisabled = isDisabled || item.isDisabled;
@@ -294,37 +313,50 @@ function BaseSelectionList<TItem extends ListItem>({
         const isItemFocused = (!isDisabled || selected) && focusedIndex === index;
 
         return (
-            <ListItemRenderer
-                ListItem={ListItem}
-                selectRow={selectRow}
-                keyForList={item.keyForList}
-                showTooltip={shouldShowTooltips}
-                item={item}
-                setFocusedIndex={setFocusedIndex}
-                index={index}
-                normalizedIndex={index}
-                isFocused={isItemFocused}
-                isDisabled={isItemDisabled}
-                canSelectMultiple={canSelectMultiple}
-                shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                rightHandSideComponent={rightHandSideComponent}
-                isMultilineSupported={isRowMultilineSupported}
-                isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
-                alternateTextNumberOfLines={alternateNumberOfSupportedLines}
-                shouldIgnoreFocus={shouldIgnoreFocus}
-                wrapperStyle={style?.listItemWrapperStyle}
-                titleStyles={style?.listItemTitleStyles}
-                singleExecution={singleExecution}
-                shouldHighlightSelectedItem={shouldHighlightSelectedItem}
-                shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
-            />
+            <View
+                onMouseMove={() => setCurrentHoverIndex(index)}
+                onMouseEnter={() => setCurrentHoverIndex(index)}
+                onMouseLeave={(e) => {
+                    e.stopPropagation();
+                    setCurrentHoverIndex(null);
+                }}
+            >
+                <ListItemRenderer
+                    ListItem={ListItem}
+                    selectRow={selectRow}
+                    keyForList={item.keyForList}
+                    showTooltip={shouldShowTooltips}
+                    item={item}
+                    setFocusedIndex={setFocusedIndex}
+                    index={index}
+                    normalizedIndex={index}
+                    isFocused={isItemFocused}
+                    isDisabled={isItemDisabled}
+                    canSelectMultiple={canSelectMultiple}
+                    onDismissError={onDismissError}
+                    shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                    shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
+                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                    rightHandSideComponent={rightHandSideComponent}
+                    isMultilineSupported={isRowMultilineSupported}
+                    isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
+                    alternateTextNumberOfLines={alternateNumberOfSupportedLines}
+                    shouldIgnoreFocus={shouldIgnoreFocus}
+                    wrapperStyle={style?.listItemWrapperStyle}
+                    titleStyles={style?.listItemTitleStyles}
+                    singleExecution={singleExecution}
+                    shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+                    shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
+                    shouldDisableHoverStyle={shouldDisableHoverStyle}
+                    shouldStopMouseLeavePropagation={false}
+                />
+            </View>
         );
     };
 
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
-            return <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
+            return customLoadingPlaceholder ?? <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
         }
         if (showListEmptyContent) {
             return listEmptyContent;
@@ -386,6 +418,56 @@ function BaseSelectionList<TItem extends ListItem>({
         [data.length, scrollToIndex, setFocusedIndex],
     );
 
+    const prevSearchValue = usePrevious(textInputOptions?.value);
+    const prevSelectedOptionsLength = usePrevious(dataDetails.selectedOptions.length);
+    const prevAllOptionsLength = usePrevious(data.length);
+
+    useEffect(() => {
+        const currentSearchValue = textInputOptions?.value;
+        const searchChanged = prevSearchValue !== currentSearchValue;
+        const selectedOptionsChanged = dataDetails.selectedOptions.length !== prevSelectedOptionsLength;
+        // Do not change focus if:
+        // 1. Input value is the same or
+        // 2. Data length is 0 or
+        // 3. shouldUpdateFocusedIndex is true => other function handles the focus
+        if ((!searchChanged && !selectedOptionsChanged) || data.length === 0 || shouldUpdateFocusedIndex) {
+            return;
+        }
+
+        const hasSearchBeenCleared = prevSearchValue && !currentSearchValue;
+        if (hasSearchBeenCleared) {
+            const foundSelectedItemIndex = data.findIndex(isItemSelected);
+
+            if (foundSelectedItemIndex !== -1 && !canSelectMultiple) {
+                scrollToIndex(foundSelectedItemIndex);
+                setFocusedIndex(foundSelectedItemIndex);
+                return;
+            }
+        }
+
+        // Remove focus (set focused index to -1) if:
+        // 1. If the search is idle or
+        // 2. If the user is just toggling options without changing the list content
+        // Otherwise (e.g. when filtering/typing), focus on the first item (0)
+        const isSearchIdle = !prevSearchValue && !currentSearchValue;
+        const newSelectedIndex = isSearchIdle || (selectedOptionsChanged && prevAllOptionsLength === data.length) ? -1 : 0;
+
+        scrollToIndex(newSelectedIndex);
+        setFocusedIndex(newSelectedIndex);
+    }, [
+        canSelectMultiple,
+        data,
+        dataDetails.selectedOptions.length,
+        isItemSelected,
+        prevAllOptionsLength,
+        prevSelectedOptionsLength,
+        prevSearchValue,
+        scrollToIndex,
+        setFocusedIndex,
+        shouldUpdateFocusedIndex,
+        textInputOptions?.value,
+    ]);
+
     useEffect(() => {
         if (!itemFocusTimeoutRef.current) {
             return;
@@ -409,16 +491,16 @@ function BaseSelectionList<TItem extends ListItem>({
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
-            {data.length === 0 ? (
+            {data.length === 0 && (showLoadingPlaceholder || showListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (
                 <>
                     <ListHeader
                         dataDetails={dataDetails}
-                        aboveListHeaderMessage={textInputOptions?.headerMessage}
                         customListHeader={customListHeader}
                         canSelectMultiple={canSelectMultiple}
                         onSelectAll={handleSelectAll}
+                        shouldShowSelectAllButton={!!onSelectAll}
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     />
                     <FlashList
@@ -437,8 +519,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         style={style?.listStyle as ViewStyle}
                         initialScrollIndex={initialFocusedIndex}
                         onScrollBeginDrag={onScrollBeginDrag}
-                        removeClippedSubviews
-                        // maintainVisibleContentPosition={{disabled: true}}
+                        maintainVisibleContentPosition={{disabled: disableMaintainingScrollPosition}}
                         ListHeaderComponent={
                             <>
                                 {customListHeaderContent}
@@ -446,12 +527,13 @@ function BaseSelectionList<TItem extends ListItem>({
                             </>
                         }
                     />
+                    {children}
                 </>
             )}
 
             <Footer<TItem>
                 footerContent={footerContent}
-                confirmButtonConfig={confirmButtonConfig}
+                confirmButtonOptions={confirmButtonOptions}
                 addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             />
         </View>

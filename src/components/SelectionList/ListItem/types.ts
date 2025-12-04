@@ -246,6 +246,12 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Callback when the input inside the item is blurred (if input exists) */
     onInputBlur?: (e: BlurEvent) => void;
+
+    /** Whether to disable the hover style of the item */
+    shouldDisableHoverStyle?: boolean;
+
+    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
+    shouldStopMouseLeavePropagation?: boolean;
 };
 
 type ValidListItem =
@@ -278,6 +284,12 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldShowRightCaret?: boolean;
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
+
+    /** Whether to disable the hover style of the item */
+    shouldDisableHoverStyle?: boolean;
+
+    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
+    shouldStopMouseLeavePropagation?: boolean;
 };
 
 type SplitListItemType = ListItem &
@@ -326,6 +338,13 @@ type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem
     sectionIndex?: number;
 };
 
+type WorkspaceListItemType = {
+    text: string;
+    policyID?: string;
+    isPolicyAdmin?: boolean;
+    brickRoadIndicator?: BrickRoad;
+} & ListItem;
+
 type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
     TItem & {
         /** Value of the domain */
@@ -335,6 +354,8 @@ type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
         isRecommended?: boolean;
     }
 >;
+
+type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
 export type {
     BaseListItemProps,
@@ -352,4 +373,6 @@ export type {
     InviteMemberListItemProps,
     SplitListItemType,
     SplitListItemProps,
+    WorkspaceListItemType,
+    UserSelectionListItemProps,
 };

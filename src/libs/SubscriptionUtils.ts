@@ -2,9 +2,7 @@ import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
-import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
 import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
@@ -13,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {convertToShortDisplayString} from './CurrencyUtils';
 import {getOwnedPaidPolicies, isPolicyOwner} from './PolicyUtils';
 
@@ -44,8 +43,13 @@ type SubscriptionPlanInfo = {
     subtitle: string;
     note: string | undefined;
     benefits: string[];
-    src: React.FC<SvgProps>;
+    src: IconAsset;
     description: string;
+};
+
+type SubscriptionPlanIllustrations = {
+    Mailbox: IconAsset;
+    ShieldYellow: IconAsset;
 };
 
 let currentUserAccountID = -1;
@@ -72,18 +76,6 @@ let ownerBillingGraceEndPeriod: OnyxEntry<number>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
     callback: (value) => (ownerBillingGraceEndPeriod = value),
-});
-
-let fundList: OnyxEntry<FundList>;
-Onyx.connect({
-    key: ONYXKEYS.FUND_LIST,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-
-        fundList = value;
-    },
 });
 
 let userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
@@ -173,19 +165,19 @@ function shouldShowPreTrialBillingBanner(introSelected: OnyxEntry<IntroSelected>
 /**
  * @returns The card to be used for subscription billing.
  */
-function getCardForSubscriptionBilling(): Fund | undefined {
+function getCardForSubscriptionBilling(fundList: OnyxEntry<FundList>): Fund | undefined {
     return Object.values(fundList ?? {}).find((card) => card?.accountData?.additionalData?.isBillingCard);
 }
 
 /**
  * @returns Whether the card is due to expire soon.
  */
-function hasCardExpiringSoon(): boolean {
+function hasCardExpiringSoon(fundList: OnyxEntry<FundList>): boolean {
     if (!isEmptyObject(billingStatus)) {
         return false;
     }
 
-    const card = getCardForSubscriptionBilling();
+    const card = getCardForSubscriptionBilling(fundList);
 
     if (!card) {
         return false;
@@ -290,6 +282,7 @@ function getSubscriptionStatus(
     retryBillingSuccessful: boolean | undefined,
     billingDisputePending: number | undefined,
     retryBillingFailed: boolean | undefined,
+    fundList: OnyxEntry<FundList>,
 ): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
@@ -359,7 +352,7 @@ function getSubscriptionStatus(
     }
 
     // 9. Card due to expire soon
-    if (hasCardExpiringSoon()) {
+    if (hasCardExpiringSoon(fundList)) {
         return {
             status: PAYMENT_STATUS.CARD_EXPIRE_SOON,
         };
@@ -392,8 +385,9 @@ function hasSubscriptionRedDotError(
     retryBillingSuccessful: boolean | undefined,
     billingDisputePending: number | undefined,
     retryBillingFailed: boolean | undefined,
+    fundList: OnyxEntry<FundList>,
 ): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed)?.isError ?? false;
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList)?.isError ?? false;
 }
 
 /**
@@ -404,8 +398,9 @@ function hasSubscriptionGreenDotInfo(
     retryBillingSuccessful: boolean | undefined,
     billingDisputePending: number | undefined,
     retryBillingFailed: boolean | undefined,
+    fundList: OnyxEntry<FundList>,
 ): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed)?.isError === false;
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList)?.isError === false;
 }
 
 /**
@@ -555,6 +550,7 @@ function getSubscriptionPlanInfo(
     preferredCurrency: PreferredCurrency,
     isFromComparisonModal: boolean,
     hasTeam2025Pricing: boolean,
+    illustrations: Record<'Mailbox' | 'ShieldYellow', IconAsset>,
 ): SubscriptionPlanInfo {
     const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType, hasTeam2025Pricing);
     const price = convertToShortDisplayString(priceValue, preferredCurrency);
@@ -587,7 +583,7 @@ function getSubscriptionPlanInfo(
                 translate('subscription.yourPlan.collect.benefit7'),
                 translate('subscription.yourPlan.collect.benefit8'),
             ],
-            src: Illustrations.Mailbox,
+            src: illustrations.Mailbox,
             description: translate('subscription.yourPlan.collect.description'),
         };
     }
@@ -606,7 +602,7 @@ function getSubscriptionPlanInfo(
             translate('subscription.yourPlan.control.benefit7'),
             translate('subscription.yourPlan.control.benefit8'),
         ],
-        src: Illustrations.ShieldYellow,
+        src: illustrations.ShieldYellow,
         description: translate('subscription.yourPlan.control.description'),
     };
 }
@@ -634,3 +630,5 @@ export {
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
 };
+
+export type {SubscriptionPlanIllustrations};

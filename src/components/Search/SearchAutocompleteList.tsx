@@ -44,6 +44,7 @@ import {
 } from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import Timing from '@userActions/Timing';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -120,6 +121,7 @@ const defaultListOptions = {
 const setPerformanceTimersEnd = () => {
     Timing.end(CONST.TIMING.OPEN_SEARCH);
     Performance.markEnd(CONST.TIMING.OPEN_SEARCH);
+    endSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER);
 };
 
 function isSearchQueryListItem(listItem: UserListItemProps<OptionData> | SearchQueryListItemProps): listItem is SearchQueryListItemProps {
@@ -205,16 +207,16 @@ function SearchAutocompleteList({
             includeCurrentUser: true,
             countryCode,
             shouldShowGBR: false,
+            shouldUnreadBeBold: true,
         });
     }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
-    const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
+    const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
     const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = (typeFilter?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
-    const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
 
-    const groupByAutocompleteList = (() => {
+    const groupByAutocompleteList = useMemo(() => {
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -222,9 +224,9 @@ function SearchAutocompleteList({
             default:
                 return [];
         }
-    })();
+    }, [currentType]);
 
-    const statusAutocompleteList = (() => {
+    const statusAutocompleteList = useMemo(() => {
         let suggestedStatuses;
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -251,21 +253,17 @@ function SearchAutocompleteList({
                 });
         }
         return suggestedStatuses.map((value) => getUserFriendlyValue(value));
-    })();
+    }, [currentType]);
 
-    const hasAutocompleteList = getHasOptions(currentType);
-    const isAutocompleteList = (() => {
+    const hasAutocompleteList = useMemo(() => getHasOptions(translate, currentType), [translate, currentType]);
+    const isAutocompleteList = useMemo(() => {
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.CHAT:
                 return Object.values(CONST.SEARCH.IS_VALUES);
             default:
                 return [];
         }
-    })();
-
-    const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
-    const withdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
-    const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
+    }, [currentType]);
 
     const cardAutocompleteList = useMemo(() => Object.values(allCards), [allCards]);
     const feedAutoCompleteList = useMemo(() => {
@@ -287,7 +285,7 @@ function SearchAutocompleteList({
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
 
-    const taxRates = getAllTaxRates(policies);
+    const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
 
     const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates), [taxRates]);
 
@@ -300,14 +298,14 @@ function SearchAutocompleteList({
     );
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
-    const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currency) => !currencyList?.[currency]?.retired);
+    const currencyAutocompleteList = useMemo(() => Object.keys(currencyList ?? {}).filter((currency) => !currencyList?.[currency]?.retired), [currencyList]);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS, {canBeMissing: true});
     const tagAutocompleteList = useMemo(() => {
         return getAutocompleteTags(allPoliciesTags);
     }, [allPoliciesTags]);
-    const recentTagsAutocompleteList = getAutocompleteRecentTags(allRecentTags);
+    const recentTagsAutocompleteList = useMemo(() => getAutocompleteRecentTags(allRecentTags), [allRecentTags]);
 
     const [autocompleteParsedQuery, autocompleteQueryWithoutFilters] = useMemo(() => {
         const queryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
@@ -452,6 +450,7 @@ function SearchAutocompleteList({
                 }));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE: {
+                const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
                 const filteredTypes = typeAutocompleteList
                     .filter((type) => type.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(type.toLowerCase()))
                     .sort();
@@ -473,6 +472,7 @@ function SearchAutocompleteList({
                 return filteredStatuses.map((status) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.STATUS, text: status}));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE: {
+                const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
                 const filteredExpenseTypes = expenseTypes.filter((expenseType) => expenseType.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(expenseType)).sort();
 
                 return filteredExpenseTypes.map((expenseType) => ({
@@ -481,6 +481,7 @@ function SearchAutocompleteList({
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {
+                const withdrawalTypes = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
                 const filteredWithdrawalTypes = withdrawalTypes
                     .filter((withdrawalType) => withdrawalType.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(withdrawalType))
                     .sort();
@@ -522,6 +523,7 @@ function SearchAutocompleteList({
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE: {
+                const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
                 const filteredValues = booleanTypes.filter((value) => value.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(value)).sort();
 
                 return filteredValues.map((value) => ({
@@ -602,14 +604,10 @@ function SearchAutocompleteList({
         betas,
         countryCode,
         currentUserLogin,
-        typeAutocompleteList,
         groupByAutocompleteList,
         statusAutocompleteList,
-        expenseTypes,
-        withdrawalTypes,
         feedAutoCompleteList,
         cardAutocompleteList,
-        booleanTypes,
         workspaceList,
         hasAutocompleteList,
         isAutocompleteList,
@@ -797,7 +795,13 @@ function SearchAutocompleteList({
 
     const onArrowFocus = useCallback(
         (focusedItem: OptionData | SearchQueryItem) => {
-            if (!isSearchQueryItem(focusedItem) || !focusedItem.searchQuery || focusedItem?.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION) {
+            if (
+                isInitialRender ||
+                !autocompleteQueryValue.trim() ||
+                !isSearchQueryItem(focusedItem) ||
+                !focusedItem.searchQuery ||
+                focusedItem?.searchItemType !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION
+            ) {
                 return;
             }
 
@@ -828,7 +832,7 @@ function SearchAutocompleteList({
             setTextQuery(`${trimmedUserSearchQuery}${sanitizeSearchValue(focusedItem.searchQuery)}\u00A0`);
             updateAutocompleteSubstitutions(focusedItem);
         },
-        [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions],
+        [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions, isInitialRender],
     );
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
@@ -879,6 +883,6 @@ function SearchAutocompleteList({
     );
 }
 
-export default SearchAutocompleteList;
+export default React.memo(SearchAutocompleteList);
 export {SearchRouterItem};
 export type {GetAdditionalSectionsCallback};
