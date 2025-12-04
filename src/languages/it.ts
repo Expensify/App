@@ -2542,13 +2542,13 @@ ${amount} per ${merchant} - ${date}`,
                         4. Trova ${integrationName}.
                         5. Fai clic su *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Portami alla contabilità](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Portami alla contabilità](${workspaceAccountingLink}).
 
-                                      ![Connetti a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Portami alla contabilità](${workspaceAccountingLink}).`
-}`),
+                        ![Connetti a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Portami alla contabilità](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Collega [le tue carte aziendali](${corporateCardLink})`,

@@ -2504,13 +2504,13 @@ ${merchant}的${amount} - ${date}`,
                         4. 找到 ${integrationName}。
                         5. 点击*连接*。
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[前往会计](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[前往会计](${workspaceAccountingLink}).
 
-![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[前往会计](${workspaceAccountingLink}).`
-}`),
+                        ![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[前往会计](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
