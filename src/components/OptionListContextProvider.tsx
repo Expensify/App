@@ -204,14 +204,17 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 continue;
             }
 
-            const reportList = Object.values(reports ?? {}).filter(
-                (report) => accountID in (report?.participants ?? {}) || (isSelfDM(report) && report?.ownerAccountID === Number(accountID)),
-            );
-
-            for (const report of reportList) {
+            for (const report of Object.values(reports ?? {})) {
                 if (!report) {
                     continue;
                 }
+
+                const isParticipant = accountID in (report.participants ?? {});
+                const isOwnerOfSelfDM = isSelfDM(report) && report?.ownerAccountID === Number(accountID);
+                if (!isParticipant && !isOwnerOfSelfDM) {
+                    continue;
+                }
+
                 const newReportOption = createOptionFromReport(report, personalDetails, reportAttributes?.reports, {showPersonalDetails: true});
                 const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
                 newReportOptions.push({
