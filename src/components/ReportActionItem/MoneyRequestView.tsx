@@ -486,9 +486,12 @@ function MoneyRequestView({
             getViolationsForField,
             canEditDate,
             canEditMerchant,
+            canEditAmount,
             canEdit,
             isCustomUnitOutOfPolicy,
             companyCardPageURL,
+            transactionAmount,
+            isBetaEnabled,
         ],
     );
 
