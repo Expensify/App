@@ -26,6 +26,7 @@ import {
 import Parser from './Parser';
 import Performance from './Performance';
 import {getCleanedTagName, getPolicy} from './PolicyUtils';
+import {getReportName} from './ReportNameUtils';
 import {
     getActionableCardFraudAlertResolutionMessage,
     getAddedApprovalRuleMessage,
@@ -103,7 +104,8 @@ import {
     getReportActionActorAccountID,
     getReportDescription,
     getReportMetadata,
-    getReportName,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getReportName as getReportNameDeprecated,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
@@ -990,7 +992,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived);
+    const reportName = getReportNameDeprecated(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived);
 
     result.text = reportName;
     result.subtitle = subtitle;
