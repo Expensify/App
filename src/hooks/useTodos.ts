@@ -1,60 +1,55 @@
 import {useMemo} from 'react';
 import CONST from '@src/CONST';
-import {canSubmitReport} from '@src/libs/actions/IOU';
-import {isArchivedReport} from '@src/libs/ReportUtils';
+import {getActions} from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import {emailSelector} from '@src/selectors/Session';
+import type {Report, SearchResults} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 export default function useTodos() {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const currentUserEmail = session?.email ?? '';
-
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
 
+    const data = useMemo(
+        () => ({...allReports, ...allPolicies, ...allReportNameValuePairs, ...allTransactions}) as SearchResults['data'],
+        [allReports, allPolicies, allReportNameValuePairs, allTransactions],
+    );
+
     return useMemo(() => {
-        const reportsToSubmit: string[] = [];
-        const reportsToApprove: string[] = [];
-        const reportsToPay: string[] = [];
-        const reportsToExport: string[] = [];
+        const reportsToSubmit: Report[] = [];
+        const reportsToApprove: Report[] = [];
+        const reportsToPay: Report[] = [];
+        const reportsToExport: Report[] = [];
 
         if (!allReports) {
             return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
         }
 
-        // Build a map of reportID -> transactions for efficient lookup
-        const transactionsByReportID: Record<string, Transaction[]> = {};
-        if (allTransactions) {
-            Object.values(allTransactions).forEach((transaction) => {
-                if (!transaction?.reportID) {
-                    return;
-                }
-                if (!transactionsByReportID[transaction.reportID]) {
-                    transactionsByReportID[transaction.reportID] = [];
-                }
-                transactionsByReportID[transaction.reportID].push(transaction);
-            });
+        for (const report of Object.values(allReports)) {
+            if (!report?.reportID || report.type !== CONST.REPORT.TYPE.EXPENSE) {
+                continue;
+            }
+
+            const actions = getActions(data, allTransactionViolations, `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, currentUserEmail ?? '');
+
+            if (actions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT)) {
+                reportsToSubmit.push(report);
+            }
+            if (actions.includes(CONST.SEARCH.ACTION_TYPES.APPROVE)) {
+                reportsToApprove.push(report);
+            }
+            if (actions.includes(CONST.SEARCH.ACTION_TYPES.PAY)) {
+                reportsToPay.push(report);
+            }
+            if (actions.includes(CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING)) {
+                reportsToExport.push(report);
+            }
         }
 
-        Object.values(allReports).forEach((report) => {
-            if (!report?.reportID || report.type !== CONST.REPORT.TYPE.EXPENSE) {
-                return;
-            }
-
-            const policy = report.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
-            const reportTransactions = transactionsByReportID[report.reportID] ?? [];
-            const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
-            const isReportArchivedFlag = isArchivedReport(reportNameValuePairs);
-
-            if (canSubmitReport(report, policy, reportTransactions, allTransactionViolations, isReportArchivedFlag, currentUserEmail)) {
-                reportsToSubmit.push(report.reportID);
-            }
-        });
-
         return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
-    }, [allReports, allPolicies, allReportNameValuePairs, allTransactions, allTransactionViolations, currentUserEmail]);
+    }, [data, allReports, allTransactionViolations, currentUserEmail]);
 }
