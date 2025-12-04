@@ -5160,7 +5160,6 @@ ${
                 cardType: '卡类型',
                 limit: '限制',
                 limitType: '限制类型',
-                name: '姓名',
                 disabledApprovalForSmartLimitError: '请在<strong>工作流程 > 添加审批</strong>中启用审批，然后再设置智能限制',
             },
             deactivateCardModal: {

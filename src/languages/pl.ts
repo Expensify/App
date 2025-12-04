@@ -5254,7 +5254,6 @@ ${
                 cardType: 'Typ karty',
                 limit: 'Limit',
                 limitType: 'Typ limitu',
-                name: 'Nazwa',
                 disabledApprovalForSmartLimitError: 'Proszę włączyć zatwierdzenia w <strong>Przepływy pracy > Dodaj zatwierdzenia</strong> przed skonfigurowaniem inteligentnych limitów',
             },
             deactivateCardModal: {

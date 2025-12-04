@@ -5229,7 +5229,6 @@ ${
                 cardType: 'カードタイプ',
                 limit: '制限',
                 limitType: 'タイプを制限',
-                name: '名前',
                 disabledApprovalForSmartLimitError: 'スマートリミットを設定する前に、<strong>ワークフロー > 承認を追加</strong>で承認を有効にしてください',
             },
             deactivateCardModal: {

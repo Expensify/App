@@ -182,6 +182,7 @@ type BuildPolicyDataOptions = {
     lastUsedPaymentMethod?: LastPaymentMethodType;
     adminParticipant?: Participant;
     hasOutstandingChildRequest?: boolean;
+    onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
 };
 
@@ -2101,6 +2102,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         adminParticipant,
         hasOutstandingChildRequest = true,
         shouldAddGuideWelcomeMessage = true,
+        onboardingPurposeSelected,
     } = options;
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2486,7 +2488,14 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
         shouldAddOnboardingTasks
     ) {
         const {onboardingMessages} = getOnboardingMessages();
-        const onboardingData = ReportUtils.prepareOnboardingOnyxData(deprecatedIntroSelected, engagementChoice, onboardingMessages[engagementChoice], adminsChatReportID, policyID);
+        const onboardingData = ReportUtils.prepareOnboardingOnyxData({
+            introSelected: deprecatedIntroSelected,
+            engagementChoice,
+            onboardingMessage: onboardingMessages[engagementChoice],
+            adminsChatReportID,
+            onboardingPolicyID: policyID,
+            onboardingPurposeSelected,
+        });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
         }
@@ -2507,7 +2516,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
             optimisticData: optimisticCreateWorkspaceTaskData,
             successData: successCreateWorkspaceTaskData,
             failureData: failureCreateWorkspaceTaskData,
-        } = buildTaskData(createWorkspaceTaskReport, deprecatedIntroSelected.createWorkspace, false, undefined);
+        } = buildTaskData(createWorkspaceTaskReport, deprecatedIntroSelected.createWorkspace, false, false, undefined);
         optimisticData.push(...optimisticCreateWorkspaceTaskData);
         successData.push(...successCreateWorkspaceTaskData);
         failureData.push(...failureCreateWorkspaceTaskData);
