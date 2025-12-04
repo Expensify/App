@@ -805,6 +805,7 @@ function IOURequestStepConfirmation({
                 backToReport,
                 isASAPSubmitBetaEnabled,
                 transactionViolations,
+                quickAction,
             });
         },
         [
@@ -825,6 +826,7 @@ function IOURequestStepConfirmation({
             backToReport,
             isASAPSubmitBetaEnabled,
             transactionViolations,
+            quickAction,
         ],
     );
 
@@ -920,6 +922,7 @@ function IOURequestStepConfirmation({
                         policyRecentlyUsedCategories,
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
+                        quickAction,
                     });
                 }
                 return;
@@ -948,6 +951,7 @@ function IOURequestStepConfirmation({
                         policyRecentlyUsedCategories,
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
+                        quickAction,
                     });
                 }
                 return;
