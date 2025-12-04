@@ -5822,7 +5822,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
         }),
         sidePanelContentWidth: (shouldUseNarrowLayout: boolean): ViewStyle => ({
-            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            width: shouldUseNarrowLayout ? '100%' : variables.sidePanelWidth,
         }),
         sidePanelContentBorderWidth: (isExtraLargeScreenWidth: boolean): ViewStyle => ({
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,

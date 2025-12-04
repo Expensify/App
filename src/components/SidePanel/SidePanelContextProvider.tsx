@@ -48,21 +48,21 @@ const SidePanelContext = createContext<SidePanelContextProps>({
 function SidePanelContextProvider({children}: PropsWithChildren) {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
-    const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
+    const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sidePanelWidth;
 
     const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
     const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, isSidePanelHiddenOrLargeScreen, sidePanelNVP} = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
-    const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sideBarWidth : 0));
+    const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sidePanelWidth : 0));
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
 
     useEffect(() => {
         setIsSidePanelTransitionEnded(false);
         Animated.parallel([
             Animated.timing(sidePanelOffset.current, {
-                toValue: shouldApplySidePanelOffset ? variables.sideBarWidth : 0,
+                toValue: shouldApplySidePanelOffset ? variables.sidePanelWidth : 0,
                 duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),

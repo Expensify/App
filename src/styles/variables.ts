@@ -102,6 +102,7 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
+    sidePanelWidth: 375,
     receiptPaneRHPMaxWidth: 465,
     superWideRHPMaxWidth: 1260,
     minScanTooltipWidth: 320,
