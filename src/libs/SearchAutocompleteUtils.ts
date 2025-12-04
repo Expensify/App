@@ -186,7 +186,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
             return tagList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
-            if (currentType !== CONST.SEARCH.DATA_TYPES.EXPENSE && currentType !== CONST.SEARCH.DATA_TYPES.INVOICE) {
+            if (currentType !== CONST.SEARCH.DATA_TYPES.EXPENSE && currentType !== CONST.SEARCH.DATA_TYPES.INVOICE && currentType !== CONST.SEARCH.DATA_TYPES.TRIP) {
                 return false;
             }
             return groupByList.includes(range.value);
