@@ -2362,12 +2362,7 @@ function getPolicyChangeLogUpdateEmployee(reportAction: OnyxInputOrEntry<ReportA
                 if (!fieldChange || typeof fieldChange !== 'object') {
                     return '';
                 }
-                return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(
-                    fieldChange.field,
-                    fieldChange.oldValue,
-                    fieldChange.newValue,
-                    email,
-                );
+                return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(fieldChange.field, fieldChange.oldValue, fieldChange.newValue, email);
             })
             .filter(Boolean);
 
