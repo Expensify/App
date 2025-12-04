@@ -393,7 +393,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [reportID, ancestors, transactionThreadReportID, personalDetail.timezone, onSubmit, editingReportAction, shouldUseNarrowLayout],
+        [reportID, ancestors, transactionThreadReportID, personalDetail.timezone, onSubmit, report, editingReportAction, shouldUseNarrowLayout],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {

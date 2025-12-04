@@ -14,7 +14,6 @@ import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Icon from '@components/Icon';
-import {Eye} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -40,6 +39,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
@@ -503,6 +503,7 @@ function PureReportActionItem({
     const isReportArchived = useReportIsArchived(reportID);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const isInlineEditing = !isNarrowLayout && draftMessage !== undefined;
+    const {Eye} = useMemoizedLazyExpensifyIcons(['Eye']);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

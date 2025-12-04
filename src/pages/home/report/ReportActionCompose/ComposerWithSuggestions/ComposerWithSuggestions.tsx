@@ -500,7 +500,6 @@ function ComposerWithSuggestions({
             suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
-            activeInlineEdit?.message,
             activeInlineEdit?.reportActionID,
             shouldUseNarrowLayout,
             selection?.end,
