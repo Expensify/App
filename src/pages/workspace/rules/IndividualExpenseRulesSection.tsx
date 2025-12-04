@@ -208,6 +208,18 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                         />
                     </OfflineWithFeedback>
                 ))}
+                <ToggleSettingOptionRow
+                    title="Require company cards for all purchases"
+                    subtitle="Flag all cash spend, including mileage and per-diem expenses."
+                    switchAccessibilityLabel="Require company cards for all purchases"
+                    wrapperStyle={[styles.mt3]}
+                    titleStyle={styles.pv2}
+                    subtitleStyle={styles.pt1}
+                    // isActive={areEReceiptsEnabled}
+                    // disabled={policyCurrency !== CONST.CURRENCY.USD}
+                    // onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
+                    // pendingAction={policy?.pendingFields?.eReceipts}
+                />
 
                 <ToggleSettingOptionRow
                     title={translate('workspace.rules.individualExpenseRules.eReceipts')}
