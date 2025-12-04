@@ -89,6 +89,7 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
             confirmButtonOptions={confirmButtonOptions}
             textInputOptions={textInputOptions}
             showListEmptyContent={false}
+            disableMaintainingScrollPosition
             shouldSingleExecuteRowSelect
             shouldUpdateFocusedIndex
             addBottomSafeAreaPadding

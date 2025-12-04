@@ -1191,7 +1191,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Ausgabe finden',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `hat eine Ausgabe gelöscht (${amount} für ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verschob eine Ausgabe${reportName ? `von ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `verschob diese Ausgabe${reportName ? `to <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `hat diese Ausgabe verschoben${reportName ? `zu <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `diese Ausgabe verschoben${reportName ? `von <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `diese Ausgabe aus Ihrem <a href="${reportUrl}">persönlichen Bereich</a> verschoben`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `diese Ausgabe in Ihren <a href="${reportUrl}">persönlichen Bereich</a> verschoben`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2562,17 +2564,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Verbinde [deine Firmenkarte](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Verbinden Sie [Ihre Firmenkarten](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Verbinden Sie Ihre Firmenkarte, um Ausgaben automatisch zu importieren und zu kontieren.
+                        Verbinden Sie Ihre bestehenden Karten, um Transaktionen automatisch zu importieren, Belege abzugleichen und Abstimmungen durchzuführen.
 
-                        1. Klicken Sie auf *Workspaces*.
-                        2. Wählen Sie Ihren Workspace aus.
-                        3. Klicken Sie auf *Corporate cards*.
-                        4. Folgen Sie den Anweisungen, um Ihre Karte zu verknüpfen.
+                        1. Klicken Sie auf „Arbeitsbereiche“.
+                        2. Wählen Sie Ihren Arbeitsbereich aus.
+                        3. Klicken Sie auf „Firmenkarten“.
+                        4. Folgen Sie den Anweisungen, um Ihre Karten zu verbinden.
 
-                        [Zum Verbinden meiner Firmenkarten](${corporateCardLink}).`),
+                        [Zu den Firmenkarten](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Lade [dein Team](${workspaceMembersLink}) ein`,
@@ -6281,6 +6283,36 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Kategorien`;
+                case 'tags':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Stichwörter`;
+                case 'workflows':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Workflows`;
+                case 'distance rates':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Entfernungsraten`;
+                case 'accounting':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Buchhaltung`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Expensify-Karten`;
+                case 'company cards':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Firmenkarten`;
+                case 'invoicing':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Rechnungsstellung`;
+                case 'per diem':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Tagespauschale`;
+                case 'receipt partners':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Belegpartner`;
+                case 'rules':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Regeln`;
+                case 'tax tracking':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Steuerverfolgung`;
+                default:
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Teilnehmerverfolgung`,
     },
     roomMembersPage: {
@@ -7045,6 +7077,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} ist erforderlich`,
+        reportContainsExpensesWithViolations: 'Der Bericht enthält Ausgaben mit Verstößen.',
     },
     violationDismissal: {
         rter: {
