@@ -138,7 +138,7 @@ function MoneyRequestReportPreviewContent({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -167,7 +167,7 @@ function MoneyRequestReportPreviewContent({
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false, shouldCheckApprovedState = true) =>
@@ -290,7 +290,7 @@ function MoneyRequestReportPreviewContent({
         } else if (isInvoiceRoom) {
             payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
         } else {
-            payerOrApproverName = getDisplayNameForParticipant({accountID: managerID, shouldUseShortForm: true});
+            payerOrApproverName = getDisplayNameForParticipant({accountID: managerID, shouldUseShortForm: true, formatPhoneNumber});
         }
 
         if (isApproved) {
@@ -301,7 +301,7 @@ function MoneyRequestReportPreviewContent({
             paymentVerb = 'iou.payerPaid';
         } else if (hasNonReimbursableTransactions) {
             paymentVerb = 'iou.payerSpent';
-            payerOrApproverName = getDisplayNameForParticipant({accountID: chatReport?.ownerAccountID, shouldUseShortForm: true});
+            payerOrApproverName = getDisplayNameForParticipant({accountID: chatReport?.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber});
         }
         return translate(paymentVerb, {payer: payerOrApproverName});
     }, [
@@ -323,6 +323,7 @@ function MoneyRequestReportPreviewContent({
         invoiceReceiverPolicy,
         invoiceReceiverPersonalDetail,
         managerID,
+        formatPhoneNumber,
     ]);
 
     /*
@@ -494,6 +495,7 @@ function MoneyRequestReportPreviewContent({
             violations,
             isIouReportArchived || isChatReportArchived,
             currentUserDetails.email ?? '',
+            currentUserDetails.accountID,
             iouReport,
             policy,
             transactions,
@@ -516,6 +518,7 @@ function MoneyRequestReportPreviewContent({
         isChatReportArchived,
         areStrictPolicyRulesEnabled,
         currentUserDetails.email,
+        currentUserDetails.accountID,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
@@ -691,12 +694,14 @@ function MoneyRequestReportPreviewContent({
                                             <View style={[styles.flexColumn, styles.gap1, styles.flexShrink1]}>
                                                 <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
                                                     <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
-                                                        <Text
-                                                            style={[styles.headerText]}
-                                                            testID="MoneyRequestReportPreview-reportName"
-                                                        >
-                                                            {reportPreviewName}
-                                                        </Text>
+                                                        <OfflineWithFeedback pendingAction={iouReport?.pendingFields?.reportName}>
+                                                            <Text
+                                                                style={[styles.headerText]}
+                                                                testID="MoneyRequestReportPreview-reportName"
+                                                            >
+                                                                {reportPreviewName}
+                                                            </Text>
+                                                        </OfflineWithFeedback>
                                                     </Animated.View>
                                                 </View>
                                                 {showStatusAndSkeleton && shouldShowSkeleton ? (
@@ -717,7 +722,7 @@ function MoneyRequestReportPreviewContent({
                                                                     <Text style={[styles.reportStatusText, {color: reportStatusColorStyle?.textColor}]}>{reportStatus}</Text>
                                                                 </View>
                                                             )}
-                                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>
+                                                            <Text style={[styles.textLabelSupporting]}>{expenseCount}</Text>
                                                         </View>
                                                     )
                                                 )}

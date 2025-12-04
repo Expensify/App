@@ -21,7 +21,7 @@ import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport} from '@userActions/Report';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SearchUtils from '@userActions/Search';
-import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
+import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -47,7 +47,7 @@ jest.mock('@userActions/Report', () => ({
 }));
 jest.mock('@userActions/Search', () => ({
     ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
-    updateSearchResultsWithTransactionThreadReportID: jest.fn(),
+    setOptimisticDataForTransactionThreadPreview: jest.fn(),
 }));
 
 const adminAccountID = 18439984;
@@ -102,6 +102,7 @@ const report1 = {
     total: -5000,
     type: 'expense',
     unheldTotal: -5000,
+    transactionCount: 1,
 } as const;
 
 const report2 = {
@@ -123,6 +124,7 @@ const report2 = {
     total: -5000,
     type: 'expense',
     unheldTotal: -5000,
+    transactionCount: 1,
 } as const;
 
 const report3 = {
@@ -147,6 +149,7 @@ const report3 = {
     total: 4400,
     type: 'iou',
     unheldTotal: 4400,
+    transactionCount: 2,
 } as const;
 
 const report4 = {
@@ -177,6 +180,7 @@ const report5 = {
     total: 0,
     type: 'expense',
     unheldTotal: 0,
+    transactionCount: 0,
 } as const;
 
 const reportAction1: OnyxTypes.ReportAction = {
@@ -392,7 +396,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2024-12-21',
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: true,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -403,16 +406,14 @@ const searchResults: OnyxTypes.SearchResults = {
             reportID,
             tag: '',
             transactionID,
-            transactionThreadReportID: '456',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
             moneyRequestReportActionID: '789',
             errors: undefined,
-            filename: undefined,
-            convertedAmount: -5000,
-            convertedCurrency: 'USD',
+            groupAmount: -5000,
+            groupCurrency: 'USD',
         },
         [`transactions_${transactionID2}`]: {
             amount: -5000,
@@ -426,7 +427,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2024-12-21',
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: true,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -436,7 +436,6 @@ const searchResults: OnyxTypes.SearchResults = {
             reportID: reportID2,
             tag: '',
             transactionID: transactionID2,
-            transactionThreadReportID: '456',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -444,9 +443,8 @@ const searchResults: OnyxTypes.SearchResults = {
             moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
-            filename: undefined,
-            convertedAmount: -5000,
-            convertedCurrency: 'USD',
+            groupAmount: -5000,
+            groupCurrency: 'USD',
         },
         ...allViolations,
         [`transactions_${transactionID3}`]: {
@@ -461,7 +459,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2025-03-05',
             currency: 'VND',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -471,7 +468,6 @@ const searchResults: OnyxTypes.SearchResults = {
             reportID: reportID3,
             tag: '',
             transactionID: transactionID3,
-            transactionThreadReportID: '8287398995021380',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -479,9 +475,8 @@ const searchResults: OnyxTypes.SearchResults = {
             moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
-            filename: undefined,
-            convertedAmount: -5000,
-            convertedCurrency: 'USD',
+            groupAmount: -5000,
+            groupCurrency: 'USD',
         },
         [`transactions_${transactionID4}`]: {
             amount: 3200,
@@ -495,7 +490,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2025-03-05',
             currency: 'VND',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -505,7 +499,6 @@ const searchResults: OnyxTypes.SearchResults = {
             reportID: reportID3,
             tag: '',
             transactionID: transactionID4,
-            transactionThreadReportID: '1014872441234902',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -513,9 +506,8 @@ const searchResults: OnyxTypes.SearchResults = {
             moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
-            filename: undefined,
-            convertedAmount: -5000,
-            convertedCurrency: 'USD',
+            groupAmount: -5000,
+            groupCurrency: 'USD',
         },
     },
     search: {
@@ -631,6 +623,7 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
             count: 4,
             currency: 'USD',
             total: 40,
+            state: 8,
         },
         [`${CONST.SEARCH.GROUP_PREFIX}${cardID2}` as const]: {
             entryID: entryID2,
@@ -640,6 +633,7 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
             count: 6,
             currency: 'USD',
             total: 20,
+            state: 8,
         },
     },
     search: {
@@ -792,7 +786,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         hasEReceipt: false,
-        isFromOneTransactionReport: true,
         keyForList: '1',
         merchant: 'Expense',
         modifiedAmount: 0,
@@ -809,17 +802,15 @@ const transactionsListItems = [
         tag: '',
         to: emptyPersonalDetails,
         transactionID: '1',
-        transactionThreadReportID: '456',
         receipt: undefined,
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
         errors: undefined,
-        filename: undefined,
         violations: [],
-        convertedAmount: -5000,
-        convertedCurrency: 'USD',
+        groupAmount: -5000,
+        groupCurrency: 'USD',
     },
     {
         action: 'review',
@@ -848,7 +839,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         hasEReceipt: false,
-        isFromOneTransactionReport: true,
         keyForList: '2',
         merchant: 'Expense',
         modifiedAmount: 0,
@@ -869,7 +859,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         transactionID: '2',
-        transactionThreadReportID: '456',
         receipt: undefined,
         taxAmount: undefined,
         mccGroup: undefined,
@@ -877,15 +866,14 @@ const transactionsListItems = [
         moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
-        filename: undefined,
         violations: [
             {
                 name: CONST.VIOLATIONS.MISSING_CATEGORY,
                 type: CONST.VIOLATION_TYPES.VIOLATION,
             },
         ],
-        convertedAmount: -5000,
-        convertedCurrency: 'USD',
+        groupAmount: -5000,
+        groupCurrency: 'USD',
     },
     {
         amount: 1200,
@@ -903,7 +891,6 @@ const transactionsListItems = [
         created: '2025-03-05',
         currency: 'VND',
         hasEReceipt: false,
-        isFromOneTransactionReport: false,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -913,7 +900,6 @@ const transactionsListItems = [
         reportID: '99999',
         tag: '',
         transactionID: '3',
-        transactionThreadReportID: '8287398995021380',
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -943,10 +929,9 @@ const transactionsListItems = [
         moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
-        filename: undefined,
         violations: [],
-        convertedAmount: -5000,
-        convertedCurrency: 'USD',
+        groupAmount: -5000,
+        groupCurrency: 'USD',
     },
     {
         amount: 3200,
@@ -964,7 +949,6 @@ const transactionsListItems = [
         created: '2025-03-05',
         currency: 'VND',
         hasEReceipt: false,
-        isFromOneTransactionReport: false,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -974,7 +958,6 @@ const transactionsListItems = [
         reportID: '99999',
         tag: '',
         transactionID: '4',
-        transactionThreadReportID: '1014872441234902',
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -1004,10 +987,9 @@ const transactionsListItems = [
         moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
-        filename: undefined,
         violations: [],
-        convertedAmount: -5000,
-        convertedCurrency: 'USD',
+        groupAmount: -5000,
+        groupCurrency: 'USD',
     },
 ] as TransactionListItemType[];
 
@@ -1043,6 +1025,7 @@ const transactionReportGroupListItems = [
         statusNum: 0,
         to: emptyPersonalDetails,
         total: -5000,
+        transactionCount: 1,
         transactions: [
             {
                 action: 'submit',
@@ -1071,7 +1054,6 @@ const transactionReportGroupListItems = [
                     login: adminEmail,
                 },
                 hasEReceipt: false,
-                isFromOneTransactionReport: true,
                 keyForList: '1',
                 merchant: 'Expense',
                 modifiedAmount: 0,
@@ -1088,17 +1070,15 @@ const transactionReportGroupListItems = [
                 tag: '',
                 to: emptyPersonalDetails,
                 transactionID: '1',
-                transactionThreadReportID: '456',
                 receipt: undefined,
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
                 moneyRequestReportActionID: '789',
                 errors: undefined,
-                filename: undefined,
                 violations: [],
-                convertedAmount: -5000,
-                convertedCurrency: 'USD',
+                groupAmount: -5000,
+                groupCurrency: 'USD',
             },
         ],
         type: 'expense',
@@ -1140,6 +1120,7 @@ const transactionReportGroupListItems = [
             login: adminEmail,
         },
         total: -5000,
+        transactionCount: 1,
         transactions: [
             {
                 action: 'review',
@@ -1174,7 +1155,6 @@ const transactionReportGroupListItems = [
                         type: CONST.VIOLATION_TYPES.VIOLATION,
                     },
                 ],
-                isFromOneTransactionReport: true,
                 keyForList: '2',
                 merchant: 'Expense',
                 modifiedAmount: 0,
@@ -1195,7 +1175,6 @@ const transactionReportGroupListItems = [
                     login: adminEmail,
                 },
                 transactionID: '2',
-                transactionThreadReportID: '456',
                 receipt: undefined,
                 taxAmount: undefined,
                 mccGroup: undefined,
@@ -1203,9 +1182,8 @@ const transactionReportGroupListItems = [
                 moneyRequestReportActionID: '789',
                 pendingAction: undefined,
                 errors: undefined,
-                filename: undefined,
-                convertedAmount: -5000,
-                convertedCurrency: 'USD',
+                groupAmount: -5000,
+                groupCurrency: 'USD',
             },
         ],
         type: 'expense',
@@ -1236,6 +1214,7 @@ const transactionReportGroupListItems = [
         stateNum: 1,
         statusNum: 1,
         total: 4400,
+        transactionCount: 2,
         type: 'iou',
         unheldTotal: 4400,
         action: 'pay',
@@ -1286,6 +1265,7 @@ const transactionReportGroupListItems = [
         statusNum: 0,
         to: emptyPersonalDetails,
         total: 0,
+        transactionCount: 0,
         transactions: [],
         type: 'expense',
         unheldTotal: 0,
@@ -1426,6 +1406,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         count: 4,
         currency: 'USD',
         total: 40,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1438,6 +1419,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         count: 6,
         currency: 'USD',
         total: 20,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1453,6 +1435,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         count: 6,
         currency: 'USD',
         total: 20,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1465,6 +1448,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         count: 4,
         currency: 'USD',
         total: 40,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1654,13 +1638,18 @@ describe('SearchUIUtils', () => {
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `View` action for a transaction in a multi-transaction report', () => {
+            const multiTransactionReportID = 'report_multi';
             const multiTransactionID = 'transaction_multi';
             const localSearchResults = {
                 ...searchResults.data,
+                [`report_${multiTransactionReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    transactionCount: 2,
+                },
                 [`transactions_${multiTransactionID}`]: {
                     ...searchResults.data[`transactions_${transactionID}`],
                     transactionID: multiTransactionID,
-                    isFromOneTransactionReport: false,
+                    reportID: multiTransactionReportID,
                 },
             };
             const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
@@ -1791,7 +1780,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 50;
+            const expectedPropertyCount = 48;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1824,7 +1813,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 50;
+            const expectedPropertyCount = 48;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1931,6 +1920,29 @@ describe('SearchUIUtils', () => {
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 })[0],
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
+        });
+
+        it('should filter invalid withdrawal-id entries without accountNumber', () => {
+            const staleCacheData: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2074551` as const]: {
+                    accountID: 2074551,
+                    count: 1,
+                    currency: 'USD',
+                    total: 100,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: staleCacheData,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                formatPhoneNumber,
+                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            }) as [TransactionWithdrawalIDGroupListItemType[], number];
+
+            expect(result).toHaveLength(0);
         });
     });
 
@@ -2419,7 +2431,6 @@ describe('SearchUIUtils', () => {
                         created: '2025-05-26',
                         currency: 'USD',
                         hasEReceipt: false,
-                        isFromOneTransactionReport: true,
                         merchant: '(none)',
                         modifiedAmount: -1000,
                         modifiedCreated: '2025-05-22',
@@ -2433,10 +2444,9 @@ describe('SearchUIUtils', () => {
                         reportID: '6523565988285061',
                         tag: '',
                         transactionID: '1805965960759424086',
-                        transactionThreadReportID: '4139222832581831',
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                        convertedAmount: -5000,
-                        convertedCurrency: 'USD',
+                        groupAmount: -5000,
+                        groupCurrency: 'USD',
                     },
                 },
                 search: {
@@ -2546,7 +2556,6 @@ describe('SearchUIUtils', () => {
                     created: '2025-05-26',
                     currency: 'USD',
                     hasEReceipt: false,
-                    isFromOneTransactionReport: true,
                     merchant: '(none)',
                     modifiedAmount: -1000,
                     modifiedCreated: '2025-05-22',
@@ -2560,9 +2569,8 @@ describe('SearchUIUtils', () => {
                     reportID: '6523565988285061',
                     tag: '',
                     transactionID: '1805965960759424086',
-                    transactionThreadReportID: '4139222832581831',
-                    convertedAmount: -5000,
-                    convertedCurrency: 'USD',
+                    groupAmount: -5000,
+                    groupCurrency: 'USD',
                 },
             },
             search: {
@@ -2855,33 +2863,85 @@ describe('SearchUIUtils', () => {
         const threadReport = {reportID: threadReportID};
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
-        const iouReportAction = {reportActionID: transactionListItem.moneyRequestReportActionID} as OnyxTypes.ReportAction;
-        const hash = 12345;
         const backTo = '/search/all';
 
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
         test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
-            const setOptimisticDataForTransactionThreadMock = jest.spyOn(require('@userActions/Search'), 'setOptimisticDataForTransactionThreadPreview');
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
 
-            expect(setOptimisticDataForTransactionThreadMock).toHaveBeenCalled();
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction);
-            expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(hash, transactionID, threadReportID);
+            expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, {reportActionID: transactionListItem.moneyRequestReportActionID}, undefined, undefined);
+        });
+
+        test('Should create transaction thread report for legacy transactions without IOU action (moneyRequestReportActionID = "0")', () => {
+            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
+
+            // Create a legacy transaction item with moneyRequestReportActionID = '0'
+            const legacyTransactionItem = {
+                ...transactionListItem,
+                moneyRequestReportActionID: '0',
+            };
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(legacyTransactionItem, backTo, undefined, undefined, false);
+
+            // Extract the transaction by removing UI-specific and search-specific fields
+            const {
+                keyForList,
+                action,
+                allActions,
+                report,
+                from,
+                to,
+                formattedFrom,
+                formattedTo,
+                formattedTotal,
+                formattedMerchant,
+                date,
+                shouldShowMerchant,
+                shouldShowYear,
+                isAmountColumnWide,
+                isTaxAmountColumnWide,
+                violations,
+                hash: itemHash,
+                moneyRequestReportActionID,
+                canDelete,
+                accountID,
+                policyID: searchPolicyID,
+                ...expectedTransaction
+            } = legacyTransactionItem;
+
+            // For legacy transactions (moneyRequestReportActionID = '0'), should pass transaction and violations
+            // reportActionID will be undefined since there's no IOU action
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report, {reportActionID: undefined}, expect.objectContaining(expectedTransaction), violations);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         test('Should handle navigation if shouldNavigate = true', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, true);
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, true);
+            // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
+            // instead of the transaction thread report
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
         });
     });
 
     describe('setOptimisticDataForTransactionThreadPreview', () => {
+        // These tests need the real implementation, so restore it before each test
+        beforeEach(() => {
+            (setOptimisticDataForTransactionThreadPreview as jest.Mock).mockRestore();
+            // Re-import the real implementation
+            const realModule = jest.requireActual<typeof SearchUtils>('@userActions/Search');
+            (setOptimisticDataForTransactionThreadPreview as jest.Mock).mockImplementation(realModule.setOptimisticDataForTransactionThreadPreview);
+        });
+
         it('Should create an optimistic parent report if the hasParentReport is false', async () => {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
@@ -2923,11 +2983,11 @@ describe('SearchUIUtils', () => {
         it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasTransactionThreadReport: false} as SearchUtils.TransactionPreviewData);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasTransactionThreadReport: false} as SearchUtils.TransactionPreviewData, '456');
 
             await waitForBatchedUpdates();
 
-            const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionListItem.transactionThreadReportID}`);
+            const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}456`);
 
             expect(transactionThread).toBeTruthy();
         });
