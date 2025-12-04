@@ -5964,7 +5964,7 @@ ${
                     expense: 'Individuele uitgave',
                     expenseSubtitle: 'Markeer onkostbedragen per categorie. Deze regel overschrijft de algemene werkruimte-regel voor het maximale onkostbedrag.',
                     daily: 'Categorietotaal',
-                    dailySubtitle: 'Vlag totale categorie-uitgaven per onkostennota.',
+                    dailySubtitle: 'Vlag totale categorie-uitgaven per dag per onkostennota.',
                 },
                 requireReceiptsOver: 'Vereis bonnen boven',
                 requireReceiptsOverList: {
@@ -6626,6 +6626,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Uitgave aanmaken',
             createReport: 'Rapport maken',
             chooseWorkspace: 'Kies een werkruimte voor dit rapport.',
             emptyReportConfirmationTitle: 'Je hebt al een leeg rapport',

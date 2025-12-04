@@ -5954,7 +5954,7 @@ ${
                     expense: 'Pojedynczy wydatek',
                     expenseSubtitle: 'Oznacz kwoty wydatków według kategorii. Ta zasada zastępuje ogólną zasadę przestrzeni roboczej dotyczącą maksymalnej kwoty wydatku.',
                     daily: 'Suma kategorii',
-                    dailySubtitle: 'Oznacz całkowite wydatki kategorii na raport wydatków.',
+                    dailySubtitle: 'Oznacz całkowite wydatki kategorii na raporcie wydatków.',
                 },
                 requireReceiptsOver: 'Wymagaj paragonów powyżej',
                 requireReceiptsOverList: {
@@ -6613,6 +6613,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Utwórz wydatek',
             createReport: 'Utwórz raport',
             chooseWorkspace: 'Wybierz przestrzeń roboczą dla tego raportu.',
             emptyReportConfirmationTitle: 'Masz już pusty raport',
