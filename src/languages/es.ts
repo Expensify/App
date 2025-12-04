@@ -7826,6 +7826,8 @@ ${amount} para ${merchant} - ${date}`,
             anyMemberWillBeRequired: 'Cualquier miembro que haya iniciado sesión con un método diferente deberá volver a autenticarse usando SAML.',
             enableError: 'No se pudo actualizar la configuración de habilitación de SAML',
             requireError: 'No se pudo actualizar la configuración de requerimiento de SAML',
+            disableSamlRequired: 'Deshabilitar requisito de SAML',
+            oktaWarningPrompt: '¿Estás seguro? Esto también deshabilitará Okta SCIM.',
         },
         samlConfigurationDetails: {
             title: 'Detalles de configuración de SAML',

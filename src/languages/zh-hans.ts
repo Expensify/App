@@ -7558,6 +7558,8 @@ ${
             anyMemberWillBeRequired: '使用不同方式登录的任何成员将被要求使用 SAML 重新进行身份验证。',
             enableError: '无法更新 SAML 启用设置',
             requireError: '无法更新 SAML 要求设置',
+            disableSamlRequired: '禁用 SAML 要求',
+            oktaWarningPrompt: '你确定吗？这也会禁用 Okta SCIM。',
         },
         samlConfigurationDetails: {
             title: 'SAML 配置详细信息',

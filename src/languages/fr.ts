@@ -7775,6 +7775,8 @@ ${
             anyMemberWillBeRequired: 'Tout membre connecté avec une autre méthode devra se réauthentifier via SAML.',
             enableError: 'Impossible de mettre à jour le paramètre d’activation SAML',
             requireError: 'Impossible de mettre à jour le paramètre d’exigence SAML',
+            disableSamlRequired: 'Désactiver SAML requis',
+            oktaWarningPrompt: 'Êtes-vous sûr ? Cela désactivera également Okta SCIM.',
         },
         samlConfigurationDetails: {
             title: 'Détails de la configuration SAML',

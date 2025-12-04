@@ -7715,6 +7715,8 @@ ${
             anyMemberWillBeRequired: 'Każdy członek, który zalogował się inną metodą, będzie musiał ponownie się uwierzytelnić za pomocą SAML.',
             enableError: 'Nie udało się zaktualizować ustawienia włączenia SAML',
             requireError: 'Nie udało się zaktualizować ustawienia wymogu SAML',
+            disableSamlRequired: 'Wyłącz wymóg SAML',
+            oktaWarningPrompt: 'Czy na pewno? To również wyłączy Okta SCIM.',
         },
         samlConfigurationDetails: {
             title: 'Szczegóły konfiguracji SAML',
