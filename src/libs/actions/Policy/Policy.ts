@@ -487,8 +487,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
 
     const finallyData: OnyxUpdate[] = [];
     const currentTime = DateUtils.getDBTime();
-    // eslint-disable-next-line unicorn/no-array-for-each
-    reportsToArchive.forEach((report) => {
+    for (const report of reportsToArchive) {
         const {reportID, ownerAccountID, oldPolicyName} = report ?? {};
         const isInvoiceReceiverReport = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver && report.invoiceReceiver.policyID === policyID;
         optimisticData.push({
@@ -577,14 +576,13 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
                 value: transactionViolation,
             });
         }
-    });
+    }
 
-    // eslint-disable-next-line unicorn/no-array-for-each
-    Object.keys(lastUsedPaymentMethods ?? {})?.forEach((paymentMethodKey) => {
+    for (const paymentMethodKey of Object.keys(lastUsedPaymentMethods ?? {})) {
         const lastUsedPaymentMethod = lastUsedPaymentMethods?.[paymentMethodKey];
 
         if (typeof lastUsedPaymentMethod === 'string' || !lastUsedPaymentMethod) {
-            return;
+            continue;
         }
 
         if (lastUsedPaymentMethod?.iou?.name === policyID) {
@@ -618,8 +616,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
                 },
             });
         }
-    });
-
+    }
     const apiParams: DeleteWorkspaceParams = {policyID};
 
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE, apiParams, {optimisticData, finallyData, failureData});
@@ -1087,13 +1084,12 @@ function leaveWorkspace(policyID?: string) {
     const currentTime = DateUtils.getDBTime();
     const pendingChatMembers = ReportUtils.getPendingChatMembers([deprecatedSessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-    // eslint-disable-next-line unicorn/no-array-for-each
-    workspaceChats.forEach((report) => {
+    for (const report of workspaceChats) {
         const parentReport = ReportUtils.getRootParentReport({report});
         const reportToCheckOwner = isEmptyObject(parentReport) ? report : parentReport;
 
         if (ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isReportOwner(reportToCheckOwner)) {
-            return;
+            continue;
         }
 
         optimisticData.push(
@@ -1145,7 +1141,7 @@ function leaveWorkspace(policyID?: string) {
                 pendingChatMembers: null,
             },
         });
-    });
+    }
 
     const params: LeavePolicyParams = {
         policyID,
@@ -1303,8 +1299,7 @@ function createPolicyExpenseChats(
         reportCreationData: {},
     };
 
-    // eslint-disable-next-line unicorn/no-array-for-each
-    Object.keys(invitedEmailsToAccountIDs).forEach((email) => {
+    for (const email of Object.keys(invitedEmailsToAccountIDs)) {
         const accountID = invitedEmailsToAccountIDs[email];
         const cleanAccountID = Number(accountID);
         const login = PhoneNumber.addSMSDomainIfPhoneNumber(email);
@@ -1334,10 +1329,9 @@ function createPolicyExpenseChats(
             });
             const currentTime = DateUtils.getDBTime();
             const reportActions = deprecatedAllReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChat.reportID}`] ?? {};
-            // eslint-disable-next-line unicorn/no-array-for-each
-            Object.values(reportActions).forEach((action) => {
+            for (const action of Object.values(reportActions)) {
                 if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-                    return;
+                    continue;
                 }
                 workspaceMembersChats.onyxOptimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -1353,8 +1347,8 @@ function createPolicyExpenseChats(
                         private_isArchived: currentTime,
                     },
                 });
-            });
-            return;
+            }
+            continue;
         }
         const optimisticReport = ReportUtils.buildOptimisticChatReport({
             participantList: [deprecatedSessionAccountID, cleanAccountID],
@@ -1458,7 +1452,7 @@ function createPolicyExpenseChats(
                 },
             },
         });
-    });
+    }
     return workspaceMembersChats;
 }
 
@@ -2425,30 +2419,27 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     }
 
     if (getAdminPolicies().length === 0 && lastUsedPaymentMethod) {
-        Object.values(deprecatedAllReports ?? {})
-            .filter((iouReport) => iouReport?.type === CONST.REPORT.TYPE.IOU)
-            // eslint-disable-next-line unicorn/no-array-for-each
-            .forEach((iouReport) => {
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                if (lastUsedPaymentMethod?.iou?.name || !iouReport?.policyID) {
-                    return;
-                }
+        for (const report of Object.values(deprecatedAllReports ?? {})) {
+            if (report?.type !== CONST.REPORT.TYPE.IOU) {
+                continue;
+            }
 
-                successData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-                    value: {
-                        [iouReport?.policyID]: {
-                            iou: {
-                                name: policyID,
-                            },
-                            lastUsed: {
-                                name: policyID,
-                            },
+            if (lastUsedPaymentMethod?.iou?.name || !report?.policyID) {
+                continue;
+            }
+
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+                value: {
+                    [report?.policyID]: {
+                        iou: {
+                            name: policyID,
                         },
                     },
-                });
+                },
             });
+        }
     }
 
     // We need to clone the file to prevent non-indexable errors.
@@ -3780,8 +3771,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
     // For performance reasons, we are going to compose a merge collection data for transactions
     const transactionsOptimisticData: Record<string, Transaction> = {};
     const transactionFailureData: Record<string, Transaction> = {};
-    // eslint-disable-next-line unicorn/no-array-for-each
-    reportTransactions.forEach((transaction) => {
+    for (const transaction of reportTransactions) {
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
             amount: -transaction.amount,
@@ -3789,7 +3779,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         };
 
         transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
-    });
+    }
 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -6209,8 +6199,9 @@ function clearAllPolicies() {
     if (!deprecatedAllPolicies) {
         return;
     }
-    // eslint-disable-next-line unicorn/no-array-for-each
-    Object.keys(deprecatedAllPolicies).forEach((key) => delete deprecatedAllPolicies[key]);
+    for (const key of Object.keys(deprecatedAllPolicies)) {
+        delete deprecatedAllPolicies[key];
+    }
 }
 
 function updateInvoiceCompanyName(policyID: string, companyName: string) {
