@@ -117,14 +117,18 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                     });
                                 },
                                 hasDependentTags,
-                                translate
+                                translate,
                             );
                         } else {
-                            downloadTagsCSV(policyID, () => {
-                                close(() => {
-                                    setIsDownloadFailureModalVisible(true);
-                                });
-                            }, translate);
+                            downloadTagsCSV(
+                                policyID,
+                                () => {
+                                    close(() => {
+                                        setIsDownloadFailureModalVisible(true);
+                                    });
+                                },
+                                translate,
+                            );
                         }
                     }}
                 >
@@ -150,14 +154,18 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                 });
                             },
                             hasDependentTags,
-                            translate
+                            translate,
                         );
                     } else {
-                        downloadTagsCSV(policyID, () => {
-                            close(() => {
-                                setIsDownloadFailureModalVisible(true);
-                            });
-                        }, translate);
+                        downloadTagsCSV(
+                            policyID,
+                            () => {
+                                close(() => {
+                                    setIsDownloadFailureModalVisible(true);
+                                });
+                            },
+                            translate,
+                        );
                     }
                 }}
             >

@@ -2,6 +2,7 @@ import lodashCloneDeep from 'lodash/cloneDeep';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type PolicyData from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
 import type {
@@ -36,7 +37,6 @@ import type {Policy, PolicyCategories, PolicyCategory, Report, ReportAction} fro
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type { LocalizedTranslate } from '@components/LocaleContextProvider';
 
 function appendSetupCategoriesOnboardingData(
     onyxData: OnyxData,
