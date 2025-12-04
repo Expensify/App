@@ -1,6 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import type {BaseInvertedFlatListProps} from './BaseInvertedFlatList';
@@ -8,10 +9,11 @@ import CellRendererComponent from './CellRendererComponent';
 
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
 // It's a HACK alert since FlatList has inverted scrolling on web
-function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, ref, ...props}: BaseInvertedFlatListProps<T>) {
+function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, shouldHideContent = false, ref, ...props}: BaseInvertedFlatListProps<T>) {
     const lastScrollEvent = useRef<number | null>(null);
     const scrollEndTimeout = useRef<NodeJS.Timeout | null>(null);
     const updateInProgress = useRef<boolean>(false);
+    const styles = useThemeStyles();
 
     useEffect(
         () => () => {
@@ -89,6 +91,7 @@ function InvertedFlatList<T>({onScroll: onScrollProp = () => {}, ref, ...props}:
             ref={ref}
             onScroll={handleScroll}
             CellRendererComponent={CellRendererComponent}
+            contentContainerStyle={[props.contentContainerStyle, shouldHideContent ? styles.visibilityHidden : styles.visibilityVisible]}
         />
     );
 }
