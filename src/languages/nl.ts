@@ -2541,13 +2541,13 @@ ${amount} voor ${merchant} - ${date}`,
                         4. Zoek ${integrationName}.
                         5. Klik op *Verbinden*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Breng me naar de boekhouding](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Breng me naar de boekhouding](${workspaceAccountingLink}).
 
-                                      ![Verbinding maken met ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Breng me naar de boekhouding](${workspaceAccountingLink}).`
-}`),
+                        ![Verbinding maken met ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Breng me naar de boekhouding](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Koppel [je bedrijfskaarten](${corporateCardLink})`,
@@ -5964,7 +5964,7 @@ ${
                     expense: 'Individuele uitgave',
                     expenseSubtitle: 'Markeer onkostbedragen per categorie. Deze regel overschrijft de algemene werkruimte-regel voor het maximale onkostbedrag.',
                     daily: 'Categorietotaal',
-                    dailySubtitle: 'Vlag totale categorie-uitgaven per onkostennota.',
+                    dailySubtitle: 'Vlag totale categorie-uitgaven per dag per onkostennota.',
                 },
                 requireReceiptsOver: 'Vereis bonnen boven',
                 requireReceiptsOverList: {
@@ -6626,6 +6626,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Uitgave aanmaken',
             createReport: 'Rapport maken',
             chooseWorkspace: 'Kies een werkruimte voor dit rapport.',
             emptyReportConfirmationTitle: 'Je hebt al een leeg rapport',
@@ -7723,6 +7724,8 @@ ${
             anyMemberWillBeRequired: 'Elk lid dat met een andere methode is aangemeld, moet zich opnieuw authenticeren via SAML.',
             enableError: 'Kon de instelling voor SAML-inschakeling niet bijwerken',
             requireError: 'Kan SAML-vereiste-instelling niet bijwerken',
+            disableSamlRequired: 'SAML vereist uitschakelen',
+            oktaWarningPrompt: 'Weet je het zeker? Dit schakelt ook Okta SCIM uit.',
         },
         samlConfigurationDetails: {
             title: 'SAML-configuratiedetails',

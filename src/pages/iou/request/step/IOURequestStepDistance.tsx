@@ -445,6 +445,7 @@ function IOURequestStepDistance({
         personalPolicy?.autoReporting,
         reportID,
         transactionViolations,
+        currentUserPersonalDetails.accountID,
     ]);
 
     const getError = () => {

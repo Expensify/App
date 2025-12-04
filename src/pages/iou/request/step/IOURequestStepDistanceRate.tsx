@@ -16,7 +16,15 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceRateCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isReportInGroupPolicy} from '@libs/ReportUtils';
-import {calculateTaxAmount, getCurrency, getDistanceInMeters, getRateID, getTaxValue, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
+import {
+    calculateTaxAmount,
+    getCurrency,
+    getDefaultTaxCode,
+    getDistanceInMeters,
+    getRateID,
+    getTaxValue,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
+} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -93,7 +101,9 @@ function IOURequestStepDistanceRate({
         let taxRateExternalID;
         if (shouldShowTax) {
             const policyCustomUnitRate = getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID;
+            const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID || defaultTaxCode;
             const unit = DistanceRequestUtils.getDistanceUnit(transaction, rates[customUnitRateID]);
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(transaction, unit));
             const taxPercentage = taxRateExternalID ? getTaxValue(policy, transaction, taxRateExternalID) : undefined;

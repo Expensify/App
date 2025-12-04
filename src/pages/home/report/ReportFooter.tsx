@@ -94,6 +94,7 @@ function ReportFooter({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetail = useCurrentUserPersonalDetails();
 
