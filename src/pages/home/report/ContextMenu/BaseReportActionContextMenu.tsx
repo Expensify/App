@@ -427,6 +427,7 @@ function BaseReportActionContextMenu({
     );
 }
 
+// eslint-disable-next-line rulesdir/no-deep-equal-in-memo
 export default memo(BaseReportActionContextMenu, deepEqual);
 
 export type {BaseReportActionContextMenuProps};
