@@ -213,9 +213,9 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     </OfflineWithFeedback>
                 ))}
                 <ToggleSettingOptionRow
-                    title="Require company cards for all purchases"
-                    subtitle="Flag all cash spend, including mileage and per-diem expenses."
-                    switchAccessibilityLabel="Require company cards for all purchases"
+                    title={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    subtitle={translate('workspace.rules.individualExpenseRules.requireCompanyCardDescription')}
+                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
                     disabled={disableRequireCompanyCardToggle}
                     showLockIcon={disableRequireCompanyCardToggle}
                     wrapperStyle={[styles.mt3]}

@@ -6027,6 +6027,8 @@ const translations = {
                 gambling: 'Gambling',
                 tobacco: 'Tobacco',
                 adultEntertainment: 'Adult entertainment',
+                requireCompanyCard: 'Require company cards for all purchases',
+                requireCompanyCardDescription: 'Flag all cash spend, including mileage and per-diem expenses.',
             },
             expenseReportRules: {
                 title: 'Expense reports',

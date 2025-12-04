@@ -5707,6 +5707,8 @@ ${amount} para ${merchant} - ${date}`,
                 gambling: 'Juegos de apuestas',
                 tobacco: 'Tabaco',
                 adultEntertainment: 'Entretenimiento para adultos',
+                requireCompanyCard: 'Requerir tarjetas de la empresa para todas las compras',
+                requireCompanyCardDescription: 'Marcar todo gasto en efectivo, incluyendo kilometraje y gastos de viáticos.',
             },
             expenseReportRules: {
                 title: 'Informes de gastos',
