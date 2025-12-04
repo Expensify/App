@@ -128,7 +128,6 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import {KYCWallContext} from './KYCWall/KYCWallContext';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
@@ -227,6 +226,7 @@ function MoneyReportHeader({
         'Export',
         'Document',
         'Feed',
+        'Close',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
@@ -1645,7 +1645,7 @@ function MoneyReportHeader({
                         wrapperStyle={[styles.pAbsolute, styles.r0]}
                     >
                         <Icon
-                            src={Expensicons.Close}
+                            src={expensifyIcons.Close}
                             fill={theme.icon}
                         />
                     </PressableWithFeedback>
