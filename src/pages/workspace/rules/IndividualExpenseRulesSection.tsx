@@ -173,6 +173,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     });
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
+    const requireCompanyCardsEnabled = policy?.requireCompanyCards ?? false;
 
     // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
     // Control policies if the policy does not contain the attribute
@@ -215,6 +216,8 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     wrapperStyle={[styles.mt3]}
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
+                    isActive={requireCompanyCardsEnabled}
+
                     // isActive={areEReceiptsEnabled}
                     // disabled={policyCurrency !== CONST.CURRENCY.USD}
                     // onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
