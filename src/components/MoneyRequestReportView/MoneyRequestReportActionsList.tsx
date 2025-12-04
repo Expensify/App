@@ -14,6 +14,7 @@ import Checkbox from '@components/Checkbox';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
@@ -52,7 +53,14 @@ import {
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
+import {
+    canUserPerformWriteAction,
+    chatIncludesChronosWithID,
+    getOriginalReportID,
+    getReportLastVisibleActionCreated,
+    getReportOfflinePendingActionAndErrors,
+    isUnread,
+} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
@@ -138,6 +146,7 @@ function MoneyRequestReportActionsList({
     // wrapped in useMemo to avoid unnecessary re-renders and improve performance
     const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {canBeMissing: true});
+    const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
 
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
@@ -664,44 +673,46 @@ function MoneyRequestReportActionsList({
         >
             {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
                 <>
-                    <ButtonWithDropdownMenu
-                        onPress={() => null}
-                        options={selectedTransactionsOptions}
-                        customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
-                        isSplitButton={false}
-                        shouldAlwaysShowDropdownMenu
-                        wrapperStyle={[styles.w100, styles.ph5]}
-                    />
-                    <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
-                        <Checkbox
-                            accessibilityLabel={translate('workspace.people.selectAll')}
-                            isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
-                            onPress={() => {
-                                if (selectedTransactionIDs.length !== 0) {
-                                    clearSelectedTransactions(true);
-                                } else {
-                                    setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                                }
-                            }}
+                    <OfflineWithFeedback pendingAction={reportPendingAction}>
+                        <ButtonWithDropdownMenu
+                            onPress={() => null}
+                            options={selectedTransactionsOptions}
+                            customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
+                            isSplitButton={false}
+                            shouldAlwaysShowDropdownMenu
+                            wrapperStyle={[styles.w100, styles.ph5]}
                         />
-                        <PressableWithFeedback
-                            style={[styles.userSelectNone, styles.alignItemsCenter]}
-                            onPress={() => {
-                                if (isSelectAllChecked) {
-                                    clearSelectedTransactions(true);
-                                } else {
-                                    setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                                }
-                            }}
-                            accessibilityLabel={translate('workspace.people.selectAll')}
-                            role="button"
-                            accessibilityState={{checked: isSelectAllChecked}}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                        >
-                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                        </PressableWithFeedback>
-                    </View>
+                        <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
+                            <Checkbox
+                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                isChecked={isSelectAllChecked}
+                                isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
+                                onPress={() => {
+                                    if (selectedTransactionIDs.length !== 0) {
+                                        clearSelectedTransactions(true);
+                                    } else {
+                                        setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
+                                    }
+                                }}
+                            />
+                            <PressableWithFeedback
+                                style={[styles.userSelectNone, styles.alignItemsCenter]}
+                                onPress={() => {
+                                    if (isSelectAllChecked) {
+                                        clearSelectedTransactions(true);
+                                    } else {
+                                        setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
+                                    }
+                                }}
+                                accessibilityLabel={translate('workspace.people.selectAll')}
+                                role="button"
+                                accessibilityState={{checked: isSelectAllChecked}}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            >
+                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                            </PressableWithFeedback>
+                        </View>
+                    </OfflineWithFeedback>
                     <ConfirmModal
                         title={translate('iou.deleteExpense', {count: selectedTransactionIDs.length})}
                         isVisible={isDeleteModalVisible}
