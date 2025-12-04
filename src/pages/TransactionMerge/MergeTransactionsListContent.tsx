@@ -46,9 +46,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: M
 
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
     const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction, hash});
-    const [originalTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionReport?.policyID}`, {canBeMissing: true});
-    const [originalSourceTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
 
     useEffect(() => {
         // If the eligible transactions are already loaded, don't fetch them again
@@ -113,11 +111,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: M
             return;
         }
 
-        const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionsForMerge(
-            targetTransaction,
-            sourceTransaction,
-            originalSourceTransaction,
-        );
+        const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionsForMerge(targetTransaction, sourceTransaction);
         if (shouldNavigateToReceiptReview([newTargetTransaction, newSourceTransaction])) {
             setMergeTransactionKey(transactionID, {
                 targetTransactionID: newTargetTransaction?.transactionID,
@@ -132,7 +126,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: M
                 receipt: mergedReceipt,
             });
 
-            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction, originalTargetTransaction, localeCompare);
+            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction, localeCompare);
             if (!conflictFields.length) {
                 // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
                 setMergeTransactionKey(transactionID, mergeableData);
@@ -141,7 +135,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: M
             }
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         }
-    }, [transactionID, targetTransaction, sourceTransaction, originalSourceTransaction, originalTargetTransaction, localeCompare]);
+    }, [transactionID, targetTransaction, sourceTransaction, localeCompare]);
 
     const confirmButtonOptions = useMemo(
         () => ({

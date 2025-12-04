@@ -193,16 +193,10 @@ function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
  * Get mergeableData data if one is missing, and conflict fields that need to be resolved by the user
  * @param targetTransaction - The target transaction
  * @param sourceTransaction - The source transaction
- * @param originalTargetTransaction - The original transaction of target transaction
  * @param localeCompare - The localize compare function
  * @returns mergeableData and conflictFields
  */
-function getMergeableDataAndConflictFields(
-    targetTransaction: OnyxEntry<Transaction>,
-    sourceTransaction: OnyxEntry<Transaction>,
-    originalTargetTransaction: OnyxEntry<Transaction>,
-    localeCompare: (a: string, b: string) => number,
-) {
+function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, localeCompare: (a: string, b: string) => number) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
 
@@ -220,7 +214,7 @@ function getMergeableDataAndConflictFields(
             // If target transaction is a card or split expense, always preserve the target transaction's amount and currency
             // Card takes precedence over split expense
             // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
-            const isTargetExpenseSplit = isExpenseSplit(targetTransaction, originalTargetTransaction);
+            const isTargetExpenseSplit = isExpenseSplit(targetTransaction);
             if (isManagedCardTransaction(targetTransaction) || isTargetExpenseSplit) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
@@ -362,14 +356,14 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
 /**
  * Determines whether two transactions can be merged together.
  */
-function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, transaction2: OnyxEntry<Transaction>, originalTransaction1?: Transaction, originalTransaction2?: Transaction) {
+function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, transaction2: OnyxEntry<Transaction>) {
     // Do not allow merging two card transactions
     if (isManagedCardTransaction(transaction1) && isManagedCardTransaction(transaction2)) {
         return false;
     }
 
     // Do not allow merging two split expenses
-    if (isExpenseSplit(transaction1, originalTransaction1) && isExpenseSplit(transaction2, originalTransaction2)) {
+    if (isExpenseSplit(transaction1) && isExpenseSplit(transaction2)) {
         return false;
     }
 
@@ -405,13 +399,12 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
  *
  * @param targetTransaction - The transaction where the merge action is started from
  * @param sourceTransaction - The selected transaction to be merged with the target transaction
- * @param originalSourceTransaction - The original transaction of the source transaction
  * @returns An object containing the determined targetTransaction and sourceTransaction
  */
-function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, originalSourceTransaction?: OnyxEntry<Transaction>) {
+function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>) {
     // If target transaction is a card or split expense, always preserve the target transaction
     // Card takes precedence over split expense
-    if (isManagedCardTransaction(sourceTransaction) || (isExpenseSplit(sourceTransaction, originalSourceTransaction) && !isManagedCardTransaction(targetTransaction))) {
+    if (isManagedCardTransaction(sourceTransaction) || (isExpenseSplit(sourceTransaction) && !isManagedCardTransaction(targetTransaction))) {
         return {targetTransaction: sourceTransaction, sourceTransaction: targetTransaction};
     }
 
