@@ -4677,7 +4677,6 @@ function canEditMultipleTransactions(selectedTransactions: Transaction[]): boole
         return false;
     }
 
-    // Iterate through selected transactions and check if at least one field is editable for at least one transaction
     for (const transaction of selectedTransactions) {
         const reportAction = getIOUActionForTransactionID(Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {}), transaction.transactionID);
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];

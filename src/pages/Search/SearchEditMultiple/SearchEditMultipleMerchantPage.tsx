@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -12,9 +12,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {isValidInputLength} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
+import INPUT_IDS from '@src/types/form/SearchEditMultipleMerchantForm';
 
 function SearchEditMultipleMerchantPage() {
     const {translate} = useLocalize();
@@ -24,8 +25,25 @@ function SearchEditMultipleMerchantPage() {
 
     const currentMerchant = draftTransaction?.merchant ?? '';
 
-    const saveMerchant = useCallback((value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
-        const newMerchant = value.moneyRequestMerchant.trim();
+    const validate = useCallback(
+        (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM> => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM> = {};
+            const {isValid, byteLength} = isValidInputLength(value.merchant ?? '', CONST.MERCHANT_NAME_MAX_BYTES);
+
+            if (!isValid) {
+                errors.merchant = translate('common.error.characterLimitExceedCounter', {
+                    length: byteLength,
+                    limit: CONST.MERCHANT_NAME_MAX_BYTES,
+                });
+            }
+
+            return errors;
+        },
+        [translate],
+    );
+
+    const saveMerchant = useCallback((value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM>) => {
+        const newMerchant = value.merchant?.trim() ?? '';
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
             merchant: newMerchant,
         });
@@ -44,21 +62,23 @@ function SearchEditMultipleMerchantPage() {
             />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM}
+                formID={ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM}
                 onSubmit={saveMerchant}
+                validate={validate}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={INPUT_IDS.MONEY_REQUEST_MERCHANT}
-                        name={INPUT_IDS.MONEY_REQUEST_MERCHANT}
+                        inputID={INPUT_IDS.MERCHANT}
+                        name={INPUT_IDS.MERCHANT}
                         defaultValue={currentMerchant}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
+                        shouldSubmitForm
                     />
                 </View>
             </FormProvider>

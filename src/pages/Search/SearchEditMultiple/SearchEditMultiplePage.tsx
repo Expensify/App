@@ -117,7 +117,6 @@ function SearchEditMultiplePage() {
     }, [draftTransaction?.comment?.attendees]);
 
     const fields = useMemo(() => {
-        // TODO: Check policy fields to show only enabled ones
         const allFields = [
             {
                 description: translate('iou.amount'),
@@ -162,7 +161,6 @@ function SearchEditMultiplePage() {
         ];
 
         return allFields;
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [draftTransaction, translate, currency, attendeesTitle]);
 
     return (

@@ -12,9 +12,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/MoneyRequestDescriptionForm';
+import INPUT_IDS from '@src/types/form/SearchEditMultipleDescriptionForm';
 
 function SearchEditMultipleDescriptionPage() {
     const {translate} = useLocalize();
@@ -24,8 +25,8 @@ function SearchEditMultipleDescriptionPage() {
 
     const currentDescription = draftTransaction?.comment?.comment ?? '';
 
-    const saveDescription = useCallback((value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
-        const newDescription = value.moneyRequestComment.trim();
+    const saveDescription = useCallback((value: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM>) => {
+        const newDescription = value.description?.trim() ?? '';
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
             comment: {comment: newDescription},
         });
@@ -44,22 +45,25 @@ function SearchEditMultipleDescriptionPage() {
             />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
+                formID={ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DESCRIPTION_FORM}
                 onSubmit={saveDescription}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
                     <InputWrapper
+                        valueType="string"
                         InputComponent={TextInput}
-                        inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
-                        name={INPUT_IDS.MONEY_REQUEST_COMMENT}
+                        inputID={INPUT_IDS.DESCRIPTION}
+                        name={INPUT_IDS.DESCRIPTION}
                         defaultValue={currentDescription}
                         label={translate('common.description')}
                         accessibilityLabel={translate('common.description')}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                         autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                        shouldSubmitForm
                     />
                 </View>
             </FormProvider>
