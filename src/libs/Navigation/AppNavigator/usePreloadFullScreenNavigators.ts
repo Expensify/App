@@ -127,14 +127,20 @@ function usePreloadFullScreenNavigators() {
             }
             hasPreloadedRef.current = true;
             setTimeout(() => {
-                const tabsToPreload = TABS_TO_PRELOAD.filter((tabName) => {
+                for (const tabName of TABS_TO_PRELOAD) {
+                    // Don't preload the current tab
                     const isCurrentTab = TAB_TO_FULLSCREEN[tabName].includes(route.name as FullScreenName);
+                    if (isCurrentTab) {
+                        continue;
+                    }
+
+                    // Don't preload tabs that are already preloaded
                     const isRouteAlreadyPreloaded = preloadedRoutes.some((preloadedRoute) => TAB_TO_FULLSCREEN[tabName].includes(preloadedRoute.name as FullScreenName));
+                    if (isRouteAlreadyPreloaded) {
+                        continue;
+                    }
 
-                    return !isCurrentTab && !isRouteAlreadyPreloaded;
-                });
-
-                for (const tabName of tabsToPreload) {
+                    // Preload everything else
                     preloadTab(tabName, navigation, subscriptionPlan);
                 }
             }, TIMING_TO_CALL_PRELOAD);

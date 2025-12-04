@@ -168,8 +168,10 @@ export default {
      * @param shouldClearNotification a function that receives notification.data and returns true/false if the notification should be cleared
      */
     clearNotifications(shouldClearNotification: (notificationData: LocalNotificationData) => boolean) {
-        const notificationsToClear = Object.values(notificationCache).filter((notification) => shouldClearNotification(notification.data as LocalNotificationData));
-        for (const notification of notificationsToClear) {
+        for (const notification of Object.values(notificationCache)) {
+            if (!shouldClearNotification(notification.data as LocalNotificationData)) {
+                continue;
+            }
             notification.close();
         }
     },

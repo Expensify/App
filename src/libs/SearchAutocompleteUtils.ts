@@ -27,9 +27,14 @@ function parseForAutocomplete(text: string) {
  */
 function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>) {
     const uniqueTagNames = new Set<string>();
-    const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item);
-    for (const tag of tagListsUnpacked.map(getTagNamesFromTagsLists).flat()) {
-        uniqueTagNames.add(tag);
+    for (const tagList of Object.values(allPoliciesTagsLists ?? {})) {
+        if (!tagList) {
+            continue;
+        }
+        const tagNamesFromTagsLists = getTagNamesFromTagsLists(tagList);
+        for (const tag of tagNamesFromTagsLists) {
+            uniqueTagNames.add(tag);
+        }
     }
     return Array.from(uniqueTagNames);
 }
@@ -39,10 +44,12 @@ function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
  */
 function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTags>) {
     const uniqueTagNames = new Set<string>();
-    for (const tag of Object.values(allRecentTags ?? {})
-        .map((recentTag) => Object.values(recentTag ?? {}))
-        .flat(2)) {
-        uniqueTagNames.add(tag);
+    for (const recentTagsForPolicy of Object.values(allRecentTags ?? {})) {
+        for (const recentTags of Object.values(recentTagsForPolicy ?? {})) {
+            for (const tag of recentTags) {
+                uniqueTagNames.add(tag);
+            }
+        }
     }
     return Array.from(uniqueTagNames);
 }
@@ -52,12 +59,11 @@ function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTag
  */
 function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCategories>) {
     const uniqueCategoryNames = new Set<string>();
-    const categories = Object.values(allPolicyCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
-
-    for (const category of categories) {
-        uniqueCategoryNames.add(category.name);
+    for (const policyCategories of Object.values(allPolicyCategories ?? {})) {
+        for (const category of Object.values(policyCategories ?? {})) {
+            uniqueCategoryNames.add(category.name);
+        }
     }
-
     return Array.from(uniqueCategoryNames);
 }
 
@@ -66,12 +72,11 @@ function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCat
  */
 function getAutocompleteRecentCategories(allRecentCategories: OnyxCollection<RecentlyUsedCategories>) {
     const uniqueCategoryNames = new Set<string>();
-    const categories = Object.values(allRecentCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
-
-    for (const category of categories) {
-        uniqueCategoryNames.add(category);
+    for (const recentCategories of Object.values(allRecentCategories ?? {})) {
+        for (const category of Object.values(recentCategories ?? {})) {
+            uniqueCategoryNames.add(category);
+        }
     }
-
     return Array.from(uniqueCategoryNames);
 }
 
