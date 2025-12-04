@@ -124,7 +124,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
     const validate = useCallback(() => selectedOptions.length > 0, [selectedOptions.length]);
 
     const reportID = report.reportID;
-    const reportName = useMemo(() => getGroupChatName(formatPhoneNumber, undefined, true, report), [report]);
+    const reportName = useMemo(() => getGroupChatName(formatPhoneNumber, undefined, true, report), [formatPhoneNumber, report]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.REPORT_PARTICIPANTS.getRoute(reportID, route.params.backTo));
