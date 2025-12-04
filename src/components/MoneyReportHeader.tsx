@@ -5,7 +5,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import * as Expensicons from '@components/Icon/Expensicons';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
@@ -129,6 +128,7 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
 import {KYCWallContext} from './KYCWall/KYCWallContext';
 import type {PaymentMethod} from './KYCWall/types';
 import LoadingBar from './LoadingBar';
@@ -316,6 +316,7 @@ function MoneyReportHeader({
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
     const transactionIDs = useMemo(() => transactions?.map((t) => t.transactionID) ?? [], [transactions]);
+    // eslint-disable-next-line rulesdir/no-negated-variables
     const canTriggerAutomaticPDFDownload = useRef(false);
     const hasFinishedPDFDownload = reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
 
@@ -326,11 +327,12 @@ function MoneyReportHeader({
     const messagePDF = useMemo(() => {
         if (reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
             return translate('reportDetailsPage.errorPDF');
-        } else if (!hasFinishedPDFDownload) {
+        }
+        if (!hasFinishedPDFDownload) {
             return translate('reportDetailsPage.waitForPDF');
         }
         return translate('reportDetailsPage.successPDF');
-    }, [reportPDFFilename, translate]);
+    }, [reportPDFFilename, hasFinishedPDFDownload, translate]);
 
     // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
     // wrapped in useMemo to avoid unnecessary re-renders and for better performance (array operation inside of function)
@@ -1332,7 +1334,7 @@ function MoneyReportHeader({
         }
         downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '');
         canTriggerAutomaticPDFDownload.current = false;
-    }, [hasFinishedPDFDownload]);
+    }, [hasFinishedPDFDownload, reportPDFFilename, moneyRequestReport?.reportName]);
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
@@ -1628,7 +1630,7 @@ function MoneyReportHeader({
                                 if (!hasFinishedPDFDownload) {
                                     setIsPDFModalVisible(false);
                                 } else {
-                                    downloadReportPDF(reportPDFFilename!, moneyRequestReport?.reportName ?? '');
+                                    downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '');
                                 }
                             }}
                             text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
