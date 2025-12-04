@@ -11,6 +11,7 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
+import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {NetworkStatus} from '@libs/NetworkConnection';
@@ -192,6 +193,13 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const internalNewExpensifyPath = getInternalNewExpensifyPath(href);
     const internalExpensifyPath = getInternalExpensifyPath(href);
 
+    // Check if RHP is currently open
+    const currentState = navigationRef.getRootState();
+    const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+
+    // Check if the destination route will also open in RHP
+    const willOpenInRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
+
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
     // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
     // clicking on the link will open the chat in NewDot. However, when a user is in NewDot and clicks on the concierge link, the link needs to be handled differently.
@@ -200,6 +208,9 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     if (hasExpensifyOrigin && href.indexOf('newdotreport?reportID=') > -1) {
         const reportID = href.split('newdotreport?reportID=').pop();
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
+        if (isRHPOpen && !willOpenInRHP) {
+            Navigation.closeRHPFlow();
+        }
         Navigation.navigate(reportRoute);
         return;
     }
@@ -210,6 +221,9 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
         if (isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
             signOutAndRedirectToSignIn();
             return;
+        }
+        if (isRHPOpen && !willOpenInRHP) {
+            Navigation.closeRHPFlow();
         }
         Navigation.navigate(internalNewExpensifyPath as Route);
         return;
