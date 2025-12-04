@@ -67,19 +67,23 @@ function WorkspaceInviteMessageComponent({
     const {translate, formatPhoneNumber} = useLocalize();
     const policyName = policy?.name;
 
+    const isExpensesFromRoute = useMemo(() => {
+        return typeof backTo === 'string' && (backTo as string).includes(CONST.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM_ROUTE);
+    }, [backTo]);
+
     const headerTitle = useMemo(() => {
-        if (backTo && typeof backTo === 'string' && backTo.includes('expenses-from')) {
+        if (isExpensesFromRoute) {
             return translate('workflowsExpensesFromPage.title');
         }
         return translate('workspace.inviteMessage.confirmDetails');
-    }, [backTo, translate]);
+    }, [isExpensesFromRoute, translate]);
 
     const subtitle = useMemo(() => {
-        if (backTo && typeof backTo === 'string' && backTo.includes('expenses-from')) {
+        if (isExpensesFromRoute) {
             return undefined;
         }
         return policyName;
-    }, [backTo, policyName]);
+    }, [isExpensesFromRoute, policyName]);
 
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
@@ -162,8 +166,8 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        // If backTo is provided and it's not the members page, navigate back to it
-        if (backTo && !(backTo as string).endsWith('members')) {
+        // If backTo is provided and it's the expenses-from route, navigate back to it
+        if (isExpensesFromRoute) {
             // Just go back in the navigation stack instead of dismissing and navigating
             // This preserves the RHP and keeps the members selected
             Navigation.goBack();
@@ -236,7 +240,7 @@ function WorkspaceInviteMessageComponent({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {(isInviteNewMemberStep || !!(backTo && typeof backTo === 'string' && backTo.includes('expenses-from'))) && (
+                    {(isInviteNewMemberStep || isExpensesFromRoute) && (
                         <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>
                     )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>

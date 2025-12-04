@@ -43,8 +43,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
 
     const excludedUsers = useMemo(() => {
-        const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
-        return ineligibleInvites.reduce(
+        const ineligibleInvitees = getIneligibleInvitees(policy?.employeeList);
+        return ineligibleInvitees.reduce(
             (acc, login) => {
                 acc[login] = true;
                 return acc;
@@ -67,14 +67,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         includeRecentReports: true,
         shouldInitialize: true,
     });
-
-    // Sync search term from ApproverSelectionList to useSearchSelector
-    const handleSearchChange = useCallback(
-        (term: string) => {
-            setSearchSelectorTerm(term);
-        },
-        [setSearchSelectorTerm],
-    );
 
     useEffect(() => {
         searchInServer(searchSelectorTerm);
@@ -129,9 +121,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             }),
         );
     }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate]);
-
-    // Note: We don't auto-navigate to the approver page after returning from invite
-    // The user should stay on this page to see their selected members and click "Next" manually
 
     const approversEmail = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email), [approvalWorkflow?.approvers]);
     const allApprovers = useMemo(() => {
@@ -216,7 +205,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         approversEmail,
         debouncedSearchTerm,
         areOptionsInitialized,
-        availableOptions,
+        availableOptions.userToInvite,
+        availableOptions.recentReports,
+        availableOptions.personalDetails,
     ]);
 
     const goBack = useCallback(() => {
@@ -248,6 +239,12 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             }
         }
 
+        // Ensure avatars are only strings (URLs) or undefined, never React components
+        const normalizedExistingMembers: Member[] = existingMembers.map((member) => ({
+            ...member,
+            avatar: typeof member.avatar === 'string' ? member.avatar : undefined,
+        }));
+
         // If there are users to invite, navigate to invite flow
         if (usersToInvite.length > 0) {
             const invitedEmailsToAccountIDs: Record<string, number> = {};
@@ -263,12 +260,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
 
             // Store the existing members and users to invite in the workflow for after invite
-            // Ensure avatars are only strings (URLs) or undefined, never React components
             const allMembers: Member[] = [
-                ...existingMembers.map((member) => ({
-                    ...member,
-                    avatar: typeof member.avatar === 'string' ? member.avatar : undefined,
-                })),
+                ...normalizedExistingMembers,
                 ...usersToInvite.map((user) => ({
                     displayName: user.email,
                     email: user.email,
@@ -286,15 +279,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         }
 
         // All selected members are existing members, proceed normally
-        // Ensure avatars are only strings (URLs) or undefined, never React components
-        const members: Member[] = selectedMembers.map((member) => {
-            const avatarSource = member.icons.at(0)?.source;
-            return {
-                displayName: member.text,
-                avatar: typeof avatarSource === 'string' ? avatarSource : undefined,
-                email: member.login,
-            };
-        });
+        const members: Member[] = normalizedExistingMembers;
         setApprovalWorkflowMembers(members);
 
         if (isInitialCreationFlow) {
@@ -350,7 +335,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 footerContent={button}
                 shouldShowLoadingPlaceholder={isLoadingApprovalWorkflow}
                 shouldEnableHeaderMaxHeight
-                onSearchChange={handleSearchChange}
+                onSearchChange={setSearchSelectorTerm}
             />
         </AccessOrNotFoundWrapper>
     );
