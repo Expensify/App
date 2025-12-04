@@ -188,14 +188,17 @@ const webViewStyles = (theme: ThemeColors) =>
 
             ul: {
                 maxWidth: '100%',
+                whiteSpace: 'normal',
             },
 
             ol: {
                 maxWidth: '100%',
+                whiteSpace: 'normal',
             },
 
             li: {
                 flexShrink: 1,
+                whiteSpace: 'pre',
             },
 
             pre: {
@@ -356,7 +359,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.componentBorderRadiusSmall,
-            height: 16,
+            minHeight: 16,
         },
 
         reportStatusText: {
@@ -1461,6 +1464,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         lh140Percent: {
             lineHeight: '140%',
+        },
+
+        lhUndefined: {
+            lineHeight: undefined,
         },
 
         formHelp: {
@@ -3581,6 +3588,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.sectionIllustrationHeight,
         },
 
+        cardSectionIllustrationContainer: {
+            height: variables.sectionIllustrationHeight,
+        },
+
         twoFAIllustration: {
             width: 'auto',
             height: 140,
@@ -4103,7 +4114,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         tabSelectorButton: {
-            height: variables.tabSelectorButtonHeight,
+            minHeight: variables.tabSelectorButtonHeight,
             padding: variables.tabSelectorButtonPadding,
             flexDirection: 'row',
             alignItems: 'center',
@@ -4438,6 +4449,10 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 20,
         },
 
+        textMicroSupportingPadding: {
+            padding: variables.paddingSmall,
+        },
+
         mapViewContainer: {
             ...flex.flex1,
             minHeight: 300,
@@ -4642,7 +4657,11 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        walletIllustration: {
+        walletStaticIllustration: {
+            width: 262,
+            height: 152,
+        },
+        walletLottieIllustration: {
             height: 180,
         },
 
@@ -5534,6 +5553,26 @@ const staticStyles = (theme: ThemeColors) =>
         },
         wordBreakAll: {
             ...wordBreak.breakAll,
+        },
+        preferencesStaticIllustration: {
+            width: 280,
+            height: 180,
+        },
+        securitySettingsStaticIllustration: {
+            width: 112,
+            height: 160,
+        },
+        aboutStaticIllustration: {
+            width: 100,
+            height: 106,
+        },
+        troubleshootStaticIllustration: {
+            width: 170,
+            height: 160,
+        },
+        saveTheWorldStaticIllustration: {
+            width: 179,
+            height: 180,
         },
     }) satisfies StaticStyles;
 
