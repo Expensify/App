@@ -16,4 +16,3 @@ type SearchEditMultipleMerchantForm = Form<
 
 export type {SearchEditMultipleMerchantForm};
 export default INPUT_IDS;
-

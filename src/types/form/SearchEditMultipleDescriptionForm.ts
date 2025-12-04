@@ -16,4 +16,3 @@ type SearchEditMultipleDescriptionForm = Form<
 
 export type {SearchEditMultipleDescriptionForm};
 export default INPUT_IDS;
-
