@@ -15,7 +15,7 @@ Expensify supports Single Sign-On (SSO) through the SAML protocol, allowing you 
 
 Once your domain is verified, you can configure SAML-based login for enhanced authentication.
 
-1. Select your domain from **Workspace > Domains**.
+1. Select your domain from **Workspaces > Domains**.
 2. Open the **SAML** section.
 3. Toggle **Enable SAML login**.
 4. Download Expensify’s Service Provider Metadata to provide to your Identity Provider.
@@ -45,7 +45,7 @@ If your provider isn’t listed, contact them directly for metadata and configur
 - Members with emails matching the verified domain will be prompted to log in via your IdP.
 - If a member has a secondary email (e.g., Gmail), they may need to update their email to match the domain.
 
-[How to add or change your email address](https://docs.expensify.com/account-management/update-email-address)
+[How to add or change your email address](https://help.expensify.com/articles/new-expensify/settings/Update-Email-Address)
 
 ## Error during setup?
 - Use [samltool.com](https://samltool.com) to validate your SAML fields.
@@ -67,7 +67,7 @@ It is possible to manage multiple domains with one entity ID. Contact Concierge 
 ## Okta SCIM API for User Deactivation
 
 Ensure your domain is verified and the SAML setup is complete. Then, do the following:
-1. Go to **Workspace > Domains > [Domain Name] > SAML**.
+1. Go to **Workspaces > Domains > [Domain Name] > SAML**.
 2. Enable SAML Login and toggle on **Required for login**.
 3. In Okta, add Expensify as an application, and configure user profile mappings.
 4. Request Okta SCIM API activation via concierge@expensify.com.
