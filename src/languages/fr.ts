@@ -717,7 +717,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reschedule: 'Reprogrammer',
         general: 'Général',
         workspacesTabTitle: 'Espaces de travail',
-        headsUp: 'Attention !',
+        headsUp: 'Attention !',
         submitTo: 'Envoyer à',
         forwardTo: 'Transférer à',
         merge: 'Fusionner',
@@ -831,7 +831,7 @@ const translations: TranslationDeepObject<typeof en> = {
         youCanAlso: 'Vous pouvez également',
         openLinkInBrowser: 'ouvrez ce lien dans votre navigateur',
         loggedInAs: ({email}: LoggedInAsParams) =>
-            `Vous êtes connecté en tant que ${email}. Cliquez sur « Ouvrir le lien » dans l’invite pour vous connecter à l’application de bureau avec ce compte.`,
+            `Vous êtes connecté en tant que ${email}. Cliquez sur « Ouvrir le lien » dans l’invite pour vous connecter à l’application de bureau avec ce compte.`,
         doNotSeePrompt: 'Vous ne voyez pas l’invite ?',
         tryAgain: 'Réessayer',
         or: ', ou',
@@ -850,7 +850,7 @@ const translations: TranslationDeepObject<typeof en> = {
         `),
         doNotShare: dedent(`
             Ne partagez votre code avec personne.
-            Expensify ne vous le demandera jamais !
+            Expensify ne vous le demandera jamais !
         `),
         or: ', ou',
         signInHere: 'il suffit de vous connecter ici',
@@ -1086,7 +1086,7 @@ const translations: TranslationDeepObject<typeof en> = {
         fileContainsHeader: 'Le fichier contient des en-têtes de colonnes',
         column: ({name}: SpreadSheetColumnParams) => `Colonne ${name}`,
         fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `Oups ! Un champ requis (« ${fieldName} ») n’a pas été associé. Veuillez vérifier et réessayer.`,
-        singleFieldMultipleColumns: ({fieldName}: SpreadFieldNameParams) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
+        singleFieldMultipleColumns: ({fieldName}: SpreadFieldNameParams) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
         emptyMappedField: ({fieldName}: SpreadFieldNameParams) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
         importSuccessfulTitle: 'Importation réussie',
         importCategoriesSuccessfulDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `${categories} catégories ont été ajoutées.` : '1 catégorie a été ajoutée.'),
@@ -1466,7 +1466,7 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmApprove: 'Confirmer le montant d’approbation',
         confirmApprovalAmount: 'Approuvez uniquement les dépenses conformes, ou approuvez le rapport entier.',
         confirmApprovalAllHoldAmount: () => ({
-            one: 'Cette dépense est en attente. Voulez-vous quand même l’approuver ?',
+            one: 'Cette dépense est en attente. Voulez-vous quand même l’approuver ?',
             other: 'Ces dépenses sont en attente. Voulez-vous les approuver quand même ?',
         }),
         confirmPay: 'Confirmer le montant du paiement',
@@ -1495,7 +1495,7 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseARate: 'Sélectionnez un taux de remboursement du workspace par mile ou kilomètre',
         unapprove: 'Annuler l’approbation',
         unapproveReport: 'Désapprouver le rapport',
-        headsUp: 'Attention !',
+        headsUp: 'Attention !',
         unapproveWithIntegrationWarning: ({accountingIntegration}: UnapproveWithIntegrationWarningParams) =>
             `Ce rapport a déjà été exporté vers ${accountingIntegration}. Le modifier pourrait entraîner des incohérences de données. Voulez-vous vraiment retirer l’approbation de ce rapport ?`,
         reimbursable: 'remboursable',
@@ -1950,7 +1950,7 @@ const translations: TranslationDeepObject<typeof en> = {
     closeAccountPage: {
         // @context close as a verb, not an adjective
         closeAccount: 'Fermer le compte',
-        reasonForLeavingPrompt: 'Nous serions désolés de vous voir partir ! Pourriez-vous nous dire pourquoi, afin que nous puissions nous améliorer ?',
+        reasonForLeavingPrompt: 'Nous serions désolés de vous voir partir ! Pourriez-vous nous dire pourquoi, afin que nous puissions nous améliorer ?',
         enterMessageHere: 'Saisissez le message ici',
         closeAccountWarning: 'La fermeture de votre compte est irrémédiable.',
         closeAccountPermanentlyDeleteData: 'Voulez-vous vraiment supprimer votre compte ? Cette action supprimera définitivement toutes les dépenses en attente.',
@@ -2473,7 +2473,7 @@ ${amount} pour ${merchant} - ${date}`,
         explainerText: 'Définir une description personnalisée pour le salon.',
     },
     groupChat: {
-        lastMemberTitle: 'Attention !',
+        lastMemberTitle: 'Attention !',
         lastMemberWarning: 'Puisque vous êtes la dernière personne ici, partir rendra cette discussion inaccessible à tous les membres. Êtes-vous sûr de vouloir partir ?',
         defaultReportName: ({displayName}: ReportArchiveReasonsClosedParams) => `Salon de groupe de ${displayName}`,
     },
@@ -2577,7 +2577,7 @@ ${amount} pour ${merchant} - ${date}`,
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1 à 10 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11 à 50 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51 à 100 employés',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101 à 1 000 employés',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101 à 1 000 employés',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Plus de 1 000 employés',
         },
         accounting: {
@@ -2698,7 +2698,7 @@ ${amount} pour ${merchant} - ${date}`,
                     4. Confirmez les détails.
                     5. Cliquez sur *Créer*.
 
-                    Et c’est terminé !
+                    Et c’est terminé !
                 `),
             },
             trackExpenseTask: {
@@ -2712,7 +2712,7 @@ ${amount} pour ${merchant} - ${date}`,
                     4. Choisissez votre espace *personnel*.
                     5. Cliquez sur *Créer*.
 
-                    Et voilà ! Oui, c’est aussi simple que ça.
+                    Et voilà ! Oui, c’est aussi simple que ça.
                 `),
             },
             addAccountingIntegrationTask: {
@@ -2829,7 +2829,7 @@ ${
                     4. Cliquez sur le bouton *+* gris dans la discussion > *Diviser la dépense*.
                     5. Créez la dépense en sélectionnant *Manuel*, *Scan* ou *Distance*.
 
-                    N’hésitez pas à ajouter plus de détails si vous le souhaitez, ou envoyez-la simplement. Récupérons votre argent !
+                    N’hésitez pas à ajouter plus de détails si vous le souhaitez, ou envoyez-la simplement. Récupérons votre argent !
                 `),
             },
             reviewWorkspaceSettingsTask: {
@@ -3108,7 +3108,7 @@ ${
             `Pour connecter un compte bancaire, veuillez <a href="${contactMethodRoute}">ajouter une adresse e-mail comme identifiant principal</a> puis réessayer. Vous pouvez ajouter votre numéro de téléphone comme identifiant secondaire.`,
         hasBeenThrottledError: 'Une erreur s’est produite lors de l’ajout de votre compte bancaire. Veuillez patienter quelques minutes, puis réessayer.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
-            `Oups ! Il semble que la devise de votre espace de travail soit définie sur une devise différente de l’USD. Pour continuer, veuillez accéder aux <a href="${workspaceRoute}">paramètres de votre espace de travail</a> pour la définir sur USD, puis réessayez.`,
+            `Oups ! Il semble que la devise de votre espace de travail soit définie sur une devise différente de l’USD. Pour continuer, veuillez accéder aux <a href="${workspaceRoute}">paramètres de votre espace de travail</a> pour la définir sur USD, puis réessayez.`,
         bbaAdded: 'Compte bancaire professionnel ajouté !',
         bbaAddedDescription: 'Elle est prête à être utilisée pour les paiements.',
         error: {
@@ -3193,7 +3193,7 @@ ${
         tryAgain: 'Réessayer',
         verifyIdentity: 'Vérifier l’identité',
         letsVerifyIdentity: 'Vérifions votre identité',
-        butFirst: `Mais d’abord, les choses ennuyeuses. Lisez le jargon juridique à l’étape suivante et cliquez sur « Accepter » lorsque vous êtes prêt.`,
+        butFirst: `Mais d’abord, les choses ennuyeuses. Lisez le jargon juridique à l’étape suivante et cliquez sur « Accepter » lorsque vous êtes prêt.`,
         genericError: 'Une erreur s’est produite lors du traitement de cette étape. Veuillez réessayer.',
         cameraPermissionsNotGranted: 'Autoriser l’accès à la caméra',
         cameraRequestMessage: 'Nous avons besoin d’accéder à votre appareil photo pour terminer la vérification de votre compte bancaire. Veuillez l’activer via Réglages > New Expensify.',
@@ -3409,7 +3409,7 @@ ${
         whatsThisNumber: 'C’est quoi ce numéro ?',
         whereWasTheBusinessIncorporated: 'Où l’entreprise a-t-elle été constituée ?',
         whatTypeOfBusinessIsIt: 'Quel type d’entreprise est-ce ?',
-        whatsTheBusinessAnnualPayment: 'Quel est le volume annuel de paiements de l’entreprise ?',
+        whatsTheBusinessAnnualPayment: 'Quel est le volume annuel de paiements de l’entreprise ?',
         whatsYourExpectedAverageReimbursements: 'Quel est votre montant moyen de remboursement prévu ?',
         registrationNumber: 'Numéro d’immatriculation',
         taxIDEIN: ({country}: BusinessTaxIDParams) => {
@@ -3684,7 +3684,7 @@ ${
             subtitle: `Veuillez accepter les <a href="${CONST.TRAVEL_TERMS_URL}">conditions générales</a> d’Expensify Travel.`,
             error: 'Vous devez accepter les conditions générales d’Expensify Travel pour continuer',
             defaultWorkspaceError:
-                'Vous devez définir un workspace par défaut pour activer Expensify Travel. Allez dans Paramètres > Workspaces > cliquez sur les trois points verticaux à côté d’un workspace > Définir comme workspace par défaut, puis réessayez !',
+                'Vous devez définir un workspace par défaut pour activer Expensify Travel. Allez dans Paramètres > Workspaces > cliquez sur les trois points verticaux à côté d’un workspace > Définir comme workspace par défaut, puis réessayez !',
         },
         flight: 'Vol',
         flightDetails: {
@@ -4043,7 +4043,7 @@ ${
                 [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}Description`]:
                     'Nous créerons un chèque détaillé pour chaque rapport Expensify et l’enverrons à partir du compte bancaire ci-dessous.',
                 [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
-                    'Nous ferons automatiquement correspondre le nom du commerçant sur la transaction par carte de crédit à tout fournisseur correspondant dans QuickBooks. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Dépenses carte de crédit divers » pour l’association.',
+                    'Nous ferons automatiquement correspondre le nom du commerçant sur la transaction par carte de crédit à tout fournisseur correspondant dans QuickBooks. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Dépenses carte de crédit divers » pour l’association.',
                 [`${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Nous créerons une facture fournisseur détaillée pour chaque rapport Expensify avec la date de la dernière dépense et l’ajouterons au compte ci-dessous. Si cette période est clôturée, nous l’enregistrerons au 1er jour de la prochaine période ouverte.',
                 [`${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Choisissez où exporter les transactions de carte de crédit.',
@@ -4190,7 +4190,7 @@ ${
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
                     'Nous associerons automatiquement le nom du commerçant figurant sur la transaction par carte de débit à tout fournisseur correspondant dans QuickBooks. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Debit Card Misc. » pour l’association.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
-                    'Nous ferons automatiquement correspondre le nom du commerçant sur la transaction par carte de crédit à tout fournisseur correspondant dans QuickBooks. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Dépenses carte de crédit divers » pour l’association.',
+                    'Nous ferons automatiquement correspondre le nom du commerçant sur la transaction par carte de crédit à tout fournisseur correspondant dans QuickBooks. S’il n’existe aucun fournisseur, nous créerons un fournisseur « Dépenses carte de crédit divers » pour l’association.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Nous créerons une facture fournisseur détaillée pour chaque rapport Expensify avec la date de la dernière dépense et l’ajouterons au compte ci-dessous. Si cette période est clôturée, nous l’enregistrerons au 1er jour de la prochaine période ouverte.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Choisissez où exporter les transactions par carte de débit.',
@@ -4408,7 +4408,7 @@ ${
                 values: {
                     [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE]: {
                         label: 'Créez-en une pour moi',
-                        description: 'Nous créerons une « ligne de facture Expensify » pour vous lors de l’exportation (si elle n’existe pas déjà).',
+                        description: 'Nous créerons une « ligne de facture Expensify » pour vous lors de l’exportation (si elle n’existe pas déjà).',
                     },
                     [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT]: {
                         label: 'Sélectionner existant',
@@ -4640,7 +4640,7 @@ ${
                             customSegmentNameFooter: `Vous pouvez trouver les noms de segments personnalisés dans NetSuite sur la page *Customizations > Links, Records & Fields > Custom Segments*.
 
 _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
-                            customRecordNameFooter: `Vous pouvez trouver les noms d’enregistrements personnalisés dans NetSuite en saisissant « Transaction Column Field » dans la recherche globale.
+                            customRecordNameFooter: `Vous pouvez trouver les noms d’enregistrements personnalisés dans NetSuite en saisissant « Transaction Column Field » dans la recherche globale.
 
 _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_.`,
                             customSegmentInternalIDTitle: 'Quel est l’ID interne ?',
@@ -4656,7 +4656,7 @@ Vous pouvez trouver les IDs internes des segments personnalisés dans NetSuite s
 _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
                             customRecordInternalIDFooter: `Vous pouvez trouver les ID internes d’enregistrements personnalisés dans NetSuite en suivant ces étapes :
 
-1. Saisissez « Transaction Line Fields » dans la recherche globale.
+1. Saisissez « Transaction Line Fields » dans la recherche globale.
 2. Cliquez sur un enregistrement personnalisé.
 3. Trouvez l’ID interne sur le côté gauche.
 
@@ -4674,7 +4674,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                             customRecordScriptIDTitle: 'Quel est l’ID de la colonne de transaction ?',
                             customRecordScriptIDFooter: `Vous pouvez trouver les ID de script d’enregistrements personnalisés dans NetSuite sous :
 
-1. Saisissez « Transaction Line Fields » dans la recherche globale.
+1. Saisissez « Transaction Line Fields » dans la recherche globale.
 2. Cliquez sur un enregistrement personnalisé.
 3. Recherchez l’ID de script sur le côté gauche.
 
@@ -5510,9 +5510,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 fixedAmount: 'Montant fixe',
                 fixedAmountDescription: 'Effectuer une dépense unique jusqu’à un certain montant',
                 setLimit: 'Définir une limite',
-                cardLimitError: 'Veuillez saisir un montant inférieur à 21 474 836 $',
+                cardLimitError: 'Veuillez saisir un montant inférieur à 21 474 836 $',
                 giveItName: 'Donnez-lui un nom',
-                giveItNameInstruction: 'Rendez-la suffisamment unique pour qu’on puisse la distinguer des autres cartes. Des cas d’usage précis, c’est encore mieux !',
+                giveItNameInstruction: 'Rendez-la suffisamment unique pour qu’on puisse la distinguer des autres cartes. Des cas d’usage précis, c’est encore mieux !',
                 cardName: 'Nom de la carte',
                 letsDoubleCheck: 'Vérifions une dernière fois que tout est correct.',
                 willBeReady: 'Cette carte sera prête à être utilisée immédiatement.',
@@ -5823,7 +5823,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             joinRequest: ({user, workspaceName}: {user: string; workspaceName: string}) => `${user} a demandé à rejoindre ${workspaceName}`,
         },
         distanceRates: {
-            oopsNotSoFast: 'Oups ! Pas si vite...',
+            oopsNotSoFast: 'Oups ! Pas si vite...',
             workspaceNeeds: 'Un espace de travail doit avoir au moins un tarif de distance activé.',
             distance: 'Distance',
             centrallyManage: 'Gérez les taux de manière centralisée, suivez en miles ou en kilomètres et définissez une catégorie par défaut.',
@@ -5946,7 +5946,7 @@ Si vous voulez reprendre la facturation de l’intégralité de son abonnement, 
             failedToClearBalanceText: 'Nous n’avons pas pu effacer le solde. Veuillez réessayer plus tard.',
             successTitle: 'Youhou ! Tout est prêt.',
             successDescription: 'Vous êtes maintenant le propriétaire de cet espace de travail.',
-            errorTitle: 'Oups ! Pas si vite...',
+            errorTitle: 'Oups ! Pas si vite...',
             errorDescription: `<muted-text><centered-text>Un problème est survenu lors du transfert de la propriété de cet espace de travail. Réessayez ou <concierge-link>contactez Concierge</concierge-link> pour obtenir de l’aide.</centered-text></muted-text>`,
         },
         exportAgainModal: {
@@ -6122,7 +6122,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                     benefit2: 'Règles intelligentes de dépense',
                     benefit3: 'Flux de validation à plusieurs niveaux',
                     benefit4: 'Contrôles de sécurité améliorés',
-                    headsUp: 'Attention !',
+                    headsUp: 'Attention !',
                     multiWorkspaceNote: 'Vous devrez rétrograder tous vos espaces de travail avant votre premier paiement mensuel pour commencer un abonnement au tarif Collect. Cliquez',
                     selectStep: '> sélectionner chaque espace de travail > changer le type d’abonnement',
                 },
@@ -6216,8 +6216,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 randomReportAuditDescription: 'Exiger que certains rapports soient approuvés manuellement, même s’ils sont éligibles à l’auto-approbation.',
                 autoPayApprovedReportsTitle: 'Rapports approuvés en paiement automatique',
                 autoPayApprovedReportsSubtitle: 'Configurez quels rapports de dépenses sont éligibles au paiement automatique.',
-                autoPayApprovedReportsLimitError: ({currency}: AutoPayApprovedReportsLimitErrorParams = {}) => `Veuillez saisir un montant inférieur à ${currency ?? ''}20 000`,
-                autoPayApprovedReportsLockedSubtitle: 'Allez dans « Plus de fonctionnalités » et activez les workflows, puis ajoutez les paiements pour déverrouiller cette fonctionnalité.',
+                autoPayApprovedReportsLimitError: ({currency}: AutoPayApprovedReportsLimitErrorParams = {}) => `Veuillez saisir un montant inférieur à ${currency ?? ''}20 000`,
+                autoPayApprovedReportsLockedSubtitle: 'Allez dans « Plus de fonctionnalités » et activez les workflows, puis ajoutez les paiements pour déverrouiller cette fonctionnalité.',
                 autoPayReportsUnderTitle: 'Rapports de paiement automatique sous',
                 autoPayReportsUnderDescription: 'Les notes de frais entièrement conformes en dessous de ce montant seront automatiquement réglées.',
                 unlockFeatureEnableWorkflowsSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
@@ -6923,7 +6923,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `a modifié ${fieldName} en « ${newValue} » (précédemment « ${oldValue} »)`,
-                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `définir ${fieldName} sur « ${newValue} »`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `définir ${fieldName} sur « ${newValue} »`,
                 changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
                     if (!toPolicyName) {
                         return `a modifié l’espace de travail${fromPolicyName ? `(auparavant ${fromPolicyName})` : ''}`;
@@ -7105,10 +7105,10 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
     teachersUnitePage: {
         teachersUnite: 'Enseignants unis',
         joinExpensifyOrg:
-            'Rejoignez Expensify.org pour éliminer l’injustice dans le monde entier. La campagne actuelle « Teachers Unite » soutient les enseignants partout en partageant les coûts des fournitures scolaires essentielles.',
+            'Rejoignez Expensify.org pour éliminer l’injustice dans le monde entier. La campagne actuelle « Teachers Unite » soutient les enseignants partout en partageant les coûts des fournitures scolaires essentielles.',
         iKnowATeacher: 'Je connais un enseignant',
         iAmATeacher: 'Je suis enseignant',
-        getInTouch: 'Excellent ! Veuillez partager leurs informations afin que nous puissions les contacter.',
+        getInTouch: 'Excellent ! Veuillez partager leurs informations afin que nous puissions les contacter.',
         introSchoolPrincipal: 'Introduction à votre directeur d’établissement',
         schoolPrincipalVerifyExpense:
             'Expensify.org partage le coût des fournitures scolaires essentielles afin que les élèves issus de foyers à faible revenu puissent bénéficier d’une meilleure expérience d’apprentissage. Votre proviseur sera invité à vérifier vos dépenses.',
@@ -7360,14 +7360,14 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             [CONST.EXIT_SURVEY.REASONS.PREFER_CLASSIC]: 'Pourquoi préférez-vous Expensify Classic ?',
         },
         responsePlaceholder: 'Votre réponse',
-        thankYou: 'Merci pour ce retour !',
+        thankYou: 'Merci pour ce retour !',
         thankYouSubtitle: 'Vos réponses nous aideront à créer un meilleur produit pour accomplir les tâches. Merci beaucoup !',
         goToExpensifyClassic: 'Passer à Expensify Classic',
         offlineTitle: 'On dirait que vous êtes bloqué ici...',
         offline:
             'Vous semblez être hors ligne. Malheureusement, Expensify Classic ne fonctionne pas hors ligne, mais New Expensify le permet. Si vous préférez utiliser Expensify Classic, réessayez lorsque vous aurez une connexion internet.',
         quickTip: 'Petit conseil...',
-        quickTipSubTitle: 'Vous pouvez accéder directement à Expensify Classic en visitant expensify.com. Ajoutez-le à vos favoris pour un raccourci facile !',
+        quickTipSubTitle: 'Vous pouvez accéder directement à Expensify Classic en visitant expensify.com. Ajoutez-le à vos favoris pour un raccourci facile !',
         bookACall: 'Réserver un appel',
         bookACallTitle: 'Souhaitez-vous parler à un chef de produit ?',
         benefits: {
@@ -7767,7 +7767,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
     migratedUserWelcomeModal: {
         title: 'Bienvenue dans le nouveau Expensify !',
         subtitle: 'Il contient tout ce que vous aimez dans notre expérience classique, avec tout un tas d’améliorations pour rendre votre vie encore plus facile :',
-        confirmText: 'C’est parti !',
+        confirmText: 'C’est parti !',
         helpText: 'Essayer la démo de 2 minutes',
         features: {
             search: 'Recherche plus puissante sur mobile, web et ordinateur',
@@ -7841,9 +7841,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             getStarted: 'Commencer',
         },
         employeeInviteMessage: ({name}: EmployeeInviteMessageParams) => `# ${name} vous a invité à essayer Expensify
-Salut ! Je viens de nous obtenir *3 mois gratuits* pour essayer Expensify, la façon la plus rapide de gérer les notes de frais.
+Salut ! Je viens de nous obtenir *3 mois gratuits* pour essayer Expensify, la façon la plus rapide de gérer les notes de frais.
 
-Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
+Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
     },
     export: {
         basicExport: 'Exportation basique',

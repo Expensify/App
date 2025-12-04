@@ -483,8 +483,7 @@ const translations: TranslationDeepObject<typeof en> = {
         error: {
             invalidAmount: 'Ungültiger Betrag',
             acceptTerms: 'Sie müssen die Nutzungsbedingungen akzeptieren, um fortzufahren',
-            phoneNumber: `Bitte gib eine vollständige Telefonnummer ein
-(z. B. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
+            phoneNumber: `Bitte gib eine vollständige Telefonnummer ein (z. B. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Dieses Feld ist erforderlich',
             requestModified: 'Diese Anfrage wird von einem anderen Mitglied bearbeitet',
             characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Zeichenlimit überschritten (${length}/${limit})`,
@@ -498,7 +497,7 @@ const translations: TranslationDeepObject<typeof en> = {
             missingAmount: 'Fehlender Betrag',
             missingDate: 'Fehlendes Datum',
             enterDate: 'Datum eingeben',
-            invalidTimeRange: 'Bitte geben Sie eine Zeit im 12-Stunden-Format ein (z. B. 14:30 Uhr).',
+            invalidTimeRange: 'Bitte geben Sie eine Zeit im 12-Stunden-Format ein (z. B. 14:30 Uhr).',
             pleaseCompleteForm: 'Bitte füllen Sie das obige Formular aus, um fortzufahren',
             pleaseSelectOne: 'Bitte wähle oben eine Option aus',
             invalidRateError: 'Bitte geben Sie einen gültigen Satz ein',
@@ -547,9 +546,9 @@ const translations: TranslationDeepObject<typeof en> = {
         verify: 'Verifizieren',
         yesContinue: 'Ja, weiter',
         // @context Provides an example format for a website URL.
-        websiteExample: 'z. B. https://www.expensify.com',
+        websiteExample: 'z. B. https://www.expensify.com',
         // @context Provides an example format for a ZIP/postal code.
-        zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `z. B. ${zipSampleFormat}` : ''),
+        zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `z. B. ${zipSampleFormat}` : ''),
         description: 'Beschreibung',
         title: 'Titel',
         assignee: 'Beauftragte/r',
@@ -2607,7 +2606,7 @@ ${amount} für ${merchant} – ${date}`,
             magicCodeSent: ({workEmail}: WorkEmailResendCodeParams) => `Bitte gib den magischen Code ein, der an ${workEmail} gesendet wurde. Er sollte in ein bis zwei Minuten ankommen.`,
         },
         workEmailValidationError: {
-            publicEmail: 'Bitte gib eine gültige geschäftliche E‑Mail-Adresse von einer privaten Domain ein, z. B. mitch@company.com',
+            publicEmail: 'Bitte gib eine gültige geschäftliche E‑Mail-Adresse von einer privaten Domain ein, z. B. mitch@company.com',
             offline: 'Wir konnten deine geschäftliche E-Mail-Adresse nicht hinzufügen, da du anscheinend offline bist',
         },
         mergeBlockScreen: {
@@ -2930,7 +2929,7 @@ ${
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Datum muss nach ${dateString} liegen`,
             hasInvalidCharacter: 'Name darf nur lateinische Zeichen enthalten',
             incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Ungültiges Postleitzahlformat${zipFormat ? `Akzeptables Format: ${zipFormat}` : ''}`,
-            invalidPhoneNumber: `Bitte stelle sicher, dass die Telefonnummer gültig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER})`,
+            invalidPhoneNumber: `Bitte stelle sicher, dass die Telefonnummer gültig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },
     resendValidationForm: {
@@ -3180,7 +3179,7 @@ ${
         retry: 'Erneut versuchen',
     },
     messages: {
-        errorMessageInvalidPhone: `Bitte gib eine gültige Telefonnummer ohne Klammern oder Bindestriche ein. Wenn du außerhalb der USA bist, gib bitte deine Ländervorwahl an (z. B. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+        errorMessageInvalidPhone: `Bitte gib eine gültige Telefonnummer ohne Klammern oder Bindestriche ein. Wenn du außerhalb der USA bist, gib bitte deine Ländervorwahl an (z. B. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Ungültige E-Mail',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} ist bereits Mitglied von ${name}`,
     },
@@ -3489,7 +3488,7 @@ ${
         signerInfo: 'Information zum Unterzeichner',
         doYouOwn: ({companyName}: CompanyNameParams) => `Besitzen Sie 25 % oder mehr von ${companyName}?`,
         doesAnyoneOwn: ({companyName}: CompanyNameParams) => `Besitzen einzelne Personen 25 % oder mehr von ${companyName}?`,
-        regulationsRequire: 'Vorschriften verlangen, dass wir die Identität jeder Person überprüfen, die mehr als 25 % des Unternehmens besitzt.',
+        regulationsRequire: 'Vorschriften verlangen, dass wir die Identität jeder Person überprüfen, die mehr als 25 % des Unternehmens besitzt.',
         legalFirstName: 'Amtlicher Vorname',
         legalLastName: 'Rechtlicher Nachname',
         whatsTheOwnersName: 'Wie lautet der gesetzliche Name des Eigentümers?',
@@ -3585,7 +3584,7 @@ ${
         jobTitle: 'Berufsbezeichnung',
         whatsYourDOB: 'Wie ist dein Geburtsdatum?',
         uploadID: 'Ausweis und Adressnachweis hochladen',
-        personalAddress: 'Nachweis der Privatadresse (z. B. Nebenkostenabrechnung)',
+        personalAddress: 'Nachweis der Privatadresse (z. B. Nebenkostenabrechnung)',
         letsDoubleCheck: 'Lass uns noch einmal überprüfen, ob alles richtig aussieht.',
         legalName: 'Rechtlicher Name',
         proofOf: 'Nachweis der privaten Anschrift',
@@ -3762,7 +3761,7 @@ ${
         },
         publicDomainError: {
             title: 'Loslegen mit Expensify Travel',
-            message: `Für Expensify Travel musst du deine geschäftliche E-Mail-Adresse (z. B. name@company.com) verwenden, nicht deine private E-Mail-Adresse (z. B. name@gmail.com).`,
+            message: `Für Expensify Travel musst du deine geschäftliche E-Mail-Adresse (z. B. name@company.com) verwenden, nicht deine private E-Mail-Adresse (z. B. name@gmail.com).`,
         },
         blockedFeatureModal: {
             title: 'Expensify Travel wurde deaktiviert',
@@ -5800,7 +5799,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             members: 'Mitglieder einladen',
             invitePeople: 'Neue Mitglieder einladen',
             genericFailureMessage: 'Beim Einladen des Mitglieds in den Workspace ist ein Fehler aufgetreten. Bitte versuche es erneut.',
-            pleaseEnterValidLogin: `Bitte stelle sicher, dass die E-Mail-Adresse oder Telefonnummer gültig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+            pleaseEnterValidLogin: `Bitte stelle sicher, dass die E-Mail-Adresse oder Telefonnummer gültig ist (z. B. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
             user: 'Benutzer',
             users: 'Benutzer',
             invited: 'eingeladen',

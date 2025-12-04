@@ -3208,7 +3208,7 @@ ${
             sendingFundsDetails: '使用您的余额、银行账户或借记卡向其他账户持有人转账不收取任何费用。',
             electronicFundsStandardDetails: '使用标准选项从你的 Expensify 钱包转账到你的银行账户是免费的。此类转账通常会在 1–3 个工作日内完成。',
             electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
-                '使用即时转账选项从您的 Expensify 钱包转账到已关联借记卡将收取手续费。此类转账通常会在几分钟内完成。' + `费用为转账金额的 ${percentage}%（最低费用为 ${amount}）。`,
+                `使用即时转账选项从您的 Expensify 钱包转账到已关联借记卡将收取手续费。此类转账通常会在几分钟内完成。费用为转账金额的 ${percentage}%（最低费用为 ${amount}）。`,
             fdicInsuranceBancorp: ({amount}: TermsParams) =>
                 `您的资金符合 FDIC 保险资格。您的资金将由 ${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}（一家受 FDIC 保险保障的机构）托管或转入。` +
                 `一旦资金转入后，如果符合特定存款保险要求且您的卡已注册，在${CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK}发生故障的情况下，您的资金可由 FDIC 提供最高 ${amount} 的保险。详情请参阅 ${CONST.TERMS.FDIC_PREPAID}。`,
