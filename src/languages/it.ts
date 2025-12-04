@@ -2280,10 +2280,9 @@ ${amount} per ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'Generazione del PDF',
+        generatingPDF: 'Generazione PDF...',
         waitForPDF: 'Attendere mentre generiamo il PDF',
         errorPDF: 'Si è verificato un errore durante il tentativo di generare il tuo PDF.',
-        successPDF: 'Il tuo PDF è stato generato! Se non si è scaricato automaticamente, usa il pulsante qui sotto.',
     },
     reportDescriptionPage: {
         roomDescription: 'Descrizione della stanza',
@@ -2543,13 +2542,13 @@ ${amount} per ${merchant} - ${date}`,
                         4. Trova ${integrationName}.
                         5. Fai clic su *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[Portami alla contabilità](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Portami alla contabilità](${workspaceAccountingLink}).
 
                         ![Connetti a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[Portami alla contabilità](${workspaceAccountingLink}).`
-}`),
+                                : `[Portami alla contabilità](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Collega [le tue carte aziendali](${corporateCardLink})`,

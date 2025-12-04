@@ -2278,10 +2278,9 @@ ${amount} voor ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'PDF wordt gegenereerd',
+        generatingPDF: 'PDF genereren...',
         waitForPDF: 'Even geduld terwijl we de PDF genereren.',
         errorPDF: 'Er is een fout opgetreden bij het genereren van uw PDF.',
-        successPDF: 'Je PDF is gegenereerd! Als het niet automatisch is gedownload, gebruik dan de knop hieronder.',
     },
     reportDescriptionPage: {
         roomDescription: 'Kamerbeschrijving',
@@ -2542,13 +2541,13 @@ ${amount} voor ${merchant} - ${date}`,
                         4. Zoek ${integrationName}.
                         5. Klik op *Verbinden*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[Breng me naar de boekhouding](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Breng me naar de boekhouding](${workspaceAccountingLink}).
 
                         ![Verbinding maken met ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[Breng me naar de boekhouding](${workspaceAccountingLink}).`
-}`),
+                                : `[Breng me naar de boekhouding](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Koppel [je bedrijfskaarten](${corporateCardLink})`,
