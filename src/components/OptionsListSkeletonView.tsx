@@ -39,7 +39,7 @@ function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = fal
             gradientOpacityEnabled={gradientOpacityEnabled}
             renderSkeletonItem={({itemIndex}) => {
                 const lineWidth = getLinedWidth(itemIndex);
-                const textStartX = shouldStyleAsTable ? '68' : '72';
+                const textStartX = shouldStyleAsTable ? 68 : 72;
 
                 return (
                     <>
