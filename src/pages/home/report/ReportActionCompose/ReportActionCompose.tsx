@@ -424,7 +424,7 @@ function ReportActionCompose({
     useEffect(() => {
         const valueToCheck = shouldUseNarrowLayout ? activeInlineDraft?.message : draftComment;
         setIsCommentEmpty(!valueToCheck || !!valueToCheck.match(CONST.REGEX.EMPTY_COMMENT));
-    }, [activeInlineDraft, draftComment, shouldUseNarrowLayout]);
+    }, [activeInlineDraft?.message, draftComment, shouldUseNarrowLayout]);
 
     useEffect(() => {
         if (hasExceededMaxTaskTitleLength) {

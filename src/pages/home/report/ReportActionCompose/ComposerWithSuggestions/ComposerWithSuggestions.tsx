@@ -288,7 +288,7 @@ function ComposerWithSuggestions({
         emojisPresentBefore.current = extractEmojis(nextValue);
         setValue(nextValue);
         commentRef.current = nextValue;
-    }, [activeInlineEdit, draftComment, shouldUseNarrowLayout]);
+    }, [activeInlineEdit?.message, activeInlineEdit?.reportActionID, draftComment, shouldUseNarrowLayout]);
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: getPreferredSkinToneIndex, canBeMissing: true});
@@ -500,7 +500,8 @@ function ComposerWithSuggestions({
             suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
-            activeInlineEdit,
+            activeInlineEdit?.message,
+            activeInlineEdit?.reportActionID,
             shouldUseNarrowLayout,
             selection?.end,
             selection?.start,
