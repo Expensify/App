@@ -585,7 +585,7 @@ function MoneyReportHeader({
                 );
             }
         },
-        [activePolicyExpenseChat, defaultExpensePolicy, isASAPSubmitBetaEnabled],
+        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled],
     );
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (

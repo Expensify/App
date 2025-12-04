@@ -10646,6 +10646,7 @@ describe('actions/IOU', () => {
         const mockTransaction = createRandomTransaction(1);
         const mockPolicy = createRandomPolicy(1);
         const policyExpenseChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+        const fakePolicyCategories = createRandomPolicyCategories(3);
 
         it('should create a duplicate expense with all fields duplicated', async () => {
             const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
@@ -10657,7 +10658,7 @@ describe('actions/IOU', () => {
                 },
             };
 
-            duplicateExpenseTransaction(mockCashExpenseTransaction, mockOptimisticChatReportID, mockOptimisticIOUReportID, mockIsASAPSubmitBetaEnabled, mockPolicy, policyExpenseChat);
+            duplicateExpenseTransaction(mockCashExpenseTransaction, mockOptimisticChatReportID, mockOptimisticIOUReportID, mockIsASAPSubmitBetaEnabled, mockPolicy, fakePolicyCategories, policyExpenseChat);
 
             await waitForBatchedUpdates();
 
@@ -10686,7 +10687,7 @@ describe('actions/IOU', () => {
                 amount: randomDistanceTransaction.amount * -1,
             };
 
-            duplicateExpenseTransaction(mockDistanceTransaction, mockOptimisticChatReportID, mockOptimisticIOUReportID, mockIsASAPSubmitBetaEnabled, mockPolicy, policyExpenseChat);
+            duplicateExpenseTransaction(mockDistanceTransaction, mockOptimisticChatReportID, mockOptimisticIOUReportID, mockIsASAPSubmitBetaEnabled, mockPolicy, fakePolicyCategories, policyExpenseChat);
 
             await waitForBatchedUpdates();
 

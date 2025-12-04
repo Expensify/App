@@ -6922,7 +6922,7 @@ function duplicateExpenseTransaction(
     optimisticIOUReportID: string,
     isASAPSubmitBetaEnabled: boolean,
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>,
-    targetPolicyCategories?: OnyxCollection<PolicyCategories>,
+    targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     targetReport?: OnyxTypes.Report,
 ) {
     if (!transaction) {
