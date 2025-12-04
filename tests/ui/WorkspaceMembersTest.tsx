@@ -9,9 +9,9 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import * as workflow from '@libs/actions/Workflow';
+import {removeApprovalWorkflow} from '@libs/actions/Workflow';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import * as workflowUtils from '@libs/WorkflowUtils';
+import {updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import WorkspaceMembersPage from '@pages/workspace/WorkspaceMembersPage';
 import CONST from '@src/CONST';
@@ -26,11 +26,25 @@ jest.unmock('react-native-worklets');
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
-const updateWorkflowDataOnApproverRemovalMock = jest
-    .spyOn(workflowUtils, 'updateWorkflowDataOnApproverRemoval')
-    .mockImplementation(() => [{members: [], approvers: [], isDefault: false, removeApprovalWorkflow: true}]);
+jest.mock('@libs/WorkflowUtils', () => {
+    // eslint-disable-next-line
+    const actual = jest.requireActual('@libs/WorkflowUtils');
+    // eslint-disable-next-line
+    return {
+        ...actual,
+        updateWorkflowDataOnApproverRemoval: jest.fn(() => [{members: [], approvers: [], isDefault: false, removeApprovalWorkflow: true}]),
+    };
+});
 
-const removeApprovalWorkflowActionMock = jest.spyOn(workflow, 'removeApprovalWorkflow').mockImplementation(() => {});
+jest.mock('@libs/actions/Workflow', () => {
+    // eslint-disable-next-line
+    const actual = jest.requireActual('@libs/actions/Workflow');
+    // eslint-disable-next-line
+    return {
+        ...actual,
+        removeApprovalWorkflow: jest.fn(),
+    };
+});
 
 TestHelper.setupGlobalFetchMock();
 
@@ -344,8 +358,8 @@ describe('WorkspaceMembers', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            expect(updateWorkflowDataOnApproverRemovalMock).toHaveBeenCalledTimes(1);
-            expect(removeApprovalWorkflowActionMock).toHaveBeenCalledTimes(1);
+            expect(updateWorkflowDataOnApproverRemoval).toHaveBeenCalledTimes(1);
+            expect(removeApprovalWorkflow).toHaveBeenCalledTimes(1);
 
             unmount();
             await waitForBatchedUpdatesWithAct();
