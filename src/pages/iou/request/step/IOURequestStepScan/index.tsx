@@ -427,6 +427,7 @@ function IOURequestStepScan({
                         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                         currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                         transactionViolations,
+                        quickAction,
                     });
                 }
             });

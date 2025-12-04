@@ -213,6 +213,7 @@ function IOURequestStepAmount({
                         currentUserAccountIDParam,
                         currentUserEmailParam,
                         transactionViolations,
+                        quickAction,
                     });
                     return;
                 }
