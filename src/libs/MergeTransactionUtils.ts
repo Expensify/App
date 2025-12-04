@@ -296,7 +296,7 @@ function getMergeableDataAndConflictFields(
                 mergeTransaction: mergeableData as MergeTransaction,
             });
             Object.assign(mergeableData, updatedValues);
-            if (updatedValues[field]) {
+            if (!isEmptyMergeValue(updatedValues[field])) {
                 (mergeableData.selectedTransactionByField as Record<string, string | undefined>)[field] = selectedTransaction?.transactionID;
             }
         } else {

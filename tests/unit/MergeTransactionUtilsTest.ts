@@ -379,6 +379,12 @@ describe('MergeTransactionUtils', () => {
                 tag: 'Same Tag',
                 billable: false,
                 attendees: [],
+                selectedTransactionByField: {
+                    merchant: targetTransaction.transactionID,
+                    category: targetTransaction.transactionID,
+                    tag: sourceTransaction.transactionID,
+                    billable: sourceTransaction.transactionID,
+                },
             });
         });
 
