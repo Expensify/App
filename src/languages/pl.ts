@@ -1186,7 +1186,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Znajdź wydatek',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `usunął wydatek (${amount} dla ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `przeniósł wydatek${reportName ? `z ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `przeniesiono ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `przeniósł ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `przeniósł ten wydatek${reportName ? `z <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `przeniósł ten wydatek z twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `przeniósł ten wydatek do twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2543,17 +2545,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Verbind [uw bedrijfskaart](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Połącz [swoje karty firmowe](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Połącz swoją kartę służbową, aby automatycznie importować i kategoryzować wydatki.
+                        Połącz posiadane już karty, aby automatycznie importować transakcje, dopasowywać paragony i przeprowadzać uzgodnienia.
 
                         1. Kliknij *Workspaces*.
                         2. Wybierz swój workspace.
-                        3. Kliknij *Corporate cards*.
-                        4. Postępuj zgodnie z instrukcjami, aby połączyć swoją kartę.
+                        3. Kliknij *Company cards*.
+                        4. Postępuj zgodnie z instrukcjami, aby połączyć swoje karty.
 
-                        [Przejdź do połączenia moich kart służbowych](${corporateCardLink}).`),
+                        [Przejdź do Company cards](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Nodig [uw team](${workspaceMembersLink}) uit`,
@@ -4714,6 +4716,10 @@ ${
             addShippingDetails: 'Dodaj szczegóły wysyłki',
             issuedCard: ({assignee}: AssigneeParams) => `wydano ${assignee} kartę Expensify! Karta dotrze w ciągu 2-3 dni roboczych.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `Wydano ${assignee} kartę Expensify! Karta zostanie wysłana po potwierdzeniu danych wysyłkowych.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} wymienił swoją wirtualną kartę Expensify! ${link} można używać od razu.`,
+            card: 'karta',
+            replacementCard: 'karta zastępcza',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} wymienił swoją kartę Expensify. Nowa karta dotrze w ciągu 2-3 dni roboczych.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `wydano ${assignee} wirtualną ${link}! Karta może być używana od razu.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} dodał(a) szczegóły wysyłki. Expensify Card dotrze w ciągu 2-3 dni roboczych.`,
             verifyingHeader: 'Weryfikacja',
@@ -6233,6 +6239,36 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'włączone' : 'wyłączone'} kategorii`;
+                case 'tags':
+                    return `${enabled ? 'włączone' : 'wyłączone'} tagów`;
+                case 'workflows':
+                    return `${enabled ? 'włączone' : 'wyłączone'} przepływów pracy`;
+                case 'distance rates':
+                    return `${enabled ? 'włączone' : 'wyłączone'} stawki za dystans`;
+                case 'accounting':
+                    return `${enabled ? 'włączone' : 'wyłączone'} księgowość`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'włączone' : 'wyłączone'} Karty Expensify`;
+                case 'company cards':
+                    return `${enabled ? 'włączone' : 'wyłączone'} kart firmowych`;
+                case 'invoicing':
+                    return `${enabled ? 'włączone' : 'wyłączone'} fakturowanie`;
+                case 'per diem':
+                    return `${enabled ? 'włączone' : 'wyłączone'} dieta dzienna`;
+                case 'receipt partners':
+                    return `${enabled ? 'włączone' : 'wyłączone'} partnerzy paragonów`;
+                case 'rules':
+                    return `${enabled ? 'włączone' : 'wyłączone'} reguły`;
+                case 'tax tracking':
+                    return `${enabled ? 'włączone' : 'wyłączone'} śledzenie podatków`;
+                default:
+                    return `${enabled ? 'włączone' : 'wyłączone'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'Wyłączone'} śledzenie uczestników`,
     },
     roomMembersPage: {
@@ -6553,6 +6589,15 @@ ${
             title: 'Aktualizacja nie powiodła się',
             message: 'Nie udało nam się sprawdzić aktualizacji. Spróbuj ponownie za chwilę.',
         },
+    },
+    settlement: {
+        status: {
+            pending: 'Oczekujące',
+            cleared: 'Rozliczone',
+            failed: 'Niepowodzenie',
+        },
+        failedError: ({link}: {link: string}) => `Ponowimy tę rozliczenie, gdy <a href="${link}">odblokujesz swoje konto</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID wypłaty: ${withdrawalID}`,
     },
     reportLayout: {
         reportLayout: 'Układ raportu',
@@ -6986,6 +7031,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `Pole ${fieldName} jest wymagane`,
+        reportContainsExpensesWithViolations: 'Raport zawiera wydatki z naruszeniami.',
     },
     violationDismissal: {
         rter: {
@@ -7112,9 +7158,7 @@ ${
                 `Zakwestionowałeś opłatę w wysokości ${amountOwed} na karcie kończącej się na ${cardEnding}. Twoje konto zostanie zablokowane do czasu rozwiązania sporu z bankiem.`,
             preTrial: {
                 title: 'Rozpocznij darmowy okres próbny',
-                subtitleStart: 'Jako kolejny krok,',
-                subtitleLink: 'ukończ listę kontrolną konfiguracji',
-                subtitleEnd: 'aby Twój zespół mógł zacząć rozliczać wydatki.',
+                subtitle: 'Następnie <a href="#">uzupełnij listę kontrolną konfiguracji</a>, aby Twój zespół mógł zacząć rozliczać wydatki.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Okres próbny: ${numOfDays} ${numOfDays === 1 ? 'dzień' : 'dni'} pozostało!`,

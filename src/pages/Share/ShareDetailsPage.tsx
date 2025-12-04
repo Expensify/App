@@ -67,8 +67,18 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         [report, unknownUserDetails, policyTags, reportAttributesDerived],
     );
     const ancestors = useAncestors(report);
+
+    const shouldShowAttachment = !isTextShared;
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
-    const validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
+
+    // Only get file name for actual files to avoid URI decoding errors on text content
+    const validateFileName = useMemo(() => {
+        if (!shouldShowAttachment) {
+            return '';
+        }
+        return shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
+    }, [shouldShowAttachment, shouldUsePreValidatedFile, validatedFile?.uri, currentAttachment?.content]);
+
     const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? CONST.SHARE_FILE_MIMETYPE.JPEG) : (currentAttachment?.mimeType ?? '');
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
@@ -83,7 +93,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     }, [reportAttachmentsContext, fileSource, validateFileName]);
 
     useEffect(() => {
-        if (!currentAttachment?.content || errorTitle) {
+        if (!currentAttachment?.content || errorTitle || !shouldShowAttachment) {
             return;
         }
         getFileSize(currentAttachment?.content).then((size) => {
@@ -97,7 +107,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 setErrorMessage(translate('attachmentPicker.sizeNotMet'));
             }
         });
-    }, [currentAttachment?.content, errorTitle, translate]);
+    }, [currentAttachment?.content, errorTitle, translate, shouldShowAttachment]);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -113,7 +123,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
 
     const isDraft = isDraftReport(reportOrAccountID);
     const currentUserID = getCurrentUserAccountID();
-    const shouldShowAttachment = !isTextShared;
+
     const handleShare = () => {
         if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
             return;

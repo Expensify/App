@@ -154,6 +154,7 @@ type GetValidReportsConfig = {
     shouldShowGBR?: boolean;
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
+    shouldUnreadBeBold?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<

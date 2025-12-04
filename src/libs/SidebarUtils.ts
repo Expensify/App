@@ -78,6 +78,7 @@ import {
     getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceDescriptionUpdatedMessage,
+    getWorkspaceFeatureEnabledMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
     getWorkspaceReportFieldAddMessage,
@@ -106,6 +107,7 @@ import {
     getDisplayNamesWithTooltips,
     getForcedCorporateUpgradeMessage,
     getIcons,
+    getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
     getReportActionActorAccountID,
@@ -115,6 +117,7 @@ import {
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
+    getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
     hasReportErrorsOtherThanFailedReceipt,
@@ -898,6 +901,8 @@ function getOptionData({
             result.alternateText = getWorkspaceReportFieldDeleteMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
             result.alternateText = getWorkspaceUpdateFieldMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED) {
+            result.alternateText = getWorkspaceFeatureEnabledMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED) {
             result.alternateText = getWorkspaceAttendeeTrackingUpdateMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED) {
@@ -915,7 +920,8 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(lastAction, true);
         } else if (isCardIssuedAction(lastAction)) {
-            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card});
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate: translateLocal});
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             const displayName = (lastMessageTextFromReport.length > 0 && getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails)) || lastActorDisplayName;
             result.alternateText = formatReportLastMessageText(`${displayName}: ${lastMessageText}`);
@@ -931,6 +937,8 @@ function getOptionData({
             result.alternateText = getPolicyChangeLogUpdateEmployee(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             result.alternateText = getPolicyChangeLogDeleteMemberMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
+            result.alternateText = Parser.htmlToText(getUnreportedTransactionMessage(lastAction));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE) {
             result.alternateText = getReportActionMessageText(lastAction) ?? '';
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION) {
@@ -955,6 +963,8 @@ function getOptionData({
             result.alternateText = getTravelUpdateMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
             result.alternateText = Parser.htmlToText(getChangedApproverActionMessage(lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
+            result.alternateText = Parser.htmlToText(getMovedTransactionMessage(lastAction));
         } else {
             result.alternateText =
                 lastMessageTextFromReport.length > 0

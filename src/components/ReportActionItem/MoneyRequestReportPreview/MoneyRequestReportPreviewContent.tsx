@@ -11,7 +11,6 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import MoneyReportHeaderStatusBarSkeleton from '@components/MoneyReportHeaderStatusBarSkeleton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -24,6 +23,7 @@ import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettl
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -33,7 +33,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,12 +43,12 @@ import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportU
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getReportPreviewAction} from '@libs/ReportPreviewActionUtils';
+import {getInvoicePayerName} from '@libs/ReportNameUtils';
+import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     getAddExpenseDropdownOptions,
     getDisplayNameForParticipant,
-    getInvoicePayerName,
     getMoneyReportPreviewName,
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
@@ -108,7 +107,6 @@ function MoneyRequestReportPreviewContent({
     invoiceReceiverPolicy,
     iouReport,
     transactions,
-    violations,
     policy,
     invoiceReceiverPersonalDetail,
     lastTransactionViolations,
@@ -140,9 +138,9 @@ function MoneyRequestReportPreviewContent({
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
-    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow'] as const);
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -167,7 +165,7 @@ function MoneyRequestReportPreviewContent({
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false, shouldCheckApprovedState = true) =>
@@ -492,9 +490,8 @@ function MoneyRequestReportPreviewContent({
 
     const reportPreviewAction = useMemo(() => {
         return getReportPreviewAction(
-            violations,
             isIouReportArchived || isChatReportArchived,
-            currentUserDetails.email ?? '',
+            currentUserDetails.accountID,
             iouReport,
             policy,
             transactions,
@@ -502,21 +499,18 @@ function MoneyRequestReportPreviewContent({
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
-            areStrictPolicyRulesEnabled,
         );
     }, [
         isPaidAnimationRunning,
         isApprovedAnimationRunning,
         isSubmittingAnimationRunning,
-        violations,
         iouReport,
         policy,
         transactions,
         isIouReportArchived,
         invoiceReceiverPolicy,
         isChatReportArchived,
-        areStrictPolicyRulesEnabled,
-        currentUserDetails.email,
+        currentUserDetails.accountID,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
@@ -594,15 +588,6 @@ function MoneyRequestReportPreviewContent({
                 }}
             />
         ) : null,
-        [CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW]: (
-            <Button
-                icon={Expensicons.DotIndicator}
-                iconFill={theme.danger}
-                iconHoverFill={theme.danger}
-                text={translate('common.review')}
-                onPress={() => openReportFromPreview()}
-            />
-        ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW]: (
             <Button
                 text={translate('common.view')}
@@ -692,12 +677,14 @@ function MoneyRequestReportPreviewContent({
                                             <View style={[styles.flexColumn, styles.gap1, styles.flexShrink1]}>
                                                 <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
                                                     <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
-                                                        <Text
-                                                            style={[styles.headerText]}
-                                                            testID="MoneyRequestReportPreview-reportName"
-                                                        >
-                                                            {reportPreviewName}
-                                                        </Text>
+                                                        <OfflineWithFeedback pendingAction={iouReport?.pendingFields?.reportName}>
+                                                            <Text
+                                                                style={[styles.headerText]}
+                                                                testID="MoneyRequestReportPreview-reportName"
+                                                            >
+                                                                {reportPreviewName}
+                                                            </Text>
+                                                        </OfflineWithFeedback>
                                                     </Animated.View>
                                                 </View>
                                                 {showStatusAndSkeleton && shouldShowSkeleton ? (
@@ -735,7 +722,7 @@ function MoneyRequestReportPreviewContent({
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
                                                         <Icon
-                                                            src={Expensicons.BackArrow}
+                                                            src={expensifyIcons.BackArrow}
                                                             small
                                                             fill={theme.icon}
                                                             isButtonIcon
@@ -755,7 +742,7 @@ function MoneyRequestReportPreviewContent({
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
                                                         <Icon
-                                                            src={Expensicons.ArrowRight}
+                                                            src={expensifyIcons.ArrowRight}
                                                             small
                                                             fill={theme.icon}
                                                             isButtonIcon
