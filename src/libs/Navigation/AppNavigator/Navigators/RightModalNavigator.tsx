@@ -148,9 +148,11 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
 
     useFocusEffect(
         useCallback(() => {
+            // When we open a second RightModalNavigator while the previous one is covered by a fullscreen navigator, we need to synchronize the keys.
             syncWideRHPKeys();
             syncSuperWideRHPKeys();
 
+            // Superwide and wide route keys have to be cleared when the RightModalNavigator is not closed and a new navigator is opened above it.
             return () => clearWideRHPKeysAfterTabChanged();
         }, [syncWideRHPKeys, syncSuperWideRHPKeys, clearWideRHPKeysAfterTabChanged]),
     );
