@@ -10140,7 +10140,7 @@ describe('ReportUtils', () => {
             };
 
             const reportActions = {
-                '1': dewSubmitFailedAction,
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
             };
 
             const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
@@ -10175,8 +10175,8 @@ describe('ReportUtils', () => {
             };
 
             const reportActions = {
-                '1': dewSubmitFailedAction,
-                '2': submittedAction,
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+                [submittedAction.reportActionID]: submittedAction,
             };
 
             const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
@@ -10227,8 +10227,8 @@ describe('ReportUtils', () => {
             };
 
             const reportActions = {
-                '1': submittedAction,
-                '2': dewSubmitFailedAction,
+                [submittedAction.reportActionID]: submittedAction,
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
             };
 
             const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
@@ -10255,7 +10255,7 @@ describe('ReportUtils', () => {
             };
 
             const reportActions = {
-                '1': dewSubmitFailedAction,
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
             };
 
             const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
@@ -10281,7 +10281,7 @@ describe('ReportUtils', () => {
             };
 
             const reportActions = {
-                '1': dewSubmitFailedAction,
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
             };
 
             const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, true);
@@ -10289,7 +10289,7 @@ describe('ReportUtils', () => {
             expect(errors?.dewSubmitFailed).toBeUndefined();
         });
 
-        it('should clear DEW error when a more recent SUBMITTED action exists after the failure (multiple submits)', () => {
+        it('should NOT return DEW error when a more recent SUBMITTED action exists after the failure (multiple submits)', () => {
             const report = {
                 reportID: '1',
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
@@ -10350,9 +10350,9 @@ describe('ReportUtils', () => {
             };
 
             const reportActions = {
-                '1': firstSubmittedAction,
-                '2': dewSubmitFailedAction,
-                '3': secondSubmittedAction,
+                [firstSubmittedAction.reportActionID]: firstSubmittedAction,
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+                [secondSubmittedAction.reportActionID]: secondSubmittedAction,
             };
 
             const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
