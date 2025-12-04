@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
-import useNoAnimationWhenOpenedFromTabBar from '@libs/Navigation/helpers/useNoAnimationWhenOpenedFromTabBar';
+import useEnableBackAnimationWhenOpenedFromTabBar from '@libs/Navigation/helpers/useEnableBackAnimationWhenOpenedFromTabBar';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -45,7 +45,7 @@ function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<A
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
 
-    useNoAnimationWhenOpenedFromTabBar(navigation, route.key);
+    useEnableBackAnimationWhenOpenedFromTabBar(navigation, route.key);
 
     return (
         <FocusTrapForScreens>

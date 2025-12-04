@@ -2540,17 +2540,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `[あなたの法人カード](${corporateCardLink})を接続する`,
+                title: ({corporateCardLink}) => `[法人カード](${corporateCardLink})を連携する`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        法人カードを接続して、経費を自動で取り込み・仕訳しましょう。
+                        既にお持ちのカードを接続すると、取引の自動取り込み、レシートの照合、消込が行えます。
 
                         1. *Workspaces* をクリックします。
                         2. ワークスペースを選択します。
-                        3. *Corporate cards* をクリックします。
-                        4. 表示される手順に従ってカードを接続します。
+                        3. *Company cards* をクリックします。
+                        4. 案内に従ってカードを接続します。
 
-                        [法人カードの接続に進む](${corporateCardLink}).`),
+                        [Company cards に移動](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `[あなたのチーム](${workspaceMembersLink})を招待する`,
@@ -7017,6 +7017,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName}は必須です`,
+        reportContainsExpensesWithViolations: 'レポートに違反がある経費が含まれています。',
     },
     violationDismissal: {
         rter: {
