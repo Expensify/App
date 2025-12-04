@@ -85,7 +85,7 @@ function handleActionButtonPress(
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense) {
+    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT) {
         goToItem();
         return;
     }
@@ -1127,7 +1127,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
     }
 
     // Set optimistic parent report action
-    if (!hasParentReportAction && moneyRequestReportActionID) {
+    if (!hasParentReportAction && moneyRequestReportActionID && moneyRequestReportActionID !== '0') {
         const optimisticIOUAction = buildOptimisticIOUReportAction({
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount,
