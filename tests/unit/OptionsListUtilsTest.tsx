@@ -2795,7 +2795,6 @@ describe('OptionsListUtils', () => {
             const whisperAction: ReportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                whisperedTo: ['99999'],
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [whisperAction.reportActionID]: whisperAction,
