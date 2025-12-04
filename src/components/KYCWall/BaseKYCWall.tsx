@@ -60,6 +60,7 @@ function KYCWall({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
 
     const {formatPhoneNumber} = useLocalize();
 
@@ -168,8 +169,11 @@ function KYCWall({
                     return;
                 }
 
-                // If user has a setup in progress for current policy we redirect user to the flow where setup can be finished
-                if (policy !== undefined && isBankAccountPartiallySetup(policy?.achAccount?.state)) {
+                // If user has a setup in progress for we redirect to the flow where setup can be finished
+                // Setup is in progress in 2 cases:
+                // - account already present on policy is partially setup
+                // - account is being connected 'on the spot' while trying to pay for an expense (it won't be linked to policy yet but will appear as reimbursementAccount)
+                if (policy !== undefined && (isBankAccountPartiallySetup(policy?.achAccount?.state) || isBankAccountPartiallySetup(reimbursementAccount?.achData?.state))) {
                     navigateToBankAccountRoute(policy.id);
                     return;
                 }
@@ -188,6 +192,7 @@ function KYCWall({
             onSelectPaymentMethod,
             iouReport,
             addDebitCardRoute,
+            reimbursementAccount?.achData?.state,
             canLinkExistingBusinessBankAccount,
             addBankAccountRoute,
             chatReport,
