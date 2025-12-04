@@ -103,7 +103,6 @@ export default function useTodos() {
             continue;
         }
     });
-    
 
-    return {};
+    return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
 }
