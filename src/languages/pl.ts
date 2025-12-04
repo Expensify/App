@@ -2545,17 +2545,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Verbind [uw bedrijfskaart](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Połącz [swoje karty firmowe](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Połącz swoją kartę służbową, aby automatycznie importować i kategoryzować wydatki.
+                        Połącz posiadane już karty, aby automatycznie importować transakcje, dopasowywać paragony i przeprowadzać uzgodnienia.
 
                         1. Kliknij *Workspaces*.
                         2. Wybierz swój workspace.
-                        3. Kliknij *Corporate cards*.
-                        4. Postępuj zgodnie z instrukcjami, aby połączyć swoją kartę.
+                        3. Kliknij *Company cards*.
+                        4. Postępuj zgodnie z instrukcjami, aby połączyć swoje karty.
 
-                        [Przejdź do połączenia moich kart służbowych](${corporateCardLink}).`),
+                        [Przejdź do Company cards](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Nodig [uw team](${workspaceMembersLink}) uit`,
@@ -7031,6 +7031,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `Pole ${fieldName} jest wymagane`,
+        reportContainsExpensesWithViolations: 'Raport zawiera wydatki z naruszeniami.',
     },
     violationDismissal: {
         rter: {
