@@ -5581,26 +5581,21 @@ describe('actions/IOU', () => {
                 );
         });
 
-        it('correctly submits a report with Dynamic External Workflow policy without setting nextStep', () => {
+        it('should not set stateNum, statusNum, or nextStep optimistically when submitting with Dynamic External Workflow policy', () => {
             const amount = 10000;
             const comment = '💸💸💸💸';
             const merchant = 'NASDAQ';
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
             let policy: OnyxEntry<Policy>;
-            let policyID: string;
-
+            const policyID = generatePolicyID();
+            createWorkspace({
+                policyOwnerEmail: CARLOS_EMAIL,
+                makeMeAdmin: true,
+                policyName: 'Test Workspace with Dynamic External Workflow',
+                policyID,
+            });
             return waitForBatchedUpdates()
-                .then(() => {
-                    policyID = generatePolicyID();
-                    createWorkspace({
-                        policyOwnerEmail: CARLOS_EMAIL,
-                        makeMeAdmin: true,
-                        policyName: 'Test Workspace with Dynamic External Workflow',
-                        policyID,
-                    });
-                    return waitForBatchedUpdates();
-                })
                 .then(() => {
                     setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
                     return waitForBatchedUpdates();
