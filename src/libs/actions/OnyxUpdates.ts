@@ -30,7 +30,24 @@ let airshipEventsPromise = Promise.resolve();
 
 function applyHTTPSOnyxUpdates(request: Request, response: Response, lastUpdateID: number) {
     Performance.markStart(CONST.TIMING.APPLY_HTTPS_UPDATES);
-    Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
+    Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID, request});
+    
+    // Log for TRACK_EXPENSE and REQUEST_MONEY at the very beginning
+    if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
+        Log.info(`[API_DEBUG] applyHTTPSOnyxUpdates - ENTERED for ${request.command}`, false, {
+            command: request.command,
+            transactionID: request?.data?.transactionID,
+            receiptState: request?.data?.receiptState,
+            jsonCode: response?.jsonCode,
+            lastUpdateID,
+            hasOnyxData: !!response.onyxData,
+            onyxDataCount: response.onyxData?.length ?? 0,
+            hasSuccessData: !!request.successData,
+            successDataCount: request.successData?.length ?? 0,
+            hasFailureData: !!request.failureData,
+            failureDataCount: request.failureData?.length ?? 0,
+        });
+    }
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
     const updateHandler: (updates: OnyxUpdate[]) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
@@ -53,8 +70,49 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response, lastUpdateI
 
     return onyxDataUpdatePromise
         .then(() => {
+            Log.info('[API_DEBUG] applyHTTPSOnyxUpdates - onyxData updates applied', false, {
+                command: request.command,
+                transactionID: request?.data?.transactionID,
+                jsonCode: response.jsonCode,
+                onyxDataApplied: true,
+            });
+            // Log to investigate draft transaction cleanup for TRACK_EXPENSE
+            if (request.command === WRITE_COMMANDS.TRACK_EXPENSE && response.jsonCode === 200 && request.successData) {
+                const transactionID = request?.data?.transactionID;
+                const willRemoveDraftInSuccessData = request.successData.some(
+                    (update) => update.key?.includes(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT) && update.value === null
+                );
+                
+                Log.info('[IOU] TRACK_EXPENSE - successData analysis BEFORE applying', false, {
+                    transactionID,
+                    jsonCode: response.jsonCode,
+                    willRemoveDraftInSuccessData,
+                    hasSuccessData: !!request.successData,
+                    successDataKeys: request.successData?.map((update) => update.key).filter(Boolean),
+                    successDataUpdates: request.successData?.map((update) => ({
+                        key: update.key,
+                        method: update.onyxMethod,
+                        willRemoveDraft: update.key?.includes(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT) && update.value === null,
+                    })),
+                });
+            }
+
             // Handle the request's success/failure data (client-side data)
             if (response.jsonCode === 200 && request.successData) {
+                // Log AFTER successData is applied for TRACK_EXPENSE
+                if (request.command === WRITE_COMMANDS.TRACK_EXPENSE) {
+                    const transactionID = request?.data?.transactionID;
+                    const willRemoveDraftInSuccessData = request.successData.some(
+                        (update) => update.key?.includes(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT) && update.value === null
+                    );
+                    
+                    Log.info('[IOU] TRACK_EXPENSE - About to apply successData', false, {
+                        transactionID,
+                        willRemoveDraftInSuccessData,
+                        successDataCount: request.successData.length,
+                    });
+                }
+                
                 return updateHandler(request.successData);
             }
             if (response.jsonCode !== 200 && request.failureData) {
@@ -128,6 +186,21 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
 function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer): Promise<void | Response> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
+    // Log for TRACK_EXPENSE and REQUEST_MONEY specifically
+    if (request?.command === WRITE_COMMANDS.TRACK_EXPENSE || request?.command === WRITE_COMMANDS.REQUEST_MONEY) {
+        Log.info(`[API_DEBUG] OnyxUpdates.apply - ${request.command} update received`, false, {
+            command: request.command,
+            transactionID: request?.data?.transactionID,
+            receiptState: request?.data?.receiptState,
+            type,
+            lastUpdateID,
+            lastUpdateIDAppliedToClient,
+            jsonCode: response?.jsonCode,
+            hasOnyxData: !!response?.onyxData,
+            onyxDataCount: response?.onyxData?.length ?? 0,
+        });
+    }
+
     const isUpdateOld = lastUpdateID && lastUpdateIDAppliedToClient && Number(lastUpdateID) <= lastUpdateIDAppliedToClient;
     const isOpenAppRequest = request?.command === WRITE_COMMANDS.OPEN_APP;
     const isFullReconnectRequest = request?.command === SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP && !request?.data?.updateIDFrom;
@@ -137,6 +210,21 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
             lastUpdateID,
             lastUpdateIDAppliedToClient,
         });
+
+        // Log for TRACK_EXPENSE and REQUEST_MONEY when update is old
+        if (request?.command === WRITE_COMMANDS.TRACK_EXPENSE || request?.command === WRITE_COMMANDS.REQUEST_MONEY) {
+            Log.warn(`[API_DEBUG] OnyxUpdates.apply - ${request.command} update is OLD, will skip onyxData but apply successData/failureData`, {
+                command: request.command,
+                transactionID: request?.data?.transactionID,
+                receiptState: request?.data?.receiptState,
+                lastUpdateID,
+                lastUpdateIDAppliedToClient,
+                hasSuccessData: !!request.successData,
+                successDataCount: request.successData?.length ?? 0,
+                hasFailureData: !!request.failureData,
+                failureDataCount: request.failureData?.length ?? 0,
+            });
+        }
 
         // In this case, we're already received the OnyxUpdate included in the response, so we don't need to apply it again.
         // However, we do need to apply the successData and failureData from the request
@@ -150,7 +238,26 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
 
             // We use a spread here instead of delete because we don't want to change the response for other middlewares
             const {onyxData, ...responseWithoutOnyxData} = response;
+            
+            // Log for TRACK_EXPENSE and REQUEST_MONEY when applying successData/failureData only
+            if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
+                Log.info(`[API_DEBUG] OnyxUpdates.apply - Calling applyHTTPSOnyxUpdates for ${request.command} (old update, successData/failureData only)`, false, {
+                    command: request.command,
+                    transactionID: request?.data?.transactionID,
+                    receiptState: request?.data?.receiptState,
+                });
+            }
+            
             return applyHTTPSOnyxUpdates(request, responseWithoutOnyxData, Number(lastUpdateID));
+        }
+
+        // Log for TRACK_EXPENSE and REQUEST_MONEY when update is old and has no successData/failureData
+        if (request?.command === WRITE_COMMANDS.TRACK_EXPENSE || request?.command === WRITE_COMMANDS.REQUEST_MONEY) {
+            Log.warn(`[API_DEBUG] OnyxUpdates.apply - ${request.command} update is OLD and has no successData/failureData, returning early`, {
+                command: request.command,
+                transactionID: request?.data?.transactionID,
+                receiptState: request?.data?.receiptState,
+            });
         }
 
         return Promise.resolve();
@@ -159,6 +266,17 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
+        // Log for TRACK_EXPENSE and REQUEST_MONEY before calling applyHTTPSOnyxUpdates
+        if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
+            Log.info(`[API_DEBUG] OnyxUpdates.apply - Calling applyHTTPSOnyxUpdates for ${request.command} (new update)`, false, {
+                command: request.command,
+                transactionID: request?.data?.transactionID,
+                receiptState: request?.data?.receiptState,
+                lastUpdateID,
+                lastUpdateIDAppliedToClient,
+            });
+        }
+        
         return applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {

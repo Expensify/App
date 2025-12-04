@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 import {generateTransactionID, getDraftTransactions} from './Transaction';
+import Log from '@libs/Log';
 
 let connection: Connection;
 
@@ -101,16 +102,44 @@ function removeDraftSplitTransaction(transactionID: string | undefined) {
 
 function removeDraftTransactions(shouldExcludeInitialTransaction = false, allTransactionDrafts?: OnyxCollection<Transaction>) {
     const draftTransactions = getDraftTransactions(allTransactionDrafts);
+      // Get call stack info for debugging
+      const stack = new Error().stack;
+      const callerLine = stack?.split('\n')[2]?.trim();
+
+      Log.warn('[TransactionEdit] removeDraftTransactions called', {
+          shouldExcludeInitialTransaction,
+          draftTransactionsCount: draftTransactions.length,
+          transactionIDs: draftTransactions.map((t) => t.transactionID),
+          transactionDetails: draftTransactions.map((t) => ({
+              transactionID: t.transactionID,
+              amount: t.amount,
+              merchant: t.merchant,
+              hasReceipt: !!t.receipt?.source,
+              receiptPath: t.receipt?.source,
+          })),
+          callerLine,
+      });
     const draftTransactionsSet = draftTransactions.reduce(
         (acc, item) => {
             if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+                Log.info('[TransactionEdit] Excluding initial transaction from removal', true, {
+                    transactionID: item.transactionID,
+                });
                 return acc;
             }
+            Log.info('[TransactionEdit] Marking transaction for deletion', true, {
+                transactionID: item.transactionID,
+                hasReceipt: !!item.receipt?.source,
+            });
             acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
             return acc;
         },
         {} as Record<string, null>,
     );
+    Log.info('[IOU] removeDraftTransactions - draftTransactionsSet', false, {draftTransactionsSet});
+    Log.warn('[TransactionEdit] Executing multiSet to delete transactions', {
+        keysToDelete: Object.keys(draftTransactionsSet),
+    });
     Onyx.multiSet(draftTransactionsSet);
 }
 

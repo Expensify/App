@@ -10,6 +10,7 @@ import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
+import Log from './Log';
 import prepareRequestPayload from './prepareRequestPayload';
 
 let shouldFailAllRequests = false;
@@ -55,7 +56,43 @@ const APICommandRegex = /\/api\/([^&?]+)\??.*/;
  */
 function processHTTPRequest(url: string, method: RequestType = 'get', body: FormData | null = null, abortSignal: AbortSignal | undefined = undefined): Promise<Response> {
     const startTime = new Date().valueOf();
-    return fetch(url, {
+    const requestId = `${method}_${url}_${startTime}`;
+    const hasAbortSignal = !!abortSignal;
+    const abortSignalAborted = abortSignal?.aborted ?? false;
+    
+    // Log request initiation
+    Log.info('[HttpUtils] Request initiated', false, {
+        requestId,
+        url,
+        method,
+        hasAbortSignal,
+        abortSignalAborted,
+        startTime,
+    });
+    
+    // Track abort signal state changes
+    let abortListenerCalled = false;
+    let abortListenerCallTime: number | null = null;
+    if (abortSignal) {
+        abortSignal.addEventListener('abort', () => {
+            abortListenerCalled = true;
+            abortListenerCallTime = Date.now();
+            Log.info('[HttpUtils] Abort signal listener triggered', false, {
+                requestId,
+                url,
+                method,
+                timeSinceStart: abortListenerCallTime - startTime,
+                abortListenerCallTime,
+            });
+        });
+    }
+    
+    // Set up a timeout to detect if promise hangs forever
+    const HANG_DETECTION_TIMEOUT = 300000; // 5 minutes
+    let promiseResolved = false;
+    let promiseRejected = false;
+    
+    const promise = fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: abortSignal,
         method,
@@ -67,6 +104,22 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
         credentials: 'omit',
     })
         .then((response) => {
+            const responseReceivedTime = Date.now();
+            const timeToResponse = responseReceivedTime - startTime;
+            
+            Log.info('[HttpUtils] Fetch promise resolved - response received', false, {
+                requestId,
+                url,
+                method,
+                timeToResponse,
+                responseReceivedTime,
+                status: response.status,
+                statusText: response.statusText,
+                abortListenerCalled,
+                abortListenerCallTime: abortListenerCallTime ?? null,
+                abortSignalAborted: abortSignal?.aborted ?? false,
+            });
+            
             // We are calculating the skew to minimize the delay when posting the messages
             const match = url.match(APICommandRegex)?.[1];
             if (match && addSkewList.has(match) && response.headers) {
@@ -149,7 +202,112 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                 alertUser();
             }
             return response as Promise<Response>;
+        })
+        .then((response) => {
+            promiseResolved = true;
+            const finalTime = Date.now();
+            Log.info('[HttpUtils] Request completed successfully', false, {
+                requestId,
+                url,
+                method,
+                totalDuration: finalTime - startTime,
+                abortListenerCalled,
+                abortListenerCallTime: abortListenerCallTime ?? null,
+            });
+            return response;
+        })
+        .catch((error: unknown) => {
+            promiseRejected = true;
+            const errorTime = Date.now();
+            const timeToError = errorTime - startTime;
+            
+            // Check if this is an AbortError
+            const isAbortError = error instanceof Error && error.name === 'AbortError';
+            const isDOMExceptionAbort = error instanceof DOMException && error.name === 'AbortError';
+            
+            let errorName = 'Unknown';
+            if (error instanceof Error) {
+                errorName = error.name;
+            } else if (typeof error === 'object' && error !== null && 'name' in error) {
+                errorName = String((error as {name: unknown}).name);
+            }
+            
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            
+            let errorType: string;
+            if (error instanceof Error) {
+                errorType = error.constructor.name;
+            } else {
+                errorType = typeof error;
+            }
+            
+            Log.warn('[HttpUtils] Fetch promise rejected', {
+                requestId,
+                url,
+                method,
+                timeToError,
+                errorTime,
+                errorName,
+                errorMessage,
+                isAbortError,
+                isDOMExceptionAbort,
+                errorType,
+                abortListenerCalled,
+                abortListenerCallTime: abortListenerCallTime ?? null,
+                abortSignalAborted: abortSignal?.aborted ?? false,
+                abortSignalAbortedAtStart: abortSignalAborted,
+                // Check if abort arrived too late (after promise already started resolving)
+                abortArrivedTooLate: abortListenerCallTime !== null && abortListenerCallTime > startTime + 100,
+            });
+            
+            // Convert AbortError to HttpsError with REQUEST_CANCELLED name
+            if (isAbortError || isDOMExceptionAbort || errorName === CONST.ERROR.REQUEST_CANCELLED) {
+                const httpsError = new HttpsError({
+                    message: CONST.ERROR.FAILED_TO_FETCH,
+                });
+                httpsError.name = CONST.ERROR.REQUEST_CANCELLED;
+                
+                Log.info('[HttpUtils] Converted AbortError to HttpsError with REQUEST_CANCELLED name', false, {
+                    requestId,
+                    url,
+                    method,
+                    originalErrorName: errorName,
+                    convertedErrorName: httpsError.name,
+                });
+                
+                throw httpsError;
+            }
+            
+            // For other errors, wrap them in HttpsError
+            throw new HttpsError({
+                message: errorMessage || CONST.ERROR.FAILED_TO_FETCH,
+            });
         });
+    
+    // Set up hang detection - this will fire if the promise never resolves or rejects
+    const hangDetectionTimeout = setTimeout(() => {
+        if (promiseResolved || promiseRejected) {
+            return;
+        }
+        
+        Log.alert('[HttpUtils] POTENTIAL HANG DETECTED - Promise never resolved or rejected', {
+            requestId,
+            url,
+            method,
+            timeSinceStart: Date.now() - startTime,
+            hasAbortSignal,
+            abortSignalAborted: abortSignal?.aborted ?? false,
+            abortListenerCalled,
+            abortListenerCallTime: abortListenerCallTime ?? null,
+        }, false);
+    }, HANG_DETECTION_TIMEOUT);
+    
+    // Clear timeout when promise resolves or rejects
+    promise.finally(() => {
+        clearTimeout(hangDetectionTimeout);
+    });
+    
+    return promise;
 }
 
 /**
@@ -170,8 +328,28 @@ function xhr(command: string, data: Record<string, unknown>, type: RequestType =
 
 function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
     const controller = abortControllerMap.get(command);
+    const abortCallTime = Date.now();
+    const wasAborted = controller?.signal.aborted ?? false;
+
+    Log.info('[HttpUtils] cancelPendingRequests called', false, {
+        command,
+        abortCallTime,
+        wasAborted,
+        hasController: !!controller,
+    });
 
     controller?.abort();
+
+    const afterAbortTime = Date.now();
+    const isAbortedAfterCall = controller?.signal.aborted ?? false;
+
+    Log.info('[HttpUtils] cancelPendingRequests - abort() called', false, {
+        command,
+        abortCallTime,
+        afterAbortTime,
+        isAbortedAfterCall,
+        timeToAbort: afterAbortTime - abortCallTime,
+    });
 
     // We create a new instance because once `abort()` is called any future requests using the same controller would
     // automatically get rejected: https://dom.spec.whatwg.org/#abortcontroller-api-integration

@@ -155,8 +155,28 @@ function prepareRequest<TCommand extends ApiCommand>(
  * Process a prepared request according to its type.
  */
 function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<void | Response> {
+    // Log TRACK_EXPENSE and REQUEST_MONEY in processRequest
+    if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
+        Log.info(`[API_DEBUG] API.processRequest - ${request.command} received`, false, {
+            command: request.command,
+            type,
+            transactionID: request?.data?.transactionID,
+            receiptState: request?.data?.receiptState,
+            apiRequestType: request?.data?.apiRequestType,
+            willPushToSequentialQueue: type === CONST.API_REQUEST_TYPE.WRITE,
+        });
+    }
+
     // Write commands can be saved and retried, so push it to the SequentialQueue
     if (type === CONST.API_REQUEST_TYPE.WRITE) {
+        // Log TRACK_EXPENSE and REQUEST_MONEY before pushing to SequentialQueue
+        if (request.command === WRITE_COMMANDS.TRACK_EXPENSE || request.command === WRITE_COMMANDS.REQUEST_MONEY) {
+            Log.info(`[API_DEBUG] API.processRequest - About to push ${request.command} to SequentialQueue`, false, {
+                command: request.command,
+                transactionID: request?.data?.transactionID,
+                receiptState: request?.data?.receiptState,
+            });
+        }
         pushToSequentialQueue(request);
         return Promise.resolve();
     }
@@ -183,7 +203,36 @@ function write<TCommand extends WriteCommand>(
     conflictResolver: RequestConflictResolver = {},
 ): Promise<void | Response> {
     Log.info('[API] Called API write', false, {command, ...apiCommandParameters});
+
+    // Log TRACK_EXPENSE and REQUEST_MONEY specifically
+    if (command === WRITE_COMMANDS.TRACK_EXPENSE || command === WRITE_COMMANDS.REQUEST_MONEY) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+        const transactionID: string | undefined = (apiCommandParameters as any)?.transactionID;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+        const receiptState: string | undefined = (apiCommandParameters as any)?.receiptState;
+        Log.info(`[API_DEBUG] API.write - ${command} called`, false, {
+            command,
+            transactionID,
+            receiptState,
+            hasOnyxData: !!onyxData,
+            hasOptimisticData: !!onyxData.optimisticData,
+            hasSuccessData: !!onyxData.successData,
+            hasFailureData: !!onyxData.failureData,
+        });
+    }
+
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.WRITE, apiCommandParameters, onyxData, conflictResolver);
+
+    // Log TRACK_EXPENSE and REQUEST_MONEY after prepareRequest
+    if (command === WRITE_COMMANDS.TRACK_EXPENSE || command === WRITE_COMMANDS.REQUEST_MONEY) {
+        Log.info(`[API_DEBUG] API.write - ${command} request prepared, about to processRequest`, false, {
+            command: request.command,
+            transactionID: request?.data?.transactionID,
+            receiptState: request?.data?.receiptState,
+            apiRequestType: request?.data?.apiRequestType,
+        });
+    }
+
     return processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
 }
 
