@@ -5980,7 +5980,7 @@ ${
                     expenseSubtitle:
                         "Contrassegna gli importi delle spese per categoria. Questa regola sostituisce la regola generale dello spazio di lavoro per l'importo massimo delle spese.",
                     daily: 'Totale categoria',
-                    dailySubtitle: 'Segnala la spesa totale per categoria per ogni rapporto di spesa.',
+                    dailySubtitle: 'Segnala la spesa totale per giorno per categoria per ogni rapporto di spesa.',
                 },
                 requireReceiptsOver: 'Richiedi ricevute superiori a',
                 requireReceiptsOverList: {
@@ -6645,6 +6645,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Crea spesa',
             createReport: 'Crea rapporto',
             chooseWorkspace: "Scegli un'area di lavoro per questo report.",
             emptyReportConfirmationTitle: 'Hai già un rapporto vuoto',

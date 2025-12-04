@@ -5844,7 +5844,7 @@ ${
                     expense: '单笔费用',
                     expenseSubtitle: '按类别标记费用金额。此规则会覆盖工作区的一般最大费用金额规则。',
                     daily: '类别总计',
-                    dailySubtitle: '标记每个费用报告的类别总支出。',
+                    dailySubtitle: '标记每个费用报告的类别每日总支出。',
                 },
                 requireReceiptsOver: '要求超过',
                 requireReceiptsOverList: {
@@ -6489,6 +6489,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: '创建报销单',
             createReport: '创建报告',
             chooseWorkspace: '为此报告选择一个工作区。',
             emptyReportConfirmationTitle: '你已经有一个空报告',
