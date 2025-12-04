@@ -6068,7 +6068,7 @@ const translations = {
                     expense: 'Individual expense',
                     expenseSubtitle: 'Flag expense amounts by category. This rule overrides the general workspace rule for max expense amount.',
                     daily: 'Category total',
-                    dailySubtitle: 'Flag total category spend per expense report.',
+                    dailySubtitle: 'Flag total daily category spend per expense report.',
                 },
                 requireReceiptsOver: 'Require receipts over',
                 requireReceiptsOverList: {
