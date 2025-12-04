@@ -2516,14 +2516,14 @@ ${
                 title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        连接您的公司信用卡，以自动导入并进行费用编码。
+                        连接你已有的卡片，以自动导入交易、匹配收据并进行对账。
 
                         1. 点击*工作区*。
-                        2. 选择您的工作区。
-                        3. 点击*公司信用卡*。
-                        4. 按照提示连接您的卡片。
+                        2. 选择你的工作区。
+                        3. 点击*公司卡*。
+                        4. 按照提示连接你的卡片。
 
-                        [带我去连接我的公司信用卡](${corporateCardLink})。`),
+                        [带我前往公司卡](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `邀请[您的团队](${workspaceMembersLink})`,
