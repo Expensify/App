@@ -1,8 +1,6 @@
 import lodashDropRightWhile from 'lodash/dropRightWhile';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
-import useParentReportAction from '@hooks/useParentReportAction';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
