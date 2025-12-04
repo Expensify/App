@@ -146,6 +146,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
     // Use sorted display names for the title for group chats on native small screen widths
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived);
     const subtitle = getChatRoomSubtitle(reportHeaderData, false, isReportHeaderDataArchived);
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
@@ -186,7 +187,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
-    const canJoin = canJoinChat(report, parentReportAction, policy, isReportArchived);
+    const canJoin = canJoinChat(report, parentReportAction, policy, isReportArchived, parentReport);
 
     const joinButton = (
         <Button

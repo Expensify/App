@@ -10,7 +10,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -29,6 +28,7 @@ import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -92,7 +92,7 @@ import {
     isSystemChat as isSystemChatUtil,
     isTaskReport as isTaskReportUtil,
     isThread as isThreadUtil,
-    isTrackExpenseReport as isTrackExpenseReportUtil,
+    isTrackExpenseReportNew as isTrackExpenseReportUtil,
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
     isWorkspaceChat as isWorkspaceChatUtil,
     isWorkspaceMemberLeavingWorkspaceRoom as isWorkspaceMemberLeavingWorkspaceRoomUtil,
@@ -155,6 +155,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Trashcan', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera'] as const);
     const backTo = route.params.backTo;
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
@@ -197,7 +198,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isInvoiceRoom = useMemo(() => isInvoiceRoomUtil(report), [report]);
     const isTaskReport = useMemo(() => isTaskReportUtil(report), [report]);
     const isSelfDM = useMemo(() => isSelfDMUtil(report), [report]);
-    const isTrackExpenseReport = useMemo(() => isTrackExpenseReportUtil(report), [report]);
+    const isTrackExpenseReport = useMemo(() => isTrackExpenseReportUtil(report, parentReport, parentReportAction), [report, parentReport, parentReportAction]);
     const isCanceledTaskReport = isCanceledTaskReportUtil(report, parentReportAction);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails?.accountID, isParentReportArchived);
@@ -337,6 +338,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = Parser.htmlToText(getReportName(report, undefined, undefined, undefined, undefined, reportAttributes));
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
@@ -383,7 +385,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
-                icon: Expensicons.Users,
+                icon: expensifyIcons.Users,
                 subtitle: activeChatMembers.length,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
@@ -399,7 +401,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
-                icon: Expensicons.Users,
+                icon: expensifyIcons.Users,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
@@ -412,7 +414,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
-                icon: Expensicons.Gear,
+                icon: expensifyIcons.Gear,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
@@ -428,7 +430,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT,
                 translationKey: 'actionableMentionTrackExpense.submit',
-                icon: Expensicons.Send,
+                icon: expensifyIcons.Send,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
@@ -447,7 +449,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.CATEGORIZE,
                     translationKey: 'actionableMentionTrackExpense.categorize',
-                    icon: Expensicons.Folder,
+                    icon: expensifyIcons.Folder,
                     isAnonymousAction: false,
                     shouldShowRightIcon: true,
                     action: () => {
@@ -457,7 +459,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SHARE,
                     translationKey: 'actionableMentionTrackExpense.share',
-                    icon: Expensicons.UserPlus,
+                    icon: expensifyIcons.UserPlus,
                     isAnonymousAction: false,
                     shouldShowRightIcon: true,
                     action: () => {
@@ -472,7 +474,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
                 translationKey: 'privateNotes.title',
-                icon: Expensicons.Pencil,
+                icon: expensifyIcons.Pencil,
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => navigateToPrivateNotes(report, currentUserPersonalDetails.accountID, backTo),
@@ -485,7 +487,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             if (isCompletedTaskReport(report) && isTaskActionable) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.MARK_AS_INCOMPLETE,
-                    icon: Expensicons.Checkmark,
+                    icon: expensifyIcons.Checkmark,
                     translationKey: 'task.markAsIncomplete',
                     isAnonymousAction: false,
                     action: callFunctionIfActionIsAllowed(() => {
@@ -500,7 +502,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.GO_TO_WORKSPACE,
                 translationKey: 'workspace.common.goToWorkspace',
-                icon: Expensicons.Building,
+                icon: expensifyIcons.Building,
                 action: () => {
                     if (!report?.policyID) {
                         return;
@@ -520,7 +522,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leave',
-                icon: Expensicons.Exit,
+                icon: expensifyIcons.Exit,
                 isAnonymousAction: true,
                 action: () => {
                     if (getParticipantsAccountIDsForDisplay(report, false, true).length === 1 && isRootGroupChat) {
@@ -537,7 +539,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DEBUG,
                 translationKey: 'debug.debug',
-                icon: Expensicons.Bug,
+                icon: expensifyIcons.Bug,
                 action: () => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID)),
                 isAnonymousAction: true,
                 shouldShowRightIcon: true,
@@ -581,6 +583,16 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
         introSelected,
+        expensifyIcons.Users,
+        expensifyIcons.Gear,
+        expensifyIcons.Send,
+        expensifyIcons.Folder,
+        expensifyIcons.UserPlus,
+        expensifyIcons.Pencil,
+        expensifyIcons.Checkmark,
+        expensifyIcons.Building,
+        expensifyIcons.Exit,
+        expensifyIcons.Bug,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -640,7 +652,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     updateGroupChatAvatar(report.reportID);
                 }}
                 onImageSelected={(file) => updateGroupChatAvatar(report.reportID, file)}
-                editIcon={Expensicons.Camera}
+                editIcon={expensifyIcons.Camera}
                 editIconStyle={styles.smallEditIconAccount}
                 pendingAction={report.pendingFields?.avatar ?? undefined}
                 errors={report.errorFields?.avatar ?? null}
@@ -663,9 +675,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         policy,
         participants,
         moneyRequestReport?.reportID,
+        expensifyIcons.Camera,
     ]);
 
-    const canJoin = canJoinChat(report, parentReportAction, policy, !!reportNameValuePairs?.private_isArchived);
+    const canJoin = canJoinChat(report, parentReportAction, policy, !!reportNameValuePairs?.private_isArchived, parentReport);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
@@ -1002,7 +1015,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     {shouldShowDeleteButton && (
                         <MenuItem
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
-                            icon={Expensicons.Trashcan}
+                            icon={expensifyIcons.Trashcan}
                             title={caseID === CASES.DEFAULT ? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
                             onPress={() => setIsDeleteModalVisible(true)}
                         />
