@@ -1,10 +1,12 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import type {ExpenseReportListItemType} from '@components/SelectionListWithSections/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -29,7 +31,6 @@ type ExpenseReportListItemRowProps = {
     onButtonPress?: () => void;
     onCheckboxPress?: () => void;
     containerStyle?: StyleProp<ViewStyle>;
-    avatarBorderColor?: ColorValue;
     isSelectAllChecked?: boolean;
     isIndeterminate?: boolean;
     isDisabledCheckbox?: boolean;
@@ -46,7 +47,6 @@ function ExpenseReportListItemRow({
     containerStyle,
     showTooltip,
     canSelectMultiple,
-    avatarBorderColor,
     isSelectAllChecked,
     isIndeterminate,
     isDisabledCheckbox,
@@ -57,6 +57,7 @@ function ExpenseReportListItemRow({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     const {total, currency} = useMemo(() => {
         let reportTotal = item.total ?? 0;
@@ -78,7 +79,9 @@ function ExpenseReportListItemRow({
     const showUserInfo = (item.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (item.type === CONST.REPORT.TYPE.EXPENSE && !!item?.from);
 
     // Calculate the correct border color for avatars based on hover and focus states
-    const finalAvatarBorderColor = isHovered && !isFocused ? theme.border : avatarBorderColor;
+    const finalAvatarBorderColor =
+        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused || !!isHovered, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
+        theme.highlightBG;
 
     if (!isLargeScreenWidth) {
         return (
@@ -203,6 +206,15 @@ function ExpenseReportListItemRow({
                         amount={item.total}
                     />
                 </View>
+            </View>
+            <View style={styles.ml2}>
+                <Icon
+                    src={expensifyIcons.ArrowRight}
+                    width={variables.iconSizeSmall}
+                    height={variables.iconSizeSmall}
+                    fill={theme.icon}
+                    additionalStyles={!isHovered && styles.opacitySemiTransparent}
+                />
             </View>
         </View>
     );

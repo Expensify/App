@@ -44,6 +44,7 @@ const basicProps = {
     isReportAPolicyExpenseChat: false,
     areThereDuplicates: false,
     currentUserEmail: '',
+    currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
 };
 
 describe('TransactionPreviewUtils', () => {

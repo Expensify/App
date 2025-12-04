@@ -43,12 +43,14 @@ function BaseSelectionList<TItem extends ListItem>({
     onSelectAll,
     onCheckboxPress,
     onScrollBeginDrag,
+    onDismissError,
     onEndReached,
     onEndReachedThreshold,
     confirmButtonOptions,
     children,
     customListHeader,
     customListHeaderContent,
+    customLoadingPlaceholder,
     footerContent,
     listEmptyContent,
     listFooterContent,
@@ -79,6 +81,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
     shouldHighlightSelectedItem = true,
+    shouldUseDefaultRightHandSideCheckmark,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
 }: SelectionListProps<TItem>) {
@@ -329,7 +332,9 @@ function BaseSelectionList<TItem extends ListItem>({
                     isFocused={isItemFocused}
                     isDisabled={isItemDisabled}
                     canSelectMultiple={canSelectMultiple}
+                    onDismissError={onDismissError}
                     shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
+                    shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     rightHandSideComponent={rightHandSideComponent}
                     isMultilineSupported={isRowMultilineSupported}
@@ -350,7 +355,7 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
-            return <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
+            return customLoadingPlaceholder ?? <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
         }
         if (showListEmptyContent) {
             return listEmptyContent;
@@ -460,13 +465,12 @@ function BaseSelectionList<TItem extends ListItem>({
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
-            {data.length === 0 ? (
+            {data.length === 0 && (showLoadingPlaceholder || showListEmptyContent) ? (
                 renderListEmptyContent()
             ) : (
                 <>
                     <ListHeader
                         dataDetails={dataDetails}
-                        aboveListHeaderMessage={textInputOptions?.headerMessage}
                         customListHeader={customListHeader}
                         canSelectMultiple={canSelectMultiple}
                         onSelectAll={handleSelectAll}
