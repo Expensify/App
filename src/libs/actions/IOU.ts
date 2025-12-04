@@ -673,6 +673,7 @@ type CreateTrackExpenseParams = {
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
     isASAPSubmitBetaEnabled: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -737,6 +738,7 @@ type GetTrackExpenseInformationParams = {
     transactionParams: GetTrackExpenseInformationTransactionParams;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
     isASAPSubmitBetaEnabled: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -2616,6 +2618,7 @@ type BuildOnyxDataForTrackExpenseParams = {
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
     participant?: Participant;
     isASAPSubmitBetaEnabled: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 /** Builds the Onyx data for track expense */
@@ -2630,6 +2633,7 @@ function buildOnyxDataForTrackExpense({
     retryParams,
     participant,
     isASAPSubmitBetaEnabled,
+    quickAction,
 }: BuildOnyxDataForTrackExpenseParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const {report: chatReport, previewAction: reportPreviewAction} = chat;
     const {report: iouReport, createdAction: iouCreatedAction, action: iouAction} = iou;
@@ -2674,7 +2678,7 @@ function buildOnyxDataForTrackExpense({
                 value: {
                     action: newQuickAction,
                     chatReportID: chatReport.reportID,
-                    isFirstQuickAction: isEmptyObject(deprecatedQuickAction),
+                    isFirstQuickAction: isEmptyObject(quickAction),
                 },
             },
         );
@@ -2903,7 +2907,7 @@ function buildOnyxDataForTrackExpense({
     failureData.push({
         onyxMethod: Onyx.METHOD.SET,
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-        value: deprecatedQuickAction ?? null,
+        value: quickAction ?? null,
     });
 
     if (iouReport) {
@@ -4331,6 +4335,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         actionableTrackExpenseWhisper,
         retryParams,
         isASAPSubmitBetaEnabled,
+        quickAction,
     });
 
     return {
@@ -6686,6 +6691,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             linkedTrackedExpenseReportID,
             customUnitRateID,
         },
+        quickAction,
     };
 
     const {
@@ -6740,6 +6746,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             },
             retryParams,
             isASAPSubmitBetaEnabled,
+            quickAction,
         }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
 

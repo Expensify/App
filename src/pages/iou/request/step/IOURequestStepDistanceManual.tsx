@@ -221,6 +221,7 @@ function IOURequestStepDistanceManual({
                                 attendees: transaction?.comment?.attendees,
                             },
                             isASAPSubmitBetaEnabled,
+                            quickAction,
                         });
                         return;
                     }
