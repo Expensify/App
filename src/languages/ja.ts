@@ -1571,7 +1571,7 @@ const translations: TranslationDeepObject<typeof en> = {
             noEligibleExpenseFound: '対象となる経費が見つかりません',
             noEligibleExpenseFoundSubtitle: `<muted-text><centered-text>この経費と統合できる経費はありません。対象となる経費の詳細は、<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">こちら</a>をご確認ください。</centered-text></muted-text>`,
             selectTransactionToMerge: ({reportName}: {reportName: string}) =>
-                `Select an <a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">eligible expense</a> to merge with <strong>${reportName}</strong>.`,
+                `<a href="${CONST.HELP_DOC_LINKS.MERGE_EXPENSES}">対象経費</a>を選択し、<strong>${reportName}</strong>と統合してください。`,
         },
         receiptPage: {
             header: '領収書を選択',

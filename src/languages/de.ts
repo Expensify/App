@@ -1998,11 +1998,11 @@ const translations: TranslationDeepObject<typeof en> = {
         mergeFailureAccountLockedDescription: ({email}: MergeFailureDescriptionGenericParams) =>
             `<muted-text><centered-text>Du kannst <strong>${email}</strong> nicht zusammenführen, weil es gesperrt ist. Bitte <concierge-link>wende dich an Concierge</concierge-link>, um Hilfe zu erhalten.</centered-text></muted-text>`,
         mergeFailureUncreatedAccountDescription: ({email, contactMethodLink}: MergeFailureUncreatedAccountDescriptionParams) =>
-            `<muted-text><centered-text>You can’t merge accounts because <strong>${email}</strong> doesn’t have an Expensify account. Please <a href="${contactMethodLink}">add it as a contact method</a> instead.</centered-text></muted-text>`,
+            `<muted-text><centered-text>Sie können keine Konten zusammenführen, da <strong>${email}</strong> kein Expensify-Konto hat. Bitte <a href="${contactMethodLink}">fügen Sie es stattdessen als Kontaktmethode hinzu</a>.</centered-text></muted-text>`,
         mergeFailureSmartScannerAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
             `<muted-text><centered-text>Sie können <strong>${email}</strong> nicht mit anderen Konten zusammenführen. Bitte führen Sie stattdessen andere Konten mit diesem zusammen.</centered-text></muted-text>`,
         mergeFailureInvoicedAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
-            `<muted-text><centered-text>You can’t merge accounts into <strong>${email}</strong> because this account owns an invoiced billing relationship.</centered-text></muted-text>`,
+            `<muted-text><centered-text>Sie können keine Konten in <strong>${email}</strong> zusammenführen, da dieses Konto eine fakturierte Abrechnungsbeziehung besitzt.</centered-text></muted-text>`,
         mergeFailureTooManyAttempts: {
             heading: 'Versuche es später erneut',
             description: 'Es gab zu viele Versuche, Konten zusammenzuführen. Bitte versuchen Sie es später erneut.',
@@ -5977,7 +5977,7 @@ Möchten Sie sie wirklich noch einmal exportieren?`,
                 title: 'QuickBooks Desktop',
                 description: `Profitieren Sie von automatischer Synchronisierung und reduzieren Sie manuelle Eingaben mit der Expensify + QuickBooks Desktop-Integration. Erzielen Sie maximale Effizienz mit einer Echtzeit-Zweiwegeverbindung und Spesencodierung nach Klasse, Artikel, Kunde und Projekt.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>Our QuickBooks Desktop integration is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
+                    `<muted-text>Unsere QuickBooks Desktop-Integration ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: {
                 title: 'Erweiterte Genehmigungen',
@@ -6013,7 +6013,7 @@ Möchten Sie sie wirklich noch einmal exportieren?`,
                 title: 'Unbegrenzte Firmenkarten',
                 description: `Sie müssen weitere Kartenfeeds hinzufügen? Schalten Sie unbegrenzt viele Firmenkarten frei, um Transaktionen von allen großen Kreditkartenausstellern zu synchronisieren.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
-                    `<muted-text>This is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
+                    `<muted-text>Dies ist nur im Control-Tarif verfügbar, beginnend bei <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `pro Mitglied und Monat.` : `pro aktivem Mitglied pro Monat.`}</muted-text>`,
             },
             rules: {
                 title: 'Regeln',

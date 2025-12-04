@@ -1995,7 +1995,7 @@ const translations: TranslationDeepObject<typeof en> = {
         mergeFailureSmartScannerAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
             `<muted-text><centered-text>Non puoi unire <strong>${email}</strong> ad altri account. Unisci invece gli altri account a questo.</centered-text></muted-text>`,
         mergeFailureInvoicedAccountDescription: ({email}: MergeFailureDescriptionGenericParams) =>
-            `<muted-text><centered-text>You can’t merge accounts into <strong>${email}</strong> because this account owns an invoiced billing relationship.</centered-text></muted-text>`,
+            `<muted-text><centered-text>Non è possibile unire gli account in <strong>${email}</strong> perché questo account possiede un rapporto di fatturazione fatturato.</centered-text></muted-text>`,
         mergeFailureTooManyAttempts: {
             heading: 'Riprova più tardi',
             description: 'Sono stati effettuati troppi tentativi di unire gli account. Riprova più tardi.',
@@ -5415,7 +5415,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             newWorkspace: 'Nuovo spazio di lavoro',
             getTheExpensifyCardAndMore: 'Ottieni la Expensify Card e altro ancora',
             confirmWorkspace: 'Conferma spazio di lavoro',
-            myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `My Group Workspace${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
+            myGroupWorkspace: ({workspaceNumber}: {workspaceNumber?: number}) => `Il mio spazio di lavoro di gruppo${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
             workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `Workspace di ${userName}${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
