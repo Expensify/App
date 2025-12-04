@@ -1,11 +1,18 @@
-import Onyx, {OnyxEntry} from 'react-native-onyx';
-import {startProfiling} from 'react-native-release-profiler';
+import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {startProfiling, stopProfiling} from 'react-native-release-profiler';
 import {Memoize} from '@libs/memoize';
 import Performance from '@libs/Performance';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {disableLoggingAndFlushLogs, setShouldStoreLogs} from './Console';
 import toggleProfileTool from './ProfilingTool';
 import {shouldShowProfileTool} from './TestTool';
+
+type ProfilingData = {
+    profilePath: string | undefined;
+    memoizeStats: ReturnType<typeof Memoize.stopMonitoring>;
+    performanceMeasures: ReturnType<typeof Performance.getPerformanceMeasures> | undefined;
+};
 
 // Auto-off timeout for troubleshoot recording (10 minutes)
 const AUTO_OFF_TIMEOUT_MS = 10 * 60 * 1000;
@@ -31,6 +38,29 @@ function clearAutoOffTimeout() {
 }
 
 /**
+ * Stop profiling and get profiling data.
+ * Used for manual disable to get profile path and stats before cleanup.
+ * @param fileName - The filename to save the profile trace as
+ * @returns Profile path, memoize stats, and performance measures
+ */
+async function stopProfilingAndGetData(fileName: string): Promise<ProfilingData> {
+    const showProfileTool = shouldShowProfileTool();
+
+    // Stop profiler and save to file (only if profiling is available)
+    const profilePath = showProfileTool ? await stopProfiling(true, fileName) : undefined;
+
+    // Get stats before stopping monitoring
+    const memoizeStats = Memoize.stopMonitoring();
+    const performanceMeasures = showProfileTool ? Performance.getPerformanceMeasures() : undefined;
+
+    // Stop monitoring
+    Performance.disableMonitoring();
+    toggleProfileTool(false);
+
+    return {profilePath, memoizeStats, performanceMeasures};
+}
+
+/**
  * Disable troubleshoot recording, stop profiling, and clean up logs.
  * Used for auto-off and invalid state cleanup.
  */
@@ -46,6 +76,17 @@ function disableRecording() {
     disableLoggingAndFlushLogs();
 
     // Update Onyx state
+    Onyx.set(ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA, false);
+    Onyx.set(ONYXKEYS.TROUBLESHOOT_RECORDING_START_TIME, null);
+}
+
+/**
+ * Clean up Onyx state and flush logs.
+ * Used after manual disable when profiling was already stopped via stopProfilingAndGetData.
+ */
+function cleanupAfterDisable() {
+    clearAutoOffTimeout();
+    disableLoggingAndFlushLogs();
     Onyx.set(ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA, false);
     Onyx.set(ONYXKEYS.TROUBLESHOOT_RECORDING_START_TIME, null);
 }
@@ -163,4 +204,5 @@ function setShouldRecordTroubleshootData(shouldRecord: boolean) {
     }
 }
 
-export {setShouldRecordTroubleshootData, enableRecording, disableRecording};
+export {setShouldRecordTroubleshootData, enableRecording, disableRecording, stopProfilingAndGetData, cleanupAfterDisable};
+export type {ProfilingData};
