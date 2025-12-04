@@ -713,7 +713,7 @@ function MoneyRequestView({
                 {(wideRHPRouteKeys.length === 0 || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction) && (
                     <MoneyRequestReceiptView
                         allReports={allReports}
-                        report={transactionThreadReport}
+                        report={transactionThreadReport ?? parentReport}
                         readonly={readonly}
                         updatedTransaction={updatedTransaction}
                         isFromReviewDuplicates={isFromReviewDuplicates}
