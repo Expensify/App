@@ -51,9 +51,9 @@ Onyx.connect({
 });
 
 function completeSetupCategoriesTask() {
-    const setupCategoriesAndTagsTaskReportID = deprecatedIntroSelected?.setupCategoriesAndTags;
-    if (setupCategoriesAndTagsTaskReportID) {
-        const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${setupCategoriesAndTagsTaskReportID}`];
+    const setupCategoriesTaskReportID = deprecatedIntroSelected?.setupCategories;
+    if (setupCategoriesTaskReportID) {
+        const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${setupCategoriesTaskReportID}`];
         if (taskReport) {
             completeTask(taskReport, false, undefined);
         }
