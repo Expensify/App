@@ -1108,10 +1108,19 @@ function initMoneyRequest({
                 waypoint1: {keyForList: 'stop_waypoint'},
             };
         }
-        // Initialize Odometer state
+        // Initialize Odometer state when switching TO odometer tab
         if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
             comment.odometerStart = null;
             comment.odometerEnd = null;
+            comment.odometerStartImage = undefined;
+            comment.odometerEndImage = undefined;
+        }
+        // Clear Odometer state when switching FROM odometer tab to other distance tabs
+        if (currentIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER && newIouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
+            comment.odometerStart = null;
+            comment.odometerEnd = null;
+            comment.odometerStartImage = undefined;
+            comment.odometerEndImage = undefined;
         }
     }
 

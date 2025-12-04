@@ -41,6 +41,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
+import DiscardChangesConfirmation from './DiscardChangesConfirmation';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -72,6 +73,14 @@ function IOURequestStepDistanceOdometer({
     const [startReading, setStartReading] = useState<string>('');
     const [endReading, setEndReading] = useState<string>('');
     const [formError, setFormError] = useState<string>('');
+    // Key to force TextInput remount when resetting state after tab switch
+    const [inputKey, setInputKey] = useState<number>(0);
+
+    // Track initial values for DiscardChangesConfirmation
+    const initialStartReadingRef = useRef<string>('');
+    const initialEndReadingRef = useRef<string>('');
+    const isSavedRef = useRef(false);
+    const hasInitializedRefs = useRef(false);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
@@ -94,21 +103,47 @@ function IOURequestStepDistanceOdometer({
     const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
-    // Get odometer readings from transaction
-    const odometerStart = transaction?.comment?.odometerStart;
-    const odometerEnd = transaction?.comment?.odometerEnd;
+    // Get odometer images from transaction (only for display, not for initialization)
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
 
-    // Initialize readings from transaction
+    // Reset component state when transaction has no odometer data (happens when switching tabs)
+    // In Phase 1, we don't persist data from transaction since users can't save and exit
     useEffect(() => {
-        if (odometerStart !== undefined && odometerStart !== null) {
-            setStartReading(odometerStart.toString());
+        // Check if transaction has no odometer data (cleared when switching tabs)
+        const hasNoTransactionData = 
+            (transaction?.comment?.odometerStart === null || transaction?.comment?.odometerStart === undefined) &&
+            (transaction?.comment?.odometerEnd === null || transaction?.comment?.odometerEnd === undefined);
+
+        // Reset state if transaction has no data but we have local state (tab switch cleared transaction data)
+        if (hasNoTransactionData && (startReading || endReading) && !isSavedRef.current && hasInitializedRefs.current) {
+            setStartReading('');
+            setEndReading('');
+            initialStartReadingRef.current = '';
+            initialEndReadingRef.current = '';
+            setFormError('');
+            // Force TextInput remount to reset label position
+            setInputKey((prev) => prev + 1);
         }
-        if (odometerEnd !== undefined && odometerEnd !== null) {
-            setEndReading(odometerEnd.toString());
+    }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd, startReading, endReading]);
+
+    // Initialize initial values refs on mount for DiscardChangesConfirmation
+    useEffect(() => {
+        if (!hasInitializedRefs.current) {
+            initialStartReadingRef.current = '';
+            initialEndReadingRef.current = '';
+            hasInitializedRefs.current = true;
         }
-    }, [odometerStart, odometerEnd]);
+    }, []);
+
+    // Update refs after saving to mark current state as "saved"
+    useEffect(() => {
+        if (isSavedRef.current) {
+            initialStartReadingRef.current = startReading;
+            initialEndReadingRef.current = endReading;
+            isSavedRef.current = false;
+        }
+    }, [startReading, endReading]);
 
     // Calculate total distance - updated live after every input change
     const totalDistance = useMemo(() => {
@@ -210,6 +245,9 @@ function IOURequestStepDistanceOdometer({
         const start = parseFloat(startReading);
         const end = parseFloat(endReading);
 
+        // Mark as saved to prevent DiscardChangesConfirmation from showing
+        isSavedRef.current = true;
+
         // Store odometer readings in transaction.comment.odometerStart/odometerEnd
         setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
 
@@ -300,6 +338,7 @@ function IOURequestStepDistanceOdometer({
                     <View style={[styles.mb4, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                         <View style={[styles.flex1]}>
                             <TextInput
+                                key={`start-${inputKey}`}
                                 ref={startReadingInputRef}
                                 label={translate('distance.odometer.startReading')}
                                 value={startReading}
@@ -337,6 +376,7 @@ function IOURequestStepDistanceOdometer({
                     <View style={[styles.mb4, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                         <View style={[styles.flex1]}>
                             <TextInput
+                                key={`end-${inputKey}`}
                                 ref={endReadingInputRef}
                                 label={translate('distance.odometer.endReading')}
                                 value={endReading}
@@ -401,6 +441,14 @@ function IOURequestStepDistanceOdometer({
                     />
                 </View>
             </View>
+            <DiscardChangesConfirmation
+                getHasUnsavedChanges={() => {
+                    if (isSavedRef.current) {
+                        return false;
+                    }
+                    return startReading !== initialStartReadingRef.current || endReading !== initialEndReadingRef.current;
+                }}
+            />
         </StepScreenWrapper>
     );
 }
