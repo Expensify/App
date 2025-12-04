@@ -5818,6 +5818,8 @@ ${amount} dla ${merchant} - ${date}`,
                     toUpgrade: 'Aby zaktualizować, kliknij',
                     selectWorkspace: 'wybierz przestrzeń roboczą i zmień typ planu na',
                 },
+                upgradeWorkspaceWarning: 'Nie można ulepszyć przestrzeni roboczej',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Twoja firma ograniczyła tworzenie przestrzeni roboczych. Skontaktuj się z administratorem, aby uzyskać pomoc.',
             },
         },
         downgrade: {

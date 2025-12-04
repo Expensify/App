@@ -5842,6 +5842,8 @@ ${amount} per ${merchant} - ${date}`,
                     toUpgrade: 'Per aggiornare, fai clic',
                     selectWorkspace: 'seleziona uno spazio di lavoro e cambia il tipo di piano in',
                 },
+                upgradeWorkspaceWarning: 'Impossibile aggiornare lo spazio di lavoro',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'La tua azienda ha limitato la creazione di spazi di lavoro. Contatta un amministratore per assistenza.',
             },
         },
         downgrade: {

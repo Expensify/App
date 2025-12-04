@@ -5856,6 +5856,9 @@ ${amount} für ${merchant} - ${date}`,
                     toUpgrade: 'Zum Upgrade klicken',
                     selectWorkspace: 'Wählen Sie einen Arbeitsbereich aus und ändern Sie den Plantyp in',
                 },
+                upgradeWorkspaceWarning: 'Arbeitsbereich kann nicht aktualisiert werden',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
+                    'Ihr Unternehmen hat die Erstellung von Arbeitsbereichen eingeschränkt. Bitte wenden Sie sich an einen Administrator.',
             },
         },
         downgrade: {

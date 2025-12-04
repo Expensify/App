@@ -5788,6 +5788,8 @@ ${date} - ${merchant}に${amount}`,
                     toUpgrade: 'アップグレードするには、クリックしてください',
                     selectWorkspace: 'ワークスペースを選択し、プランタイプを変更します',
                 },
+                upgradeWorkspaceWarning: 'ワークスペースをアップグレードできません',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '会社がワークスペースの作成を制限しています。管理者に連絡してください。',
             },
         },
         downgrade: {

@@ -5930,6 +5930,8 @@ const translations = {
                     toUpgrade: 'To upgrade, click',
                     selectWorkspace: 'select a workspace, and change the plan type to',
                 },
+                upgradeWorkspaceWarning: `Can't upgrade workspace`,
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Your company has restricted workspace creation. Please reach out to an admin for help.',
             },
         },
         downgrade: {

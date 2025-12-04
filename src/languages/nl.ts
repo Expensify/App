@@ -5828,6 +5828,8 @@ ${amount} voor ${merchant} - ${date}`,
                     toUpgrade: 'Om te upgraden, klik',
                     selectWorkspace: 'selecteer een werkruimte en wijzig het type plan naar',
                 },
+                upgradeWorkspaceWarning: 'Kan werkruimte niet upgraden',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Uw bedrijf heeft de creatie van werkruimten beperkt. Neem contact op met een beheerder voor hulp.',
             },
         },
         downgrade: {
