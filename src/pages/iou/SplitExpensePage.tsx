@@ -87,7 +87,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, currentReport)}`, {canBeMissing: true});
 
     const policy = usePolicy(currentReport?.policyID);
-    const currentPolicy = policy?.employeeList?.length ? policy : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
+    const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
+        ? policy
+        : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
 
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentPolicy);
 

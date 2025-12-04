@@ -732,11 +732,11 @@ function SearchPage({route}: SearchPageProps) {
         const firstTransactionKey = selectedTransactionsKeys.at(0);
         const firstTransactionMeta = firstTransactionKey ? selectedTransactions[firstTransactionKey] : undefined;
 
-        const areSplittable = !!firstTransactionMeta?.canSplit;
-        const areAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;
+        const isSplittable = !!firstTransactionMeta?.canSplit;
+        const isAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;
         const firstTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
 
-        const canSplitTransaction = selectedTransactionsKeys.length === 1 && !areAlreadySplit && areSplittable;
+        const canSplitTransaction = selectedTransactionsKeys.length === 1 && !isAlreadySplit && isSplittable;
 
         if (canSplitTransaction) {
             options.push({
@@ -804,9 +804,6 @@ function SearchPage({route}: SearchPageProps) {
         lastPaymentMethods,
         selectedReportIDs,
         allTransactions,
-        lastPaymentMethods,
-        selectedReportIDs,
-        selectedTransactionReportIDs,
         queryJSON,
         selectedPolicyIDs,
         policies,

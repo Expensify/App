@@ -25,9 +25,10 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getTagLists} from '@libs/PolicyUtils';
+import {computeReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getParsedComment, getReportName, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
+import {getParsedComment, getReportOrDraftReport, getTransactionDetails} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTag, getTagForDisplay} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -63,16 +64,22 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
 
     const policy = usePolicy(currentReport?.policyID);
-    const currentPolicy = policy?.employeeList?.length ? policy : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
+    const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
+        ? policy
+        : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${currentReport?.policyID}`, {canBeMissing: false});
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${currentReport?.policyID}`, {canBeMissing: false});
 
     const fetchData = useCallback(() => {
-        openPolicyCategoriesPage(currentReport?.policyID ?? String(CONST.DEFAULT_NUMBER_ID));
-        openPolicyTagsPage(currentReport?.policyID ?? String(CONST.DEFAULT_NUMBER_ID));
-    }, [currentReport?.policyID]);
+        if (!policyCategories) {
+            openPolicyCategoriesPage(currentReport?.policyID ?? String(CONST.DEFAULT_NUMBER_ID));
+        }
+        if (!policyTags) {
+            openPolicyTagsPage(currentReport?.policyID ?? String(CONST.DEFAULT_NUMBER_ID));
+        }
+    }, [currentReport?.policyID, policyCategories, policyTags]);
 
     // Fetch categories and tags on mount to ensure the screen has the latest data,
     // especially when the edit-split flow is opened from the search screen where these
@@ -100,7 +107,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentPolicy);
 
     const isCategoryRequired = !!currentPolicy?.requiresCategory;
-    const reportName = getReportName(currentReport, currentPolicy);
+    const reportName = computeReportName(currentReport);
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, currentPolicy?.areRulesEnabled);
 
     const shouldShowTags = !!currentPolicy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
