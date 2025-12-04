@@ -45,7 +45,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFilt
 import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
@@ -72,8 +72,7 @@ function handleActionButtonPress(
     hash: number,
     item: TransactionListItemType | TransactionReportGroupListItemType,
     goToItem: () => void,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    snapshotReport: SearchReport,
+    snapshotReport: Report,
     snapshotPolicy: Policy,
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
     currentSearchKey?: SearchKey,
@@ -85,7 +84,7 @@ function handleActionButtonPress(
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense) {
+    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT) {
         goToItem();
         return;
     }
@@ -179,8 +178,7 @@ function getPayActionCallback(
     hash: number,
     item: TransactionListItemType | TransactionReportGroupListItemType,
     goToItem: () => void,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    snapshotReport: SearchReport,
+    snapshotReport: Report,
     snapshotPolicy: Policy,
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
     currentSearchKey?: SearchKey,
@@ -213,6 +211,7 @@ function getOnyxLoadingData(
     queryJSON?: SearchQueryJSON,
     offset?: number,
     isOffline?: boolean,
+    isSearchAPI = false,
 ): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -220,7 +219,7 @@ function getOnyxLoadingData(
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 search: {
-                    isLoading: true,
+                    ...(isSearchAPI && {isLoading: true}),
                     ...(offset ? {offset} : {}),
                 },
             },
@@ -240,7 +239,7 @@ function getOnyxLoadingData(
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 search: {
-                    isLoading: false,
+                    ...(isSearchAPI && {isLoading: false}),
                 },
             },
         },
@@ -256,7 +255,7 @@ function getOnyxLoadingData(
                 search: {
                     status: queryJSON?.status,
                     type: queryJSON?.type,
-                    isLoading: false,
+                    ...(isSearchAPI && {isLoading: false}),
                 },
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
@@ -355,6 +354,7 @@ function search({
     shouldCalculateTotals = false,
     prevReportsLength,
     isOffline = false,
+    isLoading,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
@@ -362,8 +362,13 @@ function search({
     shouldCalculateTotals?: boolean;
     prevReportsLength?: number;
     isOffline?: boolean;
+    isLoading: boolean;
 }) {
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline);
+    if (isLoading) {
+        return;
+    }
+
+    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true);
     const {flatFilters, ...queryJSONWithoutFlatFilters} = queryJSON;
     const query = {
         ...queryJSONWithoutFlatFilters,
@@ -412,22 +417,6 @@ function search({
             return result?.jsonCode;
         });
     });
-}
-
-/**
- * It's possible that we return legacy transactions that don't have a transaction thread created yet.
- * In that case, when users select the search result row, we need to create the transaction thread on the fly and update the search result with the new transactionThreadReport
- */
-function updateSearchResultsWithTransactionThreadReportID(hash: number, transactionID: string, reportID: string) {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const onyxUpdate: Record<string, Record<string, Partial<SearchTransaction>>> = {
-        data: {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                transactionThreadReportID: reportID,
-            },
-        },
-    };
-    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
 }
 
 function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string, allTransactions: OnyxCollection<Transaction>, allReportActions: OnyxCollection<ReportActions>) {
@@ -496,8 +485,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
         },
     ];
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const report = (reportList.at(0) ?? {}) as SearchReport;
+    const report = (reportList.at(0) ?? {}) as Report;
     const parameters: SubmitReportParams = {
         reportID: report.reportID,
         managerAccountID: getSubmitToAccountID(policy.at(0), report) ?? report?.managerID,
@@ -1113,8 +1101,8 @@ function getTotalFormattedAmount(selectedReports: SelectedReports[], selectedTra
  *
  * Note: we don't create anything new, we just optimistically generate the data that we know will be returned by API.
  */
-function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemType, transactionPreviewData: TransactionPreviewData) {
-    const {moneyRequestReportActionID, reportID, report, amount, currency, transactionID, created, transactionThreadReportID, policyID} = item;
+function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemType, transactionPreviewData: TransactionPreviewData, IOUTransactionID?: string) {
+    const {moneyRequestReportActionID, reportID, report, amount, currency, transactionID, created, policyID} = item;
     const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
     const onyxUpdates: OnyxUpdate[] = [];
 
@@ -1129,7 +1117,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
     }
 
     // Set optimistic parent report action
-    if (!hasParentReportAction && moneyRequestReportActionID) {
+    if (!hasParentReportAction && moneyRequestReportActionID && moneyRequestReportActionID !== '0') {
         const optimisticIOUAction = buildOptimisticIOUReportAction({
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount,
@@ -1140,7 +1128,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
             iouReportID: reportID,
             created,
             reportActionID: moneyRequestReportActionID,
-            linkedExpenseReportAction: {childReportID: transactionThreadReportID} as ReportAction,
+            linkedExpenseReportAction: {childReportID: IOUTransactionID} as ReportAction,
         });
         optimisticIOUAction.pendingAction = undefined;
         onyxUpdates.push({
@@ -1161,7 +1149,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 
     // Set optimistic transaction thread report
     if (!hasTransactionThreadReport) {
-        setOptimisticTransactionThread(transactionThreadReportID, reportID, moneyRequestReportActionID, policyID);
+        setOptimisticTransactionThread(IOUTransactionID, reportID, moneyRequestReportActionID, policyID);
     }
 
     Onyx.update(onyxUpdates);
@@ -1170,7 +1158,6 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 export {
     saveSearch,
     search,
-    updateSearchResultsWithTransactionThreadReportID,
     deleteMoneyRequestOnSearch,
     holdMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,

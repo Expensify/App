@@ -700,6 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
         domains: 'Domeny',
         reportName: 'Nazwa raportu',
         showLess: 'Pokaż mniej',
+        actionRequired: 'Wymagane działanie',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -1185,7 +1186,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Znajdź wydatek',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `usunął wydatek (${amount} dla ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `przeniósł wydatek${reportName ? `z ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `przeniesiono ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `przeniósł ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `przeniósł ten wydatek${reportName ? `z <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `przeniósł ten wydatek z twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `przeniósł ten wydatek do twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2533,26 +2536,26 @@ ${amount} dla ${merchant} - ${date}`,
                         4. Znajdź ${integrationName}.
                         5. Kliknij *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Przejdź do księgowości](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Przejdź do księgowości](${workspaceAccountingLink}).
 
-                                      ![Połącz z ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Przejdź do księgowości](${workspaceAccountingLink}).`
-}`),
+                        ![Połącz z ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Przejdź do księgowości](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Verbind [uw bedrijfskaart](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Połącz [swoje karty firmowe](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Połącz swoją kartę służbową, aby automatycznie importować i kategoryzować wydatki.
+                        Połącz posiadane już karty, aby automatycznie importować transakcje, dopasowywać paragony i przeprowadzać uzgodnienia.
 
                         1. Kliknij *Workspaces*.
                         2. Wybierz swój workspace.
-                        3. Kliknij *Corporate cards*.
-                        4. Postępuj zgodnie z instrukcjami, aby połączyć swoją kartę.
+                        3. Kliknij *Company cards*.
+                        4. Postępuj zgodnie z instrukcjami, aby połączyć swoje karty.
 
-                        [Przejdź do połączenia moich kart służbowych](${corporateCardLink}).`),
+                        [Przejdź do Company cards](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Nodig [uw team](${workspaceMembersLink}) uit`,
@@ -2904,6 +2907,8 @@ ${
         hasBeenThrottledError: 'Wystąpił błąd podczas dodawania Twojego konta bankowego. Proszę poczekać kilka minut i spróbować ponownie.',
         hasCurrencyError: ({workspaceRoute}: WorkspaceRouteParams) =>
             `Ups! Wygląda na to, że waluta Twojego miejsca pracy jest ustawiona na inną niż USD. Aby kontynuować, przejdź do <a href="${workspaceRoute}">ustawienia Twojego miejsca pracy</a> ustawić na USD i spróbować ponownie.`,
+        bbaAdded: 'Dodano firmowe konto bankowe!',
+        bbaAddedDescription: 'Jest gotowe do użycia w płatnościach.',
         error: {
             youNeedToSelectAnOption: 'Proszę wybrać opcję, aby kontynuować',
             noBankAccountAvailable: 'Przepraszamy, nie ma dostępnego konta bankowego.',
@@ -4711,6 +4716,10 @@ ${
             addShippingDetails: 'Dodaj szczegóły wysyłki',
             issuedCard: ({assignee}: AssigneeParams) => `wydano ${assignee} kartę Expensify! Karta dotrze w ciągu 2-3 dni roboczych.`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `Wydano ${assignee} kartę Expensify! Karta zostanie wysłana po potwierdzeniu danych wysyłkowych.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} wymienił swoją wirtualną kartę Expensify! ${link} można używać od razu.`,
+            card: 'karta',
+            replacementCard: 'karta zastępcza',
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee} wymienił swoją kartę Expensify. Nowa karta dotrze w ciągu 2-3 dni roboczych.`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `wydano ${assignee} wirtualną ${link}! Karta może być używana od razu.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} dodał(a) szczegóły wysyłki. Expensify Card dotrze w ciągu 2-3 dni roboczych.`,
             verifyingHeader: 'Weryfikacja',
@@ -5945,7 +5954,7 @@ ${
                     expense: 'Pojedynczy wydatek',
                     expenseSubtitle: 'Oznacz kwoty wydatków według kategorii. Ta zasada zastępuje ogólną zasadę przestrzeni roboczej dotyczącą maksymalnej kwoty wydatku.',
                     daily: 'Suma kategorii',
-                    dailySubtitle: 'Oznacz całkowite wydatki kategorii na raport wydatków.',
+                    dailySubtitle: 'Oznacz całkowite wydatki kategorii na raporcie wydatków.',
                 },
                 requireReceiptsOver: 'Wymagaj paragonów powyżej',
                 requireReceiptsOverList: {
@@ -6228,6 +6237,36 @@ ${
                 default: {
                     return '';
                 }
+            }
+        },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'włączone' : 'wyłączone'} kategorii`;
+                case 'tags':
+                    return `${enabled ? 'włączone' : 'wyłączone'} tagów`;
+                case 'workflows':
+                    return `${enabled ? 'włączone' : 'wyłączone'} przepływów pracy`;
+                case 'distance rates':
+                    return `${enabled ? 'włączone' : 'wyłączone'} stawki za dystans`;
+                case 'accounting':
+                    return `${enabled ? 'włączone' : 'wyłączone'} księgowość`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'włączone' : 'wyłączone'} Karty Expensify`;
+                case 'company cards':
+                    return `${enabled ? 'włączone' : 'wyłączone'} kart firmowych`;
+                case 'invoicing':
+                    return `${enabled ? 'włączone' : 'wyłączone'} fakturowanie`;
+                case 'per diem':
+                    return `${enabled ? 'włączone' : 'wyłączone'} dieta dzienna`;
+                case 'receipt partners':
+                    return `${enabled ? 'włączone' : 'wyłączone'} partnerzy paragonów`;
+                case 'rules':
+                    return `${enabled ? 'włączone' : 'wyłączone'} reguły`;
+                case 'tax tracking':
+                    return `${enabled ? 'włączone' : 'wyłączone'} śledzenie podatków`;
+                default:
+                    return `${enabled ? 'włączone' : 'wyłączone'} ${featureName}`;
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'Wyłączone'} śledzenie uczestników`,
@@ -6551,6 +6590,15 @@ ${
             message: 'Nie udało nam się sprawdzić aktualizacji. Spróbuj ponownie za chwilę.',
         },
     },
+    settlement: {
+        status: {
+            pending: 'Oczekujące',
+            cleared: 'Rozliczone',
+            failed: 'Niepowodzenie',
+        },
+        failedError: ({link}: {link: string}) => `Ponowimy tę rozliczenie, gdy <a href="${link}">odblokujesz swoje konto</a>.`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • ID wypłaty: ${withdrawalID}`,
+    },
     reportLayout: {
         reportLayout: 'Układ raportu',
         groupByLabel: 'Grupuj według:',
@@ -6565,6 +6613,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Utwórz wydatek',
             createReport: 'Utwórz raport',
             chooseWorkspace: 'Wybierz przestrzeń roboczą dla tego raportu.',
             emptyReportConfirmationTitle: 'Masz już pusty raport',
@@ -6983,6 +7032,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `Pole ${fieldName} jest wymagane`,
+        reportContainsExpensesWithViolations: 'Raport zawiera wydatki z naruszeniami.',
     },
     violationDismissal: {
         rter: {
@@ -7109,9 +7159,7 @@ ${
                 `Zakwestionowałeś opłatę w wysokości ${amountOwed} na karcie kończącej się na ${cardEnding}. Twoje konto zostanie zablokowane do czasu rozwiązania sporu z bankiem.`,
             preTrial: {
                 title: 'Rozpocznij darmowy okres próbny',
-                subtitleStart: 'Jako kolejny krok,',
-                subtitleLink: 'ukończ listę kontrolną konfiguracji',
-                subtitleEnd: 'aby Twój zespół mógł zacząć rozliczać wydatki.',
+                subtitle: 'Następnie <a href="#">uzupełnij listę kontrolną konfiguracji</a>, aby Twój zespół mógł zacząć rozliczać wydatki.',
             },
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `Okres próbny: ${numOfDays} ${numOfDays === 1 ? 'dzień' : 'dni'} pozostało!`,
@@ -7667,6 +7715,8 @@ ${
             anyMemberWillBeRequired: 'Każdy członek, który zalogował się inną metodą, będzie musiał ponownie się uwierzytelnić za pomocą SAML.',
             enableError: 'Nie udało się zaktualizować ustawienia włączenia SAML',
             requireError: 'Nie udało się zaktualizować ustawienia wymogu SAML',
+            disableSamlRequired: 'Wyłącz wymóg SAML',
+            oktaWarningPrompt: 'Czy na pewno? To również wyłączy Okta SCIM.',
         },
         samlConfigurationDetails: {
             title: 'Szczegóły konfiguracji SAML',
