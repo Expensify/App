@@ -10,7 +10,6 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,10 +42,10 @@ function TextSelectorModal({
 
     const [currentValue, setValue] = useState(value);
 
-    const inputRef = useRef<BaseTextInputRef | null>(null);
+    const inputRef = useRef<TextInputType | null>(null);
     const inputValueRef = useRef(value);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const inputCallbackRef = (ref: BaseTextInputRef | null) => {
+    const inputCallbackRef = (ref: TextInputType | null) => {
         inputRef.current = ref;
     };
 
@@ -99,10 +98,10 @@ function TextSelectorModal({
             focusTimeoutRef.current = setTimeout(() => {
                 if (inputRef.current && isVisible) {
                     inputRef.current.focus();
-                    (inputRef.current as TextInputType).setSelection?.(inputValueRef.current?.length ?? 0, inputValueRef.current?.length ?? 0);
+                    inputRef.current.setSelection?.(inputValueRef.current?.length ?? 0, inputValueRef.current?.length ?? 0);
                     if (autoGrowHeight) {
-                        scrollToBottom(inputRef.current as TextInputType);
-                        moveSelectionToEnd(inputRef.current as TextInputType);
+                        scrollToBottom(inputRef.current);
+                        moveSelectionToEnd(inputRef.current);
                     }
                 }
                 return () => {
