@@ -11050,20 +11050,14 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrE
         return false;
     }
     const isChatThreadReport = isChatThread(report);
+    const isHidden = isHiddenForCurrentUser(report);
 
     if (isChatThreadReport) {
-        const isHidden = isHiddenForCurrentUser(report);
-        const isCreator = currentUserAccountID !== undefined && report?.ownerAccountID === currentUserAccountID;
-        // Creator with non-HIDDEN preference has already joined (they created it)
-        if (isCreator && !isHidden) {
+        if (isCurrentUserSubmitter(report) && !isHidden) {
             return false;
         }
-        // Non-creators can always join (even with non-HIDDEN preference, they might have been auto-added)
-    } else {
-        // For non-thread reports, if preference is not HIDDEN, user has already joined
-        if (!isHiddenForCurrentUser(report)) {
-            return false;
-        }
+    } else if (!isHidden) {
+        return false;
     }
 
     const isExpenseChat = isMoneyRequestReport(report) || isMoneyRequest(report) || isInvoiceReport(report) || isTrackExpenseReport(report);
