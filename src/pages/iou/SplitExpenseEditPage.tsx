@@ -36,7 +36,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 
 function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
     const report = getReportOrDraftReport(reportID);
@@ -46,10 +46,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         splitExpenseDraftTransaction?.comment?.originalTransactionID,
     ]);
 
-    const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(
-        () => getTransactionDetails(splitExpenseDraftTransaction, undefined, undefined, undefined, undefined, undefined, preferredLocale) ?? {},
-        [splitExpenseDraftTransaction, preferredLocale],
-    );
+    const splitExpenseDraftTransactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(splitExpenseDraftTransaction) ?? {}, [splitExpenseDraftTransaction]);
 
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});
@@ -74,7 +71,6 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], originalTransaction, policy);
 
     const isCategoryRequired = !!policy?.requiresCategory;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName(report, policy);
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, policy?.areRulesEnabled);
 
