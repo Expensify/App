@@ -171,12 +171,14 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 return;
             }
 
-            const backToRoute =
+            const approverPageBackTo =
                 currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
                     ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover)
                     : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
 
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex, backToRoute));
+            const limitPageBackTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, approverIndex, approverPageBackTo);
+
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex, limitPageBackTo));
         },
         [approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail, firstApprover, rhpRoutes],
     );
