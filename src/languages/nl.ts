@@ -6634,6 +6634,7 @@ ${
                 `Weet je zeker dat je nog een rapport wilt maken in ${workspaceName}? Je kunt je lege rapporten vinden onder`,
             emptyReportConfirmationPromptLink: 'Rapporten',
             genericWorkspaceName: 'deze werkruimte',
+            emptyReportConfirmationDontShowAgain: 'Niet meer weergeven',
         },
         genericCreateReportFailureMessage: 'Onverwachte fout bij het maken van deze chat. Probeer het later opnieuw.',
         genericAddCommentFailureMessage: 'Onverwachte fout bij het plaatsen van de opmerking. Probeer het later opnieuw.',

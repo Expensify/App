@@ -6496,6 +6496,7 @@ ${
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) => `确定要在 ${workspaceName} 中再创建一个报告吗？你可以在以下位置访问你的空报告`,
             emptyReportConfirmationPromptLink: '报告',
             genericWorkspaceName: '此工作区',
+            emptyReportConfirmationDontShowAgain: '不再显示此内容',
         },
         genericCreateReportFailureMessage: '创建此聊天时出现意外错误。请稍后再试。',
         genericAddCommentFailureMessage: '发表评论时出现意外错误。请稍后再试。',

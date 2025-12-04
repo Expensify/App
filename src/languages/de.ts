@@ -2558,7 +2558,7 @@ ${
     integrationName && CONST.connectionsVideoPaths[integrationName]
         ? dedent(`[Zur Buchhaltung](${workspaceAccountingLink}).
 
-![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
+                                      ![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
         : `[Zur Buchhaltung](${workspaceAccountingLink}).`
 }`),
             },
@@ -6664,6 +6664,7 @@ ${
                 `Möchtest du wirklich einen weiteren Bericht in ${workspaceName} erstellen? Du kannst auf deine leeren Berichte zugreifen unter`,
             emptyReportConfirmationPromptLink: 'Berichte',
             genericWorkspaceName: 'diesem Arbeitsbereich',
+            emptyReportConfirmationDontShowAgain: 'Nicht mehr anzeigen',
         },
         genericCreateReportFailureMessage: 'Unerwarteter Fehler beim Erstellen dieses Chats. Bitte versuchen Sie es später erneut.',
         genericAddCommentFailureMessage: 'Unerwarteter Fehler beim Posten des Kommentars. Bitte versuchen Sie es später noch einmal.',

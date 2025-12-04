@@ -6633,6 +6633,7 @@ ${
                 `Tem certeza de que deseja criar outro relatório em ${workspaceName}? Você pode acessar seus relatórios vazios em`,
             emptyReportConfirmationPromptLink: 'Relatórios',
             genericWorkspaceName: 'este espaço de trabalho',
+            emptyReportConfirmationDontShowAgain: 'Não mostrar isso novamente',
         },
         genericCreateReportFailureMessage: 'Erro inesperado ao criar este chat. Por favor, tente novamente mais tarde.',
         genericAddCommentFailureMessage: 'Erro inesperado ao postar o comentário. Por favor, tente novamente mais tarde.',

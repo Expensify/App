@@ -2546,7 +2546,7 @@ ${
     integrationName && CONST.connectionsVideoPaths[integrationName]
         ? dedent(`[Portami alla contabilità](${workspaceAccountingLink}).
 
-                                      ![Connetti a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
+![Connetti a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
         : `[Portami alla contabilità](${workspaceAccountingLink}).`
 }`),
             },
@@ -6653,6 +6653,7 @@ ${
                 `Sei sicuro di voler creare un altro rapporto in ${workspaceName}? Puoi accedere ai tuoi rapporti vuoti in`,
             emptyReportConfirmationPromptLink: 'Rapporti',
             genericWorkspaceName: 'questo spazio di lavoro',
+            emptyReportConfirmationDontShowAgain: 'Non mostrarmelo di nuovo',
         },
         genericCreateReportFailureMessage: 'Errore imprevisto durante la creazione di questa chat. Si prega di riprovare più tardi.',
         genericAddCommentFailureMessage: 'Errore imprevisto durante la pubblicazione del commento. Per favore riprova più tardi.',
