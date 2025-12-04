@@ -8,7 +8,7 @@ const domainSamlSettingsStateSelector = (domain: OnyxEntry<Domain>) =>
         ? {
               isSamlEnabledLoading: domain.isSamlEnabledLoading,
               samlEnabledError: domain.samlEnabledError,
-              isSamlRequiredLoading: domain.isSamlEnabledLoading,
+              isSamlRequiredLoading: domain.isSamlRequiredLoading,
               samlRequiredError: domain.samlRequiredError,
           }
         : undefined;

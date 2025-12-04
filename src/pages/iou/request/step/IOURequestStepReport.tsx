@@ -59,7 +59,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest(transaction));
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
     const isPerDiemTransaction = isPerDiemRequest(transaction);
@@ -227,8 +227,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 isEditing={isEditing}
                 isUnreported={isUnreported}
                 shouldShowNotFoundPage={shouldShowNotFoundPage}
-                isPerDiemRequest={transaction ? isPerDiemTransaction : false}
-                createReport={action === CONST.IOU.ACTION.EDIT && (policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction) ? createReport : undefined}
+                isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
+                createReport={(policyForMovingExpensesID || shouldSelectPolicy || isPerDiemTransaction) ? createReport : undefined}
             />
         </>
     );

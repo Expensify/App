@@ -54,7 +54,7 @@ type Props = {
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
     createReport?: () => void;
-    isPerDiemRequest?: boolean;
+    isPerDiemRequest: boolean;
 };
 
 const policyIdSelector = (policy: OnyxEntry<Policy>) => policy?.id;
@@ -93,7 +93,7 @@ function IOURequestEditReportCommon({
         }
 
         return currentUserPersonalDetails.accountID;
-    }, [targetOwnerAccountID, selectedReport, currentUserPersonalDetails.accountID]);
+    }, [targetOwnerAccountID, selectedReport?.ownerAccountID, currentUserPersonalDetails.accountID]);
     const reportPolicy = usePolicy(selectedReport?.policyID);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest);
 
@@ -218,7 +218,7 @@ function IOURequestEditReportCommon({
         Navigation.goBack(backTo);
     };
 
-    const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
+    const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 
     const createReportOption = useMemo(() => {
         if (!createReport || (isEditing && !isOwner)) {

@@ -100,6 +100,7 @@ import {
     getWorkspaceCustomUnitRateDeletedMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
+    getWorkspaceFeatureEnabledMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
     getWorkspaceReportFieldAddMessage,
@@ -705,7 +706,8 @@ function PureReportActionItem({
         },
         [
             draftMessage,
-            action,
+            action.errors,
+            action.reportActionID,
             reportID,
             toggleContextMenuFromActiveReportAction,
             originalReportID,
@@ -980,7 +982,6 @@ function PureReportActionItem({
         translate,
         resolveActionableReportMentionWhisper,
         isReportArchived,
-        formatPhoneNumber,
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
@@ -1169,7 +1170,11 @@ function PureReportActionItem({
         } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
-            children = <ReportActionItemBasicMessage message={modifiedExpenseMessage} />;
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<comment><muted-text>${modifiedExpenseMessage}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
             const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
             if (wasSubmittedViaHarvesting) {
@@ -1284,17 +1289,20 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
             const movedTransactionOriginalMessage = getOriginalMessage(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
-            const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+            const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
             const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-            // When expenses are merged multiple times, the previous toReportID may reference a deleted report,
+            const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+            // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
+            const hasFromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!fromReport;
+            // When expenses are merged multiple times, the previous fromReportID may reference a deleted report,
             // making it impossible to retrieve the report name for display
             // Ref: https://github.com/Expensify/App/issues/70338
-            if (!toReport) {
+            if (!toReport && !hasFromReport) {
                 children = emptyHTML;
             } else {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(toReport)}</muted-text></comment>`} />
+                        <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
             }
@@ -1313,7 +1321,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getUnreportedTransactionMessage()}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getUnreportedTransactionMessage(action)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
@@ -1361,6 +1369,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getWorkspaceReportFieldDeleteMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceUpdateFieldMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED)) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceFeatureEnabledMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceAttendeeTrackingUpdateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED)) {
