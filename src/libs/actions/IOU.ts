@@ -737,6 +737,7 @@ type GetTrackExpenseInformationParams = {
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -830,6 +831,7 @@ type DeleteMoneyRequestFunctionParams = {
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -844,6 +846,7 @@ Onyx.connect({
 });
 
 let allTransactionDrafts: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
@@ -853,6 +856,7 @@ Onyx.connect({
 });
 
 let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> = {};
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
@@ -867,6 +871,7 @@ Onyx.connect({
 });
 
 let allNextSteps: NonNullable<OnyxCollection<OnyxTypes.ReportNextStepDeprecated>> = {};
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.NEXT_STEP,
     waitForCollectionCallback: true,
@@ -876,6 +881,7 @@ Onyx.connect({
 });
 
 const allPolicies: OnyxCollection<OnyxTypes.Policy> = {};
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
@@ -895,6 +901,7 @@ Onyx.connect({
 // `allRecentlyUsedTags` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
 // All uses of this variable should be replaced with `useOnyx`.
 let allRecentlyUsedTags: OnyxCollection<RecentlyUsedTags> = {};
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
     waitForCollectionCallback: true,
@@ -902,6 +909,7 @@ Onyx.connect({
 });
 
 let allReports: OnyxCollection<OnyxTypes.Report>;
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
@@ -911,6 +919,7 @@ Onyx.connect({
 });
 
 let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
@@ -921,6 +930,7 @@ Onyx.connect({
 
 let userAccountID = -1;
 let currentUserEmail = '';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -930,6 +940,7 @@ Onyx.connect({
 });
 
 let deprecatedCurrentUserPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetails>;
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -938,6 +949,7 @@ Onyx.connect({
 });
 
 let quickAction: OnyxEntry<OnyxTypes.QuickAction> = {};
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
     callback: (value) => {
@@ -946,6 +958,7 @@ Onyx.connect({
 });
 
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
@@ -958,6 +971,7 @@ Onyx.connect({
 });
 
 let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
@@ -974,6 +988,7 @@ Onyx.connectWithoutView({
 // `recentWaypoints` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
 // All uses of this variable should be replaced with `useOnyx`.
 let recentWaypoints: OnyxTypes.RecentWaypoint[] = [];
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
     callback: (val) => (recentWaypoints = val ?? []),
