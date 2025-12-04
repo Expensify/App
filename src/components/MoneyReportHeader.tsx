@@ -574,7 +574,15 @@ function MoneyReportHeader({
             const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
 
             for (const item of transactionList) {
-                duplicateTransactionAction(item, optimisticChatReportID, optimisticIOUReportID, isASAPSubmitBetaEnabled, defaultExpensePolicy ?? undefined, activePolicyCategories, activePolicyExpenseChat);
+                duplicateTransactionAction(
+                    item,
+                    optimisticChatReportID,
+                    optimisticIOUReportID,
+                    isASAPSubmitBetaEnabled,
+                    defaultExpensePolicy ?? undefined,
+                    activePolicyCategories,
+                    activePolicyExpenseChat,
+                );
             }
         },
         [activePolicyExpenseChat, defaultExpensePolicy, isASAPSubmitBetaEnabled],
