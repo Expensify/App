@@ -116,20 +116,20 @@ type MoneyRequestViewProps = {
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
 
-    /** Source transaction policy in merge transaction flow */
-    sourceTransactionPolicy?: OnyxEntry<OnyxTypes.Policy>;
+    /** Tax name to display in merge transaction flow */
+    taxName?: string;
 };
 
 function MoneyRequestView({
     allReports,
     report,
     expensePolicy,
-    sourceTransactionPolicy,
     shouldShowAnimatedBackground,
     readonly = false,
     updatedTransaction,
     isFromReviewDuplicates = false,
     mergeTransactionID,
+    taxName,
 }: MoneyRequestViewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase'] as const);
     const styles = useThemeStyles();
@@ -248,7 +248,7 @@ function MoneyRequestView({
             : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), actualCurrency);
 
     const taxRatesDescription = taxRates?.name;
-    const taxRateTitle = updatedTransaction ? getTaxName(sourceTransactionPolicy ?? policy, updatedTransaction) : getTaxName(policy, transaction);
+    const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction) : getTaxName(policy, transaction);
 
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
     const fallbackTaxRateTitle = updatedTransaction?.taxValue ?? transaction?.taxValue;
@@ -312,7 +312,7 @@ function MoneyRequestView({
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, sourceTransactionPolicy ?? policy, isDistanceRequest, isPerDiemRequest);
+    const shouldShowTax = !!taxName || isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
@@ -514,7 +514,7 @@ function MoneyRequestView({
     const decodedCategoryName = getDecodedCategoryName(categoryValue);
     const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
     const cardCopyValue = cardProgramName;
-    const taxRateValue = taxRateTitle ?? fallbackTaxRateTitle;
+    const taxRateValue = taxName ?? taxRateTitle ?? fallbackTaxRateTitle;
     const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
     const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
     const taxAmountCopyValue = !canEditTaxFields ? taxAmountTitle : undefined;
