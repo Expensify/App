@@ -194,6 +194,8 @@ function IOURequestStepConfirmation({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${realPolicyID}`, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
@@ -1108,6 +1110,7 @@ function IOURequestStepConfirmation({
                 setIsConfirmed(true);
                 sendMoneyElsewhere(
                     report,
+                    quickAction,
                     transaction.amount,
                     currency,
                     trimmedComment,
@@ -1124,6 +1127,7 @@ function IOURequestStepConfirmation({
                 setIsConfirmed(true);
                 sendMoneyWithWallet(
                     report,
+                    quickAction,
                     transaction.amount,
                     currency,
                     trimmedComment,
@@ -1146,6 +1150,7 @@ function IOURequestStepConfirmation({
             report,
             currentUserPersonalDetails.accountID,
             receiptFiles,
+            quickAction,
         ],
     );
 

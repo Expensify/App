@@ -937,11 +937,11 @@ Onyx.connect({
     },
 });
 
-let quickAction: OnyxEntry<OnyxTypes.QuickAction> = {};
+let deprecatedQuickAction: OnyxEntry<OnyxTypes.QuickAction> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
     callback: (value) => {
-        quickAction = value;
+        deprecatedQuickAction = value;
     },
 });
 
@@ -2118,13 +2118,13 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             value: {
                 action: newQuickAction,
                 chatReportID: chat.report?.reportID,
-                isFirstQuickAction: isEmptyObject(quickAction),
+                isFirstQuickAction: isEmptyObject(deprecatedQuickAction),
             },
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: quickAction ?? null,
+            value: deprecatedQuickAction ?? null,
         });
     }
 
@@ -2670,7 +2670,7 @@ function buildOnyxDataForTrackExpense({
                 value: {
                     action: newQuickAction,
                     chatReportID: chatReport.reportID,
-                    isFirstQuickAction: isEmptyObject(quickAction),
+                    isFirstQuickAction: isEmptyObject(deprecatedQuickAction),
                 },
             },
         );
@@ -2899,7 +2899,7 @@ function buildOnyxDataForTrackExpense({
     failureData.push({
         onyxMethod: Onyx.METHOD.SET,
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-        value: quickAction ?? null,
+        value: deprecatedQuickAction ?? null,
     });
 
     if (iouReport) {
@@ -7072,7 +7072,7 @@ function createSplitsAndOnyxData({
             value: {
                 action: iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ? CONST.QUICK_ACTIONS.SPLIT_DISTANCE : CONST.QUICK_ACTIONS.SPLIT_MANUAL,
                 chatReportID: splitChatReport.reportID,
-                isFirstQuickAction: isEmptyObject(quickAction),
+                isFirstQuickAction: isEmptyObject(deprecatedQuickAction),
             },
         },
         existingSplitChatReport
@@ -7156,7 +7156,7 @@ function createSplitsAndOnyxData({
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: quickAction ?? null,
+            value: deprecatedQuickAction ?? null,
         },
     ];
 
@@ -7733,7 +7733,7 @@ function startSplitBill({
             value: {
                 action: CONST.QUICK_ACTIONS.SPLIT_SCAN,
                 chatReportID: splitChatReport.reportID,
-                isFirstQuickAction: isEmptyObject(quickAction),
+                isFirstQuickAction: isEmptyObject(deprecatedQuickAction),
             },
         },
         existingSplitChatReport
@@ -7815,7 +7815,7 @@ function startSplitBill({
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: quickAction ?? null,
+            value: deprecatedQuickAction ?? null,
         },
     ];
 
@@ -9444,6 +9444,7 @@ function deleteTrackExpense({
  */
 function getSendMoneyParams(
     report: OnyxEntry<OnyxTypes.Report>,
+    quickAction:  OnyxEntry<OnyxTypes.QuickAction>,
     amount: number,
     currency: string,
     commentParam: string,
@@ -10427,6 +10428,7 @@ function getPayMoneyRequestParams({
  */
 function sendMoneyElsewhere(
     report: OnyxEntry<OnyxTypes.Report>,
+    quickAction:  OnyxEntry<OnyxTypes.QuickAction>,
     amount: number,
     currency: string,
     comment: string,
@@ -10438,6 +10440,7 @@ function sendMoneyElsewhere(
 ) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(
         report,
+        quickAction,
         amount,
         currency,
         comment,
@@ -10461,6 +10464,7 @@ function sendMoneyElsewhere(
  */
 function sendMoneyWithWallet(
     report: OnyxEntry<OnyxTypes.Report>,
+    quickAction:  OnyxEntry<OnyxTypes.QuickAction>,
     amount: number,
     currency: string,
     comment: string,
@@ -10472,6 +10476,7 @@ function sendMoneyWithWallet(
 ) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(
         report,
+        quickAction,
         amount,
         currency,
         comment,
