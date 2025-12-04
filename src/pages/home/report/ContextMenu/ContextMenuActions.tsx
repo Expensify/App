@@ -119,8 +119,7 @@ import {
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
-    getRejectedReportMessage,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getRejectedReportMessage, // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
