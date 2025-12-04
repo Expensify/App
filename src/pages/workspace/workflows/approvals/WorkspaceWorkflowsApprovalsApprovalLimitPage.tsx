@@ -72,6 +72,10 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         setHasSubmitted(false);
     }, [selectedApproverEmail]);
 
+    useEffect(() => {
+        setApprovalLimit(defaultApprovalLimit);
+    }, [defaultApprovalLimit]);
+
     const selectedApproverDisplayName = useMemo(() => {
         if (!selectedApproverEmail) {
             return '';

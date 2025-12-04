@@ -154,6 +154,14 @@ function NumberWithSymbolForm({
     const numberRef = useRef<string | undefined>(undefined);
     const [currentNumber, setCurrentNumber] = useState(typeof number === 'string' ? number : '');
 
+    useEffect(() => {
+        const newNumber = typeof number === 'string' ? number : '';
+        if (newNumber !== currentNumber) {
+            setCurrentNumber(newNumber);
+        }
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [number]);
+
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
     const isFocused = useIsFocused();
