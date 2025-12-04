@@ -36,7 +36,7 @@ describe('actions/PolicyMember', () => {
         it('Accept user join request to a workspace', async () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 policyID: fakePolicy.id,
             };
             const fakeReportAction = {
@@ -101,7 +101,7 @@ describe('actions/PolicyMember', () => {
                     },
                 },
             };
-            const adminRoom: Report = {...createRandomReport(1), chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policyID: fakePolicy.id};
+            const adminRoom: Report = {...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS), policyID: fakePolicy.id};
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
@@ -188,8 +188,7 @@ describe('actions/PolicyMember', () => {
 
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
-            Member.requestWorkspaceOwnerChange(fakePolicy.id);
+            Member.requestWorkspaceOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -327,9 +326,8 @@ describe('actions/PolicyMember', () => {
                 approver: defaultApprover,
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
-                ...createRandomReport(Number(adminRoomID)),
+                ...createRandomReport(Number(adminRoomID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
                 policyID,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 participants: {
                     [ownerAccountID]: {notificationPreference: 'always'},
                 },
@@ -366,9 +364,8 @@ describe('actions/PolicyMember', () => {
             const userEmail = 'user@example.com';
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
-                ...createRandomReport(Number(workspaceReportID)),
+                ...createRandomReport(Number(workspaceReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 policyID,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 ownerAccountID: userAccountID,
             });
             const expenseAction: ReportAction = {
@@ -445,9 +442,8 @@ describe('actions/PolicyMember', () => {
                 },
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoomID}`, {
-                ...createRandomReport(Number(adminRoomID)),
+                ...createRandomReport(Number(adminRoomID), CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
                 policyID,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
                 participants: {
                     [ownerAccountID]: {notificationPreference: 'always'},
                     [adminAccountID]: {notificationPreference: 'always'},
@@ -507,9 +503,8 @@ describe('actions/PolicyMember', () => {
             const userEmail = 'user@example.com';
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {
-                ...createRandomReport(Number(workspaceReportID)),
+                ...createRandomReport(Number(workspaceReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 policyID,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                 ownerAccountID: userAccountID,
             });
             const expenseAction: ReportAction = {
@@ -549,6 +544,52 @@ describe('actions/PolicyMember', () => {
             expect(isWorkspaceChatArchived && isExpenseReportArchived).toBe(true);
             await mockFetch?.resume?.();
         });
+
+        it('should preserve pendingAction DELETE when member removal fails', async () => {
+            // Given a workspace with a member
+            const policyID = 'ABCD12345';
+            const userAccountID = 1236;
+            const userEmail = 'user@example.com';
+            const ownerEmail = 'owner@gmail.com';
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [userAccountID]: {login: userEmail},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                owner: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [userEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+            });
+
+            // When removing a member and the request fails
+            mockFetch?.fail?.();
+            Member.removeMembers(policyID, [userEmail], {[userEmail]: userAccountID});
+
+            await waitForBatchedUpdates();
+
+            // Then the member should have pendingAction DELETE and errors
+            const policy = await new Promise<OnyxEntry<PolicyType>>((resolve, reject) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policyData) => {
+                        Onyx.disconnect(connection);
+                        if (policyData) {
+                            resolve(policyData);
+                        } else {
+                            reject(new Error('Policy not found'));
+                        }
+                    },
+                });
+            });
+
+            const failedMember = policy?.employeeList?.[userEmail];
+            expect(failedMember?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(failedMember?.errors).toBeTruthy();
+            expect(Object.keys(failedMember?.errors ?? {}).length).toBeGreaterThan(0);
+        });
     });
 
     describe('importPolicyMembers', () => {
@@ -575,7 +616,8 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member added success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 0});
         });
 
         it('should show a "multiple members added message" when multiple new members are added', async () => {
@@ -604,7 +646,8 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member added success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 0});
         });
 
         it('should show a "no members added/updated message" when no new members are added or updated', async () => {
@@ -637,7 +680,8 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the no member added/updated message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 0}));
+            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 0});
         });
 
         it('should show a "single member updated message" when a member is updated', async () => {
@@ -670,7 +714,8 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 1}));
+            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 1});
         });
 
         it('should show a "multiple members updated message" when multiple members are updated', async () => {
@@ -711,7 +756,8 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 0, updated: 2}));
+            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 0, updated: 2});
         });
 
         it('should show a "single member added and updated message" when a member is both added and updated', async () => {
@@ -747,7 +793,8 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the singular member added and updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 1, updated: 1}));
+            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 1, updated: 1});
         });
 
         it('should show a "multiple members added and updated message" when multiple members are both added and updated', async () => {
@@ -790,7 +837,8 @@ describe('actions/PolicyMember', () => {
             });
 
             // Then it should show the plural member added and updated success message
-            expect(importedSpreadsheet?.importFinalModal.prompt).toBe(TestHelper.translateLocal('spreadsheet.importMembersSuccessfulDescription', {added: 2, updated: 2}));
+            expect(importedSpreadsheet?.importFinalModal.promptKey).toBe('spreadsheet.importMembersSuccessfulDescription');
+            expect(importedSpreadsheet?.importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 2});
         });
     });
 });

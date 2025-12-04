@@ -139,6 +139,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                             onSelectRow={onSelectAutoReportingFrequency}
                             initiallyFocusedItemKey={autoReportingFrequency}
                             addBottomSafeAreaPadding
+                            shouldUpdateFocusedIndex
                         />
                     </OfflineWithFeedback>
                 </FullPageNotFoundView>

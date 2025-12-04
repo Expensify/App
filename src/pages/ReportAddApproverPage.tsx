@@ -8,12 +8,12 @@ import type {SelectionListApprover} from '@components/WorkspaceMembersSelectionL
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addReportApprover} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import Permissions from '@libs/Permissions';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import {
     getDisplayNameForParticipant,
@@ -33,15 +33,14 @@ type ReportAddApproverPageProps = WithReportOrNotFoundProps & PlatformStackScree
 
 function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddApproverPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
-
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
 
     const employeeList = policy?.employeeList;
     const allApprovers = useMemo(() => {
@@ -67,7 +66,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 }
 
                 const {avatar} = personalDetails?.[accountID] ?? {};
-                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails});
+                const displayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber});
                 return {
                     text: displayName,
                     alternateText: email,
@@ -80,7 +79,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [employeeList, report, policy, personalDetails, selectedApproverEmail, translate]);
+    }, [employeeList, report, policy, personalDetails, selectedApproverEmail, translate, formatPhoneNumber]);
 
     const addApprover = useCallback(() => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;

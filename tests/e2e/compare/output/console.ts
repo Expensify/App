@@ -32,9 +32,11 @@ export default (data: Data, skippedTests: string[]) => {
     console.debug('❇️  Performance comparison results:');
 
     console.debug('\n➡️  Significant changes to duration');
+    // eslint-disable-next-line unicorn/no-array-for-each
     data.significance.forEach(printRegularLine);
 
     console.debug('\n➡️  Meaningless changes to duration');
+    // eslint-disable-next-line unicorn/no-array-for-each
     data.meaningless.forEach(printRegularLine);
 
     console.debug('');

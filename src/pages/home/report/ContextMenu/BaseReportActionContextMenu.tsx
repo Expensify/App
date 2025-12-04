@@ -13,6 +13,7 @@ import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useEnvironment from '@hooks/useEnvironment';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -24,7 +25,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     getSourceIDFromReportAction,
@@ -130,6 +131,7 @@ function BaseReportActionContextMenu({
     setIsEmojiPickerActive,
 }: BaseReportActionContextMenuProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
+    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -159,6 +161,8 @@ function BaseReportActionContextMenu({
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
 
     const [movedFromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.FROM)}`, {canBeMissing: true});
     const [movedToReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getMovedReportID(reportAction, CONST.REPORT.MOVE_TYPE.TO)}`, {canBeMissing: true});
@@ -186,7 +190,7 @@ function BaseReportActionContextMenu({
     const requestParentReportAction = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
             if (transactionThreadReportID === CONST.FAKE_REPORT_ID) {
-                return Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU);
+                return Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isDeletedAction(action));
             }
             if (!paginatedReportActions || !transactionThreadReport?.parentReportActionID) {
                 return undefined;
@@ -202,6 +206,9 @@ function BaseReportActionContextMenu({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`, {canBeMissing: true});
     const iouTransactionID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU)?.IOUTransactionID;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransactionID}`, {canBeMissing: true});
+    const iouReportID = (getOriginalMessage(moneyRequestAction ?? reportAction) as OriginalMessageIOU)?.IOUReportID;
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
+    const [moneyRequestPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {canBeMissing: true});
     const {transactions} = useTransactionsAndViolationsForReport(childReport?.reportID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {canBeMissing: false});
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
@@ -235,7 +242,9 @@ function BaseReportActionContextMenu({
                 isOffline: !!isOffline,
                 isMini,
                 isProduction,
+                moneyRequestReport,
                 moneyRequestAction,
+                moneyRequestPolicy,
                 areHoldRequirementsMet,
                 isDebugModeEnabled,
                 iouTransaction,
@@ -366,6 +375,8 @@ function BaseReportActionContextMenu({
                             movedFromReport,
                             movedToReport,
                             getLocalDateFromDatetime,
+                            policy,
+                            policyTags,
                             translate,
                         };
 
@@ -378,6 +389,8 @@ function BaseReportActionContextMenu({
                         const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
                         const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
                         const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
+                        const icon = typeof contextAction.icon === 'string' ? icons[contextAction.icon] : contextAction.icon;
+                        const successIcon = typeof contextAction.successIcon === 'string' ? icons[contextAction.successIcon] : contextAction.successIcon;
 
                         return (
                             <ContextMenuItem
@@ -385,9 +398,9 @@ function BaseReportActionContextMenu({
                                     menuItemRefs.current[index] = ref;
                                 }}
                                 buttonRef={isMenuAction ? threeDotRef : {current: null}}
-                                icon={contextAction.icon}
+                                icon={icon}
                                 text={text ?? ''}
-                                successIcon={contextAction.successIcon}
+                                successIcon={successIcon}
                                 successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
                                 isMini={isMini}
                                 key={contextAction.textTranslateKey}

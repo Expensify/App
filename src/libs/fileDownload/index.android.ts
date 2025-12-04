@@ -47,7 +47,7 @@ function handleDownload(translate: LocalizedTranslate, url: string, fileName?: s
 
         const isLocalFile = url.startsWith('file://');
 
-        let attachmentPath = isLocalFile ? url : undefined;
+        let attachmentPath = isLocalFile ? decodeURI(url) : undefined;
         let fetchedAttachment: Promise<void | FetchBlobResponse> = Promise.resolve();
 
         if (!isLocalFile) {

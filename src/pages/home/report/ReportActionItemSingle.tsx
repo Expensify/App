@@ -6,9 +6,9 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import useReportActionAvatars from '@components/ReportActionAvatars/useReportActionAvatars';
-import useReportPreviewSenderID from '@components/ReportActionAvatars/useReportPreviewSenderID';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -85,22 +85,17 @@ function ReportActionItemSingle({
         canBeMissing: true,
     });
 
-    const {avatarType, avatars, details, source} = useReportActionAvatars({report: potentialIOUReport ?? report, action});
+    const {avatarType, avatars, details, source, reportPreviewSenderID} = useReportActionAvatars({report: potentialIOUReport ?? report, action});
 
     const reportID = source.chatReport?.reportID;
     const iouReportID = source.iouReport?.reportID;
 
     const [primaryAvatar, secondaryAvatar] = avatars;
-
-    const reportPreviewSenderID = useReportPreviewSenderID({
-        iouReport: potentialIOUReport,
-        action,
-        chatReport: source.chatReport,
-    });
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const mainAccountID = delegateAccountID ? (reportPreviewSenderID ?? potentialIOUReport?.ownerAccountID ?? action?.childOwnerAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const mainAccountLogin = mainAccountID ? (personalDetails?.[mainAccountID]?.login ?? details.login) : details.login;
     const accountOwnerDetails = getPersonalDetailByEmail(String(mainAccountLogin ?? ''));
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     // Vacation delegate details for submitted action
     const vacationer = getVacationer(action);
@@ -143,7 +138,7 @@ function ReportActionItemSingle({
         () =>
             CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) ||
             (!details.isWorkspaceActor && isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID))),
-        [action, details.isWorkspaceActor, details.accountID],
+        [action?.delegateAccountID, details.isWorkspaceActor, details.accountID],
     );
 
     const getBackgroundColor = () => {
@@ -156,8 +151,9 @@ function ReportActionItemSingle({
         return theme.sidebar;
     };
 
+    const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
     const hasEmojiStatus = !details.shouldDisplayAllActors && details.status?.emojiCode;
-    const formattedDate = DateUtils.getStatusUntilDate(details.status?.clearAfter ?? '');
+    const formattedDate = DateUtils.getStatusUntilDate(details.status?.clearAfter ?? '', details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
     const statusText = details.status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 

@@ -15,6 +15,7 @@ import {
     isInvoiceReport as isInvoiceReportUtils,
     isPaidGroupPolicyExpenseReport as isPaidGroupPolicyExpenseReportUtils,
     isReportFieldDisabled,
+    isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
 } from '@libs/ReportUtils';
 import type {ThemeStyles} from '@styles/index';
@@ -95,10 +96,10 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
                 const fieldValue = field.value ?? field.defaultValue;
-                const isFieldDisabled = isReportFieldDisabled(report, field, policy);
+                const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy);
                 const fieldKey = getReportFieldKey(field.fieldID);
 
-                const violation = getFieldViolation(violations, field);
+                const violation = isFieldDisabled ? undefined : getFieldViolation(violations, field);
                 const violationTranslation = getFieldViolationTranslation(field, violation);
 
                 return {
@@ -112,7 +113,9 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
             });
     }, [policy, report, violations]);
 
-    const enabledReportFields = sortedPolicyReportFields.filter((reportField) => !isReportFieldDisabled(report, reportField, policy));
+    const enabledReportFields = sortedPolicyReportFields.filter(
+        (reportField) => !isReportFieldDisabled(report, reportField, policy) || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA,
+    );
     const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && isReportFieldOfTypeTitle(enabledReportFields.at(0));
     const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);

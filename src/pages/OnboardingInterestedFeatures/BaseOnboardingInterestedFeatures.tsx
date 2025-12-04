@@ -114,9 +114,33 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 requiresUpdate: true,
             },
         ];
-    }, [illustrations, translate, userReportedIntegration]);
+    }, [
+        illustrations.FolderOpen,
+        illustrations.Accounting,
+        illustrations.CompanyCard,
+        illustrations.Workflows,
+        illustrations.InvoiceBlue,
+        illustrations.Rules,
+        illustrations.Car,
+        illustrations.HandCard,
+        illustrations.Tag,
+        illustrations.PerDiem,
+        translate,
+        userReportedIntegration,
+    ]);
 
-    const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => features.filter((feature) => feature.enabledByDefault).map((feature) => feature.id));
+    const [userToggledFeatures, setUserToggledFeatures] = useState<Set<string>>(new Set());
+
+    const selectedFeatures = useMemo(() => {
+        return features
+            .filter((feature) => {
+                if (userToggledFeatures.has(feature.id)) {
+                    return !feature.enabledByDefault;
+                }
+                return feature.enabledByDefault;
+            })
+            .map((feature) => feature.id);
+    }, [features, userToggledFeatures]);
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signup
     useEffect(() => {
@@ -154,6 +178,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                   companySize: onboardingCompanySize,
                   userReportedIntegration: newUserReportedIntegration,
                   featuresMap,
+                  shouldAddGuideWelcomeMessage: false,
               })
             : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -237,11 +262,14 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     ];
 
     const handleFeatureSelect = useCallback((featureId: string) => {
-        setSelectedFeatures((prev) => {
-            if (prev.includes(featureId)) {
-                return prev.filter((id) => id !== featureId);
+        setUserToggledFeatures((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(featureId)) {
+                newSet.delete(featureId);
+            } else {
+                newSet.add(featureId);
             }
-            return [...prev, featureId];
+            return newSet;
         });
     }, []);
 

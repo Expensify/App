@@ -49,7 +49,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
     const defaultCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
     useEffect(() => {
-        setOnboardingErrorMessage('');
+        setOnboardingErrorMessage(null);
     }, []);
 
     const handleSubmit = useCallback(
@@ -72,6 +72,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
                       currency,
                       file: undefined,
                       shouldAddOnboardingTasks: false,
+                      shouldAddGuideWelcomeMessage: false,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openPolicyRulesPage} from '@libs/actions/Policy/Rules';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -21,6 +22,14 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['Rules'] as const);
+
+    const fetchRules = useCallback(() => {
+        openPolicyRulesPage(policyID);
+    }, [policyID]);
+
+    useEffect(() => {
+        fetchRules();
+    }, [fetchRules]);
 
     return (
         <AccessOrNotFoundWrapper

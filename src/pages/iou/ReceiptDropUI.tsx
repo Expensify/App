@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
-import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -19,12 +19,13 @@ type ReceiptDropUIProps = {
 function ReceiptDropUI({onDrop, receiptImageTopPosition}: ReceiptDropUIProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const lazyIllustrations = useMemoizedLazyIllustrations(['ReceiptUpload']);
     return (
         <DragAndDropConsumer onDrop={onDrop}>
             <View style={[styles.fileDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <View style={receiptImageTopPosition ? [styles.pAbsolute, styles.fileUploadImageWrapper(receiptImageTopPosition)] : undefined}>
                     <ImageSVG
-                        src={ReceiptUpload}
+                        src={lazyIllustrations.ReceiptUpload}
                         contentFit="contain"
                         width={CONST.RECEIPT.ICON_SIZE}
                         height={CONST.RECEIPT.ICON_SIZE}

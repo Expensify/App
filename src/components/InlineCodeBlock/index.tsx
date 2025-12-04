@@ -33,9 +33,9 @@ function renderElements(defaultRendererProps: TDefaultRendererProps<TTextOrTPhra
         return elements;
     }
 
-    defaultRendererProps.tnode.children.forEach((child) => {
+    for (const child of defaultRendererProps.tnode.children) {
         if (!('data' in child)) {
-            return;
+            continue;
         }
 
         if (child.tagName === 'emoji') {
@@ -49,7 +49,7 @@ function renderElements(defaultRendererProps: TDefaultRendererProps<TTextOrTPhra
         } else {
             elements.push(child.data);
         }
-    });
+    }
 
     return elements;
 }

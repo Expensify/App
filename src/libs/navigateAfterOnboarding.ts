@@ -2,7 +2,7 @@ import ROUTES from '@src/ROUTES';
 import {setDisableDismissOnEscape} from './actions/Modal';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
-import {findLastAccessedReport, isConciergeChatReport} from './ReportUtils';
+import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
 
 const navigateAfterOnboarding = (
     isSmallScreenWidth: boolean,
@@ -12,7 +12,6 @@ const navigateAfterOnboarding = (
     shouldPreventOpenAdminRoom = false,
 ) => {
     setDisableDismissOnEscape(false);
-    Navigation.dismissModal();
 
     let reportID: string | undefined;
 
@@ -26,8 +25,9 @@ const navigateAfterOnboarding = (
     } else {
         const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom);
         const lastAccessedReportID = lastAccessedReport?.reportID;
-        // we don't want to navigate to newly created workspaces after onboarding is completed.
-        if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport)) {
+        // When the user goes through the onboarding flow, a workspace can be created if the user selects specific options. The user should be taken to the #admins room for that workspace because it is the most natural place for them to start their experience in the app.
+        // The user should never go to the self DM or the Concierge chat if a workspace was created during the onboarding flow.
+        if (lastAccessedReportID && lastAccessedReport.policyID !== onboardingPolicyID && !isConciergeChatReport(lastAccessedReport) && !isSelfDM(lastAccessedReport)) {
             reportID = lastAccessedReportID;
         }
     }
@@ -57,6 +57,7 @@ const navigateAfterOnboardingWithMicrotaskQueue = (
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
 ) => {
+    Navigation.dismissModal();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, onboardingAdminsChatReportID, shouldPreventOpenAdminRoom);
     });

@@ -55,7 +55,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
     const mockReports = createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,
         (index) => ({
-            ...createRandomReport(index),
+            ...createRandomReport(index, undefined),
             policyID: `policy${index % POLICIES_COUNT}`,
             total: -(Math.random() * 100000), // Random negative amount
             currency: 'USD',
@@ -71,6 +71,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
         allPolicies: mockPolicies,
         allReportNameValuePairs: {},
         allTransactions: {},
+        isOffline: false,
     };
 
     beforeAll(async () => {
@@ -93,6 +94,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 value: {total: -20000},
             };
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => computeReportNameIfNeeded(report, update, mockContext));
         });
     });
@@ -111,6 +113,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 },
             }));
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
         });
 
@@ -122,6 +125,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 value: {total: -(Math.random() * 100000)},
             }));
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
         });
 
@@ -148,6 +152,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
 
             const allUpdates = [...newReportUpdates, ...existingReportUpdates];
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(allUpdates, mockContext));
         });
     });
@@ -161,6 +166,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
             };
 
             // This should trigger name computation for all reports using policy1
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates([policyUpdate], mockContext));
         });
 
@@ -171,6 +177,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 value: {name: `Bulk Updated Policy ${i}`},
             }));
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(policyUpdates, mockContext));
         });
     });
@@ -189,6 +196,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 },
             }));
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, mockContext));
         });
 
@@ -200,6 +208,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 value: {description: `Updated transaction ${i}`},
             }));
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(irrelevantUpdates, mockContext));
         });
     });
@@ -235,6 +244,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                     50,
                 ),
                 allReportNameValuePairs: {},
+                isOffline: false,
             };
 
             const updates = Array.from({length: 20}, (_, i) => ({
@@ -248,6 +258,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 },
             }));
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, contextWithoutFormulas));
         });
 
@@ -259,6 +270,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 allPolicies: {},
                 allReportNameValuePairs: {},
                 allTransactions: {},
+                isOffline: false,
             };
 
             const updates = Array.from({length: 10}, (_, i) => ({
@@ -272,6 +284,7 @@ describe('[OptimisticReportNames] Performance Tests', () => {
                 },
             }));
 
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             await measureFunction(() => updateOptimisticReportNamesFromUpdates(updates, contextWithMissingData));
         });
     });

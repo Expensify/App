@@ -20,12 +20,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, ReportAction, ReportActions} from '@src/types/onyx';
-import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
+import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
+import type {Policy, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
@@ -54,24 +55,28 @@ function TransactionListItem<TItem extends ListItem>({
     const {currentSearchHash, currentSearchKey} = useSearchContext();
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const snapshotReport = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as SearchReport;
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
     }, [snapshot, transactionItem.reportID]);
 
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
+
     const snapshotPolicy = useMemo(() => {
-        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as SearchPolicy;
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, transactionItem.policyID]);
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
 
-    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`, {canBeMissing: true});
-    const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.transactionThreadReportID}`, {canBeMissing: true});
+    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {canBeMissing: true});
+    const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`, {canBeMissing: true});
     const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
         (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.moneyRequestReportActionID}`],
+        [transactionItem?.moneyRequestReportActionID],
+    );
+    const [parentReportAction] = originalUseOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`,
+        {selector: parentReportActionSelector, canBeMissing: true},
         [transactionItem],
     );
-    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`, {selector: parentReportActionSelector, canBeMissing: true}, [
-        transactionItem,
-    ]);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const transactionPreviewData: TransactionPreviewData = useMemo(
         () => ({hasParentReport: !!parentReport, hasTransaction: !!transaction, hasParentReportAction: !!parentReportAction, hasTransactionThreadReport: !!transactionThreadReport}),
@@ -98,42 +103,28 @@ function TransactionListItem<TItem extends ListItem>({
             taxAmountColumnSize: transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
         };
-    }, [transactionItem]);
+    }, [transactionItem.isAmountColumnWide, transactionItem.isTaxAmountColumnWide, transactionItem.shouldShowYear]);
 
     const transactionViolations = useMemo(() => {
         return (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
             (violation: TransactionViolation) =>
-                !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '') &&
-                shouldShowViolation(snapshotReport, snapshotPolicy as Policy, violation.name, currentUserDetails.email ?? '', false),
+                !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, snapshotReport, snapshotPolicy) &&
+                shouldShowViolation(snapshotReport, snapshotPolicy, violation.name, currentUserDetails.email ?? '', false),
         );
-    }, [snapshotPolicy, snapshotReport, transactionItem, violations, currentUserDetails.email]);
+    }, [snapshotPolicy, snapshotReport, transactionItem, violations, currentUserDetails.email, currentUserDetails.accountID]);
 
     const handleActionButtonPress = useCallback(() => {
         handleActionButtonPressUtil(
             currentSearchHash,
             transactionItem,
             () => onSelectRow(item, transactionPreviewData),
-            shouldUseNarrowLayout && !!canSelectMultiple,
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
         );
-    }, [
-        currentSearchHash,
-        transactionItem,
-        transactionPreviewData,
-        shouldUseNarrowLayout,
-        canSelectMultiple,
-        snapshotReport,
-        snapshotPolicy,
-        lastPaymentMethod,
-        currentSearchKey,
-        onSelectRow,
-        item,
-        onDEWModalOpen,
-    ]);
+    }, [currentSearchHash, transactionItem, transactionPreviewData, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onSelectRow, item, onDEWModalOpen]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(item);
@@ -178,6 +169,7 @@ function TransactionListItem<TItem extends ListItem>({
                         item={transactionItem}
                         handleActionButtonPress={handleActionButtonPress}
                         shouldShowUserInfo={!!transactionItem?.from}
+                        isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
                     />
                 )}
                 <TransactionItemRow
@@ -188,15 +180,16 @@ function TransactionListItem<TItem extends ListItem>({
                     onCheckboxPress={handleCheckboxPress}
                     shouldUseNarrowLayout={!isLargeScreenWidth}
                     columns={columns}
-                    isActionLoading={isLoading ?? transactionItem.isActionLoading}
+                    isActionLoading={isLoading ?? isActionLoading}
                     isSelected={!!transactionItem.isSelected}
                     dateColumnSize={dateColumnSize}
                     amountColumnSize={amountColumnSize}
                     taxAmountColumnSize={taxAmountColumnSize}
                     shouldShowCheckbox={!!canSelectMultiple}
-                    style={[styles.p3, shouldUseNarrowLayout ? styles.pt2 : {}]}
+                    style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}, isLargeScreenWidth && styles.pr0]}
                     areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     violations={transactionViolations}
+                    onArrowRightPress={onPress}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

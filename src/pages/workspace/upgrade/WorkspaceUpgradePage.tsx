@@ -1,8 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -12,14 +14,23 @@ import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canModifyPlan, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
+import {canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
-import {enableCompanyCards, enablePolicyReportFields, enablePolicyRules, setPolicyPreventMemberCreatedTitle, upgradeToCorporate} from '@src/libs/actions/Policy/Policy';
+import {
+    enableCompanyCards,
+    enablePolicyReportFields,
+    enablePolicyRules,
+    setPolicyPreventMemberCreatedTitle,
+    setWorkspaceApprovalMode,
+    upgradeToCorporate,
+} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {ownerPoliciesSelector} from '@src/selectors/Policy';
+import type {Policy} from '@src/types/onyx';
 import UpgradeConfirmation from './UpgradeConfirmation';
 import UpgradeIntro from './UpgradeIntro';
 
@@ -52,15 +63,20 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         [featureNameAlias],
     );
     const {translate} = useLocalize();
+    const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
+    const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false, selector: ownerPoliciesSelectorWithAccountID});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
 
-    const canPerformUpgrade = useMemo(() => canModifyPlan(policyID), [policyID]);
+    const canPerformUpgrade = useMemo(() => canModifyPlan(ownerPolicies, policy), [ownerPolicies, policy]);
     const isUpgraded = useMemo(() => isControlPolicy(policy), [policy]);
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const categoryId = route.params?.categoryId;
+
+    const defaultApprover = getDefaultApprover(policy);
 
     const goBack = useCallback(() => {
         if ((!feature && featureNameAlias !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) || !policyID) {
@@ -154,20 +170,22 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
                 enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
+                setWorkspaceApprovalMode(policyID, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED);
+                break;
             default:
         }
     }, [
-        categoryId,
-        feature,
-        perDiemCustomUnit?.customUnitID,
-        policy?.connections?.xero?.config,
-        policy?.connections?.xero?.data,
         policyID,
+        feature,
+        featureNameAlias,
+        route.params.featureName,
+        perDiemCustomUnit?.customUnitID,
+        defaultApprover,
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
-        route.params?.featureName,
-        featureNameAlias,
+        categoryId,
     ]);
 
     useFocusEffect(

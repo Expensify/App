@@ -24,6 +24,7 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
@@ -34,6 +35,7 @@ import {getSections} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import CardListItemHeader from './CardListItemHeader';
 import MemberListItemHeader from './MemberListItemHeader';
@@ -67,15 +69,16 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchContext();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportID}`, {canBeMissing: true});
-    const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.transactionThreadReportID}`, {canBeMissing: true});
+    const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportAction?.childReportID}`, {canBeMissing: true});
     const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${oneTransactionItem?.transactionID}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
         (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.moneyRequestReportActionID}`],
-        [oneTransactionItem],
+        [oneTransactionItem?.moneyRequestReportActionID],
     );
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionItem?.reportID}`, {selector: parentReportActionSelector, canBeMissing: true}, [
         oneTransactionItem,
@@ -92,6 +95,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState(CONST.TRANSACTION.RESULTS_PAGE_SIZE as number);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
 
     const transactions = useMemo(() => {
         if (isExpenseReportType) {
@@ -100,18 +104,19 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             return [];
         }
-        const sectionData = getSections(
-            CONST.SEARCH.DATA_TYPES.EXPENSE,
-            transactionsSnapshot?.data,
-            accountID,
-            currentUserDetails.email ?? '',
+        const [sectionData] = getSections({
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            data: transactionsSnapshot?.data,
+            currentAccountID: accountID,
+            currentUserEmail: currentUserDetails.email ?? '',
             formatPhoneNumber,
-        ) as TransactionListItemType[];
+            isActionLoadingSet,
+        }) as [TransactionListItemType[], number];
         return sectionData.map((transactionItem) => ({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
         }));
-    }, [isExpenseReportType, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet, currentUserDetails.email]);
+    }, [isExpenseReportType, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet, currentUserDetails.email, isActionLoadingSet]);
 
     const selectedItemsLength = useMemo(() => {
         return transactions.reduce((acc, transaction) => {
@@ -142,9 +147,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 searchKey: undefined,
                 offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
                 shouldCalculateTotals: false,
+                isLoading: !!transactionsSnapshot?.search?.isLoading,
             });
         },
-        [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.offset],
+        [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.offset, transactionsSnapshot?.search?.isLoading],
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -218,6 +224,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
                     />
                 ),
                 [CONST.SEARCH.GROUP_BY.CARD]: (
@@ -229,6 +237,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
                     />
                 ),
                 [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: (
@@ -239,6 +249,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
                     />
                 ),
             };
@@ -256,6 +268,8 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         isIndeterminate={isIndeterminate}
                         isHovered={hovered}
                         onDEWModalOpen={onDEWModalOpen}
+                        onDownArrowClick={onExpandIconPress}
+                        isExpanded={isExpanded}
                     />
                 );
             }
@@ -266,7 +280,22 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
             return headers[groupBy];
         },
-        [groupItem, onSelectRow, transactionPreviewData, onCheckboxPress, isDisabledOrEmpty, isFocused, canSelectMultiple, isSelectAllChecked, isIndeterminate, groupBy, searchType],
+        [
+            groupItem,
+            onSelectRow,
+            transactionPreviewData,
+            onCheckboxPress,
+            isDisabledOrEmpty,
+            isFocused,
+            canSelectMultiple,
+            isSelectAllChecked,
+            isIndeterminate,
+            onDEWModalOpen,
+            groupBy,
+            isExpanded,
+            onExpandIconPress,
+            searchType,
+        ],
     );
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
@@ -305,6 +334,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             header={getHeader(hovered)}
                             onPress={onExpandIconPress}
                             expandButtonStyle={styles.pv4Half}
+                            shouldShowToggleButton={isLargeScreenWidth}
                         >
                             <TransactionGroupListExpandedItem
                                 showTooltip={showTooltip}

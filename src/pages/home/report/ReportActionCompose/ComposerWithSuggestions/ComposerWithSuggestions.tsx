@@ -2,16 +2,7 @@ import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, RefObject} from 'react';
 import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {
-    LayoutChangeEvent,
-    MeasureInWindowOnSuccessCallback,
-    NativeSyntheticEvent,
-    TextInput,
-    TextInputContentSizeChangeEventData,
-    TextInputFocusEventData,
-    TextInputKeyPressEventData,
-    TextInputScrollEventData,
-} from 'react-native';
+import type {BlurEvent, LayoutChangeEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputContentSizeChangeEvent, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -77,7 +68,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     onFocus: () => void;
 
     /** Callback to blur composer */
-    onBlur: (event: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+    onBlur: (event: BlurEvent) => void;
 
     /** Callback when layout of composer changes */
     onLayout?: (event: LayoutChangeEvent) => void;
@@ -268,8 +259,7 @@ function ComposerWithSuggestions({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-
-    const shouldAutoFocus = shouldFocusInputOnScreenFocus && !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -474,7 +464,7 @@ function ComposerWithSuggestions({
     );
 
     const handleKeyPress = useCallback(
-        (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+        (event: TextInputKeyPressEvent) => {
             const webEvent = event as unknown as KeyboardEvent;
             if (!webEvent || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
                 return;
@@ -566,7 +556,7 @@ function ComposerWithSuggestions({
     );
 
     const hideSuggestionMenu = useCallback(
-        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+        (e: TextInputScrollEvent) => {
             mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
             if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
                 return;
@@ -617,7 +607,7 @@ function ComposerWithSuggestions({
         // Checking whether the screen is focused or not, helps avoid `modal.isVisible` false when popups are closed, even if the modal is opened.
         const isComposerCoveredUp = !isFocused || isEmojiPickerVisible() || isMenuVisible || !!modal?.isVisible || modal?.willAlertModalBecomeVisible;
         return !isComposerCoveredUp;
-    }, [isMenuVisible, modal, isFocused]);
+    }, [isMenuVisible, modal?.isVisible, modal?.willAlertModalBecomeVisible, isFocused]);
 
     const focusComposerOnKeyPress = useCallback(
         (e: KeyboardEvent) => {
@@ -805,7 +795,7 @@ function ComposerWithSuggestions({
     const containerComposeStyles = StyleSheet.flatten(StyleUtils.getContainerComposeStyles());
 
     const updateIsFullComposerAvailable = useCallback(
-        (e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+        (e: TextInputContentSizeChangeEvent) => {
             const paddingTopAndBottom = (containerComposeStyles.paddingVertical as number) * 2;
             const inputHeight = e.nativeEvent.contentSize.height;
             const totalHeight = inputHeight + paddingTopAndBottom;
@@ -814,6 +804,27 @@ function ComposerWithSuggestions({
         },
         [setIsFullComposerAvailable, containerComposeStyles],
     );
+
+    const handleFocus = useCallback(() => {
+        // The last composer that had focus should re-gain focus
+        setUpComposeFocusManager(true);
+        onFocus();
+    }, [onFocus, setUpComposeFocusManager]);
+
+    // When using the suggestions box (Suggestions) we need to imperatively
+    // set the cursor to the end of the suggestion/mention after it's selected.
+    const onSuggestionSelected = useCallback((suggestionSelection: TextSelection) => {
+        const endOfSuggestionSelection = suggestionSelection.end;
+        setSelection(suggestionSelection);
+
+        if (endOfSuggestionSelection === undefined) {
+            return;
+        }
+
+        queueMicrotask(() => {
+            textInputRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
+        });
+    }, []);
 
     return (
         <>
@@ -835,11 +846,7 @@ function ComposerWithSuggestions({
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
-                    onFocus={() => {
-                        // The last composer that had focus should re-gain focus
-                        setUpComposeFocusManager(true);
-                        onFocus();
-                    }}
+                    onFocus={handleFocus}
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(files) => {
@@ -872,7 +879,7 @@ function ComposerWithSuggestions({
                 // Input
                 value={value}
                 selection={selection}
-                setSelection={setSelection}
+                setSelection={onSuggestionSelected}
                 resetKeyboardInput={resetKeyboardInput}
             />
 

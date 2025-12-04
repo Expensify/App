@@ -21,6 +21,7 @@ function getSignerDetailsAndSignerFilesForSignerInfo(enterSignerInfoFormDraft: O
     const signerDetails: Record<string, string | boolean | FileObject[]> = {};
     const signerFiles: Record<string, string | FileObject | boolean> = {};
 
+    // eslint-disable-next-line unicorn/no-array-for-each
     signerDetailsFields.forEach((fieldName: keyof EnterSignerInfoForm) => {
         if (fieldName === INPUT_IDS.SIGNER_EMAIL) {
             signerDetails[fieldName] = signerEmail;
@@ -44,14 +45,14 @@ function getSignerDetailsAndSignerFilesForSignerInfo(enterSignerInfoFormDraft: O
         }
     });
 
-    signerFilesFields.forEach((fieldName) => {
+    for (const fieldName of signerFilesFields) {
         if (!enterSignerInfoFormDraft?.[fieldName]) {
-            return;
+            continue;
         }
 
         // eslint-disable-next-line rulesdir/prefer-at
         signerFiles[fieldName] = enterSignerInfoFormDraft?.[fieldName][0];
-    });
+    }
 
     return {signerDetails, signerFiles};
 }

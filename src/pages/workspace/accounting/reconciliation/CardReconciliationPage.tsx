@@ -101,9 +101,9 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
             case CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE:
                 return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID, backTo)}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT:
-                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)}`;
+                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID)}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.QBD:
-                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID, backTo)}`;
+                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC.getRoute(policyID)}`;
             default:
                 return '';
         }
