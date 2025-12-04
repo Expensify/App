@@ -115,7 +115,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 return prevOptions;
             }
 
-            const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
+            const updatedReportsMap = new Map(prevOptions.reports.filter((report) => report && report.reportID).map((report) => [report.reportID, report]));
             // eslint-disable-next-line unicorn/no-array-for-each
             changedReportKeys.forEach((reportKey) => {
                 const report = changedReportsEntries[reportKey];
@@ -147,7 +147,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 return prevOptions;
             }
 
-            const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
+            const updatedReportsMap = new Map(prevOptions.reports.filter((report) => report && report.reportID).map((report) => [report.reportID, report]));
             // eslint-disable-next-line unicorn/no-array-for-each
             changedReportActionsEntries.forEach(([key, reportAction]) => {
                 if (!reportAction) {
