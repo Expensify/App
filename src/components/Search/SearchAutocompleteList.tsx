@@ -252,7 +252,7 @@ function SearchAutocompleteList({
                     ...CONST.SEARCH.STATUS.TASK,
                 });
         }
-        return suggestedStatuses.map((value) => getUserFriendlyValue(value));
+        return suggestedStatuses.filter((value) => value !== '').map((value) => getUserFriendlyValue(value));
     }, [currentType]);
 
     const hasAutocompleteList = useMemo(() => getHasOptions(translate, currentType), [translate, currentType]);
