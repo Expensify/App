@@ -10,10 +10,12 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 type MultiSelectItem<T> = {
     text: string;
     value: T;
+    icons?: Icon[];
 };
 
 type MultiSelectPopupProps<T> = {
@@ -32,11 +34,7 @@ type MultiSelectPopupProps<T> = {
     /** Function to call when changes are applied */
     onChange: (item: Array<MultiSelectItem<T>>) => void;
 
-    /**
-     * Whether the search input should be displayed.
-     * When false or undefined, no search input is shown.
-     * Set to true to show the search input for filtering items.
-     */
+    /** Whether the search input should be displayed. */
     isSearchable?: boolean;
 
     /** Search input placeholder. Defaults to 'common.search' when not provided. */
@@ -58,6 +56,7 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
             text: item.text,
             keyForList: item.value,
             isSelected: !!selectedItems.find((i) => i.value === item.value),
+            icons: item.icons,
         }));
     }, [items, selectedItems, isSearchable, debouncedSearchTerm]);
 

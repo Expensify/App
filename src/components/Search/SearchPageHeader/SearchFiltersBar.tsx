@@ -17,8 +17,6 @@ import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
-import type {AvatarMultiSelectItem} from '@components/Search/FilterDropdowns/AvatarMultiSelectPopup';
-import AvatarMultiSelectPopup from '@components/Search/FilterDropdowns/AvatarMultiSelectPopup';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
@@ -133,7 +131,7 @@ function SearchFiltersBar({
 
     const shouldDisplayWorkspaceFilter = useMemo(() => workspaces.some((section) => section.data.length > 1), [workspaces]);
 
-    const workspaceOptions = useMemo<Array<AvatarMultiSelectItem<string>>>(() => {
+    const workspaceOptions = useMemo<Array<MultiSelectItem<string>>>(() => {
         return workspaces
             .flatMap((section) => section.data)
             .filter((workspace): workspace is typeof workspace & {policyID: string; icons: Icon[]} => !!workspace.policyID && !!workspace.icons)
@@ -517,7 +515,7 @@ function SearchFiltersBar({
     );
 
     const handleWorkspaceChange = useCallback(
-        (items: Array<AvatarMultiSelectItem<string>>) => {
+        (items: Array<MultiSelectItem<string>>) => {
             updateFilterForm({policyID: items.map((item) => item.value)});
         },
         [updateFilterForm],
@@ -526,7 +524,7 @@ function SearchFiltersBar({
     const workspaceComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
             return (
-                <AvatarMultiSelectPopup
+                <MultiSelectPopup
                     label={translate('workspace.common.workspace')}
                     items={workspaceOptions}
                     value={selectedWorkspaceOptions}

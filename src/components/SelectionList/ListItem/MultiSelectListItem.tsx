@@ -1,12 +1,16 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import RadioListItem from './RadioListItem';
 import type {ListItem, MultiSelectListItemProps} from './types';
 
 /**
  * MultiSelectListItem mirrors the behavior of a default RadioListItem, but adds support
  * for the new style of multi selection lists.
+ * When icons are provided, an avatar is rendered on the left side of the item.
  */
 function MultiSelectListItem<TItem extends ListItem>({
     item,
@@ -37,9 +41,40 @@ function MultiSelectListItem<TItem extends ListItem>({
         );
     }, [item, onSelectRow]);
 
+    const icon = item.icons?.at(0);
+
+    const avatarElement = useMemo(() => {
+        if (!icon) {
+            return null;
+        }
+        return (
+            <View style={styles.mentionSuggestionsAvatarContainer}>
+                <Avatar
+                    source={icon.source}
+                    size={CONST.AVATAR_SIZE.SMALLER}
+                    name={icon.name}
+                    avatarID={icon.id}
+                    type={icon.type ?? CONST.ICON_TYPE_AVATAR}
+                    fallbackIcon={icon.fallbackIcon}
+                />
+            </View>
+        );
+    }, [icon, styles.mentionSuggestionsAvatarContainer]);
+
+    // Use a modified item with leftElement if we have icons
+    const itemWithAvatar = useMemo(() => {
+        if (!avatarElement) {
+            return item;
+        }
+        return {
+            ...item,
+            leftElement: avatarElement,
+        };
+    }, [item, avatarElement]);
+
     return (
         <RadioListItem
-            item={item}
+            item={itemWithAvatar}
             keyForList={item.keyForList}
             isFocused={isFocused}
             showTooltip={showTooltip}
