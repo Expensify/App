@@ -141,7 +141,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
         return undefined;
-    }, [bankAccountList, fundList, hasBrokenFeedConnection, hasPendingCardAction, userWallet?.errors, walletTerms?.errors]);
+    }, [allCards, bankAccountList, fundList, hasBrokenFeedConnection, hasPendingCardAction, userWallet?.errors, walletTerms?.errors]);
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 

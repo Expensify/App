@@ -449,7 +449,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         isControlPolicyWithWideLayout,
         StyleUtils,
         formatPhoneNumber,
-        FallbackAvatar,
         invitedPrimaryToSecondaryLogins,
         policyOwner,
         currentUserLogin,
