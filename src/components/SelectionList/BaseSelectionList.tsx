@@ -419,7 +419,7 @@ function BaseSelectionList<TItem extends ListItem>({
         // Do not change focus if:
         // 1. Input value is the same or
         // 2. Data length is 0 or
-        // 3. Selected items changed and shouldUpdateFocusedIndex is true => other function handles the focus
+        // 3. Selection changed via user interaction (not filtering), so focus is handled externally
         if ((!searchChanged && !selectedOptionsChanged) || data.length === 0 || selectionChangedByClicking) {
             return;
         }
