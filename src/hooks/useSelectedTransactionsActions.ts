@@ -229,7 +229,7 @@ function useSelectedTransactionsActions({
                         }
                         exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
                             onExportFailed?.();
-                        });
+                        }, translate);
                         clearSelectedTransactions(true);
                     },
                 },
