@@ -1186,8 +1186,10 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Encontrar despesa',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `excluiu uma despesa (${amount} para ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moveu uma despesa${reportName ? `de ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `movei esta despesa para o seu <a href="${reportUrl}">espaço pessoal</a>`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `de <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moveu esta despesa do seu <a href="${reportUrl}">espaço pessoal</a>`,
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moveu esta despesa para o seu <a href="${reportUrl}">espaço pessoal</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
                 return `moveu este relatório para o workspace <a href="${newParentReportUrl}">${toPolicyName}</a>`;
@@ -2543,17 +2545,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Conecte [seu cartão corporativo](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Conecte [seus cartões corporativos](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Conecte seu cartão corporativo para importar e categorizar despesas automaticamente.
+                        Conecte os cartões que você já possui para importação automática de transações, vinculação de recibos e conciliação.
 
-                        1. Clique em *Espaços de trabalho*.
+                        1. Clique em *Workspaces*.
                         2. Selecione seu espaço de trabalho.
-                        3. Clique em *Cartões corporativos*.
-                        4. Siga as instruções para conectar seu cartão.
+                        3. Clique em *Company cards*.
+                        4. Siga as instruções para conectar seus cartões.
 
-                        [Leve-me para conectar meus cartões corporativos](${corporateCardLink}).`),
+                        [Ir para Company cards](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Convide [sua equipe](${workspaceMembersLink})`,
@@ -6249,6 +6251,36 @@ ${
                 }
             }
         },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'ativado' : 'desativado'} categorias`;
+                case 'tags':
+                    return `${enabled ? 'ativado' : 'desativado'} etiquetas`;
+                case 'workflows':
+                    return `${enabled ? 'ativado' : 'desativado'} fluxos de trabalho`;
+                case 'distance rates':
+                    return `${enabled ? 'ativado' : 'desativado'} taxas de distância`;
+                case 'accounting':
+                    return `${enabled ? 'ativado' : 'desativado'} contabilidade`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'ativado' : 'desativado'} Cartões Expensify`;
+                case 'company cards':
+                    return `${enabled ? 'ativado' : 'desativado'} cartões corporativos`;
+                case 'invoicing':
+                    return `${enabled ? 'ativado' : 'desativado'} faturamento`;
+                case 'per diem':
+                    return `${enabled ? 'ativado' : 'desativado'} de diária`;
+                case 'receipt partners':
+                    return `${enabled ? 'ativado' : 'desativado'} parceiros de recibos`;
+                case 'rules':
+                    return `${enabled ? 'ativado' : 'desativado'} regras`;
+                case 'tax tracking':
+                    return `${enabled ? 'ativado' : 'desativado'} rastreamento de impostos`;
+                default:
+                    return `${enabled ? 'ativado' : 'desativado'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} acompanhamento de participantes`,
     },
     roomMembersPage: {
@@ -7011,6 +7043,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} é obrigatório`,
+        reportContainsExpensesWithViolations: 'O relatório contém despesas com violações.',
     },
     violationDismissal: {
         rter: {
