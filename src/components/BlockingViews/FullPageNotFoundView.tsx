@@ -12,6 +12,7 @@ import variables from '@styles/variables';
 import type {TranslationPaths} from '@src/languages/types';
 import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
+import useNotFoundSpan from '@hooks/useNotFoundSpan';
 
 type FullPageNotFoundViewProps = {
     /** TestID for test */
@@ -86,6 +87,8 @@ function FullPageNotFoundView({
     const {isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud'] as const);
+
+    useNotFoundSpan();
 
     if (shouldShow) {
         StatsCounter('FullPageNotFoundView');
