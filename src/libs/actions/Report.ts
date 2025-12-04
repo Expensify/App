@@ -1491,17 +1491,15 @@ function navigateToAndOpenReport(
     const report = isEmptyObject(chat) ? newChat : chat;
 
     if (shouldDismissModal) {
-        Navigation.onModalDismissedOnce(() => {
-            Navigation.onModalDismissedOnce(() => {
+        Navigation.dismissModal({
+            callback: () => {
                 if (!report?.reportID) {
                     return;
                 }
 
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-            });
+            },
         });
-
-        Navigation.dismissModal();
     } else if (report?.reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
     }
