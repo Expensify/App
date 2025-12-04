@@ -26,8 +26,6 @@ import {
     getMoneyRequestParticipantsFromReport,
     requestMoney,
     resetSplitShares,
-    sendMoneyElsewhere,
-    sendMoneyWithWallet,
     setDraftSplitTransaction,
     setMoneyRequestAmount,
     setMoneyRequestParticipantsFromReport,
@@ -48,6 +46,7 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import { sendMoneyElsewhere, sendMoneyWithWallet } from '@userActions/IOU/SendMoney';
 
 type AmountParams = {
     amount: string;
