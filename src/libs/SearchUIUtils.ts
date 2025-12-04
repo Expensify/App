@@ -2588,8 +2588,9 @@ function getColumnsToShow(
     };
 
     if (Array.isArray(data)) {
-        // eslint-disable-next-line unicorn/no-array-for-each
-        data.forEach(updateColumns);
+        for (const item of data) {
+            updateColumns(item);
+        }
     } else {
         for (const key of Object.keys(data)) {
             if (!isTransactionEntry(key)) {
