@@ -6,7 +6,6 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
@@ -16,6 +15,7 @@ import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
+import useConfirmModal from './hooks/useConfirmModal';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
@@ -103,6 +103,7 @@ function Expensify() {
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate, preferredLocale} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
@@ -305,6 +306,24 @@ function Expensify() {
         disconnect({stashedCredentials, stashedSession});
     }, [account?.delegatedAccess?.delegates, account?.delegatedAccess?.delegate, stashedCredentials, stashedSession]);
 
+    useEffect(() => {
+        if (!screenShareRequest) {
+            return;
+        }
+        showConfirmModal({
+            title: translate('guides.screenShare'),
+            prompt: translate('guides.screenShareRequest'),
+            confirmText: translate('common.join'),
+            cancelText: translate('common.decline'),
+        }).then(({action}) => {
+            if (action === 'CONFIRM') {
+                User.joinScreenShare(screenShareRequest.accessToken, screenShareRequest.roomName);
+            } else {
+                User.clearScreenShareRequest();
+            }
+        });
+    }, [screenShareRequest, showConfirmModal, translate]);
+
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
@@ -327,17 +346,6 @@ function Expensify() {
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
                     {updateAvailable && !updateRequired ? <UpdateAppModal /> : null}
-                    {screenShareRequest ? (
-                        <ConfirmModal
-                            title={translate('guides.screenShare')}
-                            onConfirm={() => User.joinScreenShare(screenShareRequest.accessToken, screenShareRequest.roomName)}
-                            onCancel={User.clearScreenShareRequest}
-                            prompt={translate('guides.screenShareRequest')}
-                            confirmText={translate('common.join')}
-                            cancelText={translate('common.decline')}
-                            isVisible
-                        />
-                    ) : null}
                 </>
             )}
 

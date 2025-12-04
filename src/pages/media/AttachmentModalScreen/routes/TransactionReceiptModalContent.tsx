@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -31,6 +31,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
@@ -80,8 +81,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const isTrackExpenseActionValue = isTrackExpenseAction(parentReportAction);
     const iouType = useMemo(() => iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseActionValue, iouTypeParam]);
-
-    const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
 
     useEffect(() => {
         if ((!!report && !!transaction) || isDraftTransaction) {
@@ -191,7 +190,19 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 menuItems.push({
                     icon: Expensicons.Trashcan,
                     text: translate('receipt.deleteReceipt'),
-                    onSelected: () => setIsDeleteReceiptConfirmModalVisible?.(true),
+                    onSelected: () => {
+                        showConfirmModal({
+                            title: translate('receipt.deleteReceipt'),
+                            prompt: translate('receipt.deleteConfirmation'),
+                            confirmText: translate('common.delete'),
+                            cancelText: translate('common.cancel'),
+                            danger: true,
+                        }).then(({action}) => {
+                            if (action === 'CONFIRM') {
+                                deleteReceiptAndClose();
+                            }
+                        });
+                    },
                     shouldCallAfterModalHide: true,
                 });
             }
@@ -211,23 +222,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             iouType,
             report?.reportID,
             onDownloadAttachment,
+            showConfirmModal,
+            deleteReceiptAndClose,
         ],
-    );
-
-    const ExtraContent = useMemo(
-        () => (
-            <ConfirmModal
-                title={translate('receipt.deleteReceipt')}
-                isVisible={isDeleteReceiptConfirmModalVisible}
-                onConfirm={() => deleteReceiptAndClose()}
-                onCancel={() => setIsDeleteReceiptConfirmModalVisible?.(false)}
-                prompt={translate('receipt.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
-        ),
-        [deleteReceiptAndClose, isDeleteReceiptConfirmModalVisible, translate],
     );
 
     const contentProps = useMemo<AttachmentModalBaseContentProps>(
@@ -265,7 +262,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         <AttachmentModalContainer
             navigation={navigation}
             contentProps={contentProps}
-            ExtraContent={ExtraContent}
         />
     );
 }
