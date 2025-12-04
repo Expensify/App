@@ -650,16 +650,8 @@ const staticStyles = (theme: ThemeColors) =>
             opacity: 0.5,
         },
 
-        opacityActivityIndicator: {
-            opacity: 0.8,
-        },
-
         opacity1: {
             opacity: 1,
-        },
-
-        inset0: {
-            inset: 0,
         },
 
         textDanger: {

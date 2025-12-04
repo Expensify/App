@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, LogBox, View} from 'react-native';
+import {Keyboard, LogBox, StyleSheet, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
@@ -480,17 +480,7 @@ function AddressSearch({
                 </View>
             </ScrollView>
             {isFetchingCurrentLocation && (
-                <View
-                    style={[
-                        styles.pAbsolute,
-                        styles.inset0,
-                        StyleUtils.getBackgroundColorStyle(theme.appBG),
-                        styles.opacityActivityIndicator,
-                        styles.zIndex10,
-                        styles.justifyContentCenter,
-                        styles.alignItemsCenter,
-                    ]}
-                >
+                <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100]}>
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             )}
