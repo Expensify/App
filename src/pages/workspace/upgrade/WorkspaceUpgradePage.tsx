@@ -76,6 +76,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const categoryId = route.params?.categoryId;
 
+    const defaultApprover = getDefaultApprover(policy);
+
     const goBack = useCallback(() => {
         if ((!feature && featureNameAlias !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) || !policyID) {
             Navigation.dismissModal();
@@ -169,7 +171,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
-                setWorkspaceApprovalMode(policyID, getDefaultApprover(policy), CONST.POLICY.APPROVAL_MODE.ADVANCED);
+                setWorkspaceApprovalMode(policyID, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED);
                 break;
             default:
         }
@@ -179,7 +181,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         featureNameAlias,
         route.params.featureName,
         perDiemCustomUnit?.customUnitID,
-        policy,
+        defaultApprover,
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
