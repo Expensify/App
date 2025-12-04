@@ -2536,13 +2536,13 @@ ${amount} dla ${merchant} - ${date}`,
                         4. Znajdź ${integrationName}.
                         5. Kliknij *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Przejdź do księgowości](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Przejdź do księgowości](${workspaceAccountingLink}).
 
-                                      ![Połącz z ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Przejdź do księgowości](${workspaceAccountingLink}).`
-}`),
+                        ![Połącz z ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Przejdź do księgowości](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Połącz [swoje karty firmowe](${corporateCardLink})`,
@@ -5954,7 +5954,7 @@ ${
                     expense: 'Pojedynczy wydatek',
                     expenseSubtitle: 'Oznacz kwoty wydatków według kategorii. Ta zasada zastępuje ogólną zasadę przestrzeni roboczej dotyczącą maksymalnej kwoty wydatku.',
                     daily: 'Suma kategorii',
-                    dailySubtitle: 'Oznacz całkowite wydatki kategorii na raport wydatków.',
+                    dailySubtitle: 'Oznacz całkowite wydatki kategorii na raporcie wydatków.',
                 },
                 requireReceiptsOver: 'Wymagaj paragonów powyżej',
                 requireReceiptsOverList: {
@@ -6613,6 +6613,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Utwórz wydatek',
             createReport: 'Utwórz raport',
             chooseWorkspace: 'Wybierz przestrzeń roboczą dla tego raportu.',
             emptyReportConfirmationTitle: 'Masz już pusty raport',
@@ -7714,6 +7715,8 @@ ${
             anyMemberWillBeRequired: 'Każdy członek, który zalogował się inną metodą, będzie musiał ponownie się uwierzytelnić za pomocą SAML.',
             enableError: 'Nie udało się zaktualizować ustawienia włączenia SAML',
             requireError: 'Nie udało się zaktualizować ustawienia wymogu SAML',
+            disableSamlRequired: 'Wyłącz wymóg SAML',
+            oktaWarningPrompt: 'Czy na pewno? To również wyłączy Okta SCIM.',
         },
         samlConfigurationDetails: {
             title: 'Szczegóły konfiguracji SAML',
