@@ -357,6 +357,16 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
  * Determines whether two transactions can be merged together.
  */
 function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, transaction2: OnyxEntry<Transaction>) {
+    // Both transactions are required
+    if (!transaction1 || !transaction2) {
+        return false;
+    }
+
+    // Do not allow merging transactions that are pending delete
+    if (transaction1.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || transaction2.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        return false;
+    }
+
     // Do not allow merging two card transactions
     if (isManagedCardTransaction(transaction1) && isManagedCardTransaction(transaction2)) {
         return false;

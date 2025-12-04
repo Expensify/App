@@ -1084,12 +1084,16 @@ describe('MergeTransactionUtils', () => {
                 merchant: 'Starbucks Coffee',
                 modifiedMerchant: '',
                 category: 'Food & Dining',
+                managedCard: false,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             };
             const transaction2 = {
                 ...createRandomTransaction(1),
                 merchant: 'Caribou Coffee',
                 modifiedMerchant: '',
                 category: 'Food & Dining',
+                managedCard: false,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             };
 
             // When we check if they are eligible for merge
@@ -1129,6 +1133,7 @@ describe('MergeTransactionUtils', () => {
                 modifiedMerchant: '',
                 category: 'Food & Dining',
                 managedCard: true,
+                comment: {},
             };
             const transaction2 = {
                 ...createRandomTransaction(1),
@@ -1136,6 +1141,7 @@ describe('MergeTransactionUtils', () => {
                 modifiedMerchant: '',
                 category: 'Food & Dining',
                 managedCard: true,
+                comment: {},
             };
 
             // When we check if they are eligible for merge
@@ -1168,10 +1174,14 @@ describe('MergeTransactionUtils', () => {
             const zeroTransaction = {
                 ...createRandomTransaction(0),
                 amount: 0,
+                managedCard: undefined,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             };
             const nonZeroTransaction = {
                 ...createRandomTransaction(1),
                 amount: 1000,
+                managedCard: undefined,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             };
 
             // When we check if they are eligible for merge
