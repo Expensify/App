@@ -1303,18 +1303,17 @@ function changeTransactionsReport(
           (destinationReportID === selfDMReport?.reportID ? selfDMReport : undefined))
         : undefined;
     const destinationTotal = (destinationReportID ? updatedReportTotals[destinationReportID] : undefined) ?? destinationReport?.total ?? newReport?.total;
-    const nextStepDestinationReport = {
-        ...destinationReport,
-        reportID: destinationReport?.reportID ?? destinationReportID ?? reportID,
-        total: destinationTotal,
-    };
+
+    for (const reportIDToUpdate of Object.keys(updatedReportTotals)) {
+        affectedReportIDs.add(reportIDToUpdate)
+    }
 
     Object.keys(updatedReportTotals).forEach((reportIDToUpdate) => affectedReportIDs.add(reportIDToUpdate));
     if (destinationReportID) {
         affectedReportIDs.add(destinationReportID);
     }
 
-    affectedReportIDs.forEach((affectedReportID) => {
+    for (const affectedReportID of affectedReportIDs) {
         const affectedReport =
             allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`] ??
             (affectedReportID === newReport?.reportID ? newReport : undefined) ??
