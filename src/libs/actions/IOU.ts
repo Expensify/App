@@ -6956,7 +6956,7 @@ function duplicateExpenseTransaction(
             merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
             originalTransactionID: transaction?.comment?.originalTransactionID,
             receipt: undefined,
-            source: transaction?.comment?.source,
+            source: undefined,
             waypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
         },
         shouldHandleNavigation: false,
