@@ -1187,7 +1187,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Trova spesa',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `ha eliminato una spesa (${amount} per ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `spostato questa spesa${reportName ? `da <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `spostato questa spesa del tuo <a href="${reportUrl}">spazio personale</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `spostato questa spesa nel tuo <a href="${reportUrl}">spazio personale</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2549,17 +2551,17 @@ ${
 }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Collega [la tua carta aziendale](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Collega [le tue carte aziendali](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Collega la tua carta aziendale per importare e codificare automaticamente le spese.
+                        Collega le carte che hai già per l'importazione automatica delle transazioni, l'abbinamento delle ricevute e la riconciliazione.
 
-                        1. Fai clic su *Workspaces*.
-                        2. Seleziona il tuo workspace.
-                        3. Fai clic su *Corporate cards*.
-                        4. Segui le istruzioni per collegare la tua carta.
+                        1. Fai clic su *Spazi di lavoro*.
+                        2. Seleziona il tuo spazio di lavoro.
+                        3. Fai clic su *Carte aziendali*.
+                        4. Segui le istruzioni per collegare le tue carte.
 
-                        [Portami a collegare le mie carte aziendali](${corporateCardLink}).`),
+                        [Portami alle carte aziendali](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Invita [il tuo team](${workspaceMembersLink})`,
@@ -5978,7 +5980,7 @@ ${
                     expenseSubtitle:
                         "Contrassegna gli importi delle spese per categoria. Questa regola sostituisce la regola generale dello spazio di lavoro per l'importo massimo delle spese.",
                     daily: 'Totale categoria',
-                    dailySubtitle: 'Segnala la spesa totale per categoria per ogni rapporto di spesa.',
+                    dailySubtitle: 'Segnala la spesa totale per giorno per categoria per ogni rapporto di spesa.',
                 },
                 requireReceiptsOver: 'Richiedi ricevute superiori a',
                 requireReceiptsOverList: {
@@ -6643,6 +6645,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Crea spesa',
             createReport: 'Crea rapporto',
             chooseWorkspace: "Scegli un'area di lavoro per questo report.",
             emptyReportConfirmationTitle: 'Hai già un rapporto vuoto',
@@ -7061,6 +7064,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} è obbligatorio`,
+        reportContainsExpensesWithViolations: 'Il report contiene spese con violazioni.',
     },
     violationDismissal: {
         rter: {
@@ -7751,6 +7755,8 @@ ${
             anyMemberWillBeRequired: 'Qualsiasi membro che ha effettuato l’accesso con un metodo diverso dovrà autenticarsi nuovamente tramite SAML.',
             enableError: "Impossibile aggiornare l'impostazione di abilitazione SAML",
             requireError: "Impossibile aggiornare l'impostazione del requisito SAML",
+            disableSamlRequired: 'Disattiva SAML obbligatorio',
+            oktaWarningPrompt: 'Sei sicuro? Questo disattiverà anche Okta SCIM.',
         },
         samlConfigurationDetails: {
             title: 'Dettagli della configurazione SAML',

@@ -1296,7 +1296,6 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         // isTestReceipt = false and isTestDriveReceipt = false are being converted to null because we don't really need to store it in Onyx in those cases
         receipt: {source, filename, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null},
-        filename,
     });
 }
 
@@ -5646,7 +5645,7 @@ const getConvertTrackedExpenseInformation = (
     failureData?.push(...deleteFailureData);
 
     // Build modified expense report action with the transaction changes
-    const modifiedExpenseReportAction = buildOptimisticMovedTransactionAction(transactionThreadReportID, moneyRequestReportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
+    const modifiedExpenseReportAction = buildOptimisticMovedTransactionAction(transactionThreadReportID, linkedTrackedExpenseReportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
 
     optimisticData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -11925,17 +11924,16 @@ function detachReceipt(transactionID: string | undefined, transactionPolicyCateg
     const newTransaction = transaction
         ? {
               ...transaction,
-              filename: '',
               receipt: {},
           }
         : null;
 
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
-                ...newTransaction,
+                receipt: null,
                 pendingFields: {
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -12050,7 +12048,7 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
         state: CONST.IOU.RECEIPT_STATE.OPEN,
         filename: file.name,
     };
-    const newTransaction = transaction && {...transaction, receipt: receiptOptimistic, filename: file.name};
+    const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
     const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicyCategories};
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
@@ -12060,7 +12058,6 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 receipt: receiptOptimistic,
-                filename: file.name,
                 pendingFields: {
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -12087,7 +12084,6 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
-                filename: getReceiptFilenameFromTransaction(transaction),
                 errors: getReceiptError(receiptOptimistic, file.name, undefined, undefined, CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT, retryParams),
                 pendingFields: {
                     receipt: null,
@@ -12124,7 +12120,6 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                         receipt: receiptOptimistic,
-                        filename: file.name,
                     },
                 },
             },
@@ -12138,7 +12133,6 @@ function replaceReceipt({transactionID, file, source, transactionPolicyCategorie
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                         receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
-                        filename: getReceiptFilenameFromTransaction(transaction),
                     },
                 },
             },
@@ -13182,6 +13176,12 @@ function shouldOptimisticallyUpdateSearch(
         shouldOptimisticallyUpdateByStatus = expenseReportStatusFilterMapping[expenseStatus](iouReport);
     }
 
+    if (currentSearchQueryJSON.policyID?.length && iouReport?.policyID) {
+        if (!currentSearchQueryJSON.policyID.includes(iouReport.policyID)) {
+            return false;
+        }
+    }
+
     if (!shouldOptimisticallyUpdateByStatus) {
         return false;
     }
@@ -13355,6 +13355,21 @@ function prepareRejectMoneyRequestData(
     let expenseCreatedReportActionID;
 
     const hasMultipleExpenses = getReportTransactions(reportID).length > 1;
+    const transactionCommentCleanup = (() => {
+        if (!transaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE]) {
+            return undefined;
+        }
+
+        const dismissedViolations = {...(transaction.comment.dismissedViolations ?? {})};
+        delete dismissedViolations[CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE];
+
+        return {
+            comment: {
+                ...(transaction.comment ?? {}),
+                dismissedViolations: isEmptyObject(dismissedViolations) ? null : dismissedViolations,
+            },
+        };
+    })();
 
     // Build optimistic data updates
     const optimisticData: OnyxUpdate[] = [];
@@ -13389,6 +13404,7 @@ function prepareRejectMoneyRequestData(
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID: null,
+                        ...(transactionCommentCleanup ?? {}),
                     },
                 },
             );
@@ -13441,6 +13457,7 @@ function prepareRejectMoneyRequestData(
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {
                         reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                        ...(transactionCommentCleanup ?? {}),
                     },
                 },
             );
@@ -13778,6 +13795,7 @@ function prepareRejectMoneyRequestData(
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {
                     reportID: rejectedToReportID,
+                    ...(transactionCommentCleanup ?? {}),
                 },
             },
         );
@@ -13827,6 +13845,14 @@ function prepareRejectMoneyRequestData(
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            },
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                ...(transactionCommentCleanup ?? {}),
             },
         });
 

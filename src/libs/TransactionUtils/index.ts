@@ -70,7 +70,7 @@ import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import type {SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {
     Comment,
     Receipt,
@@ -307,7 +307,11 @@ function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isScanning(transaction));
+    return (
+        (isExpensifyCardTransaction(transaction) && isPending(transaction)) ||
+        (isScanRequest(transaction) && isMerchantMissing(transaction) && isAmountMissing(transaction)) ||
+        (isScanRequest(transaction) && isScanning(transaction))
+    );
 }
 
 /**
@@ -394,7 +398,6 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
             ? {source: receipt.source, filename: receipt?.name ?? filename, state: receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY, isTestDriveReceipt: receipt.isTestDriveReceipt}
             : undefined,
         hasEReceipt: existingTransaction?.hasEReceipt,
-        filename: (receipt?.source ? (receipt?.name ?? filename) : filename).toString(),
         category,
         tag,
         taxCode,
@@ -1180,8 +1183,7 @@ function isBrokenConnectionViolation(violation: TransactionViolation) {
     );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy>) {
+function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
     if (brokenConnectionViolations.length === 0) {
         return false;
     }
@@ -1200,8 +1202,7 @@ function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations:
 /**
  * Check if user should see broken connection violation warning based on violations list.
  */
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy>, transactionViolations: TransactionViolation[]): boolean {
+function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, transactionViolations: TransactionViolation[]): boolean {
     const brokenConnectionViolations = transactionViolations.filter((violation) => isBrokenConnectionViolation(violation));
 
     return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
@@ -1212,8 +1213,7 @@ function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report> | SearchR
  */
 function shouldShowBrokenConnectionViolationForMultipleTransactions(
     transactions: Transaction[],
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    report: OnyxEntry<Report> | SearchReport,
+    report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentUserEmail: string,
