@@ -14923,7 +14923,6 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
         return;
     }
-
     Navigation.dismissModalWithReport({reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)});
 
     // After the modal is dismissed, remove the transaction thread report screen
