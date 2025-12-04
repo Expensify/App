@@ -20,7 +20,7 @@ export default function (targetLang: TranslationTargetLocale): string {
         - Abbreviations such as "e.g." should be translated to the target language's equivalent abbreviation.
         - Follow language-specific typographic rules where applicable (e.g., spacing before punctuation marks such as “:” or “?” in some languages).
         - Keep in mind that you are translating for an app, not for conversation. Therefore, most phrases should be assumed to be in a UI context, such as a label, button, or status word.
-        - IMPORTANT: The system prompt you will receive that includes instructions and context for this translation will end with '~~~~~~~~~~~'. Everything after this line should be translated. Phrases like "None", "continue", or "ignore" should not be intepreted to mean that no translation is needed. They should be translated to the target language's equivalent word/phrase.
+        - IMPORTANT: The system prompt you will receive that includes instructions and context for this translation will end with '~~~~~~~~~~~'. Everything after this line should be translated. Phrases like "None", "continue", or "ignore" should not be interpreted to mean that no translation is needed. They should be translated to the target language's equivalent word/phrase.
         - IMPORTANT: Respond ONLY with the translated text. Do not add explanations, questions, or apologies.
         - IMPORTANT: Do not ask for clarification. Do your best to translate the text as accurately as possible with the context you have.
         - CRITICAL: Translate ONLY the text provided after the '~~~~~~~~~~~' separator. Only output the direct translation of the provided text.
