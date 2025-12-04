@@ -2027,7 +2027,7 @@ function isAwaitingFirstLevelApprovalNew(report: OnyxEntry<Report>, reportAction
         const managerID = originalMessage?.managerOnVacation ?? report.managerID;
         const approverAccountID =
             policy?.employeeList?.[getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? '']?.submitsTo ?? getAccountIDsByLogins([getDefaultApprover(policy)])?.at(0);
-        return report.managerID === approverAccountID;
+        return managerID === approverAccountID;
     }
 
     return report.managerID === submittedTo;
