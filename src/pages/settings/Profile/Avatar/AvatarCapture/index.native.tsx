@@ -1,11 +1,12 @@
-import React, {forwardRef, useImperativeHandle, useRef} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
 import ViewShot from 'react-native-view-shot';
-import type {AvatarCaptureHandle, AvatarCaptureProps} from './types';
+import variables from '@styles/variables';
+import type {AvatarCaptureProps} from './types';
 
 /**
  * Native implementation of AvatarCapture using react-native-view-shot
  */
-function AvatarCapture({children, fileName}: AvatarCaptureProps, ref: React.ForwardedRef<AvatarCaptureHandle>) {
+function AvatarCapture({children, fileName, ref}: AvatarCaptureProps) {
     const viewShotRef = useRef<ViewShot>(null);
 
     useImperativeHandle(
@@ -28,15 +29,13 @@ function AvatarCapture({children, fileName}: AvatarCaptureProps, ref: React.Forw
     return (
         <ViewShot
             ref={viewShotRef}
-            options={{fileName, format: 'png'}}
+            options={{fileName, format: 'png', width: variables.avatarSizeXXLarge, height: variables.avatarSizeXXLarge}}
         >
             {children}
         </ViewShot>
     );
 }
 
-const AvatarCaptureWithRef = forwardRef(AvatarCapture);
-
 AvatarCapture.displayName = 'AvatarCapture';
 
-export default AvatarCaptureWithRef;
+export default AvatarCapture;

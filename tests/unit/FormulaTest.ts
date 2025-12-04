@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need CurrencyUtils to mock
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {FormulaContext} from '@libs/Formula';
-import {compute, extract, hasCircularReferences, parse} from '@libs/Formula';
+import {compute, extract, hasCircularReferences, parse, requiresBackendComputation} from '@libs/Formula';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
@@ -19,7 +19,8 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 
 jest.mock('@libs/CurrencyUtils', () => ({
-    getCurrencySymbol: jest.fn(),
+    ...jest.requireActual<typeof CurrencyUtils>('@libs/CurrencyUtils'),
+    isValidCurrencyCode: jest.fn(),
 }));
 
 const mockReportActionsUtils = ReportActionsUtils as jest.Mocked<typeof ReportActionsUtils>;
@@ -117,15 +118,7 @@ describe('CustomFormula', () => {
         beforeEach(() => {
             jest.clearAllMocks();
 
-            mockCurrencyUtils.getCurrencySymbol.mockImplementation((currency: string) => {
-                if (currency === 'USD') {
-                    return '$';
-                }
-                if (currency === 'EUR') {
-                    return '€';
-                }
-                return currency;
-            });
+            mockCurrencyUtils.isValidCurrencyCode.mockImplementation((code: string) => ['USD', 'EUR', 'JPY', 'NPR'].includes(code));
 
             const mockReportActions = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -347,7 +340,7 @@ describe('CustomFormula', () => {
                 {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, expected: 'Reimbursed'},
             ];
 
-            testCases.forEach(({statusNum, expected}) => {
+            for (const {statusNum, expected} of testCases) {
                 const contextWithStatus: FormulaContext = {
                     ...mockContext,
                     report: {
@@ -357,7 +350,7 @@ describe('CustomFormula', () => {
                 };
                 const result = compute('{report:status}', contextWithStatus);
                 expect(result).toBe(expected);
-            });
+            }
         });
 
         test('should handle undefined status number', () => {
@@ -471,9 +464,109 @@ describe('CustomFormula', () => {
             reimbursableContext.report.nonReimbursableTotal = -2500; // -25.00
 
             const expectedReimbursable = calculateExpectedReimbursable(reimbursableContext.report.total, reimbursableContext.report.nonReimbursableTotal);
-            mockCurrencyUtils.getCurrencySymbol.mockReturnValue(undefined);
             const result = compute('{report:reimbursable}', reimbursableContext);
             expect(result).toBe(`${expectedReimbursable.toFixed(2)}`);
+        });
+
+        describe('Currency Formatting & Conversion', () => {
+            const currencyContext: FormulaContext = {
+                report: {
+                    reportID: '123',
+                    total: -10000,
+                    currency: 'USD',
+                } as Report,
+                policy: {} as Policy,
+            };
+
+            beforeEach(() => {
+                jest.clearAllMocks();
+            });
+
+            describe('Format options', () => {
+                test('nosymbol - should format without currency symbol', () => {
+                    const result = compute('{report:total:nosymbol}', currencyContext);
+                    expect(result).toBe('100.00');
+
+                    // Should not require backend computation
+                    const parts = parse('{report:total:nosymbol}');
+                    expect(requiresBackendComputation(parts, currencyContext)).toBe(false);
+                });
+
+                test('same currency - should format normally (case insensitive)', () => {
+                    currencyContext.report.currency = 'EUR';
+                    expect(compute('{report:total:EUR}', currencyContext)).toBe('€100.00');
+                    expect(compute('{report:total:eur}', currencyContext)).toBe('€100.00');
+
+                    // Should not require backend computation when currencies match
+                    const parts = parse('{report:total:EUR}');
+                    expect(requiresBackendComputation(parts, currencyContext)).toBe(false);
+                });
+
+                test('default (no format) - should use report currency', () => {
+                    currencyContext.report.currency = 'NPR';
+                    const result = compute('{report:total}', currencyContext);
+                    expect(result).toBe('NPR\u00A0100.00');
+
+                    // Should not require backend computation
+                    const parts = parse('{report:total}');
+                    expect(requiresBackendComputation(parts, currencyContext)).toBe(false);
+                });
+            });
+
+            describe('Currency conversion (requires backend)', () => {
+                test('different valid currencies - should return placeholder', () => {
+                    currencyContext.report.currency = 'USD';
+
+                    // Various currencies requiring conversion
+                    expect(compute('{report:total:EUR}', currencyContext)).toBe('{report:total:EUR}');
+                    expect(compute('{report:total:JPY}', currencyContext)).toBe('{report:total:JPY}');
+
+                    // Should require backend computation
+                    const parts = parse('{report:total:EUR}');
+                    expect(requiresBackendComputation(parts, currencyContext)).toBe(true);
+                });
+
+                test('case and whitespace handling - should normalize and detect conversion', () => {
+                    currencyContext.report.currency = 'USD';
+
+                    // Mixed case and whitespace
+                    expect(compute('{report:total:EuR}', currencyContext)).toBe('{report:total:EuR}');
+                    expect(compute('{report:total: EUR }', currencyContext)).toBe('{report:total: EUR }');
+                    expect(compute('{report:total:eur }', currencyContext)).toBe('{report:total:eur }');
+                });
+
+                test('in complex formulas - should detect conversion need', () => {
+                    currencyContext.report.currency = 'USD';
+
+                    // Multiple parts where one needs conversion
+                    const parts = parse('Report: {report:type} Total: {report:total:EUR}');
+                    expect(requiresBackendComputation(parts, currencyContext)).toBe(true);
+
+                    // Non-total fields don't need backend
+                    const simpleParts = parse('{report:type} {report:policyname}');
+                    expect(requiresBackendComputation(simpleParts, currencyContext)).toBe(false);
+                });
+            });
+
+            describe('Edge cases', () => {
+                test('undefined currency - should format without symbol', () => {
+                    currencyContext.report.currency = undefined;
+                    const result = compute('{report:total}', currencyContext);
+                    expect(result).toBe('100.00');
+                });
+
+                test('invalid source currency - should return placeholder', () => {
+                    currencyContext.report.currency = 'UNKNOWN';
+                    const result = compute('{report:total}', currencyContext);
+                    expect(result).toBe('{report:total}');
+                });
+
+                test('invalid format currency - should return placeholder', () => {
+                    currencyContext.report.currency = 'EUR';
+                    const result = compute('{report:total:UNKNOWN}', currencyContext);
+                    expect(result).toBe('{report:total:UNKNOWN}');
+                });
+            });
         });
     });
 

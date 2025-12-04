@@ -41,9 +41,9 @@ const triggerReconnectionCallbacks = throttle(
         }
         setTimeout(() => {
             Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
-            Object.values(reconnectionCallbacks).forEach((callback) => {
+            for (const callback of Object.values(reconnectionCallbacks)) {
                 callback();
-            });
+            }
         }, delay);
     },
     5000,
@@ -306,7 +306,9 @@ function onReconnect(callback: () => void): () => void {
  * Delete all queued reconnection callbacks
  */
 function clearReconnectionCallbacks() {
-    Object.keys(reconnectionCallbacks).forEach((key) => delete reconnectionCallbacks[key]);
+    for (const key of Object.keys(reconnectionCallbacks)) {
+        delete reconnectionCallbacks[key];
+    }
 }
 
 /**

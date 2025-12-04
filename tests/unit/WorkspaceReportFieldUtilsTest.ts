@@ -11,9 +11,9 @@ describe('WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue', () => {
             'Field value {field:customField}',
         ];
 
-        truthyCases.forEach((value) => {
+        for (const value of truthyCases) {
             expect(hasFormulaPartsInInitialValue(value)).toBe(true);
-        });
+        }
     });
 
     it('returns false for plain text and non-formula braces', () => {
@@ -28,9 +28,9 @@ describe('WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue', () => {
             '\\{report:id\\}',
         ];
 
-        falsyCases.forEach((value) => {
+        for (const value of falsyCases) {
             expect(hasFormulaPartsInInitialValue(value)).toBe(false);
-        });
+        }
     });
 
     it('handles multiple parts and mixed content correctly', () => {

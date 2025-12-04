@@ -4,9 +4,10 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getCurrencySymbol} from './CurrencyUtils';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
+import Log from './Log';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getHumanReadableStatus, getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
 import {getCreated, isPartialTransaction, isTransactionPendingDelete} from './TransactionUtils';
@@ -110,7 +111,7 @@ function parse(formula?: string): FormulaPart[] {
     // Process the formula by splitting on formula parts to preserve free text
     let lastIndex = 0;
 
-    formulaParts.forEach((part) => {
+    for (const part of formulaParts) {
         const partIndex = formula.indexOf(part, lastIndex);
 
         // Add any free text before this formula part
@@ -129,7 +130,7 @@ function parse(formula?: string): FormulaPart[] {
         // Add the formula part
         parts.push(parsePart(part));
         lastIndex = partIndex + part.length;
-    });
+    }
 
     // Add any remaining free text after the last formula part
     if (lastIndex < formula.length) {
@@ -193,6 +194,40 @@ function parsePart(definition: string): FormulaPart {
     part.functions = functions;
 
     return part;
+}
+
+/**
+ * Check if a formula requires backend computation (e.g., currency conversion with exchange rates)
+ * This is used by OptimisticReportNames to skip optimistic updates when online and backend is needed
+ */
+function requiresBackendComputation(parts: FormulaPart[], context?: FormulaContext): boolean {
+    if (!context) {
+        return false;
+    }
+
+    const {report} = context;
+
+    for (const part of parts) {
+        if (part.type === FORMULA_PART_TYPES.REPORT) {
+            const [field, ...additionalPath] = part.fieldPath;
+            // Reconstruct format string by joining additional path elements with ':'
+            // This handles format strings with colons like 'HH:mm:ss'
+            const format = additionalPath.length > 0 ? additionalPath.join(':') : undefined;
+            const fieldName = field?.toLowerCase();
+
+            if (fieldName === 'total' || fieldName === 'reimbursable') {
+                // Use formatAmount to check whether a currency conversion is needed.
+                // A null return means the backend must handle the conversion.
+                // We rely on report.total because zero values can be computed optimistically.
+                const result = formatAmount(report.total, report.currency, format);
+                if (result === null) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -350,10 +385,15 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             return formatDate(getOldestTransactionDate(report.reportID, context), format);
         case 'enddate':
             return formatDate(getNewestTransactionDate(report.reportID, context), format);
-        case 'total':
-            return formatAmount(report.total, getCurrencySymbol(report.currency ?? '') ?? report.currency);
-        case 'reimbursable':
-            return formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, getCurrencySymbol(report.currency ?? '') ?? report.currency);
+        case 'total': {
+            const formattedAmount = formatAmount(report.total, report.currency, format);
+            // Return empty string when conversion needed (formatAmount returns null for unavailable conversions)
+            return formattedAmount ?? '';
+        }
+        case 'reimbursable': {
+            const formattedAmount = formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, report.currency, format);
+            return formattedAmount ?? '';
+        }
         case 'currency':
             return report.currency ?? '';
         case 'policyname':
@@ -492,20 +532,46 @@ function getSubstring(value: string, args: string[]): string {
 
 /**
  * Format an amount value
+ * @returns The formatted amount string, or null if currency conversion is needed (unavailable on frontend)
  */
-function formatAmount(amount: number | undefined, currency: string | undefined): string {
+function formatAmount(amount: number | undefined, currency: string | undefined, displayCurrency?: string): string | null {
     if (amount === undefined) {
         return '';
     }
 
     const absoluteAmount = Math.abs(amount);
-    const formattedAmount = (absoluteAmount / 100).toFixed(2);
 
-    if (currency) {
-        return `${currency}${formattedAmount}`;
+    try {
+        const trimmedDisplayCurrency = displayCurrency?.trim().toUpperCase();
+        if (trimmedDisplayCurrency) {
+            if (trimmedDisplayCurrency === 'NOSYMBOL') {
+                return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
+            }
+
+            // Check if format is a valid currency code (e.g., USD, EUR, eur)
+            if (!isValidCurrencyCode(trimmedDisplayCurrency)) {
+                return '';
+            }
+
+            // If a currency conversion is needed (displayCurrency differs from the source),
+            // return null so the backend can compute it.
+            // We can only compute the value optimistically when the amount is 0.
+            if (absoluteAmount !== 0 && currency !== trimmedDisplayCurrency) {
+                return null;
+            }
+
+            return convertToDisplayString(absoluteAmount, trimmedDisplayCurrency);
+        }
+
+        if (currency && isValidCurrencyCode(currency)) {
+            return convertToDisplayString(absoluteAmount, currency);
+        }
+
+        return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
+    } catch (error) {
+        Log.hmmm('[Formula] formatAmount failed', {error, amount, currency, displayCurrency});
+        return '';
     }
-
-    return formattedAmount;
 }
 
 /**
@@ -523,16 +589,16 @@ function getOldestReportActionDate(reportID: string): string | undefined {
 
     let oldestDate: string | undefined;
 
-    Object.values(reportActions).forEach((action) => {
+    for (const action of Object.values(reportActions)) {
         if (!action?.created) {
-            return;
+            continue;
         }
 
         if (oldestDate && action.created > oldestDate) {
-            return;
+            continue;
         }
         oldestDate = action.created;
-    });
+    }
 
     return oldestDate;
 }
@@ -594,23 +660,23 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
 
     let oldestDate: string | undefined;
 
-    transactions.forEach((transaction) => {
+    for (const transaction of transactions) {
         const created = getCreated(transaction);
         if (!created) {
-            return;
+            continue;
         }
         // Skip transactions with pending deletion (offline deletes) to calculate dates properly.
         if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
+            continue;
         }
         if (oldestDate && created >= oldestDate) {
-            return;
+            continue;
         }
         if (isPartialTransaction(transaction)) {
-            return;
+            continue;
         }
         oldestDate = created;
-    });
+    }
 
     return oldestDate;
 }
@@ -763,27 +829,27 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
 
     let newestDate: string | undefined;
 
-    transactions.forEach((transaction) => {
+    for (const transaction of transactions) {
         const created = getCreated(transaction);
         if (!created) {
-            return;
+            continue;
         }
         // Skip transactions with pending deletion (offline deletes) to calculate dates properly.
         if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
+            continue;
         }
         if (newestDate && created <= newestDate) {
-            return;
+            continue;
         }
         if (isPartialTransaction(transaction)) {
-            return;
+            continue;
         }
         newestDate = created;
-    });
+    }
 
     return newestDate;
 }
 
-export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse, hasCircularReferences};
+export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse, hasCircularReferences, requiresBackendComputation};
 
 export type {FormulaContext, FormulaPart, FieldList};

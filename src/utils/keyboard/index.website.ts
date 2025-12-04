@@ -27,7 +27,9 @@ const handleResize = () => {
     // and smaller overlays like offline indicators on Android. Height differences > 152px reliably indicate keyboard visibility.
     isVisible = initialViewportHeight - viewportHeight > CONST.SMART_BANNER_HEIGHT;
 
-    keyboardVisibilityChangeListenersSet.forEach((cb) => cb(isVisible));
+    for (const cb of keyboardVisibilityChangeListenersSet) {
+        cb(isVisible);
+    }
 };
 
 window.visualViewport?.addEventListener('resize', handleResize);

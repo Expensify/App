@@ -506,8 +506,8 @@ class TranslationGenerator {
         let keyBase = node
             .getText()
             .trim()
-            .replace(/^['"`]/, '')
-            .replace(/['"`]$/, '');
+            .replaceAll(/^['"`]/g, '')
+            .replaceAll(/['"`]$/g, '');
 
         const context = this.getContextForNode(node);
         if (context) {
@@ -551,7 +551,9 @@ class TranslationGenerator {
                     if (this.verbose) {
                         console.debug('😵‍💫 Encountered complex template, recursively translating its spans first:', node.getText());
                     }
-                    node.templateSpans.forEach((span) => this.extractStringsToTranslate(span, stringsToTranslate, currentPath));
+                    for (const span of node.templateSpans) {
+                        this.extractStringsToTranslate(span, stringsToTranslate, currentPath);
+                    }
                     stringsToTranslate.set(translationKey, {text: this.templateExpressionToString(node), context});
                 }
             }

@@ -67,7 +67,7 @@ defaultFilter
 
 reportFieldDynamic
   = ("report-field"i / "reportfield"i) "-" rest:$((!([ \t\r\n\xA0,:=<>!]) .)*) {
-      const suffix = rest.replace(/^-+/, "");
+      const suffix = rest.replaceAll(/^-+/g, "");
       return "reportField-" + (suffix ? suffix : "");
     }
     

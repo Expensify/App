@@ -22,9 +22,9 @@ const startTrace: StartTrace = (customEventName) => {
     const attributes: FirebaseAttributes = utils.getAttributes(['accountId', 'personalDetailsLength', 'reportActionsLength', 'reportsLength', 'policiesLength']);
 
     perf.startTrace(customEventName).then((trace) => {
-        Object.entries(attributes).forEach(([name, value]) => {
+        for (const [name, value] of Object.entries(attributes)) {
             trace.putAttribute(name, value);
-        });
+        }
         traceMap[customEventName] = {
             trace,
             start,

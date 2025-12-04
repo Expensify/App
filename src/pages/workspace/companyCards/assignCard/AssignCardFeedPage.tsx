@@ -19,6 +19,7 @@ import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';
 import CardSelectionStep from './CardSelectionStep';
 import ConfirmationStep from './ConfirmationStep';
+import InviteNewMemberStep from './InviteNewMemberStep';
 import TransactionStartDateStep from './TransactionStartDateStep';
 
 type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD> & WithPolicyAndFullscreenLoadingProps;
@@ -72,6 +73,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 <AssigneeStep
                     policy={policy}
                     feed={feed}
+                    route={route}
                 />
             );
         case CONST.COMPANY_CARD.STEP.CARD:
@@ -93,11 +95,19 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                     backTo={shouldUseBackToParam ? backTo : undefined}
                 />
             );
+        case CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER:
+            return (
+                <InviteNewMemberStep
+                    route={route}
+                    feed={feed}
+                />
+            );
         default:
             return (
                 <AssigneeStep
                     policy={policy}
                     feed={feed}
+                    route={route}
                 />
             );
     }

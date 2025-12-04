@@ -3,10 +3,10 @@ import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
 import {getButtonRole} from '@components/Button/utils';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
-import {Document, GalleryNotFound} from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -20,6 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'GalleryNotFound'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -56,7 +57,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     // The backend always returns these thumbnails with a .jpg extension, even for .png images.
     // As a workaround, we remove the .1024.jpg or .320.jpg suffix only for .png images,
     // For other image formats, we retain the thumbnail as is to avoid unnecessary modifications.
-    const processedPreviewSource = typeof previewSource === 'string' ? previewSource.replace(/\.png\.(1024|320)\.jpg$/, '.png') : previewSource;
+    const processedPreviewSource = typeof previewSource === 'string' ? previewSource.replaceAll(/\.png\.(1024|320)\.jpg$/g, '.png') : previewSource;
     const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
 
     const alt = htmlAttribs.alt;
@@ -65,7 +66,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     const imagePreviewModalDisabled = htmlAttribs['data-expensify-preview-modal-disabled'] === 'true';
 
     const fileType = getFileType(attachmentSourceAttribute);
-    const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? Document : GalleryNotFound;
+    const fallbackIcon = fileType === CONST.ATTACHMENT_FILE_TYPE.FILE ? icons.Document : icons.GalleryNotFound;
     const theme = useTheme();
 
     let fileName = htmlAttribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src}`);
