@@ -2,6 +2,7 @@ import React, {useCallback, useState} from 'react';
 import Onyx from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,9 +14,10 @@ import type {Attendee} from '@src/types/onyx/IOU';
 
 function SearchEditMultipleAttendeesPage() {
     const {translate} = useLocalize();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {canBeMissing: true});
 
-    const [attendees, setAttendees] = useState<Attendee[]>(() => getAttendees(draftTransaction));
+    const [attendees, setAttendees] = useState<Attendee[]>(() => getAttendees(draftTransaction, currentUserPersonalDetails));
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {

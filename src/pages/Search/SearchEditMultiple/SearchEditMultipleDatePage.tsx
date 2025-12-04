@@ -28,7 +28,7 @@ function SearchEditMultipleDatePage() {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_DATE_FORM> = {};
             const dateValue = value.date;
             if (dateValue && !ValidationUtils.isValidDate(dateValue)) {
-                errors.date = translate('common.error.invalidDate');
+                errors.date = translate('common.error.dateInvalid');
             }
             return errors;
         },

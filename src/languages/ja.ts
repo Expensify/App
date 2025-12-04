@@ -6369,6 +6369,9 @@ ${
         savedSearchesMenuItemTitle: '保存済み',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
+            editMultiple: '複数を編集',
+            editMultipleTitle: '複数の経費を編集',
+            editMultipleDescription: '変更は選択したすべての経費に適用され、以前に設定された値は上書きされます。',
             approve: '承認する',
             pay: '支払う',
             delete: '削除',
