@@ -5295,7 +5295,6 @@ ${amount} pour ${merchant} - ${date}`,
                 cardType: 'Type de carte',
                 limit: 'Limite',
                 limitType: 'Limiter le type',
-                name: 'Nom',
                 disabledApprovalForSmartLimitError:
                     'Veuillez activer les approbations dans <strong>Workflows > Ajouter des approbations</strong> avant de configurer les limites intelligentes',
             },
