@@ -28,6 +28,7 @@ jest.mock('react-native-reanimated', () => ({
         easing: jest.fn().mockReturnThis(),
         withCallback: jest.fn().mockReturnThis(),
     })),
+    makeShareableCloneRecursive: jest.fn,
 }));
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({

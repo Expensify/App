@@ -55,9 +55,14 @@ function SearchFiltersCategoryPage() {
         const uniqueCategoryNames = new Set<string>();
 
         if (!selectedPoliciesCategories || selectedPoliciesCategories.length === 0) {
-            Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
+            const categories = Object.values(allPolicyCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
+            for (const category of categories) {
+                uniqueCategoryNames.add(category.name);
+            }
         } else {
-            selectedPoliciesCategories.forEach((category) => uniqueCategoryNames.add(category.name));
+            for (const category of selectedPoliciesCategories) {
+                uniqueCategoryNames.add(category.name);
+            }
         }
         items.push(
             ...Array.from(uniqueCategoryNames)

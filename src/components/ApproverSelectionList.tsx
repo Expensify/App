@@ -1,6 +1,7 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import type {SectionListData} from 'react-native';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +18,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import BlockingView from './BlockingViews/BlockingView';
 import FullPageNotFoundView from './BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import * as Illustrations from './Icon/Illustrations';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionListWithSections';
 import InviteMemberListItem from './SelectionListWithSections/InviteMemberListItem';
@@ -82,8 +82,9 @@ function ApproverSelectionList({
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const shouldShowTextInput = shouldShowTextInputProp ?? allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const lazyIllustrations = useMemoizedLazyIllustrations(['TurtleInShell']);
 
-    const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
+    const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
@@ -116,7 +117,6 @@ function ApproverSelectionList({
                 ? selectedMembers.filter((selectedOption) => selectedOption.login !== member.login)
                 : [...selectedMembers, {...member, isSelected: true}];
         }
-        setSelectedMembers(newSelectedApprovers);
         if (onSelectApprover) {
             onSelectApprover(newSelectedApprovers);
         }
@@ -127,7 +127,7 @@ function ApproverSelectionList({
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TurtleInShell}
+                icon={lazyIllustrations.TurtleInShell}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workflowsPage.emptyContent.title')}
@@ -137,7 +137,7 @@ function ApproverSelectionList({
                 contentFitImage="contain"
             />
         ),
-        [translate, listEmptyContentSubtitle, styles.textSupporting, styles.pb10],
+        [translate, listEmptyContentSubtitle, styles.textSupporting, styles.pb10, lazyIllustrations.TurtleInShell],
     );
 
     return (

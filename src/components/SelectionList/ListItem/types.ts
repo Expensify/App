@@ -233,6 +233,15 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
+
+    /** Whether to disable the hover style of the item */
+    shouldDisableHoverStyle?: boolean;
+
+    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
+    shouldStopMouseLeavePropagation?: boolean;
 };
 
 type ValidListItem =
@@ -263,6 +272,14 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldUseDefaultRightHandSideCheckmark?: boolean;
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
+
+    /** Whether to disable the hover style of the item */
+    shouldDisableHoverStyle?: boolean;
+
+    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
+    shouldStopMouseLeavePropagation?: boolean;
 };
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -281,6 +298,13 @@ type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem
     sectionIndex?: number;
 };
 
+type WorkspaceListItemType = {
+    text: string;
+    policyID?: string;
+    isPolicyAdmin?: boolean;
+    brickRoadIndicator?: BrickRoad;
+} & ListItem;
+
 type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
     TItem & {
         /** Value of the domain */
@@ -290,6 +314,8 @@ type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
         isRecommended?: boolean;
     }
 >;
+
+type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
 export type {
     BaseListItemProps,
@@ -305,4 +331,6 @@ export type {
     SpendCategorySelectorListItemProps,
     UserListItemProps,
     InviteMemberListItemProps,
+    WorkspaceListItemType,
+    UserSelectionListItemProps,
 };

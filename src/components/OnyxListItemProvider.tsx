@@ -18,6 +18,7 @@ const [PolicyTagsProvider, , usePolicyTags] = createOnyxContext(ONYXKEYS.COLLECT
 const [ReportTransactionsAndViolationsProvider, , useAllReportsTransactionsAndViolations] = createOnyxContext(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
 const [CardListProvider, , useCardList] = createOnyxContext(ONYXKEYS.CARD_LIST);
 const [WorkspaceCardListProvider, , useWorkspaceCardList] = createOnyxContext(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+const [OnboardingValuesProvider, , useOnboardingValues] = createOnyxContext(ONYXKEYS.NVP_ONBOARDING);
 
 type OnyxListItemProviderProps = {
     /** Rendered child component */
@@ -38,6 +39,7 @@ function OnyxListItemProvider(props: OnyxListItemProviderProps) {
                 ReportTransactionsAndViolationsProvider,
                 CardListProvider,
                 WorkspaceCardListProvider,
+                OnboardingValuesProvider,
             ]}
         >
             {props.children}
@@ -63,4 +65,5 @@ export {
     useAllReportsTransactionsAndViolations,
     useCardList,
     useWorkspaceCardList,
+    useOnboardingValues,
 };

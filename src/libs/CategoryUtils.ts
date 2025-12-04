@@ -103,6 +103,13 @@ function isCategoryMissing(category: string | undefined): boolean {
     return emptyCategories.includes(category ?? '');
 }
 
+function isCategoryDescriptionRequired(policyCategories: PolicyCategories | undefined, category: string | undefined, areRulesEnabled: boolean | undefined): boolean {
+    if (!policyCategories || !category || !areRulesEnabled) {
+        return false;
+    }
+    return !!policyCategories[category]?.areCommentsRequired;
+}
+
 function getDecodedCategoryName(categoryName: string) {
     return Str.htmlDecode(categoryName);
 }
@@ -116,5 +123,6 @@ export {
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
     isCategoryMissing,
+    isCategoryDescriptionRequired,
     getDecodedCategoryName,
 };

@@ -1,15 +1,13 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, PolicyTag, PolicyTagLists, PolicyTags, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
 import {hasEnabledOptions} from './OptionsListUtils';
 import type {Option} from './OptionsListUtils';
 import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isMultiLevelTags as isMultiLevelTagsPolicyUtils} from './PolicyUtils';
 import tokenizedSearch from './tokenizedSearch';
-import {getTagForDisplay} from './TransactionUtils';
+import {getTagArrayFromName, getTagForDisplay} from './TransactionUtils';
 
 type SelectedTagOption = {
     name: string;
@@ -58,6 +56,7 @@ function getTagListSections({
     selectedOptions = [],
     searchValue = '',
     maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+    translate,
 }: {
     tags: PolicyTags | Array<SelectedTagOption | PolicyTag>;
     localeCompare: LocaleContextProps['localeCompare'];
@@ -65,24 +64,25 @@ function getTagListSections({
     selectedOptions?: SelectedTagOption[];
     searchValue?: string;
     maxRecentReportsToShow?: number;
+    translate: LocalizedTranslate;
 }) {
     const tagSections = [];
     const sortedTags = sortTags(tags, localeCompare);
 
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.name));
     const enabledTags = sortedTags.filter((tag) => tag.enabled);
-    const enabledTagsNames = enabledTags.map((tag) => tag.name);
-    const enabledTagsWithoutSelectedOptions = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
+    const enabledTagsNames = new Set(enabledTags.map((tag) => tag.name));
+    const enabledTagsWithoutSelectedOptions = enabledTags.filter((tag) => !selectedOptionNames.has(tag.name));
     const selectedTagsWithDisabledState: SelectedTagOption[] = [];
     const numberOfTags = enabledTags.length;
 
-    selectedOptions.forEach((tag) => {
-        if (enabledTagsNames.includes(tag.name)) {
+    for (const tag of selectedOptions) {
+        if (enabledTagsNames.has(tag.name)) {
             selectedTagsWithDisabledState.push({...tag, enabled: true});
-            return;
+            continue;
         }
         selectedTagsWithDisabledState.push({...tag, enabled: false});
-    });
+    }
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTags === 0 && selectedOptions.length > 0) {
@@ -126,7 +126,7 @@ function getTagListSections({
     const filteredRecentlyUsedTags = recentlyUsedTags
         .filter((recentlyUsedTag) => {
             const tagObject = sortedTags.find((tag) => tag.name === recentlyUsedTag);
-            return !!tagObject?.enabled && !selectedOptionNames.includes(recentlyUsedTag) && tagObject?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            return !!tagObject?.enabled && !selectedOptionNames.has(recentlyUsedTag) && tagObject?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         })
         .map((tag) => ({name: tag, enabled: true}));
 
@@ -144,8 +144,7 @@ function getTagListSections({
 
         tagSections.push({
             // "Recent" section
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            title: translateLocal('common.recent'),
+            title: translate('common.recent'),
             shouldShow: true,
             data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
         });
@@ -153,8 +152,7 @@ function getTagListSections({
 
     tagSections.push({
         // "All" section when items amount more than the threshold
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        title: translateLocal('common.all'),
+        title: translate('common.all'),
         shouldShow: true,
         data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
     });
@@ -223,5 +221,30 @@ function getTagVisibility({
     });
 }
 
-export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility};
+/**
+ * Checks if any tag from policy tag lists exists in the transaction tag string.
+ *
+ * @param policyTagLists - The policy tag lists object containing tag list records
+ * @param transactionTag - The transaction tag string, potentially multi-level
+ * @returns true if at least one tag from policyTagLists is found in the transaction tag string
+ */
+function hasMatchingTag(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTag: string): boolean {
+    if (!policyTagLists || !transactionTag) {
+        return false;
+    }
+
+    const transactionTagArray = getTagArrayFromName(transactionTag);
+
+    return transactionTagArray.some((tag) => {
+        const tagName = tag.trim();
+        return Object.values(policyTagLists).some((tagList) => {
+            if (!tagList?.tags) {
+                return false;
+            }
+            return Object.values(tagList.tags).some((policyTag) => policyTag.name === tagName && policyTag.enabled);
+        });
+    });
+}
+
+export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag};
 export type {SelectedTagOption, TagVisibility};

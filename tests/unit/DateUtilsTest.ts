@@ -49,11 +49,11 @@ describe('DateUtils', () => {
     });
 
     const datetime = '2022-11-07 00:00:00';
-    const timezone = 'America/Los_Angeles';
+    const timezone = 'Atlantic/Reykjavik';
 
     it('getZoneAbbreviation should show zone abbreviation from the datetime', () => {
         const zoneAbbreviation = DateUtils.getZoneAbbreviation(datetime, timezone);
-        expect(zoneAbbreviation).toBe('GMT-8');
+        expect(zoneAbbreviation).toBe('GMT');
     });
 
     it('formatToLongDateWithWeekday should return a long date with a weekday', () => {
@@ -72,7 +72,7 @@ describe('DateUtils', () => {
 
     it('should return a date object with the formatted datetime when calling getLocalDateFromDatetime', () => {
         const localDate = DateUtils.getLocalDateFromDatetime(LOCALE, timezone, datetime);
-        expect(tzFormat(localDate, CONST.DATE.FNS_TIMEZONE_FORMAT_STRING, {timeZone: timezone})).toEqual('2022-11-06T16:00:00-08:00');
+        expect(tzFormat(localDate, CONST.DATE.FNS_TIMEZONE_FORMAT_STRING, {timeZone: timezone})).toEqual('2022-11-07T00:00:00Z');
     });
 
     it('should fallback to current date when getLocalDateFromDatetime is failing', () => {

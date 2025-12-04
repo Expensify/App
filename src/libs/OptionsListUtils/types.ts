@@ -1,6 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {OptionData} from '@libs/ReportUtils';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
 import type {Beta, PersonalDetails, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -152,6 +152,9 @@ type GetValidReportsConfig = {
     isPerDiemRequest?: boolean;
     showRBR?: boolean;
     shouldShowGBR?: boolean;
+    isRestrictedToPreferredPolicy?: boolean;
+    preferredPolicyID?: string;
+    shouldUnreadBeBold?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -171,6 +174,8 @@ type IsValidReportsConfig = Pick<
     | 'includeDomainEmail'
     | 'loginsToExclude'
     | 'excludeNonAdminWorkspaces'
+    | 'isRestrictedToPreferredPolicy'
+    | 'preferredPolicyID'
 >;
 
 type GetOptionsConfig = {

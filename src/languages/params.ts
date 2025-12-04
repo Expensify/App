@@ -5,6 +5,10 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
+type TagSelectionParams = {
+    policyTagListName?: string;
+};
+
 type AddressLineParams = {
     lineNumber: number;
 };
@@ -326,15 +330,15 @@ type ViolationsCustomRulesParams = {message: string};
 type ViolationsRterParams = {
     brokenBankConnection: boolean;
     isAdmin: boolean;
-    email?: string;
     isTransactionOlderThan7Days: boolean;
     member?: string;
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
+    companyCardPageURL?: string;
 };
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
 
-type ViolationsProhibitedExpenseParams = {prohibitedExpenseType: string};
+type ViolationsProhibitedExpenseParams = {prohibitedExpenseTypes: string | string[]};
 
 type ViolationsTaxOutOfPolicyParams = {taxName?: string} | undefined;
 
@@ -373,6 +377,8 @@ type UpdatedPolicyCategoryMaxExpenseAmountParams = {categoryName: string; oldAmo
 type UpdatedPolicyCategoryExpenseLimitTypeParams = {categoryName: string; oldValue?: string; newValue: string};
 
 type UpdatedPolicyCategoryMaxAmountNoReceiptParams = {categoryName: string; oldValue?: string; newValue: string};
+
+type UpdatedPolicyTaxParams = {taxName: string; oldValue?: string | boolean | number; newValue?: string | boolean | number; updatedField?: string};
 
 type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean; count?: string};
 
@@ -419,6 +425,8 @@ type UpdatedPolicyFrequencyParams = {oldFrequency: string; newFrequency: string}
 type UpdatedPolicyAuditRateParams = {oldAuditRate: number; newAuditRate: number};
 
 type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
+
+type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
 
 type ChangeTypeParams = {oldType: string; newType: string};
 
@@ -946,6 +954,13 @@ type MergeAccountIntoParams = {
     login: string;
 };
 
+type NextStepParams = {
+    actor: string;
+    actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
+    eta?: string;
+    etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>;
+};
+
 type ToggleImportTitleParams = {
     mappingTitle: string;
 };
@@ -1199,6 +1214,7 @@ export type {
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyTagParams,
+    UpdatedPolicyTaxParams,
     UpdatedPolicyTagNameParams,
     UpdatedPolicyTagFieldParams,
     UpdatedPolicyReportFieldDefaultValueParams,
@@ -1214,6 +1230,7 @@ export type {
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
+    UpdatedPolicyReimbursementEnabledParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdatePolicyCustomUnitParams,
     AddOrDeletePolicyCustomUnitRateParams,
@@ -1265,6 +1282,8 @@ export type {
     ErrorODIntegrationParams,
     DisconnectYourBankAccountParams,
     MergeAccountIntoParams,
+    NextStepParams,
     ReportFieldParams,
     FocusModeUpdateParams,
+    TagSelectionParams,
 };

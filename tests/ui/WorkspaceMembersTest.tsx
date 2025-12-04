@@ -20,6 +20,7 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.unmock('react-native-reanimated');
+jest.unmock('react-native-worklets');
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
@@ -64,6 +65,7 @@ describe('WorkspaceMembers', () => {
         role: CONST.POLICY.ROLE.ADMIN,
         owner: ownerEmail,
         ownerAccountID,
+        type: CONST.POLICY.TYPE.CORPORATE,
         employeeList: {
             [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN},
             [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},

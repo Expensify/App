@@ -1,20 +1,21 @@
 // this whole file is just for other platforms
 // iOS version has everything implemented
-import React, {forwardRef} from 'react';
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {ScrollView} from 'react-native';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
 
-const ActionSheetAwareScrollView = forwardRef<ScrollView, ActionSheetAwareScrollViewProps>((props, ref) => (
-    <ScrollView
-        ref={ref}
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-    >
-        {props.children}
-    </ScrollView>
-));
+function ActionSheetAwareScrollView(props: ActionSheetAwareScrollViewProps) {
+    return (
+        <ScrollView
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        >
+            {props.children}
+        </ScrollView>
+    );
+}
 
 export default ActionSheetAwareScrollView;
 

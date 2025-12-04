@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import Animated, {Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
@@ -49,10 +50,10 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
         'worklet';
 
         if (canShow) {
-            runOnJS(onAnimationFinish)();
+            scheduleOnRN(onAnimationFinish);
             return;
         }
-        height.set(withTiming(0, {duration: buttonDuration}, () => runOnJS(onAnimationFinish)()));
+        height.set(withTiming(0, {duration: buttonDuration}, () => scheduleOnRN(onAnimationFinish)));
     }, [buttonDuration, height, onAnimationFinish, canShow]);
 
     const buttonAnimation = useMemo(

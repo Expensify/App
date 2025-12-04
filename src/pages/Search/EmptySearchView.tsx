@@ -1,3 +1,4 @@
+import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {ReactNode} from 'react';
@@ -10,7 +11,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
-import {Alert, PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
@@ -22,8 +22,9 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
@@ -36,8 +37,7 @@ import {createNewReport} from '@libs/actions/Report';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@libs/onboardingSelectors';
-import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled, isPaidGroupPolicy, isPolicyMember} from '@libs/PolicyUtils';
+import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {generateReportID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils, reportSummariesOnyxSelector} from '@libs/ReportUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -81,17 +81,6 @@ type EmptySearchViewItem = {
     children?: React.ReactNode;
 };
 
-const tripsFeatures: FeatureListItem[] = [
-    {
-        icon: PiggyBank,
-        translationKey: 'travel.features.saveMoney',
-    },
-    {
-        icon: Alert,
-        translationKey: 'travel.features.alerts',
-    },
-];
-
 type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
 
 function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewProps) {
@@ -111,21 +100,7 @@ function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewP
         canBeMissing: true,
     });
 
-    const isUserPaidPolicyMemberSelector = useCallback(
-        (policies: OnyxCollection<Policy>) => {
-            return Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyMember(policy, currentUserPersonalDetails.login));
-        },
-        [currentUserPersonalDetails.login],
-    );
-
-    const [isUserPaidPolicyMember = false] = useOnyx(
-        ONYXKEYS.COLLECTION.POLICY,
-        {
-            canBeMissing: true,
-            selector: isUserPaidPolicyMemberSelector,
-        },
-        [isUserPaidPolicyMemberSelector],
-    );
+    const isUserPaidPolicyMember = useIsPaidPolicyAdmin();
 
     return (
         <SearchScopeProvider>
@@ -172,6 +147,21 @@ function EmptySearchViewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'Alert'] as const);
+
+    const tripsFeatures: FeatureListItem[] = useMemo(
+        () => [
+            {
+                icon: illustrations.PiggyBank,
+                translationKey: 'travel.features.saveMoney',
+            },
+            {
+                icon: illustrations.Alert,
+                translationKey: 'travel.features.alerts',
+            },
+        ],
+        [illustrations.PiggyBank, illustrations.Alert],
+    );
     const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
     const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
         setContextMenuAnchor(node);
@@ -180,7 +170,8 @@ function EmptySearchViewContent({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
 
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
@@ -192,11 +183,6 @@ function EmptySearchViewContent({
     });
 
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {selector: tryNewDotOnyxSelector, canBeMissing: true});
-    const {
-        taskReport: viewTourTaskReport,
-        taskParentReport: viewTourTaskParentReport,
-        isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
-    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
 
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
@@ -209,7 +195,6 @@ function EmptySearchViewContent({
 
     const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
 
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
     const [reportSummaries = getEmptyArray<ReportSummary>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: true,
         selector: reportSummariesOnyxSelector,
@@ -306,7 +291,7 @@ function EmptySearchViewContent({
                 </SearchScopeProvider>
             </>
         );
-    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate]);
+    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate, tripsFeatures]);
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useMemo(
@@ -339,16 +324,7 @@ function EmptySearchViewContent({
         }
 
         const startTestDriveAction = () => {
-            startTestDrive(
-                introSelected,
-                false,
-                tryNewDot?.hasBeenAddedToNudgeMigration ?? false,
-                isUserPaidPolicyMember,
-                viewTourTaskReport,
-                viewTourTaskParentReport,
-                isViewTourTaskParentReportArchived,
-                currentUserPersonalDetails.accountID,
-            );
+            startTestDrive(introSelected, tryNewDot?.hasBeenAddedToNudgeMigration ?? false, isUserPaidPolicyMember);
         };
 
         // If we didn't match a specific search hash, show a specific message based on the type of the data
@@ -509,13 +485,10 @@ function EmptySearchViewContent({
         introSelected,
         tryNewDot?.hasBeenAddedToNudgeMigration,
         isUserPaidPolicyMember,
-        viewTourTaskReport,
-        viewTourTaskParentReport,
-        isViewTourTaskParentReportArchived,
         hasResults,
         defaultViewItemHeader,
         hasSeenTour,
-        groupPoliciesWithChatEnabled,
+        groupPoliciesWithChatEnabled.length,
         tripViewChildren,
         hasTransactions,
         shouldRedirectToExpensifyClassic,

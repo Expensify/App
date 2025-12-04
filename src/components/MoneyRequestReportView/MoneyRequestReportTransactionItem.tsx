@@ -59,6 +59,9 @@ type MoneyRequestReportTransactionItemProps = ForwardedFSClassProps & {
 
     /** Callback function that scrolls to this transaction in case it is newly added */
     scrollToNewTransaction?: (offset: number) => void;
+
+    /** Callback function that navigates to the transaction thread */
+    onArrowRightPress?: (transactionID: string) => void;
 };
 
 const expenseHeaders = getExpenseHeaders();
@@ -78,6 +81,7 @@ function MoneyRequestReportTransactionItem({
     taxAmountColumnSize,
     scrollToNewTransaction,
     forwardedFSClass,
+    onArrowRightPress,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -154,6 +158,7 @@ function MoneyRequestReportTransactionItem({
                     onButtonPress={() => {
                         handleOnPress(transaction.transactionID);
                     }}
+                    onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                 />
             </PressableWithFeedback>
         </OfflineWithFeedback>

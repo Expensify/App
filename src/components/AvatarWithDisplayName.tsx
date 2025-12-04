@@ -180,6 +180,7 @@ function AvatarWithDisplayName({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : undefined}`,
@@ -196,7 +197,7 @@ function AvatarWithDisplayName({
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
-    const statusText = shouldDisplayStatus ? getReportStatusTranslation(report?.stateNum, report?.statusNum) : undefined;
+    const statusText = shouldDisplayStatus ? getReportStatusTranslation({stateNum: report?.stateNum, statusNum: report?.statusNum, translate}) : undefined;
     const reportStatusColorStyle = shouldDisplayStatus ? getReportStatusColorStyle(theme, report?.stateNum, report?.statusNum) : {};
 
     const actorAccountID = useRef<number | null>(null);
@@ -206,7 +207,7 @@ function AvatarWithDisplayName({
         }
         const parentReportAction = parentReportActions?.[report?.parentReportActionID];
         actorAccountID.current = parentReportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    }, [parentReportActions, report]);
+    }, [parentReportActions, report?.parentReportActionID]);
 
     const goToDetailsPage = useCallback(() => {
         navigateToDetailsPage(report, Navigation.getActiveRoute());
@@ -273,7 +274,7 @@ function AvatarWithDisplayName({
                         )}
                     </View>
 
-                    <View style={[styles.flex1, styles.flexColumn, styles.mnw0]}>
+                    <View style={[styles.flex1, styles.flexColumn]}>
                         {getCustomDisplayName(
                             shouldUseCustomSearchTitleName,
                             report,
@@ -289,6 +290,7 @@ function AvatarWithDisplayName({
                         {Object.keys(parentNavigationSubtitleData).length > 0 && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                reportID={report?.reportID}
                                 parentReportID={report?.parentReportID}
                                 parentReportActionID={report?.parentReportActionID}
                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}

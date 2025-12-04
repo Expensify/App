@@ -1,5 +1,5 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
-import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -99,6 +99,9 @@ type MagicCodeInputProps = {
 
     /** TestID for test */
     testID?: string;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<MagicCodeInputHandle>;
 };
 
 type MagicCodeInputHandle = {
@@ -132,25 +135,23 @@ const composeToString = (value: string[]): string => value.map((v) => v ?? CONST
 
 const getInputPlaceholderSlots = (length: number): number[] => Array.from(Array(length).keys());
 
-function MagicCodeInput(
-    {
-        value = '',
-        name = '',
-        autoFocus = true,
-        errorText = '',
-        shouldSubmitOnComplete = true,
-        onChangeText: onChangeTextProp = () => {},
-        onFocus: onFocusProps,
-        maxLength = CONST.MAGIC_CODE_LENGTH,
-        onFulfill = () => {},
-        isDisableKeyboard = false,
-        lastPressedDigit = '',
-        autoComplete,
-        hasError = false,
-        testID = '',
-    }: MagicCodeInputProps,
-    ref: ForwardedRef<MagicCodeInputHandle>,
-) {
+function MagicCodeInput({
+    value = '',
+    name = '',
+    autoFocus = true,
+    errorText = '',
+    shouldSubmitOnComplete = true,
+    onChangeText: onChangeTextProp = () => {},
+    onFocus: onFocusProps,
+    maxLength = CONST.MAGIC_CODE_LENGTH,
+    onFulfill = () => {},
+    isDisableKeyboard = false,
+    lastPressedDigit = '',
+    autoComplete,
+    hasError = false,
+    testID = '',
+    ref,
+}: MagicCodeInputProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const inputRef = useRef<BaseTextInputRef | null>(null);
@@ -164,11 +165,9 @@ function MagicCodeInput(
     const lastValue = useRef<string | number>(TEXT_INPUT_EMPTY_STATE);
     const valueRef = useRef(value);
 
-    useMagicCodePaste(inputRef, onChangeTextProp);
-
     useEffect(() => {
         lastValue.current = input.length;
-    }, [input]);
+    }, [input.length]);
 
     useEffect(() => {
         // Note: there are circumstances where the value state isn't updated yet
@@ -183,7 +182,7 @@ function MagicCodeInput(
             return;
         }
         setWasSubmitted(false);
-    }, [value, maxLength]);
+    }, [value.length, maxLength]);
 
     const blurMagicCodeInput = () => {
         inputRef.current?.blur();
@@ -326,6 +325,8 @@ function MagicCodeInput(
         onChangeTextProp(finalInput);
         valueRef.current = finalInput;
     };
+
+    useMagicCodePaste(inputRef, onChangeText);
 
     /**
      * Handles logic related to certain key presses.
@@ -540,5 +541,5 @@ function MagicCodeInput(
 
 MagicCodeInput.displayName = 'MagicCodeInput';
 
-export default forwardRef(MagicCodeInput);
+export default MagicCodeInput;
 export type {AutoCompleteVariant, MagicCodeInputHandle, MagicCodeInputProps};

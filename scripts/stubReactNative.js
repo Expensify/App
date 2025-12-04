@@ -4,7 +4,7 @@ const Module = require('module');
 const originalRequire = Module.prototype.require;
 
 // List of modules to stub (we don't need these in scripts)
-const MODULES_TO_STUB = [
+const MODULES_TO_STUB = new Set([
     'react-native',
     'react-native-config',
     'react-native-key-command',
@@ -20,7 +20,7 @@ const MODULES_TO_STUB = [
     'react-native-onyx',
     '@react-navigation/native',
     'expo-av',
-];
+]);
 
 // Stub implementations
 const STUBS = {
@@ -62,7 +62,7 @@ Module.prototype.require = function (...args) {
     const id = args[0];
 
     // Check if this is a module we want to stub
-    if (MODULES_TO_STUB.includes(id) || id.startsWith('react-native')) {
+    if (MODULES_TO_STUB.has(id) || id.startsWith('react-native')) {
         const stub = STUBS[id] || {};
         return {__esModule: true, default: stub, ...stub};
     }

@@ -1,4 +1,5 @@
-import React from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import type {TextInputOptions} from '@components/SelectionList/types';
@@ -7,11 +8,12 @@ import BaseTextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
 
 type TextInputProps = {
     /** Reference to the BaseTextInput component */
-    ref?: React.Ref<BaseTextInputRef> | null;
+    ref?: React.RefObject<BaseTextInputRef | null> | null;
 
     /** Configuration options for the text input including label, placeholder, validation, etc. */
     options?: TextInputOptions;
@@ -32,7 +34,7 @@ type TextInputProps = {
     onKeyPress?: (event: TextInputKeyPressEvent) => void;
 
     /** Function called when the text input focus changes */
-    onFocusChange?: (focused: boolean) => void;
+    onFocusChange: (focused: boolean) => void;
 
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
@@ -42,6 +44,9 @@ type TextInputProps = {
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
+
+    /** Function to focus text input component */
+    focusTextInput: () => void;
 };
 
 function TextInput({
@@ -56,48 +61,88 @@ function TextInput({
     showLoadingPlaceholder,
     isLoadingNewOptions,
     shouldShowTextInput,
+    focusTextInput,
 }: TextInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const headerMessage = options?.headerMessage;
+    const {label, value, onChangeText, errorText, headerMessage, hint, disableAutoFocus, placeholder, maxLength, inputMode, ref: optionsRef} = options ?? {};
     const resultsFound = headerMessage !== translate('common.noResultsFound');
     const noData = dataLength === 0 && !showLoadingPlaceholder;
-    const shouldShowHeaderMessage = !!headerMessage && !isLoadingNewOptions && resultsFound && !noData;
+    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || !noData);
+
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
+
+    const handleTextInputChange = useCallback(
+        (text: string) => {
+            onChangeText?.(text);
+        },
+        [onChangeText],
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!shouldShowTextInput || disableAutoFocus) {
+                return;
+            }
+
+            focusTimeoutRef.current = setTimeout(focusTextInput, CONST.ANIMATED_TRANSITION);
+
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+                focusTimeoutRef.current = null;
+            };
+        }, [shouldShowTextInput, disableAutoFocus, focusTextInput]),
+    );
+
+    const handleFocus = useCallback(() => {
+        onFocusChange(true);
+    }, [onFocusChange]);
+
+    const handleBlur = useCallback(() => {
+        onFocusChange(false);
+    }, [onFocusChange]);
 
     if (!shouldShowTextInput) {
         return null;
     }
+
     return (
-        <View style={[styles.ph5, styles.pb3]}>
-            <BaseTextInput
-                ref={ref}
-                onKeyPress={onKeyPress}
-                onFocus={() => onFocusChange?.(true)}
-                onBlur={() => onFocusChange?.(false)}
-                label={options?.label}
-                accessibilityLabel={accessibilityLabel}
-                hint={options?.hint}
-                role={CONST.ROLE.PRESENTATION}
-                value={options?.value}
-                placeholder={options?.placeholder}
-                maxLength={options?.maxLength}
-                onChangeText={options?.onChangeText}
-                inputMode={options?.inputMode}
-                selectTextOnFocus
-                spellCheck={false}
-                onSubmitEditing={onSubmit}
-                submitBehavior={dataLength ? 'blurAndSubmit' : 'submit'}
-                isLoading={isLoading}
-                testID="selection-list-text-input"
-                errorText={options?.errorText}
-                shouldInterceptSwipe={false}
-            />
+        <>
+            <View style={[styles.ph5, styles.pb3]}>
+                <BaseTextInput
+                    ref={mergedRef}
+                    onKeyPress={onKeyPress}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                    label={label}
+                    accessibilityLabel={accessibilityLabel}
+                    hint={hint}
+                    role={CONST.ROLE.PRESENTATION}
+                    value={value}
+                    placeholder={placeholder}
+                    maxLength={maxLength}
+                    onChangeText={handleTextInputChange}
+                    inputMode={inputMode}
+                    selectTextOnFocus
+                    spellCheck={false}
+                    onSubmitEditing={onSubmit}
+                    submitBehavior={dataLength ? 'blurAndSubmit' : 'submit'}
+                    isLoading={isLoading}
+                    testID="selection-list-text-input"
+                    errorText={errorText}
+                    shouldInterceptSwipe={false}
+                />
+            </View>
             {shouldShowHeaderMessage && (
                 <View style={[styles.ph5, styles.pb5]}>
                     <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
                 </View>
             )}
-        </View>
+        </>
     );
 }
 

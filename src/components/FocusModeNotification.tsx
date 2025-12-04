@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import ConfirmModal from './ConfirmModal';
-import {ThreeLeggedLaptopWoman} from './Icon/Illustrations';
 import RenderHTML from './RenderHTML';
 
 type FocusModeNotificationProps = {
@@ -16,6 +16,7 @@ type FocusModeNotificationProps = {
 function FocusModeNotification({onClose}: FocusModeNotificationProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['ThreeLeggedLaptopWoman'] as const);
     const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
     const priorityModePageUrl = `${environmentURL}/settings/preferences/priority-mode`;
@@ -34,7 +35,7 @@ function FocusModeNotification({onClose}: FocusModeNotificationProps) {
                 </View>
             }
             isVisible
-            image={ThreeLeggedLaptopWoman}
+            image={illustrations.ThreeLeggedLaptopWoman}
             imageStyles={StyleUtils.getBackgroundColorStyle(colors.pink800)}
             titleStyles={[styles.textHeadline, styles.mbn3]}
         />
