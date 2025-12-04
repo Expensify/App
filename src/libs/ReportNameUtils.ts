@@ -22,6 +22,7 @@ import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString} from './CurrencyUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
@@ -147,6 +148,7 @@ const buildReportNameFromParticipantNames = ({report, personalDetailsList: perso
                 accountID,
                 shouldUseShortForm: true,
                 personalDetailsData,
+                formatPhoneNumber,
             }),
         }))
         .filter((participant) => participant.name)
@@ -156,6 +158,7 @@ const buildReportNameFromParticipantNames = ({report, personalDetailsList: perso
                 return getDisplayNameForParticipant({
                     accountID,
                     personalDetailsData,
+                    formatPhoneNumber,
                 });
             }
             return formattedNames ? `${formattedNames}, ${name}` : name;
@@ -198,7 +201,8 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
         return participantAccountIDs
             .map(
                 (participantAccountID, index) =>
-                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport}) || formatPhoneNumber(participants?.[index]?.login ?? ''),
+                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport, formatPhoneNumber}) ||
+                    formatPhoneNumber(participants?.[index]?.login ?? ''),
             )
             .sort((first, second) => customCollator.compare(first ?? '', second ?? ''))
             .filter(Boolean)
@@ -207,7 +211,7 @@ function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit
             .concat(shouldAddEllipsis ? '...' : '');
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0)})});
+    return translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber})});
 }
 
 /**
@@ -218,7 +222,7 @@ function getPolicyExpenseChatName({report, personalDetailsList}: {report: OnyxEn
     const personalDetails = ownerAccountID ? personalDetailsList?.[ownerAccountID] : undefined;
     const login = personalDetails ? personalDetails.login : null;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true}) || login;
+    const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber}) || login;
 
     if (reportOwnerDisplayName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -304,7 +308,7 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
         const chatReport = getReportOrDraftReport(report?.chatReportID);
         payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy);
     } else {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID}) ?? '';
+        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber}) ?? '';
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', {
@@ -326,7 +330,7 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
     }
 
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID}) ?? '';
+        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber}) ?? '';
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
@@ -408,7 +412,7 @@ function computeReportNameBasedOnReportAction(parentReportAction?: ReportAction,
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return getUnreportedTransactionMessage();
+        return getUnreportedTransactionMessage(parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
@@ -590,7 +594,8 @@ function computeChatThreadReportName(report: Report, reportNameValuePairs: Repor
         return report?.reportName ?? '';
     }
     if (isCardIssuedAction(parentReportAction)) {
-        return getCardIssuedMessage({reportAction: parentReportAction});
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getCardIssuedMessage({reportAction: parentReportAction, translate: translateLocal});
     }
     return reportActionMessage;
 }
@@ -678,7 +683,7 @@ function computeReportName(
     }
 
     if (isSelfDM(report)) {
-        formattedName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldAddCurrentUserPostfix: true, personalDetailsData: personalDetailsList});
+        formattedName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldAddCurrentUserPostfix: true, personalDetailsData: personalDetailsList, formatPhoneNumber});
     }
 
     if (isConciergeChatReport(report)) {

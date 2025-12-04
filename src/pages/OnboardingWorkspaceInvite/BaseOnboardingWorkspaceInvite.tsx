@@ -117,7 +117,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             });
         }
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails.length, availableOptions.userToInvite, translate]);
+    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {

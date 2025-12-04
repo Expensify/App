@@ -356,6 +356,7 @@ function MoneyReportHeader({
 
     const {selectedTransactionIDs, removeTransaction, clearSelectedTransactions, currentSearchQueryJSON, currentSearchKey, currentSearchHash} = useSearchContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.similarSearchHash, true);
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON?.hash}`, {canBeMissing: true});
 
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
@@ -486,6 +487,7 @@ function MoneyReportHeader({
                         offset: 0,
                         queryJSON: currentSearchQueryJSON,
                         isOffline,
+                        isLoading: !!currentSearchResults?.search?.isLoading,
                     });
                 }
             }
@@ -505,6 +507,7 @@ function MoneyReportHeader({
             currentSearchQueryJSON,
             currentSearchKey,
             isOffline,
+            currentSearchResults?.search?.isLoading,
         ],
     );
 
@@ -689,7 +692,7 @@ function MoneyReportHeader({
         formattedAmount: getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, actionType),
     });
 
-    const {formattedAmount: totalAmount} = hasOnlyHeldExpenses ? getAmount(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW) : getAmount(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    const {formattedAmount: totalAmount} = getAmount(CONST.REPORT.PRIMARY_ACTIONS.PAY);
 
     const paymentButtonOptions = usePaymentOptions({
         currency: moneyRequestReport?.currency,
@@ -796,6 +799,7 @@ function MoneyReportHeader({
                             offset: 0,
                             queryJSON: currentSearchQueryJSON,
                             isOffline,
+                            isLoading: !!currentSearchResults?.search?.isLoading,
                         });
                     }
                 }}
@@ -1221,7 +1225,8 @@ function MoneyReportHeader({
                 if (result.action !== ModalActions.CONFIRM) {
                     return;
                 }
-                Navigation.goBack(route.params?.backTo);
+                const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
+                Navigation.goBack(backToRoute);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     deleteAppReport(moneyRequestReport?.reportID, email ?? '');
