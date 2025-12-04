@@ -16,7 +16,7 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 import {getBankAccountRoute, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
-import {getEligibleExistingBusinessBankAccounts, getOpenConnectedToPolicyBusinessBankAccounts, getValidBusinessBankAccountToConnectToPolicy} from '@libs/WorkflowUtils';
+import {getEligibleExistingBusinessBankAccounts, getOpenConnectedToPolicyBusinessBankAccounts} from '@libs/WorkflowUtils';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
 import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
@@ -232,15 +232,14 @@ function KYCWall({
 
             const isExpenseReport = isExpenseReportReportUtils(iouReport);
             const paymentCardList = fundList ?? {};
-            const canConnectBusinessBankAccount = getValidBusinessBankAccountToConnectToPolicy(bankAccountList, policy).length > 0;
             const hasOpenConnectedBusinessBankAccount = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, policy).length > 0;
             const hasValidPaymentMethod = hasExpensifyPaymentMethod(paymentCardList, bankAccountList, shouldIncludeDebitCard);
             const isFromWalletPage = source === CONST.KYC_WALL_SOURCE.ENABLE_WALLET || source === CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE;
 
             // Check if the user needs to add or select a payment method before continuing.
-            // - For expense reports: Proceeds if no accounts that are connected are open (valid and usable) and there are eligible business bank accounts that can be connected to the policy
+            // - For expense reports: Proceeds if no accounts that are connected are valid and usable (`OPEN`)
             // - For other expenses: Proceeds if the user lacks a valid personal bank account or debit card
-            if ((isExpenseReport && canConnectBusinessBankAccount && !hasOpenConnectedBusinessBankAccount) || (!isExpenseReport && bankAccountList !== null && !hasValidPaymentMethod)) {
+            if ((isExpenseReport && !hasOpenConnectedBusinessBankAccount) || (!isExpenseReport && bankAccountList !== null && !hasValidPaymentMethod)) {
                 Log.info('[KYC Wallet] User does not have valid payment method');
 
                 if (!shouldIncludeDebitCard || (isFromWalletPage && !hasValidPaymentMethod)) {

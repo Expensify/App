@@ -447,34 +447,6 @@ function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountLis
 }
 
 /**
- * Returns business bank accounts that are eligible to be connected to the given policy.
- *
- * An account is considered eligible if:
- * - It has the same currency as the policy (`bankCurrency === policy.outputCurrency`),
- * - Its state is not `LOCKED` or `DELETED`,
- * - Its type is `BUSINESS`,
- * - It is not already linked to the policy's ACH account.
- *
- * @param bankAccountList - list of bank accounts
- * @param policy - given policy
- */
-function getValidBusinessBankAccountToConnectToPolicy(bankAccountList: BankAccountList | undefined, policy: OnyxEntry<Policy> | undefined) {
-    if (!bankAccountList || policy === undefined) {
-        return [];
-    }
-
-    return Object.values(bankAccountList).filter((account) => {
-        return (
-            account.bankCurrency === policy?.outputCurrency &&
-            account.accountData?.state !== CONST.BANK_ACCOUNT.STATE.LOCKED &&
-            account.accountData?.state !== CONST.BANK_ACCOUNT.STATE.DELETED &&
-            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
-            account?.accountData?.bankAccountID !== policy?.achAccount?.bankAccountID
-        );
-    });
-}
-
-/**
  * Returns business bank accounts that are:
  * - It has the same currency as the policy (`bankCurrency === policy.outputCurrency`),
  * - Its state is `OPEN`
@@ -503,7 +475,6 @@ export {
     calculateApprovers,
     convertPolicyEmployeesToApprovalWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
-    getValidBusinessBankAccountToConnectToPolicy,
     getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     INITIAL_APPROVAL_WORKFLOW,
