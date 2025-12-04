@@ -15,7 +15,7 @@ import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-import {translateLocal} from './Localize';
+import {formatList, translateLocal} from './Localize';
 import {
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
@@ -1064,27 +1064,12 @@ function getWelcomeMessage(
     const isMultipleParticipant = participantPersonalDetailList.length > 1;
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare);
 
-    // Build HTML string with user-details tags and proper grammar
-    const usersHtml = displayNamesWithTooltips
-        .map(({displayName, accountID}, index) => {
-            const participantCount = displayNamesWithTooltips.length;
-            const userTag = `<user-details accountid="${accountID}">${displayName ?? ''}</user-details>`;
-
-            // Add grammar (commas, "and", period)
-            if (index === participantCount - 1) {
-                return userTag;
-            }
-            if (index === participantCount - 2) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return `${userTag}${participantCount > 2 ? ',' : ''} ${translateLocal('common.and')} `;
-            }
-            return `${userTag}, `;
-        })
-        .join('');
-
     if (!displayNamesWithTooltips.length) {
         return welcomeMessage;
     }
+
+    const userTags = displayNamesWithTooltips.map(({displayName, accountID}) => `<user-details accountid="${accountID}">${displayName ?? ''}</user-details>`);
+    const usersHtml = formatList(userTags);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     let messageHtml = translateLocal('reportActionsView.beginningOfChatHistory', {users: usersHtml});
