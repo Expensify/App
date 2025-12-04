@@ -17,6 +17,7 @@ import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { LocalizedTranslate } from '@components/LocaleContextProvider';
 
 type SubRateData = {
     pendingAction?: PendingAction;
@@ -173,7 +174,7 @@ function importPerDiemRates(policyID: string, customUnitID: string, rates: Rate[
     API.write(WRITE_COMMANDS.IMPORT_PER_DIEM_RATES, parameters, onyxData);
 }
 
-function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void) {
+function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_PER_DIEM_CSV, {
         policyID,
     });
@@ -185,7 +186,7 @@ function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void) {
         formData.append(key, String(value));
     }
 
-    fileDownload(getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: string, updatedErrorFields: ErrorFields) {

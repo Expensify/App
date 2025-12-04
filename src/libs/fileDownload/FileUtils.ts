@@ -5,7 +5,7 @@ import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import ImageSize from 'react-native-image-size';
 import type {TupleToUnion, ValueOf} from 'type-fest';
-import {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';

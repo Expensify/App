@@ -117,13 +117,14 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                     });
                                 },
                                 hasDependentTags,
+                                translate
                             );
                         } else {
                             downloadTagsCSV(policyID, () => {
                                 close(() => {
                                     setIsDownloadFailureModalVisible(true);
                                 });
-                            });
+                            }, translate);
                         }
                     }}
                 >
@@ -149,13 +150,14 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                 });
                             },
                             hasDependentTags,
+                            translate
                         );
                     } else {
                         downloadTagsCSV(policyID, () => {
                             close(() => {
                                 setIsDownloadFailureModalVisible(true);
                             });
-                        });
+                        }, translate);
                     }
                 }}
             >
