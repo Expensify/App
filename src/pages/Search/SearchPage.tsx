@@ -691,7 +691,6 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
                     const isDismissed = areAllTransactionsFromSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                     if (isDismissed) {
