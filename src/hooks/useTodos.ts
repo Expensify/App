@@ -4,28 +4,18 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ReportNameValuePairs, Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import CONST from '@src/CONST';
 import {canSubmitReport, canApproveIOU} from '@src/libs/actions/IOU';
-import {canPay, canExport} from '@src/libs/ReportPreviewActionUtils';
-
-/**
- * Creates a selector that filters an Onyx collection based on a predicate.
- * The predicate receives the item and the ID extracted from the collection key.
- */
-function createCollectionSelector<T>(collectionPrefix: string, predicate: (item: T, id: string) => boolean) {
-    return (collection: OnyxCollection<T>): Record<string, T> => {
-        return Object.entries(collection ?? {}).reduce<Record<string, T>>((acc, [key, item]) => {
-            const id = key.replace(collectionPrefix, '');
-            if (item && predicate(item, id)) {
-                acc[key] = item;
-            }
-            return acc;
-        }, {});
-    };
-}
 
 export default function useTodos() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: false,
-        selector: createCollectionSelector<Report>(ONYXKEYS.COLLECTION.REPORT, (report) => report.type === CONST.REPORT.TYPE.EXPENSE),
+        selector: (collection: OnyxCollection<Report>): Record<string, Report> => {
+            return Object.entries(collection ?? {}).reduce<Record<string, Report>>((acc, [key, item]) => {
+                if (item && item.reportID && item.type === CONST.REPORT.TYPE.EXPENSE) {
+                    acc[item.reportID] = item;
+                }
+                return acc;
+            }, {});
+        },
     });
     const reportIDs = new Set<string>();
     const policyIDs = new Set<string>();
@@ -43,17 +33,39 @@ export default function useTodos() {
 
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
         canBeMissing: false,
-        selector: createCollectionSelector<ReportNameValuePairs>(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, (_, id) => reportIDs.has(id)),
+        selector: (collection: OnyxCollection<ReportNameValuePairs>): Record<string, ReportNameValuePairs> => {
+            return Object.entries(collection ?? {}).reduce<Record<string, ReportNameValuePairs>>((acc, [key, item]) => {
+                const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, '');
+                if (item && reportIDs.has(reportID)) {
+                    acc[reportID] = item;
+                }
+                return acc;
+            }, {});
+        },
     });
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         canBeMissing: false,
-        selector: createCollectionSelector<Policy>(ONYXKEYS.COLLECTION.POLICY, (policy) => !!policy.id && policyIDs.has(policy.id)),
+        selector: (collection: OnyxCollection<Policy>): Record<string, Policy> => {
+            return Object.entries(collection ?? {}).reduce<Record<string, Policy>>((acc, [key, item]) => {
+                if (item && item.id && policyIDs.has(item.id)) {
+                    acc[item.id] = item;
+                }
+                return acc;
+            }, {});
+        },
     });
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: false,
-        selector: createCollectionSelector<Transaction>(ONYXKEYS.COLLECTION.TRANSACTION, (transaction) => !!transaction.reportID && reportIDs.has(transaction.reportID)),
+        selector: (collection: OnyxCollection<Transaction>): Record<string, Transaction> => {
+            return Object.entries(collection ?? {}).reduce<Record<string, Transaction>>((acc, [key, item]) => {
+                if (item && item.reportID && reportIDs.has(item.reportID)) {
+                    acc.hasOwnProperty(item.reportID) ? acc[item.reportID].push(item) : acc[item.reportID] = [item];
+                }
+                return acc;
+            }, {});
+        },
     });
 
     if (transactions) {
@@ -67,7 +79,15 @@ export default function useTodos() {
 
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         canBeMissing: false,
-        selector: createCollectionSelector<TransactionViolation[]>(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, (_, id) => transactionIDs.has(id)),
+        selector: (collection: OnyxCollection<TransactionViolation[]>): Record<string, TransactionViolation[]> => {
+            return Object.entries(collection ?? {}).reduce<Record<string, TransactionViolation[]>>((acc, [key, item]) => {
+                const id = key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '');
+                if (item && transactionIDs.has(id)) {
+                    acc[key] = item;
+                }
+                return acc;
+            }, {});
+        },
     });
 
     const reportsToSubmit: string[] = [];
@@ -92,14 +112,6 @@ export default function useTodos() {
         }
         if (canApproveReport(value, transactions, transactionViolations, '')) {
             reportsToApprove.push(key);
-            continue;
-        }
-        if (canPay(value, transactions, transactionViolations, '')) {
-            reportsToPay.push(key);
-            continue;
-        }
-        if (canExport(value, transactions, transactionViolations, '')) {
-            reportsToExport.push(key);
             continue;
         }
     });
