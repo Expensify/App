@@ -72,18 +72,6 @@ Onyx.connect({
     callback: (value) => (ownerBillingGraceEndPeriod = value),
 });
 
-let fundList: OnyxEntry<FundList>;
-Onyx.connect({
-    key: ONYXKEYS.FUND_LIST,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-
-        fundList = value;
-    },
-});
-
 let userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
@@ -171,19 +159,19 @@ function shouldShowPreTrialBillingBanner(introSelected: OnyxEntry<IntroSelected>
 /**
  * @returns The card to be used for subscription billing.
  */
-function getCardForSubscriptionBilling(): Fund | undefined {
+function getCardForSubscriptionBilling(fundList: OnyxEntry<FundList>): Fund | undefined {
     return Object.values(fundList ?? {}).find((card) => card?.accountData?.additionalData?.isBillingCard);
 }
 
 /**
  * @returns Whether the card is due to expire soon.
  */
-function hasCardExpiringSoon(billingStatus: OnyxEntry<BillingStatus>): boolean {
+function hasCardExpiringSoon(fundList: OnyxEntry<FundList>, billingStatus: OnyxEntry<BillingStatus>): boolean {
     if (!isEmptyObject(billingStatus)) {
         return false;
     }
 
-    const card = getCardForSubscriptionBilling();
+    const card = getCardForSubscriptionBilling(fundList);
 
     if (!card) {
         return false;
@@ -288,6 +276,7 @@ function getSubscriptionStatus(
     retryBillingSuccessful: boolean | undefined,
     billingDisputePending: number | undefined,
     retryBillingFailed: boolean | undefined,
+    fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
 ): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
@@ -358,7 +347,7 @@ function getSubscriptionStatus(
     }
 
     // 9. Card due to expire soon
-    if (hasCardExpiringSoon(billingStatus)) {
+    if (hasCardExpiringSoon(fundList, billingStatus)) {
         return {
             status: PAYMENT_STATUS.CARD_EXPIRE_SOON,
         };
@@ -391,9 +380,10 @@ function hasSubscriptionRedDotError(
     retryBillingSuccessful: boolean | undefined,
     billingDisputePending: number | undefined,
     retryBillingFailed: boolean | undefined,
+    fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
 ): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, billingStatus)?.isError ?? false;
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)?.isError ?? false;
 }
 
 /**
@@ -404,9 +394,10 @@ function hasSubscriptionGreenDotInfo(
     retryBillingSuccessful: boolean | undefined,
     billingDisputePending: number | undefined,
     retryBillingFailed: boolean | undefined,
+    fundList: OnyxEntry<FundList>,
     billingStatus: OnyxEntry<BillingStatus>,
 ): boolean {
-    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, billingStatus)?.isError === false;
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)?.isError === false;
 }
 
 /**

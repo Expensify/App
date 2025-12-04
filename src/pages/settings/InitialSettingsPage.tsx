@@ -142,7 +142,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
         }
         return undefined;
-    }, [bankAccountList, fundList, hasBrokenFeedConnection, hasPendingCardAction, userWallet?.errors, walletTerms?.errors]);
+    }, [allCards, bankAccountList, fundList, hasBrokenFeedConnection, hasPendingCardAction, userWallet?.errors, walletTerms?.errors]);
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -231,7 +231,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 icon: Expensicons.CreditCard,
                 screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
                 brickRoadIndicator:
-                    !!privateSubscription?.errors || hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, billingStatus)
+                    !!privateSubscription?.errors || hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)
                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                         : undefined,
                 badgeText: freeTrialText,
@@ -246,23 +246,24 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             items,
         };
     }, [
-        icons.Gear,
-        icons.Profile,
         loginList,
         privatePersonalDetails,
         vacationDelegate,
         session?.email,
+        icons.Profile,
+        icons.Gear,
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,
-        styles.badgeSuccess,
-        styles.accountSettingsSectionContainer,
         subscriptionPlan,
+        styles.accountSettingsSectionContainer,
+        styles.badgeSuccess,
         privateSubscription?.errors,
         stripeCustomerId,
         retryBillingSuccessful,
         billingDisputePending,
         retryBillingFailed,
+        fundList,
         freeTrialText,
     ]);
 
