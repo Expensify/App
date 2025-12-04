@@ -26,11 +26,11 @@ function WorkspacesListPageHeaderButton({isRestrictedPolicyCreation, hasWorkspac
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    if (isRestrictedPolicyCreation || !hasWorkspaces) {
+    if (isRestrictedPolicyCreation) {
         return null;
     }
 
-    if (hasDomains) {
+    if (hasDomains && hasWorkspaces) {
         return (
             <ButtonWithDropdownMenu
                 success={false}
@@ -57,15 +57,31 @@ function WorkspacesListPageHeaderButton({isRestrictedPolicyCreation, hasWorkspac
         );
     }
 
-    return (
-        <Button
-            accessibilityLabel={translate('workspace.new.newWorkspace')}
-            text={translate('workspace.new.newWorkspace')}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
-            icon={icons.Plus}
-            style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
-        />
-    );
+    if (hasWorkspaces) {
+        return (
+            <Button
+                accessibilityLabel={translate('workspace.new.newWorkspace')}
+                text={translate('workspace.new.newWorkspace')}
+                onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
+                icon={icons.Plus}
+                style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
+            />
+        );
+    }
+
+    if (hasDomains) {
+        return (
+            <Button
+                accessibilityLabel={translate('domain.addDomain.newDomain')}
+                text={translate('domain.addDomain.newDomain')}
+                onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN))}
+                icon={icons.Plus}
+                style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
+            />
+        );
+    }
+
+    return null;
 }
 
 WorkspacesListPageHeaderButton.displayName = 'WorkspacesListPageHeaderButton';
