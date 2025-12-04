@@ -30,6 +30,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -43,6 +44,7 @@ import {
     removeMembers,
     updateWorkspaceMembersRole,
 } from '@libs/actions/Policy/Member';
+import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
@@ -54,14 +56,15 @@ import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDe
 import {getMemberAccountIDsForWorkspace, isControlPolicy, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyEmployee, PolicyEmployeeList} from '@src/types/onyx';
+import type {PersonalDetails, PolicyEmployee, PolicyEmployeeList} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MemberRightIcon from './MemberRightIcon';
@@ -79,7 +82,12 @@ function invertObject(object: Record<string, string>): Record<string, string> {
     return Object.fromEntries(invertedEntries);
 }
 
-type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {accountID: number; login: string};
+type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
+    accountID: number;
+    login: string;
+    customField1?: string;
+    customField2?: string;
+};
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'User', 'UserEye', 'MakeAdmin', 'RemoveMembers', 'Table'] as const);
@@ -87,6 +95,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
@@ -132,6 +141,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const policyID = route.params.policyID;
     const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler'] as const);
 
+    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const {approvalWorkflows} = useMemo(
         () =>
             convertPolicyEmployeesToApprovalWorkflows({
@@ -155,8 +165,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
         const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
         return translate('workspace.people.removeMembersWarningPrompt', {
-            memberName: getDisplayNameForParticipant({accountID: approverAccountID}),
-            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID}),
+            memberName: getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
+            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, currentUserAccountID]);
     /**
@@ -203,11 +213,38 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
     const removeUsers = () => {
+        // Check if any of the members are approvers
+        const hasApprovers = selectedEmployees.some((email) => isApprover(policy, email));
+
+        if (hasApprovers) {
+            const ownerEmail = ownerDetails.login;
+            for (const login of selectedEmployees) {
+                const accountID = policyMemberEmailsToAccountIDs[login];
+                const removedApprover = personalDetails?.[accountID];
+                if (!removedApprover?.login || !ownerEmail) {
+                    continue;
+                }
+                const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
+                    approvalWorkflows,
+                    removedApprover,
+                    ownerDetails,
+                });
+                for (const workflow of updatedWorkflows) {
+                    if (workflow?.removeApprovalWorkflow) {
+                        const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+                        removeApprovalWorkflowAction(updatedWorkflow, policy);
+                    } else {
+                        updateApprovalWorkflow(workflow, [], [], policy);
+                    }
+                }
+            }
+        }
+
         setRemoveMembersConfirmModalVisible(false);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedEmployees([]);
-            removeMembers(policyID, selectedEmployees, policyMemberEmailsToAccountIDs, approvalWorkflows, personalDetails);
+            removeMembers(policyID, selectedEmployees, policyMemberEmailsToAccountIDs);
         });
     };
 
@@ -308,6 +345,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
+    const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const data: MemberOption[] = useMemo(() => {
         const result: MemberOption[] = [];
 
@@ -339,13 +377,41 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 keyForList: details.login ?? '',
                 accountID,
                 login: details.login ?? '',
+                customField1: policyEmployee.employeeUserID,
+                customField2: policyEmployee.employeePayrollID,
                 isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
                 isDisabled: isPendingDeleteOrError,
                 isInteractive: !details.isOptimisticPersonalDetail,
                 cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
                 text: formatPhoneNumber(getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
-                rightElement: (
+                rightElement: isControlPolicyWithWideLayout ? (
+                    <>
+                        <View style={[styles.flex1, styles.pr3]}>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.alignSelfStart]}
+                            >
+                                {policyEmployee.employeeUserID}
+                            </Text>
+                        </View>
+                        <View style={[styles.flex1, styles.pr3]}>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.alignSelfStart]}
+                            >
+                                {policyEmployee.employeePayrollID}
+                            </Text>
+                        </View>
+                        <View style={[StyleUtils.getMinimumWidth(variables.w72)]}>
+                            <MemberRightIcon
+                                role={policyEmployee.role}
+                                owner={policy?.owner}
+                                login={details.login}
+                            />
+                        </View>
+                    </>
+                ) : (
                     <MemberRightIcon
                         role={policyEmployee.role}
                         owner={policy?.owner}
@@ -368,19 +434,24 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
         return result;
     }, [
-        isOffline,
-        currentUserLogin,
-        formatPhoneNumber,
-        invitedPrimaryToSecondaryLogins,
-        personalDetails,
-        policy?.owner,
-        policy?.ownerAccountID,
         policy?.employeeList,
+        policy?.ownerAccountID,
+        policy?.owner,
         policyMemberEmailsToAccountIDs,
-        policyOwner,
+        isOffline,
+        personalDetails,
+        isPolicyAdmin,
         session?.accountID,
         styles.cursorDefault,
-        isPolicyAdmin,
+        styles.flex1,
+        styles.pr3,
+        styles.alignSelfStart,
+        isControlPolicyWithWideLayout,
+        StyleUtils,
+        formatPhoneNumber,
+        invitedPrimaryToSecondaryLogins,
+        policyOwner,
+        currentUserLogin,
     ]);
 
     const filterMember = useCallback((memberOption: MemberOption, searchQuery: string) => {
@@ -448,12 +519,38 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         if (filteredData.length === 0) {
             return null;
         }
+
+        // Show 4 columns only on wide screens for control policies
+        if (isControlPolicyWithWideLayout) {
+            const header = (
+                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3]}>
+                    <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
+                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.member')}</Text>
+                    </View>
+                    <View style={[styles.flex1, styles.pr3]}>
+                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.common.customField1')}</Text>
+                    </View>
+                    <View style={[styles.flex1, styles.pr3]}>
+                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.common.customField2')}</Text>
+                    </View>
+                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.pr2]}>
+                        <Text style={[styles.textMicroSupporting, styles.alignSelfEnd]}>{translate('common.role')}</Text>
+                    </View>
+                </View>
+            );
+
+            if (canSelectMultiple) {
+                return header;
+            }
+            return <View style={[styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
+        }
+
+        // Fall back to 2-column layout for narrow screens or non-control policies
         return (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.member')}
                 rightHeaderText={translate('common.role')}
-                shouldShowRightCaret
             />
         );
     };
@@ -721,9 +818,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         shouldShowListEmptyContent={false}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
-                        shouldShowRightCaret
                     />
                 </>
             )}

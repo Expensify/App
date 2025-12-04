@@ -1,18 +1,15 @@
 import {createPoliciesSelector} from '@selectors/Policy';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getPersonalDetailsForAccountID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
-import {createNewReport} from '@userActions/Report';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Session} from '@src/types/onyx';
+import type {Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
-import usePermissions from './usePermissions';
 
 const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -52,19 +49,11 @@ const useSearchTypeMenuSections = () => {
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
+    const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: () => void} | null>(null);
     const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
-    const [pendingReportCreation, setPendingReportCreation] = useState<{
-        policyID: string;
-        policyName?: string;
-        onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void;
-    } | null>(null);
 
     const handlePendingConfirm = useCallback(
         (shouldDismissEmptyReportsConfirmation: boolean) => {
@@ -85,50 +74,18 @@ const useSearchTypeMenuSections = () => {
         onCancel: handlePendingCancel,
     });
 
-    const createReportWithConfirmation = useCallback(
-        ({policyID, policyName, onSuccess, personalDetails}: {policyID: string; policyName?: string; onSuccess: (reportID: string) => void; personalDetails?: PersonalDetails}) => {
-            const accountID = currentUserLoginAndAccountID?.accountID;
-            if (!accountID) {
-                return;
-            }
-
-            const personalDetailsForCreation = personalDetails ?? (getPersonalDetailsForAccountID(accountID) as PersonalDetails | undefined);
-            if (!personalDetailsForCreation) {
-                return;
-            }
-
-            const executeCreate = (shouldDismissEmptyReportsConfirmation: boolean) => {
-                const {reportID: createdReportID} = createNewReport(
-                    personalDetailsForCreation,
-                    isASAPSubmitBetaEnabled,
-                    hasViolations,
-                    policyID,
-                    false,
-                    shouldDismissEmptyReportsConfirmation,
-                );
-                onSuccess(createdReportID);
-            };
-
-            if (hasEmptyReportsForPolicy(reports, policyID, accountID) && hasDismissedEmptyReportsConfirmation !== true) {
-                setPendingReportCreation({
-                    policyID,
-                    policyName,
-                    onConfirm: executeCreate,
-                });
-                return;
-            }
-
-            executeCreate(false);
-        },
-        [currentUserLoginAndAccountID?.accountID, hasDismissedEmptyReportsConfirmation, hasViolations, isASAPSubmitBetaEnabled, reports, setPendingReportCreation],
-    );
-
     useEffect(() => {
         if (!pendingReportCreation) {
             return;
         }
         openCreateReportConfirmation();
     }, [pendingReportCreation, openCreateReportConfirmation]);
+
+    const isSuggestedSearchDataReady = useMemo(() => {
+        const policiesList = Object.values(allPolicies ?? {}).filter((policy): policy is NonNullable<typeof policy> => policy !== null && policy !== undefined);
+
+        return policiesList.some((policy) => policy.employeeList !== undefined && policy.exporter !== undefined);
+    }, [allPolicies]);
 
     const typeMenuSections = useMemo(
         () =>
@@ -139,13 +96,11 @@ const useSearchTypeMenuSections = () => {
                 cardFeedsByPolicy,
                 defaultCardFeed ?? defaultExpensifyCard,
                 allPolicies,
-                activePolicyID,
                 savedSearches,
                 isOffline,
                 defaultExpensifyCard,
-                isASAPSubmitBetaEnabled,
-                hasViolations,
-                createReportWithConfirmation,
+                shouldRedirectToExpensifyClassic,
+                allTransactionDrafts,
             ),
         [
             currentUserLoginAndAccountID?.email,
@@ -154,17 +109,19 @@ const useSearchTypeMenuSections = () => {
             defaultCardFeed,
             defaultExpensifyCard,
             allPolicies,
-            activePolicyID,
             savedSearches,
             isOffline,
-            isASAPSubmitBetaEnabled,
-            hasViolations,
-            createReportWithConfirmation,
+            shouldRedirectToExpensifyClassic,
+            allTransactionDrafts,
             icons,
         ],
     );
 
-    return {typeMenuSections, CreateReportConfirmationModal};
+    return {
+        typeMenuSections,
+        CreateReportConfirmationModal,
+        shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
+    };
 };
 
 export default useSearchTypeMenuSections;
