@@ -2386,8 +2386,9 @@ const translations = {
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'Generating PDF...',
+        generatingPDF: 'Generating PDF',
         waitForPDF: 'Please wait while we generate the PDF',
+        successPDF: 'Your report PDF has been generated! If it didn\'t automatically download for you, use the button below.',
         errorPDF: 'There was an error when trying to generate your PDF',
     },
     reportDescriptionPage: {
