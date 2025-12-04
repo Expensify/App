@@ -314,7 +314,6 @@ type MoneyRequestInformation = {
     onyxData: OnyxData;
     billable?: boolean;
     reimbursable?: boolean;
-    paidReportActionID?: string;
 };
 
 type TrackExpenseInformation = {
@@ -1552,7 +1551,7 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
 }
 
 /** Builds the Onyx data for an expense */
-function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[], string | undefined] {
+function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const {
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
@@ -1766,24 +1765,23 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         failureData.push(...testDriveFailureData);
     }
 
-    const paidReportActionID = NumberUtils.rand64();
     if (isMoneyRequestToManagerMcTest) {
         const date = new Date();
         const isTestReceipt = transaction.receipt?.isTestReceipt ?? false;
         const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
-        const isCreateType = isScanRequest && !isTestReceipt;
 
         const optimisticIOUReportAction = buildOptimisticIOUReportAction({
-            type: isCreateType ? CONST.IOU.REPORT_ACTION_TYPE.CREATE : CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            type: isScanRequest && !isTestReceipt ? CONST.IOU.REPORT_ACTION_TYPE.CREATE : CONST.IOU.REPORT_ACTION_TYPE.PAY,
             amount: iou.report?.total ?? 0,
             currency: iou.report?.currency ?? '',
             comment: '',
             participants: [managerMcTestParticipant],
-            paymentType: isCreateType ? undefined : CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            paymentType: isScanRequest && !isTestReceipt ? undefined : CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             iouReportID: iou.report.reportID,
             transactionID: transaction.transactionID,
-            reportActionID: isCreateType ? iou.action.reportActionID : paidReportActionID,
+            reportActionID: iou.action.reportActionID,
         });
+
         optimisticData.push(
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
@@ -1796,9 +1794,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
                 value: {
                     ...iou.report,
-                    ...(!isScanRequest || isTestReceipt
-                        ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED}
-                        : undefined),
+                    ...(!isScanRequest || isTestReceipt ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} : undefined),
                     hasOutstandingChildRequest: false,
                     lastActorAccountID: deprecatedCurrentUserPersonalDetails?.accountID,
                 },
@@ -1807,7 +1803,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
                 value: {
-                    [isCreateType ? iou.action.reportActionID : paidReportActionID]: {
+                    [iou.action.reportActionID]: {
                         ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
                     },
                 },
@@ -2122,7 +2118,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
     // We don't need to compute violations unless we're on a paid policy
     if (!policy || !isPaidGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-        return [optimisticData, successData, failureData, isMoneyRequestToManagerMcTest ? paidReportActionID : undefined];
+        return [optimisticData, successData, failureData];
     }
 
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
@@ -2152,11 +2148,11 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    return [optimisticData, successData, failureData, isMoneyRequestToManagerMcTest ? paidReportActionID : undefined];
+    return [optimisticData, successData, failureData];
 }
 
 /** Builds the Onyx data for an invoice */
-function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[] | undefined] {
+function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const {chat, iou, transactionParams, policyParams, optimisticData: optimisticDataParams, companyName, companyWebsite, participant} = invoiceParams;
     const transaction = transactionParams.transaction;
 
@@ -3646,7 +3642,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const optimisticNextStep = buildNextStep(iouReport, predictedNextStatus);
 
     // STEP 5: Build Onyx Data
-    const [optimisticData, successData, failureData, paidReportActionID] = buildOnyxDataForMoneyRequest({
+    const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest({
         participant,
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
@@ -3697,7 +3693,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         reportPreviewAction,
         transactionThreadReportID: optimisticTransactionThread?.reportID,
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
-        paidReportActionID,
         onyxData: {
             optimisticData,
             successData,
@@ -5985,7 +5980,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         reportPreviewAction,
         transactionThreadReportID,
         createdReportActionIDForThread,
-        paidReportActionID,
         onyxData,
     } = getMoneyRequestInformation({
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
@@ -6114,7 +6108,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 isTestDrive,
                 guidedSetupData: guidedSetupData ? JSON.stringify(guidedSetupData) : undefined,
                 testDriveCommentReportActionID,
-                paidReportActionID,
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
@@ -8130,7 +8123,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             transactionThreadReportID,
             createdReportActionIDForThread,
             payerEmail,
-            paidReportActionID,
             onyxData: moneyRequestOnyxData,
         } = getMoneyRequestInformation({
             parentChatReport: currentChatReport,
@@ -8202,7 +8194,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             customUnitRateID,
             description: parsedComment,
             attendees: attendees ? JSON.stringify(attendees) : undefined,
-            paidReportActionID,
         };
     }
 
