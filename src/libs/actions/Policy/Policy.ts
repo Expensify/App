@@ -2417,10 +2417,12 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
     }
 
     if (getAdminPolicies().length === 0 && lastUsedPaymentMethod) {
-        const iouReports = Object.values(deprecatedAllReports ?? {}).filter((iouReport) => iouReport?.type === CONST.REPORT.TYPE.IOU);
-        for (const iouReport of iouReports) {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (lastUsedPaymentMethod?.iou?.name || !iouReport?.policyID) {
+        for (const report of Object.values(deprecatedAllReports ?? {})) {
+            if (report?.type !== CONST.REPORT.TYPE.IOU) {
+                continue;
+            }
+
+            if (lastUsedPaymentMethod?.iou?.name || !report?.policyID) {
                 continue;
             }
 
@@ -2428,11 +2430,8 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
                 value: {
-                    [iouReport?.policyID]: {
+                    [report?.policyID]: {
                         iou: {
-                            name: policyID,
-                        },
-                        lastUsed: {
                             name: policyID,
                         },
                     },
