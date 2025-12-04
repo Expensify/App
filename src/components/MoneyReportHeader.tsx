@@ -247,6 +247,7 @@ function MoneyReportHeader({
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
 
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -570,9 +571,10 @@ function MoneyReportHeader({
 
             const optimisticChatReportID = generateReportID();
             const optimisticIOUReportID = generateReportID();
+            const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
 
             for (const item of transactionList) {
-                duplicateTransactionAction(item, optimisticChatReportID, optimisticIOUReportID, isASAPSubmitBetaEnabled, defaultExpensePolicy ?? undefined, activePolicyExpenseChat);
+                duplicateTransactionAction(item, optimisticChatReportID, optimisticIOUReportID, isASAPSubmitBetaEnabled, defaultExpensePolicy ?? undefined, activePolicyCategories, activePolicyExpenseChat);
             }
         },
         [activePolicyExpenseChat, defaultExpensePolicy, isASAPSubmitBetaEnabled],

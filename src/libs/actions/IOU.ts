@@ -259,7 +259,6 @@ import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
-import {getPolicyCategoriesData} from './Policy/Category';
 import {buildAddMembersToWorkspaceOnyxData, buildUpdateWorkspaceMembersRoleOnyxData} from './Policy/Member';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
@@ -6923,6 +6922,7 @@ function duplicateExpenseTransaction(
     optimisticIOUReportID: string,
     isASAPSubmitBetaEnabled: boolean,
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>,
+    targetPolicyCategories?: OnyxCollection<PolicyCategories>,
     targetReport?: OnyxTypes.Report,
 ) {
     if (!transaction) {
@@ -6994,7 +6994,7 @@ function duplicateExpenseTransaction(
     params.policyParams = {
         policy: targetPolicy,
         policyTagList: getPolicyTagsData(targetPolicy.id) ?? {},
-        policyCategories: getPolicyCategoriesData(targetPolicy.id) ?? {},
+        policyCategories: targetPolicyCategories ?? {},
     };
 
     const transactionType = getTransactionType(transaction);

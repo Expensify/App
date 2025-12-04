@@ -37,20 +37,6 @@ import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyCategories = {};
-            return;
-        }
-
-        allPolicyCategories = value;
-    },
-});
-
 function appendSetupCategoriesOnboardingData(
     onyxData: OnyxData,
     setupCategoryTaskReport: OnyxEntry<Report>,
@@ -327,10 +313,6 @@ function getPolicyCategories(policyID: string) {
     };
 
     API.read(READ_COMMANDS.GET_POLICY_CATEGORIES, params);
-}
-
-function getPolicyCategoriesData(policyID: string) {
-    return allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
 }
 
 function setWorkspaceCategoryEnabled(
@@ -1497,7 +1479,6 @@ export {
     downloadCategoriesCSV,
     enablePolicyCategories,
     getPolicyCategories,
-    getPolicyCategoriesData,
     importPolicyCategories,
     openPolicyCategoriesPage,
     removePolicyCategoryReceiptsRequired,

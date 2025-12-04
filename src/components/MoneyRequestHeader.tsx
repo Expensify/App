@@ -110,6 +110,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(transactionReport?.policyID)}`, {canBeMissing: true});
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -171,8 +172,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             const optimisticChatReportID = generateReportID();
             const optimisticIOUReportID = generateReportID();
 
+            console.error('allPolicyCategories', allPolicyCategories);
+
+            const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
+
+            console.error('activePolicyCategories', activePolicyCategories);
+
             for (const item of transactions) {
-                duplicateTransactionAction(item, optimisticChatReportID, optimisticIOUReportID, isASAPSubmitBetaEnabled, defaultExpensePolicy ?? undefined, activePolicyExpenseChat);
+                duplicateTransactionAction(item, optimisticChatReportID, optimisticIOUReportID, isASAPSubmitBetaEnabled, defaultExpensePolicy ?? undefined, activePolicyCategories, activePolicyExpenseChat);
             }
         },
         [activePolicyExpenseChat, defaultExpensePolicy, isASAPSubmitBetaEnabled],
