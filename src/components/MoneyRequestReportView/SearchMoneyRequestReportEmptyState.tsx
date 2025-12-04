@@ -6,12 +6,12 @@ import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {canAddTransaction, isArchivedReport} from '@libs/ReportUtils';
+import {canAddTransaction, canRequestMoney, isArchivedReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import Navigation from '@navigation/Navigation';
 import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
-import {openUnreportedExpense} from '@userActions/Report';
+import {getCurrentUserAccountID, openUnreportedExpense} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -76,6 +76,10 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
         cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${report.reportID}`);
     }, [report.reportID]);
 
+    const currentUserAccountID = getCurrentUserAccountID();
+    const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
+    const otherParticipants = participantAccountIDs.filter((accountID) => accountID !== currentUserAccountID);
+
     return (
         <View style={styles.flex1}>
             <EmptyStateComponent
@@ -89,7 +93,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
                 headerContentStyles={styles.emptyStateFolderWebStyles}
                 minModalHeight={minModalHeight}
                 buttons={
-                    canAddTransactionToReport
+                    canAddTransactionToReport && canRequestMoney(report, policy, otherParticipants)
                         ? [{buttonText: translate('iou.addExpense'), buttonAction: () => {}, success: true, isDisabled: false, dropDownOptions: addExpenseDropdownOptions}]
                         : []
                 }
