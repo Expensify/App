@@ -35,7 +35,7 @@ describe('DisplayNames HTML Parsing', () => {
                 <DisplayNames
                     fullTitle={htmlTitle}
                     numberOfLines={1}
-                    shouldParseHtml={true}
+                    shouldParseHtml
                 />,
             );
 
