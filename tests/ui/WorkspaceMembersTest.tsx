@@ -321,7 +321,7 @@ describe('WorkspaceMembers', () => {
     });
 
     describe('Removing members who are approvers and non-approvers', () => {
-        it('should not call workflow actions when removing only non-approvers', async () => {
+        it('should call workflow actions once when removing multiple members including an approver', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
@@ -358,6 +358,7 @@ describe('WorkspaceMembers', () => {
 
             await waitForBatchedUpdatesWithAct();
 
+            // Verify workflow actions are only called once when an approver is removed
             expect(updateWorkflowDataOnApproverRemoval).toHaveBeenCalledTimes(1);
             expect(removeApprovalWorkflow).toHaveBeenCalledTimes(1);
 
