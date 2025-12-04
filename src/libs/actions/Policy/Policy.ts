@@ -2508,8 +2508,7 @@ function buildPolicyData(options: BuildPolicyDataOptions = {}) {
             optimisticData: optimisticCreateWorkspaceTaskData,
             successData: successCreateWorkspaceTaskData,
             failureData: failureCreateWorkspaceTaskData,
-        } = buildTaskData(createWorkspaceTaskReport, deprecatedIntroSelected.createWorkspace);
-
+        } = buildTaskData(createWorkspaceTaskReport, deprecatedIntroSelected.createWorkspace, false, undefined);
         optimisticData.push(...optimisticCreateWorkspaceTaskData);
         successData.push(...successCreateWorkspaceTaskData);
         failureData.push(...failureCreateWorkspaceTaskData);

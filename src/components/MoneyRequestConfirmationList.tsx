@@ -980,7 +980,6 @@ function MoneyRequestConfirmationList({
             isMerchantEmpty,
             shouldDisplayFieldError,
             transaction,
-            iouCategory.length,
             policyTags,
             isPerDiemRequest,
             reportID,
@@ -994,6 +993,8 @@ function MoneyRequestConfirmationList({
             isDelegateAccessRestricted,
             onSendMoney,
             showDelegateNoAccessModal,
+            iouCategory,
+            policyCategories,
         ],
     );
 

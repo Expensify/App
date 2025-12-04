@@ -64,7 +64,6 @@ import type {
 } from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import type Locale from '@src/types/onyx/Locale';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
@@ -4475,7 +4474,6 @@ function getTransactionDetails(
     allowNegativeAmount = false,
     disableOppositeConversion = false,
     currentUserDetails = currentUserPersonalDetails,
-    locale?: Locale,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
@@ -4486,7 +4484,7 @@ function getTransactionDetails(
     const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
 
     return {
-        created: getFormattedCreated(transaction, createdDateFormat, locale),
+        created: getFormattedCreated(transaction, createdDateFormat),
         amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
         attendees: getAttendees(transaction, currentUserDetails),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),
@@ -4505,7 +4503,7 @@ function getTransactionDetails(
         cardName: getCardName(transaction),
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
-        postedDate: getFormattedPostedDate(transaction, undefined, locale),
+        postedDate: getFormattedPostedDate(transaction),
         transactionID: transaction.transactionID,
         ...(isManualDistanceRequest && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
     };
@@ -10150,7 +10148,12 @@ function getOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
  */
 function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): ReportOfflinePendingActionAndErrors {
     // It shouldn't be possible for all of these actions to be pending (or to have errors) for the same report at the same time, so just take the first that exists
-    const reportPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat ?? report?.pendingFields?.reimbursed ?? report?.pendingFields?.createReport;
+    const reportPendingAction =
+        report?.pendingFields?.addWorkspaceRoom ??
+        report?.pendingFields?.createChat ??
+        report?.pendingFields?.reimbursed ??
+        report?.pendingFields?.createReport ??
+        report?.pendingFields?.reportName;
     const reportErrors = getCreationReportErrors(report);
     return {reportPendingAction, reportErrors};
 }
