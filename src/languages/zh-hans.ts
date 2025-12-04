@@ -2243,9 +2243,10 @@ ${merchant}的${amount} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `在${policyName}中`,
-        generatingPDF: '生成PDF...',
+        generatingPDF: '正在生成 PDF',
         waitForPDF: '请稍候，我们正在生成 PDF。',
         errorPDF: '生成PDF时出现错误。',
+        successPDF: '您的 PDF 已生成！如果没有自动下载，请使用下方按钮。',
     },
     reportDescriptionPage: {
         roomDescription: '房间描述',
