@@ -2270,9 +2270,10 @@ ${date} - ${merchant}に${amount}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `${policyName} 内`,
-        generatingPDF: 'PDFを生成中...',
+        generatingPDF: 'PDFを生成中',
         waitForPDF: 'PDFを生成するまでお待ちください',
         errorPDF: 'PDFの生成中にエラーが発生しました。',
+        successPDF: 'PDFの生成が完了しました！自動的にダウンロードされない場合は、下のボタンを使用してください。',
     },
     reportDescriptionPage: {
         roomDescription: '部屋の説明',
@@ -2523,7 +2524,7 @@ ${date} - ${merchant}に${amount}`,
                     `${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'と'}[${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : ''} ${integrationName}](${workspaceAccountingLink})と接続する`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : 'まで'} の ${integrationName} を接続して、経費の自動分類と同期で月末締めをスムーズに。
+${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : 'まで'} の ${integrationName} を接続して、経費の自動分類と同期で月末締めをスムーズに。
 
                         1. *Workspaces* をクリックします。
                         2. ワークスペースを選択します。
@@ -2531,13 +2532,13 @@ ${date} - ${merchant}に${amount}`,
                         4. ${integrationName} を見つけます。
                         5. *Connect* をクリックします。
 
-                        ${
-                            integrationName && CONST.connectionsVideoPaths[integrationName]
-                                ? `[会計に移動](${workspaceAccountingLink}).
+${
+    integrationName && CONST.connectionsVideoPaths[integrationName]
+        ? `[会計に移動](${workspaceAccountingLink}).
 
                         ![${integrationName} に接続](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                                : `[会計に移動](${workspaceAccountingLink}).`
-                        }`),
+        : `[会計に移動](${workspaceAccountingLink}).`
+}`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `[法人カード](${corporateCardLink})を連携する`,

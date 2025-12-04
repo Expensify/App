@@ -2274,9 +2274,10 @@ ${amount} dla ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `w ${policyName}`,
-        generatingPDF: 'Generowanie PDF...',
+        generatingPDF: 'Generowanie pliku PDF',
         waitForPDF: 'Proszę czekać, generujemy PDF',
         errorPDF: 'Wystąpił błąd podczas próby wygenerowania Twojego PDF-a.',
+        successPDF: 'Twój plik PDF został wygenerowany! Jeśli nie pobrał się automatycznie, użyj przycisku poniżej.',
     },
     reportDescriptionPage: {
         roomDescription: 'Opis pokoju',
@@ -2536,13 +2537,13 @@ ${amount} dla ${merchant} - ${date}`,
                         4. Znajdź ${integrationName}.
                         5. Kliknij *Connect*.
 
-                        ${
-                            integrationName && CONST.connectionsVideoPaths[integrationName]
-                                ? `[Przejdź do księgowości](${workspaceAccountingLink}).
+${
+    integrationName && CONST.connectionsVideoPaths[integrationName]
+        ? `[Przejdź do księgowości](${workspaceAccountingLink}).
 
                         ![Połącz z ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                                : `[Przejdź do księgowości](${workspaceAccountingLink}).`
-                        }`),
+        : `[Przejdź do księgowości](${workspaceAccountingLink}).`
+}`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Połącz [swoje karty firmowe](${corporateCardLink})`,
@@ -5253,7 +5254,7 @@ ${amount} dla ${merchant} - ${date}`,
                 cardType: 'Typ karty',
                 limit: 'Limit',
                 limitType: 'Typ limitu',
-                name: 'Imię',
+                name: 'Nazwa',
                 disabledApprovalForSmartLimitError: 'Proszę włączyć zatwierdzenia w <strong>Przepływy pracy > Dodaj zatwierdzenia</strong> przed skonfigurowaniem inteligentnych limitów',
             },
             deactivateCardModal: {
