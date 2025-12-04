@@ -5177,8 +5177,8 @@ ${
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
             subtitle: 'Beheer bonnetjes, vergoed uitgaven, regel reizen, verstuur facturen en meer.',
-            restrictedPolicySubtitle:
-                'Uw bedrijf beperkt het aanmaken van werkruimten door niet-beheerders. U kunt toegang aanvragen tot een bestaande werkruimte of contact opnemen met een interne beheerder voor meer informatie.',
+            restrictedPolicyTitle: 'Geen werkruimtes gevonden',
+            restrictedPolicySubtitle: 'Het aanmaken van werkruimtes is alleen voorbehouden aan beheerders. Vraag een beheerder om je uit te nodigen voor een bestaande werkruimte.',
             createAWorkspaceCTA: 'Aan de slag',
             features: {
                 trackAndCollect: 'Volg en verzamel bonnetjes',

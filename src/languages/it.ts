@@ -5186,8 +5186,8 @@ ${
         emptyWorkspace: {
             title: 'Non hai spazi di lavoro',
             subtitle: 'Traccia ricevute, rimborsa spese, gestisci viaggi, invia fatture e altro ancora.',
-            restrictedPolicySubtitle:
-                'La tua azienda limita la creazione di spazi di lavoro da parte di utenti non amministratori. Puoi richiedere l’accesso a uno spazio di lavoro esistente o contattare un amministratore interno per maggiori informazioni.',
+            restrictedPolicyTitle: 'Nessun workspace trovato',
+            restrictedPolicySubtitle: 'La creazione dei workspace è riservata solo agli amministratori. Chiedi a un amministratore di invitarti a un workspace esistente.',
             createAWorkspaceCTA: 'Inizia',
             features: {
                 trackAndCollect: 'Traccia e raccogli ricevute',

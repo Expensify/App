@@ -5170,8 +5170,8 @@ ${
         emptyWorkspace: {
             title: 'Você não tem espaços de trabalho',
             subtitle: 'Acompanhe recibos, reembolse despesas, gerencie viagens, envie faturas e muito mais.',
-            restrictedPolicySubtitle:
-                'Sua empresa restringe a criação de workspaces por usuários não administradores. Você pode solicitar acesso a um workspace existente ou entrar em contato com um administrador interno para mais informações.',
+            restrictedPolicyTitle: 'Nenhum workspace encontrado',
+            restrictedPolicySubtitle: 'A criação de workspaces é limitada apenas aos administradores. Peça para um administrador convidar você para um workspace existente.',
             createAWorkspaceCTA: 'Começar',
             features: {
                 trackAndCollect: 'Acompanhe e colete recibos',

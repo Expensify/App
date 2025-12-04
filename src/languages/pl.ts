@@ -5167,8 +5167,9 @@ ${
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',
             subtitle: 'Śledź paragony, zwracaj wydatki, zarządzaj podróżami, wysyłaj faktury i nie tylko.',
+            restrictedPolicyTitle: 'Nie znaleziono żadnych przestrzeni roboczych',
             restrictedPolicySubtitle:
-                'Twoja firma ogranicza tworzenie przestrzeni roboczych przez użytkowników niebędących administratorami. Możesz poprosić o dostęp do istniejącej przestrzeni roboczej lub skontaktować się z wewnętrznym administratorem, aby uzyskać więcej informacji.',
+                'Tworzenie przestrzeni roboczych jest ograniczone wyłącznie do administratorów. Poproś administratora o zaproszenie cię do istniejącej przestrzeni roboczej.',
             createAWorkspaceCTA: 'Rozpocznij',
             features: {
                 trackAndCollect: 'Śledź i zbieraj paragony',

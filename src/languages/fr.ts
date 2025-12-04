@@ -5209,8 +5209,9 @@ ${
         emptyWorkspace: {
             title: "Vous n'avez aucun espace de travail",
             subtitle: 'Suivez les reçus, remboursez les dépenses, gérez les déplacements, envoyez des factures, et plus encore.',
+            restrictedPolicyTitle: 'Aucun espace de travail trouvé',
             restrictedPolicySubtitle:
-                'Votre entreprise limite la création d’espaces de travail par des utilisateurs non administrateurs. Vous pouvez demander l’accès à un espace de travail existant ou contacter un administrateur interne pour plus d’informations.',
+                'La création d’espaces de travail est réservée aux administrateurs. Merci de demander à un administrateur de vous inviter dans un espace de travail existant.',
             createAWorkspaceCTA: 'Commencer',
             features: {
                 trackAndCollect: 'Suivre et collecter les reçus',
