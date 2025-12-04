@@ -366,7 +366,7 @@ describe('MergeTransactionUtils', () => {
                 created: '2025-01-02T00:00:00.000Z',
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             // Only the different values are in the conflict fields
             expect(result.conflictFields).toEqual(['amount', 'created', 'description', 'reimbursable', 'reportID']);
@@ -393,7 +393,7 @@ describe('MergeTransactionUtils', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -415,7 +415,7 @@ describe('MergeTransactionUtils', () => {
                 managedCard: false,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -442,7 +442,7 @@ describe('MergeTransactionUtils', () => {
                 },
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -468,7 +468,7 @@ describe('MergeTransactionUtils', () => {
                 currency: CONST.CURRENCY.AUD,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -493,7 +493,7 @@ describe('MergeTransactionUtils', () => {
                     {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
                 ];
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
                 expect(result.conflictFields).not.toContain('attendees');
                 expect(result.mergeableData).toMatchObject({
@@ -518,7 +518,7 @@ describe('MergeTransactionUtils', () => {
                     {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
                 ];
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
                 expect(result.conflictFields).not.toContain('attendees');
                 expect(result.mergeableData).toMatchObject({
@@ -543,7 +543,7 @@ describe('MergeTransactionUtils', () => {
                     {email: 'test3@example.com', displayName: 'Test User 3', avatarUrl: '', login: 'test3'},
                 ];
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
                 expect(result.conflictFields).toContain('attendees');
             });
@@ -561,7 +561,7 @@ describe('MergeTransactionUtils', () => {
                 reportID: sharedReportID,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('reportID');
             expect(result.mergeableData).toMatchObject({
