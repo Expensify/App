@@ -5,10 +5,11 @@ import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/A
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,9 +38,9 @@ function ReceiptView({route}: ReceiptViewProps) {
     const {setAttachmentError} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const styles = useThemeStyles();
+    const {showConfirmModal} = useConfirmModal();
     const [currentReceipt, setCurrentReceipt] = useState<ReceiptWithTransactionIDAndSource | null>();
     const [page, setPage] = useState<number>(-1);
-    const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
 
     const [receipts = getEmptyArray<ReceiptWithTransactionIDAndSource>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: transactionDraftReceiptsViewSelector,
@@ -59,36 +60,35 @@ function ReceiptView({route}: ReceiptViewProps) {
         setPage(activeReceiptIndex);
     }, [receipts, route?.params?.transactionID]);
 
-    const handleDeleteReceipt = useCallback(() => {
-        if (!currentReceipt) {
-            return;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            if (currentReceipt.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-                if (receipts.length === 1) {
-                    removeTransactionReceipt(currentReceipt.transactionID);
-                    return;
-                }
-
-                replaceDefaultDraftTransaction(secondTransactionID ? secondTransaction : undefined);
+    const deleteReceipt = useCallback(() => {
+        showConfirmModal({
+            title: translate('receipt.deleteReceipt'),
+            prompt: translate('receipt.deleteConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM || !currentReceipt) {
                 return;
             }
-            removeDraftTransaction(currentReceipt.transactionID);
+
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                if (currentReceipt.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+                    if (receipts.length === 1) {
+                        removeTransactionReceipt(currentReceipt.transactionID);
+                        return;
+                    }
+
+                    replaceDefaultDraftTransaction(secondTransactionID ? secondTransaction : undefined);
+                    return;
+                }
+                removeDraftTransaction(currentReceipt.transactionID);
+            });
+
+            Navigation.goBack();
         });
-
-        Navigation.goBack();
-    }, [currentReceipt, receipts.length, secondTransaction, secondTransactionID]);
-
-    const handleCloseConfirmModal = () => {
-        setIsDeleteReceiptConfirmModalVisible(false);
-    };
-
-    const deleteReceipt = useCallback(() => {
-        handleCloseConfirmModal();
-        handleDeleteReceipt();
-    }, [handleDeleteReceipt]);
+    }, [currentReceipt, receipts.length, secondTransaction, secondTransactionID, showConfirmModal, translate]);
 
     const handleGoBack = useCallback(() => {
         Navigation.goBack(route.params.backTo);
@@ -103,12 +103,11 @@ function ReceiptView({route}: ReceiptViewProps) {
                 title={translate('common.receipt')}
                 shouldDisplayHelpButton={false}
                 onBackButtonPress={handleGoBack}
-                onCloseButtonPress={handleCloseConfirmModal}
             >
                 <Button
                     shouldShowRightIcon
                     iconRight={Expensicons.Trashcan}
-                    onPress={() => setIsDeleteReceiptConfirmModalVisible(true)}
+                    onPress={deleteReceipt}
                     innerStyles={styles.bgTransparent}
                     large
                 />
@@ -125,17 +124,6 @@ function ReceiptView({route}: ReceiptViewProps) {
                 setShouldShowArrows={setShouldShowArrows}
                 onAttachmentError={setAttachmentError}
                 shouldShowArrows={shouldShowArrows}
-            />
-            <ConfirmModal
-                title={translate('receipt.deleteReceipt')}
-                isVisible={isDeleteReceiptConfirmModalVisible}
-                onConfirm={deleteReceipt}
-                onCancel={handleCloseConfirmModal}
-                prompt={translate('receipt.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                onBackdropPress={handleCloseConfirmModal}
-                danger
             />
         </ScreenWrapper>
     );

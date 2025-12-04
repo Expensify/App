@@ -11,14 +11,15 @@ import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
-import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
@@ -129,6 +130,7 @@ function MoneyRequestReportActionsList({
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
+    const {showConfirmModal} = useConfirmModal();
     const reportScrollManager = useReportScrollManager();
     const lastMessageTime = useRef<string | null>(null);
     const didLayout = useRef(false);
@@ -177,14 +179,22 @@ function MoneyRequestReportActionsList({
     const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[]) => {
             if (!report) {
                 return;
             }
 
-            setIsExportWithTemplateModalVisible(true);
+            showConfirmModal({
+                title: translate('export.exportInProgress'),
+                prompt: translate('export.conciergeWillSend'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            }).then((result) => {
+                if (result.action === ModalActions.CONFIRM) {
+                    clearSelectedTransactions(undefined, true);
+                }
+            });
             queueExportSearchWithTemplate({
                 templateName,
                 templateType,
@@ -194,15 +204,10 @@ function MoneyRequestReportActionsList({
                 policyID: policy?.id,
             });
         },
-        [report, policy?.id],
+        [report, policy?.id, showConfirmModal, translate, clearSelectedTransactions],
     );
 
-    const {
-        options: selectedTransactionsOptions,
-        handleDeleteTransactions,
-        isDeleteModalVisible,
-        hideDeleteModal,
-    } = useSelectedTransactionsActions({
+    const {options: selectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
         report,
         reportActions,
         allTransactionsLength: transactions.length,
@@ -702,25 +707,6 @@ function MoneyRequestReportActionsList({
                             <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
                         </PressableWithFeedback>
                     </View>
-                    <ConfirmModal
-                        title={translate('iou.deleteExpense', {count: selectedTransactionIDs.length})}
-                        isVisible={isDeleteModalVisible}
-                        onConfirm={() => {
-                            const shouldNavigateBack =
-                                transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length;
-                            handleDeleteTransactions();
-                            if (shouldNavigateBack) {
-                                const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
-                                Navigation.goBack(backToRoute);
-                            }
-                        }}
-                        onCancel={hideDeleteModal}
-                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length})}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                        shouldEnableNewFocusManagement
-                    />
                 </>
             )}
             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
@@ -802,18 +788,6 @@ function MoneyRequestReportActionsList({
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={offlineModalVisible}
                 onClose={() => setOfflineModalVisible(false)}
-            />
-            <ConfirmModal
-                onConfirm={() => {
-                    setIsExportWithTemplateModalVisible(false);
-                    clearSelectedTransactions(undefined, true);
-                }}
-                onCancel={() => setIsExportWithTemplateModalVisible(false)}
-                isVisible={isExportWithTemplateModalVisible}
-                title={translate('export.exportInProgress')}
-                prompt={translate('export.conciergeWillSend')}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
             />
         </View>
     );
