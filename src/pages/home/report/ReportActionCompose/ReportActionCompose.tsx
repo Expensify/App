@@ -61,7 +61,7 @@ import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroPro
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
-import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
+import {addAttachmentWithComment, deleteReportActionDraft, editReportComment, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -151,6 +151,28 @@ function ReportActionCompose({
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+    const [allActionDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {canBeMissing: true});
+
+    const activeInlineDraft = useMemo(() => {
+        const reportDrafts = allActionDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`];
+
+        if (!reportDrafts) {
+            return null;
+        }
+
+        const entry = Object.entries(reportDrafts).find(([, draft]) => draft?.message);
+
+        if (!entry) {
+            return null;
+        }
+
+        const [reportActionID, draft] = entry;
+
+        return {
+            reportActionID,
+            message: draft.message,
+        };
+    }, [allActionDrafts, reportID]);
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
@@ -169,8 +191,10 @@ function ReportActionCompose({
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
+    const effectiveDraft = shouldUseNarrowLayout ? activeInlineDraft?.message : draftComment;
+
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
-        return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
+        return !effectiveDraft || !!effectiveDraft.match(CONST.REGEX.EMPTY_COMMENT);
     });
 
     /**
@@ -216,6 +240,25 @@ function ReportActionCompose({
         canEvict: false,
         canBeMissing: true,
     });
+
+    const [reportActionDrafts] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`, {canBeMissing: true});
+
+    const editingReportActionID = useMemo(() => {
+        if (!reportActionDrafts) {
+            return null;
+        }
+
+        const entry = Object.entries(reportActionDrafts).find(([, draft]) => draft?.message);
+        return entry?.[0] ?? null;
+    }, [reportActionDrafts]);
+
+    const editingReportAction = useMemo(() => {
+        if (!editingReportActionID || !reportActions) {
+            return null;
+        }
+
+        return reportActions[editingReportActionID] ?? null;
+    }, [editingReportActionID, reportActions]);
 
     const personalDetail = useCurrentUserPersonalDetails();
 
@@ -321,6 +364,18 @@ function ReportActionCompose({
         (newComment: string) => {
             const newCommentTrimmed = newComment.trim();
 
+            if (!newCommentTrimmed && !attachmentFileRef.current) {
+                return;
+            }
+
+            const isEditingInline = shouldUseNarrowLayout && !!editingReportAction;
+
+            if (isEditingInline && !attachmentFileRef.current) {
+                editReportComment(report, editingReportAction, ancestors, newCommentTrimmed, undefined, false);
+                deleteReportActionDraft(reportID, editingReportAction);
+                return;
+            }
+
             if (attachmentFileRef.current) {
                 addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, ancestors, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true);
                 attachmentFileRef.current = null;
@@ -338,7 +393,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, ancestors, reportID, personalDetail.timezone, transactionThreadReportID],
+        [reportID, ancestors, transactionThreadReportID, personalDetail.timezone, onSubmit, editingReportAction, shouldUseNarrowLayout],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -365,6 +420,11 @@ function ReportActionCompose({
         setIsFocused(true);
         onComposerFocus?.();
     }, [onComposerFocus]);
+
+    useEffect(() => {
+        const valueToCheck = shouldUseNarrowLayout ? activeInlineDraft?.message : draftComment;
+        setIsCommentEmpty(!valueToCheck || !!valueToCheck.match(CONST.REGEX.EMPTY_COMMENT));
+    }, [activeInlineDraft, draftComment, shouldUseNarrowLayout]);
 
     useEffect(() => {
         if (hasExceededMaxTaskTitleLength) {
