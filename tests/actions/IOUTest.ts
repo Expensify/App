@@ -10679,7 +10679,7 @@ describe('actions/IOU', () => {
         });
 
         it('should create a duplicate distance expense with all fields duplicated', async () => {
-            const randomDistanceTransaction = createRandomDistanceRequestTransaction(1);
+            const randomDistanceTransaction = createRandomDistanceRequestTransaction(1, true);
 
             const mockDistanceTransaction = {
                 ...randomDistanceTransaction,
