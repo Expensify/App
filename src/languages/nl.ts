@@ -1187,7 +1187,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Uitgave zoeken',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `verwijderde een uitgave (${amount} voor ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verplaatste een uitgave${reportName ? `van ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `heeft deze uitgave verplaatst${reportName ? `naar <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `heeft deze uitgave verplaatst${reportName ? `naar <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `heeft deze uitgave verplaatst${reportName ? `van <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `heeft deze uitgave van uw <a href="${reportUrl}">persoonlijke ruimte</a> verplaatst`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `heeft deze uitgave naar uw <a href="${reportUrl}">persoonlijke ruimte</a> verplaatst`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2539,26 +2541,26 @@ ${amount} voor ${merchant} - ${date}`,
                         4. Zoek ${integrationName} op.
                         5. Klik op *Verbinden*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Breng me naar de boekhouding](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Breng me naar de boekhouding](${workspaceAccountingLink}).
 
-                                      ![Verbind met ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Ga naar boekhouding](${workspaceAccountingLink}).`
-}`),
+                        ![Verbinding maken met ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Breng me naar de boekhouding](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Koppel [uw bedrijfskaart](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Koppel [je bedrijfskaarten](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Verbind uw zakelijke kaart om automatisch uitgaven te importeren en te coderen.
+                        Verbind de kaarten die je al hebt voor automatische import van transacties, bonnetjes matchen en afstemming.
 
                         1. Klik op *Workspaces*.
-                        2. Selecteer uw workspace.
-                        3. Klik op *Corporate cards*.
-                        4. Volg de aanwijzingen om uw kaart te koppelen.
+                        2. Selecteer je workspace.
+                        3. Klik op *Company cards*.
+                        4. Volg de aanwijzingen om je kaarten te koppelen.
 
-                        [Ga naar het koppelen van mijn zakelijke kaarten](${corporateCardLink}).`),
+                        [Ga naar Company cards](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Nodig [uw team](${workspaceMembersLink}) uit`,
@@ -5964,7 +5966,7 @@ ${
                     expense: 'Individuele uitgave',
                     expenseSubtitle: 'Markeer onkostbedragen per categorie. Deze regel overschrijft de algemene werkruimte-regel voor het maximale onkostbedrag.',
                     daily: 'Categorietotaal',
-                    dailySubtitle: 'Markeer de totale categorie-uitgaven per onkostenrapport.',
+                    dailySubtitle: 'Vlag totale categorie-uitgaven per dag per onkostennota.',
                 },
                 requireReceiptsOver: 'Vereis bonnen boven',
                 requireReceiptsOverList: {
@@ -6250,6 +6252,36 @@ ${
                 default: {
                     return '';
                 }
+            }
+        },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} categorieën`;
+                case 'tags':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} labels`;
+                case 'workflows':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} werkstromen`;
+                case 'distance rates':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} afstandstarieven`;
+                case 'accounting':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} boekhouding`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} Expensify-kaarten`;
+                case 'company cards':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} bedrijfskaarten`;
+                case 'invoicing':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} facturering`;
+                case 'per diem':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} dagvergoeding`;
+                case 'receipt partners':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} partners voor bonnetjes`;
+                case 'rules':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} regels`;
+                case 'tax tracking':
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} belastingregistratie`;
+                default:
+                    return `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} ${featureName}`;
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} bijhouden van aanwezigen`,
@@ -6596,6 +6628,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Uitgave aanmaken',
             createReport: 'Rapport maken',
             chooseWorkspace: 'Kies een werkruimte voor dit rapport.',
             emptyReportConfirmationTitle: 'Je hebt al een leeg rapport',
@@ -7015,6 +7048,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is vereist`,
+        reportContainsExpensesWithViolations: 'Het rapport bevat uitgaven met overtredingen.',
     },
     violationDismissal: {
         rter: {
@@ -7693,6 +7727,8 @@ ${
             anyMemberWillBeRequired: 'Elk lid dat met een andere methode is aangemeld, moet zich opnieuw authenticeren via SAML.',
             enableError: 'Kon de instelling voor SAML-inschakeling niet bijwerken',
             requireError: 'Kan SAML-vereiste-instelling niet bijwerken',
+            disableSamlRequired: 'SAML vereist uitschakelen',
+            oktaWarningPrompt: 'Weet je het zeker? Dit schakelt ook Okta SCIM uit.',
         },
         samlConfigurationDetails: {
             title: 'SAML-configuratiedetails',

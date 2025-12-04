@@ -1190,7 +1190,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Ausgabe finden',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `hat eine Ausgabe gelöscht (${amount} für ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `verschob eine Ausgabe${reportName ? `von ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `hat diese Ausgabe${reportName ? `zu <a href="${reportUrl}">${reportName}</a>` : ''} verschoben`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `hat diese Ausgabe verschoben${reportName ? `zu <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `diese Ausgabe verschoben${reportName ? `von <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `diese Ausgabe aus Ihrem <a href="${reportUrl}">persönlichen Bereich</a> verschoben`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `diese Ausgabe in Ihren <a href="${reportUrl}">persönlichen Bereich</a> verschoben`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2556,16 +2558,16 @@ ${amount} für ${merchant} - ${date}`,
                         4. Suche ${integrationName}.
                         5. Klicke auf *Verbinden*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Zur Buchhaltung](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Zur Buchhaltung](${workspaceAccountingLink}).
 
-                                      ![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Zur Buchhaltung](${workspaceAccountingLink}).`
-}`),
+                        ![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Zur Buchhaltung](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Verbinde [deine Firmenkarte](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Verbinden Sie [Ihre Firmenkarten](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
                         Verbinde deine Firmenkarte, um Ausgaben automatisch zu importieren und zu kontieren.
@@ -2573,15 +2575,13 @@ ${
                         1. Klicke auf *Arbeitsbereiche*.
                         2. Wähle deinen Arbeitsbereich aus.
                         3. Klicke auf *Firmenkarten*.
-                        4. Folge den Anweisungen, um deine Karte zu verbinden.
 
-                        [Bring mich zum Verbinden meiner Firmenkarten](${corporateCardLink}).`),
+                        [Zu den Firmenkarten](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Lade [dein Team](${workspaceMembersLink}) ein`,
                 description: ({workspaceMembersLink}) =>
                     dedent(`
-                        *Lade dein Team ein* in Expensify, damit es noch heute mit der Ausgabenerfassung beginnen kann.
 
                         1. Klicke auf *Arbeitsbereiche*.
                         3. Wähle deinen Arbeitsbereich aus.
@@ -5998,7 +5998,7 @@ ${
                     expense: 'Einzelausgabe',
                     expenseSubtitle: 'Beträge von Ausgaben nach Kategorie kennzeichnen. Diese Regel überschreibt die allgemeine Arbeitsbereichsregel für den maximalen Ausgabenbetrag.',
                     daily: 'Kategorietotal',
-                    dailySubtitle: 'Gesamtausgaben je Kategorie pro Spesenbericht kennzeichnen.',
+                    dailySubtitle: 'Gesamtausgaben pro Tag pro Kategorie pro Spesenbericht kennzeichnen.',
                 },
                 requireReceiptsOver: 'Belege über erforderlich',
                 requireReceiptsOverList: {
@@ -6284,6 +6284,36 @@ ${
                 default: {
                     return '';
                 }
+            }
+        },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Kategorien`;
+                case 'tags':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Stichwörter`;
+                case 'workflows':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Workflows`;
+                case 'distance rates':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Entfernungsraten`;
+                case 'accounting':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Buchhaltung`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Expensify-Karten`;
+                case 'company cards':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Firmenkarten`;
+                case 'invoicing':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Rechnungsstellung`;
+                case 'per diem':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Tagespauschale`;
+                case 'receipt partners':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Belegpartner`;
+                case 'rules':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Regeln`;
+                case 'tax tracking':
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} Steuerverfolgung`;
+                default:
+                    return `${enabled ? 'aktiviert' : 'deaktiviert'} ${featureName}`;
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Teilnehmerverfolgung`,
@@ -6630,6 +6660,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Ausgabe erstellen',
             createReport: 'Bericht erstellen',
             chooseWorkspace: 'Wählen Sie einen Arbeitsbereich für diesen Bericht aus.',
             emptyReportConfirmationTitle: 'Du hast bereits einen leeren Bericht',
@@ -7051,6 +7082,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} ist erforderlich`,
+        reportContainsExpensesWithViolations: 'Der Bericht enthält Ausgaben mit Verstößen.',
     },
     violationDismissal: {
         rter: {
@@ -7744,6 +7776,8 @@ ${
             anyMemberWillBeRequired: 'Jedes Mitglied, das sich mit einer anderen Methode angemeldet hat, muss sich mithilfe von SAML erneut authentifizieren.',
             enableError: 'Konnte die SAML-Aktivierungseinstellung nicht aktualisieren',
             requireError: 'Die SAML-Anforderungseinstellung konnte nicht aktualisiert werden.',
+            disableSamlRequired: 'SAML-Pflicht deaktivieren',
+            oktaWarningPrompt: 'Bist du sicher? Dadurch wird auch Okta SCIM deaktiviert.',
         },
         samlConfigurationDetails: {
             title: 'SAML-Konfigurationsdetails',

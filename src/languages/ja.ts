@@ -1189,7 +1189,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: '経費を検索',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `経費を削除しました (${merchant}の${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `費用${reportName ? `${reportName} から` : ''}を移動しました`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a> へ` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `この経費${reportName ? `<a href="${reportUrl}">${reportName}</a> に` : ''}を移動しました`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a>から` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `この経費を<a href="${reportUrl}">個人スペース</a>から移動しました。`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `この経費をあなたの<a href="${reportUrl}">個人スペース</a>に移動しました。`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2521,7 +2523,7 @@ ${date} - ${merchant}に${amount}`,
                     `${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'と'}[${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : ''} ${integrationName}](${workspaceAccountingLink})と接続する`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : 'to'} の ${integrationName} を接続して、自動的な経費のコード付けと同期により月末締めを簡単にしましょう。
+                        ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : 'まで'} の ${integrationName} を接続して、経費の自動分類と同期で月末締めをスムーズに。
 
                         1. *Workspaces* をクリックします。
                         2. ご自身のワークスペースを選択します。
@@ -2529,26 +2531,26 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         4. ${integrationName} を探します。
                         5. *Connect* をクリックします。
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[会計へ移動](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[会計に移動](${workspaceAccountingLink}).
 
-![${integrationName}に接続](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[会計に移動](${workspaceAccountingLink}).`
-}`),
+                        ![${integrationName} に接続](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[会計に移動](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `[あなたのコーポレートカード](${corporateCardLink})を接続`,
+                title: ({corporateCardLink}) => `[法人カード](${corporateCardLink})を連携する`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        法人カードを接続して、経費を自動で取り込み、コード化します。
+                        既にお持ちのカードを接続すると、取引の自動取り込み、レシートの照合、消込が行えます。
 
                         1. *ワークスペース* をクリックします。
                         2. ワークスペースを選択します。
-                        3. *コーポレートカード* をクリックします。
-                        4. 表示される手順に従ってカードを接続します。
+                        3. *Company cards* をクリックします。
+                        4. 案内に従ってカードを接続します。
 
-                        [コーポレートカードの接続に進む](${corporateCardLink}).`),
+                        [Company cards に移動](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `[あなたのチーム](${workspaceMembersLink})を招待する`,
@@ -5924,7 +5926,7 @@ ${
                     expense: '個別経費',
                     expenseSubtitle: 'カテゴリ別に経費金額をフラグします。このルールは、最大経費金額に関する一般的なワークスペースルールを上書きします。',
                     daily: 'カテゴリ合計',
-                    dailySubtitle: '経費レポートごとにカテゴリ合計の支出にフラグを付ける',
+                    dailySubtitle: '経費報告書ごとにカテゴリ別の一日あたりの合計支出をフラグ付けします。',
                 },
                 requireReceiptsOver: 'を超える領収書を必須にする',
                 requireReceiptsOverList: {
@@ -6203,6 +6205,36 @@ ${
                 default: {
                     return '';
                 }
+            }
+        },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? '有効' : '無効'} 個のカテゴリ`;
+                case 'tags':
+                    return `${enabled ? '有効' : '無効'} 個のタグ`;
+                case 'workflows':
+                    return `${enabled ? '有効' : '無効'}件のワークフロー`;
+                case 'distance rates':
+                    return `${enabled ? '有効' : '無効'} の距離単価`;
+                case 'accounting':
+                    return `${enabled ? '有効' : '無効'} 会計`;
+                case 'Expensify Cards':
+                    return `${enabled ? '有効' : '無効'} Expensify カード`;
+                case 'company cards':
+                    return `${enabled ? '有効' : '無効'} 枚の法人カード`;
+                case 'invoicing':
+                    return `${enabled ? '有効' : '無効'} 請求書発行`;
+                case 'per diem':
+                    return `${enabled ? '有効' : '無効'} 日当`;
+                case 'receipt partners':
+                    return `${enabled ? '有効' : '無効'} 領収書パートナー`;
+                case 'rules':
+                    return `${enabled ? '有効' : '無効'} 件のルール`;
+                case 'tax tracking':
+                    return `${enabled ? '有効' : '無効'} 税金追跡`;
+                default:
+                    return `${enabled ? '有効' : '無効'} ${featureName}`;
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 参加者の追跡`,
@@ -6549,6 +6581,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: '経費を作成',
             createReport: 'レポートを作成',
             chooseWorkspace: 'このレポートのワークスペースを選択してください。',
             emptyReportConfirmationTitle: '空のレポートがすでにあります',
@@ -6969,6 +7002,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName}は必須です`,
+        reportContainsExpensesWithViolations: 'レポートに違反がある経費が含まれています。',
     },
     violationDismissal: {
         rter: {
@@ -7649,6 +7683,8 @@ ${
             anyMemberWillBeRequired: '別の方法でサインインしたメンバーは、SAMLを使用して再認証する必要があります。',
             enableError: 'SAMLの有効化設定を更新できませんでした',
             requireError: 'SAML の要件設定を更新できませんでした',
+            disableSamlRequired: 'SAML 必須を無効にする',
+            oktaWarningPrompt: '本当に実行しますか？これによりOkta SCIMも無効になります。',
         },
         samlConfigurationDetails: {
             title: 'SAML 設定の詳細',

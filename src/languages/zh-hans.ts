@@ -1173,7 +1173,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: '查找费用',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `删除了一笔费用 (${merchant} 的 ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔费用${reportName ? `来自${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `已移动此费用${reportName ? `到 <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `至 <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `来自<a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此费用从您的<a href="${reportUrl}">个人空间</a>移出`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此费用移动到您的<a href="${reportUrl}">个人空间</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2502,26 +2504,26 @@ ${merchant}的${amount} - ${date}`,
                         4. 找到 ${integrationName}。
                         5. 点击 *Connect*。
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[带我到会计](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[前往会计](${workspaceAccountingLink}).
 
-![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[前往会计](${workspaceAccountingLink}).`
-}`),
+                        ![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[前往会计](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `连接[您的公司信用卡](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        连接您的公司卡以自动导入并为费用编码。
+                        连接你已有的卡片，以自动导入交易、匹配收据并进行对账。
 
-                        1. 点击*Workspaces*。
-                        2. 选择您的工作区。
-                        3. 点击*Corporate cards*。
-                        4. 按照提示连接您的公司卡。
+                        1. 点击*工作区*。
+                        2. 选择你的工作区。
+                        3. 点击*公司卡*。
+                        4. 按照提示连接你的卡片。
 
-                        [前往连接我的公司卡](${corporateCardLink}).`),
+                        [带我前往公司卡](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `邀请[您的团队](${workspaceMembersLink})`,
@@ -5844,7 +5846,7 @@ ${
                     expense: '单笔费用',
                     expenseSubtitle: '按类别标记费用金额。此规则会覆盖工作区的一般最大费用金额规则。',
                     daily: '类别总计',
-                    dailySubtitle: '为每份费用报表标记各类别总支出。',
+                    dailySubtitle: '标记每个费用报告的类别每日总支出。',
                 },
                 requireReceiptsOver: '要求超过',
                 requireReceiptsOverList: {
@@ -6115,6 +6117,36 @@ ${
                 default: {
                     return '';
                 }
+            }
+        },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? '已启用' : '已禁用'} 个类别`;
+                case 'tags':
+                    return `${enabled ? '已启用' : '已禁用'} 个标签`;
+                case 'workflows':
+                    return `${enabled ? '已启用' : '已禁用'} 个工作流程`;
+                case 'distance rates':
+                    return `${enabled ? '已启用' : '已禁用'} 距离费率`;
+                case 'accounting':
+                    return `${enabled ? '已启用' : '已禁用'} 会计`;
+                case 'Expensify Cards':
+                    return `${enabled ? '已启用' : '已禁用'} Expensify 卡`;
+                case 'company cards':
+                    return `${enabled ? '已启用' : '已禁用'} 张公司卡`;
+                case 'invoicing':
+                    return `${enabled ? '已启用' : '已禁用'} 开票`;
+                case 'per diem':
+                    return `${enabled ? '已启用' : '已禁用'} 每日津贴`;
+                case 'receipt partners':
+                    return `${enabled ? '已启用' : '已禁用'} 收据合作伙伴`;
+                case 'rules':
+                    return `${enabled ? '已启用' : '已禁用'} 条规则`;
+                case 'tax tracking':
+                    return `${enabled ? '已启用' : '已禁用'} 税务追踪`;
+                default:
+                    return `${enabled ? '已启用' : '已禁用'} ${featureName}`;
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 与会者跟踪`,
@@ -6459,6 +6491,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: '创建报销单',
             createReport: '创建报告',
             chooseWorkspace: '为此报告选择一个工作区。',
             emptyReportConfirmationTitle: '你已经有一个空报告',
@@ -6868,6 +6901,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} 是必需的`,
+        reportContainsExpensesWithViolations: '报告包含违反规定的费用。',
     },
     violationDismissal: {
         rter: {
@@ -7527,6 +7561,8 @@ ${
             anyMemberWillBeRequired: '使用不同方式登录的任何成员将被要求使用 SAML 重新进行身份验证。',
             enableError: '无法更新 SAML 启用设置',
             requireError: '无法更新 SAML 要求设置',
+            disableSamlRequired: '禁用 SAML 要求',
+            oktaWarningPrompt: '你确定吗？这也会禁用 Okta SCIM。',
         },
         samlConfigurationDetails: {
             title: 'SAML 配置详细信息',
