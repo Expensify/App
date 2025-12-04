@@ -46,7 +46,7 @@ export default function createRandomTransaction(index: number): Transaction {
     };
 }
 
-const createRandomDistanceRequestTransaction = (index: number, shouldIncludeWaypoints: boolean = false): Transaction => {
+const createRandomDistanceRequestTransaction = (index: number, shouldIncludeWaypoints = false): Transaction => {
     const fakeWayPoints = {
         waypoint0: {
             keyForList: '88 Kearny Street_1735023533854',

@@ -1686,6 +1686,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [transaction1],
@@ -1715,6 +1716,7 @@ describe('getSecondaryAction', () => {
 
         const result = getSecondaryReportActions({
             currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             report,
             chatReport,
             reportTransactions: [],
