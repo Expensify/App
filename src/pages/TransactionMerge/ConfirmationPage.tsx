@@ -100,7 +100,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         return <FullScreenLoadingIndicator />;
     }
 
-    console.log('ok');
     return (
         <ScreenWrapper
             testID={ConfirmationPage.displayName}
