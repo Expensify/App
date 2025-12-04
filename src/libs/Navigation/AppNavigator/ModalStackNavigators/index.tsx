@@ -116,9 +116,24 @@ function SecondaryOverlay() {
         useContext(WideRHPContext);
     const route = useRoute();
 
+    // It's an additional check for isRHPDisplayedOnWideRHP, wide rhp route (SearchReport) can be displayed as a single rhp on super wide rhp route displayed as wide rhp.
+    // In this case, we need to prevent from rendering secondary overlay from the top rhp route.
+    const isExpenseDisplayedInSingleRHPOnWideRHP = useMemo(
+        () =>
+            isWideRHPRouteName(route.name) &&
+            wideRHPRouteKeys.length === 1 &&
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            (wideRHPRouteKeys.at(0)?.startsWith(SCREENS.SEARCH.MONEY_REQUEST_REPORT) || wideRHPRouteKeys.at(0)?.startsWith(SCREENS.EXPENSE_REPORT_RHP)),
+        [route.name, wideRHPRouteKeys],
+    );
+
     const isRHPDisplayedOnWideRHP = useMemo(
-        () => shouldRenderSecondaryOverlayForRHPOnWideRHP && ((isSuperWideRHPRouteName(route.name) && superWideRHPRouteKeys.length === 0) || isWideRHPRouteName(route.name)),
-        [route.name, shouldRenderSecondaryOverlayForRHPOnWideRHP, superWideRHPRouteKeys.length],
+        () =>
+            !isExpenseDisplayedInSingleRHPOnWideRHP &&
+            shouldRenderSecondaryOverlayForRHPOnWideRHP &&
+            // Here it's checked if the super wide rhp route is displayed as a wide rhp
+            ((isSuperWideRHPRouteName(route.name) && superWideRHPRouteKeys.length === 0) || isWideRHPRouteName(route.name)),
+        [isExpenseDisplayedInSingleRHPOnWideRHP, route.name, shouldRenderSecondaryOverlayForRHPOnWideRHP, superWideRHPRouteKeys.length],
     );
 
     const isRHPDisplayedOnSuperWideRHP = useMemo(
@@ -132,13 +147,10 @@ function SecondaryOverlay() {
     );
 
     if (isRHPDisplayedOnWideRHP) {
-        if (isWideRHPRouteName(route.name) && wideRHPRouteKeys.length === 1 && wideRHPRouteKeys.at(0)?.startsWith(SCREENS.SEARCH.MONEY_REQUEST_REPORT)) {
-            return null;
-        }
-
         return (
             <Overlay
                 progress={secondOverlayRHPOnWideRHPProgress}
+                // If RHP is displayed on Wide RHP which is displayed above the Super Wide RHP, the secondary overlay's position left should be calculated from the left edge of the super wide RHP.
                 positionLeftValue={superWideRHPRouteKeys.length > 0 ? modalStackOverlayWideRHPPositionLeft : animatedReceiptPaneRHPWidth}
             />
         );
@@ -179,6 +191,8 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
         const {shouldRenderTertiaryOverlay, syncWideRHPKeys, syncSuperWideRHPKeys} = useContext(WideRHPContext);
         const route = useRoute();
 
+        // This hook handles the case when a wider RHP is displayed above a narrower one.
+        // In this situation, we need to synchronize the keys, as superWideRHPKeys and wideRHPKeys store the keys of the screens that are visible.
         useFocusEffect(
             useCallback(
                 () => () => {
@@ -227,9 +241,10 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 {/* The width of the window for which we calculate the overlay positions is the width of the RHP window, for example for Super Wide RHP it will be 1260 px on a wide layout. */}
                 {/* We need to move the overlay left from the left edge of the RHP below to the left edge of the RHP above. */}
                 {/* To calculate this, subtract the width of the widest RHP from the width of the RHP above. */}
-                {/* Two cases were described for the secondary overlay: */}
-                {/* 1. Single RHP is displayed on Wide RHP (Super Wide or Wide) - here we additionally check the length of superWideRHPRouteKeys because Super Wide RHP route can also be displayed in Wide RHP when the number of visible transactions is less than 2.  */}
-                {/* 2. Wide RHP is displayed on Super Wide RHP route. */}
+                {/* Three cases were described for the secondary overlay: */}
+                {/* 1. Single RHP is displayed on Wide RHP */}
+                {/* 2. Single RHP is displayed on Super Wide RHP */}
+                {/* 3. Wide RHP is displayed on Super Wide RHP route. */}
                 {/* Please note that in these cases, the overlay is rendered from the RHP screen displayed below. For example, if we display RHP on Wide RHP, the secondary overlay is rendered from Wide RHP, etc. */}
                 {/* There is also a special case where three different RHP widths are displayed at the same time. In this case, an overlay under RHP should be rendered from Wide RHP. */}
                 {!isSmallScreenWidth && <SecondaryOverlay />}
