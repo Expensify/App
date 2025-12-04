@@ -1,6 +1,5 @@
 import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
 import {Str} from 'expensify-common';
-import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
