@@ -1978,7 +1978,7 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     return isProcessingReport(report) && submitsToAccountID === report.managerID;
 }
 
-function isAwaitingFirstLevelApprovalNew(report: OnyxEntry<Report>, reportActions: ReportAction[], policyParam?: OnyxEntry<Policy>): boolean {
+function isAwaitingFirstLevelApprovalNew(report: OnyxEntry<Report>, reportActions: ReportAction[], policy: OnyxEntry<Policy>): boolean {
     if (!report) {
         return false;
     }
@@ -1990,10 +1990,6 @@ function isAwaitingFirstLevelApprovalNew(report: OnyxEntry<Report>, reportAction
     if (isIOUReportUsingReport(report)) {
         return true;
     }
-
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = policyParam ?? getPolicy(report?.policyID);
 
     if (hasDynamicExternalWorkflow(policy)) {
         return false;
