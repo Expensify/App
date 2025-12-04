@@ -994,7 +994,6 @@ function PureReportActionItem({
         translate,
         resolveActionableReportMentionWhisper,
         isReportArchived,
-        formatPhoneNumber,
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
