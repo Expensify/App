@@ -7,6 +7,7 @@ import DateUtils from '@libs/DateUtils';
 import {getAmountOwed, getOverdueGracePeriodDate, getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
 import type {StripeCustomerID} from '@src/types/onyx';
+import type BillingStatus from '@src/types/onyx/BillingStatus';
 import type {AccountData} from '@src/types/onyx/Fund';
 import type Locale from '@src/types/onyx/Locale';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
@@ -32,6 +33,7 @@ type GetBillingStatusProps = {
     retryBillingSuccessful: OnyxEntry<boolean>;
     billingDisputePending: number | undefined;
     retryBillingFailed: boolean | undefined;
+    billingStatus: OnyxEntry<BillingStatus>;
     creditCardEyesIcon?: IconAsset;
     locale?: Locale;
 };
@@ -44,6 +46,7 @@ function getBillingStatus({
     retryBillingSuccessful,
     billingDisputePending,
     retryBillingFailed,
+    billingStatus,
     creditCardEyesIcon,
     locale,
 }: GetBillingStatusProps): BillingStatusResult | undefined {
@@ -51,7 +54,7 @@ function getBillingStatus({
 
     const amountOwed = getAmountOwed();
 
-    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed);
+    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, billingStatus);
 
     const endDate = getOverdueGracePeriodDate();
 
