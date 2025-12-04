@@ -1,6 +1,8 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import useParentReportAction from '@hooks/useParentReportAction';
 import type PolicyData from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
 import type {
@@ -67,8 +69,11 @@ function completeSetupCategoriesAndTagsTask() {
     const setupCategoriesAndTagsTaskReportID = deprecatedIntroSelected?.setupCategoriesAndTags;
     if (setupCategoriesAndTagsTaskReportID) {
         const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${setupCategoriesAndTagsTaskReportID}`];
+        const hasOutstandingChildTask = useHasOutstandingChildTask(taskReport);
+        const parentReportAction = useParentReportAction(taskReport);
+
         if (taskReport) {
-            Task.completeTask(taskReport);
+            Task.completeTask(taskReport, hasOutstandingChildTask, parentReportAction);
         }
     }
 }

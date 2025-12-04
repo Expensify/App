@@ -1,6 +1,8 @@
 import lodashDropRightWhile from 'lodash/dropRightWhile';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import useParentReportAction from '@hooks/useParentReportAction';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -98,8 +100,11 @@ function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     const addExpenseApprovalsTaskReportID = deprecatedIntroSelected?.addExpenseApprovals;
     if (addExpenseApprovalsTaskReportID) {
         const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`];
+        const hasOutstandingChildTask = useHasOutstandingChildTask(taskReport);
+        const parentReportAction = useParentReportAction(taskReport);
+
         if (taskReport) {
-            Task.completeTask(taskReport);
+            Task.completeTask(taskReport, hasOutstandingChildTask, parentReportAction);
         }
     }
 }
