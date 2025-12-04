@@ -313,17 +313,54 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
         return false;
     }
 
+    // eslint-disable-next-line no-console
+    console.log('🔍 [Cancel Payment Debug] Step 3 - Starting Pay Actions Search', JSON.stringify({
+        reportID: report.reportID,
+        reportTransactionsCount: reportTransactions.length,
+        transactionIDs: reportTransactions.map((t) => t.transactionID),
+    }, null, 2));
+
     // Get pay actions first to check payment type
     const payActions = reportTransactions.reduce((acc, transaction) => {
+        // eslint-disable-next-line no-console
+        console.log('🔍 [Cancel Payment Debug] Step 3a - Looking up action for transaction', JSON.stringify({
+            transactionID: transaction.transactionID,
+            reportID: report.reportID,
+        }, null, 2));
+
         const action = getIOUActionForReportID(report.reportID, transaction.transactionID);
-        if (action && isPayAction(action)) {
-            acc.push(action);
+
+        // eslint-disable-next-line no-console
+        console.log('🔍 [Cancel Payment Debug] Step 3b - getIOUActionForReportID result', JSON.stringify({
+            transactionID: transaction.transactionID,
+            actionFound: !!action,
+            actionName: action?.actionName ?? 'N/A',
+            reportActionID: action?.reportActionID ?? 'N/A',
+            originalMessage: action ? getOriginalMessage(action) : 'N/A',
+        }, null, 2));
+
+        if (action) {
+            const originalMsg = getOriginalMessage(action);
+            const isPayActionResult = isPayAction(action);
+            // eslint-disable-next-line no-console
+            console.log('🔍 [Cancel Payment Debug] Step 3c - isPayAction check', JSON.stringify({
+                transactionID: transaction.transactionID,
+                actionName: action.actionName,
+                isIOUAction: action.actionName === 'IOU',
+                originalMessageType: originalMsg && 'type' in originalMsg ? originalMsg.type : 'N/A',
+                expectedPayType: 'pay',
+                isPayAction: isPayActionResult,
+            }, null, 2));
+
+            if (isPayActionResult) {
+                acc.push(action);
+            }
         }
         return acc;
     }, [] as ReportAction[]);
 
     // eslint-disable-next-line no-console
-    console.log('🔍 [Cancel Payment Debug] Step 3 - Pay Actions', JSON.stringify({
+    console.log('🔍 [Cancel Payment Debug] Step 3d - Pay Actions Summary', JSON.stringify({
         payActionsCount: payActions.length,
         reportTransactionsCount: reportTransactions.length,
         payActionDetails: payActions.map((a) => {
