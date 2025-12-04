@@ -1,8 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLocalize from '@hooks/useLocalize';
 import useParentReport from '@hooks/useParentReport';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canWriteInReport, isCompletedTaskReport} from '@libs/ReportUtils';
@@ -23,7 +25,9 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const parentReport = useParentReport(report.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const isTaskActionable = canActionTask(report, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
+    const parentReportAction = useParentReportAction(report);
+    const isTaskActionable = canActionTask(report, parentReportAction, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
 
     if (!canWriteInReport(report)) {
         return null;
@@ -43,7 +47,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                     if (isCompletedTaskReport(report)) {
                         reopenTask(report, currentUserPersonalDetails.accountID);
                     } else {
-                        completeTask(report);
+                        completeTask(report, hasOutstandingChildTask, parentReportAction);
                     }
                 })}
                 style={styles.flex1}
