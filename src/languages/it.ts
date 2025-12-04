@@ -2563,13 +2563,13 @@ ${amount} per ${merchant} - ${date}`,
                         4. Trova ${integrationName}.
                         5. Fai clic su *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Portami alla contabilità](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Portami alla contabilità](${workspaceAccountingLink}).
 
-                                      ![Connetti a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Portami alla contabilità](${workspaceAccountingLink}).`
-}`),
+                        ![Connetti a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Portami alla contabilità](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Collega [le tue carte aziendali](${corporateCardLink})`,
@@ -6001,7 +6001,7 @@ ${
                     expenseSubtitle:
                         "Contrassegna gli importi delle spese per categoria. Questa regola sostituisce la regola generale dello spazio di lavoro per l'importo massimo delle spese.",
                     daily: 'Totale categoria',
-                    dailySubtitle: 'Segnala la spesa totale per categoria per ogni rapporto di spesa.',
+                    dailySubtitle: 'Segnala la spesa totale per giorno per categoria per ogni rapporto di spesa.',
                 },
                 requireReceiptsOver: 'Richiedi ricevute superiori a',
                 requireReceiptsOverList: {
@@ -6666,6 +6666,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Crea spesa',
             createReport: 'Crea rapporto',
             chooseWorkspace: "Scegli un'area di lavoro per questo report.",
             emptyReportConfirmationTitle: 'Hai già un rapporto vuoto',
@@ -7775,6 +7776,8 @@ ${
             anyMemberWillBeRequired: 'Qualsiasi membro che ha effettuato l’accesso con un metodo diverso dovrà autenticarsi nuovamente tramite SAML.',
             enableError: "Impossibile aggiornare l'impostazione di abilitazione SAML",
             requireError: "Impossibile aggiornare l'impostazione del requisito SAML",
+            disableSamlRequired: 'Disattiva SAML obbligatorio',
+            oktaWarningPrompt: 'Sei sicuro? Questo disattiverà anche Okta SCIM.',
         },
         samlConfigurationDetails: {
             title: 'Dettagli della configurazione SAML',

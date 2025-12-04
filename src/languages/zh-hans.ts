@@ -2521,13 +2521,13 @@ ${merchant}的${amount} - ${date}`,
                         4. 找到 ${integrationName}。
                         5. 点击*连接*。
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[前往会计](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[前往会计](${workspaceAccountingLink}).
 
-![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[前往会计](${workspaceAccountingLink}).`
-}`),
+                        ![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[前往会计](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
@@ -5861,7 +5861,7 @@ ${
                     expense: '单笔费用',
                     expenseSubtitle: '按类别标记费用金额。此规则会覆盖工作区的一般最大费用金额规则。',
                     daily: '类别总计',
-                    dailySubtitle: '标记每个费用报告的类别总支出。',
+                    dailySubtitle: '标记每个费用报告的类别每日总支出。',
                 },
                 requireReceiptsOver: '要求超过',
                 requireReceiptsOverList: {
@@ -6506,6 +6506,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: '创建报销单',
             createReport: '创建报告',
             chooseWorkspace: '为此报告选择一个工作区。',
             emptyReportConfirmationTitle: '你已经有一个空报告',
@@ -7574,6 +7575,8 @@ ${
             anyMemberWillBeRequired: '使用不同方式登录的任何成员将被要求使用 SAML 重新进行身份验证。',
             enableError: '无法更新 SAML 启用设置',
             requireError: '无法更新 SAML 要求设置',
+            disableSamlRequired: '禁用 SAML 要求',
+            oktaWarningPrompt: '你确定吗？这也会禁用 Okta SCIM。',
         },
         samlConfigurationDetails: {
             title: 'SAML 配置详细信息',
