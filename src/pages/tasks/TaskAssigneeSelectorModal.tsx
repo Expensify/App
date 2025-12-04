@@ -13,6 +13,7 @@ import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -91,6 +92,8 @@ function TaskAssigneeSelectorModal() {
         }
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
     }, [reports, route.params?.reportID]);
+
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -171,6 +174,7 @@ function TaskAssigneeSelectorModal() {
                         currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         option?.login ?? '',
                         currentUserPersonalDetails.accountID,
+                        hasOutstandingChildTask,
                         option?.accountID,
                         assigneeChatReport,
                         isOptimisticReport,
@@ -195,7 +199,7 @@ function TaskAssigneeSelectorModal() {
                 });
             }
         },
-        [report, currentUserPersonalDetails.accountID, allPersonalDetails, task?.shareDestination, backTo],
+        [report, currentUserPersonalDetails.accountID, task?.shareDestination, backTo, hasOutstandingChildTask, allPersonalDetails],
     );
 
     const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);
