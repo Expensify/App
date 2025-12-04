@@ -39,10 +39,10 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
 
     const employeeList = policy?.employeeList;
     const allApprovers = useMemo(() => {
@@ -81,7 +81,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 };
             })
             .filter((approver): approver is SelectionListApprover => !!approver);
-    }, [employeeList, report, policy, personalDetails, selectedApproverEmail, translate, formatPhoneNumber]);
+    }, [employeeList, report, policy, personalDetails, formatPhoneNumber, selectedApproverEmail, icons.FallbackAvatar, translate]);
 
     const addApprover = useCallback(() => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;

@@ -6,7 +6,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {Receipt} from '@src/types/onyx/Transaction';
 import SafeString from '@src/utils/SafeString';
 import {convertToDisplayString} from './CurrencyUtils';
 import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransaction';
@@ -50,14 +49,6 @@ const MERGE_FIELD_TRANSLATION_KEYS = {
     attendees: 'iou.attendees',
     reportID: 'common.report',
 } as const;
-
-// Get the filename from the receipt
-function getReceiptFileName(receipt?: Receipt) {
-    if (typeof receipt?.source === 'string') {
-        return receipt?.source?.split('/')?.pop();
-    }
-    return `${receipt?.filename ?? receipt?.source}`;
-}
 
 function getMergeFieldErrorText(translate: LocaleContextProps['translate'], mergeField: MergeFieldData) {
     if (mergeField.field === 'attendees') {
@@ -347,7 +338,6 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         },
         reimbursable: mergeTransaction.reimbursable,
         billable: mergeTransaction.billable,
-        filename: getReceiptFileName(mergeTransaction.receipt),
         receipt: mergeTransaction.receipt,
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
@@ -517,7 +507,6 @@ export {
     isEmptyMergeValue,
     fillMissingReceiptSource,
     getTransactionThreadReportID,
-    getReceiptFileName,
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,

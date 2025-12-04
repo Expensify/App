@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -75,7 +75,7 @@ function ApproverSelectionList({
     const shouldShowTextInput = shouldShowTextInputProp ?? allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const lazyIllustrations = useMemoizedLazyIllustrations(['TurtleInShell']);
 
-    const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
+    const selectedMembers = useMemo(() => allApprovers.filter((approver) => approver.isSelected), [allApprovers]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || shouldShowNotFoundViewProp;
@@ -101,7 +101,6 @@ function ApproverSelectionList({
                 ? selectedMembers.filter((selectedOption) => selectedOption.login !== member.login)
                 : [...selectedMembers, {...member, isSelected: true}];
         }
-        setSelectedMembers(newSelectedApprovers);
         if (onSelectApprover) {
             onSelectApprover(newSelectedApprovers);
         }
