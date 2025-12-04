@@ -10,7 +10,7 @@
     Additionally, support for screen locks can be checked using the new 'canUseDeviceCredentialsAuthentication' method. 
     ```
 
-- Upstream PR/issue: TBA
+- Upstream PR/issue: https://github.com/expo/expo/pull/41409
 - E/App issue: https://github.com/Expensify/App/issues/75225
 - PR introducing patch: https://github.com/Expensify/App/pull/76288
 
