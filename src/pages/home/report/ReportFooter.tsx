@@ -162,7 +162,7 @@ function ReportFooter({
                 }
             }
             createTaskAndNavigate({
-                parentReportID: report.reportID,
+                parentReport: report,
                 title,
                 description: '',
                 assigneeEmail: assignee?.login ?? '',
