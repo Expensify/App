@@ -14,8 +14,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {PersonalDetails, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
+import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
+import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -632,6 +635,40 @@ describe('Transaction', () => {
 
             expect(report?.total).toBe(oldExpenseReport.total);
             expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal);
+        });
+
+        it('should show "waiting for you to submit expense" next step message when moving expense to a new report ', async () => {
+            const policyID = '12346';
+            const oldExpenseReportID = '5';
+
+            const transaction = generateTransaction({reportID: oldExpenseReportID});
+
+            const newOpenReport = {...createExpenseReport(6334), policyID, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, ownerAccountID: CURRENT_USER_ID};
+
+            const policy = {...createRandomPolicy(Number(policyID)), harvesting: {enabled: false}, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE};
+
+            const policyCategories = createRandomPolicyCategories(5);
+
+            const userPersonalDetails: Record<number, PersonalDetails> = {
+                [CURRENT_USER_ID]: {
+                    login: 'test@gmail.com',
+                    accountID: CURRENT_USER_ID,
+                    displayName: 'You',
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, userPersonalDetails);
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@gmail.com', newOpenReport, policy, undefined, policyCategories);
+
+            await waitForBatchedUpdates();
+
+            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${newOpenReport.reportID}`);
+
+            const nextStepMessage = nextStep?.message?.map((part) => part.text).join('');
+
+            expect(nextStepMessage).toEqual('Waiting for You to submit %expenses.');
         });
     });
 

@@ -207,6 +207,7 @@ function SearchAutocompleteList({
             includeCurrentUser: true,
             countryCode,
             shouldShowGBR: false,
+            shouldUnreadBeBold: true,
         });
     }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode]);
 
@@ -251,7 +252,7 @@ function SearchAutocompleteList({
                     ...CONST.SEARCH.STATUS.TASK,
                 });
         }
-        return suggestedStatuses.map((value) => getUserFriendlyValue(value));
+        return suggestedStatuses.filter((value) => value !== '').map((value) => getUserFriendlyValue(value));
     }, [currentType]);
 
     const hasAutocompleteList = useMemo(() => getHasOptions(translate, currentType), [translate, currentType]);
