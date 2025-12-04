@@ -84,36 +84,56 @@ type ReportFooterProps = {
 /**
  * Captures simplified HTML of the main page content (excluding the side panel)
  * This is used to provide context to the LLM when the user sends a message from the Concierge side panel
+ * Only works on web - returns empty string on native platforms
  */
 function captureSimplifiedPageHTML(): string {
+    // Only works on web where document exists
     if (typeof document === 'undefined') {
         return '';
     }
 
     try {
-        // Find the main content area, excluding the side panel
-        const mainContent = document.querySelector('[data-testid="ReportScreen"]') ?? document.querySelector('main') ?? document.body;
-
-        // Clone the element to avoid modifying the original
-        const clone = mainContent.cloneNode(true) as HTMLElement;
-
-        // Remove scripts, styles, and other non-content elements
-        const elementsToRemove = clone.querySelectorAll('script, style, noscript, svg, img, video, audio, iframe, canvas, [data-testid="SidePanel"]');
-        elementsToRemove.forEach((el) => el.remove());
-
-        // Get the simplified HTML
-        let html = clone.innerHTML;
-
-        // Remove excessive whitespace and limit size
-        html = html.replace(/\s+/g, ' ').trim();
-
-        // Limit to ~10KB to avoid sending too much data
-        const maxLength = 10000;
-        if (html.length > maxLength) {
-            html = `${html.substring(0, maxLength)}... [truncated]`;
+        // The side panel is rendered in a ModalPortal (outside #root), so querying #root gives us the main content
+        // We look for the main React root, excluding any portals/modals
+        const rootElement = document.getElementById('root');
+        if (!rootElement) {
+            return '';
         }
 
-        return html;
+        // Clone the element to avoid modifying the original DOM
+        const clone = rootElement.cloneNode(true) as HTMLElement;
+
+        // Remove non-content elements that don't provide useful context
+        const elementsToRemove = clone.querySelectorAll(
+            'script, style, noscript, svg, img, video, audio, iframe, canvas, ' +
+                // Remove input elements and buttons as they don't contain useful text
+                'input, textarea, button, ' +
+                // Remove hidden elements
+                '[aria-hidden="true"], [style*="display: none"], [style*="visibility: hidden"]',
+        );
+        elementsToRemove.forEach((el) => el.remove());
+
+        // Extract text content rather than HTML for cleaner, more useful context
+        let textContent = clone.textContent ?? '';
+
+        // Clean up the text: normalize whitespace
+        textContent = textContent
+            .replace(/\s+/g, ' ')
+            .replace(/\n\s*\n/g, '\n')
+            .trim();
+
+        // Limit to ~8KB to avoid sending too much data to the LLM
+        const maxLength = 8000;
+        if (textContent.length > maxLength) {
+            textContent = `${textContent.substring(0, maxLength)}... [truncated]`;
+        }
+
+        // Only return if we have meaningful content
+        if (textContent.length < 50) {
+            return '';
+        }
+
+        return textContent;
     } catch (error) {
         return '';
     }
