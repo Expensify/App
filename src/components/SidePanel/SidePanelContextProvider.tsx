@@ -102,11 +102,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             shouldHideToolTip,
             sidePanelOffset,
             sidePanelTranslateX,
-            //  in the console.
-            openSidePanel: () => {
-                // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true, openNarrowScreen: true});
-            },
+            openSidePanel: () => SidePanelActions.openSidePanel(false),
             closeSidePanel,
             sidePanelNVP,
         }),
