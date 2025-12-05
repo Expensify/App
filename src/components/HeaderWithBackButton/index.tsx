@@ -36,6 +36,7 @@ function HeaderWithBackButton({
     onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
+    onRotateButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report,
     policyAvatar,
@@ -46,6 +47,7 @@ function HeaderWithBackButton({
     shouldShowCloseButton = false,
     shouldShowDownloadButton = false,
     isDownloading = false,
+    shouldShowRotateButton = false,
     shouldShowPinButton = false,
     shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
@@ -280,6 +282,21 @@ function HeaderWithBackButton({
                             ) : (
                                 <ActivityIndicator style={[styles.touchableButtonImage]} />
                             ))}
+                        {shouldShowRotateButton && (
+                            <Tooltip text={translate('common.rotate')}>
+                                <PressableWithoutFeedback
+                                    onPress={onRotateButtonPress}
+                                    style={[styles.touchableButtonImage]}
+                                    role="button"
+                                    accessibilityLabel={translate('common.rotate')}
+                                >
+                                    <Icon
+                                        src={Expensicons.Rotate}
+                                        fill={iconFill ?? theme.icon}
+                                    />
+                                </PressableWithoutFeedback>
+                            </Tooltip>
+                        )}
                         {shouldShowPinButton && !!report && <PinButton report={report} />}
                     </View>
                     {ThreeDotMenuButton}

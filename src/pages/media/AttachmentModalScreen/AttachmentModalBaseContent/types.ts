@@ -90,6 +90,12 @@ type AttachmentModalBaseContentProps = {
     /** Whether to show download button */
     shouldShowDownloadButton?: boolean;
 
+    /** Whether to show rotate button */
+    shouldShowRotateButton?: boolean;
+
+    /** Callback triggered when the rotate button is pressed */
+    onRotateButtonPress?: () => void;
+
     /** Whether to disable send button */
     shouldDisableSendButton?: boolean;
 
