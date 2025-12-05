@@ -197,6 +197,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
         onLongPressRow?.(item, isExpenseReportType ? undefined : transactions);
     }, [isEmpty, isExpenseReportType, item, onLongPressRow, transactions]);
 
+    const onExpandedRowLongPress = useCallback(
+        (transaction: TransactionListItemType) => {
+            onLongPressRow?.(transaction as unknown as TItem);
+        },
+        [onLongPressRow],
+    );
+
     const onCheckboxPress = useCallback(
         (val: TItem) => {
             onCheckboxPressRow?.(val, isExpenseReportType ? undefined : transactions);
@@ -356,7 +363,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 transactionsQueryJSON={groupItem.transactionsQueryJSON}
                                 searchTransactions={searchTransactions}
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
-                                onLongPress={onLongPress}
+                                onLongPress={onExpandedRowLongPress}
                             />
                         </AnimatedCollapsible>
                     </View>
