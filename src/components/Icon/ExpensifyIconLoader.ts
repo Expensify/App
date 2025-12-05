@@ -45,7 +45,17 @@ function loadExpensifyIconsChunk(): Promise<ExpensifyIconsChunk> {
  * Get an ExpensifyIcon by name from the eagerly loaded chunk
  * This function provides immediate access once the chunk is loaded
  */
-function loadExpensifyIcon(iconName: ExpensifyIconName): Promise<{default: IconAsset}> {
+function loadExpensifyIcon(iconName: ExpensifyIconName): {default: IconAsset} | Promise<{default: IconAsset}> {
+    const cachedChunk = getExpensifyIconsChunk();
+    if (cachedChunk) {
+        const icon = cachedChunk.getExpensifyIcon(iconName);
+        if (!icon) {
+            return Promise.reject(new Error(`ExpensifyIcon "${iconName}" not found`));
+        }
+        return {default: icon};
+    }
+
+    // Fallback to async loading if chunk not cached
     return loadExpensifyIconsChunk()
         .then((chunk) => {
             const icon = chunk.getExpensifyIcon(iconName);
@@ -61,6 +71,15 @@ function loadExpensifyIcon(iconName: ExpensifyIconName): Promise<{default: IconA
         });
 }
 
-export {loadExpensifyIcon, loadExpensifyIconsChunk};
+/**
+ * Get the cached ExpensifyIcons chunk synchronously
+ * Returns null if the chunk hasn't been loaded yet
+ * Use this to avoid Promise microtask delay when chunk is already loaded
+ */
+function getExpensifyIconsChunk(): ExpensifyIconsChunk | null {
+    return expensifyIconsChunk;
+}
 
-export type {ExpensifyIconName};
+export {loadExpensifyIcon, loadExpensifyIconsChunk, getExpensifyIconsChunk};
+
+export type {ExpensifyIconName, ExpensifyIconsChunk};

@@ -49,7 +49,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
     useEffect(() => {
         setTaskTitle(Parser.htmlToMarkdown(Parser.replace(task?.title ?? '')));
         setTaskDescription(Parser.htmlToMarkdown(Parser.replace(task?.description ?? '')));
-    }, [task]);
+    }, [task?.title, task?.description]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
@@ -76,7 +76,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
         if (skipConfirmation) {
             setShareDestinationValue(task?.parentReportID);
             createTaskAndNavigate({
-                parentReportID: task?.parentReportID,
+                parentReport,
                 title: values.taskTitle,
                 description: values.taskDescription ?? '',
                 assigneeEmail: task?.assignee ?? '',

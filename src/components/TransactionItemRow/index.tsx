@@ -75,9 +75,6 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** information about whether to show the description, that is provided on Reports page */
     shouldShowDescription?: boolean;
 
-    /** Type of transaction */
-    transactionType?: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
     /** Precomputed violations */
     violations?: TransactionViolation[];
 
@@ -126,7 +123,7 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
     }
 
     const merchantName = StringUtils.getFirstLine(merchant);
-    return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? merchantName : '';
+    return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchantName !== CONST.TRANSACTION.DEFAULT_MERCHANT ? merchantName : '';
 }
 
 function TransactionItemRow({

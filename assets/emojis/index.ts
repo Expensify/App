@@ -20,9 +20,9 @@ const emojiCodeTableWithSkinTones = emojis.reduce<EmojiTable>((prev, cur) => {
         newValue[cur.code] = cur;
     }
     if ('types' in cur && cur.types) {
-        cur.types.forEach((type) => {
+        for (const type of cur.types) {
             newValue[type] = cur;
-        });
+        }
     }
     return newValue;
 }, {});

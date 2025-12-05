@@ -96,7 +96,7 @@ function useAttachmentUploadValidation({
             currentUserPersonalDetails,
         });
 
-        files.forEach((file, index) => {
+        for (const [index, file] of files.entries()) {
             const source = URL.createObjectURL(file as Blob);
             const newTransaction =
                 index === 0
@@ -108,8 +108,8 @@ function useAttachmentUploadValidation({
                       });
             const newTransactionID = newTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
             setMoneyRequestReceipt(newTransactionID, source, file.name ?? '', true, file.type);
-            setMoneyRequestParticipantsFromReport(newTransactionID, report);
-        });
+            setMoneyRequestParticipantsFromReport(newTransactionID, report, currentUserPersonalDetails.accountID);
+        }
         Navigation.navigate(
             ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                 CONST.IOU.ACTION.CREATE,

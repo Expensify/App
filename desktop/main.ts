@@ -173,13 +173,13 @@ const EXPECTED_UPDATE_VERSION_FLAG = '--expected-update-version';
 const APP_DOMAIN = __DEV__ ? `https://dev.new.expensify.com:${port}` : 'app://-';
 
 let expectedUpdateVersion: string;
-process.argv.forEach((arg) => {
+for (const arg of process.argv) {
     if (!arg.startsWith(`${EXPECTED_UPDATE_VERSION_FLAG}=`)) {
-        return;
+        continue;
     }
 
     expectedUpdateVersion = arg.slice(`${EXPECTED_UPDATE_VERSION_FLAG}=`.length);
-});
+}
 
 // Add the listeners and variables required to ensure that auto-updating
 // happens correctly.
