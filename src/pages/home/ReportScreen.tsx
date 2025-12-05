@@ -535,7 +535,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // Legacy transactions (created before NewDot) don't have IOU actions.
         // For single-transaction expense reports, create the missing IOU actions and transaction thread here.
         // Only check after report actions have loaded to avoid false positives on fresh app load.
-        if (reportMetadata?.hasOnceLoadedReportActions) {
+        if (reportMetadata?.hasOnceLoadedReportActions || isOffline) {
             const currentReportTransaction = getReportTransactions(report?.reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             const firstTransaction = currentReportTransaction.at(0);
             const iouAction = getIOUActionForReportID(report?.reportID, firstTransaction?.transactionID);
