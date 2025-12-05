@@ -196,7 +196,7 @@ type CustomBaseTextInputProps = ForwardedFSClassProps & {
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 
-    /** When the `disableKeyboard` prop is passed with the value `true`, we need to pass the `navigation` prop from `useNavigation` to ensure that the `disableKeyboard` functionality works correctly when the application is backgrounded */
+    /** When the `disableKeyboard` prop is passed with the value `true`, we need to pass the `navigation` prop from `useNavigation` to ensure that the `disableKeyboard` functionality works correctly when the application is in the background */
     navigation?: Omit<NavigationProp<ReactNavigation.RootParamList>, 'getState'> & {
         getState(): NavigationState | undefined;
     };
