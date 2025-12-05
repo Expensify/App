@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import {Star} from '@components/Icon/Expensicons';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -29,6 +30,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [freeTrialText, setFreeTrialText] = useState<string | undefined>(undefined);
     const {isOffline} = useNetwork();
@@ -38,8 +40,8 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
         if (!privateSubscription && !isOffline) {
             return;
         }
-        setFreeTrialText(getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial));
-    }, [isOffline, privateSubscription, translate, policies, firstDayFreeTrial, lastDayFreeTrial, introSelected]);
+        setFreeTrialText(getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial, currentUserPersonalDetails.accountID));
+    }, [isOffline, privateSubscription, translate, policies, firstDayFreeTrial, lastDayFreeTrial, introSelected, currentUserPersonalDetails.accountID]);
 
     if (!freeTrialText) {
         return null;

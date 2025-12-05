@@ -142,7 +142,7 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
 const selectPaymentType = (params: SelectPaymentTypeParams) => {
     const {event, iouPaymentType, triggerKYCFlow, policy, onPress, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, isUserValidated, confirmApproval, iouReport} =
         params;
-    if (policy && shouldRestrictUserBillableActions(policy.id)) {
+    if (policy && shouldRestrictUserBillableActions(policy.id, currentAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }

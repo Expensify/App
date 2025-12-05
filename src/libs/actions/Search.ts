@@ -53,6 +53,14 @@ import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
+let userAccountID = -1;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        userAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    },
+});
+
 type OnyxSearchResponse = {
     data: [];
     search: {
@@ -1034,7 +1042,7 @@ function handleBulkPayItemSelected(
         return;
     }
 
-    if (policy && shouldRestrictUserBillableActions(policy?.id)) {
+    if (policy && shouldRestrictUserBillableActions(policy?.id, userAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
         return;
     }

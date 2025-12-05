@@ -211,7 +211,7 @@ describe('SubscriptionUtils', () => {
         });
 
         it("should return false if the user isn't a workspace's owner or isn't a member of any past due billing workspace", () => {
-            expect(shouldRestrictUserBillableActions('1')).toBeFalsy();
+            expect(shouldRestrictUserBillableActions('1', undefined)).toBeFalsy();
         });
 
         it('should return false if the user is a non-owner of a workspace that is not in the shared NVP collection', async () => {
@@ -229,7 +229,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeFalsy();
         });
 
         it("should return false if the user is a workspace's non-owner that is not past due billing", async () => {
@@ -247,7 +247,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeFalsy();
         });
 
         it("should return true if the user is a workspace's non-owner that is past due billing", async () => {
@@ -265,7 +265,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, undefined)).toBeTruthy();
         });
 
         it("should return false if the user is the workspace's owner but is not past due billing", async () => {
@@ -281,7 +281,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, accountID)).toBeFalsy();
         });
 
         it("should return false if the user is the workspace's owner that is past due billing but isn't owning any amount", async () => {
@@ -298,7 +298,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, accountID)).toBeFalsy();
         });
 
         it("should return true if the user is the workspace's owner that is past due billing and is owning some amount", async () => {
@@ -315,7 +315,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID)).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, accountID)).toBeTruthy();
         });
 
         it("should return false if the user is past due billing but is not the workspace's owner", async () => {
@@ -332,7 +332,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, accountID)).toBeFalsy();
         });
     });
 
@@ -535,7 +535,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: null,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null,
             });
-            expect(shouldShowDiscountBanner(true, 'corporate', undefined, undefined, undefined)).toBeFalsy();
+            expect(shouldShowDiscountBanner(true, 'corporate', undefined, undefined, undefined, ownerAccountID)).toBeFalsy();
         });
 
         it(`should return false if user has already added a payment method`, async () => {
@@ -548,7 +548,7 @@ describe('SubscriptionUtils', () => {
                 },
                 [ONYXKEYS.NVP_BILLING_FUND_ID]: 8010,
             });
-            expect(shouldShowDiscountBanner(true, 'corporate', undefined, undefined, 8010)).toBeFalsy();
+            expect(shouldShowDiscountBanner(true, 'corporate', undefined, undefined, 8010, ownerAccountID)).toBeFalsy();
         });
 
         it('should return false if the user is on Team plan', async () => {
@@ -563,7 +563,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
-            expect(shouldShowDiscountBanner(true, 'team', firstDayFreeTrial, undefined, undefined)).toBeFalsy();
+            expect(shouldShowDiscountBanner(true, 'team', firstDayFreeTrial, undefined, undefined, ownerAccountID)).toBeFalsy();
         });
 
         it('should return true if the date is before the free trial end date or within the 8 days from the trial start date', async () => {
@@ -579,7 +579,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: lastDayFreeTrial,
             });
-            expect(shouldShowDiscountBanner(true, 'corporate', firstDayFreeTrial, lastDayFreeTrial, undefined)).toBeTruthy();
+            expect(shouldShowDiscountBanner(true, 'corporate', firstDayFreeTrial, lastDayFreeTrial, undefined, ownerAccountID)).toBeTruthy();
         });
 
         it("should return false if user's trial is during the discount period but has no workspaces", async () => {
@@ -589,7 +589,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
-            expect(shouldShowDiscountBanner(true, 'corporate', firstDayFreeTrial, undefined, undefined)).toBeFalsy();
+            expect(shouldShowDiscountBanner(true, 'corporate', firstDayFreeTrial, undefined, undefined, ownerAccountID)).toBeFalsy();
         });
     });
 
@@ -708,11 +708,11 @@ describe('SubscriptionUtils', () => {
                 },
             });
             // Test with canDowngrade as false (explicitly)
-            expect(shouldCalculateBillNewDot(false)).toBeFalsy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, false)).toBeFalsy();
             // Test with canDowngrade as undefined (defaults to false in the function signature)
-            expect(shouldCalculateBillNewDot(undefined)).toBeFalsy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, undefined)).toBeFalsy();
             // Test without passing canDowngrade (defaults to false)
-            expect(shouldCalculateBillNewDot()).toBeFalsy();
+            expect(shouldCalculateBillNewDot(testUserAccountID)).toBeFalsy();
         });
 
         it('should return false if the user owns zero paid policies', async () => {
@@ -724,7 +724,7 @@ describe('SubscriptionUtils', () => {
                     type: CONST.POLICY.TYPE.PERSONAL,
                 },
             });
-            expect(shouldCalculateBillNewDot(true)).toBeFalsy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, true)).toBeFalsy();
         });
 
         it('should return false if the user owns more than one paid policy', async () => {
@@ -740,7 +740,7 @@ describe('SubscriptionUtils', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                 },
             });
-            expect(shouldCalculateBillNewDot(true)).toBeFalsy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, true)).toBeFalsy();
         });
 
         it('should return true if canDowngrade is true and the user owns exactly one paid policy', async () => {
@@ -757,7 +757,7 @@ describe('SubscriptionUtils', () => {
                     type: CONST.POLICY.TYPE.PERSONAL,
                 },
             });
-            expect(shouldCalculateBillNewDot(true)).toBeTruthy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, true)).toBeTruthy();
         });
 
         it('should return false if the user owns exactly one paid policy but is not the owner', async () => {
@@ -770,7 +770,7 @@ describe('SubscriptionUtils', () => {
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
             });
-            expect(shouldCalculateBillNewDot(true)).toBeFalsy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, true)).toBeFalsy();
         });
 
         it('should return true if canDowngrade is true and the single paid policy is a team policy', async () => {
@@ -781,7 +781,7 @@ describe('SubscriptionUtils', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                 },
             });
-            expect(shouldCalculateBillNewDot(true)).toBeTruthy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, true)).toBeTruthy();
         });
 
         it('should return true if canDowngrade is true and the single paid policy is a corporate policy', async () => {
@@ -792,7 +792,7 @@ describe('SubscriptionUtils', () => {
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
             });
-            expect(shouldCalculateBillNewDot(true)).toBeTruthy();
+            expect(shouldCalculateBillNewDot(testUserAccountID, true)).toBeTruthy();
         });
     });
 });

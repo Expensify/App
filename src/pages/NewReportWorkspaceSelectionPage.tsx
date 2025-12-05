@@ -215,7 +215,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 return;
             }
 
-            if (shouldRestrictUserBillableActions(policy.policyID)) {
+            if (shouldRestrictUserBillableActions(policy.policyID, accountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.policyID));
                 return;
             }
