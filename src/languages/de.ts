@@ -1425,12 +1425,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Einige dieser Duplikate wurden bereits genehmigt oder bezahlt.',
         reviewDuplicates: 'Duplikate überprüfen',
         keepAll: 'Alles behalten',
-        confirmApprove: 'Betrag der Genehmigung bestätigen',
-        confirmApprovalAmount: 'Genehmigen Sie nur konforme Ausgaben oder genehmigen Sie den gesamten Bericht.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Diese Ausgabe ist zurückgestellt. Möchten Sie trotzdem genehmigen?',
-            other: 'Diese Ausgaben sind zurückgestellt. Möchten Sie trotzdem genehmigen?',
-        }),
+        confirmApprovalWithHeldAmount: 'Der Bericht enthält zurückgestellte Ausgaben. Nur konforme Ausgaben genehmigen oder den gesamten Bericht genehmigen?',
         confirmPay: 'Zahlungsbetrag bestätigen',
         confirmPayAmount: 'Bezahlen Sie, was nicht zurückgehalten wird, oder bezahlen Sie den gesamten Bericht.',
         confirmPayAllHoldAmount: () => ({

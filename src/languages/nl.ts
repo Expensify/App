@@ -1421,12 +1421,7 @@ const translations: TranslationDeepObject<typeof en> = {
         someDuplicatesArePaid: 'Sommige van deze duplicaten zijn al goedgekeurd of betaald.',
         reviewDuplicates: 'Duplicaten beoordelen',
         keepAll: 'Alles behouden',
-        confirmApprove: 'Bevestig goedkeuringsbedrag',
-        confirmApprovalAmount: 'Alleen conforme uitgaven goedkeuren, of het hele rapport goedkeuren.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Deze uitgave is in de wacht. Wil je toch goedkeuren?',
-            other: 'Deze uitgaven zijn in de wacht gezet. Wil je ze toch goedkeuren?',
-        }),
+        confirmApprovalWithHeldAmount: 'Het rapport bevat uitgaven in de wacht. Alleen conforme uitgaven goedkeuren, of het hele rapport goedkeuren?',
         confirmPay: 'Bevestig betalingsbedrag',
         confirmPayAmount: 'Betaal wat niet in de wacht staat, of betaal het hele rapport.',
         confirmPayAllHoldAmount: () => ({
