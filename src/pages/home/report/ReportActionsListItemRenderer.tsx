@@ -97,6 +97,10 @@ type ReportActionsListItemRendererProps = {
     isTryNewDotNVPDismissed: boolean | undefined;
     /** Whether the report is archived */
     isReportArchived: boolean;
+    /** Original report ID for this action (computed at list level) */
+    originalReportID?: string;
+    /** Whether the original report is archived */
+    isOriginalReportArchived?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -130,6 +134,8 @@ function ReportActionsListItemRenderer({
     allEmojiReactions,
     isTryNewDotNVPDismissed = false,
     isReportArchived = false,
+    originalReportID,
+    isOriginalReportArchived,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -260,6 +266,8 @@ function ReportActionsListItemRenderer({
             linkedTransactionRouteError={linkedTransactionRouteError}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+            originalReportID={originalReportID}
+            isOriginalReportArchived={isOriginalReportArchived}
         />
     );
 }
