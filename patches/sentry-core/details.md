@@ -8,6 +8,6 @@
   - Prefixes the CSS selector with the found `data-label` value (e.g., `[data-label="MyLabel"] div.css-146c3p1.r-1udh08x.r-1udbk01.r-1iln25a > svg`)
 
   This allows us to identify UI elements by meaningful labels rather than just CSS selectors, making Sentry spans more actionable.
-- Upstream PR/issue: N/A (Expensify-specific enhancement)
+- Upstream PR/issue: https://github.com/getsentry/sentry-javascript/pull/18398
 - E/App issue: https://github.com/Expensify/App/issues/76128
 - PR Introducing Patch: https://github.com/Expensify/App/pull/76547
