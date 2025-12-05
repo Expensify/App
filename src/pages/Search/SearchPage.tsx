@@ -11,7 +11,6 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -33,6 +32,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {openWorkspace} from '@libs/actions/Policy/Policy';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, openReport, searchInServer} from '@libs/actions/Report';
 import {
@@ -61,6 +61,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isMergeActionFromReportView} from '@libs/ReportSecondaryActionUtils';
 import {
     canRejectReportAction,
     checkBulkRejectHydration,
@@ -138,7 +139,9 @@ function SearchPage({route}: SearchPageProps) {
         'Send',
         'Trashcan',
         'ThumbsUp',
+        'ThumbsDown',
         'ArrowRight',
+        'ArrowCollapse',
         'Stopwatch',
         'Exclamation',
         'SmartScan',
@@ -370,6 +373,7 @@ function SearchPage({route}: SearchPageProps) {
             ) as PaymentData[];
 
             payMoneyRequestOnSearch(hash, paymentData);
+
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
@@ -377,6 +381,14 @@ function SearchPage({route}: SearchPageProps) {
         },
         [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions, policies, formatPhoneNumber],
     );
+
+    const [isSorting, setIsSorting] = useState(false);
+    let searchResults: SearchResults | undefined;
+    if (currentSearchResults?.data) {
+        searchResults = currentSearchResults;
+    } else if (isSorting) {
+        searchResults = lastNonEmptySearchResults.current;
+    }
 
     // Check if all selected transactions are from the submitter
     const areAllTransactionsFromSubmitter = useMemo(() => {
@@ -570,7 +582,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowRejectOption) {
             options.push({
-                icon: Expensicons.ThumbsDown,
+                icon: expensifyIcons.ThumbsDown,
                 text: translate('search.bulkActions.reject'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
                 shouldCloseModalOnSelect: true,
@@ -748,6 +760,26 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+        if (selectedTransactionsKeys.length < 3 && searchResults?.data) {
+            const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
+            const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(1)}`];
+            const reports = [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]];
+            const transactionPolicies = [
+                searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction1?.policyID}`],
+                searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction2?.policyID}`],
+            ];
+            const transactions = selectedTransactionsKeys.length === 1 ? [transaction1] : [transaction1, transaction2];
+
+            if (isMergeActionFromReportView(transactions, reports, transactionPolicies)) {
+                options.push({
+                    text: translate('common.merge'),
+                    icon: expensifyIcons.ArrowCollapse,
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
+                    onSelected: () => setupMergeTransactionDataAndNavigate(transactions, queryJSON?.hash),
+                });
+            }
+        }
+
         if (options.length === 0) {
             const emptyOptionStyle = {
                 interactive: false,
@@ -768,6 +800,8 @@ function SearchPage({route}: SearchPageProps) {
 
         return options;
     }, [
+        currentUserPersonalDetails?.login,
+        searchResults?.data,
         selectedTransactionsKeys,
         status,
         hash,
@@ -792,7 +826,18 @@ function SearchPage({route}: SearchPageProps) {
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
-        expensifyIcons,
+        expensifyIcons.ArrowCollapse,
+        expensifyIcons.ArrowRight,
+        expensifyIcons.DocumentMerge,
+        expensifyIcons.Exclamation,
+        expensifyIcons.Export,
+        expensifyIcons.MoneyBag,
+        expensifyIcons.Send,
+        expensifyIcons.Stopwatch,
+        expensifyIcons.Table,
+        expensifyIcons.ThumbsDown,
+        expensifyIcons.ThumbsUp,
+        expensifyIcons.Trashcan,
         dismissedHoldUseExplanation,
         dismissedRejectUseExplanation,
         areAllTransactionsFromSubmitter,
@@ -907,15 +952,6 @@ function SearchPage({route}: SearchPageProps) {
 
     const isPossibleToShowDownloadExportModal = !shouldUseNarrowLayout && isDownloadExportModalVisible && !!createExportAll && !!setIsDownloadExportModalVisible;
     const {resetVideoPlayerData} = usePlaybackContext();
-
-    const [isSorting, setIsSorting] = useState(false);
-
-    let searchResults;
-    if (currentSearchResults?.data) {
-        searchResults = currentSearchResults;
-    } else if (isSorting) {
-        searchResults = lastNonEmptySearchResults.current;
-    }
 
     const metadata = searchResults?.search;
     const shouldShowFooter = !!metadata?.count || selectedTransactionsKeys.length > 0;

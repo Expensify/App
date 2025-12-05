@@ -4,30 +4,23 @@ import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-
 import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getMergeFieldValue, getTransactionThreadReportID, MERGE_FIELDS} from '@libs/MergeTransactionUtils';
+import {
+    areTransactionsEligibleForMerge,
+    getMergeFieldValue,
+    getTransactionThreadReportID,
+    MERGE_FIELDS,
+    selectTargetAndSourceTransactionsForMerge,
+    shouldNavigateToReceiptReview,
+} from '@libs/MergeTransactionUtils';
 import type {MergeFieldKey, MergeTransactionUpdateValues} from '@libs/MergeTransactionUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
-import {
-    getReportOrDraftReport,
-    getReportTransactions,
-    getTransactionDetails,
-    isCurrentUserSubmitter,
-    isIOUReport,
-    isMoneyRequestReportEligibleForMerge,
-    isReportManager,
-} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isCurrentUserSubmitter, isMoneyRequestReportEligibleForMerge, isReportManager} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {
-    getAmount,
-    getTransactionViolationsOfTransaction,
-    isDistanceRequest,
-    isExpenseSplit,
-    isManagedCardTransaction,
-    isPerDiemRequest,
-    isTransactionPendingDelete,
-} from '@src/libs/TransactionUtils';
+import {getTransactionViolationsOfTransaction, isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
 import type {UpdateMoneyRequestData} from './IOU';
@@ -46,6 +39,39 @@ function setMergeTransactionKey(transactionID: string, values: MergeTransactionU
     Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
 }
 
+function setupMergeTransactionDataAndNavigate(transactions: Transaction[], hash?: number) {
+    if (!transactions.length || transactions.length > 2) {
+        return;
+    }
+
+    if (transactions.length === 1) {
+        const transaction = transactions.at(0);
+        if (transaction) {
+            setupMergeTransactionData(transaction.transactionID, {targetTransactionID: transaction.transactionID});
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID));
+            return;
+        }
+    }
+
+    const {targetTransaction, sourceTransaction} = selectTargetAndSourceTransactionsForMerge(transactions.at(0), transactions.at(1));
+    if (!targetTransaction || !sourceTransaction) {
+        return;
+    }
+
+    setupMergeTransactionData(targetTransaction.transactionID, {targetTransactionID: targetTransaction?.transactionID, sourceTransactionID: sourceTransaction?.transactionID});
+    if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
+        // Navigate to the receipt review page if both transactions have a receipt
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(targetTransaction.transactionID, hash));
+    } else {
+        // Only one transaction has a receipt, choose it by default
+        const receipt = targetTransaction.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction.receipt;
+        setMergeTransactionKey(targetTransaction.transactionID, {
+            receipt,
+        });
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(targetTransaction.transactionID, hash));
+    }
+}
+
 /**
  * Fetches eligible transactions for merging
  */
@@ -57,60 +83,23 @@ function getTransactionsForMergingFromAPI(transactionID: string) {
     API.read(READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING, parameters);
 }
 
-function areTransactionsEligibleForMerge(transaction1: Transaction, transaction2: Transaction, originalTransaction1?: Transaction, originalTransaction2?: Transaction) {
-    // Do not allow merging two card transactions
-    if (isManagedCardTransaction(transaction1) && isManagedCardTransaction(transaction2)) {
-        return false;
-    }
-
-    // Do not allow merging two split expenses
-    if (isExpenseSplit(transaction1, originalTransaction1) && isExpenseSplit(transaction2, originalTransaction2)) {
-        return false;
-    }
-
-    // Do not allow merging two $0 transactions
-    if (getAmount(transaction1, false, false) === 0 && getAmount(transaction2, false, false) === 0) {
-        return false;
-    }
-
-    // Do not allow merging a per diem and a card transaction
-    if ((isPerDiemRequest(transaction1) && isManagedCardTransaction(transaction2)) || (isPerDiemRequest(transaction2) && isManagedCardTransaction(transaction1))) {
-        return false;
-    }
-
-    // Temporary exclude IOU reports from eligible list
-    // See: https://github.com/Expensify/App/issues/70329#issuecomment-3277062003
-    if (isIOUReport(transaction1.reportID) || isIOUReport(transaction2.reportID)) {
-        return false;
-    }
-
-    if (isDistanceRequest(transaction1) !== isDistanceRequest(transaction2)) {
-        return false;
-    }
-
-    return true;
-}
-
 /**
  * Fetches eligible transactions for merging locally
  * This is FE version of READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING API call
  */
-function getTransactionsForMergingLocally(transactionID: string, targetTransaction: Transaction, transactions: OnyxCollection<Transaction>) {
+function getTransactionsForMergingLocally(transactionID: string, targetTransaction: Transaction, transactions: OnyxCollection<Transaction>, isAdmin = false) {
     const transactionsArray = Object.values(transactions ?? {});
-    const targetOriginalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`];
 
     const eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => {
         if (!transaction || transaction.transactionID === targetTransaction.transactionID) {
             return false;
         }
 
-        const originalTransactionID = transaction.comment?.originalTransactionID;
-        const originalTransaction = originalTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`] : undefined;
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         return (
-            areTransactionsEligibleForMerge(targetTransaction, transaction, targetOriginalTransaction, originalTransaction) &&
+            areTransactionsEligibleForMerge(targetTransaction, transaction) &&
             !isTransactionPendingDelete(transaction) &&
-            (isUnreportedExpense || (!!transaction.reportID && isMoneyRequestReportEligibleForMerge(transaction.reportID, false)))
+            (isUnreportedExpense || (!!transaction.reportID && isMoneyRequestReportEligibleForMerge(transaction.reportID, isAdmin)))
         );
     });
 
@@ -147,15 +136,12 @@ function getTransactionsForMerging({
 
     if (isPaidGroupPolicy(policy) && (isAdmin || isManager) && !isCurrentUserSubmitter(report)) {
         const reportTransactions = getReportTransactions(report?.reportID);
-        const targetOriginalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`];
         const eligibleTransactions = reportTransactions.filter((transaction): transaction is Transaction => {
             if (!transaction || transaction.transactionID === transactionID) {
                 return false;
             }
 
-            const originalTransactionID = transaction.comment?.originalTransactionID;
-            const originalTransaction = originalTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`] : undefined;
-            return areTransactionsEligibleForMerge(targetTransaction, transaction, targetOriginalTransaction, originalTransaction);
+            return areTransactionsEligibleForMerge(targetTransaction, transaction);
         });
 
         Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {
@@ -165,7 +151,7 @@ function getTransactionsForMerging({
     }
 
     if (isOffline) {
-        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions);
+        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, isAdmin);
     } else {
         getTransactionsForMergingFromAPI(transactionID);
     }
@@ -448,4 +434,4 @@ function mergeTransactionRequest({
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
 }
 
-export {areTransactionsEligibleForMerge, setupMergeTransactionData, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};
+export {areTransactionsEligibleForMerge, setupMergeTransactionData, setupMergeTransactionDataAndNavigate, setMergeTransactionKey, getTransactionsForMerging, mergeTransactionRequest};

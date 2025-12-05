@@ -1156,6 +1156,7 @@ const translations: TranslationDeepObject<typeof en> = {
         totalAmountLessThanOriginal: ({amount}: TotalAmountGreaterOrLessThanOriginalParams) => `Całkowita kwota jest o ${amount} mniejsza niż pierwotny wydatek.`,
         splitExpenseZeroAmount: 'Proszę wprowadzić prawidłową kwotę przed kontynuowaniem.',
         splitExpenseEditTitle: ({amount, merchant}: SplitExpenseEditTitleParams) => `Edytuj ${amount} dla ${merchant}`,
+        transactionDisplayName: ({amount, merchant}: SplitExpenseEditTitleParams) => `${amount} dla ${merchant}`,
         splitExpenseOneMoreSplit: 'Nie dodano żadnych podziałów. Dodaj przynajmniej jeden, aby zapisać.',
         splitExpenseCannotBeEditedModalTitle: 'Ten wydatek nie może być edytowany',
         splitExpenseCannotBeEditedModalDescription: 'Zatwierdzone lub opłacone wydatki nie mogą być edytowane',

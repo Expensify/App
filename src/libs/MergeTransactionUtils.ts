@@ -12,10 +12,22 @@ import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransacti
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
-import {findSelfDMReportID, getReportName, getReportOrDraftReport, getTransactionDetails} from './ReportUtils';
+import {getReportName} from './ReportNameUtils';
+import {findSelfDMReportID, getReportOrDraftReport, getTransactionDetails, isIOUReport} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
-import {getAttendeesListDisplayString, getCurrency, getReimbursable, getWaypoints, isDistanceRequest, isExpenseSplit, isManagedCardTransaction, isMerchantMissing} from './TransactionUtils';
+import {
+    getAmount,
+    getAttendeesListDisplayString,
+    getCurrency,
+    getReimbursable,
+    getWaypoints,
+    isDistanceRequest,
+    isExpenseSplit,
+    isManagedCardTransaction,
+    isMerchantMissing,
+    isPerDiemRequest,
+} from './TransactionUtils';
 
 const RECEIPT_SOURCE_URL = 'https://www.expensify.com/receipts/';
 
@@ -181,16 +193,10 @@ function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
  * Get mergeableData data if one is missing, and conflict fields that need to be resolved by the user
  * @param targetTransaction - The target transaction
  * @param sourceTransaction - The source transaction
- * @param originalTargetTransaction - The original transaction of target transaction
  * @param localeCompare - The localize compare function
  * @returns mergeableData and conflictFields
  */
-function getMergeableDataAndConflictFields(
-    targetTransaction: OnyxEntry<Transaction>,
-    sourceTransaction: OnyxEntry<Transaction>,
-    originalTargetTransaction: OnyxEntry<Transaction>,
-    localeCompare: (a: string, b: string) => number,
-) {
+function getMergeableDataAndConflictFields(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, localeCompare: (a: string, b: string) => number) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
 
@@ -208,7 +214,7 @@ function getMergeableDataAndConflictFields(
             // If target transaction is a card or split expense, always preserve the target transaction's amount and currency
             // Card takes precedence over split expense
             // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
-            const isTargetExpenseSplit = isExpenseSplit(targetTransaction, originalTargetTransaction);
+            const isTargetExpenseSplit = isExpenseSplit(targetTransaction);
             if (isManagedCardTransaction(targetTransaction) || isTargetExpenseSplit) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
@@ -348,6 +354,51 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
 }
 
 /**
+ * Determines whether two transactions can be merged together.
+ */
+function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, transaction2: OnyxEntry<Transaction>) {
+    // Both transactions are required
+    if (!transaction1 || !transaction2) {
+        return false;
+    }
+
+    // Do not allow merging transactions that are pending delete
+    if (transaction1.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || transaction2.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        return false;
+    }
+
+    // Do not allow merging two card transactions
+    if (isManagedCardTransaction(transaction1) && isManagedCardTransaction(transaction2)) {
+        return false;
+    }
+
+    // Do not allow merging two split expenses
+    if (isExpenseSplit(transaction1) && isExpenseSplit(transaction2)) {
+        return false;
+    }
+
+    // Do not allow merging two $0 transactions
+    if (getAmount(transaction1, false, false) === 0 && getAmount(transaction2, false, false) === 0) {
+        return false;
+    }
+
+    // Do not allow merging a per diem and a card transaction
+    if ((isPerDiemRequest(transaction1) && isManagedCardTransaction(transaction2)) || (isPerDiemRequest(transaction2) && isManagedCardTransaction(transaction1))) {
+        return false;
+    }
+
+    if (isIOUReport(transaction1?.reportID) || isIOUReport(transaction2?.reportID)) {
+        return false;
+    }
+
+    if (isDistanceRequest(transaction1) !== isDistanceRequest(transaction2)) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Determines the correct target and source transactions for merging based on transaction types.
  *
  * Rules:
@@ -358,13 +409,12 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
  *
  * @param targetTransaction - The transaction where the merge action is started from
  * @param sourceTransaction - The selected transaction to be merged with the target transaction
- * @param originalSourceTransaction - The original transaction of the source transaction
  * @returns An object containing the determined targetTransaction and sourceTransaction
  */
-function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, originalSourceTransaction?: OnyxEntry<Transaction>) {
+function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>) {
     // If target transaction is a card or split expense, always preserve the target transaction
     // Card takes precedence over split expense
-    if (isManagedCardTransaction(sourceTransaction) || (isExpenseSplit(sourceTransaction, originalSourceTransaction) && !isManagedCardTransaction(targetTransaction))) {
+    if (isManagedCardTransaction(sourceTransaction) || (isExpenseSplit(sourceTransaction) && !isManagedCardTransaction(targetTransaction))) {
         return {targetTransaction: sourceTransaction, sourceTransaction: targetTransaction};
     }
 
@@ -511,6 +561,7 @@ export {
     buildMergeFieldsData,
     getReportIDForExpense,
     getMergeFieldErrorText,
+    areTransactionsEligibleForMerge,
     MERGE_FIELDS,
     getRateFromMerchant,
     getMergeFieldUpdatedValues,

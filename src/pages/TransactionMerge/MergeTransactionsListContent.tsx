@@ -9,21 +9,15 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMergeTransactions from '@hooks/useMergeTransactions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
-import {
-    fillMissingReceiptSource,
-    getMergeableDataAndConflictFields,
-    getSourceTransactionFromMergeTransaction,
-    getTransactionThreadReportID,
-    selectTargetAndSourceTransactionsForMerge,
-    shouldNavigateToReceiptReview,
-} from '@libs/MergeTransactionUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {fillMissingReceiptSource, getMergeableDataAndConflictFields, selectTargetAndSourceTransactionsForMerge, shouldNavigateToReceiptReview} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportName} from '@libs/ReportUtils';
-import {getCreated} from '@libs/TransactionUtils';
+import {getAmount, getCreated, getCurrency, getMerchant} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,27 +29,24 @@ import MergeTransactionItem from './MergeTransactionItem';
 type MergeTransactionsListContentProps = {
     transactionID: string;
     mergeTransaction: OnyxEntry<MergeTransaction>;
+    hash?: number;
 };
 
 type MergeTransactionListItemType = Transaction & ListItem;
 
-function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
+function MergeTransactionsListContent({transactionID, mergeTransaction, hash}: MergeTransactionsListContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves'] as const);
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const currentUserLogin = session?.email;
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const {isOffline} = useNetwork();
-    const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
-    const [originalTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
-    const sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction);
-    const [originalSourceTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
-    const currentUserLogin = session?.email;
+    const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction, hash});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionReport?.policyID}`, {canBeMissing: true});
 
     useEffect(() => {
         // If the eligible transactions are already loaded, don't fetch them again
@@ -63,8 +54,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             return;
         }
 
-        getTransactionsForMerging({isOffline, targetTransaction, transactions, policy, report, currentUserLogin});
-    }, [transactions, isOffline, mergeTransaction?.eligibleTransactions, policy, report, currentUserLogin, targetTransaction]);
+        getTransactionsForMerging({isOffline, targetTransaction, transactions, policy, report: targetTransactionReport, currentUserLogin});
+    }, [transactions, isOffline, mergeTransaction?.eligibleTransactions, policy, targetTransactionReport, currentUserLogin, targetTransaction]);
 
     const data = useMemo(() => {
         if (!eligibleTransactions) {
@@ -96,10 +87,15 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const headerContent = useMemo(
         () => (
             <View style={[styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow]}>
-                <RenderHTML html={translate('transactionMerge.listPage.selectTransactionToMerge', {reportName: getReportName(transactionThreadReport ?? report)})} />
+                <RenderHTML
+                    html={translate('iou.transactionDisplayName', {
+                        amount: convertToDisplayString(getAmount(targetTransaction), getCurrency(targetTransaction)),
+                        merchant: getMerchant(targetTransaction),
+                    })}
+                />
             </View>
         ),
-        [transactionThreadReport, report, translate, styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow],
+        [targetTransaction, translate, styles.renderHTML, styles.ph5, styles.pb5, styles.textLabel, styles.minHeight5, styles.flexRow],
     );
 
     const subTitleContent = useMemo(() => {
@@ -115,17 +111,13 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             return;
         }
 
-        const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionsForMerge(
-            targetTransaction,
-            sourceTransaction,
-            originalSourceTransaction,
-        );
+        const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionsForMerge(targetTransaction, sourceTransaction);
         if (shouldNavigateToReceiptReview([newTargetTransaction, newSourceTransaction])) {
             setMergeTransactionKey(transactionID, {
                 targetTransactionID: newTargetTransaction?.transactionID,
                 sourceTransactionID: newSourceTransaction?.transactionID,
             });
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(transactionID));
         } else {
             const mergedReceipt = newTargetTransaction?.receipt?.receiptID ? newTargetTransaction.receipt : newSourceTransaction?.receipt;
             setMergeTransactionKey(transactionID, {
@@ -134,16 +126,16 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                 receipt: mergedReceipt,
             });
 
-            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction, originalTargetTransaction, localeCompare);
+            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction, localeCompare);
             if (!conflictFields.length) {
                 // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
                 setMergeTransactionKey(transactionID, mergeableData);
-                Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
+                Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID));
                 return;
             }
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID));
         }
-    }, [transactionID, targetTransaction, sourceTransaction, originalSourceTransaction, originalTargetTransaction, localeCompare]);
+    }, [transactionID, targetTransaction, sourceTransaction, localeCompare]);
 
     const confirmButtonOptions = useMemo(
         () => ({
