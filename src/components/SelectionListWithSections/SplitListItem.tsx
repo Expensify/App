@@ -1,8 +1,6 @@
 import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -32,18 +30,23 @@ function SplitListItem<TItem extends ListItem>({
     onInputFocus,
     onInputBlur,
 }: SplitListItemProps<TItem>) {
-    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Folder', 'Tag'] as const);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
 
     const splitItem = item as unknown as SplitListItemType;
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
 
-    const onSplitExpenseAmountChange = (amount: string) => {
-        splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
-    };
+    const onSplitExpenseAmountChange = useCallback(
+        (amount: string) => {
+            splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
+        },
+        // We should not pass whole object splitItem as it will cause recreation of the callback on every prop change even those which are not related to this callback.
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [splitItem.onSplitExpenseAmountChange, splitItem.transactionID],
+    );
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
 
@@ -61,7 +64,9 @@ function SplitListItem<TItem extends ListItem>({
 
     const [prefixCharacterMargin, setPrefixCharacterMargin] = useState<number>(CONST.CHARACTER_WIDTH);
     const inputMarginLeft = prefixCharacterMargin + styles.pl1.paddingLeft;
-    const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
+    // Use absolute value for contentWidth calculation since we don't want the minus sign to affect width
+    const absoluteFormattedAmount = convertToDisplayStringWithoutCurrency(Math.abs(splitItem.originalAmount), splitItem.currency);
+    const contentWidth = (absoluteFormattedAmount.length + 1) * CONST.CHARACTER_WIDTH;
     const focusHandler = useCallback(() => {
         if (!onInputFocus) {
             return;
@@ -207,6 +212,7 @@ function SplitListItem<TItem extends ListItem>({
                                 touchableInputWrapperStyle={[styles.ml3]}
                                 maxLength={formattedOriginalAmount.length + 1}
                                 contentWidth={contentWidth}
+                                allowFlippingAmount
                                 shouldApplyPaddingToContainer
                                 shouldUseDefaultLineHeightForPrefix={false}
                                 shouldWrapInputInContainer={false}
@@ -219,7 +225,7 @@ function SplitListItem<TItem extends ListItem>({
                         {!splitItem.isEditable ? null : (
                             <View style={styles.pointerEventsAuto}>
                                 <Icon
-                                    src={Expensicons.ArrowRight}
+                                    src={icons.ArrowRight}
                                     fill={theme.icon}
                                 />
                             </View>
