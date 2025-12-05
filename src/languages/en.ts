@@ -5308,9 +5308,18 @@ const translations = {
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
-            makeMember: 'Make member',
-            makeAdmin: 'Make admin',
-            makeAuditor: 'Make auditor',
+            makeMember: () => ({
+                one: 'Make member',
+                other: 'Make members',
+            }),
+            makeAdmin: () => ({
+                one: 'Make admin',
+                other: 'Make admins',
+            }),
+            makeAuditor: () => ({
+                one: 'Make auditor',
+                other: 'Make auditors',
+            }),
             selectAll: 'Select all',
             error: {
                 genericAdd: 'There was a problem adding this workspace member',

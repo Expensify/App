@@ -5207,9 +5207,18 @@ ${amount} voor ${merchant} - ${date}`,
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Weet je zeker dat je ${memberName} wilt verwijderen?`,
             removeMemberTitle: 'Lid verwijderen',
             transferOwner: 'Eigenaar overdragen',
-            makeMember: 'Lid maken',
-            makeAdmin: 'Beheerder maken',
-            makeAuditor: 'Maak controleur',
+            makeMember: () => ({
+                one: 'Lid maken',
+                other: 'Maak leden',
+            }),
+            makeAdmin: () => ({
+                one: 'Beheerder maken',
+                other: 'Beheerders aanwijzen',
+            }),
+            makeAuditor: () => ({
+                one: 'Maak auditor',
+                other: 'Maak auditors',
+            }),
             selectAll: 'Alles selecteren',
             error: {
                 genericAdd: 'Er was een probleem bij het toevoegen van dit werkruimtelid.',

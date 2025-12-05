@@ -5197,9 +5197,18 @@ ${amount} dla ${merchant} - ${date}`,
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Czy na pewno chcesz usunąć ${memberName}?`,
             removeMemberTitle: 'Usuń członka',
             transferOwner: 'Przenieś właściciela',
-            makeMember: 'Uczyń członkiem',
-            makeAdmin: 'Ustaw jako administratora',
-            makeAuditor: 'Utwórz audytora',
+            makeMember: () => ({
+                one: 'Ustaw jako członka',
+                other: 'Ustaw jako członków',
+            }),
+            makeAdmin: () => ({
+                one: 'Uczyń administratorem',
+                other: 'Uczyń administratorami',
+            }),
+            makeAuditor: () => ({
+                one: 'Uczyń audytorem',
+                other: 'Uczyń audytorami',
+            }),
             selectAll: 'Zaznacz wszystko',
             error: {
                 genericAdd: 'Wystąpił problem z dodaniem tego członka przestrzeni roboczej',

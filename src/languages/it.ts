@@ -5216,9 +5216,18 @@ ${amount} per ${merchant} - ${date}`,
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Sei sicuro di voler rimuovere ${memberName}?`,
             removeMemberTitle: 'Rimuovi membro',
             transferOwner: 'Trasferisci proprietario',
-            makeMember: 'Rendi membro',
-            makeAdmin: 'Rendi amministratore',
-            makeAuditor: 'Crea revisore contabile',
+            makeMember: () => ({
+                one: 'Rendi membro',
+                other: 'Rendi membri',
+            }),
+            makeAdmin: () => ({
+                one: 'Rendi amministratore',
+                other: 'Rendi amministratori',
+            }),
+            makeAuditor: () => ({
+                one: 'Rendi revisore',
+                other: 'Rendi revisori',
+            }),
             selectAll: 'Seleziona tutto',
             error: {
                 genericAdd: "Si è verificato un problema nell'aggiungere questo membro dello spazio di lavoro",
