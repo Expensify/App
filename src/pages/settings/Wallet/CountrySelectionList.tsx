@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -54,7 +54,26 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
     );
 
     const searchResults = searchOptions(debouncedSearchValue, countriesList);
-    const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
+
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('common.search'),
+            value: searchValue,
+            onChangeText: setSearchValue,
+            headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+        }),
+        [translate, searchValue, setSearchValue, debouncedSearchValue, searchResults.length],
+    );
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: isEditing ? translate('common.confirm') : translate('common.next'),
+            isDisabled: isOffline,
+            onConfirm: () => onCountrySelected(currentCountry),
+        }),
+        [isEditing, isOffline, onCountrySelected, translate],
+    );
 
     return (
         <FullPageOfflineBlockingView>
@@ -62,22 +81,16 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.countrySelectionStepHeader')}</Text>
             </View>
             <SelectionList
-                headerMessage={headerMessage}
-                sections={[{data: searchResults}]}
-                textInputValue={searchValue}
-                textInputLabel={translate('common.search')}
-                onChangeText={setSearchValue}
-                onSelectRow={onSelectionChange}
-                onConfirm={() => onCountrySelected(currentCountry)}
+                data={searchResults}
                 ListItem={RadioListItem}
-                initiallyFocusedOptionKey={currentCountry}
+                onSelectRow={onSelectionChange}
+                textInputOptions={textInputOptions}
+                confirmButtonOptions={confirmButtonOptions}
+                initiallyFocusedItemKey={currentCountry}
                 shouldSingleExecuteRowSelect
-                shouldStopPropagation
-                shouldUseDynamicMaxToRenderPerBatch
-                showConfirmButton
-                confirmButtonText={isEditing ? translate('common.confirm') : translate('common.next')}
-                isConfirmButtonDisabled={isOffline}
                 shouldUpdateFocusedIndex
+                shouldStopPropagation
+                disableMaintainingScrollPosition
             />
         </FullPageOfflineBlockingView>
     );
