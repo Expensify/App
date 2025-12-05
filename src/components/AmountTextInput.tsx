@@ -1,3 +1,4 @@
+import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 import CONST from '@src/CONST';
@@ -59,6 +60,8 @@ function AmountTextInput({
     ref,
     ...rest
 }: AmountTextInputProps) {
+    const navigation = useNavigation();
+
     return (
         <TextInput
             autoGrow
@@ -88,6 +91,7 @@ function AmountTextInput({
             disableKeyboardShortcuts
             shouldUseFullInputHeight
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
+            navigation={navigation}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
