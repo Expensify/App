@@ -3520,7 +3520,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         ownerAccountID: deprecatedSessionAccountID,
         isPolicyExpenseChatEnabled: true,
 
-        // Setting the currency to the currency of the iouReport
+        // Setting the new workspace currency to the currency of the iouReport
         outputCurrency: iouReport.currency ?? CONST.CURRENCY.USD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         autoReporting: true,
