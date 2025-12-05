@@ -79,7 +79,10 @@ function useBulkPayOptions({
     const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedWallet;
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
-    const onlyShowPayElsewhere = canIOUBePaid(iouReport, chatReport, policy, undefined, true);
+    const onlyShowPayElsewhere = useMemo(
+        () => canIOUBePaid(iouReport, chatReport, policy, undefined, true),
+        [iouReport, chatReport, policy],
+    );
 
     function getLatestBankAccountItem() {
         if (!policy?.achAccount?.bankAccountID) {
