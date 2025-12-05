@@ -117,7 +117,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                 // Ensure the dismiss completes first
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     // Navigate to the money request report in search results
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportIDToDismiss}), {forceReplace: true});
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportIDToDismiss}));
                 });
                 return;
             }
