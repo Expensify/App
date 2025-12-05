@@ -1400,7 +1400,7 @@ function changeTransactionsReport(
                 },
             },
         });
-    });
+    };
 
     const parameters: ChangeTransactionsReportParams = {
         transactionList: transactionIDs.join(','),
