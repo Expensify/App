@@ -155,14 +155,11 @@ function BaseVideoPlayer({
     }, [isPlaying, debouncedHideControl, controlStatusState, isPopoverVisible, canUseTouchScreen]);
 
     useEffect(() => {
-        if (!onTap) {
+        if (!onTap || !controlStatusState) {
             return;
         }
-        if (controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
-            onTap(true);
-        } else if (controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE) {
-            onTap(false);
-        }
+        const shouldShowArrows = controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW || controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.VOLUME_ONLY;
+        onTap(shouldShowArrows);
     }, [controlStatusState, onTap]);
 
     const stopWheelPropagation = useCallback((ev: WheelEvent) => ev.stopPropagation(), []);
