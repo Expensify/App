@@ -72,7 +72,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             wrapperStyle={styles.flex1}
             style={({hovered}) => [style, hovered && styles.navigationTabBarItemHovered]}
-            sentryLabel="NavigationTabBar-Account"
+            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
         >
             {({hovered}) => (
                 <>
