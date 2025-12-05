@@ -141,8 +141,21 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
  * handles direct approvals, or proceeds with basic payment processing.
  */
 const selectPaymentType = (params: SelectPaymentTypeParams) => {
-    const {event, iouPaymentType, triggerKYCFlow, policy, onPress, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, isUserValidated, confirmApproval, iouReport, iouReportNextStep} =
-        params;
+    const {
+        event,
+        iouPaymentType,
+        triggerKYCFlow,
+        policy,
+        onPress,
+        currentAccountID,
+        currentEmail,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        isUserValidated,
+        confirmApproval,
+        iouReport,
+        iouReportNextStep,
+    } = params;
     if (policy && shouldRestrictUserBillableActions(policy.id)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
@@ -162,7 +175,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         if (confirmApproval) {
             confirmApproval();
         } else {
-            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep,true);
+            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true);
         }
         return;
     }

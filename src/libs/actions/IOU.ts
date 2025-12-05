@@ -14842,7 +14842,15 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     });
 }
 
-function assignReportToMe(report: OnyxTypes.Report, accountID: number, email: string, policy: OnyxEntry<OnyxTypes.Policy>, hasViolations: boolean, isASAPSubmitBetaEnabled: boolean, reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>) {
+function assignReportToMe(
+    report: OnyxTypes.Report,
+    accountID: number,
+    email: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    hasViolations: boolean,
+    isASAPSubmitBetaEnabled: boolean,
+    reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID);
 
     // buildOptimisticNextStep is used in parallel
