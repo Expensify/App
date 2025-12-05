@@ -12,6 +12,7 @@ import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
     canEditFieldOfMoneyRequest,
+    canEditMultipleTransactions,
     canHoldUnholdReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getReportOrDraftReport,
@@ -64,7 +65,7 @@ function useSelectedTransactionsActions({
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'Pencil'] as const);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
@@ -156,6 +157,20 @@ function useSelectedTransactionsActions({
             return [];
         }
         const options = [];
+
+        const canEditMultiple = canEditMultipleTransactions(selectedTransactionsList);
+
+        if (canEditMultiple) {
+            options.push({
+                text: translate('search.bulkActions.editMultiple'),
+                icon: expensifyIcons.Pencil,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.EDIT,
+                onSelected: () => {
+                    Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP);
+                },
+            });
+        }
+
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
