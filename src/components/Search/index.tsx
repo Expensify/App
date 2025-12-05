@@ -598,7 +598,7 @@ function Search({
             clearSelectedTransactions();
             turnOffMobileSelectionMode();
         },
-        [isFocused, clearSelectedTransactions],
+        [isFocused, clearSelectedTransactions, hash, currentSearchHash],
     );
 
     // When selectedTransactions is updated, we confirm that selection is refreshed
