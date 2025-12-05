@@ -82,7 +82,62 @@ type ReportFooterProps = {
 };
 
 /**
- * Captures simplified HTML of the main page content (excluding the side panel)
+ * Recursively extracts structured text from a DOM element, preserving hierarchy
+ */
+function extractStructuredText(element: Element, depth = 0): string {
+    const indent = '  '.repeat(depth);
+    let result = '';
+
+    // Skip hidden elements
+    if (element instanceof HTMLElement) {
+        const style = window.getComputedStyle(element);
+        if (style.display === 'none' || style.visibility === 'hidden' || element.getAttribute('aria-hidden') === 'true') {
+            return '';
+        }
+    }
+
+    const tagName = element.tagName.toLowerCase();
+
+    // Skip non-content elements
+    if (['script', 'style', 'noscript', 'svg', 'iframe', 'canvas'].includes(tagName)) {
+        return '';
+    }
+
+    // For text-containing elements without children, extract text
+    const text = Array.from(element.childNodes)
+        .filter((node) => node.nodeType === Node.TEXT_NODE)
+        .map((node) => node.textContent?.trim())
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+
+    // Add semantic markers for important elements
+    if (tagName === 'h1' && text) {
+        result += `${indent}# ${text}\n`;
+    } else if (tagName === 'h2' && text) {
+        result += `${indent}## ${text}\n`;
+    } else if (tagName === 'h3' && text) {
+        result += `${indent}### ${text}\n`;
+    } else if (['h4', 'h5', 'h6'].includes(tagName) && text) {
+        result += `${indent}${text}\n`;
+    } else if (tagName === 'li' && text) {
+        result += `${indent}- ${text}\n`;
+    } else if (tagName === 'button' && text) {
+        result += `${indent}[Button: ${text}]\n`;
+    } else if (text) {
+        result += `${indent}${text}\n`;
+    }
+
+    // Process child elements
+    Array.from(element.children).forEach((child) => {
+        result += extractStructuredText(child, depth + 1);
+    });
+
+    return result;
+}
+
+/**
+ * Captures simplified, structured text of the main page content (excluding the side panel)
  * This is used to provide context to the LLM when the user sends a message from the Concierge side panel
  * Only works on web - returns empty string on native platforms
  */
@@ -94,46 +149,33 @@ function captureSimplifiedPageHTML(): string {
 
     try {
         // The side panel is rendered in a ModalPortal (outside #root), so querying #root gives us the main content
-        // We look for the main React root, excluding any portals/modals
         const rootElement = document.getElementById('root');
         if (!rootElement) {
             return '';
         }
 
-        // Clone the element to avoid modifying the original DOM
-        const clone = rootElement.cloneNode(true) as HTMLElement;
+        // Extract structured text with hierarchy preserved
+        let structuredText = extractStructuredText(rootElement);
 
-        // Remove non-content elements that don't provide useful context
-        const elementsToRemove = clone.querySelectorAll(
-            'script, style, noscript, svg, img, video, audio, iframe, canvas, ' +
-                // Remove input elements and buttons as they don't contain useful text
-                'input, textarea, button, ' +
-                // Remove hidden elements
-                '[aria-hidden="true"], [style*="display: none"], [style*="visibility: hidden"]',
-        );
-        elementsToRemove.forEach((el) => el.remove());
-
-        // Extract text content rather than HTML for cleaner, more useful context
-        let textContent = clone.textContent ?? '';
-
-        // Clean up the text: normalize whitespace
-        textContent = textContent
-            .replace(/\s+/g, ' ')
-            .replace(/\n\s*\n/g, '\n')
+        // Clean up: remove excessive blank lines
+        structuredText = structuredText
+            .split('\n')
+            .filter((line) => line.trim().length > 0)
+            .join('\n')
             .trim();
 
-        // Limit to ~8KB to avoid sending too much data to the LLM
-        const maxLength = 8000;
-        if (textContent.length > maxLength) {
-            textContent = `${textContent.substring(0, maxLength)}... [truncated]`;
+        // Limit to ~10KB to avoid sending too much data to the LLM
+        const maxLength = 10000;
+        if (structuredText.length > maxLength) {
+            structuredText = `${structuredText.substring(0, maxLength)}\n... [truncated]`;
         }
 
         // Only return if we have meaningful content
-        if (textContent.length < 50) {
+        if (structuredText.length < 50) {
             return '';
         }
 
-        return textContent;
+        return structuredText;
     } catch (error) {
         return '';
     }
