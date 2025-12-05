@@ -65,6 +65,26 @@ function WorkspaceInviteMessageComponent({
 }: WorkspaceInviteMessageComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
+    const policyName = policy?.name;
+
+    const isExpensesFromRoute = useMemo(() => {
+        return typeof backTo === 'string' && (backTo as string).includes(CONST.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM_ROUTE);
+    }, [backTo]);
+
+    const headerTitle = useMemo(() => {
+        if (isExpensesFromRoute) {
+            return translate('workflowsExpensesFromPage.title');
+        }
+        return translate('workspace.inviteMessage.confirmDetails');
+    }, [isExpensesFromRoute, translate]);
+
+    const subtitle = useMemo(() => {
+        if (isExpensesFromRoute) {
+            return undefined;
+        }
+        return policyName;
+    }, [isExpensesFromRoute, policyName]);
+
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
@@ -146,6 +166,14 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
+        // If backTo is provided and it's the expenses-from route, navigate back to it
+        if (isExpensesFromRoute) {
+            // Just go back in the navigation stack instead of dismissing and navigating
+            // This preserves the RHP and keeps the members selected
+            Navigation.goBack();
+            return;
+        }
+
         if ((backTo as string)?.endsWith('members')) {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
             return;
@@ -175,8 +203,6 @@ function WorkspaceInviteMessageComponent({
         return errorFields;
     };
 
-    const policyName = policy?.name;
-
     useEffect(() => {
         return () => {
             clearWorkspaceInviteRoleDraft(policyID);
@@ -197,8 +223,8 @@ function WorkspaceInviteMessageComponent({
             >
                 {shouldShowBackButton && (
                     <HeaderWithBackButton
-                        title={translate('workspace.inviteMessage.confirmDetails')}
-                        subtitle={policyName}
+                        title={headerTitle}
+                        subtitle={subtitle}
                         shouldShowBackButton
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -214,7 +240,9 @@ function WorkspaceInviteMessageComponent({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {isInviteNewMemberStep && <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>}
+                    {(isInviteNewMemberStep || isExpensesFromRoute) && (
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>
+                    )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <ReportActionAvatars
                             size={CONST.AVATAR_SIZE.LARGE}
