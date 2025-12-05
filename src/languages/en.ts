@@ -108,6 +108,7 @@ import type {
     FocusModeUpdateParams,
     FormattedMaxLengthParams,
     GoBackMessageParams,
+    HarvestCreatedExpenseReportParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
     ImportFieldParams,
@@ -969,6 +970,8 @@ const translations = {
     adminOnlyCanPost: 'Only admins can send messages in this room.',
     reportAction: {
         asCopilot: 'as copilot for',
+        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+            `created this report to hold all expenses from <a href="${reportUrl}">${reportName}</a> that couldn't be submitted on your chosen frequency`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notify everyone in this conversation',
