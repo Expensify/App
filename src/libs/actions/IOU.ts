@@ -6360,11 +6360,11 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         default: {
             // This is only required when inviting admins to test drive the app
             const guidedSetupData: GuidedSetupData | undefined = isTestDrive
-                ? prepareOnboardingOnyxData(
-                      {choice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER},
-                      CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER,
-                      getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
-                  )?.guidedSetupData
+                ? prepareOnboardingOnyxData({
+                      introSelected: {choice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER},
+                      engagementChoice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER,
+                      onboardingMessage: getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
+                  })?.guidedSetupData
                 : undefined;
 
             const parameters: RequestMoneyParams = {

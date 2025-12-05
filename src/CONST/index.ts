@@ -7471,6 +7471,11 @@ const CONST = {
     MODAL_EVENTS: {
         CLOSED: 'modalClosed',
     },
+
+    LIST_BEHAVIOR: {
+        REGULAR: 'regular',
+        INVERTED: 'inverted',
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
