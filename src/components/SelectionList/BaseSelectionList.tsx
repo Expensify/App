@@ -103,7 +103,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
 
     const isItemSelected = useCallback(
-        (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList ?? '')) && canSelectMultiple),
+        (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList)) && canSelectMultiple),
         [isSelected, selectedItems, canSelectMultiple],
     );
 
@@ -415,11 +415,12 @@ function BaseSelectionList<TItem extends ListItem>({
         const currentSearchValue = textInputOptions?.value;
         const searchChanged = prevSearchValue !== currentSearchValue;
         const selectedOptionsChanged = dataDetails.selectedOptions.length !== prevSelectedOptionsLength;
+        const selectionChangedByClicking = !searchChanged && selectedOptionsChanged && shouldUpdateFocusedIndex;
         // Do not change focus if:
         // 1. Input value is the same or
         // 2. Data length is 0 or
-        // 3. shouldUpdateFocusedIndex is true => other function handles the focus
-        if ((!searchChanged && !selectedOptionsChanged) || data.length === 0 || shouldUpdateFocusedIndex) {
+        // 3. Selection changed via user interaction (not filtering), so focus is handled externally
+        if ((!searchChanged && !selectedOptionsChanged) || data.length === 0 || selectionChangedByClicking) {
             return;
         }
 
