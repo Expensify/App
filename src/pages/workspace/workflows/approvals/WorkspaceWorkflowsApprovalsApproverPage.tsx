@@ -91,7 +91,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 if (!accountID) {
                     return null;
                 }
-                
+
                 const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
 
                 return {
