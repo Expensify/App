@@ -2979,6 +2979,7 @@ ${amount} pour ${merchant} - ${date}`,
         currencyHeader: 'Quelle est la devise de votre compte bancaire ?',
         confirmationStepHeader: 'Vérifiez vos informations.',
         confirmationStepSubHeader: 'Vérifiez les détails ci-dessous et cochez la case des conditions pour confirmer.',
+        toGetStarted: 'Ajoutez un compte bancaire personnel pour recevoir des remboursements, payer des factures ou activer le portefeuille Expensify.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Entrez le mot de passe Expensify',
