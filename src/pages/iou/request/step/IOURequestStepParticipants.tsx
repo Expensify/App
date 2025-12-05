@@ -22,7 +22,7 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getRequestType, isCorporateCardTransaction, isMerchantMissing, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
     navigateToStartStepIfScanFileCannotBeRead,
@@ -349,7 +349,7 @@ function IOURequestStepParticipants({
         }
 
         const firstParticipant = selectedParticipants.current?.at(0);
-        const isMerchantRequired = !!firstParticipant?.isPolicyExpenseChat;
+        const isMerchantRequired = !!firstParticipant?.isPolicyExpenseChat && isMerchantMissing(initialTransaction);
 
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,

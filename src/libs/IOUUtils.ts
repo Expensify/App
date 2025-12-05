@@ -12,7 +12,7 @@ import Navigation from './Navigation/Navigation';
 import Performance from './Performance';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getReportTransactions, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
-import {getCurrency, getTagArrayFromName, isScanRequest} from './TransactionUtils';
+import {getCurrency, getTagArrayFromName, isMerchantMissing, isScanRequest} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -263,7 +263,7 @@ function shouldRequireMerchant(transaction: OnyxInputOrEntry<Transaction> | unde
         return false;
     }
 
-    return isMerchantRequired;
+    return isMerchantRequired && isMerchantMissing(transaction);
 }
 
 export {
