@@ -612,6 +612,9 @@ const ONYXKEYS = {
     /** Whether the user has denied the contact import permission prompt */
     HAS_DENIED_CONTACT_IMPORT_PROMPT: 'hasDeniedContactImportPrompt',
 
+    /** Keeps track of whether the "Confirm Navigate to Expensify Classic" modal is opened */
+    IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN: 'IsOpenConfirmNavigateExpensifyClassicModalOpen',
+
     /** Collection Keys */
     COLLECTION: {
         DOMAIN: 'domain_',
@@ -1309,6 +1312,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY]: string;
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
     [ONYXKEYS.SELF_DM_REPORT_ID]: string | undefined;
+    [ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN]: boolean;
 };
 
 type OnyxDerivedValuesMapping = {
