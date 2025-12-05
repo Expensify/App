@@ -2554,13 +2554,13 @@ ${amount} für ${merchant} - ${date}`,
                         4. Suche nach ${integrationName}.
                         5. Klicke auf *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Zur Buchhaltung](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Zur Buchhaltung](${workspaceAccountingLink}).
 
-![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Zur Buchhaltung](${workspaceAccountingLink}).`
-}`),
+                        ![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Zur Buchhaltung](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Verbinden Sie [Ihre Firmenkarten](${corporateCardLink})`,
@@ -5228,9 +5228,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Möchten Sie ${memberName} wirklich entfernen?`,
             removeMemberTitle: 'Mitglied entfernen',
             transferOwner: 'Besitzer übertragen',
-            makeMember: 'Mitglied machen',
-            makeAdmin: 'Admin machen',
-            makeAuditor: 'Prüfer erstellen',
+            makeMember: () => ({
+                one: 'Zum Mitglied machen',
+                other: 'Zu Mitgliedern machen',
+            }),
+            makeAdmin: () => ({
+                one: 'Zum Administrator machen',
+                other: 'Zu Administratoren machen',
+            }),
+            makeAuditor: () => ({
+                one: 'Zum Prüfer machen',
+                other: 'Zu Prüfern machen',
+            }),
             selectAll: 'Alle auswählen',
             error: {
                 genericAdd: 'Es gab ein Problem beim Hinzufügen dieses Arbeitsbereichsmitglieds.',
@@ -5284,7 +5293,6 @@ ${
                 cardType: 'Kartentyp',
                 limit: 'Limit',
                 limitType: 'Typ begrenzen',
-                name: 'Name',
                 disabledApprovalForSmartLimitError:
                     'Bitte aktivieren Sie Genehmigungen unter <strong>Workflows > Genehmigungen hinzufügen</strong>, bevor Sie intelligente Limits einrichten',
             },
@@ -5994,7 +6002,7 @@ ${
                     expense: 'Einzelausgabe',
                     expenseSubtitle: 'Beträge von Ausgaben nach Kategorie kennzeichnen. Diese Regel überschreibt die allgemeine Arbeitsbereichsregel für den maximalen Ausgabenbetrag.',
                     daily: 'Kategorietotal',
-                    dailySubtitle: 'Gesamtausgaben pro Kategorie pro Spesenbericht kennzeichnen.',
+                    dailySubtitle: 'Gesamtausgaben pro Tag pro Kategorie pro Spesenbericht kennzeichnen.',
                 },
                 requireReceiptsOver: 'Belege über erforderlich',
                 requireReceiptsOverList: {
@@ -6656,6 +6664,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Ausgabe erstellen',
             createReport: 'Bericht erstellen',
             chooseWorkspace: 'Wählen Sie einen Arbeitsbereich für diesen Bericht aus.',
             emptyReportConfirmationTitle: 'Du hast bereits einen leeren Bericht',
@@ -7770,6 +7779,8 @@ ${
             anyMemberWillBeRequired: 'Jedes Mitglied, das sich mit einer anderen Methode angemeldet hat, muss sich mithilfe von SAML erneut authentifizieren.',
             enableError: 'Konnte die SAML-Aktivierungseinstellung nicht aktualisieren',
             requireError: 'Die SAML-Anforderungseinstellung konnte nicht aktualisiert werden.',
+            disableSamlRequired: 'SAML-Pflicht deaktivieren',
+            oktaWarningPrompt: 'Bist du sicher? Dadurch wird auch Okta SCIM deaktiviert.',
         },
         samlConfigurationDetails: {
             title: 'SAML-Konfigurationsdetails',
