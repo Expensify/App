@@ -1,4 +1,4 @@
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {isParticipantP2P, shouldAutoNavigateToDefaultWorkspace} from '@pages/iou/request/step/IOURequestStepAmount';
 import CONST from '@src/CONST';
 import type Policy from '@src/types/onyx/Policy';
@@ -8,7 +8,7 @@ jest.mock('@pages/iou/request/step/withWritableReportOrNotFound', () => () => (C
 jest.mock('@pages/iou/request/step/withFullTransactionOrNotFound', () => (Component: unknown) => Component);
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@libs/SubscriptionUtils', () => {
-    const actual = jest.requireActual<typeof import('@libs/SubscriptionUtils')>('@libs/SubscriptionUtils');
+    const actual = jest.requireActual<typeof SubscriptionUtils>('@libs/SubscriptionUtils');
 
     return {
         ...actual,
@@ -25,7 +25,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 describe('IOURequestStepAmount', () => {
-    const mockShouldRestrictUserBillableActions = shouldRestrictUserBillableActions as jest.Mock;
+    const mockShouldRestrictUserBillableActions = SubscriptionUtils.shouldRestrictUserBillableActions as jest.Mock;
 
     const defaultExpensePolicy: Policy = {
         id: '123',
