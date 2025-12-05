@@ -18,55 +18,29 @@ import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    AccountOwnerParams,
-    ActionsAreCurrentlyRestricted,
     AddedOrDeletedPolicyReportFieldParams,
     AddedPolicyApprovalRuleParams,
     AddEmployeeParams,
     AddOrDeletePolicyCustomUnitRateParams,
-    AddressLineParams,
     AirlineParams,
-    AlreadySignedInParams,
     ApprovalWorkflowErrorParams,
-    ApprovedAmountParams,
     AssignedCardParams,
-    AssigneeParams,
-    AuthenticationErrorParams,
-    AutoPayApprovedReportsLimitErrorParams,
-    BadgeFreeTrialParams,
-    BankAccountLastFourParams,
     BeginningOfArchivedRoomParams,
-    BeginningOfChatHistoryAdminRoomParams,
-    BeginningOfChatHistoryAnnounceRoomParams,
-    BeginningOfChatHistoryDomainRoomParams,
     BeginningOfChatHistoryInvoiceRoomParams,
     BeginningOfChatHistoryPolicyExpenseChatParams,
     BeginningOfChatHistoryUserRoomParams,
-    BillableDefaultDescriptionParams,
-    BillingBannerCardAuthenticationRequiredParams,
-    BillingBannerCardExpiredParams,
     BillingBannerCardOnDisputeParams,
     BillingBannerDisputePendingParams,
-    BillingBannerInsufficientFundsParams,
     BillingBannerOwnerAmountOwedOverdueParams,
-    BillingBannerSubtitleWithDateParams,
     BusinessBankAccountParams,
-    BusinessRegistrationNumberParams,
-    BusinessTaxIDParams,
     CanceledRequestParams,
-    CardEndingParams,
     CardInfoParams,
-    CardNextPaymentParams,
-    CategoryNameParams,
-    ChangedApproverMessageParams,
     ChangeFieldParams,
     ChangeOwnerDuplicateSubscriptionParams,
-    ChangeOwnerHasFailedSettlementsParams,
     ChangeOwnerSubscriptionParams,
     ChangeReportPolicyParams,
     ChangeTypeParams,
     CharacterLengthLimitParams,
-    CharacterLimitParams,
     ChatWithAccountManagerParams,
     CompanyCardBankName,
     CompanyCardFeedNameParams,
@@ -433,7 +407,7 @@ const translations: TranslationDeepObject<typeof en> = {
         currentMonth: '当前月份',
         ssnLast4: 'SSN的最后四位数字',
         ssnFull9: '完整的9位数社会安全号码',
-        addressLine: ({lineNumber}: AddressLineParams) => `地址行 ${lineNumber}`,
+        addressLine: (lineNumber: number) => `地址行 ${lineNumber}`,
         personalAddress: '个人地址',
         companyAddress: '公司地址',
         noPO: '请不要使用邮政信箱或邮件投递地址。',
@@ -869,7 +843,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     thirdPartySignIn: {
-        alreadySignedIn: ({email}: AlreadySignedInParams) => `您已使用 ${email} 登录。`,
+        alreadySignedIn: (email: string) => `您已使用 ${email} 登录。`,
         goBackMessage: ({provider}: GoBackMessageParams) => `不想使用${provider}登录？`,
         continueWithMyCurrentSession: '继续我的当前会话',
         redirectToDesktopMessage: '完成登录后，我们会将您重定向到桌面应用程序。',
@@ -937,12 +911,9 @@ const translations: TranslationDeepObject<typeof en> = {
     reportActionsView: {
         beginningOfArchivedRoom: ({reportName, reportDetailsLink}: BeginningOfArchivedRoomParams) =>
             `你错过了 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 的派对，这里没什么好看的。`,
-        beginningOfChatHistoryDomainRoom: ({domainRoom}: BeginningOfChatHistoryDomainRoomParams) =>
-            `此聊天是与 <strong>${domainRoom}</strong> 域名上的所有 Expensify 会员进行的。使用它与同事聊天、分享技巧和提问。`,
-        beginningOfChatHistoryAdminRoom: ({workspaceName}: BeginningOfChatHistoryAdminRoomParams) =>
-            `此聊天是与 <strong>${workspaceName}</strong> 管理员进行的。您可以用它来聊天，讨论工作空间设置等问题。`,
-        beginningOfChatHistoryAnnounceRoom: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomParams) =>
-            `此聊天室面向 <strong>${workspaceName}</strong> 的所有人。最重要的公告请使用此聊天室。`,
+        beginningOfChatHistoryDomainRoom: (domainRoom: string) => `此聊天是与 <strong>${domainRoom}</strong> 域名上的所有 Expensify 会员进行的。使用它与同事聊天、分享技巧和提问。`,
+        beginningOfChatHistoryAdminRoom: (workspaceName: string) => `此聊天是与 <strong>${workspaceName}</strong> 管理员进行的。您可以用它来聊天，讨论工作空间设置等问题。`,
+        beginningOfChatHistoryAnnounceRoom: (workspaceName: string) => `此聊天室面向 <strong>${workspaceName}</strong> 的所有人。最重要的公告请使用此聊天室。`,
         beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
             `本聊天室用于与 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 有关的任何内容。`,
         beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
@@ -1269,8 +1240,8 @@ const translations: TranslationDeepObject<typeof en> = {
         businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `已用银行账户${last4Digits}支付${amount} ` : `已用银行账户${last4Digits}支付 `),
         automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
             `已使用尾号为${last4Digits}的银行账户支付${amount} 通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>`,
-        invoicePersonalBank: ({lastFour}: BankAccountLastFourParams) => `个人账户 • ${lastFour}`,
-        invoiceBusinessBank: ({lastFour}: BankAccountLastFourParams) => `企业账户 • ${lastFour}`,
+        invoicePersonalBank: (lastFour: string) => `个人账户 • ${lastFour}`,
+        invoiceBusinessBank: (lastFour: string) => `企业账户 • ${lastFour}`,
         nextStep: '下一步',
         finished: '完成',
         flip: '翻转',
@@ -1293,7 +1264,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payerSettled: ({amount}: PayerSettledParams) => `支付了${amount}`,
         payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `已支付${amount}。添加一个银行账户以接收您的付款。`,
         automaticallyApproved: `通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
-        approvedAmount: ({amount}: ApprovedAmountParams) => `批准 ${amount}`,
+        approvedAmount: (amount: number | string) => `批准 ${amount}`,
         approvedMessage: `批准`,
         unapproved: `未批准`,
         automaticallyForwarded: `通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
@@ -1487,7 +1458,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '更改审批人',
             subtitle: '选择一个选项来更改此报告的审批人。',
             description: ({workflowSettingLink}: WorkflowSettingsParam) => `<a href="${workflowSettingLink}">您也可以在[工作流设置</a>中永久更改所有报告的审批人。`,
-            changedApproverMessage: ({managerID}: ChangedApproverMessageParams) => `将审批人更改为 <mention-user accountID="${managerID}"/>`,
+            changedApproverMessage: (managerID: number) => `将审批人更改为 <mention-user accountID="${managerID}"/>`,
             actions: {
                 addApprover: '添加审批人',
                 addApproverSubtitle: '为现有工作流添加一个额外的审批人。',
@@ -2212,7 +2183,7 @@ ${merchant}的${amount} - ${date}`,
         cardLastFour: '卡号末尾为',
         addFirstPaymentMethod: '添加支付方式以便直接在应用中发送和接收付款。',
         defaultPaymentMethod: '默认',
-        bankAccountLastFour: ({lastFour}: BankAccountLastFourParams) => `银行账户 • ${lastFour}`,
+        bankAccountLastFour: (lastFour: string) => `银行账户 • ${lastFour}`,
     },
     preferencesPage: {
         appSection: {
@@ -3138,7 +3109,7 @@ ${
         whatsTheBusinessName: '企业名称是什么？',
         whatsTheBusinessAddress: '公司的地址是什么？',
         whatsTheBusinessContactInformation: '商业联系信息是什么？',
-        whatsTheBusinessRegistrationNumber: ({country}: BusinessRegistrationNumberParams) => {
+        whatsTheBusinessRegistrationNumber: (country: string) => {
             switch (country) {
                 case CONST.COUNTRY.GB:
                     return '公司注册号（CRN）是多少？';
@@ -3146,7 +3117,7 @@ ${
                     return '营业登记号码是多少？';
             }
         },
-        whatsTheBusinessTaxIDEIN: ({country}: BusinessTaxIDParams) => {
+        whatsTheBusinessTaxIDEIN: (country: string) => {
             switch (country) {
                 case CONST.COUNTRY.US:
                     return '什么是雇主识别号（EIN）？';
@@ -3166,7 +3137,7 @@ ${
         whatsTheBusinessAnnualPayment: '企业的年度支付总额是多少？',
         whatsYourExpectedAverageReimbursements: '您的预期平均报销金额是多少？',
         registrationNumber: '注册号码',
-        taxIDEIN: ({country}: BusinessTaxIDParams) => {
+        taxIDEIN: (country: string) => {
             switch (country) {
                 case CONST.COUNTRY.US:
                     return 'EIN';
@@ -3205,7 +3176,7 @@ ${
         findBusinessType: '查找业务类型',
         error: {
             registrationNumber: '请提供有效的注册号码',
-            taxIDEIN: ({country}: BusinessTaxIDParams) => {
+            taxIDEIN: (country: string) => {
                 switch (country) {
                     case CONST.COUNTRY.US:
                         return '请输入有效的雇主识别号（EIN）';
@@ -3641,7 +3612,7 @@ ${
             existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `由于您之前已连接到${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}，您可以选择重用现有连接或创建新连接。`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 上次同步时间 ${formattedDate}`,
-            authenticationError: ({connectionName}: AuthenticationErrorParams) => `由于身份验证错误，无法连接到${connectionName}。`,
+            authenticationError: (connectionName: string) => `由于身份验证错误，无法连接到${connectionName}。`,
             learnMore: '了解更多',
             memberAlternateText: '成员可以提交和批准报告。',
             adminAlternateText: '管理员对所有报告和工作区设置拥有完全编辑权限。',
@@ -3961,8 +3932,8 @@ ${
             accountsSwitchDescription: '启用的类别将在成员创建费用时可供选择。',
             trackingCategories: '跟踪类别',
             trackingCategoriesDescription: '选择如何在Expensify中处理Xero跟踪类别。',
-            mapTrackingCategoryTo: ({categoryName}: CategoryNameParams) => `将 Xero ${categoryName} 映射到`,
-            mapTrackingCategoryToDescription: ({categoryName}: CategoryNameParams) => `选择将 ${categoryName} 映射到 Xero 的位置。`,
+            mapTrackingCategoryTo: (categoryName: string) => `将 Xero ${categoryName} 映射到`,
+            mapTrackingCategoryToDescription: (categoryName: string) => `选择将 ${categoryName} 映射到 Xero 的位置。`,
             customers: '重新向客户开账单',
             customersDescription: '选择是否在Expensify中重新向客户开账单。您的Xero客户联系人可以被标记到费用中，并将作为销售发票导出到Xero。',
             taxesDescription: '选择如何在Expensify中处理Xero税款。',
@@ -4548,7 +4519,7 @@ ${
             directFeed: '直接馈送',
             whoNeedsCardAssigned: '谁需要分配卡片？',
             chooseCard: '选择一张卡片',
-            chooseCardFor: ({assignee}: AssigneeParams) => `为<strong>${assignee}</strong>选择一张卡。找不到您要找的卡吗？<concierge-link>告诉我们。</concierge-link>`,
+            chooseCardFor: (assignee: string) => `为<strong>${assignee}</strong>选择一张卡。找不到您要找的卡吗？<concierge-link>告诉我们。</concierge-link>`,
             noActiveCards: '此信息流中没有活跃的卡片',
             somethingMightBeBroken:
                 '<muted-text><centered-text>或者有什么东西坏了。无论如何，如果您有任何问题，请<concierge-link>联系 Concierge</concierge-link>。</centered-text></muted-text>',
@@ -4618,22 +4589,22 @@ ${
             deactivate: '停用卡片',
             changeCardLimit: '更改卡片限额',
             changeLimit: '更改限制',
-            smartLimitWarning: ({limit}: CharacterLimitParams) => `如果您将此卡的限额更改为${limit}，新的交易将被拒绝，直到您批准卡上的更多费用。`,
-            monthlyLimitWarning: ({limit}: CharacterLimitParams) => `如果您将此卡的限额更改为${limit}，新的交易将被拒绝，直到下个月。`,
-            fixedLimitWarning: ({limit}: CharacterLimitParams) => `如果您将此卡的限额更改为${limit}，新的交易将被拒绝。`,
+            smartLimitWarning: (limit: number | string) => `如果您将此卡的限额更改为${limit}，新的交易将被拒绝，直到您批准卡上的更多费用。`,
+            monthlyLimitWarning: (limit: number | string) => `如果您将此卡的限额更改为${limit}，新的交易将被拒绝，直到下个月。`,
+            fixedLimitWarning: (limit: number | string) => `如果您将此卡的限额更改为${limit}，新的交易将被拒绝。`,
             changeCardLimitType: '更改卡片限额类型',
             changeLimitType: '更改限制类型',
-            changeCardSmartLimitTypeWarning: ({limit}: CharacterLimitParams) => `如果您将此卡的限额类型更改为智能限额，新交易将被拒绝，因为未批准的限额${limit}已达到。`,
-            changeCardMonthlyLimitTypeWarning: ({limit}: CharacterLimitParams) => `如果您将此卡的限额类型更改为每月，由于已达到${limit}的每月限额，新交易将被拒绝。`,
+            changeCardSmartLimitTypeWarning: (limit: number | string) => `如果您将此卡的限额类型更改为智能限额，新交易将被拒绝，因为未批准的限额${limit}已达到。`,
+            changeCardMonthlyLimitTypeWarning: (limit: number | string) => `如果您将此卡的限额类型更改为每月，由于已达到${limit}的每月限额，新交易将被拒绝。`,
             addShippingDetails: '添加运输详情',
-            issuedCard: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！该卡将在2-3个工作日内送达。`,
-            issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `已向${assignee}发放一张 Expensify Card！确认运送信息后将寄出该卡。`,
+            issuedCard: (assignee: string) => `已为${assignee}发放了一张Expensify卡！该卡将在2-3个工作日内送达。`,
+            issuedCardNoShippingDetails: (assignee: string) => `已向${assignee}发放一张 Expensify Card！确认运送信息后将寄出该卡。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `已向${assignee}发放了一张虚拟${link}！该卡可以立即使用。`,
             replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee}已更换虚拟Expensify卡！${link}可以立即使用。`,
             card: '卡',
             replacementCard: '替换卡',
-            addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} 已添加发货详情。Expensify Card 将在 2-3 个工作日内送达。`,
-            replacedCard: ({assignee}: AssigneeParams) => `${assignee}已更换Expensify卡。新卡将在2-3个工作日内送达。`,
+            addedShippingDetails: (assignee: string) => `${assignee} 已添加发货详情。Expensify Card 将在 2-3 个工作日内送达。`,
+            replacedCard: (assignee: string) => `${assignee}已更换Expensify卡。新卡将在2-3个工作日内送达。`,
             verifyingHeader: '验证中',
             bankAccountVerifiedHeader: '银行账户已验证',
             verifyingBankAccount: '正在验证银行账户...',
@@ -5557,7 +5528,7 @@ ${
                 `您似乎正在尝试接管 ${email} 的工作区的账单，但要做到这一点，您需要先成为他们所有工作区的管理员。\n\n如果您只想接管工作区 ${workspaceName} 的账单，请点击“继续”。\n\n如果您想接管他们整个订阅的账单，请先让他们将您添加为所有工作区的管理员，然后再接管账单。`,
             hasFailedSettlementsTitle: '无法转移所有权',
             hasFailedSettlementsButtonText: '明白了',
-            hasFailedSettlementsText: ({email}: ChangeOwnerHasFailedSettlementsParams) =>
+            hasFailedSettlementsText: (email: string) =>
                 `您无法接管账单，因为${email}有一笔逾期的Expensify Card结算。请让他们联系concierge@expensify.com解决此问题。然后，您就可以接管此工作区的账单。`,
             failedToClearBalanceTitle: '清除余额失败',
             failedToClearBalanceButtonText: '好的',
@@ -5748,7 +5719,7 @@ ${
         },
         restrictedAction: {
             restricted: 'Restricted',
-            actionsAreCurrentlyRestricted: ({workspaceName}: ActionsAreCurrentlyRestricted) => `对${workspaceName}工作区的操作目前受到限制。`,
+            actionsAreCurrentlyRestricted: (workspaceName: string) => `对${workspaceName}工作区的操作目前受到限制。`,
             workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}: WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams) =>
                 `工作区所有者 ${workspaceOwnerName} 需要添加或更新档案中的支付卡，以解锁新的工作区活动。`,
             youWillNeedToAddOrUpdatePaymentCard: '您需要添加或更新档案中的支付卡，以解锁新的工作区活动。',
@@ -5787,7 +5758,7 @@ ${
                 alwaysNonReimbursable: '始终不可报销',
                 alwaysNonReimbursableDescription: '支出永远不会报销给员工',
                 billableDefault: '默认计费',
-                billableDefaultDescription: ({tagsPageLink}: BillableDefaultDescriptionParams) =>
+                billableDefaultDescription: (tagsPageLink: string) =>
                     `<muted-text>C选择现金和信用卡支出是否默认可计费。可计费支出可在<a href="${tagsPageLink}">标签</a>中启用或禁用。</muted-text>`,
                 billable: '可计费的',
                 billableDescription: '费用通常会重新计费给客户。',
@@ -5818,7 +5789,7 @@ ${
                 randomReportAuditDescription: '要求某些报告必须手动批准，即使符合自动批准的条件。',
                 autoPayApprovedReportsTitle: '自动支付已批准的报告',
                 autoPayApprovedReportsSubtitle: '配置哪些费用报告符合自动支付条件。',
-                autoPayApprovedReportsLimitError: ({currency}: AutoPayApprovedReportsLimitErrorParams = {}) => `请输入一个小于${currency ?? ''}20,000的金额。`,
+                autoPayApprovedReportsLimitError: (currency?: string) => `请输入一个小于${currency ?? ''}20,000的金额。`,
                 autoPayApprovedReportsLockedSubtitle: '转到更多功能并启用工作流，然后添加付款以解锁此功能。',
                 autoPayReportsUnderTitle: '自动支付报告低于',
                 autoPayReportsUnderDescription: '在此金额以下的完全合规费用报告将自动支付。',
@@ -5831,12 +5802,12 @@ ${
                 approver: '审批人',
                 requireDescription: '需要描述',
                 descriptionHint: '描述提示',
-                descriptionHintDescription: ({categoryName}: CategoryNameParams) => `提醒员工为“${categoryName}”支出提供更多信息。此提示显示在费用的描述字段中。`,
+                descriptionHintDescription: (categoryName: string) => `提醒员工为“${categoryName}”支出提供更多信息。此提示显示在费用的描述字段中。`,
                 descriptionHintLabel: '提示',
                 descriptionHintSubtitle: '专业提示：越短越好！',
                 maxAmount: '最大金额',
                 flagAmountsOver: '标记超过的金额',
-                flagAmountsOverDescription: ({categoryName}: CategoryNameParams) => `适用于类别“${categoryName}”。`,
+                flagAmountsOverDescription: (categoryName: string) => `适用于类别“${categoryName}”。`,
                 flagAmountsOverSubtitle: '这将覆盖所有费用的最大金额。',
                 expenseLimitTypes: {
                     expense: '单笔费用',
@@ -6930,12 +6901,12 @@ ${
         authenticatePaymentCard: '验证支付卡',
         mobileReducedFunctionalityMessage: '您无法在移动应用中更改您的订阅。',
         badge: {
-            freeTrial: ({numOfDays}: BadgeFreeTrialParams) => `免费试用：剩余 ${numOfDays} ${numOfDays === 1 ? '天' : '天'} 天`,
+            freeTrial: (numOfDays: number) => `免费试用：剩余 ${numOfDays} ${numOfDays === 1 ? '天' : '天'} 天`,
         },
         billingBanner: {
             policyOwnerAmountOwed: {
                 title: '您的付款信息已过期',
-                subtitle: ({date}: BillingBannerSubtitleWithDateParams) => `请在${date}之前更新您的支付卡，以继续使用您所有喜欢的功能。`,
+                subtitle: (date: string) => `请在${date}之前更新您的支付卡，以继续使用您所有喜欢的功能。`,
             },
             policyOwnerAmountOwedOverdue: {
                 title: '您的付款无法处理',
@@ -6944,7 +6915,7 @@ ${
             },
             policyOwnerUnderInvoicing: {
                 title: '您的付款信息已过期',
-                subtitle: ({date}: BillingBannerSubtitleWithDateParams) => `您的付款已逾期。请在${date}之前支付您的发票，以避免服务中断。`,
+                subtitle: (date: string) => `您的付款已逾期。请在${date}之前支付您的发票，以避免服务中断。`,
             },
             policyOwnerUnderInvoicingOverdue: {
                 title: '您的付款信息已过期',
@@ -6957,15 +6928,15 @@ ${
             },
             cardAuthenticationRequired: {
                 title: '您的付款卡尚未完成身份验证。',
-                subtitle: ({cardEnding}: BillingBannerCardAuthenticationRequiredParams) => `请完成身份验证流程，以激活以 ${cardEnding} 结尾的付款卡。`,
+                subtitle: (cardEnding: string) => `请完成身份验证流程，以激活以 ${cardEnding} 结尾的付款卡。`,
             },
             insufficientFunds: {
                 title: '您的卡无法扣款',
-                subtitle: ({amountOwed}: BillingBannerInsufficientFundsParams) => `由于资金不足，您的支付卡被拒绝。请重试或添加新的支付卡以清除您欠下的${amountOwed}余额。`,
+                subtitle: (amountOwed: number) => `由于资金不足，您的支付卡被拒绝。请重试或添加新的支付卡以清除您欠下的${amountOwed}余额。`,
             },
             cardExpired: {
                 title: '您的卡无法扣款',
-                subtitle: ({amountOwed}: BillingBannerCardExpiredParams) => `您的付款卡已过期。请添加新的付款卡以清除您${amountOwed}的未结余额。`,
+                subtitle: (amountOwed: number) => `您的付款卡已过期。请添加新的付款卡以清除您${amountOwed}的未结余额。`,
             },
             cardExpireSoon: {
                 title: '您的银行卡即将过期',
@@ -7001,8 +6972,8 @@ ${
             title: '付款',
             subtitle: '添加一张卡以支付您的Expensify订阅费用。',
             addCardButton: '添加支付卡',
-            cardNextPayment: ({nextPaymentDate}: CardNextPaymentParams) => `您的下一个付款日期是${nextPaymentDate}。`,
-            cardEnding: ({cardNumber}: CardEndingParams) => `卡号以${cardNumber}结尾`,
+            cardNextPayment: (nextPaymentDate: string) => `您的下一个付款日期是${nextPaymentDate}。`,
+            cardEnding: (cardNumber: string) => `卡号以${cardNumber}结尾`,
             cardInfo: ({name, expiration, currency}: CardInfoParams) => `名称: ${name}, 到期: ${expiration}, 货币: ${currency}`,
             changeCard: '更改支付卡',
             changeCurrency: '更改支付货币',
@@ -7198,8 +7169,7 @@ ${
         noAccessMessage: dedent(`
             作为副驾驶，你无权访问此页面。抱歉！
         `),
-        notAllowedMessage: ({accountOwnerEmail}: AccountOwnerParams) =>
-            `作为 ${accountOwnerEmail} 的<a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">副驾驶员</a>，您无权执行此操作。对不起！`,
+        notAllowedMessage: (accountOwnerEmail: string) => `作为 ${accountOwnerEmail} 的<a href="${CONST.DELEGATE_ROLE_HELP_DOT_ARTICLE_LINK}">副驾驶员</a>，您无权执行此操作。对不起！`,
         copilotAccess: 'Copilot访问权限',
     },
     debug: {
