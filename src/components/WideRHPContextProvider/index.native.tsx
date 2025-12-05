@@ -24,9 +24,9 @@ const innerRHPProgress = new Animated.Value(0);
 
 const WideRHPContext = createContext<WideRHPContextType>(defaultWideRHPContextValue);
 
-const WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT]);
-
+const WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_REPORT]);
 const SUPER_WIDE_RIGHT_MODALS = new Set<string>([SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT]);
+const ALL_WIDE_RIGHT_MODALS = new Set<string>([...WIDE_RIGHT_MODALS, ...SUPER_WIDE_RIGHT_MODALS]);
 
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
     return <WideRHPContext.Provider value={defaultWideRHPContextValue}>{children}</WideRHPContext.Provider>;
@@ -51,4 +51,5 @@ export {
     WideRHPContext,
     WIDE_RIGHT_MODALS,
     SUPER_WIDE_RIGHT_MODALS,
+    ALL_WIDE_RIGHT_MODALS,
 };

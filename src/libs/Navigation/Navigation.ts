@@ -8,7 +8,7 @@ import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
-import {SUPER_WIDE_RIGHT_MODALS, WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider';
+import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS, WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -785,8 +785,7 @@ function dismissToModalStack(modalStackNames: Set<string>) {
  * Dismiss top layer modal and go back to the Wide/Super Wide RHP.
  */
 function dismissToFirstRHP() {
-    const wideOrSuperWideModalStackNames = new Set([...SUPER_WIDE_RIGHT_MODALS, ...WIDE_RIGHT_MODALS]);
-    return dismissToModalStack(wideOrSuperWideModalStackNames);
+    return dismissToModalStack(ALL_WIDE_RIGHT_MODALS);
 }
 
 /**
