@@ -321,6 +321,7 @@ function IOURequestStepDistanceManual({
             personalPolicy?.autoReporting,
             transactionViolations,
             currentUserPersonalDetails.accountID,
+            policyForMovingExpenses,
         ],
     );
 

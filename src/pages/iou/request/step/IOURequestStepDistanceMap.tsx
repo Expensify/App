@@ -455,6 +455,7 @@ function IOURequestStepDistanceMap({
         reportID,
         transactionViolations,
         currentUserPersonalDetails.accountID,
+        policyForMovingExpenses,
     ]);
 
     const getError = () => {
