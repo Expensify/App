@@ -29,22 +29,22 @@ function selectViolationsWithDuplicates(transactionIDs: string[], allTransaction
 
         result[key] = transactionViolations;
 
-        transactionViolations
+        const duplicateTransactionIDs = transactionViolations
             .filter((violations) => violations.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
-            .flatMap((violations) => violations?.data?.duplicates ?? [])
-            // eslint-disable-next-line unicorn/no-array-for-each
-            .forEach((duplicateID) => {
-                if (!duplicateID) {
-                    return;
-                }
+            .flatMap((violations) => violations?.data?.duplicates ?? []);
 
-                const duplicateKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`;
-                const duplicateViolations = allTransactionsViolations[duplicateKey];
+        for (const duplicateID of duplicateTransactionIDs) {
+            if (!duplicateID) {
+                continue;
+            }
 
-                if (duplicateViolations) {
-                    result[duplicateKey] = duplicateViolations;
-                }
-            });
+            const duplicateKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`;
+            const duplicateViolations = allTransactionsViolations[duplicateKey];
+
+            if (duplicateViolations) {
+                result[duplicateKey] = duplicateViolations;
+            }
+        }
     }
 
     return result;
