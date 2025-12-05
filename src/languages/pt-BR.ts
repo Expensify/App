@@ -1186,8 +1186,10 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: 'Encontrar despesa',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `excluiu uma despesa (${amount} para ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moveu uma despesa${reportName ? `de ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `movei esta despesa para o seu <a href="${reportUrl}">espaço pessoal</a>`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `para <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `moveu esta despesa${reportName ? `de <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moveu esta despesa do seu <a href="${reportUrl}">espaço pessoal</a>`,
+        unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moveu esta despesa para o seu <a href="${reportUrl}">espaço pessoal</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
                 return `moveu este relatório para o workspace <a href="${newParentReportUrl}">${toPolicyName}</a>`;
@@ -2534,26 +2536,26 @@ ${amount} para ${merchant} - ${date}`,
                         4. Encontre ${integrationName}.
                         5. Clique em *Conectar*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Ir para a contabilidade](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Ir para a contabilidade](${workspaceAccountingLink}).
 
-                                      ![Conectar ao ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Ir para a contabilidade](${workspaceAccountingLink}).`
-}`),
+                        ![Conectar ao ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Ir para a contabilidade](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Conecte [seu cartão corporativo](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Conecte [seus cartões corporativos](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Conecte seu cartão corporativo para importar e categorizar despesas automaticamente.
+                        Conecte os cartões que você já possui para importação automática de transações, vinculação de recibos e conciliação.
 
-                        1. Clique em *Espaços de trabalho*.
+                        1. Clique em *Workspaces*.
                         2. Selecione seu espaço de trabalho.
-                        3. Clique em *Cartões corporativos*.
-                        4. Siga as instruções para conectar seu cartão.
+                        3. Clique em *Company cards*.
+                        4. Siga as instruções para conectar seus cartões.
 
-                        [Leve-me para conectar meus cartões corporativos](${corporateCardLink}).`),
+                        [Ir para Company cards](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Convide [sua equipe](${workspaceMembersLink})`,
@@ -5198,9 +5200,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Tem certeza de que deseja remover ${memberName}?`,
             removeMemberTitle: 'Remover membro',
             transferOwner: 'Transferir proprietário',
-            makeMember: 'Tornar membro',
-            makeAdmin: 'Tornar administrador',
-            makeAuditor: 'Criar auditor',
+            makeMember: () => ({
+                one: 'Tornar membro',
+                other: 'Tornar membros',
+            }),
+            makeAdmin: () => ({
+                one: 'Tornar administrador',
+                other: 'Tornar administradores',
+            }),
+            makeAuditor: () => ({
+                one: 'Tornar auditor',
+                other: 'Tornar auditores',
+            }),
             selectAll: 'Selecionar tudo',
             error: {
                 genericAdd: 'Houve um problema ao adicionar este membro ao espaço de trabalho',
@@ -5254,7 +5265,6 @@ ${
                 cardType: 'Tipo de cartão',
                 limit: 'Limite',
                 limitType: 'Tipo de limite',
-                name: 'Nome',
                 disabledApprovalForSmartLimitError:
                     'Por favor, ative as aprovações em <strong>Fluxos de Trabalho > Adicionar aprovações</strong> antes de configurar os limites inteligentes',
             },
@@ -5961,7 +5971,7 @@ ${
                     expense: 'Despesa individual',
                     expenseSubtitle: 'Marcar valores de despesas por categoria. Esta regra substitui a regra geral do espaço de trabalho para o valor máximo de despesa.',
                     daily: 'Total da categoria',
-                    dailySubtitle: 'Marcar o total de gastos por categoria em cada relatório de despesas.',
+                    dailySubtitle: 'Marcar o total de gastos por dia por categoria em cada relatório de despesas.',
                 },
                 requireReceiptsOver: 'Exigir recibos acima de',
                 requireReceiptsOverList: {
@@ -6247,6 +6257,36 @@ ${
                 default: {
                     return '';
                 }
+            }
+        },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'ativado' : 'desativado'} categorias`;
+                case 'tags':
+                    return `${enabled ? 'ativado' : 'desativado'} etiquetas`;
+                case 'workflows':
+                    return `${enabled ? 'ativado' : 'desativado'} fluxos de trabalho`;
+                case 'distance rates':
+                    return `${enabled ? 'ativado' : 'desativado'} taxas de distância`;
+                case 'accounting':
+                    return `${enabled ? 'ativado' : 'desativado'} contabilidade`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'ativado' : 'desativado'} Cartões Expensify`;
+                case 'company cards':
+                    return `${enabled ? 'ativado' : 'desativado'} cartões corporativos`;
+                case 'invoicing':
+                    return `${enabled ? 'ativado' : 'desativado'} faturamento`;
+                case 'per diem':
+                    return `${enabled ? 'ativado' : 'desativado'} de diária`;
+                case 'receipt partners':
+                    return `${enabled ? 'ativado' : 'desativado'} parceiros de recibos`;
+                case 'rules':
+                    return `${enabled ? 'ativado' : 'desativado'} regras`;
+                case 'tax tracking':
+                    return `${enabled ? 'ativado' : 'desativado'} rastreamento de impostos`;
+                default:
+                    return `${enabled ? 'ativado' : 'desativado'} ${featureName}`;
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} acompanhamento de participantes`,
@@ -6593,6 +6633,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Criar despesa',
             createReport: 'Criar relatório',
             chooseWorkspace: 'Escolha um espaço de trabalho para este relatório.',
             emptyReportConfirmationTitle: 'Você já tem um relatório vazio',
@@ -7011,6 +7052,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} é obrigatório`,
+        reportContainsExpensesWithViolations: 'O relatório contém despesas com violações.',
     },
     violationDismissal: {
         rter: {
@@ -7697,6 +7739,8 @@ ${
             anyMemberWillBeRequired: 'Qualquer membro que tiver feito login com um método diferente precisará se autenticar novamente usando SAML.',
             enableError: 'Não foi possível atualizar a configuração de habilitação do SAML',
             requireError: 'Não foi possível atualizar a configuração de obrigatoriedade do SAML',
+            disableSamlRequired: 'Desativar exigência de SAML',
+            oktaWarningPrompt: 'Tem certeza? Isso também desativará o Okta SCIM.',
         },
         samlConfigurationDetails: {
             title: 'Detalhes da configuração do SAML',

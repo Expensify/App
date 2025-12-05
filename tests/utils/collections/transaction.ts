@@ -24,7 +24,6 @@ export default function createRandomTransaction(index: number): Transaction {
             },
             attendees: [{email: randWord(), displayName: 'Test User', avatarUrl: ''}],
         },
-        filename: randWord(),
         managedCard: randBoolean(),
         created: format(randPastDate(), CONST.DATE.FNS_DB_FORMAT_STRING),
         modifiedCreated: '',
@@ -39,10 +38,10 @@ export default function createRandomTransaction(index: number): Transaction {
         tag: randWord(),
         parentTransactionID: index.toString(),
         status: rand(Object.values(CONST.TRANSACTION.STATUS)),
-        receipt: {},
+        receipt: {filename: randWord()},
         reimbursable: randBoolean(),
         hasEReceipt: randBoolean(),
-        modifiedAmount: 0,
+        modifiedAmount: '',
     };
 }
 
