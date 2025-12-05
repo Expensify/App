@@ -27,12 +27,15 @@ function parseForAutocomplete(text: string) {
  */
 function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>) {
     const uniqueTagNames = new Set<string>();
-    const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item);
-    tagListsUnpacked
-        .map(getTagNamesFromTagsLists)
-        .flat()
-        // eslint-disable-next-line unicorn/no-array-for-each
-        .forEach((tag) => uniqueTagNames.add(tag));
+    for (const tagList of Object.values(allPoliciesTagsLists ?? {})) {
+        if (!tagList) {
+            continue;
+        }
+        const tagNamesFromTagsLists = getTagNamesFromTagsLists(tagList);
+        for (const tag of tagNamesFromTagsLists) {
+            uniqueTagNames.add(tag);
+        }
+    }
     return Array.from(uniqueTagNames);
 }
 
@@ -41,11 +44,13 @@ function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
  */
 function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTags>) {
     const uniqueTagNames = new Set<string>();
-    Object.values(allRecentTags ?? {})
-        .map((recentTag) => Object.values(recentTag ?? {}))
-        .flat(2)
-        // eslint-disable-next-line unicorn/no-array-for-each
-        .forEach((tag) => uniqueTagNames.add(tag));
+    for (const recentTagsForPolicy of Object.values(allRecentTags ?? {})) {
+        for (const recentTags of Object.values(recentTagsForPolicy ?? {})) {
+            for (const tag of recentTags) {
+                uniqueTagNames.add(tag);
+            }
+        }
+    }
     return Array.from(uniqueTagNames);
 }
 
@@ -54,8 +59,11 @@ function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTag
  */
 function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCategories>) {
     const uniqueCategoryNames = new Set<string>();
-    // eslint-disable-next-line unicorn/no-array-for-each
-    Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
+    for (const policyCategories of Object.values(allPolicyCategories ?? {})) {
+        for (const category of Object.values(policyCategories ?? {})) {
+            uniqueCategoryNames.add(category.name);
+        }
+    }
     return Array.from(uniqueCategoryNames);
 }
 
@@ -64,8 +72,11 @@ function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCat
  */
 function getAutocompleteRecentCategories(allRecentCategories: OnyxCollection<RecentlyUsedCategories>) {
     const uniqueCategoryNames = new Set<string>();
-    // eslint-disable-next-line unicorn/no-array-for-each
-    Object.values(allRecentCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category)));
+    for (const recentCategories of Object.values(allRecentCategories ?? {})) {
+        for (const category of Object.values(recentCategories ?? {})) {
+            uniqueCategoryNames.add(category);
+        }
+    }
     return Array.from(uniqueCategoryNames);
 }
 
@@ -133,6 +144,7 @@ function filterOutRangesWithCorrectValue(
     currencyList: SharedValue<string[]>,
     categoryList: SharedValue<string[]>,
     tagList: SharedValue<string[]>,
+    currentType: string,
 ) {
     'worklet';
 
@@ -186,6 +198,9 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
             return tagList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
+            if (currentType !== CONST.SEARCH.DATA_TYPES.EXPENSE && currentType !== CONST.SEARCH.DATA_TYPES.INVOICE && currentType !== CONST.SEARCH.DATA_TYPES.TRIP) {
+                return false;
+            }
             return groupByList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
@@ -236,8 +251,11 @@ function parseForLiveMarkdown(
 
     const parsedAutocomplete = parse(input) as SearchAutocompleteResult;
     const ranges = parsedAutocomplete.ranges;
+    const typeRange = ranges.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+    const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+
     return ranges
-        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList))
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, currentType))
         .map((range) => {
             const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';

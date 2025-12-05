@@ -76,7 +76,7 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
         return PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, id);
     }, [id, reportActionPages, sortedAllReportActions]);
 
-    const linkedAction = useMemo(() => (reportActionID ? resourceItem?.item : undefined), [resourceItem, reportActionID]);
+    const linkedAction = useMemo(() => (reportActionID ? resourceItem?.item : undefined), [resourceItem?.item, reportActionID]);
 
     const oldestUnreadReportAction = useMemo(() => {
         if (shouldLinkToOldestUnreadReportAction && resourceItem && !reportActionID) {
