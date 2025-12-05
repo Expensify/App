@@ -19,7 +19,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import {personalDetailsByEmailSelector} from '@src/selectors/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -117,16 +117,16 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const shouldShowListEmptyContent = !!currentApprovalWorkflow && !isApprovalWorkflowLoading;
 
     const goBack = useCallback(() => {
-        let backTo;
+        let backToRoute;
         if (isInitialCreationFlow) {
-            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID);
+            backToRoute = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID);
             clearApprovalWorkflowApprovers();
         } else if (currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
-            backTo = rhpRoutes.length > 1 ? undefined : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
+            backToRoute = rhpRoutes.length > 1 ? undefined : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
         } else {
-            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
+            backToRoute = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
         }
-        Navigation.goBack(backTo);
+        Navigation.goBack(backToRoute);
     }, [isInitialCreationFlow, currentApprovalWorkflow?.action, route.params.policyID, rhpRoutes.length, firstApprover]);
 
     const toggleApprover = useCallback(
