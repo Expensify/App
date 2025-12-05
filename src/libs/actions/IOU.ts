@@ -1071,7 +1071,6 @@ function initMoneyRequest({
     lastSelectedDistanceRates,
     currentUserPersonalDetails,
 }: InitMoneyRequestParams) {
-    console.trace('initMoneyRequest', {reportID, currentIouRequestType, newIouRequestType});
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const currency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;

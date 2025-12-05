@@ -1595,6 +1595,8 @@ export {
     getMemberAccountIDsForWorkspace,
     getNumericValue,
     isMultiLevelTags,
+    // This will be fixed as part of https://github.com/Expensify/App/issues/66397
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getPersonalPolicy,
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
