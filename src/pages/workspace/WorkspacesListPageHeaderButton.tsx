@@ -10,27 +10,20 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 type WorkspacesListPageHeaderButtonProps = {
-    /** Whether the user is restricted from creating a policy. */
-    isRestrictedPolicyCreation: boolean;
+    /** Whether the button to add a new workspace should be shown. */
+    shouldShowNewWorkspaceButton: boolean;
 
-    /** Whether the user has any workspaces. */
-    hasWorkspaces: boolean;
-
-    /** Whether the user has any domains. */
-    hasDomains: boolean;
+    /** Whether the button to claim a new domain should be shown. */
+    shouldShowNewDomainButton: boolean;
 };
 
-function WorkspacesListPageHeaderButton({isRestrictedPolicyCreation, hasWorkspaces, hasDomains}: WorkspacesListPageHeaderButtonProps) {
+function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldShowNewDomainButton}: WorkspacesListPageHeaderButtonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Globe', 'Plus'] as const);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    if (isRestrictedPolicyCreation) {
-        return null;
-    }
-
-    if (hasDomains && hasWorkspaces) {
+    if (shouldShowNewWorkspaceButton && shouldShowNewDomainButton) {
         return (
             <ButtonWithDropdownMenu
                 success={false}
@@ -57,7 +50,7 @@ function WorkspacesListPageHeaderButton({isRestrictedPolicyCreation, hasWorkspac
         );
     }
 
-    if (hasWorkspaces) {
+    if (shouldShowNewWorkspaceButton) {
         return (
             <Button
                 accessibilityLabel={translate('workspace.new.newWorkspace')}
@@ -69,7 +62,7 @@ function WorkspacesListPageHeaderButton({isRestrictedPolicyCreation, hasWorkspac
         );
     }
 
-    if (hasDomains) {
+    if (shouldShowNewDomainButton) {
         return (
             <Button
                 accessibilityLabel={translate('domain.addDomain.newDomain')}

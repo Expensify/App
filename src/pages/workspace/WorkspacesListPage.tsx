@@ -663,9 +663,8 @@ function WorkspacesListPage() {
 
     const headerButton = (
         <WorkspacesListPageHeaderButton
-            isRestrictedPolicyCreation={isRestrictedPolicyCreation}
-            hasWorkspaces={!!workspaces.length}
-            hasDomains={!!domains.length}
+            shouldShowNewWorkspaceButton={!isRestrictedPolicyCreation}
+            shouldShowNewDomainButton={!!domains.length}
         />
     );
 
