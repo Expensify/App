@@ -2541,13 +2541,13 @@ ${amount} voor ${merchant} - ${date}`,
                         4. Zoek ${integrationName}.
                         5. Klik op *Verbinden*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Breng me naar de boekhouding](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Breng me naar de boekhouding](${workspaceAccountingLink}).
 
-                                      ![Verbinding maken met ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Breng me naar de boekhouding](${workspaceAccountingLink}).`
-}`),
+                        ![Verbinding maken met ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Breng me naar de boekhouding](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Koppel [je bedrijfskaarten](${corporateCardLink})`,
@@ -5207,9 +5207,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Weet je zeker dat je ${memberName} wilt verwijderen?`,
             removeMemberTitle: 'Lid verwijderen',
             transferOwner: 'Eigenaar overdragen',
-            makeMember: 'Lid maken',
-            makeAdmin: 'Beheerder maken',
-            makeAuditor: 'Maak controleur',
+            makeMember: () => ({
+                one: 'Lid maken',
+                other: 'Maak leden',
+            }),
+            makeAdmin: () => ({
+                one: 'Beheerder maken',
+                other: 'Beheerders aanwijzen',
+            }),
+            makeAuditor: () => ({
+                one: 'Maak auditor',
+                other: 'Maak auditors',
+            }),
             selectAll: 'Alles selecteren',
             error: {
                 genericAdd: 'Er was een probleem bij het toevoegen van dit werkruimtelid.',
@@ -5263,7 +5272,6 @@ ${
                 cardType: 'Kaarttype',
                 limit: 'Limiet',
                 limitType: 'Limiettype',
-                name: 'Naam',
                 disabledApprovalForSmartLimitError: 'Schakel goedkeuringen in <strong>Workflows > Goedkeuringen toevoegen</strong> in voordat u slimme limieten instelt',
             },
             deactivateCardModal: {
@@ -5964,7 +5972,7 @@ ${
                     expense: 'Individuele uitgave',
                     expenseSubtitle: 'Markeer onkostbedragen per categorie. Deze regel overschrijft de algemene werkruimte-regel voor het maximale onkostbedrag.',
                     daily: 'Categorietotaal',
-                    dailySubtitle: 'Vlag totale categorie-uitgaven per onkostennota.',
+                    dailySubtitle: 'Vlag totale categorie-uitgaven per dag per onkostennota.',
                 },
                 requireReceiptsOver: 'Vereis bonnen boven',
                 requireReceiptsOverList: {
@@ -6626,6 +6634,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Uitgave aanmaken',
             createReport: 'Rapport maken',
             chooseWorkspace: 'Kies een werkruimte voor dit rapport.',
             emptyReportConfirmationTitle: 'Je hebt al een leeg rapport',
@@ -7723,6 +7732,8 @@ ${
             anyMemberWillBeRequired: 'Elk lid dat met een andere methode is aangemeld, moet zich opnieuw authenticeren via SAML.',
             enableError: 'Kon de instelling voor SAML-inschakeling niet bijwerken',
             requireError: 'Kan SAML-vereiste-instelling niet bijwerken',
+            disableSamlRequired: 'SAML vereist uitschakelen',
+            oktaWarningPrompt: 'Weet je het zeker? Dit schakelt ook Okta SCIM uit.',
         },
         samlConfigurationDetails: {
             title: 'SAML-configuratiedetails',

@@ -142,8 +142,8 @@ describe('EmptySearchView', () => {
                 // Then it should display the submit empty results title
                 expect(screen.getByText(translateLocal('search.searchResults.emptySubmitResults.title'))).toBeVisible();
 
-                // And it should display the "Create Report" button
-                expect(screen.getByText(translateLocal('report.newReport.createReport'))).toBeVisible();
+                // And it should display the "Create Expense" button
+                expect(screen.getByText(translateLocal('report.newReport.createExpense'))).toBeVisible();
             });
 
             it('should hide "Create Report" button when user has a paid group policy with expense chat disabled', async () => {
@@ -176,8 +176,8 @@ describe('EmptySearchView', () => {
                 // Then it should display the submit empty results title
                 expect(screen.getByText(translateLocal('search.searchResults.emptySubmitResults.title'))).toBeVisible();
 
-                // And it should not display the "Create Report" button
-                expect(screen.queryByText(translateLocal('report.newReport.createReport'))).not.toBeOnTheScreen();
+                // And it should not display the "Create Expense" button
+                expect(screen.queryByText(translateLocal('report.newReport.createExpense'))).not.toBeOnTheScreen();
             });
         });
     });
