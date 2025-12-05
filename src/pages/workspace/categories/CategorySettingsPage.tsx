@@ -3,7 +3,6 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Trashcan} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -13,11 +12,19 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate, getDecodedCategoryName} from '@libs/CategoryUtils';
+import {
+    formatDefaultTaxRateText,
+    formatRequireItemizedReceiptsOverText,
+    formatRequireReceiptsOverText,
+    getCategoryApproverRule,
+    getCategoryDefaultTaxRate,
+    getDecodedCategoryName,
+} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,6 +59,7 @@ function CategorySettingsPage({
 }: CategorySettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
@@ -126,6 +134,13 @@ function CategorySettingsPage({
         }
         return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
     }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
+
+    const requireItemizedReceiptsOverText = useMemo(() => {
+        if (!policy) {
+            return '';
+        }
+        return formatRequireItemizedReceiptsOverText(translate, policy, policyCategory?.maxAmountNoItemizedReceipt);
+    }, [policy, policyCategory?.maxAmountNoItemizedReceipt, translate]);
 
     if (!policyCategory) {
         return <NotFoundPage />;
@@ -370,11 +385,21 @@ function CategorySettingsPage({
                                     shouldShowRightIcon
                                 />
                             </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoItemizedReceipt}>
+                                <MenuItemWithTopDescription
+                                    title={requireItemizedReceiptsOverText}
+                                    description={translate(`workspace.rules.categoryRules.requireItemizedReceiptsOver`)}
+                                    onPress={() => {
+                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
+                                    }}
+                                    shouldShowRightIcon
+                                />
+                            </OfflineWithFeedback>
                         </>
                     )}
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
-                            icon={Trashcan}
+                            icon={expensifyIcons.Trashcan}
                             title={translate('common.delete')}
                             onPress={() => {
                                 if (shouldPreventDisableOrDelete) {

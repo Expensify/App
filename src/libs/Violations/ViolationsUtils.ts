@@ -328,6 +328,7 @@ const ViolationsUtils = {
         const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isFutureDay(inputDate) && isControlPolicy;
         const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && violation.data);
         const hasCategoryReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED && !violation.data);
+        const hasItemizedReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
         const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_LIMIT);
         // TODO: Uncomment when the OVER_TRIP_LIMIT violation is implemented
         // const hasOverTripLimitViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.OVER_TRIP_LIMIT);
@@ -347,7 +348,9 @@ const ViolationsUtils = {
 
         const categoryName = updatedTransaction.category;
         const categoryMaxAmountNoReceipt = policyCategories[categoryName ?? '']?.maxAmountNoReceipt;
+        const categoryMaxAmountNoItemizedReceipt = policyCategories[categoryName ?? '']?.maxAmountNoItemizedReceipt;
         const maxAmountNoReceipt = policy.maxExpenseAmountNoReceipt;
+        const maxAmountNoItemizedReceipt = policy.maxExpenseAmountNoItemizedReceipt;
         // Amount is stored with opposite sign (negative for expenses), so we negate it to get the actual expense amount
         const expenseAmount = -amount;
 
@@ -366,6 +369,23 @@ const ViolationsUtils = {
             typeof categoryMaxAmountNoReceipt === 'number' &&
             expenseAmount > categoryMaxAmountNoReceipt &&
             !TransactionUtils.hasReceipt(updatedTransaction) &&
+            isControlPolicy;
+
+        // Check for itemized receipt requirement - policy level
+        const shouldShowItemizedReceiptRequiredViolation =
+            canCalculateAmountViolations &&
+            !isInvoiceTransaction &&
+            typeof categoryMaxAmountNoItemizedReceipt !== 'number' &&
+            typeof maxAmountNoItemizedReceipt === 'number' &&
+            expenseAmount > maxAmountNoItemizedReceipt &&
+            isControlPolicy;
+
+        // Check for itemized receipt requirement - category level override
+        const shouldShowCategoryItemizedReceiptRequiredViolation =
+            canCalculateAmountViolations &&
+            !isInvoiceTransaction &&
+            typeof categoryMaxAmountNoItemizedReceipt === 'number' &&
+            expenseAmount > categoryMaxAmountNoItemizedReceipt &&
             isControlPolicy;
 
         const overLimitAmount = policy.maxExpenseAmount;
@@ -391,15 +411,40 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.FUTURE_DATE});
         }
 
+        // Remove itemized receipt required violation if conditions are no longer met
+        if (canCalculateAmountViolations && hasItemizedReceiptRequiredViolation && !shouldShowItemizedReceiptRequiredViolation && !shouldShowCategoryItemizedReceiptRequiredViolation) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED});
+        }
+
+        // Add itemized receipt required violation if conditions are met (policy or category level)
+        if (canCalculateAmountViolations && !hasItemizedReceiptRequiredViolation && (shouldShowItemizedReceiptRequiredViolation || shouldShowCategoryItemizedReceiptRequiredViolation)) {
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
+                data:
+                    shouldShowCategoryItemizedReceiptRequiredViolation || !policy.maxExpenseAmountNoItemizedReceipt
+                        ? undefined
+                        : {
+                              formattedLimit: CurrencyUtils.convertToDisplayString(policy.maxExpenseAmountNoItemizedReceipt, policy.outputCurrency, true),
+                          },
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            });
+        }
+
+        // If itemized receipt is required, don't also show regular receipt required (itemized supersedes regular)
+        const hasItemizedReceiptViolation = shouldShowItemizedReceiptRequiredViolation || shouldShowCategoryItemizedReceiptRequiredViolation;
+
         if (
             canCalculateAmountViolations &&
-            ((hasReceiptRequiredViolation && !shouldShowReceiptRequiredViolation) || (hasCategoryReceiptRequiredViolation && !shouldShowCategoryReceiptRequiredViolation))
+            ((hasReceiptRequiredViolation && (!shouldShowReceiptRequiredViolation || hasItemizedReceiptViolation)) ||
+                (hasCategoryReceiptRequiredViolation && (!shouldShowCategoryReceiptRequiredViolation || hasItemizedReceiptViolation)))
         ) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.RECEIPT_REQUIRED});
         }
 
         if (
             canCalculateAmountViolations &&
+            !hasItemizedReceiptViolation &&
             ((!hasReceiptRequiredViolation && !!shouldShowReceiptRequiredViolation) || (!hasCategoryReceiptRequiredViolation && shouldShowCategoryReceiptRequiredViolation))
         ) {
             newTransactionViolations.push({
@@ -555,6 +600,8 @@ const ViolationsUtils = {
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
                 return translate('violations.receiptRequired', {formattedLimit, category: getDecodedCategoryName(category ?? '')});
+            case 'itemizedReceiptRequired':
+                return translate('violations.itemizedReceiptRequired', {formattedLimit});
             case 'customRules':
                 return translate('violations.customRules', {message});
             case 'rter':
