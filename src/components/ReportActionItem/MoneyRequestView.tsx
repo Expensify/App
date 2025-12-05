@@ -99,7 +99,7 @@ type MoneyRequestViewProps = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
-    /** Policy that the report belongs to */
+    /** Policy that the report belongs to, or the target transaction policy in merge transaction flow */
     expensePolicy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Whether we should display the animated banner above the component */
@@ -116,6 +116,9 @@ type MoneyRequestViewProps = {
 
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
+
+    /** Tax name to display in merge transaction flow */
+    taxName?: string;
 };
 
 function MoneyRequestView({
@@ -127,6 +130,7 @@ function MoneyRequestView({
     updatedTransaction,
     isFromReviewDuplicates = false,
     mergeTransactionID,
+    taxName,
 }: MoneyRequestViewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase'] as const);
     const styles = useThemeStyles();
@@ -241,15 +245,16 @@ function MoneyRequestView({
     const shouldShowCard = isCardTransaction && cardProgramName;
 
     const taxRates = policy?.taxRates;
-    const formattedTaxAmount = updatedTransaction?.taxAmount
-        ? convertToDisplayString(Math.abs(updatedTransaction?.taxAmount), transactionCurrency)
-        : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), transactionCurrency);
+    const formattedTaxAmount =
+        updatedTransaction?.taxAmount !== undefined
+            ? convertToDisplayString(Math.abs(updatedTransaction.taxAmount), actualCurrency)
+            : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), actualCurrency);
 
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction) : getTaxName(policy, transaction);
 
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
-    const fallbackTaxRateTitle = transaction?.taxValue;
+    const fallbackTaxRateTitle = updatedTransaction?.taxValue ?? transaction?.taxValue;
 
     const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
@@ -310,7 +315,7 @@ function MoneyRequestView({
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
     const shouldShowAttendees = useMemo(() => shouldShowAttendeesTransactionUtils(iouType, policy), [iouType, policy]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
+    const shouldShowTax = !!taxName || isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
@@ -516,7 +521,7 @@ function MoneyRequestView({
     const decodedCategoryName = getDecodedCategoryName(categoryValue);
     const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
     const cardCopyValue = cardProgramName;
-    const taxRateValue = taxRateTitle ?? fallbackTaxRateTitle;
+    const taxRateValue = taxName ?? taxRateTitle ?? fallbackTaxRateTitle;
     const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
     const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
     const taxAmountCopyValue = !canEditTaxFields ? taxAmountTitle : undefined;

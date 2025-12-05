@@ -73,6 +73,15 @@ type MergeTransaction = {
 
     /** ID of the original transaction */
     originalTransactionID?: string;
+
+    /** Tax percentage value of the transaction */
+    taxValue: string;
+
+    /** Tax amount of the transaction */
+    taxAmount: number;
+
+    /** Tax code of the transaction */
+    taxCode: string;
 };
 
 export default MergeTransaction;

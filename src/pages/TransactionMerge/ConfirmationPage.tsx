@@ -22,6 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getTaxName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -63,6 +64,16 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+
+    const sourceTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction?.reportID}`];
+    const [sourceTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${sourceTransactionReport?.policyID}`, {canBeMissing: true});
+    const taxName =
+        mergeTransaction?.taxValue &&
+        getTaxName(
+            mergeTransaction?.selectedTransactionByField?.taxValue === mergeTransaction?.sourceTransactionID ? sourceTransactionPolicy : policy,
+            mergeTransaction as unknown as OnyxEntry<Transaction>,
+        );
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -156,6 +167,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                             readonly
                             updatedTransaction={mergedTransactionData as unknown as OnyxEntry<Transaction>}
                             mergeTransactionID={transactionID}
+                            taxName={taxName}
                         />
                     </ShowContextMenuContext.Provider>
                 </ScrollView>

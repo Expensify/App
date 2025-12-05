@@ -85,6 +85,9 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const [originalTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
+    const [targetTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionThreadReport?.policyID}`, {canBeMissing: true});
+    const [sourceTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction?.reportID}`, {canBeMissing: true});
+    const [sourceTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${sourceTransactionReport?.policyID}`, {canBeMissing: true});
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
     const [isCheckingDataBeforeGoNext, setIsCheckingDataBeforeGoNext] = useState<boolean>(false);
@@ -156,7 +159,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
-            const updatedValues = getMergeFieldUpdatedValues(transaction, field, fieldValue);
+            const updatedValues = getMergeFieldUpdatedValues({transaction, field, fieldValue, mergeTransaction});
 
             setMergeTransactionKey(transactionID, {
                 ...updatedValues,
@@ -166,7 +169,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                 } as Partial<Record<MergeFieldKey, string>>,
             });
         },
-        [mergeTransaction?.selectedTransactionByField, transactionID],
+        [mergeTransaction, transactionID],
     );
 
     // Handle continue
@@ -192,8 +195,8 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(
-        () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate),
-        [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate],
+        () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionPolicy, sourceTransactionPolicy, translate),
+        [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionPolicy, sourceTransactionPolicy, translate],
     );
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
