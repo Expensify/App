@@ -2504,13 +2504,13 @@ ${merchant}的${amount} - ${date}`,
                         4. 找到 ${integrationName}。
                         5. 点击*连接*。
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[前往会计](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[前往会计](${workspaceAccountingLink}).
 
-![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[前往会计](${workspaceAccountingLink}).`
-}`),
+                        ![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[前往会计](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
@@ -5106,9 +5106,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `您确定要移除${memberName}吗？`,
             removeMemberTitle: '移除成员',
             transferOwner: '转移所有者',
-            makeMember: '成为成员',
-            makeAdmin: '设为管理员',
-            makeAuditor: '创建审计员',
+            makeMember: () => ({
+                one: '设为成员',
+                other: '设为成员',
+            }),
+            makeAdmin: () => ({
+                one: '设为管理员',
+                other: '设为管理员',
+            }),
+            makeAuditor: () => ({
+                one: '设为审计员',
+                other: '设为审计员',
+            }),
             selectAll: '全选',
             error: {
                 genericAdd: '添加此工作区成员时出现问题。',
@@ -5159,7 +5168,6 @@ ${
                 cardType: '卡类型',
                 limit: '限制',
                 limitType: '限制类型',
-                name: '名称',
                 disabledApprovalForSmartLimitError: '请在<strong>工作流程 > 添加审批</strong>中启用审批，然后再设置智能限制',
             },
             deactivateCardModal: {
