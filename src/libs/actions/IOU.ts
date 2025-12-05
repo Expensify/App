@@ -9427,7 +9427,7 @@ function deleteTrackExpense({
         undefined,
         actionableWhisperReportActionID,
         CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
-        false,
+        isChatIOUReportArchived,
     );
 
     // STEP 6: Make the API request
