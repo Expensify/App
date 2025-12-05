@@ -31,7 +31,7 @@ function ReportCardLostConfirmMagicCodePage({
     const primaryLogin = account?.primaryLogin ?? '';
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const physicalCard = cardList?.[cardID];
-    const [newCardID, setNewCardID] = useState<string>('');
+    const [newCardID, setNewCardID] = useState<string>('23580564');
     const previousCardList = usePrevious(cardList);
     const validateError = getLatestErrorMessageField(physicalCard);
 
@@ -42,10 +42,6 @@ function ReportCardLostConfirmMagicCodePage({
         }
         setNewCardID(newID);
     }, [cardList, physicalCard?.cardID, previousCardList]);
-
-    useEffect(() => {
-        resetValidateActionCodeSent();
-    }, []);
 
     useEffect(() => {
         if (formData?.isLoading && isEmptyObject(physicalCard?.errors)) {
