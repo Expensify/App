@@ -175,7 +175,7 @@ function getDistanceForDisplay(
     translate: LocaleContextProps['translate'],
     useShortFormUnit?: boolean,
 ): string {
-    if (!hasRoute || !unit || !distanceInMeters) {
+    if (!hasRoute || !unit) {
         return translate('iou.fieldPending');
     }
 

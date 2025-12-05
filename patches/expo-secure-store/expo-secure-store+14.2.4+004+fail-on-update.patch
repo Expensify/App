@@ -1,0 +1,100 @@
+diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt
+index d209efc..e362aef 100644
+--- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt
++++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt
+@@ -212,6 +212,10 @@ open class SecureStoreModule : Module() {
+       return SecureStoreOriginalFeedback(null)
+     }
+ 
++    if (prefs.contains(keychainAwareKey) && options.failOnUpdate) {
++      throw WriteException("Key already exists", key, options.keychainService)
++    }
++
+     try {
+       if (keyIsInvalidated) {
+         // Invalidated keys will block writing even though it's not possible to re-validate them
+diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreOptions.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreOptions.kt
+index 4e30440..16674b8 100644
+--- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreOptions.kt
++++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreOptions.kt
+@@ -11,7 +11,8 @@ class SecureStoreOptions(
+   @Field var keychainService: String = SecureStoreModule.DEFAULT_KEYSTORE_ALIAS,
+   @Field var requireAuthentication: Boolean = false,
+   @Field var enableDeviceFallback: Boolean = false,
+-  @Field var returnUsedAuthenticationType: Boolean = false
++  @Field var returnUsedAuthenticationType: Boolean = false,
++  @Field var failOnUpdate: Boolean = false
+ ) : Record, Serializable
+ 
+ enum class SecureStoreAuthType(index: Int) {
+diff --git a/node_modules/expo-secure-store/build/SecureStore.d.ts b/node_modules/expo-secure-store/build/SecureStore.d.ts
+index f1e3610..8954c59 100644
+--- a/node_modules/expo-secure-store/build/SecureStore.d.ts
++++ b/node_modules/expo-secure-store/build/SecureStore.d.ts
+@@ -167,6 +167,16 @@ export type SecureStoreOptions = {
+      * @platform ios
+      */
+     forceAuthenticationOnSave?: boolean;
++    /**
++     * If the key has already been stored, the save function will throw an error instead of overwriting it.
++     * The behaviour differs slightly depending on the platform.
++     * On Android, an error is thrown before the authentication prompt. On iOS, an error is thrown after authentication.
++     *
++     * @default false
++     * @platform ios
++     * @platform android
++     */
++    failOnUpdate?: boolean;
+ };
+ /**
+  * Returns whether the SecureStore API is enabled on the current device. This does not check the app
+diff --git a/node_modules/expo-secure-store/ios/SecureStoreModule.swift b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
+index 02f837c..47282db 100644
+--- a/node_modules/expo-secure-store/ios/SecureStoreModule.swift
++++ b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
+@@ -169,6 +169,9 @@ public final class SecureStoreModule: Module {
+       SecItemDelete(query(with: key, options: options, requireAuthentication: !options.requireAuthentication) as CFDictionary)
+       return true
+     case errSecDuplicateItem:
++      if options.failOnUpdate {
++        throw SecureStoreRuntimeError("Key already exists")
++      }
+       return try update(value: value, with: key, options: options)
+     default:
+       throw KeyChainException(status)
+diff --git a/node_modules/expo-secure-store/ios/SecureStoreOptions.swift b/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
+index 321c7e5..6a787b0 100644
+--- a/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
++++ b/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
+@@ -24,6 +24,9 @@ internal struct SecureStoreOptions: Record {
+ 
+   @Field
+   var forceAuthenticationOnSave: Bool = false
++
++  @Field
++  var failOnUpdate: Bool = false
+ }
+ 
+ @available(iOS 11.2, *)
+diff --git a/node_modules/expo-secure-store/src/SecureStore.ts b/node_modules/expo-secure-store/src/SecureStore.ts
+index c4b95ae..0bedcaa 100644
+--- a/node_modules/expo-secure-store/src/SecureStore.ts
++++ b/node_modules/expo-secure-store/src/SecureStore.ts
+@@ -200,6 +200,17 @@ export type SecureStoreOptions = {
+    * @platform ios
+    */
+   forceAuthenticationOnSave?: boolean;
++
++  /**
++   * If the key has already been stored, the save function will throw an error instead of overwriting it.
++   * The behaviour differs slightly depending on the platform.
++   * On Android, an error is thrown before the authentication prompt. On iOS, an error is thrown after authentication.
++   *
++   * @default false
++   * @platform ios
++   * @platform android
++   */
++  failOnUpdate?: boolean;
+ };
+ 
+ // @needsAudit

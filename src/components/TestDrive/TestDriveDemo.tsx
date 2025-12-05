@@ -10,6 +10,7 @@ import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
@@ -32,9 +33,11 @@ function TestDriveDemo() {
         taskReport: viewTourTaskReport,
         taskParentReport: viewTourTaskParentReport,
         isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
+        hasOutstandingChildTask,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const {testDrive} = useOnboardingMessages();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const parentReportAction = useParentReportAction(viewTourTaskReport);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -47,8 +50,16 @@ function TestDriveDemo() {
             return;
         }
 
-        completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID);
-    }, [hasSeenTour, viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID]);
+        completeTestDriveTask(
+            viewTourTaskReport,
+            viewTourTaskParentReport,
+            isViewTourTaskParentReportArchived,
+            currentUserPersonalDetails.accountID,
+            hasOutstandingChildTask,
+            parentReportAction,
+            false,
+        );
+    }, [hasSeenTour, viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated

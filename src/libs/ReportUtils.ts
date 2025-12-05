@@ -64,7 +64,6 @@ import type {
 } from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import type Locale from '@src/types/onyx/Locale';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
@@ -963,7 +962,7 @@ getEnvironment().then((env) => {
 const parsedReportActionMessageCache: Record<string, string> = {};
 
 let conciergeReportID: OnyxEntry<string>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.CONCIERGE_REPORT_ID,
     callback: (value) => {
         conciergeReportID = value;
@@ -971,7 +970,7 @@ Onyx.connect({
 });
 
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         // When signed out, val is undefined
@@ -989,7 +988,7 @@ Onyx.connect({
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 let allPersonalDetailLogins: string[];
 let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         if (currentUserAccountID) {
@@ -1001,14 +1000,14 @@ Onyx.connect({
 });
 
 let allReportsDraft: OnyxCollection<Report>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
     waitForCollectionCallback: true,
     callback: (value) => (allReportsDraft = value),
 });
 
 let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
@@ -1023,7 +1022,7 @@ Onyx.connectWithoutView({
 
 let allReports: OnyxCollection<Report>;
 let reportsByPolicyID: ReportByPolicyMap;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1061,14 +1060,14 @@ Onyx.connect({
 });
 
 let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.BETAS,
     callback: (value) => (allBetas = value),
 });
 
 let allTransactions: OnyxCollection<Transaction> = {};
 let reportsTransactions: Record<string, Transaction[]> = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1094,7 +1093,7 @@ Onyx.connect({
 });
 
 let allReportActions: OnyxCollection<ReportActions>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
     callback: (actions) => {
@@ -1107,7 +1106,7 @@ Onyx.connect({
 
 let allReportMetadata: OnyxCollection<ReportMetadata>;
 const allReportMetadataKeyValue: Record<string, ReportMetadata> = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_METADATA,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1128,7 +1127,7 @@ Onyx.connect({
 });
 
 let allReportNameValuePair: OnyxCollection<ReportNameValuePairs>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1140,7 +1139,7 @@ Onyx.connect({
 });
 
 let allReportsViolations: OnyxCollection<ReportViolations>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1152,13 +1151,13 @@ Onyx.connect({
 });
 
 let onboarding: OnyxEntry<Onboarding>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => (onboarding = value),
 });
 
 let delegateEmail = '';
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         delegateEmail = value?.delegatedAccess?.delegate ?? '';
@@ -1166,13 +1165,13 @@ Onyx.connect({
 });
 
 let activePolicyID: OnyxEntry<string>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
 });
 
 let reportAttributesDerivedValue: ReportAttributesDerivedValue['reports'];
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
         reportAttributesDerivedValue = value?.reports ?? {};
@@ -1180,13 +1179,13 @@ Onyx.connect({
 });
 
 let newGroupChatDraft: OnyxEntry<NewGroupChatDraft>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
     callback: (value) => (newGroupChatDraft = value),
 });
 
 let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
     callback: (value) => {
         onboardingCompanySize = value;
@@ -1196,7 +1195,7 @@ Onyx.connect({
 let hiddenTranslation = '';
 let unavailableTranslation = '';
 
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
     initWithStoredValues: false,
     callback: (value) => {
@@ -4475,7 +4474,6 @@ function getTransactionDetails(
     allowNegativeAmount = false,
     disableOppositeConversion = false,
     currentUserDetails = currentUserPersonalDetails,
-    locale?: Locale,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
@@ -4486,7 +4484,7 @@ function getTransactionDetails(
     const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
 
     return {
-        created: getFormattedCreated(transaction, createdDateFormat, locale),
+        created: getFormattedCreated(transaction, createdDateFormat),
         amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
         attendees: getAttendees(transaction, currentUserDetails),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),
@@ -4505,7 +4503,7 @@ function getTransactionDetails(
         cardName: getCardName(transaction),
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
-        postedDate: getFormattedPostedDate(transaction, undefined, locale),
+        postedDate: getFormattedPostedDate(transaction),
         transactionID: transaction.transactionID,
         ...(isManualDistanceRequest && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
     };
@@ -5399,7 +5397,7 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.oldMerchant = getMerchant(oldTransaction);
 
         // For the originalMessage, we should use the non-negative amount, similar to what getAmount does for oldAmount
-        originalMessage.amount = Math.abs(updatedTransaction?.modifiedAmount ?? 0);
+        originalMessage.amount = Math.abs(Number(updatedTransaction?.modifiedAmount ?? 0));
         originalMessage.currency = updatedTransaction?.modifiedCurrency ?? CONST.CURRENCY.USD;
         originalMessage.merchant = updatedTransaction?.modifiedMerchant;
     }
@@ -6968,6 +6966,7 @@ function getMovedTransactionMessage(action: ReportAction) {
     const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
     const report = fromReport ?? toReport;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName(report) ?? report?.reportName ?? '';
     let reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
@@ -6997,6 +6996,7 @@ function getUnreportedTransactionMessage(action: ReportAction) {
 
     const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName(fromReport) ?? fromReport?.reportName ?? '';
 
     let reportUrl = `${environmentURL}/r/${fromReport?.reportID}`;
@@ -10148,7 +10148,12 @@ function getOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
  */
 function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): ReportOfflinePendingActionAndErrors {
     // It shouldn't be possible for all of these actions to be pending (or to have errors) for the same report at the same time, so just take the first that exists
-    const reportPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat ?? report?.pendingFields?.reimbursed ?? report?.pendingFields?.createReport;
+    const reportPendingAction =
+        report?.pendingFields?.addWorkspaceRoom ??
+        report?.pendingFields?.createChat ??
+        report?.pendingFields?.reimbursed ??
+        report?.pendingFields?.createReport ??
+        report?.pendingFields?.reportName;
     const reportErrors = getCreationReportErrors(report);
     return {reportPendingAction, reportErrors};
 }
@@ -11130,7 +11135,32 @@ function getReportActionActorAccountID(
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED:
-            return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
+        case CONST.REPORT.ACTIONS.TYPE.APPROVED:
+        case CONST.REPORT.ACTIONS.TYPE.FORWARDED:
+        case CONST.REPORT.ACTIONS.TYPE.IOU: {
+            const originalMessage = getOriginalMessage(reportAction);
+            const actionName = reportAction?.actionName;
+
+            // Check if this should show Concierge as the actor
+            const wasSubmittedViaHarvesting = originalMessage && 'harvesting' in originalMessage ? originalMessage.harvesting : false;
+            const wasAutomatic = originalMessage && 'automaticAction' in originalMessage ? originalMessage.automaticAction : false;
+            const isPayment = originalMessage && 'type' in originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+
+            // Show Concierge for:
+            // - Harvesting (delayed submissions)
+            // - Automatic approvals/forwards via workspace rules
+            // - Automatic payments via workspace rules
+            if (wasSubmittedViaHarvesting || (wasAutomatic && actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) || (wasAutomatic && isPayment)) {
+                return CONST.ACCOUNT_ID.CONCIERGE;
+            }
+
+            // For SUBMITTED actions, check adminAccountID first (admin-submit case)
+            if (actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED || actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) {
+                return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
+            }
+
+            return reportAction?.actorAccountID;
+        }
 
         default:
             return reportAction?.actorAccountID;
@@ -11412,18 +11442,33 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
     return isChatRoom(report) && !isInvoiceRoom(report) && !isThread(report);
 }
 
-function prepareOnboardingOnyxData(
-    introSelected: OnyxEntry<IntroSelected>,
-    engagementChoice: OnboardingPurpose,
-    onboardingMessage: OnboardingMessage,
-    adminsChatReportID?: string,
-    onboardingPolicyID?: string,
-    userReportedIntegration?: OnboardingAccounting,
-    wasInvited?: boolean,
-    companySize?: OnboardingCompanySize,
-    selectedInterestedFeatures: string[] = [],
-    isInvitedAccountant?: boolean,
-) {
+type PrepareOnboardingOnyxDataParams = {
+    introSelected: OnyxEntry<IntroSelected>;
+    engagementChoice: OnboardingPurpose;
+    onboardingMessage: OnboardingMessage;
+    adminsChatReportID?: string;
+    onboardingPolicyID?: string;
+    userReportedIntegration?: OnboardingAccounting;
+    wasInvited?: boolean;
+    companySize?: OnboardingCompanySize;
+    selectedInterestedFeatures?: string[];
+    isInvitedAccountant?: boolean;
+    onboardingPurposeSelected?: OnboardingPurpose;
+};
+
+function prepareOnboardingOnyxData({
+    introSelected,
+    engagementChoice,
+    onboardingMessage,
+    adminsChatReportID,
+    onboardingPolicyID,
+    userReportedIntegration,
+    wasInvited,
+    companySize,
+    selectedInterestedFeatures = [],
+    isInvitedAccountant,
+    onboardingPurposeSelected,
+}: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
         onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
@@ -11913,7 +11958,10 @@ function prepareOnboardingOnyxData(
     guidedSetupData.push({type: 'message', ...textMessage});
 
     let selfDMParameters: SelfDMParameters = {};
-    if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+    if (
+        engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
+        (engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE && (!onboardingPurposeSelected || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND))
+    ) {
         const selfDMReportID = findSelfDMReportID();
         let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
         let createdAction: ReportAction;
@@ -12288,7 +12336,11 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
 function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>): boolean {
     const transactions = getReportTransactions(iouReport?.reportID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return isIOUReport(iouReport) && transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
+
+    if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
+        return isIOUReport(iouReport) && transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) <= 0);
+    }
+    return isIOUReport(iouReport) && transactions.some((transaction) => (Number(transaction?.modifiedAmount) || transaction?.amount) < 0);
 }
 
 /**
@@ -13377,5 +13429,6 @@ export type {
     ParsingDetails,
     MissingPaymentMethod,
     OptimisticNewReport,
+    PrepareOnboardingOnyxDataParams,
     SelfDMParameters,
 };

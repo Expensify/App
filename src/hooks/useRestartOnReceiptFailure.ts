@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {checkIfScanFileCanBeRead, setMoneyRequestReceipt} from '@libs/actions/IOU';
 import {removeDraftTransactions} from '@libs/actions/TransactionEdit';
 import {isLocalFile as isLocalFileUtil} from '@libs/fileDownload/FileUtils';
+import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import {getRequestType} from '@libs/TransactionUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -20,7 +21,7 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
         if (!transaction || action !== CONST.IOU.ACTION.CREATE) {
             return;
         }
-        const itemReceiptFilename = transaction.filename;
+        const itemReceiptFilename = getReceiptFilenameFromTransaction(transaction);
         const itemReceiptPath = transaction.receipt?.source;
         const itemReceiptType = transaction.receipt?.type;
         const isLocalFile = isLocalFileUtil(itemReceiptPath);
