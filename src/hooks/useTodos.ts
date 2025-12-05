@@ -1,8 +1,8 @@
 import {useMemo} from 'react';
+import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
-import {isSubmitAction, isApproveAction, isPrimaryPayAction, isExportAction} from '@libs/ReportPrimaryActionUtils';
 import useOnyx from './useOnyx';
 
 export default function useTodos() {

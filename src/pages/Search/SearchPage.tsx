@@ -32,6 +32,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTodos from '@hooks/useTodos';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {openWorkspace} from '@libs/actions/Policy/Policy';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, openReport, searchInServer} from '@libs/actions/Report';
@@ -89,7 +90,6 @@ import type {Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
-import useTodos from '@hooks/useTodos';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
