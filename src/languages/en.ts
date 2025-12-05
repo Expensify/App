@@ -1031,6 +1031,7 @@ const translations = {
         manual: 'Manual',
         scan: 'Scan',
         map: 'Map',
+        odometer: 'Odometer',
     },
     spreadsheet: {
         upload: 'Upload a spreadsheet',
@@ -6977,6 +6978,15 @@ const translations = {
         },
         error: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
+        },
+        odometer: {
+            startReading: 'Start reading',
+            endReading: 'End reading',
+            captureStart: 'Capture start reading',
+            captureEnd: 'Capture end reading',
+            totalDistance: 'Total distance',
+            readingRequired: 'Please enter both start and end readings',
+            negativeDistanceNotAllowed: 'End reading must be greater than start reading',
         },
     },
     reportCardLostOrDamaged: {
