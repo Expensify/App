@@ -2757,7 +2757,7 @@ describe('SearchUIUtils', () => {
                 merchant: '',
                 modifiedMerchant: 'Modified Merchant',
                 comment: {comment: ''},
-                category: 'Uncategorized', // This is in CONST.SEARCH.CATEGORY_EMPTY_VALUE
+                category: 'none', // This is in CONST.SEARCH.CATEGORY_EMPTY_VALUE
                 tag: CONST.SEARCH.TAG_EMPTY_VALUE, // This is the empty tag value
                 accountID: adminAccountID,
                 managerID: adminAccountID,
