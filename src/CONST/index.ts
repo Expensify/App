@@ -710,6 +710,7 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
+        ZERO_EXPENSES: 'zeroExpenses',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1159,7 +1160,6 @@ const CONST = {
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
             ADD_EXPENSE: 'addExpense',
-            REVIEW: 'review',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -1685,6 +1685,14 @@ const CONST = {
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
+        SPAN_SKELETON: 'ManualSkeleton',
+        SPAN_BOOTSPLASH: {
+            ROOT: 'BootsplashVisible',
+            NAVIGATION: 'BootsplashVisibleNavigation',
+            ONYX: 'BootsplashVisibleOnyx',
+            LOCALE: 'BootsplashVisibleLocale',
+            SPLASH_HIDER: 'BootsplashVisibleHider',
+        },
         // Attribute names
         ATTRIBUTE_IOU_TYPE: 'iou_type',
         ATTRIBUTE_IOU_REQUEST_TYPE: 'iou_request_type',
@@ -1693,6 +1701,11 @@ const CONST = {
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
         ATTRIBUTE_ROUTE_TO: 'route_to',
+        ATTRIBUTE_MIN_DURATION: 'min_duration',
+        ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
+        CONFIG: {
+            SKELETON_MIN_DURATION: 10_000,
+        },
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -6619,7 +6632,6 @@ const CONST = {
         },
         ACTION_TYPES: {
             VIEW: 'view',
-            REVIEW: 'review',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -7460,6 +7472,15 @@ const CONST = {
         REVIEW_WORKSPACE_SETTINGS: 'reviewWorkspaceSettings',
         INVITE_ACCOUNTANT: 'inviteAccountant',
         ADD_EXPENSE_APPROVALS: 'addExpenseApprovals',
+    },
+
+    MODAL_EVENTS: {
+        CLOSED: 'modalClosed',
+    },
+
+    LIST_BEHAVIOR: {
+        REGULAR: 'regular',
+        INVERTED: 'inverted',
     },
 } as const;
 

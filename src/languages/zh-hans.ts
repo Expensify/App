@@ -1173,7 +1173,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: '查找费用',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `删除了一笔费用 (${merchant} 的 ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔费用${reportName ? `来自${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `至 <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `至 <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `来自<a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此费用从您的<a href="${reportUrl}">个人空间</a>移出`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此费用移动到您的<a href="${reportUrl}">个人空间</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2241,9 +2243,10 @@ ${merchant}的${amount} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `在${policyName}中`,
-        generatingPDF: '生成PDF...',
-        waitForPDF: '请稍候，我们正在生成 PDF。',
+        generatingPDF: '生成 PDF',
+        waitForPDF: '我们正在生成 PDF，请稍候。',
         errorPDF: '生成PDF时出现错误。',
+        successPDF: '你的 PDF 已生成！如果没有自动下载，请使用下面的按钮。',
     },
     reportDescriptionPage: {
         roomDescription: '房间描述',
@@ -2502,26 +2505,26 @@ ${merchant}的${amount} - ${date}`,
                         4. 找到 ${integrationName}。
                         5. 点击*连接*。
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[前往会计](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[前往会计](${workspaceAccountingLink}).
 
-![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[前往会计](${workspaceAccountingLink}).`
-}`),
+                        ![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[前往会计](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        连接您的公司信用卡，以自动导入并进行费用编码。
+                        连接你已有的卡片，以自动导入交易、匹配收据并进行对账。
 
                         1. 点击*工作区*。
-                        2. 选择您的工作区。
-                        3. 点击*公司信用卡*。
-                        4. 按照提示连接您的卡片。
+                        2. 选择你的工作区。
+                        3. 点击*公司卡*。
+                        4. 按照提示连接你的卡片。
 
-                        [带我去连接我的公司信用卡](${corporateCardLink})。`),
+                        [带我前往公司卡](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `邀请[您的团队](${workspaceMembersLink})`,
@@ -5104,9 +5107,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `您确定要移除${memberName}吗？`,
             removeMemberTitle: '移除成员',
             transferOwner: '转移所有者',
-            makeMember: '成为成员',
-            makeAdmin: '设为管理员',
-            makeAuditor: '创建审计员',
+            makeMember: () => ({
+                one: '设为成员',
+                other: '设为成员',
+            }),
+            makeAdmin: () => ({
+                one: '设为管理员',
+                other: '设为管理员',
+            }),
+            makeAuditor: () => ({
+                one: '设为审计员',
+                other: '设为审计员',
+            }),
             selectAll: '全选',
             error: {
                 genericAdd: '添加此工作区成员时出现问题。',
@@ -5157,7 +5169,6 @@ ${
                 cardType: '卡类型',
                 limit: '限制',
                 limitType: '限制类型',
-                name: '名称',
                 disabledApprovalForSmartLimitError: '请在<strong>工作流程 > 添加审批</strong>中启用审批，然后再设置智能限制',
             },
             deactivateCardModal: {
@@ -5842,7 +5853,7 @@ ${
                     expense: '单笔费用',
                     expenseSubtitle: '按类别标记费用金额。此规则会覆盖工作区的一般最大费用金额规则。',
                     daily: '类别总计',
-                    dailySubtitle: '标记每个费用报告的类别总支出。',
+                    dailySubtitle: '标记每个费用报告的类别每日总支出。',
                 },
                 requireReceiptsOver: '要求超过',
                 requireReceiptsOverList: {
@@ -6487,6 +6498,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: '创建报销单',
             createReport: '创建报告',
             chooseWorkspace: '为此报告选择一个工作区。',
             emptyReportConfirmationTitle: '你已经有一个空报告',
@@ -6895,6 +6907,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} 是必需的`,
+        reportContainsExpensesWithViolations: '报告包含违反规定的费用。',
     },
     violationDismissal: {
         rter: {
@@ -7554,6 +7567,8 @@ ${
             anyMemberWillBeRequired: '使用不同方式登录的任何成员将被要求使用 SAML 重新进行身份验证。',
             enableError: '无法更新 SAML 启用设置',
             requireError: '无法更新 SAML 要求设置',
+            disableSamlRequired: '禁用 SAML 要求',
+            oktaWarningPrompt: '你确定吗？这也会禁用 Okta SCIM。',
         },
         samlConfigurationDetails: {
             title: 'SAML 配置详细信息',
