@@ -2489,7 +2489,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
     ) {
         const {onboardingMessages} = getOnboardingMessages();
         const onboardingData = ReportUtils.prepareOnboardingOnyxData({
-            introSelected: deprecatedIntroSelected,
+            introSelected: introSelected,
             engagementChoice,
             onboardingMessage: onboardingMessages[engagementChoice],
             adminsChatReportID,
@@ -2516,7 +2516,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
             optimisticData: optimisticCreateWorkspaceTaskData,
             successData: successCreateWorkspaceTaskData,
             failureData: failureCreateWorkspaceTaskData,
-        } = buildTaskData(createWorkspaceTaskReport, deprecatedIntroSelected.createWorkspace, false, false, undefined);
+        } = buildTaskData(createWorkspaceTaskReport, introSelected.createWorkspace, false, false, undefined);
         optimisticData.push(...optimisticCreateWorkspaceTaskData);
         successData.push(...successCreateWorkspaceTaskData);
         failureData.push(...failureCreateWorkspaceTaskData);
