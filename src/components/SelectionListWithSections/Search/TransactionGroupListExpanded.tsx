@@ -192,54 +192,54 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
             )}
             {visibleTransactions.map((transaction, index) => {
                 const shouldShowBottomBorder = !isLastTransaction(index) && !isLargeScreenWidth;
+                const transactionRow = (
+                    <TransactionItemRow
+                        report={transaction.report}
+                        transactionItem={transaction}
+                        violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', currentUserDetails.accountID, transaction.report, transaction.policy)}
+                        isSelected={!!transaction.isSelected}
+                        dateColumnSize={dateColumnSize}
+                        amountColumnSize={amountColumnSize}
+                        taxAmountColumnSize={taxAmountColumnSize}
+                        shouldShowTooltip={showTooltip}
+                        shouldUseNarrowLayout={!isLargeScreenWidth}
+                        shouldShowCheckbox={!!canSelectMultiple}
+                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                        columns={currentColumns}
+                        onButtonPress={() => {
+                            openReportInRHP(transaction);
+                        }}
+                        style={[styles.noBorderRadius, !isLargeScreenWidth ? [styles.p3, styles.pt3] : [styles.pl3, styles.pv1Half], styles.flex1]}
+                        isReportItemChild
+                        isInSingleTransactionReport={isInSingleTransactionReport}
+                        areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                        shouldShowBottomBorder={shouldShowBottomBorder}
+                        onArrowRightPress={() => openReportInRHP(transaction)}
+                        shouldShowArrowRightOnNarrowLayout
+                    />
+                );
                 return (
                     <OfflineWithFeedback
                         pendingAction={transaction.pendingAction}
                         key={transaction.transactionID}
                     >
-                        <PressableWithFeedback
-                            onPress={() => handleOnPress(transaction)}
-                            onLongPress={() => onLongPress?.(transaction)}
-                            accessibilityRole={CONST.ROLE.BUTTON}
-                            accessibilityLabel={transaction.text ?? ''}
-                            isNested
-                            onMouseDown={(e) => e.preventDefault()}
-                            hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG]}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
-                            id={transaction.transactionID}
-                        >
-                            <TransactionItemRow
-                                report={transaction.report}
-                                transactionItem={transaction}
-                                violations={getTransactionViolations(
-                                    transaction,
-                                    violations,
-                                    currentUserDetails.email ?? '',
-                                    currentUserDetails.accountID,
-                                    transaction.report,
-                                    transaction.policy,
-                                )}
-                                isSelected={!!transaction.isSelected}
-                                dateColumnSize={dateColumnSize}
-                                amountColumnSize={amountColumnSize}
-                                taxAmountColumnSize={taxAmountColumnSize}
-                                shouldShowTooltip={showTooltip}
-                                shouldUseNarrowLayout={!isLargeScreenWidth}
-                                shouldShowCheckbox={!!canSelectMultiple}
-                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                                columns={currentColumns}
-                                onButtonPress={() => {
-                                    openReportInRHP(transaction);
-                                }}
-                                style={[styles.noBorderRadius, !isLargeScreenWidth ? [styles.p3, styles.pt3] : [styles.pl3, styles.pv1Half], styles.flex1]}
-                                isReportItemChild
-                                isInSingleTransactionReport={isInSingleTransactionReport}
-                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                                shouldShowBottomBorder={shouldShowBottomBorder}
-                                onArrowRightPress={() => openReportInRHP(transaction)}
-                                shouldShowArrowRightOnNarrowLayout
-                            />
-                        </PressableWithFeedback>
+                        {!isLargeScreenWidth ? (
+                            <PressableWithFeedback
+                                onPress={() => handleOnPress(transaction)}
+                                onLongPress={() => onLongPress?.(transaction)}
+                                accessibilityRole={CONST.ROLE.BUTTON}
+                                accessibilityLabel={transaction.text ?? ''}
+                                isNested
+                                onMouseDown={(e) => e.preventDefault()}
+                                hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG]}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                                id={transaction.transactionID}
+                            >
+                                {transactionRow}
+                            </PressableWithFeedback>
+                        ) : (
+                            transactionRow
+                        )}
                     </OfflineWithFeedback>
                 );
             })}
