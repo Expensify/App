@@ -2288,9 +2288,10 @@ ${amount} für ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'PDF wird generiert...',
-        waitForPDF: 'Bitte warten Sie, während wir das PDF erstellen.',
+        generatingPDF: 'PDF erstellen',
+        waitForPDF: 'Bitte warten, während wir das PDF generieren.',
         errorPDF: 'Beim Versuch, Ihr PDF zu erstellen, ist ein Fehler aufgetreten.',
+        successPDF: 'Dein PDF wurde erstellt! Falls es nicht automatisch heruntergeladen wurde, verwende die Schaltfläche unten.',
     },
     reportDescriptionPage: {
         roomDescription: 'Zimmerbeschreibung',
@@ -2554,26 +2555,26 @@ ${amount} für ${merchant} - ${date}`,
                         4. Suche nach ${integrationName}.
                         5. Klicke auf *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Zur Buchhaltung](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Zur Buchhaltung](${workspaceAccountingLink}).
 
-![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Zur Buchhaltung](${workspaceAccountingLink}).`
-}`),
+                        ![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Zur Buchhaltung](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Verbinde [deine Firmenkarte](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Verbinden Sie [Ihre Firmenkarten](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Verbinden Sie Ihre Firmenkarte, um Ausgaben automatisch zu importieren und zu kontieren.
+                        Verbinden Sie Ihre bestehenden Karten, um Transaktionen automatisch zu importieren, Belege abzugleichen und Abstimmungen durchzuführen.
 
-                        1. Klicken Sie auf *Workspaces*.
-                        2. Wählen Sie Ihren Workspace aus.
-                        3. Klicken Sie auf *Corporate cards*.
-                        4. Folgen Sie den Anweisungen, um Ihre Karte zu verknüpfen.
+                        1. Klicken Sie auf „Arbeitsbereiche“.
+                        2. Wählen Sie Ihren Arbeitsbereich aus.
+                        3. Klicken Sie auf „Firmenkarten“.
+                        4. Folgen Sie den Anweisungen, um Ihre Karten zu verbinden.
 
-                        [Zum Verbinden meiner Firmenkarten](${corporateCardLink}).`),
+                        [Zu den Firmenkarten](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `Lade [dein Team](${workspaceMembersLink}) ein`,
@@ -5228,9 +5229,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Möchten Sie ${memberName} wirklich entfernen?`,
             removeMemberTitle: 'Mitglied entfernen',
             transferOwner: 'Besitzer übertragen',
-            makeMember: 'Mitglied machen',
-            makeAdmin: 'Admin machen',
-            makeAuditor: 'Prüfer erstellen',
+            makeMember: () => ({
+                one: 'Zum Mitglied machen',
+                other: 'Zu Mitgliedern machen',
+            }),
+            makeAdmin: () => ({
+                one: 'Zum Administrator machen',
+                other: 'Zu Administratoren machen',
+            }),
+            makeAuditor: () => ({
+                one: 'Zum Prüfer machen',
+                other: 'Zu Prüfern machen',
+            }),
             selectAll: 'Alle auswählen',
             error: {
                 genericAdd: 'Es gab ein Problem beim Hinzufügen dieses Arbeitsbereichsmitglieds.',
@@ -5284,7 +5294,6 @@ ${
                 cardType: 'Kartentyp',
                 limit: 'Limit',
                 limitType: 'Typ begrenzen',
-                name: 'Name',
                 disabledApprovalForSmartLimitError:
                     'Bitte aktivieren Sie Genehmigungen unter <strong>Workflows > Genehmigungen hinzufügen</strong>, bevor Sie intelligente Limits einrichten',
             },
@@ -5994,7 +6003,7 @@ ${
                     expense: 'Einzelausgabe',
                     expenseSubtitle: 'Beträge von Ausgaben nach Kategorie kennzeichnen. Diese Regel überschreibt die allgemeine Arbeitsbereichsregel für den maximalen Ausgabenbetrag.',
                     daily: 'Kategorietotal',
-                    dailySubtitle: 'Gesamtausgaben pro Kategorie pro Spesenbericht kennzeichnen.',
+                    dailySubtitle: 'Gesamtausgaben pro Tag pro Kategorie pro Spesenbericht kennzeichnen.',
                 },
                 requireReceiptsOver: 'Belege über erforderlich',
                 requireReceiptsOverList: {
@@ -6656,6 +6665,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Ausgabe erstellen',
             createReport: 'Bericht erstellen',
             chooseWorkspace: 'Wählen Sie einen Arbeitsbereich für diesen Bericht aus.',
             emptyReportConfirmationTitle: 'Du hast bereits einen leeren Bericht',
@@ -7076,6 +7086,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} ist erforderlich`,
+        reportContainsExpensesWithViolations: 'Der Bericht enthält Ausgaben mit Verstößen.',
     },
     violationDismissal: {
         rter: {
@@ -7769,6 +7780,8 @@ ${
             anyMemberWillBeRequired: 'Jedes Mitglied, das sich mit einer anderen Methode angemeldet hat, muss sich mithilfe von SAML erneut authentifizieren.',
             enableError: 'Konnte die SAML-Aktivierungseinstellung nicht aktualisieren',
             requireError: 'Die SAML-Anforderungseinstellung konnte nicht aktualisiert werden.',
+            disableSamlRequired: 'SAML-Pflicht deaktivieren',
+            oktaWarningPrompt: 'Bist du sicher? Dadurch wird auch Okta SCIM deaktiviert.',
         },
         samlConfigurationDetails: {
             title: 'SAML-Konfigurationsdetails',
