@@ -180,6 +180,17 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                     onSubmit={handleReportFieldChange}
                 />
             )}
+
+            {reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA && (
+                <EditReportFieldText
+                    fieldName={reportField.name}
+                    fieldKey={fieldKey}
+                    fieldValue={fieldValue}
+                    isRequired={!isReportFieldDeletable}
+                    onSubmit={handleReportFieldChange}
+                    fieldList={policy?.fieldList}
+                />
+            )}
         </ScreenWrapper>
     );
 }
