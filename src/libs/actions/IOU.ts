@@ -14833,7 +14833,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
 
     // Reset selected transactions in search after saving split expenses
-    params?.searchContext?.clearSelectedTransactions?.(0, true);
+    params?.searchContext?.clearSelectedTransactions?.(undefined, true);
 
     if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
         Navigation.dismissModal();
