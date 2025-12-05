@@ -483,6 +483,7 @@ type PerDiemExpenseInformation = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -496,6 +497,7 @@ type PerDiemExpenseInformationParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type RequestMoneyInformation = {
@@ -519,6 +521,7 @@ type RequestMoneyInformation = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type MoneyRequestInformationParams = {
@@ -546,6 +549,7 @@ type MoneyRequestInformationParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -589,6 +593,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -611,6 +616,8 @@ type CreateDistanceRequestInformation = {
     backToReport?: string;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -628,6 +635,7 @@ type CreateSplitsAndOnyxDataParams = {
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type TrackExpenseTransactionParams = {
@@ -670,6 +678,7 @@ type CreateTrackExpenseParams = {
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
     isASAPSubmitBetaEnabled: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -734,6 +743,7 @@ type GetTrackExpenseInformationParams = {
     transactionParams: GetTrackExpenseInformationTransactionParams;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
     isASAPSubmitBetaEnabled: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -760,6 +770,7 @@ type StartSplitBilActionParams = {
     taxAmount: number;
     shouldPlaySound?: boolean;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type UpdateSplitTransactionsParams = {
@@ -781,6 +792,7 @@ type UpdateSplitTransactionsParams = {
     isASAPSubmitBetaEnabled: boolean;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 type ReplaceReceipt = {
@@ -934,14 +946,6 @@ Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         deprecatedCurrentUserPersonalDetails = value?.[userAccountID] ?? undefined;
-    },
-});
-
-let quickAction: OnyxEntry<OnyxTypes.QuickAction> = {};
-Onyx.connect({
-    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-    callback: (value) => {
-        quickAction = value;
     },
 });
 
@@ -1609,6 +1613,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        quickAction,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -2612,6 +2617,7 @@ type BuildOnyxDataForTrackExpenseParams = {
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
     participant?: Participant;
     isASAPSubmitBetaEnabled: boolean;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 /** Builds the Onyx data for track expense */
@@ -2626,6 +2632,7 @@ function buildOnyxDataForTrackExpense({
     retryParams,
     participant,
     isASAPSubmitBetaEnabled,
+    quickAction,
 }: BuildOnyxDataForTrackExpenseParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const {report: chatReport, previewAction: reportPreviewAction} = chat;
     const {report: iouReport, createdAction: iouCreatedAction, action: iouAction} = iou;
@@ -3479,6 +3486,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserAccountIDParam,
         currentUserEmailParam,
         transactionViolations,
+        quickAction,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
@@ -3753,6 +3761,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        quickAction,
     });
 
     return {
@@ -3854,6 +3863,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        quickAction,
     } = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
@@ -4047,6 +4057,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        quickAction,
     });
 
     return {
@@ -4076,7 +4087,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
  * it creates optimistic versions of them and uses those instead
  */
 function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): TrackExpenseInformation | null {
-    const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams, retryParams, isASAPSubmitBetaEnabled} = params;
+    const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams, retryParams, isASAPSubmitBetaEnabled, quickAction} = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {comment, amount, currency, created, distance, merchant, receipt, category, tag, taxCode, taxAmount, billable, reimbursable, linkedTrackedExpenseReportAction, attendees} =
@@ -4327,6 +4338,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         actionableTrackExpenseWhisper,
         retryParams,
         isASAPSubmitBetaEnabled,
+        quickAction,
     });
 
     return {
@@ -5836,6 +5848,7 @@ function convertBulkTrackedExpensesToIOU(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
 ) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
 
@@ -5956,6 +5969,7 @@ function convertBulkTrackedExpensesToIOU(
             currentUserAccountIDParam,
             currentUserEmailParam,
             transactionViolations,
+            quickAction,
         });
 
         const convertParams: ConvertTrackedExpenseToRequestParams = {
@@ -6182,6 +6196,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         currentUserAccountIDParam,
         currentUserEmailParam,
         transactionViolations,
+        quickAction,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -6273,6 +6288,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         currentUserAccountIDParam,
         currentUserEmailParam,
         transactionViolations,
+        quickAction,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -6426,6 +6442,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        quickAction,
     } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees} = transactionParams;
@@ -6470,6 +6487,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        quickAction,
     });
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
 
@@ -6615,6 +6633,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         shouldHandleNavigation = true,
         shouldPlaySound = true,
         isASAPSubmitBetaEnabled,
+        quickAction,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -6682,6 +6701,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             linkedTrackedExpenseReportID,
             customUnitRateID,
         },
+        quickAction,
     };
 
     const {
@@ -6736,6 +6756,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             },
             retryParams,
             isASAPSubmitBetaEnabled,
+            quickAction,
         }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
 
@@ -6990,6 +7011,7 @@ function createSplitsAndOnyxData({
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
     transactionViolations,
+    quickAction
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7404,6 +7426,7 @@ function createSplitsAndOnyxData({
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserEmail,
             hasViolations,
+            quickAction,
         });
 
         const individualSplit = {
@@ -7480,6 +7503,7 @@ type SplitBillActionsParams = {
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
 /**
@@ -7507,6 +7531,7 @@ function splitBill({
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
     transactionViolations,
+    quickAction,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7532,6 +7557,7 @@ function splitBill({
         policyRecentlyUsedCategories,
         isASAPSubmitBetaEnabled,
         transactionViolations,
+        quickAction,
     });
 
     const parameters: SplitBillParams = {
@@ -7590,6 +7616,7 @@ function splitBillAndOpenReport({
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
     transactionViolations,
+    quickAction,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -7615,6 +7642,7 @@ function splitBillAndOpenReport({
         },
         policyRecentlyUsedCategories,
         transactionViolations,
+        quickAction,
     });
 
     const parameters: SplitBillParams = {
@@ -7669,6 +7697,7 @@ function startSplitBill({
     taxAmount = 0,
     shouldPlaySound = true,
     policyRecentlyUsedCategories,
+    quickAction,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -7833,6 +7862,7 @@ function startSplitBill({
         currency,
         taxCode,
         taxAmount,
+        quickAction,
     };
 
     if (existingSplitChatReport) {
@@ -8017,6 +8047,7 @@ function completeSplitBill(
     updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
     sessionAccountID: number,
     isASAPSubmitBetaEnabled: boolean,
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     sessionEmail?: string,
 ) {
@@ -8221,6 +8252,7 @@ function completeSplitBill(
                 },
                 policyRecentlyUsed: {},
             },
+            quickAction,
         });
 
         splits.push({
@@ -8324,6 +8356,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         backToReport,
         isASAPSubmitBetaEnabled,
         transactionViolations,
+        quickAction,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -8392,6 +8425,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyRecentlyUsedCategories,
             isASAPSubmitBetaEnabled,
             transactionViolations,
+            quickAction,
         });
         onyxData = splitOnyxData;
 
@@ -8466,6 +8500,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
             transactionViolations,
+            quickAction,
         });
 
         onyxData = moneyRequestOnyxData;
@@ -9444,6 +9479,7 @@ function deleteTrackExpense({
  */
 function getSendMoneyParams(
     report: OnyxEntry<OnyxTypes.Report>,
+    quickAction:  OnyxEntry<OnyxTypes.QuickAction>,
     amount: number,
     currency: string,
     commentParam: string,
@@ -10427,6 +10463,7 @@ function getPayMoneyRequestParams({
  */
 function sendMoneyElsewhere(
     report: OnyxEntry<OnyxTypes.Report>,
+    quickAction:  OnyxEntry<OnyxTypes.QuickAction>,
     amount: number,
     currency: string,
     comment: string,
@@ -10438,6 +10475,7 @@ function sendMoneyElsewhere(
 ) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(
         report,
+        quickAction,
         amount,
         currency,
         comment,
@@ -10461,6 +10499,7 @@ function sendMoneyElsewhere(
  */
 function sendMoneyWithWallet(
     report: OnyxEntry<OnyxTypes.Report>,
+    quickAction:  OnyxEntry<OnyxTypes.QuickAction>,
     amount: number,
     currency: string,
     comment: string,
@@ -10472,6 +10511,7 @@ function sendMoneyWithWallet(
 ) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(
         report,
+        quickAction,
         amount,
         currency,
         comment,
@@ -14413,6 +14453,7 @@ function updateSplitTransactions({
     isASAPSubmitBetaEnabled,
     currentUserPersonalDetails,
     transactionViolations,
+    quickAction,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -14532,6 +14573,7 @@ function updateSplitTransactions({
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
             transactionViolations,
+            quickAction,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -14572,6 +14614,7 @@ function updateSplitTransactions({
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
             transactionViolations,
+            quickAction,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData = {};
