@@ -163,7 +163,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
-    const hasCreatedLegacyThreadRef = useRef(false);
+
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -532,6 +532,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        // Legacy transactions (created before NewDot) don't have IOU actions.
+        // For single-transaction expense reports, create the missing IOU actions and transaction thread here.
+        const currentReportTransaction = getReportTransactions(report?.reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const firstTransaction = currentReportTransaction.at(0);
+        const iouAction = getIOUActionForReportID(report?.reportID, firstTransaction?.transactionID);
+        if (currentReportTransaction.length === 1 && !iouAction && !transactionThreadReport) {
+            createTransactionThreadReport(report, undefined, firstTransaction);
+            return;
+        }
+
         // When a user goes through onboarding for the first time, various tasks are created for chatting with Concierge.
         // If this function is called too early (while the application is still loading), we will not have information about policies,
         // which means we will not be able to obtain the correct link for one of the tasks.
@@ -856,41 +866,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         readNewestAction(report?.reportID);
     }, [report]);
-
-    // Reset the ref when navigating to a different report
-    useEffect(() => {
-        hasCreatedLegacyThreadRef.current = false;
-    }, [reportID]);
-
-    // When opening IOU report for single transaction, we will create IOU action and transaction thread
-    // for legacy transaction that doesn't have IOU action
-    useEffect(() => {
-        // Skip if already created, coming from Search page, or thread already exists
-        if (hasCreatedLegacyThreadRef.current || route.name === SCREENS.SEARCH.REPORT_RHP || transactionThreadReport || (transactionThreadReportID && transactionThreadReportID !== '0')) {
-            return;
-        }
-
-        // Only handle single transaction expense reports that are fully loaded
-        const transaction = visibleTransactions?.at(0);
-        if (!reportID || visibleTransactions?.length !== 1 || report?.type !== CONST.REPORT.TYPE.EXPENSE || !transaction?.transactionID) {
-            return;
-        }
-
-        // Skip legacy transaction handling if:
-        // - IOU action already exists (not a legacy transaction)
-        // - Transaction is pending addition (new transaction, not legacy)
-        const iouAction = getIOUActionForReportID(reportID, transaction.transactionID);
-        if (iouAction || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            return;
-        }
-
-        // Mark as created BEFORE calling to prevent race conditions
-        hasCreatedLegacyThreadRef.current = true;
-
-        // For legacy transactions, pass undefined as IOU action and the transaction object
-        // It will be created optimistically and in the backend when call openReport
-        createTransactionThreadReport(report, undefined, transaction);
-    }, [report, visibleTransactions, transactionThreadReport, transactionThreadReportID, reportID, route.name]);
 
     const lastRoute = usePrevious(route);
 
