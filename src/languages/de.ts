@@ -5228,9 +5228,18 @@ ${amount} für ${merchant} - ${date}`,
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Möchten Sie ${memberName} wirklich entfernen?`,
             removeMemberTitle: 'Mitglied entfernen',
             transferOwner: 'Besitzer übertragen',
-            makeMember: 'Mitglied machen',
-            makeAdmin: 'Admin machen',
-            makeAuditor: 'Prüfer erstellen',
+            makeMember: () => ({
+                one: 'Zum Mitglied machen',
+                other: 'Zu Mitgliedern machen',
+            }),
+            makeAdmin: () => ({
+                one: 'Zum Administrator machen',
+                other: 'Zu Administratoren machen',
+            }),
+            makeAuditor: () => ({
+                one: 'Zum Prüfer machen',
+                other: 'Zu Prüfern machen',
+            }),
             selectAll: 'Alle auswählen',
             error: {
                 genericAdd: 'Es gab ein Problem beim Hinzufügen dieses Arbeitsbereichsmitglieds.',
