@@ -117,10 +117,10 @@ describe('useTodos', () => {
             // 1. A chat report (not expense type)
             // 2. An expense report owned by another user that's not submitted (can't submit, approve, pay, or export)
             const excludedReports = [
-                createMockReport(EXCLUDED_REPORT_IDS[0], {
+                createMockReport(EXCLUDED_REPORT_IDS.at(0) ?? '', {
                     type: CONST.REPORT.TYPE.CHAT, // Not an expense report
                 }),
-                createMockReport(EXCLUDED_REPORT_IDS[1], {
+                createMockReport(EXCLUDED_REPORT_IDS.at(1) ?? '', {
                     stateNum: CONST.REPORT.STATE_NUM.OPEN,
                     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                     ownerAccountID: OTHER_USER_ACCOUNT_ID, // Not owned by current user, so can't submit
@@ -165,30 +165,30 @@ describe('useTodos', () => {
             const transactions: Record<string, Transaction> = {};
 
             // Transactions for submit reports
-            SUBMIT_REPORT_IDS.forEach((reportID, index) => {
-                const transactionID = `trans_submit_${index}`;
+            for (const reportID of SUBMIT_REPORT_IDS) {
+                const transactionID = `trans_submit_${reportID}`;
                 transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = createMockTransaction(transactionID, reportID);
-            });
+            }
 
             // Transactions for approve reports
-            APPROVE_REPORT_IDS.forEach((reportID, index) => {
-                const transactionID = `trans_approve_${index}`;
+            for (const reportID of APPROVE_REPORT_IDS) {
+                const transactionID = `trans_approve_${reportID}`;
                 transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = createMockTransaction(transactionID, reportID);
-            });
+            }
 
             // Transactions for pay reports (must be reimbursable)
-            PAY_REPORT_IDS.forEach((reportID, index) => {
-                const transactionID = `trans_pay_${index}`;
+            for (const reportID of PAY_REPORT_IDS) {
+                const transactionID = `trans_pay_${reportID}`;
                 transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = createMockTransaction(transactionID, reportID, {
                     reimbursable: true,
                 });
-            });
+            }
 
             // Build reports object
             const reports: Record<string, Report> = {};
-            [...reportsToSubmit, ...reportsToApprove, ...reportsToPay, reportToExport, ...excludedReports].forEach((report) => {
+            for (const report of [...reportsToSubmit, ...reportsToApprove, ...reportsToPay, reportToExport, ...excludedReports]) {
                 reports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
-            });
+            };
 
             await act(async () => {
                 await Onyx.multiSet({
@@ -214,15 +214,15 @@ describe('useTodos', () => {
             expect(result.current.reportsToPay.length).toBe(2);
             expect(result.current.reportsToExport.length).toBe(1);
 
-            SUBMIT_REPORT_IDS.forEach((id) => {
+            for (const id of SUBMIT_REPORT_IDS) {
                 expect(result.current.reportsToSubmit.map((r) => r.reportID)).toContain(id);
-            });
-            APPROVE_REPORT_IDS.forEach((id) => {
+            };
+            for (const id of APPROVE_REPORT_IDS) {
                 expect(result.current.reportsToApprove.map((r) => r.reportID)).toContain(id);
-            });
-            PAY_REPORT_IDS.forEach((id) => {
+            };
+            for (const id of PAY_REPORT_IDS) {
                 expect(result.current.reportsToPay.map((r) => r.reportID)).toContain(id);
-            });
+            };
             expect(result.current.reportsToExport.map((r) => r.reportID)).toContain(EXPORT_REPORT_ID);
         });
     });
