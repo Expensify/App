@@ -8,6 +8,7 @@ import TabSelector from '@components/TabSelector/TabSelector';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -58,6 +59,7 @@ function DistanceRequestStartPage({
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalPolicy = usePersonalPolicy();
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
@@ -101,6 +103,7 @@ function DistanceRequestStartPage({
             initMoneyRequest({
                 reportID,
                 policy,
+                personalPolicy,
                 isFromGlobalCreate,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
@@ -111,7 +114,7 @@ function DistanceRequestStartPage({
                 currentUserPersonalDetails,
             });
         },
-        [transaction?.iouRequestType, reportID, policy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates, currentUserPersonalDetails],
+        [transaction?.iouRequestType, reportID, policy, personalPolicy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates, currentUserPersonalDetails],
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
