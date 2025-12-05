@@ -70,7 +70,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 return [];
             }
             return Object.values(transactions || {}).filter((item) => {
-                const isUnreported = true;
+                const isUnreported = item?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID || item?.reportID === '';
                 if (!isUnreported) {
                     return false;
                 }
@@ -221,7 +221,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             return translate('common.noResultsFound');
         }
         return '';
-    }, [debouncedSearchValue, unreportedExpenses, translate]);
+    }, [debouncedSearchValue, unreportedExpenses?.length, translate]);
 
     const textInputOptions = useMemo(
         () => ({
