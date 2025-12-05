@@ -219,16 +219,20 @@ describe('GoogleTagManagerTest', () => {
     });
 
     test('paid_adoption - addSubscriptionPaymentCard', async () => {
-        // When we add a payment card
-        addSubscriptionPaymentCard(accountID, {
-            cardNumber: 'cardNumber',
-            cardYear: 'cardYear',
-            cardMonth: 'cardMonth',
-            cardCVV: 'cardCVV',
-            addressName: 'addressName',
-            addressZip: 'addressZip',
-            currency: 'USD',
-        });
+        // When we add a payment card (with no existing billing card)
+        addSubscriptionPaymentCard(
+            accountID,
+            {
+                cardNumber: 'cardNumber',
+                cardYear: 'cardYear',
+                cardMonth: 'cardMonth',
+                cardCVV: 'cardCVV',
+                addressName: 'addressName',
+                addressZip: 'addressZip',
+                currency: 'USD',
+            },
+            undefined,
+        );
 
         await waitForBatchedUpdatesWithAct();
 
@@ -244,19 +248,23 @@ describe('GoogleTagManagerTest', () => {
             });
         });
 
-        addSubscriptionPaymentCard(accountID, {
-            cardNumber: 'cardNumber',
-            cardYear: 'cardYear',
-            cardMonth: 'cardMonth',
-            cardCVV: 'cardCVV',
-            addressName: 'addressName',
-            addressZip: 'addressZip',
-            currency: 'USD',
-        });
+        addSubscriptionPaymentCard(
+            accountID,
+            {
+                cardNumber: 'cardNumber',
+                cardYear: 'cardYear',
+                cardMonth: 'cardMonth',
+                cardCVV: 'cardCVV',
+                addressName: 'addressName',
+                addressZip: 'addressZip',
+                currency: 'USD',
+            },
+            FUND_LIST,
+        );
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(!!getCardForSubscriptionBilling()).toBe(true);
+        expect(!!getCardForSubscriptionBilling(FUND_LIST)).toBe(true);
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(0);
     });
 });
