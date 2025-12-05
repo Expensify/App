@@ -19,13 +19,6 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
-type ListItemType = ListItem<ValueOf<typeof CONST.POLICY.ROLE>> & {
-    value: ValueOf<typeof CONST.POLICY.ROLE>;
-    text: string;
-    alternateText: string;
-    isSelected: boolean;
-};
-
 type WorkspaceInviteMessageRolePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE>;
 
 function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageRolePageProps) {
@@ -51,7 +44,7 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
                     role={role}
                     policy={policy}
                     isLoading={isOnyxLoading}
-                    onSelectRole={({value}: ListItemType) => {
+                    onSelectRole={({value}) => {
                         setWorkspaceInviteRoleDraft(route.params.policyID, value);
                         Navigation.setNavigationActionToMicrotaskQueue(() => {
                             Navigation.goBack(route.params.backTo);

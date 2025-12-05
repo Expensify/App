@@ -88,3 +88,4 @@ function WorkspaceMemberRoleList({role, policy, navigateBackTo = undefined, isLo
 
 WorkspaceMemberRoleList.displayName = 'WorkspaceMemberRoleList';
 export default WorkspaceMemberRoleList;
+export type {ListItemType};

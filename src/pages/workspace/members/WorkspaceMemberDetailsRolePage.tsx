@@ -1,9 +1,8 @@
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
+import type {ListItemType} from '@components/WorkspaceMemberRoleList';
 import {updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -14,13 +13,6 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
-
-type ListItemType = ListItem<ValueOf<typeof CONST.POLICY.ROLE>> & {
-    value: ValueOf<typeof CONST.POLICY.ROLE>;
-    text: string;
-    alternateText: string;
-    isSelected: boolean;
-};
 
 type WorkspaceMemberDetailsRolePageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE> & {
