@@ -527,19 +527,22 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         // If there is one transaction thread that has not yet been created, we should create it.
-        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
+        if (reportMetadata?.hasOnceLoadedReportActions && transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
             createOneTransactionThreadReport();
             return;
         }
 
         // Legacy transactions (created before NewDot) don't have IOU actions.
         // For single-transaction expense reports, create the missing IOU actions and transaction thread here.
-        const currentReportTransaction = getReportTransactions(report?.reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const firstTransaction = currentReportTransaction.at(0);
-        const iouAction = getIOUActionForReportID(report?.reportID, firstTransaction?.transactionID);
-        if (currentReportTransaction.length === 1 && !iouAction && !transactionThreadReport) {
-            createTransactionThreadReport(report, undefined, firstTransaction);
-            return;
+        // Only check after report actions have loaded to avoid false positives on fresh app load.
+        if (reportMetadata?.hasOnceLoadedReportActions) {
+            const currentReportTransaction = getReportTransactions(report?.reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            const firstTransaction = currentReportTransaction.at(0);
+            const iouAction = getIOUActionForReportID(report?.reportID, firstTransaction?.transactionID);
+            if (currentReportTransaction.length === 1 && !iouAction && !transactionThreadReport) {
+                createTransactionThreadReport(report, undefined, firstTransaction);
+                return;
+            }
         }
 
         // When a user goes through onboarding for the first time, various tasks are created for chatting with Concierge.
@@ -570,6 +573,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         introSelected,
         isOnboardingCompleted,
         isInviteOnboardingComplete,
+        reportMetadata?.hasOnceLoadedReportActions,
     ]);
 
     useEffect(() => {
