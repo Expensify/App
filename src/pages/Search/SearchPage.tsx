@@ -9,6 +9,9 @@ import DecisionModal from '@components/DecisionModal';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
+import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
+import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -30,7 +33,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
-import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
+import {openWorkspace} from '@libs/actions/Policy/Policy';
+import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, openReport, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
@@ -51,32 +55,37 @@ import {
     unholdMoneyRequestOnSearch,
 } from '@libs/actions/Search';
 import {setTransactionReport} from '@libs/actions/Transaction';
+import {setNameValuePair} from '@libs/actions/User';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
+    canRejectReportAction,
+    checkBulkRejectHydration,
     generateReportID,
     getPolicyExpenseChat,
     getReportOrDraftReport,
     isBusinessInvoiceRoom,
+    isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getTransactionViolationsOfTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
-import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {dismissRejectUseExplanation, initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SearchResults, Transaction} from '@src/types/onyx';
+import type {Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
@@ -113,7 +122,13 @@ function SearchPage({route}: SearchPageProps) {
     const [isExportWithTemplateModalVisible, setIsExportWithTemplateModalVisible] = useState(false);
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
-    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q), [route.params.q]);
+    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
+    const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
+        typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
+    > | null>(null);
+    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
+    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
+    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -174,6 +189,58 @@ function SearchPage({route}: SearchPageProps) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
+
+    // Check hydration status and prefetch missing data for bulk reject
+    const bulkRejectHydrationStatus = useMemo(() => {
+        if (Object.keys(selectedTransactions).length === 0) {
+            return {areHydrated: true, missingReportIDs: [], missingPolicyIDs: []};
+        }
+        return checkBulkRejectHydration(selectedTransactions, policies);
+    }, [selectedTransactions, policies]);
+
+    // Prefetch missing report and policy data when items are selected
+    const lastPrefetchKeyRef = useRef('');
+    useEffect(() => {
+        const {areHydrated, missingReportIDs, missingPolicyIDs} = bulkRejectHydrationStatus;
+
+        // If hydrated or nothing selected, clear and exit
+        if (areHydrated) {
+            lastPrefetchKeyRef.current = '';
+            return;
+        }
+        if (isOffline) {
+            return;
+        }
+
+        const key = `${[...missingReportIDs].sort().join(',')}|${[...missingPolicyIDs].sort().join(',')}`;
+        if (key === lastPrefetchKeyRef.current) {
+            return;
+        }
+
+        // Prefetch once per unique set of missing IDs
+        for (const id of missingReportIDs) {
+            if (id) {
+                openReport(id);
+            }
+        }
+
+        for (const id of missingPolicyIDs) {
+            if (id) {
+                openWorkspace(id, []);
+            }
+        }
+
+        lastPrefetchKeyRef.current = key;
+    }, [bulkRejectHydrationStatus, isOffline]);
+
+    // Allow retry on reconnect
+    const prevIsOffline = usePrevious(isOffline);
+    useEffect(() => {
+        if (isOffline || !prevIsOffline) {
+            return;
+        }
+        lastPrefetchKeyRef.current = '';
+    }, [isOffline, prevIsOffline]);
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
@@ -310,6 +377,28 @@ function SearchPage({route}: SearchPageProps) {
         },
         [clearSelectedTransactions, hash, isOffline, lastPaymentMethods, selectedReports, selectedTransactions, policies, formatPhoneNumber],
     );
+
+    // Check if all selected transactions are from the submitter
+    const areAllTransactionsFromSubmitter = useMemo(() => {
+        if (!currentUserPersonalDetails?.accountID) {
+            return false;
+        }
+
+        const searchData = currentSearchResults?.data;
+        const reports: Report[] = searchData
+            ? Object.keys(searchData)
+                  .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
+                  .map((key) => searchData[key as keyof typeof searchData] as Report)
+                  .filter((report): report is Report => report != null && 'reportID' in report)
+            : [];
+
+        return (
+            selectedTransactionReportIDs.length > 0 &&
+            selectedTransactionReportIDs.every((id) => {
+                return isCurrentUserSubmitter(getReportOrDraftReport(id, reports));
+            })
+        );
+    }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID, currentSearchResults?.data]);
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
@@ -448,6 +537,63 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+        // Check if any items are explicitly not rejectable (only when data is hydrated)
+        // If data is not hydrated, we don't treat it as "not rejectable" - instead we'll disable the button
+        const login = currentUserPersonalDetails?.login ?? '';
+        const areAllExplicitlyRejectable =
+            selectedTransactionReportIDs.length > 0 &&
+            selectedTransactionReportIDs.every((id) => {
+                const report = getReportOrDraftReport(id);
+                if (!report) {
+                    return false;
+                }
+                const policyForReport = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                if (!policyForReport) {
+                    return false;
+                }
+                return canRejectReportAction(login, report, policyForReport);
+            });
+
+        const hasNoRejectedTransaction = selectedTransactionsKeys.every((id) => {
+            const transactionViolations = getTransactionViolationsOfTransaction(id) ?? [];
+            return !transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+        });
+
+        // Check if all selected items have hydrated Onyx data for rejection
+        const {areHydrated: areItemsHydratedForReject} = bulkRejectHydrationStatus;
+
+        // Show the Reject option unless we know for sure it's not allowed
+        const shouldShowRejectOption = !isOffline && areAllExplicitlyRejectable && hasNoRejectedTransaction;
+
+        // Disabled if not hydrated
+        const isRejectDisabled = !areItemsHydratedForReject;
+
+        if (shouldShowRejectOption) {
+            options.push({
+                icon: Expensicons.ThumbsDown,
+                text: translate('search.bulkActions.reject'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+                shouldCloseModalOnSelect: true,
+                disabled: isRejectDisabled,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    if (!areItemsHydratedForReject) {
+                        return;
+                    }
+
+                    if (dismissedRejectUseExplanation) {
+                        Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+                    } else {
+                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
+                    }
+                },
+            });
+        }
+
         const shouldShowSubmitOption =
             !isOffline &&
             areSelectedTransactionsIncludedInReports &&
@@ -512,7 +658,15 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+                    const isDismissed = areAllTransactionsFromSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+
+                    if (isDismissed) {
+                        Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+                    } else if (areAllTransactionsFromSubmitter) {
+                        setIsHoldEducationalModalVisible(true);
+                    } else {
+                        setRejectModalAction(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
+                    }
                 },
             });
         }
@@ -639,6 +793,11 @@ function SearchPage({route}: SearchPageProps) {
         styles.fontWeightNormal,
         styles.textWrap,
         expensifyIcons,
+        dismissedHoldUseExplanation,
+        dismissedRejectUseExplanation,
+        areAllTransactionsFromSubmitter,
+        bulkRejectHydrationStatus,
+        currentUserPersonalDetails?.login,
     ]);
 
     const handleDeleteExpenses = () => {
@@ -653,7 +812,7 @@ function SearchPage({route}: SearchPageProps) {
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys, currentSearchResults);
+            deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
             clearSelectedTransactions();
         });
     };
@@ -696,7 +855,7 @@ function SearchPage({route}: SearchPageProps) {
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
             const setParticipantsPromises = newReceiptFiles.map((receiptFile) => {
                 setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
-                return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat);
+                return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, activePolicyExpenseChat, currentUserPersonalDetails.accountID);
             });
             Promise.all(setParticipantsPromises).then(() =>
                 Navigation.navigate(
@@ -794,7 +953,7 @@ function SearchPage({route}: SearchPageProps) {
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value).then((jsonCode) => {
+            search(value)?.then((jsonCode) => {
                 setSearchRequestResponseStatusCode(Number(jsonCode ?? 0));
             });
         }
@@ -803,9 +962,9 @@ function SearchPage({route}: SearchPageProps) {
     const footerData = useMemo(() => {
         const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
-        const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.convertedCurrency;
+        const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency;
         const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
-        const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.convertedAmount ?? 0), 0) : metadata?.total;
+        const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : metadata?.total;
 
         return {count, total, currency};
     }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
@@ -858,6 +1017,27 @@ function SearchPage({route}: SearchPageProps) {
     const handleDownloadExportModalCancel = useCallback(() => {
         setIsDownloadExportModalVisible?.(false);
     }, [setIsDownloadExportModalVisible]);
+
+    const dismissModalAndUpdateUseHold = useCallback(() => {
+        setIsHoldEducationalModalVisible(false);
+        setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
+        if (hash && selectedTransactionsKeys.length > 0) {
+            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+        }
+    }, [hash, selectedTransactionsKeys.length, isOffline]);
+
+    const dismissRejectModalBasedOnAction = useCallback(() => {
+        if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
+            dismissRejectUseExplanation();
+            if (hash && selectedTransactionsKeys.length > 0) {
+                Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
+            }
+        } else {
+            dismissRejectUseExplanation();
+            Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+        }
+        setRejectModalAction(null);
+    }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
 
     return (
         <>
@@ -969,6 +1149,18 @@ function SearchPage({route}: SearchPageProps) {
                             prompt={translate('search.exportSearchResults.description')}
                             confirmText={translate('search.exportSearchResults.title')}
                             cancelText={translate('common.cancel')}
+                        />
+                    )}
+                    {!!rejectModalAction && (
+                        <HoldOrRejectEducationalModal
+                            onClose={dismissRejectModalBasedOnAction}
+                            onConfirm={dismissRejectModalBasedOnAction}
+                        />
+                    )}
+                    {!!isHoldEducationalModalVisible && (
+                        <HoldSubmitterEducationalModal
+                            onClose={dismissModalAndUpdateUseHold}
+                            onConfirm={dismissModalAndUpdateUseHold}
                         />
                     )}
                 </View>

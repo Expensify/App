@@ -38,6 +38,7 @@ function HoldSubmitterEducationalModal({onClose, onConfirm}: HoldSubmitterEducat
             onClose={onClose}
             onConfirm={onConfirm}
             shouldCloseOnConfirm={false}
+            shouldGoBack={false}
         >
             <HoldMenuSectionList />
         </FeatureTrainingModal>
