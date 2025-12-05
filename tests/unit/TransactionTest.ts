@@ -6,7 +6,6 @@ import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport, saveWaypoint} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
@@ -308,7 +307,7 @@ describe('Transaction', () => {
 
         it('updates the source submitted report next step without reopening when it becomes empty', async () => {
             const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
-            const buildOptimisticNextStepSpy = jest.spyOn(NextStepUtils, 'buildOptimisticNextStep');
+            const buildOptimisticNextStepSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep');
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,

@@ -1302,13 +1302,11 @@ function changeTransactionsReport(
           (destinationReportID === newReport?.reportID ? newReport : undefined) ??
           (destinationReportID === selfDMReport?.reportID ? selfDMReport : undefined))
         : undefined;
-    const destinationTotal = (destinationReportID ? updatedReportTotals[destinationReportID] : undefined) ?? destinationReport?.total ?? newReport?.total;
 
     for (const reportIDToUpdate of Object.keys(updatedReportTotals)) {
-        affectedReportIDs.add(reportIDToUpdate)
+        affectedReportIDs.add(reportIDToUpdate);
     }
 
-    Object.keys(updatedReportTotals).forEach((reportIDToUpdate) => affectedReportIDs.add(reportIDToUpdate));
     if (destinationReportID) {
         affectedReportIDs.add(destinationReportID);
     }
@@ -1330,7 +1328,7 @@ function changeTransactionsReport(
             reportID: affectedReport.reportID ?? affectedReportID,
         };
 
-        let predictedNextStatus = updatedReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN;
+        const predictedNextStatus = updatedReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN;
 
         const hasViolations = hasViolationsReportUtils(updatedReport.reportID, allTransactionViolation, accountID, email ?? '');
         const isDestinationReport = affectedReportID === destinationReportID;
@@ -1400,7 +1398,7 @@ function changeTransactionsReport(
                 },
             },
         });
-    };
+    }
 
     const parameters: ChangeTransactionsReportParams = {
         transactionList: transactionIDs.join(','),
