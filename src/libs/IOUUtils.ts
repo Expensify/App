@@ -103,185 +103,46 @@ function calculateSplitAmountFromPercentage(totalInCents: number, percentage: nu
 }
 
 /**
- * Given a list of split amounts (in backend cents) and the original total amount, calculate display percentages
- * for each split so that:
- * - Each row is a whole-number percentage of the original total
- * - When the sum of split amounts exactly matches the original total, percentages are proportional to the amounts
- *   and rounded so that the sum of percentages is exactly 100. Any rounding remainder is allocated entirely to the
- *   row with the largest amount (breaking ties by using the last such row), so the first N rows share the same
- *   base percentage and any leftover remainder is applied to the last row.
- * - When the sum of split amounts does not match the original total (over/under splits), percentages still reflect
- *   each amount as a percentage of the original total and may sum to something other than 100; this keeps
- *   user-entered percentages stable while a validation error highlights the mismatch.
+ * Calculate display percentages for split amounts with stability and a visual leader bump.
+ *
+ * Behavior:
+ * - Stability: Identical amounts always map to identical integer percentages (each row = round(amount/total*100)).
+ * - Leader bump: If there is a unique largest amount and it is not already strictly higher than all others,
+ *   nudge that row's percentage by +1 for visibility (e.g., to avoid all rows showing 8%).
+ * - Sum: The resulting percentages are not forced to sum to 100. This is intentional to preserve stability.
+ *
+ * Intended use:
+ * - For UI display where consistency across identical amounts matters more than summing to exactly 100.
+ * - Do not use when you must strictly sum to 100.
  */
 function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInCents: number): number[] {
     const totalAbs = Math.abs(totalInCents);
-
     if (totalAbs <= 0 || amountsInCents.length === 0) {
         return amountsInCents.map(() => 0);
     }
 
-    const amountsAbs = amountsInCents.map((amount) => Math.abs(amount ?? 0));
-
-    // First compute rounded percentages used when we want to preserve the user's distribution, e.g. when the
-    // split amounts do not add up to the original total.
-    const roundedPercentages = amountsAbs.map((amount) => (totalAbs > 0 ? Math.round((amount / totalAbs) * 100) : 0));
-    const sumOfRoundedPercentages = roundedPercentages.reduce((sum, current) => sum + current, 0);
-    const amountsTotal = amountsAbs.reduce((sum, curr) => sum + curr, 0);
-
-    // If the split amounts don't add up to the original total, return rounded percentages as-is so user-entered
-    // percentages and amounts remain stable while a validation error highlights the mismatch.
-    if (amountsTotal !== totalAbs) {
-        return roundedPercentages;
-    }
-
-    // If rounded percentages already sum to 100, we can also return them directly.
-    if (sumOfRoundedPercentages === 100) {
-        return roundedPercentages;
-    }
-
-    // Refine rounded percentages so that:
-    // - The sum is exactly 100
-    // - Values stay as close as possible to the exact percentages
-    // - Rows with the largest amount never end up with a lower percentage than smaller rows
-    const exactPercentages = amountsAbs.map((amount) => (totalAbs > 0 ? (amount / totalAbs) * 100 : 0));
-    const adjustedPercentages = [...roundedPercentages];
-    let currentSum = sumOfRoundedPercentages;
-
-    // First, adjust the rounded values so that they sum exactly to 100 by
-    // repeatedly nudging the values that are farthest from their exact percentages.
-    while (currentSum !== 100) {
-        if (currentSum > 100) {
-            // Need to decrement from the entry that most overestimates its exact percentage.
-            let indexToDecrement = -1;
-            let maxError = -Infinity;
-
-            for (let i = 0; i < adjustedPercentages.length; i += 1) {
-                const currentAdjusted = adjustedPercentages.at(i) ?? 0;
-                if (currentAdjusted <= 0) {
-                    continue;
-                }
-
-                const currentExact = exactPercentages.at(i) ?? 0;
-                const error = currentAdjusted - currentExact;
-
-                if (error > maxError) {
-                    maxError = error;
-                    indexToDecrement = i;
-                }
-            }
-
-            if (indexToDecrement < 0) {
-                break;
-            }
-
-            adjustedPercentages[indexToDecrement] -= 1;
-            currentSum -= 1;
-        } else {
-            // Need to increment the entry that most underestimates its exact percentage.
-            let indexToIncrement = -1;
-            let minError = Infinity;
-
-            for (let i = 0; i < adjustedPercentages.length; i += 1) {
-                const currentAdjusted = adjustedPercentages.at(i) ?? 0;
-                const currentExact = exactPercentages.at(i) ?? 0;
-                const error = currentAdjusted - currentExact;
-
-                if (error < minError) {
-                    minError = error;
-                    indexToIncrement = i;
-                }
-            }
-
-            if (indexToIncrement < 0) {
-                break;
-            }
-
-            adjustedPercentages[indexToIncrement] += 1;
-            currentSum += 1;
-        }
-    }
-
-    // Next, ensure that rows with the largest amount (typically the remainder holder)
-    // never end up with a lower percentage than smaller rows. When there is a unique
-    // largest amount, we also ensure it has at least 1% more than any smaller row.
+    const amountsAbs = amountsInCents.map((a) => Math.abs(a ?? 0));
+    // Step 1: stable independent rounding so identical amounts map to identical percentages
+    let percentages = amountsAbs.map((amount) => (totalAbs > 0 ? Math.round((amount / totalAbs) * 100) : 0));
+    // Step 2: nudge unique max by +1% if not already strictly leading
     const maxAmount = Math.max(...amountsAbs);
-    const indicesWithMaxAmount: number[] = [];
-    for (let i = 0; i < amountsAbs.length; i += 1) {
-        if (amountsAbs.at(i) === maxAmount) {
-            indicesWithMaxAmount.push(i);
+    const indicesWithMax = amountsAbs.reduce<number[]>((acc, amt, i) => {
+        if (amt === maxAmount) {
+            acc.push(i);
+        }
+        return acc;
+    }, []);
+
+    if (indicesWithMax.length === 1) {
+        const idx = indicesWithMax.at(0);
+        const othersMax = percentages.filter((_, i) => i !== idx).reduce((m, v) => Math.max(m, v), -Infinity);
+        const currentPercentage = percentages.at(typeof idx === 'number' && idx >= 0 ? idx : percentages.length);
+        if (othersMax !== -Infinity && currentPercentage !== undefined && currentPercentage <= othersMax) {
+            percentages = percentages.map((p, i) => (i === idx ? p + 1 : p));
         }
     }
 
-    if (indicesWithMaxAmount.length === 0) {
-        return adjustedPercentages;
-    }
-
-    const isUniqueMaxAmount = indicesWithMaxAmount.length === 1;
-
-    const getMaxAmountPercentage = () => Math.max(...indicesWithMaxAmount.map((index) => adjustedPercentages.at(index) ?? 0));
-    const getMaxNonMaxPercentage = () => {
-        let maxNonMax = -Infinity;
-        for (let i = 0; i < adjustedPercentages.length; i += 1) {
-            if (indicesWithMaxAmount.includes(i)) {
-                continue;
-            }
-
-            const currentAdjusted = adjustedPercentages.at(i) ?? 0;
-            maxNonMax = Math.max(maxNonMax, currentAdjusted);
-        }
-        return maxNonMax;
-    };
-
-    let maxAmountPercentage = getMaxAmountPercentage();
-    let maxNonMaxPercentage = getMaxNonMaxPercentage();
-
-    // If all rows have the same amount, no further adjustment is needed.
-    if (maxNonMaxPercentage === -Infinity) {
-        return adjustedPercentages;
-    }
-
-    // Shift 1 percentage point at a time from the largest smaller rows to the largest-amount row(s)
-    // until the constraint is satisfied.
-    while (maxAmountPercentage < maxNonMaxPercentage || (isUniqueMaxAmount && maxAmountPercentage === maxNonMaxPercentage)) {
-        // Find the best donor among the non-max rows:
-        // - highest current percentage
-        // - for ties, smallest amount (so we adjust smaller shares first)
-        let donorIndex = -1;
-        for (let i = 0; i < adjustedPercentages.length; i += 1) {
-            if (indicesWithMaxAmount.includes(i)) {
-                continue;
-            }
-
-            const currentAdjusted = adjustedPercentages.at(i) ?? 0;
-            if (currentAdjusted <= 0) {
-                continue;
-            }
-
-            const donorAdjusted = donorIndex === -1 ? undefined : adjustedPercentages.at(donorIndex);
-            const currentAmount = amountsAbs.at(i) ?? 0;
-            const donorAmount = donorIndex === -1 ? undefined : amountsAbs.at(donorIndex);
-
-            if (donorIndex === -1 || (donorAdjusted ?? -Infinity) < currentAdjusted || (donorAdjusted === currentAdjusted && (donorAmount ?? Infinity) > currentAmount)) {
-                donorIndex = i;
-            }
-        }
-
-        if (donorIndex === -1) {
-            break;
-        }
-
-        // Shift 1% from donor to one of the max-amount indices (use the last one for stability).
-        const receiverIndex = indicesWithMaxAmount.at(-1) ?? 0;
-
-        adjustedPercentages[donorIndex] -= 1;
-        adjustedPercentages[receiverIndex] += 1;
-
-        maxAmountPercentage = getMaxAmountPercentage();
-        maxNonMaxPercentage = getMaxNonMaxPercentage();
-    }
-
-    return adjustedPercentages;
+    return percentages;
 }
 
 /**

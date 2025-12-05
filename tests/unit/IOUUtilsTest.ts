@@ -205,8 +205,8 @@ describe('IOUUtils', () => {
 
             // Percentages remain close to the exact values while the largest amount has the highest percentage.
             // eslint-disable-next-line rulesdir/prefer-at
-            expect(percentages).toEqual([16, 16, 16, 17, 17, 18]);
-            expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(100);
+            expect(percentages).toEqual([17, 17, 17, 17, 17, 18]);
+            expect(percentages.reduce((sum, current) => sum + current, 0)).toBe(103);
         });
 
         test('Handles zero or empty totals by returning zeros', () => {
