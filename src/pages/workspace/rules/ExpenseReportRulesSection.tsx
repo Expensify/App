@@ -45,7 +45,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             isActive: policy?.preventSelfApproval,
             disabled: workflowApprovalsUnavailable,
             showLockIcon: workflowApprovalsUnavailable,
-            pendingAction: policy?.pendingFields?.preventSelfApproval,
+            pendingAction: policy?.pendingFields?.preventSelfApproval ?? policy?.pendingAction,
             onToggle: (isEnabled: boolean) => {
                 if (isEnabled && !isControlPolicy(policy)) {
                     Navigation.navigate(
@@ -67,7 +67,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             isActive: policy?.shouldShowAutoApprovalOptions && !workflowApprovalsUnavailable,
             disabled: workflowApprovalsUnavailable,
             showLockIcon: workflowApprovalsUnavailable,
-            pendingAction: policy?.pendingFields?.shouldShowAutoApprovalOptions,
+            pendingAction: policy?.pendingFields?.shouldShowAutoApprovalOptions ?? policy?.pendingAction,
             onToggle: (isEnabled: boolean) => {
                 if (isEnabled && !isControlPolicy(policy)) {
                     Navigation.navigate(
@@ -127,7 +127,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             disabled: autoPayApprovedReportsUnavailable,
             showLockIcon: autoPayApprovedReportsUnavailable,
             isActive: policy?.shouldShowAutoReimbursementLimitOption && !autoPayApprovedReportsUnavailable,
-            pendingAction: policy?.pendingFields?.shouldShowAutoReimbursementLimitOption,
+            pendingAction: policy?.pendingFields?.shouldShowAutoReimbursementLimitOption ?? policy?.pendingAction,
             subMenuItems: [
                 <OfflineWithFeedback
                     pendingAction={

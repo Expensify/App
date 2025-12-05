@@ -478,9 +478,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {optionItems.map(renderOptionItem)}
-                    <OfflineWithFeedback pendingAction={policy?.pendingAction}>
-                        <ExpenseReportRulesSection policyID={route.params.policyID} />
-                    </OfflineWithFeedback>
+                    <ExpenseReportRulesSection policyID={route.params.policyID} />
                     <ConfirmModal
                         title={translate('workspace.bankAccount.workspaceCurrencyNotSupported')}
                         isVisible={isUpdateWorkspaceCurrencyModalOpen}
