@@ -148,9 +148,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     }
     // Fallback to deprecated getReportName when reportAttributes is not available (e.g., in tests)
     // This ensures computed names (invoice rooms, group chats) work correctly with full context
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const title: string =
         reportNameFromAttributes ??
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         getReportNameDeprecated(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived) ??
         '';
     const subtitle = getChatRoomSubtitle(reportHeaderData, false, isReportHeaderDataArchived);
