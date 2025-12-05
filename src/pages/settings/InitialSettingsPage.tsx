@@ -256,6 +256,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         hasActivatedWallet,
         userWallet?.currentBalance,
         subscriptionPlan,
+        billingStatus,
         styles.accountSettingsSectionContainer,
         styles.badgeSuccess,
         privateSubscription?.errors,

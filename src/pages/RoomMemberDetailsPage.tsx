@@ -2,13 +2,14 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -42,8 +43,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const policy = usePolicy(report?.policyID);
-
-    const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const accountID = Number(route.params.accountID);
     const backTo = ROUTES.ROOM_MEMBERS.getRoute(report?.reportID, route.params.backTo);
@@ -56,7 +56,6 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const isSelectedMemberOwner = accountID === report.ownerAccountID;
     const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isUserPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
     const removeUser = useCallback(() => {
-        setIsRemoveMemberConfirmModalVisible(false);
         removeFromRoom(report?.reportID, [accountID]);
         Navigation.goBack(backTo);
     }, [backTo, report?.reportID, accountID]);
@@ -94,26 +93,28 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                             {displayName}
                         </Text>
                     )}
-                    <>
-                        <Button
-                            text={translate('workspace.people.removeRoomMemberButtonTitle')}
-                            onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
-                            isDisabled={shouldDisableRemoveUser}
-                            icon={icons.RemoveMembers}
-                            iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                            style={styles.mv5}
-                        />
-                        <ConfirmModal
-                            danger
-                            title={translate('workspace.people.removeRoomMemberButtonTitle')}
-                            isVisible={isRemoveMemberConfirmModalVisible}
-                            onConfirm={removeUser}
-                            onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                            prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
-                            confirmText={translate('common.remove')}
-                            cancelText={translate('common.cancel')}
-                        />
-                    </>
+                    <Button
+                        text={translate('workspace.people.removeRoomMemberButtonTitle')}
+                        onPress={() => {
+                            showConfirmModal({
+                                danger: true,
+                                title: translate('workspace.people.removeRoomMemberButtonTitle'),
+                                prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
+                                confirmText: translate('common.remove'),
+                                cancelText: translate('common.cancel'),
+                                // eslint-disable-next-line rulesdir/prefer-early-return
+                            }).then((result) => {
+                                if (result.action !== ModalActions.CONFIRM) {
+                                    return;
+                                }
+                                removeUser();
+                            });
+                        }}
+                        isDisabled={shouldDisableRemoveUser}
+                        icon={icons.RemoveMembers}
+                        iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                        style={styles.mv5}
+                    />
                 </View>
                 <View style={styles.w100}>
                     <MenuItem

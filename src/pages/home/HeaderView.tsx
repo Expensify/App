@@ -1,11 +1,11 @@
 import {useRoute} from '@react-navigation/native';
+import reportsSelector from '@selectors/Attributes';
 import {isPast} from 'date-fns';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
-import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
@@ -22,9 +22,6 @@ import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import useAncestors from '@hooks/useAncestors';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
@@ -49,8 +46,8 @@ import {
     getParticipantsAccountIDsForDisplay,
     getPolicyDescriptionText,
     getPolicyName,
-    getReportDescription,
-    getReportName,
+    getReportDescription, // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getReportName as getReportNameDeprecated,
     hasReportNameError,
     isAdminRoom,
     isArchivedReport,
@@ -76,7 +73,6 @@ import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/Billin
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import {joinRoom} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import {deleteTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -104,9 +100,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
-    const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
-    const invoiceReceiverPolicyID = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
     const [grandParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`, {canBeMissing: true});
     const [grandParentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`, {canBeMissing: true});
@@ -117,11 +110,12 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
+    const invoiceReceiverPolicyID = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
+    const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const isReportArchived = isArchivedReport(reportNameValuePairs);
-    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const {translate, localeCompare} = useLocalize();
     const theme = useTheme();
@@ -146,7 +140,19 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived);
+    const reportID = reportHeaderData?.reportID;
+    let reportNameFromAttributes: string | undefined;
+    if (reportID && reportAttributes) {
+        const reportAttr = reportAttributes[reportID];
+        reportNameFromAttributes = reportAttr?.reportName;
+    }
+    // Fallback to deprecated getReportName when reportAttributes is not available (e.g., in tests)
+    // This ensures computed names (invoice rooms, group chats) work correctly with full context
+    const title: string =
+        reportNameFromAttributes ??
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        getReportNameDeprecated(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived) ??
+        '';
     const subtitle = getChatRoomSubtitle(reportHeaderData, false, isReportHeaderDataArchived);
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, isParentReportHeaderDataArchived);
@@ -156,7 +162,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPlan = useSubscriptionPlan();
-    const ancestors = useAncestors(report);
     const displayNamesFSClass = FS.getChatFSClass(personalDetails, report);
 
     const shouldShowSubtitle = () => {
@@ -372,28 +377,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 <HelpButton style={styles.ml2} />
                                 {shouldDisplaySearchRouter && <SearchButton />}
                             </View>
-                            <ConfirmModal
-                                isVisible={isDeleteTaskConfirmModalVisible}
-                                onConfirm={() => {
-                                    setIsDeleteTaskConfirmModalVisible(false);
-                                    deleteTask(
-                                        report,
-                                        parentReport,
-                                        isReportArchived,
-                                        currentUserPersonalDetails.accountID,
-                                        hasOutstandingChildTask,
-                                        parentReportAction ?? undefined,
-                                        ancestors,
-                                    );
-                                }}
-                                onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
-                                title={translate('task.deleteTask')}
-                                prompt={translate('task.deleteConfirmation')}
-                                confirmText={translate('common.delete')}
-                                cancelText={translate('common.cancel')}
-                                danger
-                                shouldEnableNewFocusManagement
-                            />
                         </View>
                     )}
                 </View>

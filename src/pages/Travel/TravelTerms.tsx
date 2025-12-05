@@ -5,12 +5,13 @@ import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import ConfirmModal from '@components/ConfirmModal';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -42,7 +43,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [showVerifyCompanyModal, setShowVerifyCompanyModal] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING, {canBeMissing: true});
 
     const isLoading = travelProvisioning?.isLoading;
@@ -69,7 +70,23 @@ function TravelTerms({route}: TravelTermsPageProps) {
         }
 
         if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_ADDITIONAL_VERIFICATION_REQUIRED) {
-            setShowVerifyCompanyModal(true);
+            showConfirmModal({
+                title: translate('travel.verifyCompany.title'),
+                titleStyles: styles.textHeadlineH1,
+                titleContainerStyles: styles.mb2,
+                prompt: translate('travel.verifyCompany.message'),
+                promptStyles: styles.mb2,
+                confirmText: translate('travel.verifyCompany.confirmText'),
+                shouldShowCancelButton: false,
+                image: illustrations.RocketDude,
+                imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+                // eslint-disable-next-line rulesdir/prefer-early-return
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                createTravelEnablementIssue();
+            });
         }
 
         if (travelProvisioning?.spotnanaToken) {
@@ -79,7 +96,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
         if (travelProvisioning?.errors && !travelProvisioning?.error) {
             setErrorMessage(getLatestErrorMessage(travelProvisioning));
         }
-    }, [travelProvisioning, domain]);
+    }, [travelProvisioning, domain, showConfirmModal, translate, styles.textHeadlineH1, styles.mb2, StyleUtils, illustrations.RocketDude, createTravelEnablementIssue]);
 
     const toggleTravelTerms = () => {
         setHasAcceptedTravelTerms(!hasAcceptedTravelTerms);
@@ -95,83 +112,61 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
     // Add beta support for FullPageNotFound that is universal across travel pages
     return (
-        <>
-            <ScreenWrapper
-                shouldEnableMaxHeight
-                testID={TravelTerms.displayName}
-            >
-                <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel}>
-                    <HeaderWithBackButton
-                        title={translate('travel.termsAndConditions.header')}
-                        onBackButtonPress={() => Navigation.goBack()}
-                    />
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}>
-                        <View style={styles.flex1}>
-                            <Text style={styles.headerAnonymousFooter}>{`${translate('travel.termsAndConditions.title')}`}</Text>
-                            <View style={[styles.renderHTML, styles.mt4]}>
-                                <RenderHTML html={translate('travel.termsAndConditions.subtitle')} />
-                            </View>
-                            <CheckboxWithLabel
-                                style={styles.mt6}
-                                accessibilityLabel={translate('travel.termsAndConditions.label')}
-                                onInputChange={toggleTravelTerms}
-                                label={translate('travel.termsAndConditions.label')}
-                            />
+        <ScreenWrapper
+            shouldEnableMaxHeight
+            testID={TravelTerms.displayName}
+        >
+            <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel}>
+                <HeaderWithBackButton
+                    title={translate('travel.termsAndConditions.header')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}>
+                    <View style={styles.flex1}>
+                        <Text style={styles.headerAnonymousFooter}>{`${translate('travel.termsAndConditions.title')}`}</Text>
+                        <View style={[styles.renderHTML, styles.mt4]}>
+                            <RenderHTML html={translate('travel.termsAndConditions.subtitle')} />
                         </View>
-
-                        <FormAlertWithSubmitButton
-                            buttonText={translate('common.continue')}
-                            isDisabled={!hasAcceptedTravelTerms}
-                            onSubmit={() => {
-                                if (!hasAcceptedTravelTerms) {
-                                    setErrorMessage(translate('travel.termsAndConditions.error'));
-                                    return;
-                                }
-                                if (errorMessage) {
-                                    setErrorMessage('');
-                                }
-
-                                asyncOpenURL(
-                                    acceptSpotnanaTerms(domain).then((response) => {
-                                        if (response?.jsonCode !== 200) {
-                                            return Promise.reject();
-                                        }
-                                        if (response?.spotnanaToken) {
-                                            return buildTravelDotURL(response.spotnanaToken, response.isTestAccount ?? false);
-                                        }
-                                    }),
-                                    (travelDotURL) => travelDotURL ?? '',
-                                );
-                            }}
-                            message={errorMessage}
-                            isAlertVisible={!!errorMessage}
-                            containerStyles={[styles.mh0, styles.mt5]}
-                            isLoading={isLoading}
+                        <CheckboxWithLabel
+                            style={styles.mt6}
+                            accessibilityLabel={translate('travel.termsAndConditions.label')}
+                            onInputChange={toggleTravelTerms}
+                            label={translate('travel.termsAndConditions.label')}
                         />
-                    </ScrollView>
-                </FullPageNotFoundView>
-            </ScreenWrapper>
+                    </View>
 
-            <ConfirmModal
-                isVisible={showVerifyCompanyModal}
-                onConfirm={() => {
-                    createTravelEnablementIssue();
-                    setShowVerifyCompanyModal(false);
-                }}
-                onCancel={() => {
-                    setShowVerifyCompanyModal(false);
-                }}
-                title={translate('travel.verifyCompany.title')}
-                titleStyles={styles.textHeadlineH1}
-                titleContainerStyles={styles.mb2}
-                prompt={translate('travel.verifyCompany.message')}
-                promptStyles={styles.mb2}
-                confirmText={translate('travel.verifyCompany.confirmText')}
-                shouldShowCancelButton={false}
-                image={illustrations.RocketDude}
-                imageStyles={StyleUtils.getBackgroundColorStyle(colors.ice600)}
-            />
-        </>
+                    <FormAlertWithSubmitButton
+                        buttonText={translate('common.continue')}
+                        isDisabled={!hasAcceptedTravelTerms}
+                        onSubmit={() => {
+                            if (!hasAcceptedTravelTerms) {
+                                setErrorMessage(translate('travel.termsAndConditions.error'));
+                                return;
+                            }
+                            if (errorMessage) {
+                                setErrorMessage('');
+                            }
+
+                            asyncOpenURL(
+                                acceptSpotnanaTerms(domain).then((response) => {
+                                    if (response?.jsonCode !== 200) {
+                                        return Promise.reject();
+                                    }
+                                    if (response?.spotnanaToken) {
+                                        return buildTravelDotURL(response.spotnanaToken, response.isTestAccount ?? false);
+                                    }
+                                }),
+                                (travelDotURL) => travelDotURL ?? '',
+                            );
+                        }}
+                        message={errorMessage}
+                        isAlertVisible={!!errorMessage}
+                        containerStyles={[styles.mh0, styles.mt5]}
+                        isLoading={isLoading}
+                    />
+                </ScrollView>
+            </FullPageNotFoundView>
+        </ScreenWrapper>
     );
 }
 
