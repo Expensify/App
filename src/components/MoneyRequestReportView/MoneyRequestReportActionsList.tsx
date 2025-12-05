@@ -5,7 +5,7 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import {accountIDSelector} from '@selectors/Session';
 import {tierNameSelector} from '@selectors/UserWallet';
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -19,6 +19,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+import {WideRHPContext} from '@components/WideRHPContextProvider';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@hooks/useFlatListScrollKey';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
@@ -30,6 +31,7 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -166,7 +168,7 @@ function MoneyRequestReportActionsList({
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);

@@ -1,4 +1,4 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
@@ -6,7 +6,9 @@ import {
     animatedReceiptPaneRHPWidth,
     modalStackOverlaySuperWideRHPPositionLeft,
     modalStackOverlayWideRHPPositionLeft,
-    secondOverlayProgress,
+    secondOverlayRHPOnSuperWideRHPProgress,
+    secondOverlayRHPOnWideRHPProgress,
+    secondOverlayWideRHPProgress,
     thirdOverlayProgress,
     WideRHPContext,
 } from '@components/WideRHPContextProvider';
@@ -23,6 +25,7 @@ import type {
     DebugParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
+    ExpenseReportNavigatorParamList,
     FlagCommentNavigatorParamList,
     MergeTransactionNavigatorParamList,
     MissingPersonalDetailsParamList,
@@ -44,6 +47,7 @@ import type {
     RoomMembersNavigatorParamList,
     ScheduleCallParamList,
     SearchAdvancedFiltersParamList,
+    SearchMoneyRequestReportParamList,
     SearchReportActionsParamList,
     SearchReportParamList,
     SearchSavedSearchParamList,
@@ -107,6 +111,72 @@ function isWideRHPRouteName(routeName: string) {
     return routeName === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
 }
 
+function SecondaryOverlay() {
+    const {shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForWideRHP, superWideRHPRouteKeys, wideRHPRouteKeys} =
+        useContext(WideRHPContext);
+    const route = useRoute();
+
+    // It's an additional check for isRHPDisplayedOnWideRHP, wide rhp route (SearchReport) can be displayed as a single rhp on super wide rhp route displayed as wide rhp.
+    // In this case, we need to prevent from rendering secondary overlay from the top rhp route.
+    const isExpenseDisplayedInSingleRHPOnWideRHP = useMemo(
+        () =>
+            isWideRHPRouteName(route.name) &&
+            wideRHPRouteKeys.length === 1 &&
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            (wideRHPRouteKeys.at(0)?.startsWith(SCREENS.SEARCH.MONEY_REQUEST_REPORT) || wideRHPRouteKeys.at(0)?.startsWith(SCREENS.EXPENSE_REPORT_RHP)),
+        [route.name, wideRHPRouteKeys],
+    );
+
+    const isRHPDisplayedOnWideRHP = useMemo(
+        () =>
+            !isExpenseDisplayedInSingleRHPOnWideRHP &&
+            shouldRenderSecondaryOverlayForRHPOnWideRHP &&
+            // Here it's checked if the super wide rhp route is displayed as a wide rhp
+            ((isSuperWideRHPRouteName(route.name) && superWideRHPRouteKeys.length === 0) || isWideRHPRouteName(route.name)),
+        [isExpenseDisplayedInSingleRHPOnWideRHP, route.name, shouldRenderSecondaryOverlayForRHPOnWideRHP, superWideRHPRouteKeys.length],
+    );
+
+    const isRHPDisplayedOnSuperWideRHP = useMemo(
+        () => shouldRenderSecondaryOverlayForRHPOnSuperWideRHP && isSuperWideRHPRouteName(route.name),
+        [route.name, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP],
+    );
+
+    const isWideRHPDisplayedOnSuperWideRHP = useMemo(
+        () => shouldRenderSecondaryOverlayForWideRHP && isSuperWideRHPRouteName(route.name),
+        [route.name, shouldRenderSecondaryOverlayForWideRHP],
+    );
+
+    if (isRHPDisplayedOnWideRHP) {
+        return (
+            <Overlay
+                progress={secondOverlayRHPOnWideRHPProgress}
+                // If RHP is displayed on Wide RHP which is displayed above the Super Wide RHP, the secondary overlay's position left should be calculated from the left edge of the super wide RHP.
+                positionLeftValue={superWideRHPRouteKeys.length > 0 ? modalStackOverlayWideRHPPositionLeft : animatedReceiptPaneRHPWidth}
+            />
+        );
+    }
+
+    if (isWideRHPDisplayedOnSuperWideRHP) {
+        return (
+            <Overlay
+                progress={secondOverlayWideRHPProgress}
+                positionLeftValue={modalStackOverlayWideRHPPositionLeft}
+            />
+        );
+    }
+
+    if (isRHPDisplayedOnSuperWideRHP) {
+        return (
+            <Overlay
+                progress={secondOverlayRHPOnSuperWideRHPProgress}
+                positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
+            />
+        );
+    }
+
+    return null;
+}
+
 /**
  * Create a modal stack navigator with an array of sub-screens.
  *
@@ -118,10 +188,24 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
-        const {shouldRenderSecondaryOverlay, shouldRenderTertiaryOverlay, isWideRHPFocused, superWideRHPRouteKeys, isWideRHPClosing} = useContext(WideRHPContext);
+        const {shouldRenderTertiaryOverlay, syncWideRHPKeys, syncSuperWideRHPKeys} = useContext(WideRHPContext);
         const route = useRoute();
 
-        const isFocused = useIsFocused();
+        // This hook handles the case when a wider RHP is displayed above a narrower one.
+        // In this situation, we need to synchronize the keys, as superWideRHPKeys and wideRHPKeys store the keys of the screens that are visible.
+        useFocusEffect(
+            useCallback(
+                () => () => {
+                    if (!isWideRHPRouteName(route.name) && !isSuperWideRHPRouteName(route.name)) {
+                        return;
+                    }
+
+                    syncWideRHPKeys();
+                    syncSuperWideRHPKeys();
+                },
+                [route.name, syncSuperWideRHPKeys, syncWideRHPKeys],
+            ),
+        );
 
         // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout, because we want to have information about screen width without the context of side modal.
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -136,16 +220,6 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 return screenOptions({route: optionRoute});
             },
             [screenOptions],
-        );
-
-        const isRHPDisplayedOnWideRHP = useMemo(
-            () => !isSmallScreenWidth && !isWideRHPFocused && !isWideRHPClosing && shouldRenderSecondaryOverlay && (isSuperWideRHPRouteName(route.name) || isWideRHPRouteName(route.name)),
-            [isSmallScreenWidth, isWideRHPClosing, isWideRHPFocused, route.name, shouldRenderSecondaryOverlay],
-        );
-
-        const isWideRHPDisplayedOnSuperWideRHP = useMemo(
-            () => !isSmallScreenWidth && !isFocused && !!isWideRHPFocused && shouldRenderSecondaryOverlay && isSuperWideRHPRouteName(route.name),
-            [isFocused, isSmallScreenWidth, isWideRHPFocused, route.name, shouldRenderSecondaryOverlay],
         );
 
         return (
@@ -167,23 +241,13 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                 {/* The width of the window for which we calculate the overlay positions is the width of the RHP window, for example for Super Wide RHP it will be 1260 px on a wide layout. */}
                 {/* We need to move the overlay left from the left edge of the RHP below to the left edge of the RHP above. */}
                 {/* To calculate this, subtract the width of the widest RHP from the width of the RHP above. */}
-                {/* Two cases were described for the secondary overlay: */}
-                {/* 1. Single RHP is displayed on Wide RHP (Super Wide or Wide) - here we additionally check the length of superWideRHPRouteKeys because Super Wide RHP route can also be displayed in Wide RHP when the number of visible transactions is less than 2.  */}
-                {/* 2. Wide RHP is displayed on Super Wide RHP route. */}
+                {/* Three cases were described for the secondary overlay: */}
+                {/* 1. Single RHP is displayed on Wide RHP */}
+                {/* 2. Single RHP is displayed on Super Wide RHP */}
+                {/* 3. Wide RHP is displayed on Super Wide RHP route. */}
                 {/* Please note that in these cases, the overlay is rendered from the RHP screen displayed below. For example, if we display RHP on Wide RHP, the secondary overlay is rendered from Wide RHP, etc. */}
                 {/* There is also a special case where three different RHP widths are displayed at the same time. In this case, an overlay under RHP should be rendered from Wide RHP. */}
-                {isRHPDisplayedOnWideRHP ? (
-                    <Overlay
-                        progress={secondOverlayProgress}
-                        positionLeftValue={superWideRHPRouteKeys.length > 0 ? modalStackOverlaySuperWideRHPPositionLeft : animatedReceiptPaneRHPWidth}
-                    />
-                ) : null}
-                {isWideRHPDisplayedOnSuperWideRHP ? (
-                    <Overlay
-                        progress={secondOverlayProgress}
-                        positionLeftValue={modalStackOverlayWideRHPPositionLeft}
-                    />
-                ) : null}
+                {!isSmallScreenWidth && <SecondaryOverlay />}
                 {!isSmallScreenWidth && shouldRenderTertiaryOverlay && isWideRHPRouteName(route.name) ? (
                     <Overlay
                         progress={thirdOverlayProgress}
@@ -920,6 +984,11 @@ const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportPa
     [SCREENS.SEARCH.REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default,
 });
 
+// // This navigator is reserved for the screen that can be displayed as Super Wide RHP, other screens should not be added here.
+const SearchMoneyRequestReportModalStackNavigator = createModalStackNavigator<SearchMoneyRequestReportParamList>({
+    [SCREENS.SEARCH.MONEY_REQUEST_REPORT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default,
+});
+
 const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<SearchAdvancedFiltersParamList>({
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_TYPE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersTypePage').default,
@@ -1004,6 +1073,10 @@ const ScheduleCallModalStackNavigator = createModalStackNavigator<ScheduleCallPa
     [SCREENS.SCHEDULE_CALL.CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/ScheduleCall/ScheduleCallConfirmationPage').default,
 });
 
+const ExpenseReportModalStackNavigator = createModalStackNavigator<ExpenseReportNavigatorParamList>({
+    [SCREENS.EXPENSE_REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default,
+});
+
 const WorkspacesDomainModalStackNavigator = createModalStackNavigator<WorkspacesDomainModalNavigatorParamList>({
     [SCREENS.WORKSPACES_VERIFY_DOMAIN]: () => require<ReactComponentModule>('../../../../pages/domain/WorkspacesVerifyDomainPage').default,
     [SCREENS.WORKSPACES_DOMAIN_VERIFIED]: () => require<ReactComponentModule>('../../../../pages/domain/WorkspacesDomainVerifiedPage').default,
@@ -1042,7 +1115,6 @@ export {
     ReportVerifyAccountModalStackNavigator,
     WalletStatementStackNavigator,
     TransactionDuplicateStackNavigator,
-    SearchReportActionsModalStackNavigator,
     SearchReportModalStackNavigator,
     RestrictedActionModalStackNavigator,
     SearchAdvancedFiltersModalStackNavigator,
@@ -1058,4 +1130,7 @@ export {
     MergeTransactionStackNavigator,
     ReportCardActivateStackNavigator,
     WorkspacesDomainModalStackNavigator,
+    SearchMoneyRequestReportModalStackNavigator,
+    ExpenseReportModalStackNavigator,
+    SearchReportActionsModalStackNavigator,
 };
