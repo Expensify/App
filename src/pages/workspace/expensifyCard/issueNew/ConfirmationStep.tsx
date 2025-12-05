@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -40,7 +41,7 @@ type ConfirmationStepProps = {
 };
 
 function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: ConfirmationStepProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -99,6 +100,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
 
         clearIssueNewCardFlow(policyID);
     }, [backTo, policyID, isSuccessful]);
+    const cardholderTitle = getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName') ?? '';
 
     return (
         <InteractiveStepWrapper
@@ -121,7 +123,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardholder')}
-                    title={getUserNameByEmail(data?.assigneeEmail ?? '', 'displayName')}
+                    title={Str.isSMSLogin(cardholderTitle) ? formatPhoneNumber(cardholderTitle) : cardholderTitle}
                     shouldShowRightIcon={!issueNewCard?.isChangeAssigneeDisabled}
                     interactive={!issueNewCard?.isChangeAssigneeDisabled}
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
