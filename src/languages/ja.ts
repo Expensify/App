@@ -701,6 +701,8 @@ const translations: TranslationDeepObject<typeof en> = {
         reportName: 'レポート名',
         showLess: '表示を減らす',
         actionRequired: 'アクションが必要',
+        duplicate: '複製',
+        duplicated: '重複',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',

@@ -695,6 +695,8 @@ const translations: TranslationDeepObject<typeof en> = {
         reportName: '报告名称',
         showLess: '显示更少',
         actionRequired: '需要操作',
+        duplicate: '复制',
+        duplicated: '已重复',
     },
     supportalNoAccess: {
         title: '慢一点',
