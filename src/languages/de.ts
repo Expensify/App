@@ -362,7 +362,7 @@ const translations: TranslationDeepObject<typeof en> = {
         search: 'Suchen',
         reports: 'Berichte',
         find: 'Suchen',
-        searchWithThreeDots: 'Suchen …',
+        searchWithThreeDots: 'Suchen …',
         next: 'Weiter',
         previous: 'Zurück',
         // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
@@ -2890,7 +2890,7 @@ ${
                 descriptionTwo: 'Ausgaben kategorisieren und markieren',
                 descriptionThree: 'Berichte erstellen und teilen',
             },
-            price: 'Teste es 30 Tage lang kostenlos und upgrade dann für nur <strong>5 $/Nutzer/Monat</strong>.',
+            price: 'Teste es 30 Tage lang kostenlos und upgrade dann für nur <strong>5 $/Nutzer/Monat</strong>.',
             createWorkspace: 'Workspace erstellen',
         },
         confirmWorkspace: {
@@ -3287,7 +3287,7 @@ ${
         headerTitle: 'Zahlungen aktivieren',
         activatedTitle: 'Wallet aktiviert!',
         activatedMessage: 'Glückwunsch, deine Wallet ist eingerichtet und bereit, Zahlungen zu senden.',
-        checkBackLaterTitle: 'Nur eine Minute …',
+        checkBackLaterTitle: 'Nur eine Minute …',
         checkBackLaterMessage: 'Wir überprüfen Ihre Angaben noch. Bitte schauen Sie später noch einmal vorbei.',
         continueToPayment: 'Weiter zur Zahlung',
         continueToTransfer: 'Weiter übertragen',
@@ -4986,7 +4986,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             verifyingBankAccountDescription: 'Bitte warten Sie, während wir bestätigen, dass dieses Konto zur Ausgabe von Expensify Cards verwendet werden kann.',
             bankAccountVerified: 'Bankkonto bestätigt!',
             bankAccountVerifiedDescription: 'Sie können nun Expensify Cards an die Mitglieder Ihres Arbeitsbereichs ausgeben.',
-            oneMoreStep: 'Noch ein Schritt …',
+            oneMoreStep: 'Noch ein Schritt …',
             oneMoreStepDescription: 'Es sieht so aus, als müssten wir Ihr Bankkonto manuell verifizieren. Bitte gehen Sie zu Concierge, wo Ihre Anweisungen bereits auf Sie warten.',
             gotIt: 'Verstanden',
             goToConcierge: 'Zu Concierge gehen',
@@ -5190,7 +5190,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 subtitle: 'Belege automatisch importieren.',
             },
             connectionsWarningModal: {
-                featureEnabledTitle: 'Nicht so schnell …',
+                featureEnabledTitle: 'Nicht so schnell …',
                 featureEnabledText: 'Um diese Funktion zu aktivieren oder zu deaktivieren, müssen Sie Ihre Einstellungen für den Buchhaltungsimport ändern.',
                 disconnectText: 'Um die Buchhaltung zu deaktivieren, musst du die Buchhaltungsverbindung von deinem Workspace trennen.',
                 manageSettings: 'Einstellungen verwalten',
@@ -5202,7 +5202,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 confirmText: 'Verstanden',
             },
             workflowWarningModal: {
-                featureEnabledTitle: 'Nicht so schnell …',
+                featureEnabledTitle: 'Nicht so schnell …',
                 featureEnabledText:
                     'Expensify Cards in diesem Workspace verwenden Genehmigungsworkflows, um ihre Smart Limits festzulegen.\n\nBitte ändern Sie die Limittypen aller Karten mit Smart Limits, bevor Sie Workflows deaktivieren.',
                 confirmText: 'Zu Expensify Cards gehen',
@@ -5505,7 +5505,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 fixedAmount: 'Fester Betrag',
                 fixedAmountDescription: 'Bis zu einem bestimmten Betrag einmal ausgeben',
                 setLimit: 'Ein Limit festlegen',
-                cardLimitError: 'Bitte gib einen Betrag ein, der kleiner als 21.474.836 $ ist',
+                cardLimitError: 'Bitte gib einen Betrag ein, der kleiner als 21.474.836 $ ist',
                 giveItName: 'Gib ihm einen Namen',
                 giveItNameInstruction: 'Mach sie eindeutig genug, um sie von anderen Karten unterscheiden zu können. Konkrete Anwendungsfälle sind sogar noch besser!',
                 cardName: 'Kartenname',
@@ -6163,7 +6163,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 maxExpenseAgeDescription: 'Ausgaben kennzeichnen, die älter als eine bestimmte Anzahl von Tagen sind.',
                 maxExpenseAgeDays: () => ({
                     one: '1 Tag',
-                    other: (count: number) => `${count} Tage`,
+                    other: (count: number) => `${count} Tage`,
                 }),
                 cashExpenseDefault: 'Standardwert für Barausgabe',
                 cashExpenseDefaultDescription:
@@ -7665,7 +7665,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) =>
             `Bitte gib den magischen Code ein, der an ${contactMethod} gesendet wurde, um einen Copilot hinzuzufügen. Er sollte innerhalb von ein bis zwei Minuten ankommen.`,
         enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `Bitte gib den magischen Code ein, der an ${contactMethod} gesendet wurde, um deinen Copilot zu aktualisieren.`,
-        notAllowed: 'Nicht so schnell …',
+        notAllowed: 'Nicht so schnell …',
         noAccessMessage: dedent(`
             Als Copilot hast du keinen Zugriff auf
             diese Seite. Entschuldigung!
