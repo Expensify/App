@@ -96,18 +96,14 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     const bothEmpty = !hasAmount && !hasApprover;
     const onlyAmountEmpty = !hasAmount && hasApprover;
     const onlyApproverEmpty = hasAmount && !hasApprover;
-    const isCircularReference = hasApprover && currentApprover?.email === selectedApproverEmail;
 
     const amountError = hasSubmitted && onlyAmountEmpty ? translate('workflowsApprovalLimitPage.enterAmountError') : undefined;
     const approverErrorText = useMemo(() => {
-        if (hasSubmitted && isCircularReference) {
-            return translate('workflowsApprovalLimitPage.circularReferenceError', {approverName: selectedApproverDisplayName});
-        }
         if (hasSubmitted && onlyApproverEmpty) {
             return translate('workflowsApprovalLimitPage.enterApproverError');
         }
         return undefined;
-    }, [hasSubmitted, isCircularReference, onlyApproverEmpty, translate, selectedApproverDisplayName]);
+    }, [hasSubmitted, onlyApproverEmpty, translate]);
     const bottomError = hasSubmitted && bothEmpty && !isEditFlow ? translate('workflowsApprovalLimitPage.enterBothError') : undefined;
 
     const navigateAfterCompletion = useCallback(() => {
@@ -160,7 +156,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
             return;
         }
 
-        if (bothEmpty || onlyAmountEmpty || onlyApproverEmpty || isCircularReference) {
+        if (bothEmpty || onlyAmountEmpty || onlyApproverEmpty) {
             setHasSubmitted(true);
             return;
         }
@@ -178,7 +174,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         bothEmpty,
         onlyAmountEmpty,
         onlyApproverEmpty,
-        isCircularReference,
         approvalLimit,
         selectedApproverEmail,
         resetApprovalLimit,

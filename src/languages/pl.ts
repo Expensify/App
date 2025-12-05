@@ -2186,8 +2186,6 @@ ${amount} dla ${merchant} - ${date}`,
         enterAmountError: 'Wprowadź prawidłową kwotę',
         enterApproverError: 'Zatwierdzający jest wymagany, gdy masz limit raportu',
         enterBothError: 'Wprowadź kwotę raportu i dodatkowego zatwierdzającego',
-        circularReferenceError: ({approverName}: {approverName: string}) =>
-            `<strong>${approverName}</strong> już zatwierdza raporty w tym przepływie pracy. Wybierz innego zatwierdzającego, aby uniknąć cyklicznego przepływu pracy.`,
         forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Raporty powyżej ${approvalLimit} są przekazywane do ${approverName}`,
     },
     workflowsPayerPage: {

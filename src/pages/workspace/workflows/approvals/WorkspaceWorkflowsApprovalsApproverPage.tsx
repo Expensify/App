@@ -142,15 +142,14 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
             const accountID = Number(newSelectedEmail ? policyMemberEmailsToAccountIDs[newSelectedEmail] : '');
             const {avatar, displayName = newSelectedEmail} = personalDetails?.[accountID] ?? {};
-            const existingApprover = currentApprovalWorkflow?.approvers?.[approverIndex];
 
             setApprovalWorkflowApprover({
                 approver: {
                     email: newSelectedEmail,
                     avatar,
                     displayName,
-                    approvalLimit: existingApprover?.approvalLimit,
-                    overLimitForwardsTo: existingApprover?.overLimitForwardsTo,
+                    approvalLimit: null,
+                    overLimitForwardsTo: '',
                 },
                 approverIndex,
                 currentApprovalWorkflow,

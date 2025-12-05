@@ -2182,8 +2182,6 @@ ${date} - ${merchant}に${amount}`,
         enterAmountError: '有効な金額を入力してください',
         enterApproverError: 'レポート制限がある場合は承認者が必要です',
         enterBothError: 'レポート金額と追加の承認者を入力してください',
-        circularReferenceError: ({approverName}: {approverName: string}) =>
-            `<strong>${approverName}</strong>はすでにこのワークフローでレポートを承認しています。循環ワークフローを避けるために別の承認者を選択してください。`,
         forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `${approvalLimit}を超えるレポートは${approverName}に転送されます`,
     },
     workflowsPayerPage: {

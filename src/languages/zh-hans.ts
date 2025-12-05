@@ -2154,7 +2154,6 @@ ${merchant}的${amount} - ${date}`,
         enterAmountError: '请输入有效金额',
         enterApproverError: '设置报告限额时需要审批人',
         enterBothError: '请输入报告金额和额外审批人',
-        circularReferenceError: ({approverName}: {approverName: string}) => `<strong>${approverName}</strong>已在此工作流程中审批报告。请选择其他审批人以避免循环工作流程。`,
         forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `超过${approvalLimit}的报告将转发给${approverName}`,
     },
     workflowsPayerPage: {

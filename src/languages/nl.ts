@@ -2189,8 +2189,6 @@ ${amount} voor ${merchant} - ${date}`,
         enterAmountError: 'Voer een geldig bedrag in',
         enterApproverError: 'Een goedkeurder is vereist wanneer u een rapportlimiet heeft',
         enterBothError: 'Voer een rapportbedrag en een extra goedkeurder in',
-        circularReferenceError: ({approverName}: {approverName: string}) =>
-            `<strong>${approverName}</strong> keurt al rapporten goed in deze workflow. Kies een andere goedkeurder om een circulaire workflow te vermijden.`,
         forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
             `Rapporten boven ${approvalLimit} worden doorgestuurd naar ${approverName}`,
     },

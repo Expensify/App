@@ -2198,8 +2198,6 @@ ${amount} für ${merchant} - ${date}`,
         enterAmountError: 'Bitte geben Sie einen gültigen Betrag ein',
         enterApproverError: 'Ein Genehmiger ist erforderlich, wenn Sie ein Berichtslimit haben',
         enterBothError: 'Geben Sie einen Berichtsbetrag und einen zusätzlichen Genehmiger ein',
-        circularReferenceError: ({approverName}: {approverName: string}) =>
-            `<strong>${approverName}</strong> genehmigt bereits Berichte in diesem Workflow. Wählen Sie einen anderen Genehmiger, um einen zirkulären Workflow zu vermeiden.`,
         forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Berichte über ${approvalLimit} werden an ${approverName} weitergeleitet`,
     },
     workflowsPayerPage: {

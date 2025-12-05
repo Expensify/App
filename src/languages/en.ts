@@ -2298,8 +2298,6 @@ const translations = {
         enterAmountError: 'Please enter a valid amount',
         enterApproverError: 'Approver is required when you have a report limit',
         enterBothError: 'Enter a report amount and additional approver',
-        circularReferenceError: ({approverName}: {approverName: string}) =>
-            `<strong>${approverName}</strong> already approves reports in this workflow. Choose a different approver to avoid a circular workflow.`,
         forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Reports above ${approvalLimit} forward to ${approverName}`,
     },
     workflowsPayerPage: {

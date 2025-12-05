@@ -2191,8 +2191,6 @@ ${amount} per ${merchant} - ${date}`,
         enterAmountError: 'Inserisci un importo valido',
         enterApproverError: 'Un approvatore è richiesto quando hai un limite di report',
         enterBothError: 'Inserisci un importo del report e un approvatore aggiuntivo',
-        circularReferenceError: ({approverName}: {approverName: string}) =>
-            `<strong>${approverName}</strong> approva già i report in questo flusso di lavoro. Scegli un approvatore diverso per evitare un flusso circolare.`,
         forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
             `I report superiori a ${approvalLimit} vengono inoltrati a ${approverName}`,
     },

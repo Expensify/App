@@ -1940,8 +1940,6 @@ ${amount} para ${merchant} - ${date}`,
         enterAmountError: 'Por favor, introduce un importe válido',
         enterApproverError: 'Se requiere un aprobador cuando tienes un límite de informe',
         enterBothError: 'Introduce un importe del informe y un aprobador adicional',
-        circularReferenceError: ({approverName}: {approverName: string}) =>
-            `<strong>${approverName}</strong> ya aprueba informes en este flujo de trabajo. Elige un aprobador diferente para evitar un flujo de trabajo circular.`,
         forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Los informes superiores a ${approvalLimit} se envían a ${approverName}`,
     },
     workflowsPayerPage: {
