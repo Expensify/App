@@ -755,7 +755,10 @@ function Search({
                     if (firstTransaction.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
                         createAndOpenSearchTransactionThread(firstTransaction, hash, backTo, transactionPreviewData, false);
                     } else {
-                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
+                        const isCurrentUserSender = !!accountID && firstTransaction.from?.accountID === accountID;
+                        if (isCurrentUserSender) {
+                            setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData);
+                        }
                     }
                 }
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
@@ -770,13 +773,17 @@ function Search({
 
             markReportIDAsExpense(reportID);
 
+            // Only set optimistic preview when current user is the sender to avoid showing incorrect "from" in header
             if (isTransactionItem && transactionPreviewData) {
-                setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData);
+                const isCurrentUserSender = !!accountID && item.from?.accountID === accountID;
+                if (isCurrentUserSender) {
+                    setOptimisticDataForTransactionThreadPreview(item, transactionPreviewData);
+                }
             }
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
+        [isMobileSelectionModeEnabled, toggleTransaction, hash, queryJSON, handleSearch, searchKey, markReportIDAsExpense, accountID],
     );
 
     const currentColumns = useMemo(() => {
