@@ -471,7 +471,13 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     }, [onSelectAll, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow]);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex}), [scrollAndHighlightItem, scrollToIndex, updateFocusedIndex]);
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex, focusTextInput}), [
+        focusTextInput,
+        scrollAndHighlightItem,
+        scrollToIndex,
+        updateFocusedIndex,
+    ]);
+
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
