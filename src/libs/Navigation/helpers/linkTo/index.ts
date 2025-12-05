@@ -64,6 +64,22 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     return currentParams?.reportID === newParams?.reportID;
 }
 
+function isRoutePreloaded(currentState: PlatformStackNavigationState<RootNavigatorParamList>, matchingFullScreenRoute: NavigationPartialRoute) {
+    const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
+
+    const preloadedRoutes = currentState.preloadedRoutes;
+
+    return preloadedRoutes.some((preloadedRoute) => {
+        const isMatchingFullScreenRoute = preloadedRoute.name === matchingFullScreenRoute.name;
+
+        // Compare the last route of the preloadedRoute and the last route of the matchingFullScreenRoute to ensure the preloaded route is accepted when matching subroutes as well
+        const isMatchingLastRoute =
+            !lastRouteInMatchingFullScreen?.name || (preloadedRoute.params && 'screen' in preloadedRoute.params && preloadedRoute.params.screen === lastRouteInMatchingFullScreen?.name);
+
+        return isMatchingFullScreenRoute && isMatchingLastRoute;
+    });
+}
+
 export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, options?: LinkToOptions) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
@@ -126,9 +142,14 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
             const matchingFullScreenRoute = getMatchingFullScreenRoute(newFocusedRoute);
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
-            if (matchingFullScreenRoute && lastFullScreenRoute && matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
-                const isMatchingRoutePreloaded = currentState.preloadedRoutes.some((preloadedRoute) => preloadedRoute.name === matchingFullScreenRoute.name);
-                if (isMatchingRoutePreloaded) {
+            const lastRouteInLastFullScreenRoute = lastFullScreenRoute?.state?.routes.at(-1);
+            if (
+                matchingFullScreenRoute &&
+                lastFullScreenRoute &&
+                (matchingFullScreenRoute.name !== lastFullScreenRoute.name ||
+                    (newFocusedRoute.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastRouteInLastFullScreenRoute?.name !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT))
+            ) {
+                if (isRoutePreloaded(currentState, matchingFullScreenRoute)) {
                     navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
                 } else {
                     const lastRouteInMatchingFullScreen = matchingFullScreenRoute.state?.routes?.at(-1);
