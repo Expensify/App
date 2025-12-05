@@ -173,8 +173,11 @@ function IOURequestStepConfirmation({
      * Also if the report was submitted and delayed submission is on, then we should use an initial report
      */
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
+    const reportWithDraftFallback = useMemo(() => reportReal ?? reportDraft, [reportDraft, reportReal]);
     const shouldUseTransactionReport =
-        transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false);
+        transactionReport &&
+        ((!(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id, undefined, false)) ||
+            !reportWithDraftFallback);
     const report = useMemo(() => {
         if (isUnreported) {
             return undefined;
@@ -182,8 +185,8 @@ function IOURequestStepConfirmation({
         if (shouldUseTransactionReport) {
             return transactionReport;
         }
-        return reportReal ?? reportDraft;
-    }, [isUnreported, shouldUseTransactionReport, transactionReport, reportReal, reportDraft]);
+        return reportWithDraftFallback;
+    }, [isUnreported, shouldUseTransactionReport, transactionReport, reportWithDraftFallback]);
 
     const policy = isCreatingTrackExpense || isUnreported ? policyForMovingExpenses : (policyReal ?? policyDraft);
     const policyID = isCreatingTrackExpense || isUnreported ? policyForMovingExpensesID : getIOURequestPolicyID(transaction, report);
