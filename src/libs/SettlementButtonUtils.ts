@@ -93,17 +93,20 @@ const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translat
                 text: hasActivatedWallet ? translate('iou.settleWallet', {formattedAmount: ''}) : translate('iou.settlePersonal', {formattedAmount: ''}),
                 icon: icons.User,
                 value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
             },
             [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
                 text: translate('iou.settleBusiness', {formattedAmount: ''}),
                 icon: icons.Building,
                 value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: translate('iou.payElsewhere', {formattedAmount: ''}),
                 icon: icons.CheckCircle,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 shouldUpdateSelectedIndex: false,
+                key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
         };
     }, [hasActivatedWallet, translate, icons]);

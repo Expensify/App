@@ -127,6 +127,7 @@ describe('useSettlementButtonPaymentMethods', () => {
             text: translate('iou.settleWallet', {formattedAmount: ''}),
             icon: icons.current.User,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         });
     });
 
@@ -136,6 +137,7 @@ describe('useSettlementButtonPaymentMethods', () => {
             text: translate('iou.settlePersonal', {formattedAmount: ''}),
             icon: icons.current.User,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+            key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         });
     });
 
@@ -145,6 +147,7 @@ describe('useSettlementButtonPaymentMethods', () => {
             text: translate('iou.settleBusiness', {formattedAmount: ''}),
             icon: icons.current.Building,
             value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+            key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
         });
     });
 
@@ -155,6 +158,7 @@ describe('useSettlementButtonPaymentMethods', () => {
             icon: icons.current.CheckCircle,
             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             shouldUpdateSelectedIndex: false,
+            key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
         });
     });
 

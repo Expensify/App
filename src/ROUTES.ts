@@ -284,6 +284,10 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/missing-details',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/missing-details` as const,
     },
+    SETTINGS_WALLET_CARD_MISSING_DETAILS_CONFIRM_MAGIC_CODE: {
+        route: 'settings/wallet/card/:cardID/missing-details/confirm-magic-code',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/missing-details/confirm-magic-code` as const,
+    },
     SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
@@ -493,6 +497,18 @@ const ROUTES = {
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
+        },
+    },
+    REPORT_CARD_ACTIVATE: {
+        route: 'r/:reportID/:reportActionID?/card/:cardID/activate',
+        getRoute: (cardID: number, reportID?: string, reportActionID?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_CARD_ACTIVATE route');
+            }
+            if (!reportActionID) {
+                return `r/${reportID}/card/${cardID}/activate` as const;
+            }
+            return `r/${reportID}/${reportActionID}/card/${cardID}/activate` as const;
         },
     },
     REPORT_ATTACHMENTS: {
@@ -1062,12 +1078,6 @@ const ROUTES = {
         getRoute: (policyID: string, categoryName: string, backTo = '') =>
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}/gl-code` as const, backTo),
-    },
-    MONEY_REQUEST_STEP_CURRENCY: {
-        route: ':action/:iouType/currency/:transactionID/:reportID/:pageIndex?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, pageIndex = '', currency = '', backTo = '') =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/currency/${transactionID}/${reportID}/${pageIndex}?currency=${currency}`, backTo),
     },
     MONEY_REQUEST_STEP_DATE: {
         route: ':action/:iouType/date/:transactionID/:reportID/:reportActionID?',
@@ -2275,6 +2285,11 @@ const ROUTES = {
         route: 'workspaces/:policyID/distance-rates/new',
         getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
             `workspaces/${policyID}/distance-rates/new${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}` as const,
+    },
+    WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE: {
+        route: 'workspaces/:policyID/distance-rates/new/upgrade',
+        getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
+            `workspaces/${policyID}/distance-rates/new/upgrade${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}` as const,
     },
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
         route: 'workspaces/:policyID/distance-rates/settings',
