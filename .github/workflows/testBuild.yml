@@ -270,7 +270,7 @@ jobs:
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     runs-on: ubuntu-latest-xl
     outputs:
-      ROCK_ANDROID_ADHOC_INDEX_URL: ${{ steps.build-android-adhoc-index-url.outputs.clean-url }}
+      ROCK_ANDROID_ADHOC_INDEX_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
     steps:
       - name: Checkout
         # v4
@@ -377,9 +377,9 @@ jobs:
           comment-bot: false
           rock-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
 
-      - name: Build Android artifact Adhoc Index URL
-        id: build-android-adhoc-index-url
-        run: ./.github/scripts/buildAdhocIndexUrl.sh "${{ steps.rock-remote-build-android.outputs.artifact-url }}"
+      - name: Set artifact URL output
+        id: set-artifact-url
+        run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
 
   iosHybrid:
     name: Build and deploy iOS for testing
@@ -389,7 +389,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
     runs-on: macos-15-xlarge
     outputs:
-      ROCK_IOS_ADHOC_INDEX_URL: ${{ steps.build-ios-adhoc-index-url.outputs.clean-url }}
+      ROCK_IOS_ADHOC_INDEX_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
     steps:
       - name: Checkout
         # v4
@@ -529,9 +529,9 @@ jobs:
             ]
           comment-bot: false
 
-      - name: Build iOS artifact Adhoc Index URL
-        id: build-ios-adhoc-index-url
-        run: ./.github/scripts/buildAdhocIndexUrl.sh "${{ steps.rock-remote-build-ios.outputs.artifact-url }}"
+      - name: Set artifact URL output
+        id: set-artifact-url
+        run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
 
   postGithubComment:
     runs-on: ubuntu-latest
