@@ -410,6 +410,16 @@ function BaseSelectionList<TItem extends ListItem>({
         [data.length, scrollToIndex, setFocusedIndex],
     );
 
+    const selectedItemIndex = useMemo(() => (initiallyFocusedItemKey ? data.findIndex(isItemSelected) : -1), [data, initiallyFocusedItemKey, isItemSelected]);
+
+    useEffect(() => {
+        if (selectedItemIndex === -1 || selectedItemIndex === focusedIndex || textInputOptions?.value) {
+            return;
+        }
+        setFocusedIndex(selectedItemIndex);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [selectedItemIndex]);
+
     const prevSearchValue = usePrevious(textInputOptions?.value);
     const prevSelectedOptionsLength = usePrevious(dataDetails.selectedOptions.length);
     const prevAllOptionsLength = usePrevious(data.length);
