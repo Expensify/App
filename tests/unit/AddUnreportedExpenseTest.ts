@@ -44,15 +44,15 @@ describe('AddUnreportedExpense', () => {
             const sections = createUnreportedExpenseSections(transactions);
 
             // Should create one section
-            expect(sections).toHaveLength(1);
-            expect(sections.at(0)?.shouldShow).toBe(true);
-            expect(sections.at(0)?.data).toHaveLength(2);
+            expect(sections).toHaveLength(2);
 
-            const processedNormalTransaction = sections.at(0)?.data.find((t) => t.transactionID === '123');
+            const processedNormalTransaction = sections.find((t) => t.transactionID === '123');
             expect(processedNormalTransaction?.isDisabled).toBe(false);
+            expect(processedNormalTransaction?.keyForList).toBe('123');
 
-            const processedDeletedTransaction = sections.at(0)?.data.find((t) => t.transactionID === '456');
+            const processedDeletedTransaction = sections.find((t) => t.transactionID === '456');
             expect(processedDeletedTransaction?.isDisabled).toBe(true);
+            expect(processedDeletedTransaction?.keyForList).toBe('456');
         });
 
         it('should not mark transactions without DELETE pendingAction as disabled', () => {
@@ -80,9 +80,9 @@ describe('AddUnreportedExpense', () => {
             const transactions = [normalTransaction, updateTransaction, addTransaction];
             const sections = createUnreportedExpenseSections(transactions);
 
-            expect(sections.at(0)?.data).toHaveLength(3);
+            expect(sections).toHaveLength(3);
             // eslint-disable-next-line unicorn/no-array-for-each
-            sections.at(0)?.data.forEach((transaction) => {
+            sections.forEach((transaction) => {
                 expect(transaction.isDisabled).toBe(false);
             });
         });
@@ -105,12 +105,24 @@ describe('AddUnreportedExpense', () => {
             const transactions = [deletedTransaction1, deletedTransaction2];
             const sections = createUnreportedExpenseSections(transactions);
 
-            expect(sections.at(0)?.data).toHaveLength(2);
+            expect(sections).toHaveLength(2);
             // eslint-disable-next-line unicorn/no-array-for-each
-            sections.at(0)?.data.forEach((transaction) => {
+            sections.forEach((transaction) => {
                 expect(transaction.isDisabled).toBe(true);
                 expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             });
+        });
+
+        it('should filter out undefined transactions', () => {
+            const normalTransaction = generateTransaction({
+                transactionID: '123',
+            });
+
+            const transactions = [normalTransaction, undefined];
+            const result = createUnreportedExpenseSections(transactions);
+
+            expect(result).toHaveLength(1);
+            expect(result[0].transactionID).toBe('123');
         });
     });
 });
