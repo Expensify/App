@@ -1,14 +1,11 @@
 import {useMemo} from 'react';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {accountIDSelector, emailSelector} from '@src/selectors/Session';
 import type {Report, Transaction} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 import {isSubmitAction, isApproveAction, isPrimaryPayAction, isExportAction} from '@libs/ReportPrimaryActionUtils';
 
 export default function useTodos() {
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
@@ -59,5 +56,5 @@ export default function useTodos() {
         }
 
         return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
-    }, [allReports, allPolicies, allReportNameValuePairs, allTransactions, currentUserAccountID, currentUserEmail]);
+    }, [allReports, allPolicies, allReportNameValuePairs, allTransactions, allReportActions]);
 }
