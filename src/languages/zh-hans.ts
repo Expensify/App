@@ -1173,7 +1173,9 @@ const translations: TranslationDeepObject<typeof en> = {
         findExpense: '查找费用',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `删除了一笔费用 (${merchant} 的 ${amount})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `移动了一笔费用${reportName ? `来自${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `至 <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `至 <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `移动了此费用${reportName ? `来自<a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此费用从您的<a href="${reportUrl}">个人空间</a>移出`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `已将此费用移动到您的<a href="${reportUrl}">个人空间</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2502,26 +2504,26 @@ ${merchant}的${amount} - ${date}`,
                         4. 找到 ${integrationName}。
                         5. 点击*连接*。
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[前往会计](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[前往会计](${workspaceAccountingLink}).
 
-![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[前往会计](${workspaceAccountingLink}).`
-}`),
+                        ![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[前往会计](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        连接您的公司信用卡，以自动导入并进行费用编码。
+                        连接你已有的卡片，以自动导入交易、匹配收据并进行对账。
 
                         1. 点击*工作区*。
-                        2. 选择您的工作区。
-                        3. 点击*公司信用卡*。
-                        4. 按照提示连接您的卡片。
+                        2. 选择你的工作区。
+                        3. 点击*公司卡*。
+                        4. 按照提示连接你的卡片。
 
-                        [带我去连接我的公司信用卡](${corporateCardLink})。`),
+                        [带我前往公司卡](${corporateCardLink}).`),
             },
             inviteTeamTask: {
                 title: ({workspaceMembersLink}) => `邀请[您的团队](${workspaceMembersLink})`,
@@ -4629,7 +4631,11 @@ ${
             issuedCard: ({assignee}: AssigneeParams) => `已为${assignee}发放了一张Expensify卡！该卡将在2-3个工作日内送达。`,
             issuedCardNoShippingDetails: ({assignee}: AssigneeParams) => `已向${assignee}发放一张 Expensify Card！确认运送信息后将寄出该卡。`,
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `已向${assignee}发放了一张虚拟${link}！该卡可以立即使用。`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee}已更换虚拟Expensify卡！${link}可以立即使用。`,
+            card: '卡',
+            replacementCard: '替换卡',
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} 已添加发货详情。Expensify Card 将在 2-3 个工作日内送达。`,
+            replacedCard: ({assignee}: AssigneeParams) => `${assignee}已更换Expensify卡。新卡将在2-3个工作日内送达。`,
             verifyingHeader: '验证中',
             bankAccountVerifiedHeader: '银行账户已验证',
             verifyingBankAccount: '正在验证银行账户...',
@@ -5100,9 +5106,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `您确定要移除${memberName}吗？`,
             removeMemberTitle: '移除成员',
             transferOwner: '转移所有者',
-            makeMember: '成为成员',
-            makeAdmin: '设为管理员',
-            makeAuditor: '创建审计员',
+            makeMember: () => ({
+                one: '设为成员',
+                other: '设为成员',
+            }),
+            makeAdmin: () => ({
+                one: '设为管理员',
+                other: '设为管理员',
+            }),
+            makeAuditor: () => ({
+                one: '设为审计员',
+                other: '设为审计员',
+            }),
             selectAll: '全选',
             error: {
                 genericAdd: '添加此工作区成员时出现问题。',
@@ -5153,7 +5168,6 @@ ${
                 cardType: '卡类型',
                 limit: '限制',
                 limitType: '限制类型',
-                name: '名称',
                 disabledApprovalForSmartLimitError: '请在<strong>工作流程 > 添加审批</strong>中启用审批，然后再设置智能限制',
             },
             deactivateCardModal: {
@@ -5838,7 +5852,7 @@ ${
                     expense: '单笔费用',
                     expenseSubtitle: '按类别标记费用金额。此规则会覆盖工作区的一般最大费用金额规则。',
                     daily: '类别总计',
-                    dailySubtitle: '标记每个费用报告的类别总支出。',
+                    dailySubtitle: '标记每个费用报告的类别每日总支出。',
                 },
                 requireReceiptsOver: '要求超过',
                 requireReceiptsOverList: {
@@ -6109,6 +6123,36 @@ ${
                 default: {
                     return '';
                 }
+            }
+        },
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? '已启用' : '已禁用'} 个类别`;
+                case 'tags':
+                    return `${enabled ? '已启用' : '已禁用'} 个标签`;
+                case 'workflows':
+                    return `${enabled ? '已启用' : '已禁用'} 个工作流程`;
+                case 'distance rates':
+                    return `${enabled ? '已启用' : '已禁用'} 距离费率`;
+                case 'accounting':
+                    return `${enabled ? '已启用' : '已禁用'} 会计`;
+                case 'Expensify Cards':
+                    return `${enabled ? '已启用' : '已禁用'} Expensify 卡`;
+                case 'company cards':
+                    return `${enabled ? '已启用' : '已禁用'} 张公司卡`;
+                case 'invoicing':
+                    return `${enabled ? '已启用' : '已禁用'} 开票`;
+                case 'per diem':
+                    return `${enabled ? '已启用' : '已禁用'} 每日津贴`;
+                case 'receipt partners':
+                    return `${enabled ? '已启用' : '已禁用'} 收据合作伙伴`;
+                case 'rules':
+                    return `${enabled ? '已启用' : '已禁用'} 条规则`;
+                case 'tax tracking':
+                    return `${enabled ? '已启用' : '已禁用'} 税务追踪`;
+                default:
+                    return `${enabled ? '已启用' : '已禁用'} ${featureName}`;
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 与会者跟踪`,
@@ -6430,6 +6474,15 @@ ${
             message: '我们无法检查更新。请稍后再试。',
         },
     },
+    settlement: {
+        status: {
+            pending: '待处理',
+            cleared: '已结算',
+            failed: '失败',
+        },
+        failedError: ({link}: {link: string}) => `当您<a href="${link}">解锁账户</a>时，我们将重试此结算。`,
+        withdrawalInfo: ({date, withdrawalID}: {date: string; withdrawalID: number}) => `${date} • 提款ID: ${withdrawalID}`,
+    },
     reportLayout: {
         reportLayout: '报告布局',
         groupByLabel: '分组方式：',
@@ -6444,6 +6497,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: '创建报销单',
             createReport: '创建报告',
             chooseWorkspace: '为此报告选择一个工作区。',
             emptyReportConfirmationTitle: '你已经有一个空报告',
@@ -6852,6 +6906,7 @@ ${
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} 是必需的`,
+        reportContainsExpensesWithViolations: '报告包含违反规定的费用。',
     },
     violationDismissal: {
         rter: {
@@ -6968,12 +7023,7 @@ ${
             },
             cardOnDispute: ({amountOwed, cardEnding}: BillingBannerCardOnDisputeParams) =>
                 `您对卡号以${cardEnding}结尾的卡上的${amountOwed}费用提出了异议。在与您的银行解决争议之前，您的账户将被锁定。`,
-            preTrial: {
-                title: '开始免费试用',
-                subtitleStart: '作为下一步，',
-                subtitleLink: '完成您的设置清单',
-                subtitleEnd: '这样您的团队就可以开始报销了。',
-            },
+            preTrial: {title: '开始免费试用', subtitle: '下一步，请<a href="#">完成您的设置清单</a>，以便您的团队开始报销。'},
             trialStarted: {
                 title: ({numOfDays}: TrialStartedTitleParams) => `试用期：剩余 ${numOfDays} ${numOfDays === 1 ? '天' : '天'} 天！`,
                 subtitle: '添加支付卡以继续使用您所有喜爱的功能。',
@@ -7516,6 +7566,8 @@ ${
             anyMemberWillBeRequired: '使用不同方式登录的任何成员将被要求使用 SAML 重新进行身份验证。',
             enableError: '无法更新 SAML 启用设置',
             requireError: '无法更新 SAML 要求设置',
+            disableSamlRequired: '禁用 SAML 要求',
+            oktaWarningPrompt: '你确定吗？这也会禁用 Okta SCIM。',
         },
         samlConfigurationDetails: {
             title: 'SAML 配置详细信息',

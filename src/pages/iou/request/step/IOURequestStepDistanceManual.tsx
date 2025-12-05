@@ -46,6 +46,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import {isParticipantP2P} from './IOURequestStepAmount';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -95,8 +96,17 @@ function IOURequestStepDistanceManual({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
+    const shouldUseDefaultExpensePolicy = useMemo(
+        () =>
+            iouType === CONST.IOU.TYPE.CREATE &&
+            isPaidGroupPolicy(defaultExpensePolicy) &&
+            defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
+            !shouldRestrictUserBillableActions(defaultExpensePolicy.id),
+        [iouType, defaultExpensePolicy],
+    );
+
     const customUnitRateID = getRateID(transaction);
-    const unit = DistanceRequestUtils.getRate({transaction, policy}).unit;
+    const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
     const distance = transaction?.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -250,12 +260,7 @@ function IOURequestStepDistanceManual({
 
             // If there was no reportID, then that means the user started this flow from the global menu
             // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-            if (
-                iouType === CONST.IOU.TYPE.CREATE &&
-                isPaidGroupPolicy(defaultExpensePolicy) &&
-                defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-                !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
-            ) {
+            if (shouldUseDefaultExpensePolicy) {
                 const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
                 const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
                 const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -289,7 +294,7 @@ function IOURequestStepDistanceManual({
             report,
             reportNameValuePairs,
             iouType,
-            defaultExpensePolicy,
+            shouldUseDefaultExpensePolicy,
             distance,
             transaction,
             reportID,
@@ -305,20 +310,34 @@ function IOURequestStepDistanceManual({
             isASAPSubmitBetaEnabled,
             customUnitRateID,
             navigateToConfirmationPage,
+            defaultExpensePolicy,
             personalPolicy?.autoReporting,
             transactionViolations,
+            currentUserPersonalDetails.accountID,
         ],
     );
 
     const submitAndNavigateToNextPage = useCallback(() => {
         const value = numberFormRef.current?.getNumber() ?? '';
-        if (!value.length || parseFloat(value) < 0.01) {
+        const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserAccountIDParam).at(0));
+
+        if (isBetaEnabled(CONST.BETAS.ZERO_EXPENSES)) {
+            if (!value.length || parseFloat(value) < 0) {
+                setFormError(translate('iou.error.invalidDistance'));
+                return;
+            }
+        } else if (!value.length || parseFloat(value) <= 0) {
+            setFormError(translate('iou.error.invalidDistance'));
+            return;
+        }
+
+        if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && parseFloat(value) === 0 && isP2P) {
             setFormError(translate('iou.error.invalidDistance'));
             return;
         }
 
         navigateToNextPage(value);
-    }, [navigateToNextPage, translate]);
+    }, [navigateToNextPage, translate, report, iouType, currentUserAccountIDParam, isBetaEnabled]);
 
     useEffect(() => {
         if (isLoadingSelectedTab) {
