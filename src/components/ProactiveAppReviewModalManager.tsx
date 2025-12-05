@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import useProactiveAppReview from '@hooks/useProactiveAppReview';
 import requestStoreReview from '@libs/actions/StoreReview';
@@ -13,23 +13,20 @@ const CONCIERGE_POSITIVE_MESSAGE = "Hi there! I'm glad to hear you're enjoying E
 const CONCIERGE_NEGATIVE_MESSAGE = "Hi there! I'm sorry to hear you aren't fully satisfied with Expensify. What's your #1 frustration? Thanks!";
 
 function ProactiveAppReviewModalManager() {
-    const {shouldShowModal} = useProactiveAppReview();
-    const [isModalVisible, setIsModalVisible] = useState(shouldShowModal);
+    const {shouldShowModal, proactiveAppReview} = useProactiveAppReview();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
 
     const handleResponse = useCallback(
         (response: AppReviewResponse, message?: string) => {
-            setIsModalVisible(false);
-
             // Call the action which will create optimistic comment (if message provided) and call API
-            respondToProactiveAppReview(response, message, conciergeReportID);
+            respondToProactiveAppReview(response, proactiveAppReview, message, conciergeReportID);
 
             // Navigate to Concierge DM if we have a report ID and this wasn't a skip
             if (conciergeReportID && response !== 'skip') {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
             }
         },
-        [conciergeReportID],
+        [conciergeReportID, proactiveAppReview],
     );
 
     const handlePositive = useCallback(() => {
@@ -47,14 +44,9 @@ function ProactiveAppReviewModalManager() {
         handleResponse('skip');
     }, [handleResponse]);
 
-    // Update modal visibility when shouldShowModal changes
-    React.useEffect(() => {
-        setIsModalVisible(shouldShowModal);
-    }, [shouldShowModal]);
-
     return (
         <ProactiveAppReviewModal
-            isVisible={isModalVisible}
+            isVisible={shouldShowModal}
             onPositive={handlePositive}
             onNegative={handleNegative}
             onSkip={handleSkip}

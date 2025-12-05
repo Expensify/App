@@ -47,7 +47,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
+import type {AppReview, BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {OnyxServerUpdate, OnyxUpdatesFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
@@ -1488,14 +1488,18 @@ type RespondToProactiveAppReviewParams = {
 /**
  * Respond to the proactive app review prompt and optionally create a Concierge message
  */
-function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip', message?: string, conciergeChatReportID?: string) {
+function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip', currentProactiveAppReview: AppReview | null | undefined, message?: string, conciergeChatReportID?: string) {
     const params: RespondToProactiveAppReviewParams = {response};
     if (conciergeChatReportID) {
         params.conciergeChatReportID = conciergeChatReportID;
     }
-    let optimisticData: OnyxUpdate[] = [];
-    let successData: OnyxUpdate[] = [];
-    let failureData: OnyxUpdate[] = [];
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    // Capture current values for failure data
+    const originalResponse = currentProactiveAppReview?.response;
+    const originalLastPrompt = currentProactiveAppReview?.lastPrompt;
 
     // For positive/negative responses, create an optimistic Concierge message
     if (message && conciergeChatReportID && response !== 'skip') {
@@ -1506,7 +1510,7 @@ function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip',
 
         params.optimisticReportActionID = optimisticReportActionID;
 
-        optimisticData = [
+        optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
@@ -1524,32 +1528,47 @@ function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip',
                     lastReadTime: currentTime,
                 },
             },
-        ];
+        );
 
-        successData = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
-                value: {
-                    [optimisticReportActionID]: {
-                        pendingAction: null,
-                    },
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+            value: {
+                [optimisticReportActionID]: {
+                    pendingAction: null,
                 },
             },
-        ];
+        });
 
-        failureData = [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
-                value: {
-                    [optimisticReportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                    },
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+            value: {
+                [optimisticReportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
             },
-        ];
+        });
     }
+
+    // Always add the NVP_APP_REVIEW updates
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.NVP_APP_REVIEW,
+        value: {
+            response,
+            lastPrompt: DateUtils.getDBTime(),
+        },
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.NVP_APP_REVIEW,
+        value: {
+            response: originalResponse,
+            lastPrompt: originalLastPrompt,
+        },
+    });
 
     API.write(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, params, {optimisticData, successData, failureData});
 }
