@@ -138,7 +138,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const toggleApprover = useCallback(
         (approvers: SelectionListApprover[]) => {
             const approver = approvers.at(0);
-            if (selectedApproverEmail === approver?.login) {
+            if (!approver?.login) {
                 clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow});
             } else {
                 const newSelectedEmail = approver?.login ?? '';
@@ -164,7 +164,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 goBack();
             }
         },
-        [selectedApproverEmail, isInitialCreationFlow, approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail],
+        [isInitialCreationFlow, approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail],
     );
 
     const subtitle = useMemo(
