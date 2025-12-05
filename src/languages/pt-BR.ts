@@ -2536,13 +2536,13 @@ ${amount} para ${merchant} - ${date}`,
                         4. Encontre ${integrationName}.
                         5. Clique em *Conectar*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Ir para a contabilidade](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Ir para a contabilidade](${workspaceAccountingLink}).
 
-                                      ![Conectar ao ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Ir para a contabilidade](${workspaceAccountingLink}).`
-}`),
+                        ![Conectar ao ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Ir para a contabilidade](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Conecte [seus cartões corporativos](${corporateCardLink})`,
@@ -5200,9 +5200,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Tem certeza de que deseja remover ${memberName}?`,
             removeMemberTitle: 'Remover membro',
             transferOwner: 'Transferir proprietário',
-            makeMember: 'Tornar membro',
-            makeAdmin: 'Tornar administrador',
-            makeAuditor: 'Criar auditor',
+            makeMember: () => ({
+                one: 'Tornar membro',
+                other: 'Tornar membros',
+            }),
+            makeAdmin: () => ({
+                one: 'Tornar administrador',
+                other: 'Tornar administradores',
+            }),
+            makeAuditor: () => ({
+                one: 'Tornar auditor',
+                other: 'Tornar auditores',
+            }),
             selectAll: 'Selecionar tudo',
             error: {
                 genericAdd: 'Houve um problema ao adicionar este membro ao espaço de trabalho',
@@ -5256,7 +5265,6 @@ ${
                 cardType: 'Tipo de cartão',
                 limit: 'Limite',
                 limitType: 'Tipo de limite',
-                name: 'Nome',
                 disabledApprovalForSmartLimitError:
                     'Por favor, ative as aprovações em <strong>Fluxos de Trabalho > Adicionar aprovações</strong> antes de configurar os limites inteligentes',
             },
