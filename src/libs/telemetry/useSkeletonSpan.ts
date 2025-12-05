@@ -10,10 +10,16 @@ function useSkeletonSpan(component: string) {
 
     useEffect(() => {
         const spanId = `${CONST.TELEMETRY.SPAN_SKELETON}_${component}_${reactId}`;
-        startSpan(spanId, {
-            op: CONST.TELEMETRY.SPAN_SKELETON,
-            name: component,
-        });
+        startSpan(
+            spanId,
+            {
+                op: CONST.TELEMETRY.SPAN_SKELETON,
+                name: component,
+            },
+            {
+                minDuration: CONST.TELEMETRY.CONFIG.SKELETON_MIN_DURATION,
+            },
+        );
 
         return () => endSpan(spanId);
     }, [component, reactId]);
