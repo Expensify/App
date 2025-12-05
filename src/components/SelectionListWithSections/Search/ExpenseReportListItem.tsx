@@ -17,8 +17,7 @@ import {isSettled} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
-import type {Policy} from '@src/types/onyx';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
+import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 
 function ExpenseReportListItem<TItem extends ListItem>({
@@ -48,8 +47,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const snapshotData = snapshot?.data;
 
     const snapshotReport = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return (snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as SearchReport;
+        return (snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
     }, [snapshotData, reportItem.reportID]);
 
     const snapshotPolicy = useMemo(() => {
