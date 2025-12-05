@@ -2527,9 +2527,9 @@ ${date} - ${merchant}に${amount}`,
                         ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : 'まで'} の ${integrationName} を接続して、経費の自動分類と同期で月末締めをスムーズに。
 
                         1. *Workspaces* をクリックします。
-                        2. ワークスペースを選択します。
+                        2. ご自身のワークスペースを選択します。
                         3. *Accounting* をクリックします。
-                        4. ${integrationName} を見つけます。
+                        4. ${integrationName} を探します。
                         5. *Connect* をクリックします。
 
                         ${
@@ -2546,7 +2546,7 @@ ${date} - ${merchant}に${amount}`,
                     dedent(`
                         既にお持ちのカードを接続すると、取引の自動取り込み、レシートの照合、消込が行えます。
 
-                        1. *Workspaces* をクリックします。
+                        1. *ワークスペース* をクリックします。
                         2. ワークスペースを選択します。
                         3. *Company cards* をクリックします。
                         4. 案内に従ってカードを接続します。
@@ -5893,6 +5893,8 @@ ${date} - ${merchant}に${amount}`,
                 gambling: 'ギャンブル',
                 tobacco: 'タバコ',
                 adultEntertainment: 'アダルトエンターテインメント',
+                requireCompanyCard: 'すべての購入に会社カードを必須にする',
+                requireCompanyCardDescription: 'マイレージや日当の経費を含む、すべての現金支出にフラグを付けます。',
             },
             expenseReportRules: {
                 title: '経費報告書',
@@ -7005,6 +7007,7 @@ ${date} - ${merchant}に${amount}`,
         confirmDuplicatesInfo: `保持しなかった重複は、提出者が削除できるように保留されます。`,
         hold: 'この経費は保留されました',
         resolvedDuplicates: '重複を解決しました',
+        requiredCompanyCard: '法人カードでの購入が必須',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName}は必須です`,

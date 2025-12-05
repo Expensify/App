@@ -2547,13 +2547,17 @@ ${amount} für ${merchant} - ${date}`,
                     `Verbinde${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' mit'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'deiner' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        Verbinde ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'Ihr' : 'bis'} ${integrationName} für die automatische Kategorisierung und Synchronisierung von Ausgaben, damit der Monatsabschluss zum Kinderspiel wird.
+                        Verbinde ${
+                            integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other
+                                ? 'dein' //_/\__/_/  \_,_/\__/\__/\_,_/
+                                : 'bis'
+                        } ${integrationName} für automatische Ausgabenkodierung und Synchronisierung, die den Monatsabschluss zum Kinderspiel macht.
 
-                        1. Klicke auf *Workspaces*.
-                        2. Wähle deinen Workspace aus.
-                        3. Klicke auf *Accounting*.
-                        4. Suche nach ${integrationName}.
-                        5. Klicke auf *Connect*.
+                        1. Klicke auf *Arbeitsbereiche*.
+                        2. Wähle deinen Arbeitsbereich aus.
+                        3. Klicke auf *Buchhaltung*.
+                        4. Suche ${integrationName}.
+                        5. Klicke auf *Verbinden*.
 
                         ${
                             integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -2567,12 +2571,11 @@ ${amount} für ${merchant} - ${date}`,
                 title: ({corporateCardLink}) => `Verbinden Sie [Ihre Firmenkarten](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Verbinden Sie Ihre bestehenden Karten, um Transaktionen automatisch zu importieren, Belege abzugleichen und Abstimmungen durchzuführen.
+                        Verbinde deine Firmenkarte, um Ausgaben automatisch zu importieren und zu kontieren.
 
-                        1. Klicken Sie auf „Arbeitsbereiche“.
-                        2. Wählen Sie Ihren Arbeitsbereich aus.
-                        3. Klicken Sie auf „Firmenkarten“.
-                        4. Folgen Sie den Anweisungen, um Ihre Karten zu verbinden.
+                        1. Klicke auf *Arbeitsbereiche*.
+                        2. Wähle deinen Arbeitsbereich aus.
+                        3. Klicke auf *Firmenkarten*.
 
                         [Zu den Firmenkarten](${corporateCardLink}).`),
             },
@@ -2580,7 +2583,6 @@ ${amount} für ${merchant} - ${date}`,
                 title: ({workspaceMembersLink}) => `Lade [dein Team](${workspaceMembersLink}) ein`,
                 description: ({workspaceMembersLink}) =>
                     dedent(`
-                        *Lade dein Team ein* in Expensify, damit es noch heute mit der Ausgabenerfassung beginnen kann.
 
                         1. Klicke auf *Arbeitsbereiche*.
                         3. Wähle deinen Arbeitsbereich aus.
@@ -5962,6 +5964,8 @@ ${amount} für ${merchant} - ${date}`,
                 gambling: 'Glücksspiel',
                 tobacco: 'Tabak',
                 adultEntertainment: 'Erwachsenenunterhaltung',
+                requireCompanyCard: 'Firmenkarten für alle Einkäufe erforderlich machen',
+                requireCompanyCardDescription: 'Kennzeichnen Sie alle Barausgaben, einschließlich Kilometer- und Tagegeldspesen.',
             },
             expenseReportRules: {
                 title: 'Spesenabrechnungen',
@@ -7083,6 +7087,7 @@ ${amount} für ${merchant} - ${date}`,
         confirmDuplicatesInfo: `Die Duplikate, die Sie nicht behalten, werden für den Einreicher zum Löschen bereitgehalten.`,
         hold: 'Diese Ausgabe wurde zurückgestellt.',
         resolvedDuplicates: 'den doppelten Eintrag gelöst',
+        requiredCompanyCard: 'Firmenkartenkäufe erforderlich',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} ist erforderlich`,

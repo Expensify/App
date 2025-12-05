@@ -6035,6 +6035,8 @@ const translations = {
                 gambling: 'Gambling',
                 tobacco: 'Tobacco',
                 adultEntertainment: 'Adult entertainment',
+                requireCompanyCard: 'Require company cards for all purchases',
+                requireCompanyCardDescription: 'Flag all cash spend, including mileage and per-diem expenses.',
             },
             expenseReportRules: {
                 title: 'Expense reports',
@@ -7153,6 +7155,7 @@ const translations = {
         confirmDuplicatesInfo: `The duplicates you don't keep will be held for the submitter to delete.`,
         hold: 'This expense was put on hold',
         resolvedDuplicates: 'resolved the duplicate',
+        requiredCompanyCard: 'Company card purchases required',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,

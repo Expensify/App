@@ -261,6 +261,7 @@ const WRITE_COMMANDS = {
     DISABLE_POLICY_BILLABLE_MODE: 'DisablePolicyBillableExpenses',
     SET_WORKSPACE_ERECEIPTS_ENABLED: 'SetWorkspaceEReceiptsEnabled',
     SET_POLICY_ATTENDEE_TRACKING_ENABLED: 'SetPolicyAttendeeTrackingEnabled',
+    SET_POLICY_REQUIRE_COMPANY_CARDS_ENABLED: 'SetPolicyRequireCompanyCardsEnabled',
     SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED: 'SetPolicyCategoryDescriptionRequired',
     SET_WORKSPACE_CATEGORY_DESCRIPTION_HINT: 'SetWorkspaceCategoryDescriptionHint',
     SET_POLICY_CATEGORY_RECEIPTS_REQUIRED: 'SetPolicyCategoryReceiptsRequired',

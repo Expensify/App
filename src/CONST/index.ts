@@ -3105,6 +3105,7 @@ const CONST = {
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
             IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
+            REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -5718,6 +5719,7 @@ const CONST = {
         HOLD: 'hold',
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
         OVER_TRIP_LIMIT: 'overTripLimit',
+        REQUIRED_COMPANY_CARD: 'requiredCompanyCard',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',

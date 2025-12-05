@@ -2529,13 +2529,13 @@ ${amount} para ${merchant} - ${date}`,
                     `Conecte-se${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' ao'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'seu' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        Conecte ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'seu' : 'para'} ${integrationName} para classificação e sincronização automáticas de despesas que tornam o fechamento de fim de mês muito mais simples.
+                        Conecte ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'seu' : 'para'} ${integrationName} para classificação e sincronização automáticas de despesas que facilitam o fechamento de fim de mês.
 
-                        1. Clique em *Espaços de trabalho*.
-                        2. Selecione seu espaço de trabalho.
-                        3. Clique em *Contabilidade*.
+                        1. Clique em *Workspaces*.
+                        2. Selecione seu workspace.
+                        3. Clique em *Accounting*.
                         4. Encontre ${integrationName}.
-                        5. Clique em *Conectar*.
+                        5. Clique em *Connect*.
 
                         ${
                             integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -5932,6 +5932,8 @@ ${amount} para ${merchant} - ${date}`,
                 gambling: 'Jogos de azar',
                 tobacco: 'Tabaco',
                 adultEntertainment: 'Entretenimento adulto',
+                requireCompanyCard: 'Exigir cartões corporativos para todas as compras',
+                requireCompanyCardDescription: 'Sinalize todas as despesas em dinheiro, incluindo quilometragem e diárias.',
             },
             expenseReportRules: {
                 title: 'Relatórios de despesas',
@@ -7050,6 +7052,7 @@ ${amount} para ${merchant} - ${date}`,
         confirmDuplicatesInfo: `Os duplicados que você não mantiver serão retidos para que o remetente os exclua.`,
         hold: 'Esta despesa foi colocada em espera',
         resolvedDuplicates: 'resolvido o duplicado',
+        requiredCompanyCard: 'Compras com cartão da empresa obrigatórias',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} é obrigatório`,

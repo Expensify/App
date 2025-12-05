@@ -2529,10 +2529,10 @@ ${amount} dla ${merchant} - ${date}`,
                     `Połącz${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' z'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'swoim' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        Połącz ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'twój' : 'Do'} ${integrationName}, aby umożliwić automatyczne kategoryzowanie wydatków i synchronizację, co ułatwia zamknięcie miesiąca.
+                        Połącz ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'twój' : 'do'} ${integrationName}, aby włączyć automatyczne kodowanie wydatków i synchronizację, co znacznie ułatwia zamknięcie miesiąca.
 
                         1. Kliknij *Workspaces*.
-                        2. Wybierz swoją przestrzeń roboczą.
+                        2. Wybierz swój workspace.
                         3. Kliknij *Accounting*.
                         4. Znajdź ${integrationName}.
                         5. Kliknij *Connect*.
@@ -5923,6 +5923,8 @@ ${amount} dla ${merchant} - ${date}`,
                 gambling: 'Hazardowanie',
                 tobacco: 'Tytoń',
                 adultEntertainment: 'Rozrywka dla dorosłych',
+                requireCompanyCard: 'Wymagaj kart firmowych dla wszystkich zakupów',
+                requireCompanyCardDescription: 'Oznacz wszystkie wydatki gotówkowe, w tym koszty za przejechane kilometry i diety.',
             },
             expenseReportRules: {
                 title: 'Raporty wydatków',
@@ -7038,6 +7040,7 @@ ${amount} dla ${merchant} - ${date}`,
         confirmDuplicatesInfo: `Duplikaty, których nie zachowasz, zostaną pozostawione do usunięcia przez osobę zgłaszającą.`,
         hold: 'Ten wydatek został wstrzymany',
         resolvedDuplicates: 'rozwiązano duplikat',
+        requiredCompanyCard: 'Wymagane zakupy kartą firmową',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `Pole ${fieldName} jest wymagane`,

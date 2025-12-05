@@ -2535,13 +2535,13 @@ ${amount} per ${merchant} - ${date}`,
                     `Connetti${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' a'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'il tuo' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        Collega ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'il tuo' : 'a'} ${integrationName} per la codifica e la sincronizzazione automatiche delle spese che rendono la chiusura di fine mese un gioco da ragazzi.
+                        Connetti ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'tuo' : 'a'} ${integrationName} per la codifica e la sincronizzazione automatica delle spese che rendono la chiusura di fine mese un gioco da ragazzi.
 
-                        1. Fai clic su *Workspaces*.
-                        2. Seleziona il tuo workspace.
-                        3. Fai clic su *Accounting*.
+                        1. Fai clic su *Spazi di lavoro*.
+                        2. Seleziona il tuo spazio di lavoro.
+                        3. Fai clic su *Contabilità*.
                         4. Trova ${integrationName}.
-                        5. Fai clic su *Connect*.
+                        5. Fai clic su *Connetti*.
 
                         ${
                             integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -5948,6 +5948,8 @@ ${amount} per ${merchant} - ${date}`,
                 gambling: "Gioco d'azzardo",
                 tobacco: 'Tabacco',
                 adultEntertainment: 'Intrattenimento per adulti',
+                requireCompanyCard: 'Richiedi carte aziendali per tutti gli acquisti',
+                requireCompanyCardDescription: 'Contrassegna tutte le spese in contanti, incluse le spese per chilometraggio e le diarie.',
             },
             expenseReportRules: {
                 title: 'Report di spesa',
@@ -7070,6 +7072,7 @@ ${amount} per ${merchant} - ${date}`,
         confirmDuplicatesInfo: `I duplicati che non conservi verranno mantenuti per consentire al mittente di eliminarli.`,
         hold: 'Questa spesa è stata messa in sospeso',
         resolvedDuplicates: 'risolto il duplicato',
+        requiredCompanyCard: 'Acquisti con carta aziendale obbligatori',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} è obbligatorio`,

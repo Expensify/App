@@ -2497,13 +2497,13 @@ ${merchant}的${amount} - ${date}`,
                     `连接${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : '到'}[${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '您的' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        连接 ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '您的' : '至'} ${integrationName}，实现自动费用编码与同步，让月末结账轻松无忧。
+                        连接 ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '你的' : '到'} ${integrationName}，实现费用的自动编码与同步，让月末结账轻松自如。
 
-                        1. 点击*工作区*。
+                        1. 点击 *Workspaces*。
                         2. 选择您的工作区。
-                        3. 点击*会计*。
+                        3. 点击 *Accounting*。
                         4. 找到 ${integrationName}。
-                        5. 点击*连接*。
+                        5. 点击 *Connect*。
 
                         ${
                             integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -2514,7 +2514,7 @@ ${merchant}的${amount} - ${date}`,
                         }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `连接[您的公司信用卡](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
                         连接你已有的卡片，以自动导入交易、匹配收据并进行对账。
@@ -5815,6 +5815,8 @@ ${merchant}的${amount} - ${date}`,
                 gambling: '赌博',
                 tobacco: '烟草',
                 adultEntertainment: '成人娱乐',
+                requireCompanyCard: '所有购买均需使用公司卡',
+                requireCompanyCardDescription: '标记所有现金支出，包括里程和日津贴费用。',
             },
             expenseReportRules: {
                 title: '费用报告',
@@ -6904,6 +6906,7 @@ ${merchant}的${amount} - ${date}`,
         confirmDuplicatesInfo: `你不保留的重复项将被保留，供提交者删除。`,
         hold: '此费用已被搁置',
         resolvedDuplicates: '解决了重复问题',
+        requiredCompanyCard: '需要公司卡消费',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} 是必需的`,

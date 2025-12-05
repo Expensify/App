@@ -2534,12 +2534,12 @@ ${amount} voor ${merchant} - ${date}`,
                     `Verbind${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' met'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'uw' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        Verbind ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'jouw' : 'tot'} ${integrationName} voor automatische onkostencodering en synchronisatie, waardoor de maandafsluiting een fluitje van een cent wordt.
+                        Verbind ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'uw' : 'tot'} ${integrationName} voor automatische onkostencodering en synchronisatie, waardoor de maandafsluiting een fluitje van een cent wordt.
 
                         1. Klik op *Werkruimtes*.
                         2. Selecteer je werkruimte.
                         3. Klik op *Boekhouding*.
-                        4. Zoek ${integrationName}.
+                        4. Zoek ${integrationName} op.
                         5. Klik op *Verbinden*.
 
                         ${
@@ -5933,6 +5933,8 @@ ${amount} voor ${merchant} - ${date}`,
                 gambling: 'Gokken',
                 tobacco: 'Tabak',
                 adultEntertainment: 'Volwassenenentertainment',
+                requireCompanyCard: 'Bedrijfskaarten vereisen voor alle aankopen',
+                requireCompanyCardDescription: 'Markeer alle contante uitgaven, inclusief kilometer- en dagvergoedingen.',
             },
             expenseReportRules: {
                 title: 'Onkostendeclaraties',
@@ -7051,6 +7053,7 @@ ${amount} voor ${merchant} - ${date}`,
         confirmDuplicatesInfo: `De duplicaten die je niet behoudt, worden bewaard zodat de indiener ze kan verwijderen.`,
         hold: 'Deze uitgave is in de wacht gezet',
         resolvedDuplicates: 'dubbel opgelost',
+        requiredCompanyCard: 'Aankopen met bedrijfskaart verplicht',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is vereist`,

@@ -2547,13 +2547,17 @@ ${amount} pour ${merchant} - ${date}`,
                     `Connecter${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : ' à'} [${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'votre' : ''} ${integrationName}](${workspaceAccountingLink})`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-                        Connectez ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'votre' : 'à'} ${integrationName} pour un codage et une synchronisation automatiques des dépenses qui rendent la clôture de fin de mois un jeu d'enfant.
+                        Connectez ${
+                            integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other
+                                ? 'votre' //_/\__/_/  \_,_/\__/\__/\_,_/
+                                : 'à'
+                        } ${integrationName} pour un codage et une synchronisation automatiques des dépenses qui rendent la clôture de fin de mois un jeu d’enfant.
 
-                        1. Cliquez sur *Workspaces*.
+                        1. Cliquez sur *Espaces de travail*.
                         2. Sélectionnez votre espace de travail.
-                        3. Cliquez sur *Accounting*.
+                        3. Cliquez sur *Comptabilité*.
                         4. Recherchez ${integrationName}.
-                        5. Cliquez sur *Connect*.
+                        5. Cliquez sur *Connecter*.
 
                         ${
                             integrationName && CONST.connectionsVideoPaths[integrationName]
@@ -5970,6 +5974,8 @@ ${amount} pour ${merchant} - ${date}`,
                 gambling: "Jeux d'argent",
                 tobacco: 'Tabac',
                 adultEntertainment: 'Divertissement pour adultes',
+                requireCompanyCard: 'Exiger des cartes d’entreprise pour tous les achats',
+                requireCompanyCardDescription: 'Marquez toutes les dépenses payées en espèces, y compris les frais kilométriques et les indemnités journalières.',
             },
             expenseReportRules: {
                 title: 'Rapports de dépenses',
@@ -7089,6 +7095,7 @@ ${amount} pour ${merchant} - ${date}`,
         confirmDuplicatesInfo: `Les doublons que vous ne conservez pas seront conservés afin que l’expéditeur puisse les supprimer.`,
         hold: 'Cette dépense a été mise en attente',
         resolvedDuplicates: 'résolu le doublon',
+        requiredCompanyCard: 'Achats avec carte d’entreprise requis',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} est requis`,
