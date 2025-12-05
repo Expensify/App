@@ -842,7 +842,7 @@ function buildFilterFormValuesFromQuery(
                       .flat();
             const uniqueCategories = new Set(categories);
             const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
-            // Consider the empty category selected if ANY of its synonyms are present (e.g., "none" OR "Uncategorized")
+            // Return true if the value is a known category or one of the empty-category synonyms (e.g., 'none', 'uncategorized').
             const filterValuesLower = new Set(filterValues.map((v) => v.toLowerCase()));
             const hasEmptyCategoriesInFilter = emptyCategories.some((category) => filterValuesLower.has(category.toLowerCase()));
             // If empty categories are found, append the CATEGORY_EMPTY_VALUE to filtersForm.
