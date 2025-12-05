@@ -271,6 +271,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
                             path: ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.route,
                             exact: true,
