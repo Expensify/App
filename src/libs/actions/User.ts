@@ -1482,7 +1482,6 @@ function requestUnlockAccount() {
 type RespondToProactiveAppReviewParams = {
     response: 'positive' | 'negative' | 'skip';
     optimisticReportActionID?: string;
-    conciergeChatReportID?: string;
 };
 
 /**
@@ -1490,9 +1489,6 @@ type RespondToProactiveAppReviewParams = {
  */
 function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip', currentProactiveAppReview: AppReview | null | undefined, message?: string, conciergeChatReportID?: string) {
     const params: RespondToProactiveAppReviewParams = {response};
-    if (conciergeChatReportID) {
-        params.conciergeChatReportID = conciergeChatReportID;
-    }
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
