@@ -2,6 +2,7 @@ import extractNavigationKeys from '@libs/Navigation/helpers/extractNavigationKey
 import getLastVisibleRHPRouteKey from '@libs/Navigation/helpers/getLastVisibleRHPRouteKey';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import SCREENS from '@src/SCREENS';
+import {SUPER_WIDE_RIGHT_MODALS, WIDE_RIGHT_MODALS} from '.';
 
 /**
  * Extracts the keys of the screens that are currently displayed from the array of all Wide/Super Wide RHP keys
@@ -22,10 +23,9 @@ function getVisibleWideRHPKeys(allWideRHPKeys: string[]) {
         return [];
     }
 
-    const superWideRHPIndex =
-        lastRHPRoute.state?.routes.findLastIndex((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || route.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) ?? -1;
+    const superWideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => SUPER_WIDE_RIGHT_MODALS.has(route.name)) ?? -1;
 
-    const wideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT) ?? -1;
+    const wideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => WIDE_RIGHT_MODALS.has(route.name)) ?? -1;
 
     let lastRHPKeys;
     if (superWideRHPIndex > -1) {
