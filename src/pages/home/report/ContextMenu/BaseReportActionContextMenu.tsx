@@ -31,6 +31,7 @@ import {
     getHarvestOriginalReportID,
     getSourceIDFromReportAction,
     isArchivedNonExpenseReport,
+    isHarvestCreatedExpenseReport,
     isInvoiceReport as ReportUtilsIsInvoiceReport,
     isMoneyRequest as ReportUtilsIsMoneyRequest,
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
@@ -227,6 +228,7 @@ function BaseReportActionContextMenu({
         !isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, transactionThreadReportID ? isChildReportArchived : isParentReportArchived);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
+    const isHarvestReport = useMemo(() => isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID), [reportNameValuePairs?.origin]);
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
             !disabledActions.includes(contextAction) &&
@@ -252,6 +254,7 @@ function BaseReportActionContextMenu({
                 isDebugModeEnabled,
                 iouTransaction,
                 transactions,
+                isHarvestReport,
             }),
     );
 

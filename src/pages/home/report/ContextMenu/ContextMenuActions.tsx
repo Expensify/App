@@ -83,6 +83,7 @@ import {
     isActionableTrackExpense,
     isActionOfType,
     isCardIssuedAction,
+    isCreatedAction,
     isCreatedTaskReportAction,
     isDeletedAction as isDeletedActionReportActionsUtils,
     isMarkAsClosedAction,
@@ -209,6 +210,7 @@ type ShouldShow = (args: {
     transactions?: OnyxCollection<Transaction>;
     moneyRequestReport?: OnyxEntry<ReportType>;
     moneyRequestPolicy?: OnyxEntry<Policy>;
+    isHarvestReport?: boolean;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -501,7 +503,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.leaveThread',
         icon: Expensicons.Exit,
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction}) => {
+        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
@@ -509,12 +511,14 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
+            const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
             return (
                 subscribed &&
                 !isWhisperAction &&
                 !isTaskAction &&
                 !isExpenseReportAction &&
                 !isThreadReportParentAction &&
+                !isHarvestCreatedExpenseReportAction &&
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
