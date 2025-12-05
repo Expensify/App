@@ -125,6 +125,7 @@ function WorkspacesListPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar', 'Plus'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -339,7 +340,7 @@ function WorkspacesListPage() {
 
             const threeDotsMenuItems: PopoverMenuItem[] = [
                 {
-                    icon: icons.Building,
+                    icon: expensifyIcons.Building,
                     text: translate('workspace.common.goToWorkspace'),
                     onSelected: item.action,
                 },
@@ -347,7 +348,7 @@ function WorkspacesListPage() {
 
             if (!isOwner && (item.policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy)) {
                 threeDotsMenuItems.push({
-                    icon: icons.Exit,
+                    icon: expensifyIcons.Exit,
                     text: translate('common.leave'),
                     onSelected: callFunctionIfActionIsAllowed(() => {
                         close(() => {
@@ -485,6 +486,8 @@ function WorkspacesListPage() {
             policyIDToDelete,
             preferredPolicyID,
             icons,
+            expensifyIcons.Building,
+            expensifyIcons.Exit,
         ],
     );
 
@@ -726,39 +729,7 @@ function WorkspacesListPage() {
         [getWorkspaceMenuItem, styles, translate],
     );
 
-    if (!workspaces.length && !domains.length) {
-        return (
-            <ScreenWrapper
-                shouldEnablePickerAvoiding={false}
-                shouldEnableMaxHeight
-                testID={WorkspacesListPage.displayName}
-                shouldShowOfflineIndicatorInWideScreen
-                bottomContent={
-                    shouldUseNarrowLayout && (
-                        <NavigationTabBar
-                            selectedTab={NAVIGATION_TABS.WORKSPACES}
-                            shouldShowFloatingCameraButton={false}
-                        />
-                    )
-                }
-                enableEdgeToEdgeBottomSafeAreaPadding={false}
-            >
-                <View style={styles.topBarWrapper}>
-                    <TopBar breadcrumbLabel={translate('common.workspaces')} />
-                </View>
-                {shouldShowLoadingIndicator ? (
-                    <View style={[styles.flex1]}>
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
-                    </View>
-                ) : (
-                    <ScrollView contentContainerStyle={[styles.pt2, styles.flexGrow1, styles.flexShrink0]}>
-                        <WorkspacesEmptyStateComponent />
-                    </ScrollView>
-                )}
-                {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
-            </ScreenWrapper>
-        );
-    }
+    const shouldShowEmptyState = !workspaces.length && !domains.length;
 
     return (
         <ScreenWrapper
@@ -774,25 +745,43 @@ function WorkspacesListPage() {
                     />
                 )
             }
+            shouldEnableMaxHeight={shouldShowEmptyState}
         >
-            <View style={styles.flex1}>
-                <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
-                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
-                <FlatList
-                    ref={flatlistRef}
-                    data={data}
-                    onScrollToIndexFailed={(info) => {
-                        flatlistRef.current?.scrollToOffset({
-                            offset: info.averageItemLength * info.index,
-                            animated: true,
-                        });
-                    }}
-                    renderItem={renderItem}
-                    ListHeaderComponent={listHeaderComponent}
-                    keyboardShouldPersistTaps="handled"
-                    contentContainerStyle={styles.pb20}
-                />
-            </View>
+            {shouldShowEmptyState ? (
+                <>
+                    <View style={styles.topBarWrapper}>
+                        <TopBar breadcrumbLabel={translate('common.workspaces')} />
+                    </View>
+                    {shouldShowLoadingIndicator ? (
+                        <View style={[styles.flex1]}>
+                            <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        </View>
+                    ) : (
+                        <ScrollView contentContainerStyle={[styles.pt2, styles.flexGrow1, styles.flexShrink0]}>
+                            <WorkspacesEmptyStateComponent />
+                        </ScrollView>
+                    )}
+                </>
+            ) : (
+                <View style={styles.flex1}>
+                    <TopBar breadcrumbLabel={translate('common.workspaces')}>{!shouldUseNarrowLayout && <View style={[styles.pr2]}>{getHeaderButton()}</View>}</TopBar>
+                    {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{getHeaderButton()}</View>}
+                    <FlatList
+                        ref={flatlistRef}
+                        data={data}
+                        onScrollToIndexFailed={(info) => {
+                            flatlistRef.current?.scrollToOffset({
+                                offset: info.averageItemLength * info.index,
+                                animated: true,
+                            });
+                        }}
+                        renderItem={renderItem}
+                        ListHeaderComponent={listHeaderComponent}
+                        keyboardShouldPersistTaps="handled"
+                        contentContainerStyle={styles.pb20}
+                    />
+                </View>
+            )}
             <ConfirmModal
                 title={translate('workspace.common.delete')}
                 isVisible={isDeleteModalOpen}
