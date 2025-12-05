@@ -174,8 +174,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     const hintText =
                         !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email)
                             ? translate('workflowsPage.approverInMultipleWorkflows')
-                            : undefined;
-                    const approvalLimitDescription = getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail});
+                            : getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail});
 
                     return (
                         <OfflineWithFeedback
@@ -196,8 +195,6 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 errorText={errorText}
                                 shouldRenderErrorAsHTML
-                                helperText={approvalLimitDescription}
-                                helperTextStyle={styles.pl0}
                             />
                         </OfflineWithFeedback>
                     );
