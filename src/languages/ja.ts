@@ -2271,9 +2271,10 @@ ${date} - ${merchant}に${amount}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `${policyName} 内`,
-        generatingPDF: 'PDFを生成中...',
-        waitForPDF: 'PDFを生成するまでお待ちください',
+        generatingPDF: 'PDFを生成',
+        waitForPDF: 'PDFを生成しています。しばらくお待ちください。',
         errorPDF: 'PDFの生成中にエラーが発生しました。',
+        successPDF: 'PDFが生成されました！自動的にダウンロードされなかった場合は、下のボタンを使用してください。',
     },
     reportDescriptionPage: {
         roomDescription: '部屋の説明',
@@ -2524,7 +2525,7 @@ ${date} - ${merchant}に${amount}`,
                     `${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'と'}[${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : ''} ${integrationName}](${workspaceAccountingLink})と接続する`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : 'まで'} の ${integrationName} を接続して、経費の自動分類と同期で月末締めをスムーズに。
+                        ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : 'まで'} の ${integrationName} を接続して、経費の自動分類と同期で月末締めをスムーズに。
 
                         1. *Workspaces* をクリックします。
                         2. ワークスペースを選択します。
@@ -2532,13 +2533,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         4. ${integrationName} を見つけます。
                         5. *Connect* をクリックします。
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[会計に移動](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[会計に移動](${workspaceAccountingLink}).
 
-                                      ![${integrationName} に接続](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[会計に移動](${workspaceAccountingLink}).`
-}`),
+                        ![${integrationName} に接続](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[会計に移動](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `[法人カード](${corporateCardLink})を連携する`,
@@ -5173,9 +5174,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `${memberName}を削除してもよろしいですか？`,
             removeMemberTitle: 'メンバーを削除',
             transferOwner: 'オーナーを移行',
-            makeMember: 'メンバーにする',
-            makeAdmin: '管理者にする',
-            makeAuditor: '監査人を作成',
+            makeMember: () => ({
+                one: 'メンバーにする',
+                other: 'メンバーにする',
+            }),
+            makeAdmin: () => ({
+                one: '管理者にする',
+                other: '管理者にする',
+            }),
+            makeAuditor: () => ({
+                one: '監査担当者にする',
+                other: '監査担当者にする',
+            }),
             selectAll: 'すべて選択',
             error: {
                 genericAdd: 'このワークスペースメンバーを追加する際に問題が発生しました',
@@ -5229,7 +5239,6 @@ ${
                 cardType: 'カードタイプ',
                 limit: '制限',
                 limitType: 'タイプを制限',
-                name: '名前',
                 disabledApprovalForSmartLimitError: 'スマートリミットを設定する前に、<strong>ワークフロー > 承認を追加</strong>で承認を有効にしてください',
             },
             deactivateCardModal: {
@@ -5925,7 +5934,7 @@ ${
                     expense: '個別経費',
                     expenseSubtitle: 'カテゴリ別に経費金額をフラグします。このルールは、最大経費金額に関する一般的なワークスペースルールを上書きします。',
                     daily: 'カテゴリ合計',
-                    dailySubtitle: '経費報告書ごとにカテゴリ別の合計支出をフラグ付けします。',
+                    dailySubtitle: '経費報告書ごとにカテゴリ別の一日あたりの合計支出をフラグ付けします。',
                 },
                 requireReceiptsOver: 'を超える領収書を必須にする',
                 requireReceiptsOverList: {
@@ -6581,6 +6590,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: '経費を作成',
             createReport: 'レポートを作成',
             chooseWorkspace: 'このレポートのワークスペースを選択してください。',
             emptyReportConfirmationTitle: '空のレポートがすでにあります',
@@ -7681,6 +7691,8 @@ ${
             anyMemberWillBeRequired: '別の方法でサインインしたメンバーは、SAMLを使用して再認証する必要があります。',
             enableError: 'SAMLの有効化設定を更新できませんでした',
             requireError: 'SAML の要件設定を更新できませんでした',
+            disableSamlRequired: 'SAML 必須を無効にする',
+            oktaWarningPrompt: '本当に実行しますか？これによりOkta SCIMも無効になります。',
         },
         samlConfigurationDetails: {
             title: 'SAML 設定の詳細',
