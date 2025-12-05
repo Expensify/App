@@ -2280,9 +2280,10 @@ ${amount} per ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'Generazione PDF...',
-        waitForPDF: 'Attendere mentre generiamo il PDF',
+        generatingPDF: 'Genera PDF',
+        waitForPDF: 'Attendi mentre generiamo il PDF.',
         errorPDF: 'Si è verificato un errore durante il tentativo di generare il tuo PDF.',
+        successPDF: 'Il tuo PDF è stato generato! Se non è stato scaricato automaticamente, usa il pulsante qui sotto.',
     },
     reportDescriptionPage: {
         roomDescription: 'Descrizione della stanza',
@@ -2542,13 +2543,13 @@ ${amount} per ${merchant} - ${date}`,
                         4. Trova ${integrationName}.
                         5. Fai clic su *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Portami alla contabilità](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Portami alla contabilità](${workspaceAccountingLink}).
 
-                                      ![Connetti a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Portami alla contabilità](${workspaceAccountingLink}).`
-}`),
+                        ![Connetti a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Portami alla contabilità](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Collega [le tue carte aziendali](${corporateCardLink})`,
@@ -5216,9 +5217,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Sei sicuro di voler rimuovere ${memberName}?`,
             removeMemberTitle: 'Rimuovi membro',
             transferOwner: 'Trasferisci proprietario',
-            makeMember: 'Rendi membro',
-            makeAdmin: 'Rendi amministratore',
-            makeAuditor: 'Crea revisore contabile',
+            makeMember: () => ({
+                one: 'Rendi membro',
+                other: 'Rendi membri',
+            }),
+            makeAdmin: () => ({
+                one: 'Rendi amministratore',
+                other: 'Rendi amministratori',
+            }),
+            makeAuditor: () => ({
+                one: 'Rendi revisore',
+                other: 'Rendi revisori',
+            }),
             selectAll: 'Seleziona tutto',
             error: {
                 genericAdd: "Si è verificato un problema nell'aggiungere questo membro dello spazio di lavoro",
@@ -5272,7 +5282,6 @@ ${
                 cardType: 'Tipo di carta',
                 limit: 'Limite',
                 limitType: 'Tipo di limite',
-                name: 'Nome',
                 disabledApprovalForSmartLimitError: 'Abilita le approvazioni in <strong>Flussi di lavoro > Aggiungi approvazioni</strong> prima di impostare i limiti intelligenti',
             },
             deactivateCardModal: {
@@ -5980,7 +5989,7 @@ ${
                     expenseSubtitle:
                         "Contrassegna gli importi delle spese per categoria. Questa regola sostituisce la regola generale dello spazio di lavoro per l'importo massimo delle spese.",
                     daily: 'Totale categoria',
-                    dailySubtitle: 'Segnala la spesa totale per categoria per ogni rapporto di spesa.',
+                    dailySubtitle: 'Segnala la spesa totale per giorno per categoria per ogni rapporto di spesa.',
                 },
                 requireReceiptsOver: 'Richiedi ricevute superiori a',
                 requireReceiptsOverList: {
@@ -6645,6 +6654,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Crea spesa',
             createReport: 'Crea rapporto',
             chooseWorkspace: "Scegli un'area di lavoro per questo report.",
             emptyReportConfirmationTitle: 'Hai già un rapporto vuoto',
@@ -7754,6 +7764,8 @@ ${
             anyMemberWillBeRequired: 'Qualsiasi membro che ha effettuato l’accesso con un metodo diverso dovrà autenticarsi nuovamente tramite SAML.',
             enableError: "Impossibile aggiornare l'impostazione di abilitazione SAML",
             requireError: "Impossibile aggiornare l'impostazione del requisito SAML",
+            disableSamlRequired: 'Disattiva SAML obbligatorio',
+            oktaWarningPrompt: 'Sei sicuro? Questo disattiverà anche Okta SCIM.',
         },
         samlConfigurationDetails: {
             title: 'Dettagli della configurazione SAML',
