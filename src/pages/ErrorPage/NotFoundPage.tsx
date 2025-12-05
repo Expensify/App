@@ -2,10 +2,10 @@ import React from 'react';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useNotFoundSpan from '@hooks/useNotFoundSpan';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
+import useNotFoundSpan from '@libs/telemetry/useNotFoundSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type NotFoundPageProps = {
