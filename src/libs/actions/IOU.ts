@@ -219,6 +219,7 @@ import {
     getDistanceInMeters,
     getMerchant,
     getOriginalTransactionWithSplitInfo,
+    getTransactionType,
     getUpdatedTransaction,
     hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
@@ -6930,6 +6931,115 @@ function trackExpense(params: CreateTrackExpenseParams) {
     }
 
     notifyNewAction(activeReportID, payeeAccountID);
+}
+
+function duplicateExpenseTransaction(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    optimisticChatReportID: string,
+    optimisticIOUReportID: string,
+    isASAPSubmitBetaEnabled: boolean,
+    targetPolicy?: OnyxEntry<OnyxTypes.Policy>,
+    targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+    targetReport?: OnyxTypes.Report,
+) {
+    if (!transaction) {
+        return;
+    }
+
+    const participants = getMoneyRequestParticipantsFromReport(targetReport);
+    const transactionDetails = getTransactionDetails(transaction);
+
+    const params: RequestMoneyInformation = {
+        report: targetReport,
+        optimisticChatReportID,
+        optimisticCreatedReportActionID: NumberUtils.rand64(),
+        optimisticIOUReportID,
+        optimisticReportPreviewActionID: NumberUtils.rand64(),
+        participantParams: {
+            payeeAccountID: userAccountID,
+            payeeEmail: currentUserEmail,
+            participant: participants.at(0) ?? {},
+        },
+        gpsPoint: undefined,
+        action: CONST.IOU.ACTION.CREATE,
+        transactionParams: {
+            ...transaction,
+            ...transactionDetails,
+            attendees: transactionDetails?.attendees as Attendee[] | undefined,
+            comment: transactionDetails?.comment,
+            created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            customUnitRateID: transaction?.comment?.customUnit?.customUnitRateID,
+            isTestDrive: transaction?.receipt?.isTestDriveReceipt,
+            merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
+            originalTransactionID: transaction?.comment?.originalTransactionID,
+            receipt: undefined,
+            source: undefined,
+            waypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+        },
+        shouldHandleNavigation: false,
+        shouldGenerateTransactionThreadReport: true,
+        isASAPSubmitBetaEnabled,
+        currentUserAccountIDParam: userAccountID,
+        currentUserEmailParam: currentUserEmail,
+        transactionViolations: {},
+    };
+
+    // If no workspace is provided the expense should be unreported
+    if (!targetPolicy) {
+        const selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`];
+
+        if (!selfDMReport) {
+            return;
+        }
+
+        const trackExpenseParams: CreateTrackExpenseParams = {
+            ...params,
+            participantParams: {
+                ...(params.participantParams ?? {}),
+                participant: {accountID: userAccountID, selected: true},
+            },
+            transactionParams: {
+                ...(params.transactionParams ?? {}),
+                validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+            },
+            report: selfDMReport,
+            isDraftPolicy: false,
+        };
+        return trackExpense(trackExpenseParams);
+    }
+
+    params.policyParams = {
+        policy: targetPolicy,
+        policyTagList: getPolicyTagsData(targetPolicy.id) ?? {},
+        policyCategories: targetPolicyCategories ?? {},
+    };
+
+    const transactionType = getTransactionType(transaction);
+
+    switch (transactionType) {
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
+            const distanceParams: CreateDistanceRequestInformation = {
+                ...params,
+                participants,
+                existingTransaction: {
+                    ...(params.transactionParams ?? {}),
+                    comment: transaction.comment,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    modifiedCreated: '',
+                    reportID: '1',
+                    transactionID: '1',
+                },
+                transactionParams: {
+                    ...(params.transactionParams ?? {}),
+                    comment: transactionDetails?.comment ?? '',
+                    validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
+                },
+            };
+            return createDistanceRequest(distanceParams);
+        }
+        default:
+            return requestMoney(params);
+    }
 }
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
@@ -15094,6 +15204,7 @@ export {
     deleteMoneyRequest,
     deleteTrackExpense,
     detachReceipt,
+    duplicateExpenseTransaction,
     getIOURequestPolicyID,
     getReceiverType,
     initMoneyRequest,

@@ -701,6 +701,8 @@ const translations: TranslationDeepObject<typeof en> = {
         reportName: 'Nome del report',
         showLess: 'Mostra meno',
         actionRequired: 'Azione richiesta',
+        duplicate: 'Duplica',
+        duplicated: 'Duplicato',
     },
     supportalNoAccess: {
         title: 'Non così in fretta',

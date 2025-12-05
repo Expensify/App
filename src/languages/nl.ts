@@ -700,6 +700,8 @@ const translations: TranslationDeepObject<typeof en> = {
         reportName: 'Rapportnaam',
         showLess: 'Minder weergeven',
         actionRequired: 'Actie vereist',
+        duplicate: 'Dupliceren',
+        duplicated: 'Gedupliceerd',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
