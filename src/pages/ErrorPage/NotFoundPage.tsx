@@ -22,7 +22,6 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
     const topmostReportId = Navigation.getTopmostReportId();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${topmostReportId}`);
 
-    // Track time spent on NotFoundPage
     useNotFoundSpan();
 
     return (

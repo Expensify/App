@@ -5,17 +5,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 
-/**
- * Hook to track time spent on NotFoundPage with Sentry span.
- * Ends the span after 1 second and adds attributes for URL and navigation source.
- */
 export default function useNotFoundSpan() {
     const {initialURL} = useContext(InitialURLContext);
 
     useEffect(() => {
         let isDeeplink = false;
         let currentUrl = '';
-        // Get current URL and check if it's a deeplink
+
         if (Platform.OS === 'web') {
             currentUrl = window.location.href;
             isDeeplink = currentUrl === initialURL;
@@ -26,7 +22,6 @@ export default function useNotFoundSpan() {
 
         const navigationSource = isDeeplink ? 'deeplink' : 'button';
 
-        // Start the span
         startSpan(CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE, {
             name: CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE,
             op: CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE,
@@ -36,7 +31,6 @@ export default function useNotFoundSpan() {
             },
         });
 
-        // End the span after 1 second
         let spanEnded = false;
         const endSpanSafely = () => {
             if (!spanEnded) {
