@@ -24,7 +24,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {createWorkspace, isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType} from '@libs/PaymentUtils';
 import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -160,9 +159,9 @@ function SettlementButton({
         if (!policy?.achAccount?.bankAccountID) {
             return;
         }
-        const policyBankAccounts = formattedPaymentMethods.filter(
-            (method) => method.methodID === policy?.achAccount?.bankAccountID && !isBankAccountPartiallySetup(policy?.achAccount?.state),
-        );
+        const policyBankAccounts = formattedPaymentMethods.filter((method) => {
+            return method.methodID === policy?.achAccount?.bankAccountID && (method.accountData as AccountData)?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+        });
 
         return policyBankAccounts.map((formattedPaymentMethod) => {
             const {icon, iconStyles, iconSize, title, description, methodID} = formattedPaymentMethod ?? {};
