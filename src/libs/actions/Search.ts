@@ -421,8 +421,7 @@ function search({
 
 function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string, allTransactions: OnyxCollection<Transaction>, allReportActions: OnyxCollection<ReportActions>) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
-    // eslint-disable-next-line unicorn/no-array-for-each
-    transactionIDList.forEach((transactionID) => {
+    for (const transactionID of transactionIDList) {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {};
         const iouReportAction = getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
@@ -437,7 +436,7 @@ function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], com
                 },
             });
         }
-    });
+    }
 
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
@@ -792,34 +791,46 @@ function rejectMoneyRequestsOnSearch(hash: number, selectedTransactions: Selecte
 type Params = Record<string, ExportSearchItemsToCSVParams>;
 
 function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDList}: ExportSearchItemsToCSVParams, onDownloadFailed: () => void) {
-    const reportIDListParams: string[] = [];
-    // eslint-disable-next-line unicorn/no-array-for-each
-    reportIDList.forEach((reportID) => {
-        const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
-        if (allTransactionIDs.every((transactionID) => transactionIDList.includes(transactionID))) {
-            if (reportIDListParams.includes(reportID)) {
-                return;
+    const reportIDSet = new Set<string>();
+    const transactionIDSet = new Set(transactionIDList);
+    for (const reportID of reportIDList) {
+        const allReportTransactions = getReportTransactions(reportID);
+
+        // We'll include the report if all of its transactions are included in the transactionIDList
+        let areAllTransactionsIncludedInList = true;
+        for (const transaction of allReportTransactions) {
+            // Ignore transactions that are pending deletion
+            if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                continue;
             }
-            reportIDListParams.push(reportID);
+
+            // If any transaction is not included in the transactionIDList, we'll exclude the report
+            if (!transactionIDSet.has(transaction.transactionID)) {
+                areAllTransactionsIncludedInList = false;
+                break;
+            }
         }
-    });
+
+        if (areAllTransactionsIncludedInList) {
+            reportIDSet.add(reportID);
+        }
+    }
+
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV, {
         query,
         jsonQuery,
-        reportIDList: reportIDListParams,
+        reportIDList: Array.from(reportIDSet),
         transactionIDList,
     }) as Params;
 
     const formData = new FormData();
-    // eslint-disable-next-line unicorn/no-array-for-each
-    Object.entries(finalParameters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(finalParameters)) {
         if (Array.isArray(value)) {
             formData.append(key, value.join(','));
         } else {
             formData.append(key, SafeString(value));
         }
-    });
+    }
 
     fileDownload(getCommandURL({command: WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
@@ -920,23 +931,20 @@ function clearAllFilters() {
 
 function clearAdvancedFilters() {
     const values: Partial<Nullable<SearchAdvancedFiltersForm>> = {};
-    Object.values(FILTER_KEYS)
-        .filter((key) => key !== FILTER_KEYS.GROUP_BY)
-        // eslint-disable-next-line unicorn/no-array-for-each
-        .forEach((key) => {
-            if (key === FILTER_KEYS.TYPE) {
+    for (const key of Object.values(FILTER_KEYS)) {
+        switch (key) {
+            case FILTER_KEYS.GROUP_BY:
+                continue;
+            case FILTER_KEYS.TYPE:
                 values[key] = CONST.SEARCH.DATA_TYPES.EXPENSE;
-                return;
-            }
-
-            if (key === FILTER_KEYS.STATUS) {
+                continue;
+            case FILTER_KEYS.STATUS:
                 values[key] = CONST.SEARCH.STATUS.EXPENSE.ALL;
-                return;
-            }
-
-            values[key] = null;
-        });
-
+                continue;
+            default:
+                values[key] = null;
+        }
+    }
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 

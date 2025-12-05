@@ -2652,14 +2652,11 @@ const translations = {
 
                         ${
                             integrationName && CONST.connectionsVideoPaths[integrationName]
-                                ? dedent(
-                                      `[Take me to accounting](${workspaceAccountingLink}).
+                                ? `[Take me to accounting](${workspaceAccountingLink}).
 
-                                      ![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`,
-                                  )
+                        ![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
                                 : `[Take me to accounting](${workspaceAccountingLink}).`
-                        }
-                    `),
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Connect [your corporate cards](${corporateCardLink})`,
@@ -5367,7 +5364,6 @@ const translations = {
                 cardType: 'Card type',
                 limit: 'Limit',
                 limitType: 'Limit type',
-                name: 'Name',
                 disabledApprovalForSmartLimitError: 'Please enable approvals in <strong>Workflows > Add approvals</strong> before setting up smart limits',
             },
             deactivateCardModal: {
@@ -7707,6 +7703,8 @@ const translations = {
             anyMemberWillBeRequired: 'Any member signed in with a different method will be required to re-authenticate using SAML.',
             enableError: "Couldn't update SAML enablement setting",
             requireError: "Couldn't update SAML requirement setting",
+            disableSamlRequired: 'Disable SAML required',
+            oktaWarningPrompt: 'Are you sure? This will also disable Okta SCIM.',
         },
         samlConfigurationDetails: {
             title: 'SAML configuration details',

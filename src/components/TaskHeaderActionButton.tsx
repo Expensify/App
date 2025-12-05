@@ -45,9 +45,9 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                         return;
                     }
                     if (isCompletedTaskReport(report)) {
-                        reopenTask(report, currentUserPersonalDetails.accountID);
+                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID);
                     } else {
-                        completeTask(report, hasOutstandingChildTask, parentReportAction);
+                        completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction);
                     }
                 })}
                 style={styles.flex1}

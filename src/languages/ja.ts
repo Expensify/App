@@ -2523,7 +2523,7 @@ ${date} - ${merchant}に${amount}`,
                     `${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? '' : 'と'}[${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : ''} ${integrationName}](${workspaceAccountingLink})と接続する`,
                 description: ({integrationName, workspaceAccountingLink}) =>
                     dedent(`
-${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : 'まで'} の ${integrationName} を接続して、経費の自動分類と同期で月末締めをスムーズに。
+                        ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの' : 'まで'} の ${integrationName} を接続して、経費の自動分類と同期で月末締めをスムーズに。
 
                         1. *Workspaces* をクリックします。
                         2. ワークスペースを選択します。
@@ -2531,13 +2531,13 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         4. ${integrationName} を見つけます。
                         5. *Connect* をクリックします。
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[会計に移動](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[会計に移動](${workspaceAccountingLink}).
 
-                                      ![${integrationName} に接続](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[会計に移動](${workspaceAccountingLink}).`
-}`),
+                        ![${integrationName} に接続](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[会計に移動](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `[法人カード](${corporateCardLink})を連携する`,
@@ -5228,7 +5228,6 @@ ${
                 cardType: 'カードタイプ',
                 limit: '制限',
                 limitType: 'タイプを制限',
-                name: '名前',
                 disabledApprovalForSmartLimitError: 'スマートリミットを設定する前に、<strong>ワークフロー > 承認を追加</strong>で承認を有効にしてください',
             },
             deactivateCardModal: {
@@ -7680,6 +7679,8 @@ ${
             anyMemberWillBeRequired: '別の方法でサインインしたメンバーは、SAMLを使用して再認証する必要があります。',
             enableError: 'SAMLの有効化設定を更新できませんでした',
             requireError: 'SAML の要件設定を更新できませんでした',
+            disableSamlRequired: 'SAML 必須を無効にする',
+            oktaWarningPrompt: '本当に実行しますか？これによりOkta SCIMも無効になります。',
         },
         samlConfigurationDetails: {
             title: 'SAML 設定の詳細',

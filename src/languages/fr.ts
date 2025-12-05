@@ -2554,13 +2554,13 @@ ${amount} pour ${merchant} - ${date}`,
                         4. Recherchez ${integrationName}.
                         5. Cliquez sur *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Accéder à la comptabilité](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Accéder à la comptabilité](${workspaceAccountingLink}).
 
-                                      ![Se connecter à ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Accéder à la comptabilité](${workspaceAccountingLink}).`
-}`),
+                        ![Se connecter à ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Accéder à la comptabilité](${workspaceAccountingLink})`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Connectez [vos cartes d’entreprise](${corporateCardLink})`,
@@ -5295,7 +5295,6 @@ ${
                 cardType: 'Type de carte',
                 limit: 'Limite',
                 limitType: 'Limiter le type',
-                name: 'Nom',
                 disabledApprovalForSmartLimitError:
                     'Veuillez activer les approbations dans <strong>Workflows > Ajouter des approbations</strong> avant de configurer les limites intelligentes',
             },
@@ -7775,6 +7774,8 @@ ${
             anyMemberWillBeRequired: 'Tout membre connecté avec une autre méthode devra se réauthentifier via SAML.',
             enableError: 'Impossible de mettre à jour le paramètre d’activation SAML',
             requireError: 'Impossible de mettre à jour le paramètre d’exigence SAML',
+            disableSamlRequired: 'Désactiver SAML requis',
+            oktaWarningPrompt: 'Êtes-vous sûr ? Cela désactivera également Okta SCIM.',
         },
         samlConfigurationDetails: {
             title: 'Détails de la configuration SAML',
