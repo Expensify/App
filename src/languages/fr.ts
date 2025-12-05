@@ -2464,8 +2464,9 @@ ${amount} pour ${merchant} - ${date}`,
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `dans ${policyName}`,
         generatingPDF: 'Génération du PDF...',
-        waitForPDF: 'Veuillez patienter pendant que nous générons le PDF',
+        waitForPDF: 'Veuillez patienter pendant que nous générons le PDF.',
         errorPDF: 'Une erreur s’est produite lors de la tentative de génération de votre PDF',
+        successPDF: "Votre PDF a été généré ! S'il ne s'est pas téléchargé automatiquement, utilisez le bouton ci-dessous.",
     },
     reportDescriptionPage: {
         roomDescription: 'Description de la chambre',
@@ -5464,9 +5465,18 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Êtes-vous sûr de vouloir supprimer ${memberName} ?`,
             removeMemberTitle: 'Retirer le membre',
             transferOwner: 'Transférer le propriétaire',
-            makeMember: 'Rendre membre',
-            makeAdmin: 'Nommer administrateur',
-            makeAuditor: 'Nommer auditeur',
+            makeMember: () => ({
+                one: 'Définir comme membre',
+                other: 'Rendre membres',
+            }),
+            makeAdmin: () => ({
+                one: 'Nommer administrateur',
+                other: 'Définir comme administrateurs',
+            }),
+            makeAuditor: () => ({
+                one: 'Nommer auditeur',
+                other: 'Définir comme auditeurs',
+            }),
             selectAll: 'Tout sélectionner',
             error: {
                 genericAdd: 'Un problème est survenu lors de l’ajout de ce membre d’espace de travail',

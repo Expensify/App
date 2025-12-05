@@ -2447,9 +2447,10 @@ ${merchant} への ${amount}（${date}）`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `${policyName} 内`,
-        generatingPDF: 'PDF を生成しています...',
-        waitForPDF: 'PDF を生成しています。しばらくお待ちください。',
-        errorPDF: 'PDF を生成しようとしたときにエラーが発生しました',
+        generatingPDF: 'PDFを生成',
+        waitForPDF: 'PDFを生成しています。しばらくお待ちください。',
+        errorPDF: 'PDFの生成中にエラーが発生しました。',
+        successPDF: 'PDFが生成されました！自動的にダウンロードされなかった場合は、下のボタンを使用してください。',
     },
     reportDescriptionPage: {
         roomDescription: '部屋の説明',
@@ -5410,10 +5411,19 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             removeRoomMemberButtonTitle: 'チャットから削除',
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `${memberName} を削除してもよろしいですか？`,
             removeMemberTitle: 'メンバーを削除',
-            transferOwner: '所有者を変更',
-            makeMember: 'メンバーにする',
-            makeAdmin: '管理者にする',
-            makeAuditor: '監査人にする',
+            transferOwner: 'オーナーを移行',
+            makeMember: () => ({
+                one: 'メンバーにする',
+                other: 'メンバーにする',
+            }),
+            makeAdmin: () => ({
+                one: '管理者にする',
+                other: '管理者にする',
+            }),
+            makeAuditor: () => ({
+                one: '監査担当者にする',
+                other: '監査担当者にする',
+            }),
             selectAll: 'すべて選択',
             error: {
                 genericAdd: 'このワークスペースメンバーの追加中に問題が発生しました',

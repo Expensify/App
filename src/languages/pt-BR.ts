@@ -2449,8 +2449,9 @@ ${amount} para ${merchant} - ${date}`,
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `em ${policyName}`,
         generatingPDF: 'Gerando PDF...',
-        waitForPDF: 'Aguarde enquanto geramos o PDF',
-        errorPDF: 'Ocorreu um erro ao tentar gerar seu PDF',
+        waitForPDF: 'Aguarde enquanto geramos o PDF.',
+        errorPDF: 'Ocorreu um erro ao tentar gerar seu PDF.',
+        successPDF: 'Seu PDF foi gerado! Se ele não foi baixado automaticamente, use o botão abaixo.',
     },
     reportDescriptionPage: {
         roomDescription: 'Descrição do quarto',
@@ -5422,9 +5423,18 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Tem certeza de que deseja remover ${memberName}?`,
             removeMemberTitle: 'Remover membro',
             transferOwner: 'Transferir proprietário',
-            makeMember: 'Tornar membro',
-            makeAdmin: 'Tornar administrador',
-            makeAuditor: 'Tornar auditor',
+            makeMember: () => ({
+                one: 'Tornar membro',
+                other: 'Tornar membros',
+            }),
+            makeAdmin: () => ({
+                one: 'Tornar administrador',
+                other: 'Tornar administradores',
+            }),
+            makeAuditor: () => ({
+                one: 'Tornar auditor',
+                other: 'Tornar auditores',
+            }),
             selectAll: 'Selecionar tudo',
             error: {
                 genericAdd: 'Houve um problema ao adicionar este membro do workspace',

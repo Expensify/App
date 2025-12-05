@@ -2463,8 +2463,9 @@ ${amount} für ${merchant} – ${date}`,
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
         generatingPDF: 'PDF wird erstellt ...',
-        waitForPDF: 'Bitte warten, während wir das PDF erstellen',
-        errorPDF: 'Beim Versuch, Ihr PDF zu erstellen, ist ein Fehler aufgetreten',
+        waitForPDF: 'Bitte warten, während wir das PDF generieren.',
+        errorPDF: 'Beim Versuch, Ihr PDF zu erstellen, ist ein Fehler aufgetreten.',
+        successPDF: 'Dein PDF wurde erstellt! Falls es nicht automatisch heruntergeladen wurde, verwende die Schaltfläche unten.',
     },
     reportDescriptionPage: {
         roomDescription: 'Raumbeschreibung',
@@ -5459,9 +5460,18 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Möchtest du ${memberName} wirklich entfernen?`,
             removeMemberTitle: 'Mitglied entfernen',
             transferOwner: 'Besitzer übertragen',
-            makeMember: 'Mitglied machen',
-            makeAdmin: 'Zum Admin machen',
-            makeAuditor: 'Zum Prüfer machen',
+            makeMember: () => ({
+                one: 'Zum Mitglied machen',
+                other: 'Zu Mitgliedern machen',
+            }),
+            makeAdmin: () => ({
+                one: 'Zum Administrator machen',
+                other: 'Zu Administratoren machen',
+            }),
+            makeAuditor: () => ({
+                one: 'Zum Prüfer machen',
+                other: 'Zu Prüfern machen',
+            }),
             selectAll: 'Alle auswählen',
             error: {
                 genericAdd: 'Beim Hinzufügen dieses Workspace-Mitglieds ist ein Problem aufgetreten',

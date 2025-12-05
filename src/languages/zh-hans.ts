@@ -2417,9 +2417,10 @@ ${amount}，商户：${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `在 ${policyName}`,
-        generatingPDF: '正在生成 PDF...',
-        waitForPDF: '请稍候，我们正在生成 PDF',
+        generatingPDF: '正在生成  PDF',
+        waitForPDF: '我们正在生成 PDF，请稍候',
         errorPDF: '尝试生成您的 PDF 时出错',
+        successPDF: '你的 PDF 已生成！如果没有自动下载，请使用下面的按钮。',
     },
     reportDescriptionPage: {
         roomDescription: '房间描述',
@@ -5335,9 +5336,18 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `您确定要移除 ${memberName} 吗？`,
             removeMemberTitle: '移除成员',
             transferOwner: '转移所有者',
-            makeMember: '设为成员',
-            makeAdmin: '设为管理员',
-            makeAuditor: '设为审计员',
+            makeMember: () => ({
+                one: '设为成员',
+                other: '设为成员',
+            }),
+            makeAdmin: () => ({
+                one: '设为管理员',
+                other: '设为管理员',
+            }),
+            makeAuditor: () => ({
+                one: '设为审计员',
+                other: '设为审计员',
+            }),
             selectAll: '全选',
             error: {
                 genericAdd: '添加此工作区成员时出现问题',
