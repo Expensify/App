@@ -122,6 +122,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
     dismissToFirstRHP: jest.fn(),
+    dismissToSuperWideRHP: jest.fn(),
     dismissModalWithReport: jest.fn(),
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => topMostReportID),

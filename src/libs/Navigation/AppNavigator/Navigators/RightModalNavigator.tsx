@@ -152,7 +152,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             syncWideRHPKeys();
             syncSuperWideRHPKeys();
 
-            // Superwide and wide route keys have to be cleared when the RightModalNavigator is not closed and a new navigator is opened above it.
+            // Super wide and wide route keys have to be cleared when the RightModalNavigator is not closed and a new navigator is opened above it.
             return () => clearWideRHPKeysAfterTabChanged();
         }, [syncWideRHPKeys, syncSuperWideRHPKeys, clearWideRHPKeysAfterTabChanged]),
     );
