@@ -137,14 +137,15 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             currentRouteReportID,
             originalParent,
             sharedElement,
-            video.ref,
+            shareVideoPlayerElements,
+            video.playerRef,
+            video.viewRef,
             video.play,
             video.pause,
+            video.replay,
             video.stop,
             video.isPlaying,
-            video.resumeTryNumberRef,
             video.resetPlayerData,
-            shareVideoPlayerElements,
         ],
     );
 
