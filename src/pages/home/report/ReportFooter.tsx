@@ -82,58 +82,60 @@ type ReportFooterProps = {
 };
 
 /**
- * Recursively extracts structured text from a DOM element, preserving hierarchy
+ * Extracts key information from DOM elements in a clean, structured format
  */
-function extractStructuredText(element: Element, depth = 0): string {
-    const indent = '  '.repeat(depth);
-    let result = '';
+function extractPageContext(element: Element): string[] {
+    const context: string[] = [];
 
     // Skip hidden elements
     if (element instanceof HTMLElement) {
         const style = window.getComputedStyle(element);
         if (style.display === 'none' || style.visibility === 'hidden' || element.getAttribute('aria-hidden') === 'true') {
-            return '';
+            return context;
         }
     }
 
     const tagName = element.tagName.toLowerCase();
 
     // Skip non-content elements
-    if (['script', 'style', 'noscript', 'svg', 'iframe', 'canvas'].includes(tagName)) {
-        return '';
+    if (['script', 'style', 'noscript', 'svg', 'iframe', 'canvas', 'img', 'video', 'audio', 'input', 'textarea'].includes(tagName)) {
+        return context;
     }
 
-    // For text-containing elements without children, extract text
-    const text = Array.from(element.childNodes)
+    // Get direct text content (not from children)
+    const directText = Array.from(element.childNodes)
         .filter((node) => node.nodeType === Node.TEXT_NODE)
         .map((node) => node.textContent?.trim())
-        .filter(Boolean)
+        .filter((text) => text && text.length > 0)
         .join(' ')
         .trim();
 
     // Add semantic markers for important elements
-    if (tagName === 'h1' && text) {
-        result += `${indent}# ${text}\n`;
-    } else if (tagName === 'h2' && text) {
-        result += `${indent}## ${text}\n`;
-    } else if (tagName === 'h3' && text) {
-        result += `${indent}### ${text}\n`;
-    } else if (['h4', 'h5', 'h6'].includes(tagName) && text) {
-        result += `${indent}${text}\n`;
-    } else if (tagName === 'li' && text) {
-        result += `${indent}- ${text}\n`;
-    } else if (tagName === 'button' && text) {
-        result += `${indent}[Button: ${text}]\n`;
-    } else if (text) {
-        result += `${indent}${text}\n`;
+    if (tagName === 'h1' && directText) {
+        context.push(`# ${directText}`);
+    } else if (tagName === 'h2' && directText) {
+        context.push(`## ${directText}`);
+    } else if (tagName === 'h3' && directText) {
+        context.push(`### ${directText}`);
+    } else if (['h4', 'h5', 'h6'].includes(tagName) && directText) {
+        context.push(`**${directText}**`);
+    } else if (tagName === 'button' && directText) {
+        context.push(`[Button: ${directText}]`);
+    } else if (tagName === 'a' && directText) {
+        context.push(`[Link: ${directText}]`);
+    } else if (tagName === 'li' && directText) {
+        context.push(`• ${directText}`);
+    } else if (directText && directText.length > 2) {
+        // Only add if it's meaningful text (more than 2 chars)
+        context.push(directText);
     }
 
-    // Process child elements
+    // Recursively process children
     Array.from(element.children).forEach((child) => {
-        result += extractStructuredText(child, depth + 1);
+        context.push(...extractPageContext(child));
     });
 
-    return result;
+    return context;
 }
 
 /**
@@ -154,20 +156,34 @@ function captureSimplifiedPageHTML(): string {
             return '';
         }
 
-        // Extract structured text with hierarchy preserved
-        let structuredText = extractStructuredText(rootElement);
+        // Get the current page URL/path
+        const currentPath = window.location.pathname + window.location.search;
+        const pageUrl = `Page URL: ${currentPath}`;
 
-        // Clean up: remove excessive blank lines
-        structuredText = structuredText
-            .split('\n')
-            .filter((line) => line.trim().length > 0)
-            .join('\n')
-            .trim();
+        // Extract all context items
+        const contextItems = extractPageContext(rootElement);
+
+        // Filter out duplicates and common UI elements that don't add value
+        const filtered = contextItems.filter((item, index, arr) => {
+            // Remove exact duplicates
+            if (arr.indexOf(item) !== index) {
+                return false;
+            }
+            // Remove single-character or very short items
+            if (item.length < 3 && !item.startsWith('#') && !item.startsWith('[')) {
+                return false;
+            }
+            // Keep everything else
+            return true;
+        });
+
+        // Prepend the page URL, then join all content with newlines
+        const structuredText = [pageUrl, '', ...filtered].join('\n');
 
         // Limit to ~10KB to avoid sending too much data to the LLM
         const maxLength = 10000;
         if (structuredText.length > maxLength) {
-            structuredText = `${structuredText.substring(0, maxLength)}\n... [truncated]`;
+            return `${structuredText.substring(0, maxLength)}\n... [truncated]`;
         }
 
         // Only return if we have meaningful content
