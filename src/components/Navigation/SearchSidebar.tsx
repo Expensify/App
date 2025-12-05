@@ -35,11 +35,12 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {lastSearchType, setLastSearchType} = useSearchContext();
 
     const queryJSON = useMemo(() => {
-        if (params?.q) {
-            return buildSearchQueryJSON(params.q);
+        if (!params?.q) {
+            return undefined;
         }
-        return undefined;
-    }, [params?.q]);
+
+        return buildSearchQueryJSON(params.q, params.rawQuery);
+    }, [params?.q, params?.rawQuery]);
 
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchResultsKey}`, {
