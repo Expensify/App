@@ -157,7 +157,7 @@ type PressableProps = RNPressableProps &
         isNested?: boolean;
 
         /**
-         * Label for Sentry tracking. On web, this will be added as data-label attribute.
+         * Label for Sentry tracking. On web, this will be added as data-sentry-label attribute.
          */
         sentryLabel?: string;
 

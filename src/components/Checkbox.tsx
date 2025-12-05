@@ -64,7 +64,7 @@ type CheckboxProps = Partial<ChildrenProps> & {
     /** Reference to the outer element */
     ref?: ForwardedRef<View>;
 
-    /** Label for Sentry tracking. On web, this will be added as data-label attribute. */
+    /** Label for Sentry tracking. On web, this will be added as data-sentry-label attribute. */
     sentryLabel?: string;
 };
 

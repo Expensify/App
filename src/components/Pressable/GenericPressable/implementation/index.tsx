@@ -22,7 +22,7 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
             aria-valuemin={props.accessibilityValue?.min}
             aria-valuemax={props.accessibilityValue?.max}
             aria-valuetext={props.accessibilityValue?.text}
-            dataSet={{tag: 'pressable', ...(props.noDragArea && {dragArea: false}), ...(sentryLabel && {label: sentryLabel}), ...props.dataSet}}
+            dataSet={{tag: 'pressable', ...(props.noDragArea && {dragArea: false}), ...(sentryLabel && {sentryLabel}), ...props.dataSet}}
         />
     );
 }
