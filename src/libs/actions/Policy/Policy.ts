@@ -2489,7 +2489,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
     ) {
         const {onboardingMessages} = getOnboardingMessages();
         const onboardingData = ReportUtils.prepareOnboardingOnyxData({
-            introSelected: introSelected,
+            introSelected,
             engagementChoice,
             onboardingMessage: onboardingMessages[engagementChoice],
             adminsChatReportID,
