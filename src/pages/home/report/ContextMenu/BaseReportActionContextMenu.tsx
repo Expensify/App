@@ -373,7 +373,7 @@ function BaseReportActionContextMenu({
                             interceptAnonymousUser,
                             openOverflowMenu,
                             setIsEmojiPickerActive,
-                            reportNameValuePairs,
+                            isHarvestReport,
                             moneyRequestAction,
                             card,
                             originalReport,

@@ -129,7 +129,6 @@ import {
     getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
-    isHarvestCreatedExpenseReport,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
 } from '@libs/ReportUtils';
@@ -158,7 +157,6 @@ import type {
     PolicyTagLists,
     ReportAction,
     ReportActionReactions,
-    ReportNameValuePairs,
     Report as ReportType,
     Transaction,
 } from '@src/types/onyx';
@@ -233,7 +231,7 @@ type ContextMenuActionPayload = {
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
     originalReport: OnyxEntry<ReportType>;
-    reportNameValuePairs?: OnyxEntry<ReportNameValuePairs>;
+    isHarvestReport?: boolean;
     isTryNewDotNVPDismissed?: boolean;
     childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
@@ -599,7 +597,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 reportID,
                 card,
                 originalReport,
-                reportNameValuePairs,
+                isHarvestReport,
                 isTryNewDotNVPDismissed,
                 movedFromReport,
                 movedToReport,
@@ -832,7 +830,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionableJoinRequest(reportAction)) {
                     const displayMessage = getJoinRequestMessage(reportAction);
                     Clipboard.setString(displayMessage);
-                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestReport) {
                     const harvestReportName = getReportName(harvestReport);
                     const displayMessage = getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate);
                     setClipboardMessage(displayMessage);
