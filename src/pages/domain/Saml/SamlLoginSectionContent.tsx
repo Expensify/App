@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -24,9 +25,12 @@ type SamlLoginSectionContentProps = {
 
     /** Whether SAML authentication is required for the domain. */
     isSamlRequired: boolean;
+
+    /** Whether Okta SCIM is enabled for the domain. */
+    isOktaScimEnabled: boolean;
 };
 
-function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRequired}: SamlLoginSectionContentProps) {
+function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRequired, isOktaScimEnabled}: SamlLoginSectionContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -34,6 +38,7 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
         canBeMissing: false,
         selector: domainSamlSettingsStateSelector,
     });
+    const [isOktaScimConfirmModalVisible, setIsScimConfirmModalVisible] = useState(false);
 
     return (
         <>
@@ -50,7 +55,7 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                         <Switch
                             accessibilityLabel={translate('domain.samlLogin.enableSamlLogin')}
                             isOn={isSamlEnabled}
-                            onToggle={() => setSamlEnabled(!isSamlEnabled, accountID, domainName ?? '')}
+                            onToggle={() => setSamlEnabled(!isSamlEnabled, accountID, domainName)}
                         />
                     </View>
 
@@ -71,7 +76,13 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                             <Switch
                                 accessibilityLabel={translate('domain.samlLogin.requireSamlLogin')}
                                 isOn={isSamlRequired}
-                                onToggle={() => setSamlRequired(!isSamlRequired, accountID, domainName ?? '')}
+                                onToggle={() => {
+                                    if (isSamlRequired && isOktaScimEnabled) {
+                                        setIsScimConfirmModalVisible(true);
+                                        return;
+                                    }
+                                    setSamlRequired(!isSamlRequired, accountID, domainName);
+                                }}
                             />
                         </View>
 
@@ -79,6 +90,21 @@ function SamlLoginSectionContent({accountID, domainName, isSamlEnabled, isSamlRe
                     </View>
                 </OfflineWithFeedback>
             )}
+
+            <ConfirmModal
+                isVisible={isOktaScimConfirmModalVisible}
+                onConfirm={() => {
+                    setSamlRequired(false, accountID, domainName);
+                    setIsScimConfirmModalVisible(false);
+                }}
+                title={translate('domain.samlLogin.disableSamlRequired')}
+                prompt={translate('domain.samlLogin.oktaWarningPrompt')}
+                confirmText={translate('common.disable')}
+                cancelText={translate('common.cancel')}
+                onCancel={() => setIsScimConfirmModalVisible(false)}
+                danger
+                shouldHandleNavigationBack
+            />
         </>
     );
 }

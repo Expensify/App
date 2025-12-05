@@ -7,12 +7,12 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], policyCategory: PolicyCategory): string {
     const enabledFields: string[] = [];
 
-    // Attendees field must show first if both are enabled
-    if (!!policyCategory.areAttendeesRequired) {
+    // Attendees field should show first when both are selected
+    if (policyCategory.areAttendeesRequired) {
         enabledFields.push(translate('iou.attendees'));
     }
 
-    if (!!policyCategory.areCommentsRequired) {
+    if (policyCategory.areCommentsRequired) {
         enabledFields.push(translate('common.description'));
     }
 

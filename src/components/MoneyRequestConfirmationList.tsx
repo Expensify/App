@@ -921,7 +921,7 @@ function MoneyRequestConfirmationList({
             }
 
             const missingAttendeesViolation = getMissingAttendeesViolationError(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails);
-            if (!!missingAttendeesViolation) {
+            if (missingAttendeesViolation) {
                 setFormError(missingAttendeesViolation);
                 return;
             }
@@ -984,7 +984,6 @@ function MoneyRequestConfirmationList({
             isMerchantEmpty,
             shouldDisplayFieldError,
             transaction,
-            iouCategory.length,
             policyTags,
             isPerDiemRequest,
             reportID,
@@ -998,6 +997,10 @@ function MoneyRequestConfirmationList({
             isDelegateAccessRestricted,
             onSendMoney,
             showDelegateNoAccessModal,
+            iouCategory,
+            policyCategories,
+            iouAttendees,
+            currentUserPersonalDetails,
         ],
     );
 
