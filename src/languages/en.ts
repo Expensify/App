@@ -5328,9 +5328,18 @@ const translations = {
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
-            makeMember: 'Make member',
-            makeAdmin: 'Make admin',
-            makeAuditor: 'Make auditor',
+            makeMember: () => ({
+                one: 'Make member',
+                other: 'Make members',
+            }),
+            makeAdmin: () => ({
+                one: 'Make admin',
+                other: 'Make admins',
+            }),
+            makeAuditor: () => ({
+                one: 'Make auditor',
+                other: 'Make auditors',
+            }),
             selectAll: 'Select all',
             error: {
                 genericAdd: 'There was a problem adding this workspace member',
@@ -5384,7 +5393,6 @@ const translations = {
                 cardType: 'Card type',
                 limit: 'Limit',
                 limitType: 'Limit type',
-                name: 'Name',
                 disabledApprovalForSmartLimitError: 'Please enable approvals in <strong>Workflows > Add approvals</strong> before setting up smart limits',
             },
             deactivateCardModal: {

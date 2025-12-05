@@ -220,6 +220,7 @@ function SearchAutocompleteList({
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
+            case CONST.SEARCH.DATA_TYPES.TRIP:
                 return Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
             default:
                 return [];

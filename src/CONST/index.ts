@@ -710,6 +710,7 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
+        ZERO_EXPENSES: 'zeroExpenses',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -7469,6 +7470,11 @@ const CONST = {
 
     MODAL_EVENTS: {
         CLOSED: 'modalClosed',
+    },
+
+    LIST_BEHAVIOR: {
+        REGULAR: 'regular',
+        INVERTED: 'inverted',
     },
 } as const;
 
