@@ -102,11 +102,21 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             shouldHideToolTip,
             sidePanelOffset,
             sidePanelTranslateX,
-            openSidePanel: () => SidePanelActions.openSidePanel(false),
+            openSidePanel: () => SidePanelActions.openSidePanel(!isExtraLargeScreenWidth),
             closeSidePanel,
             sidePanelNVP,
         }),
-        [closeSidePanel, isSidePanelHiddenOrLargeScreen, isSidePanelTransitionEnded, shouldHideHelpButton, shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideToolTip, sidePanelNVP],
+        [
+            closeSidePanel,
+            isExtraLargeScreenWidth,
+            isSidePanelHiddenOrLargeScreen,
+            isSidePanelTransitionEnded,
+            shouldHideHelpButton,
+            shouldHideSidePanel,
+            shouldHideSidePanelBackdrop,
+            shouldHideToolTip,
+            sidePanelNVP,
+        ],
     );
 
     return <SidePanelContext.Provider value={value}>{children}</SidePanelContext.Provider>;
