@@ -1119,8 +1119,8 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
     const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
     const onyxUpdates: OnyxUpdate[] = [];
 
-    // Set optimistic parent report
-    if (!hasParentReport) {
+    // Set optimistic parent report if we're confident the data is correct - verify that report ownerAccountID matches
+    if (!hasParentReport && report?.ownerAccountID && item.from?.accountID && report.ownerAccountID === item.from.accountID) {
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1144,6 +1144,9 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
             linkedExpenseReportAction: {childReportID: IOUTransactionID} as ReportAction,
         });
         optimisticIOUAction.pendingAction = undefined;
+        if (item.from?.accountID) {
+            optimisticIOUAction.actorAccountID = item.from.accountID;
+        }
         onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,

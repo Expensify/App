@@ -4500,12 +4500,16 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
     }
 
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        if (isExpenseReport(report)) {
+            payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
+        }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
+        return translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
-    if (isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0) {
+    if (isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0 || (isIOUReport(report) && !isSettled(report?.reportID))) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
@@ -5960,7 +5964,11 @@ function getReportName(
 
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
+            if (parentReport && isMoneyRequestReport(parentReport) && parentReport.reportID && parentReport.statusNum !== undefined) {
+                formattedName = getMoneyRequestReportName({report: parentReport, policy});
+            } else {
             formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
+            }
 
             if (isArchivedNonExpense) {
                 // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
