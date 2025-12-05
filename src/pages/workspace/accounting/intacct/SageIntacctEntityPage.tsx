@@ -27,7 +27,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
             isSelected: entityID === '',
         },
     ];
-    for (const entity of policy?.connections?.intacct?.data?.entities) {
+    for (const entity of policy?.connections?.intacct?.data?.entities ?? []) {
         sections.push({
             text: entity.name,
             value: entity.name,
