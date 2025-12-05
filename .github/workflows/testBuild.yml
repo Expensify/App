@@ -199,7 +199,7 @@ jobs:
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     runs-on: ubuntu-latest-xl
     outputs:
-      ROCK_APK_PATH: ${{ steps.strip-android-url.outputs.clean-url }}
+      ROCK_ANDROID_ADHOC_INDEX_URL: ${{ steps.build-android-adhoc-index-url.outputs.clean-url }}
     steps:
       - name: Checkout
         # v4
@@ -306,18 +306,9 @@ jobs:
           comment-bot: false
           rock-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
 
-      - name: Strip sensitive params from Android artifact URL
-        id: strip-android-url
-        run: |
-          FULL_URL="${{ steps.rock-remote-build-android.outputs.artifact-url }}"
-          echo "=== Android URL Transform Debug ==="
-          echo "Input URL: $FULL_URL"
-          # Remove query string (everything after ?)
-          CLEAN_URL="${FULL_URL%%\?*}"
-          echo "After removing query string: $CLEAN_URL"
-          echo "=== Final Android URL ==="
-          echo "clean-url=$CLEAN_URL" >> $GITHUB_OUTPUT
-          echo "Clean URL: $CLEAN_URL"
+      - name: Build Android artifact Adhoc Index URL
+        id: build-android-adhoc-index-url
+        run: ./.github/scripts/buildAdhocIndexUrl.sh "${{ steps.rock-remote-build-android.outputs.artifact-url }}"
 
   iosHybrid:
     name: Build and deploy iOS for testing
@@ -327,7 +318,7 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
     runs-on: macos-15-xlarge
     outputs:
-      ROCK_IOS_PATH: ${{ steps.strip-ios-url.outputs.clean-url }}
+      ROCK_IOS_ADHOC_INDEX_URL: ${{ steps.build-ios-adhoc-index-url.outputs.clean-url }}
     steps:
       - name: Checkout
         # v4
@@ -467,29 +458,9 @@ jobs:
             ]
           comment-bot: false
 
-      - name: Strip sensitive params from iOS artifact URL
-        id: strip-ios-url
-        run: |
-          FULL_URL="${{ steps.rock-remote-build-ios.outputs.artifact-url }}"
-          echo "=== iOS URL Transform Debug ==="
-          echo "Input URL: $FULL_URL"
-          # Remove query string (everything after ?)
-          CLEAN_URL="${FULL_URL%%\?*}"
-          echo "After removing query string: $CLEAN_URL"
-          # Remove .zip extension
-          CLEAN_URL="${CLEAN_URL%.zip}"
-          echo "After removing .zip: $CLEAN_URL"
-          # Extract base URL (everything up to the artifact name)
-          BASE_URL="${CLEAN_URL%/*}"
-          echo "Base URL: $BASE_URL"
-          # Extract artifact name (last part of path)
-          ARTIFACT_NAME="${CLEAN_URL##*/}"
-          echo "Artifact name: $ARTIFACT_NAME"
-          # Build final URL: base + /ad-hoc/ + artifact name + /index.html
-          CLEAN_URL="${BASE_URL}/ad-hoc/${ARTIFACT_NAME}/index.html"
-          echo "=== Final iOS URL ==="
-          echo "clean-url=$CLEAN_URL" >> $GITHUB_OUTPUT
-          echo "Clean URL: $CLEAN_URL"
+      - name: Build iOS artifact Adhoc Index URL
+        id: build-ios-adhoc-index-url
+        run: ./.github/scripts/buildAdhocIndexUrl.sh "${{ steps.rock-remote-build-ios.outputs.artifact-url }}"
 
   postGithubComment:
     runs-on: ubuntu-latest
@@ -531,5 +502,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ needs.androidHybrid.result }}
           IOS: ${{ needs.iosHybrid.result }}
-          ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_APK_PATH }}
-          IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_PATH }}
+          ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL }}
+          IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL }}
