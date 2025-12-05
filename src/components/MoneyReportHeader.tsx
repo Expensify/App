@@ -820,6 +820,7 @@ function MoneyReportHeader({
                             shouldCalculateTotals: true,
                             offset: 0,
                             queryJSON: currentSearchQueryJSON,
+                            isLoading: !!currentSearchResults?.search?.isLoading,
                         });
                     }
                 }}
