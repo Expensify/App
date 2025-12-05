@@ -4739,14 +4739,11 @@ ${merchant}的${amount} - ${date}`,
             },
             companyCards: {
                 title: '公司卡片',
-                subtitle: '从现有公司卡导入支出。',
+                subtitle: '连接您已有的卡片。',
                 feed: {
-                    title: '导入公司卡片',
-                    features: {
-                        support: '支持所有主要的信用卡提供商',
-                        assignCards: '将卡片分配给整个团队',
-                        automaticImport: '自动交易导入',
-                    },
+                    title: '自带卡（BYOC）',
+                    features: {support: '连接来自10,000+家银行的卡片', assignCards: '关联您团队现有的卡片', automaticImport: '我们会自动导入交易'},
+                    subtitle: '关联你已有的卡片，以便自动导入交易、匹配收据并进行对账。',
                 },
                 bankConnectionError: '银行连接问题',
                 connectWithPlaid: '通过 Plaid 连接',
