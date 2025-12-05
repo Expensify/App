@@ -87,6 +87,11 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
 
                 const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
                 const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
+
+                if (!accountID) {
+                    return null;
+                }
+                
                 const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
 
                 return {
