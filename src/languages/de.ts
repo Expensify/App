@@ -2288,9 +2288,10 @@ ${amount} für ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'PDF wird generiert...',
-        waitForPDF: 'Bitte warten Sie, während wir das PDF erstellen.',
+        generatingPDF: 'PDF erstellen',
+        waitForPDF: 'Bitte warten, während wir das PDF generieren.',
         errorPDF: 'Beim Versuch, Ihr PDF zu erstellen, ist ein Fehler aufgetreten.',
+        successPDF: 'Dein PDF wurde erstellt! Falls es nicht automatisch heruntergeladen wurde, verwende die Schaltfläche unten.',
     },
     reportDescriptionPage: {
         roomDescription: 'Zimmerbeschreibung',
@@ -2554,13 +2555,13 @@ ${amount} für ${merchant} - ${date}`,
                         4. Suche nach ${integrationName}.
                         5. Klicke auf *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Zur Buchhaltung](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Zur Buchhaltung](${workspaceAccountingLink}).
 
-![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Zur Buchhaltung](${workspaceAccountingLink}).`
-}`),
+                        ![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Zur Buchhaltung](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Verbinden Sie [Ihre Firmenkarten](${corporateCardLink})`,
@@ -5228,9 +5229,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Möchten Sie ${memberName} wirklich entfernen?`,
             removeMemberTitle: 'Mitglied entfernen',
             transferOwner: 'Besitzer übertragen',
-            makeMember: 'Mitglied machen',
-            makeAdmin: 'Admin machen',
-            makeAuditor: 'Prüfer erstellen',
+            makeMember: () => ({
+                one: 'Zum Mitglied machen',
+                other: 'Zu Mitgliedern machen',
+            }),
+            makeAdmin: () => ({
+                one: 'Zum Administrator machen',
+                other: 'Zu Administratoren machen',
+            }),
+            makeAuditor: () => ({
+                one: 'Zum Prüfer machen',
+                other: 'Zu Prüfern machen',
+            }),
             selectAll: 'Alle auswählen',
             error: {
                 genericAdd: 'Es gab ein Problem beim Hinzufügen dieses Arbeitsbereichsmitglieds.',
@@ -5284,7 +5294,6 @@ ${
                 cardType: 'Kartentyp',
                 limit: 'Limit',
                 limitType: 'Typ begrenzen',
-                name: 'Name',
                 disabledApprovalForSmartLimitError:
                     'Bitte aktivieren Sie Genehmigungen unter <strong>Workflows > Genehmigungen hinzufügen</strong>, bevor Sie intelligente Limits einrichten',
             },

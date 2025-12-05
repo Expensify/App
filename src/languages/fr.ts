@@ -2288,9 +2288,10 @@ ${amount} pour ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `dans ${policyName}`,
-        generatingPDF: 'Génération du PDF...',
-        waitForPDF: 'Veuillez patienter pendant que nous générons le PDF',
+        generatingPDF: 'Générer un PDF',
+        waitForPDF: 'Veuillez patienter pendant que nous générons le PDF.',
         errorPDF: "Une erreur s'est produite lors de la tentative de génération de votre PDF.",
+        successPDF: "Votre PDF a été généré ! S'il ne s'est pas téléchargé automatiquement, utilisez le bouton ci-dessous.",
     },
     reportDescriptionPage: {
         roomDescription: 'Description de la chambre',
@@ -2554,13 +2555,13 @@ ${amount} pour ${merchant} - ${date}`,
                         4. Recherchez ${integrationName}.
                         5. Cliquez sur *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Accéder à la comptabilité](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Accéder à la comptabilité](${workspaceAccountingLink}).
 
-                                      ![Se connecter à ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Accéder à la comptabilité](${workspaceAccountingLink}).`
-}`),
+                        ![Se connecter à ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Accéder à la comptabilité](${workspaceAccountingLink})`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Connectez [vos cartes d’entreprise](${corporateCardLink})`,
@@ -5239,9 +5240,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Êtes-vous sûr de vouloir supprimer ${memberName} ?`,
             removeMemberTitle: 'Supprimer le membre',
             transferOwner: 'Transférer le propriétaire',
-            makeMember: 'Rendre membre',
-            makeAdmin: 'Nommer administrateur',
-            makeAuditor: 'Créer un auditeur',
+            makeMember: () => ({
+                one: 'Définir comme membre',
+                other: 'Rendre membres',
+            }),
+            makeAdmin: () => ({
+                one: 'Nommer administrateur',
+                other: 'Définir comme administrateurs',
+            }),
+            makeAuditor: () => ({
+                one: 'Nommer auditeur',
+                other: 'Définir comme auditeurs',
+            }),
             selectAll: 'Tout sélectionner',
             error: {
                 genericAdd: "Un problème est survenu lors de l'ajout de ce membre de l'espace de travail.",
@@ -5295,7 +5305,6 @@ ${
                 cardType: 'Type de carte',
                 limit: 'Limite',
                 limitType: 'Limiter le type',
-                name: 'Nom',
                 disabledApprovalForSmartLimitError:
                     'Veuillez activer les approbations dans <strong>Workflows > Ajouter des approbations</strong> avant de configurer les limites intelligentes',
             },

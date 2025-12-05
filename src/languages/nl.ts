@@ -2278,9 +2278,10 @@ ${amount} voor ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
-        generatingPDF: 'PDF genereren...',
+        generatingPDF: 'PDF genereren',
         waitForPDF: 'Even geduld terwijl we de PDF genereren.',
         errorPDF: 'Er is een fout opgetreden bij het genereren van uw PDF.',
+        successPDF: 'Je PDF is gegenereerd! Als het niet automatisch is gedownload, gebruik dan de knop hieronder.',
     },
     reportDescriptionPage: {
         roomDescription: 'Kamerbeschrijving',
@@ -2541,13 +2542,13 @@ ${amount} voor ${merchant} - ${date}`,
                         4. Zoek ${integrationName}.
                         5. Klik op *Verbinden*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Breng me naar de boekhouding](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Breng me naar de boekhouding](${workspaceAccountingLink}).
 
-                                      ![Verbinding maken met ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Breng me naar de boekhouding](${workspaceAccountingLink}).`
-}`),
+                        ![Verbinding maken met ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Breng me naar de boekhouding](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Koppel [je bedrijfskaarten](${corporateCardLink})`,
@@ -5207,9 +5208,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Weet je zeker dat je ${memberName} wilt verwijderen?`,
             removeMemberTitle: 'Lid verwijderen',
             transferOwner: 'Eigenaar overdragen',
-            makeMember: 'Lid maken',
-            makeAdmin: 'Beheerder maken',
-            makeAuditor: 'Maak controleur',
+            makeMember: () => ({
+                one: 'Lid maken',
+                other: 'Maak leden',
+            }),
+            makeAdmin: () => ({
+                one: 'Beheerder maken',
+                other: 'Beheerders aanwijzen',
+            }),
+            makeAuditor: () => ({
+                one: 'Maak auditor',
+                other: 'Maak auditors',
+            }),
             selectAll: 'Alles selecteren',
             error: {
                 genericAdd: 'Er was een probleem bij het toevoegen van dit werkruimtelid.',
@@ -5263,7 +5273,6 @@ ${
                 cardType: 'Kaarttype',
                 limit: 'Limiet',
                 limitType: 'Limiettype',
-                name: 'Naam',
                 disabledApprovalForSmartLimitError: 'Schakel goedkeuringen in <strong>Workflows > Goedkeuringen toevoegen</strong> in voordat u slimme limieten instelt',
             },
             deactivateCardModal: {
