@@ -63,7 +63,6 @@ import {
     isAddCommentAction,
     isClosedAction,
     isCreatedTaskReportAction,
-    isDeletedAction,
     isDeletedParentAction,
     isInviteOrRemovedAction,
     isMarkAsClosedAction,
@@ -793,11 +792,7 @@ function getLastMessageTextForReport({
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
-    if (
-        reportID &&
-        !isReportArchived &&
-        (report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED || (lastOriginalReportAction?.reportActionID && isDeletedAction(lastOriginalReportAction)))
-    ) {
+    if (reportID && !isReportArchived && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
         return lastMessageTextFromReport || (getReportLastMessage(reportID, isReportArchived, undefined).lastMessageText ?? '');
     }
 
