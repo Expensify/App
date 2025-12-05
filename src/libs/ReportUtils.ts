@@ -6967,7 +6967,7 @@ function getMovedTransactionMessage(action: ReportAction) {
     const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
     const report = fromReport ?? toReport;
-    const reportName = ReportNameUtils.getReportName(report);
+    const reportName = ReportNameUtils.computeReportName(report, allReports, allPolicies, allTransactions, allReportNameValuePair, allPersonalDetails, allReportActions);
     let reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -6996,7 +6996,7 @@ function getUnreportedTransactionMessage(action: ReportAction) {
 
     const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
-    const reportName = ReportNameUtils.getReportName(fromReport);
+    const reportName = ReportNameUtils.computeReportName(fromReport, allReports, allPolicies, allTransactions, allReportNameValuePair, allPersonalDetails, allReportActions);
 
     let reportUrl = `${environmentURL}/r/${fromReport?.reportID}`;
 
