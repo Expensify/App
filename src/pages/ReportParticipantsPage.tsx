@@ -342,7 +342,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
         if (isAtLeastOneAdminSelected) {
             options.push({
-                text: translate('workspace.people.makeMember'),
+                text: translate('workspace.people.makeMember', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
                 icon: icons.User,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
@@ -353,7 +353,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
         if (isAtLeastOneMemberSelected) {
             options.push({
-                text: translate('workspace.people.makeAdmin'),
+                text: translate('workspace.people.makeAdmin', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
                 icon: icons.MakeAdmin,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
