@@ -12,6 +12,7 @@ import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getButtonState from '@libs/getButtonState';
 import mergeRefs from '@libs/mergeRefs';
 import Parser from '@libs/Parser';
@@ -64,7 +65,7 @@ type NoIcon = {
     icon?: undefined;
 };
 
-type MenuItemBaseProps = {
+type MenuItemBaseProps = ForwardedFSClassProps & {
     /** Reference to the outer element */
     ref?: PressableRef | Ref<View>;
 
@@ -518,6 +519,7 @@ function MenuItem({
     copyValue = title,
     copyable = false,
     hasSubMenuItems = false,
+    forwardedFSClass,
     ref,
     isFocused,
 }: MenuItemProps) {
@@ -848,7 +850,10 @@ function MenuItem({
                                                             </Text>
                                                         )}
                                                         {(!!title || !!shouldShowTitleIcon) && (
-                                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}>
+                                                            <View
+                                                                style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}
+                                                                fsClass={forwardedFSClass}
+                                                            >
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
                                                                         <RenderHTML html={processedTitle} />

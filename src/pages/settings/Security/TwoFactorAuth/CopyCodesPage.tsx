@@ -89,7 +89,10 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                 </View>
                             ) : (
                                 <>
-                                    <View style={styles.twoFactorAuthCodesContainer}>
+                                    <View
+                                        style={styles.twoFactorAuthCodesContainer}
+                                        fsClass={CONST.FULLSTORY.CLASS.MASK}
+                                    >
                                         {!!account?.recoveryCodes &&
                                             account?.recoveryCodes?.split(', ').map((code) => (
                                                 <Text

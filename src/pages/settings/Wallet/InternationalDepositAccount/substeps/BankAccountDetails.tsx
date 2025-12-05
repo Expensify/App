@@ -92,6 +92,7 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
                             label={field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`)}
                             items={(field.valueSet ?? []).map(({id, text}) => ({value: id, label: text}))}
                             shouldSaveDraft={!isEditing}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                     </View>
                 ))}
