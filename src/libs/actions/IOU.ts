@@ -14477,7 +14477,6 @@ function updateSplitTransactions({
     const failureData = [] as OnyxUpdate[];
     const optimisticData = [] as OnyxUpdate[];
 
-    // Before the loop (around line 14388)
     const reportTotals = new Map<string, number>();
     for (const expense of splitExpenses) {
         if (expense.reportID) {
