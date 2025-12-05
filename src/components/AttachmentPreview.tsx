@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
-import type {VideoThumbnail} from 'expo-video';
+import {useEvent} from 'expo';
+import type {SourceLoadEventPayload, VideoThumbnail} from 'expo-video';
 import {useVideoPlayer} from 'expo-video';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -39,10 +40,16 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
     }, [source]);
 
     const [thumbnail, setThumbnail] = useState<VideoThumbnail | null>(null);
-    const videoPlayer = useVideoPlayer({uri: source});
+    const videoPlayer = useVideoPlayer(source);
+
+    const {videoSource} = useEvent(videoPlayer, 'sourceLoad', {videoSource: null} as SourceLoadEventPayload);
+
     useEffect(() => {
+        if (!videoSource) {
+            return;
+        }
         videoPlayer.generateThumbnailsAsync(1).then((thumbnails) => setThumbnail(thumbnails.at(0) ?? null));
-    }, [videoPlayer]);
+    }, [videoPlayer, videoSource]);
 
     if (typeof source === 'string' && Str.isVideo(source)) {
         return (
