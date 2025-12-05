@@ -173,6 +173,14 @@ function IOURequestStartPage({
         ],
     );
 
+    const onTabSelected = useCallback(
+        (newIouType: IOURequestType) => {
+            setSelectedTab(newIouType);
+            resetIOUTypeIfChanged(newIouType);
+        },
+        [resetIOUTypeIfChanged],
+    );
+
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
     useFocusEffect(
         useCallback(() => {
@@ -253,10 +261,7 @@ function IOURequestStartPage({
                             <OnyxTabNavigator
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 defaultSelectedTab={defaultSelectedTab}
-                                onTabSelected={(newIouType) => {
-                                    setSelectedTab(newIouType);
-                                    resetIOUTypeIfChanged(newIouType);
-                                }}
+                                onTabSelected={onTabSelected}
                                 tabBar={TabSelector}
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
