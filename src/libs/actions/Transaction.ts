@@ -1297,11 +1297,6 @@ function changeTransactionsReport(
     // 9. Update next steps for all affected reports
     const destinationReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (existingSelfDMReportID ?? selfDMReport?.reportID) : reportID;
     const affectedReportIDs = new Set<string>();
-    const destinationReport = destinationReportID
-        ? (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`] ??
-          (destinationReportID === newReport?.reportID ? newReport : undefined) ??
-          (destinationReportID === selfDMReport?.reportID ? selfDMReport : undefined))
-        : undefined;
 
     for (const reportIDToUpdate of Object.keys(updatedReportTotals)) {
         affectedReportIDs.add(reportIDToUpdate);
