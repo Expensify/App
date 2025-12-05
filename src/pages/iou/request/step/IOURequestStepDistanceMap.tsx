@@ -449,7 +449,6 @@ function IOURequestStepDistanceMap({
         lastSelectedDistanceRates,
         backToReport,
         isASAPSubmitBetaEnabled,
-        customUnitRateID,
         navigateToConfirmationPage,
         personalPolicy?.autoReporting,
         reportID,
