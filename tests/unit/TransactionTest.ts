@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
+import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {changeTransactionsReport, saveWaypoint} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -346,7 +347,8 @@ describe('Transaction', () => {
             await waitForBatchedUpdates();
 
             try {
-                const sourceNextStepCall = buildOptimisticNextStepSpy.mock.calls.find(([params]) => params.report?.reportID === FAKE_OLD_REPORT_ID);
+                const buildOptimisticNextStepCalls = buildOptimisticNextStepSpy.mock.calls as Array<[Parameters<typeof buildOptimisticNextStep>[0]]>;
+                const sourceNextStepCall = buildOptimisticNextStepCalls.find(([params]) => params.report?.reportID === FAKE_OLD_REPORT_ID);
 
                 expect(sourceNextStepCall).toBeDefined();
                 expect(sourceNextStepCall?.[0].predictedNextStatus).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
