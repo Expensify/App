@@ -1,4 +1,4 @@
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import Illustrations from '@components/Icon/chunks/illustrations.chunk';
 import LottieAnimations from '@components/LottieAnimations';
 import type {MultifactorAuthenticationNotificationMap, MultifactorAuthenticationNotificationMapEntry} from '@components/MultifactorAuthentication/types';
 import {toLowerCase} from '@libs/MultifactorAuthentication/Biometrics/helpers';
@@ -16,7 +16,7 @@ import SCENARIO from './scenarios';
 const MULTIFACTOR_AUTHENTICATION_NOTIFICATION_UI = {
     [SCENARIO.AUTHORIZE_TRANSACTION]: {
         approved: {
-            illustration: loadIllustration('ApprovedTransactionHand').then(({default: icon}) => icon),
+            illustration: Illustrations.ApprovedTransactionHand,
             iconWidth: variables.transactionHandWidth,
             iconHeight: variables.transactionHandHeight,
             padding: spacing.p0,
@@ -26,13 +26,13 @@ const MULTIFACTOR_AUTHENTICATION_NOTIFICATION_UI = {
             },
         },
         success: {
-            illustration: loadIllustration('OpenPadlock').then(({default: icon}) => icon),
+            illustration: Illustrations.OpenPadlock,
             iconWidth: variables.openPadlockWidth,
             iconHeight: variables.openPadlockHeight,
             padding: spacing.p2,
         },
         denied: {
-            illustration: loadIllustration('DeniedTransactionHand').then(({default: icon}) => icon),
+            illustration: Illustrations.DeniedTransactionHand,
             iconWidth: variables.transactionHandWidth,
             iconHeight: variables.transactionHandHeight,
             padding: spacing.p0,
@@ -42,13 +42,13 @@ const MULTIFACTOR_AUTHENTICATION_NOTIFICATION_UI = {
             },
         },
         failure: {
-            illustration: loadIllustration('HumptyDumpty').then(({default: icon}) => icon),
+            illustration: Illustrations.HumptyDumpty,
             iconWidth: variables.humptyDumptyWidth,
             iconHeight: variables.humptyDumptyHeight,
             padding: spacing.p0,
         },
         outOfTime: {
-            illustration: loadIllustration('RunOutOfTime').then(({default: icon}) => icon),
+            illustration: Illustrations.RunOutOfTime,
             iconWidth: variables.runOutOfTimeWidth,
             iconHeight: variables.runOutOfTimeHeight,
             padding: spacing.p0,

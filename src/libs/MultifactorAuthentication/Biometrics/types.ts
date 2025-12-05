@@ -29,7 +29,7 @@ type MultifactorAuthenticationCancelConfirm = {
 };
 
 type MultifactorAuthenticationUIConfig = {
-    illustration: Promise<IconAsset>;
+    illustration: IconAsset;
     iconWidth: number;
     iconHeight: number;
     padding: ViewStyle;

@@ -1,4 +1,4 @@
-import React, {use, useCallback} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
@@ -27,8 +27,6 @@ function MultifactorAuthenticationNotificationPage({route}: MultifactorAuthentic
 
     const data = MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP[route.params.notificationType];
 
-    const illustration = use(data.illustration);
-
     const {headerTitle, title, content} = {headerTitle: info.headerTitle, title: info.title, content: info.message};
 
     if (!data) {
@@ -44,7 +42,7 @@ function MultifactorAuthenticationNotificationPage({route}: MultifactorAuthentic
             />
             <View style={styles.flex1}>
                 <BlockingView
-                    icon={illustration}
+                    icon={data.illustration}
                     contentFitImage="fill"
                     iconWidth={data.iconWidth}
                     iconHeight={data.iconHeight}
