@@ -18,6 +18,7 @@ jest.mock('@components/OnyxListItemProvider', () => ({
     useCardList: jest.fn(),
     useWorkspaceCardList: jest.fn(),
 }));
+jest.mock('@hooks/usePolicy');
 
 const mockUsePolicy = usePolicy as jest.MockedFunction<typeof usePolicy>;
 const mockGetWorkspaceAccountID = getWorkspaceAccountID as jest.MockedFunction<typeof getWorkspaceAccountID>;
