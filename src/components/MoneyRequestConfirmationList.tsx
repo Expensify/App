@@ -30,6 +30,7 @@ import {
     setMoneyRequestTaxRate,
     setSplitShares,
 } from '@libs/actions/IOU';
+import {getMissingAttendeesViolationError} from '@libs/AttendeeUtils';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -916,6 +917,12 @@ function MoneyRequestConfirmationList({
 
             if (transactionTag && hasEnabledTags(policyTagLists) && !hasMatchingTag(policyTags, transactionTag)) {
                 setFormError('violations.tagOutOfPolicy');
+                return;
+            }
+
+            const missingAttendeesViolation = getMissingAttendeesViolationError(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails);
+            if (!!missingAttendeesViolation) {
+                setFormError(missingAttendeesViolation);
                 return;
             }
 

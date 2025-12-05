@@ -5953,7 +5953,7 @@ ${
                 requireDescription: 'Beschrijving vereist',
                 requireFields: 'Velden verplicht stellen',
                 requiredFieldsTitle: 'Verplichte velden',
-                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `Dit is van toepassing op alle uitgaven die zijn gecategoriseerd als <strong>${categoryName}</strong>`,
+                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `Dit is van toepassing op alle uitgaven die zijn gecategoriseerd als <strong>${categoryName}</strong>.`,
                 requireAttendees: 'Aanwezigen verplicht stellen',
                 descriptionHint: 'Beschrijving hint',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) =>

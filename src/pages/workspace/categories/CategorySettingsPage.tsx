@@ -17,14 +17,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {
-    formatDefaultTaxRateText,
-    formatRequiredFieldsTitle,
-    formatRequireReceiptsOverText,
-    getCategoryApproverRule,
-    getCategoryDefaultTaxRate,
-    getDecodedCategoryName,
-} from '@libs/CategoryUtils';
+import {formatRequiredFieldsTitle} from '@libs/AttendeeUtils';
+import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -180,6 +174,8 @@ function CategorySettingsPage({
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const requireFieldsPendingAction = policyCategory?.pendingFields?.areCommentsRequired || policyCategory?.pendingFields?.areAttendeesRequired;
 
     return (
         <AccessOrNotFoundWrapper
@@ -375,7 +371,7 @@ function CategorySettingsPage({
                                     shouldShowRightIcon
                                 />
                             </OfflineWithFeedback>
-                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.areCommentsRequired || policyCategory.pendingFields?.areAttendeesRequired}>
+                            <OfflineWithFeedback pendingAction={requireFieldsPendingAction}>
                                 <MenuItemWithTopDescription
                                     title={requiredFieldsTitle}
                                     description={translate('workspace.rules.categoryRules.requireFields')}

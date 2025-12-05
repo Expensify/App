@@ -5990,7 +5990,7 @@ ${
                 requireDescription: 'Description requise',
                 requireFields: 'Rendre les champs obligatoires',
                 requiredFieldsTitle: 'Champs obligatoires',
-                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `Cela s’appliquera à toutes les dépenses classées dans la catégorie <strong>${categoryName}</strong>`,
+                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `Cela s’appliquera à toutes les dépenses classées dans la catégorie <strong>${categoryName}</strong>.`,
                 requireAttendees: 'Exiger des participants',
                 descriptionHint: 'Indice de description',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) =>

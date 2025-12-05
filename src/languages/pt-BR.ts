@@ -5952,7 +5952,7 @@ ${
                 requireDescription: 'Requer descrição',
                 requireFields: 'Exigir campos',
                 requiredFieldsTitle: 'Campos obrigatórios',
-                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `Isso será aplicado a todas as despesas categorizadas como <strong>${categoryName}</strong>`,
+                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `Isso será aplicado a todas as despesas categorizadas como <strong>${categoryName}</strong>.`,
                 requireAttendees: 'Exigir participantes',
                 descriptionHint: 'Dica de descrição',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) =>

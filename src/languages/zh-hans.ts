@@ -5834,7 +5834,7 @@ ${
                 requireDescription: '需要描述',
                 requireFields: '必填字段',
                 requiredFieldsTitle: '必填项',
-                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `这将适用于所有被归类为 <strong>${categoryName}</strong> 的费用`,
+                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `这将适用于所有被归类为 <strong>${categoryName}</strong> 的费用。`,
                 requireAttendees: '要求与会者',
                 descriptionHint: '描述提示',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) => `提醒员工为“${categoryName}”支出提供更多信息。此提示显示在费用的描述字段中。`,

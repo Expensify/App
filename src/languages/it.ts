@@ -5968,7 +5968,7 @@ ${
                 requireDescription: 'Richiede descrizione',
                 requireFields: 'Rendi obbligatori i campi',
                 requiredFieldsTitle: 'Campi obbligatori',
-                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `Questo si applicherà a tutte le spese classificate come <strong>${categoryName}</strong>`,
+                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `Questo si applicherà a tutte le spese classificate come <strong>${categoryName}</strong>.`,
                 requireAttendees: 'Richiedi partecipanti',
                 descriptionHint: 'Suggerimento descrizione',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) =>

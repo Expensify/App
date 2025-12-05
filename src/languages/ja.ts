@@ -5913,7 +5913,7 @@ ${
                 requireDescription: '説明が必要です',
                 requireFields: 'フィールドを必須にする',
                 requiredFieldsTitle: '必須項目',
-                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `これは<strong>${categoryName}</strong>として分類されたすべての経費に適用されます`,
+                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `これは<strong>${categoryName}</strong>として分類されたすべての経費に適用されます。`,
                 requireAttendees: '参加者の入力を必須にする',
                 descriptionHint: '説明のヒント',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) =>

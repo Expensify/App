@@ -6057,7 +6057,7 @@ const translations = {
                 requireDescription: 'Require description',
                 requireFields: 'Require fields',
                 requiredFieldsTitle: 'Required fields',
-                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `This will apply to all expenses categorized as <strong>${categoryName}</strong>`,
+                requiredFieldsDescription: ({categoryName}: CategoryNameParams) => `This will apply to all expenses categorized as <strong>${categoryName}</strong>.`,
                 requireAttendees: 'Require attendees',
                 descriptionHint: 'Description hint',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) =>

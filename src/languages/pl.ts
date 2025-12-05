@@ -5944,7 +5944,7 @@ ${
                 requireFields: 'Wymagaj pól',
                 requiredFieldsTitle: 'Wymagane pola',
                 requiredFieldsDescription: ({categoryName}: CategoryNameParams) =>
-                    `To będzie miało zastosowanie do wszystkich wydatków skategoryzowanych jako <strong>${categoryName}</strong>`,
+                    `To będzie miało zastosowanie do wszystkich wydatków skategoryzowanych jako <strong>${categoryName}</strong>.`,
                 requireAttendees: 'Wymagaj uczestników',
                 descriptionHint: 'Podpowiedź opisu',
                 descriptionHintDescription: ({categoryName}: CategoryNameParams) =>
