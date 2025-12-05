@@ -224,6 +224,7 @@ function SearchAutocompleteList({
         switch (currentType) {
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
             case CONST.SEARCH.DATA_TYPES.INVOICE:
+            case CONST.SEARCH.DATA_TYPES.TRIP:
                 return Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
             default:
                 return [];
@@ -256,7 +257,7 @@ function SearchAutocompleteList({
                     ...CONST.SEARCH.STATUS.TASK,
                 });
         }
-        return suggestedStatuses.map((value) => getUserFriendlyValue(value));
+        return suggestedStatuses.filter((value) => value !== '').map((value) => getUserFriendlyValue(value));
     }, [currentType]);
 
     const hasAutocompleteList = useMemo(() => getHasOptions(translate, currentType), [translate, currentType]);

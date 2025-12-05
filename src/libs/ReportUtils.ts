@@ -64,7 +64,6 @@ import type {
 } from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import type Locale from '@src/types/onyx/Locale';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
@@ -4475,7 +4474,6 @@ function getTransactionDetails(
     allowNegativeAmount = false,
     disableOppositeConversion = false,
     currentUserDetails = currentUserPersonalDetails,
-    locale?: Locale,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
@@ -4486,7 +4484,7 @@ function getTransactionDetails(
     const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
 
     return {
-        created: getFormattedCreated(transaction, createdDateFormat, locale),
+        created: getFormattedCreated(transaction, createdDateFormat),
         amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
         attendees: getAttendees(transaction, currentUserDetails),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),
@@ -4505,7 +4503,7 @@ function getTransactionDetails(
         cardName: getCardName(transaction),
         originalAmount: getOriginalAmount(transaction),
         originalCurrency: getOriginalCurrency(transaction),
-        postedDate: getFormattedPostedDate(transaction, undefined, locale),
+        postedDate: getFormattedPostedDate(transaction),
         transactionID: transaction.transactionID,
         ...(isManualDistanceRequest && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
     };
@@ -11417,18 +11415,33 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
     return isChatRoom(report) && !isInvoiceRoom(report) && !isThread(report);
 }
 
-function prepareOnboardingOnyxData(
-    introSelected: OnyxEntry<IntroSelected>,
-    engagementChoice: OnboardingPurpose,
-    onboardingMessage: OnboardingMessage,
-    adminsChatReportID?: string,
-    onboardingPolicyID?: string,
-    userReportedIntegration?: OnboardingAccounting,
-    wasInvited?: boolean,
-    companySize?: OnboardingCompanySize,
-    selectedInterestedFeatures: string[] = [],
-    isInvitedAccountant?: boolean,
-) {
+type PrepareOnboardingOnyxDataParams = {
+    introSelected: OnyxEntry<IntroSelected>;
+    engagementChoice: OnboardingPurpose;
+    onboardingMessage: OnboardingMessage;
+    adminsChatReportID?: string;
+    onboardingPolicyID?: string;
+    userReportedIntegration?: OnboardingAccounting;
+    wasInvited?: boolean;
+    companySize?: OnboardingCompanySize;
+    selectedInterestedFeatures?: string[];
+    isInvitedAccountant?: boolean;
+    onboardingPurposeSelected?: OnboardingPurpose;
+};
+
+function prepareOnboardingOnyxData({
+    introSelected,
+    engagementChoice,
+    onboardingMessage,
+    adminsChatReportID,
+    onboardingPolicyID,
+    userReportedIntegration,
+    wasInvited,
+    companySize,
+    selectedInterestedFeatures = [],
+    isInvitedAccountant,
+    onboardingPurposeSelected,
+}: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
         onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.PERSONAL_SPEND];
@@ -11918,7 +11931,10 @@ function prepareOnboardingOnyxData(
     guidedSetupData.push({type: 'message', ...textMessage});
 
     let selfDMParameters: SelfDMParameters = {};
-    if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+    if (
+        engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
+        (engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE && (!onboardingPurposeSelected || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND))
+    ) {
         const selfDMReportID = findSelfDMReportID();
         let selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
         let createdAction: ReportAction;
@@ -13330,5 +13346,6 @@ export type {
     ParsingDetails,
     MissingPaymentMethod,
     OptimisticNewReport,
+    PrepareOnboardingOnyxDataParams,
     SelfDMParameters,
 };

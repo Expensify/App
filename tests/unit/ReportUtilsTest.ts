@@ -406,10 +406,10 @@ describe('ReportUtils', () => {
         it('provides test drive url to task title', () => {
             const title = jest.fn();
 
-            prepareOnboardingOnyxData(
-                undefined,
-                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                {
+            prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
                     message: 'This is a test',
                     tasks: [
                         {
@@ -421,8 +421,8 @@ describe('ReportUtils', () => {
                         },
                     ],
                 },
-                '1',
-            );
+                adminsChatReportID: '1',
+            });
 
             expect(title).toHaveBeenCalledWith(
                 expect.objectContaining<OnboardingTaskLinks>({
@@ -435,10 +435,10 @@ describe('ReportUtils', () => {
         it('provides test drive url to task description', () => {
             const description = jest.fn();
 
-            prepareOnboardingOnyxData(
-                undefined,
-                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                {
+            prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
                     message: 'This is a test',
                     tasks: [
                         {
@@ -450,8 +450,8 @@ describe('ReportUtils', () => {
                         },
                     ],
                 },
-                '1',
-            );
+                adminsChatReportID: '1',
+            });
 
             expect(description).toHaveBeenCalledWith(
                 expect.objectContaining<OnboardingTaskLinks>({
@@ -462,20 +462,16 @@ describe('ReportUtils', () => {
         });
 
         it('should not create tasks if the task feature is not in the selected interested features', () => {
-            const result = prepareOnboardingOnyxData(
-                undefined,
-                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                {
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
                     message: 'This is a test',
                     tasks: [{type: CONST.ONBOARDING_TASK_TYPE.CONNECT_CORPORATE_CARD, title: () => '', description: () => '', autoCompleted: false, mediaAttributes: {}}],
                 },
-                '1',
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                ['categories', 'accounting', 'tags'],
-            );
+                adminsChatReportID: '1',
+                selectedInterestedFeatures: ['categories', 'accounting', 'tags'],
+            });
 
             expect(result?.guidedSetupData.filter((data) => data.type === 'task')).toHaveLength(0);
         });
@@ -483,15 +479,15 @@ describe('ReportUtils', () => {
         it('includes avatar in optimistic Setup Specialist personal detail', () => {
             const mergeSpy = jest.spyOn(Onyx, 'merge');
 
-            prepareOnboardingOnyxData(
-                undefined,
-                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
-                {
+            prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
                     message: 'This is a test',
                     tasks: [],
                 },
-                '1',
-            );
+                adminsChatReportID: '1',
+            });
 
             const personalDetailsCall = mergeSpy.mock.calls.find((call) => call[0] === ONYXKEYS.PERSONAL_DETAILS_LIST);
             const personalDetailsData = personalDetailsCall?.[1] as Record<string, {avatar?: string; login?: string; displayName?: string}>;
@@ -8818,7 +8814,6 @@ describe('ReportUtils', () => {
     describe('getReportOrDraftReport', () => {
         const mockReportIDIndex = 1;
         const mockReportID = mockReportIDIndex.toString();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const mockSearchReport: Report = {
             ...createRandomReport(mockReportIDIndex, undefined),
             reportName: 'Search Report',
@@ -8848,7 +8843,6 @@ describe('ReportUtils', () => {
         });
 
         test('returns onyx report when search report is not found but onyx report exists', async () => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
@@ -8856,7 +8850,6 @@ describe('ReportUtils', () => {
         });
 
         test('returns draft report when neither search nor onyx report exists but draft exists', async () => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports);
@@ -8864,14 +8857,12 @@ describe('ReportUtils', () => {
         });
 
         test('returns fallback report when no other reports exist', () => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const searchReports: Report[] = [];
             const result = getReportOrDraftReport('unknownReportID', searchReports, mockFallbackReport);
             expect(result).toEqual(mockFallbackReport);
         });
 
         test('returns undefined when no reports exist and no fallback provided', () => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const searchReports: Report[] = [];
             const result = getReportOrDraftReport(mockReportID, searchReports);
             expect(result).toBeUndefined();
@@ -8903,7 +8894,6 @@ describe('ReportUtils', () => {
         });
 
         test('prioritizes onyx report over draft report when both exist', async () => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
@@ -8913,7 +8903,6 @@ describe('ReportUtils', () => {
         });
 
         test('prioritizes draft report over fallback when both exist', async () => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
             const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport);

@@ -354,7 +354,8 @@ function MoneyRequestReportTransactionList({
             } as ReportScreenNavigationProps;
 
             if (!reportIDToNavigate) {
-                const transactionThreadReport = createTransactionThreadReport(report, iouAction);
+                const transaction = sortedTransactions.find((t) => t.transactionID === activeTransactionID);
+                const transactionThreadReport = createTransactionThreadReport(report, iouAction, transaction);
                 if (transactionThreadReport) {
                     reportIDToNavigate = transactionThreadReport.reportID;
                     routeParams.reportID = reportIDToNavigate;
@@ -372,7 +373,7 @@ function MoneyRequestReportTransactionList({
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
-        [report, reportActions, visualOrderTransactionIDs, markReportIDAsExpense],
+        [reportActions, visualOrderTransactionIDs, sortedTransactions, report, markReportIDAsExpense],
     );
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {

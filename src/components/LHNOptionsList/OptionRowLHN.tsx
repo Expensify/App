@@ -80,7 +80,7 @@ function OptionRowLHN({
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
 
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -161,7 +161,7 @@ function OptionRowLHN({
     const statusText = optionItem.status?.text ?? '';
     const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
     const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
-    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate, optionItem?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone, preferredLocale);
+    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate, optionItem?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
     const isStatusVisible = !!emojiCode && isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 
