@@ -329,7 +329,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
 
-    const reportName = Parser.htmlToText(getReportNameFromUtils(report, reportAttributes?.reports));
+    const reportName = Parser.htmlToText(getReportNameFromUtils(report, reportAttributes));
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle

@@ -456,7 +456,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportNameFromUtils(report, reportAttributes?.reports))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportNameFromUtils(report, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>

@@ -37,7 +37,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getReportName as getReportNameFromUtils} from '@libs/ReportNameUtils';
 import {
     canJoinChat,
     canUserPerformWriteAction,
@@ -47,7 +46,8 @@ import {
     getParticipantsAccountIDsForDisplay,
     getPolicyDescriptionText,
     getPolicyName,
-    getReportDescription,
+    getReportDescription, // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getReportName as getReportNameDeprecated,
     hasReportNameError,
     isAdminRoom,
     isArchivedReport,
@@ -77,7 +77,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type HeaderViewProps = {
@@ -114,6 +113,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
+    const invoiceReceiverPolicyID = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
+    const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const isReportArchived = isArchivedReport(reportNameValuePairs);
 
     const {translate, localeCompare} = useLocalize();
@@ -141,12 +142,17 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // Use sorted display names for the title for group chats on native small screen widths
     const reportID = reportHeaderData?.reportID;
     let reportNameFromAttributes: string | undefined;
-    if (reportID && reportAttributes?.reports) {
-        const reports = reportAttributes.reports as ReportAttributesDerivedValue['reports'];
-        const reportAttr = reports[reportID];
+    if (reportID && reportAttributes) {
+        const reportAttr = reportAttributes[reportID];
         reportNameFromAttributes = reportAttr?.reportName;
     }
-    const title: string = reportNameFromAttributes ?? getReportNameFromUtils(reportHeaderData) ?? '';
+    // Fallback to deprecated getReportName when reportAttributes is not available (e.g., in tests)
+    // This ensures computed names (invoice rooms, group chats) work correctly with full context
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const title: string =
+        reportNameFromAttributes ??
+        getReportNameDeprecated(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived) ??
+        '';
     const subtitle = getChatRoomSubtitle(reportHeaderData, false, isReportHeaderDataArchived);
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
     const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, isParentReportHeaderDataArchived);
