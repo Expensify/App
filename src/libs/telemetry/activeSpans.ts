@@ -12,14 +12,11 @@ type StartSpanExtraOptions = Partial<{
     minDuration: number;
 }>;
 
-function startSpan(spanId: string, options: StartSpanOptions, extraOptions: StartSpanExtraOptions = {}): ReturnType<typeof Sentry.startInactiveSpan> | undefined {
+function startSpan(spanId: string, options: StartSpanOptions, extraOptions: StartSpanExtraOptions = {}) {
     // End any existing span for this name
     cancelSpan(spanId);
     const span = Sentry.startInactiveSpan(options);
 
-    if (!span) {
-        return;
-    }
     if (extraOptions.minDuration) {
         span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION, extraOptions.minDuration);
     }
