@@ -1,7 +1,5 @@
 import React from 'react';
-import type {ValueOf} from 'type-fest';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionList/types';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
 import useOnyx from '@hooks/useOnyx';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
