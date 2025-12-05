@@ -231,6 +231,9 @@ type SelectionListHandle<TItem extends ListItem> = {
 
     /** Scrolls to the focused input on SplitExpensePage */
     scrollToFocusedInput: (item: TItem) => void;
+
+    /** Sets the focus to the textInput component */
+    focusTextInput: () => void;
 };
 
 type DataDetailsType<TItem extends ListItem> = {
