@@ -1,6 +1,8 @@
+import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
+import ExpenseReportListItem from '@components/SelectionListWithSections/Search/ExpenseReportListItem';
 import TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
 import TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
 import type {
@@ -12,13 +14,14 @@ import type {
     TransactionReportGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
 } from '@components/SelectionListWithSections/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import Navigation from '@navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportUserActions from '@userActions/Report';
 import {createTransactionThreadReport} from '@userActions/Report';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SearchUtils from '@userActions/Search';
-import {setOptimisticDataForTransactionThreadPreview, updateSearchResultsWithTransactionThreadReportID} from '@userActions/Search';
+import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -44,11 +47,19 @@ jest.mock('@userActions/Report', () => ({
 }));
 jest.mock('@userActions/Search', () => ({
     ...jest.requireActual<typeof SearchUtils>('@userActions/Search'),
-    updateSearchResultsWithTransactionThreadReportID: jest.fn(),
+    setOptimisticDataForTransactionThreadPreview: jest.fn(),
 }));
 
 const adminAccountID = 18439984;
 const adminEmail = 'admin@policy.com';
+
+const emptyPersonalDetails = {
+    accountID: 0,
+    avatar: '',
+    displayName: undefined,
+    login: undefined,
+};
+
 const approverAccountID = 1111111;
 const approverEmail = 'approver@policy.com';
 const overlimitApproverAccountID = 222222;
@@ -91,6 +102,7 @@ const report1 = {
     total: -5000,
     type: 'expense',
     unheldTotal: -5000,
+    transactionCount: 1,
 } as const;
 
 const report2 = {
@@ -112,6 +124,7 @@ const report2 = {
     total: -5000,
     type: 'expense',
     unheldTotal: -5000,
+    transactionCount: 1,
 } as const;
 
 const report3 = {
@@ -136,6 +149,7 @@ const report3 = {
     total: 4400,
     type: 'iou',
     unheldTotal: 4400,
+    transactionCount: 2,
 } as const;
 
 const report4 = {
@@ -166,6 +180,7 @@ const report5 = {
     total: 0,
     type: 'expense',
     unheldTotal: 0,
+    transactionCount: 0,
 } as const;
 
 const reportAction1: OnyxTypes.ReportAction = {
@@ -381,7 +396,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2024-12-21',
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: true,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -392,16 +406,14 @@ const searchResults: OnyxTypes.SearchResults = {
             reportID,
             tag: '',
             transactionID,
-            transactionThreadReportID: '456',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
             moneyRequestReportActionID: '789',
             errors: undefined,
-            filename: undefined,
-            convertedAmount: -5000,
-            convertedCurrency: 'USD',
+            groupAmount: -5000,
+            groupCurrency: 'USD',
         },
         [`transactions_${transactionID2}`]: {
             amount: -5000,
@@ -415,7 +427,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2024-12-21',
             currency: 'USD',
             hasEReceipt: false,
-            isFromOneTransactionReport: true,
             merchant: 'Expense',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -425,7 +436,6 @@ const searchResults: OnyxTypes.SearchResults = {
             reportID: reportID2,
             tag: '',
             transactionID: transactionID2,
-            transactionThreadReportID: '456',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -433,9 +443,8 @@ const searchResults: OnyxTypes.SearchResults = {
             moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
-            filename: undefined,
-            convertedAmount: -5000,
-            convertedCurrency: 'USD',
+            groupAmount: -5000,
+            groupCurrency: 'USD',
         },
         ...allViolations,
         [`transactions_${transactionID3}`]: {
@@ -450,7 +459,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2025-03-05',
             currency: 'VND',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -460,7 +468,6 @@ const searchResults: OnyxTypes.SearchResults = {
             reportID: reportID3,
             tag: '',
             transactionID: transactionID3,
-            transactionThreadReportID: '8287398995021380',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -468,9 +475,8 @@ const searchResults: OnyxTypes.SearchResults = {
             moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
-            filename: undefined,
-            convertedAmount: -5000,
-            convertedCurrency: 'USD',
+            groupAmount: -5000,
+            groupCurrency: 'USD',
         },
         [`transactions_${transactionID4}`]: {
             amount: 3200,
@@ -484,7 +490,6 @@ const searchResults: OnyxTypes.SearchResults = {
             created: '2025-03-05',
             currency: 'VND',
             hasEReceipt: false,
-            isFromOneTransactionReport: false,
             merchant: '(none)',
             modifiedAmount: 0,
             modifiedCreated: '',
@@ -494,7 +499,6 @@ const searchResults: OnyxTypes.SearchResults = {
             reportID: reportID3,
             tag: '',
             transactionID: transactionID4,
-            transactionThreadReportID: '1014872441234902',
             receipt: undefined,
             taxAmount: undefined,
             mccGroup: undefined,
@@ -502,9 +506,8 @@ const searchResults: OnyxTypes.SearchResults = {
             moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
-            filename: undefined,
-            convertedAmount: -5000,
-            convertedCurrency: 'USD',
+            groupAmount: -5000,
+            groupCurrency: 'USD',
         },
     },
     search: {
@@ -620,6 +623,7 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
             count: 4,
             currency: 'USD',
             total: 40,
+            state: 8,
         },
         [`${CONST.SEARCH.GROUP_PREFIX}${cardID2}` as const]: {
             entryID: entryID2,
@@ -629,6 +633,7 @@ const searchResultsGroupByWithdrawalID: OnyxTypes.SearchResults = {
             count: 6,
             currency: 'USD',
             total: 20,
+            state: 8,
         },
     },
     search: {
@@ -781,7 +786,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         hasEReceipt: false,
-        isFromOneTransactionReport: true,
         keyForList: '1',
         merchant: 'Expense',
         modifiedAmount: 0,
@@ -796,28 +800,21 @@ const transactionsListItems = [
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
         tag: '',
-        to: {
-            accountID: 0,
-            avatar: '',
-            displayName: undefined,
-            login: undefined,
-        },
+        to: emptyPersonalDetails,
         transactionID: '1',
-        transactionThreadReportID: '456',
         receipt: undefined,
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
         moneyRequestReportActionID: '789',
         errors: undefined,
-        filename: undefined,
         violations: [],
-        convertedAmount: -5000,
-        convertedCurrency: 'USD',
+        groupAmount: -5000,
+        groupCurrency: 'USD',
     },
     {
-        action: 'review',
-        allActions: ['review', 'approve'],
+        action: 'approve',
+        allActions: ['approve'],
         amount: -5000,
         report: report2,
         policy,
@@ -842,7 +839,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         hasEReceipt: false,
-        isFromOneTransactionReport: true,
         keyForList: '2',
         merchant: 'Expense',
         modifiedAmount: 0,
@@ -863,7 +859,6 @@ const transactionsListItems = [
             login: adminEmail,
         },
         transactionID: '2',
-        transactionThreadReportID: '456',
         receipt: undefined,
         taxAmount: undefined,
         mccGroup: undefined,
@@ -871,15 +866,14 @@ const transactionsListItems = [
         moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
-        filename: undefined,
         violations: [
             {
                 name: CONST.VIOLATIONS.MISSING_CATEGORY,
                 type: CONST.VIOLATION_TYPES.VIOLATION,
             },
         ],
-        convertedAmount: -5000,
-        convertedCurrency: 'USD',
+        groupAmount: -5000,
+        groupCurrency: 'USD',
     },
     {
         amount: 1200,
@@ -897,7 +891,6 @@ const transactionsListItems = [
         created: '2025-03-05',
         currency: 'VND',
         hasEReceipt: false,
-        isFromOneTransactionReport: false,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -907,7 +900,6 @@ const transactionsListItems = [
         reportID: '99999',
         tag: '',
         transactionID: '3',
-        transactionThreadReportID: '8287398995021380',
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -937,10 +929,9 @@ const transactionsListItems = [
         moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
-        filename: undefined,
         violations: [],
-        convertedAmount: -5000,
-        convertedCurrency: 'USD',
+        groupAmount: -5000,
+        groupCurrency: 'USD',
     },
     {
         amount: 3200,
@@ -958,7 +949,6 @@ const transactionsListItems = [
         created: '2025-03-05',
         currency: 'VND',
         hasEReceipt: false,
-        isFromOneTransactionReport: false,
         merchant: '(none)',
         modifiedAmount: 0,
         modifiedCreated: '',
@@ -968,7 +958,6 @@ const transactionsListItems = [
         reportID: '99999',
         tag: '',
         transactionID: '4',
-        transactionThreadReportID: '1014872441234902',
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -998,10 +987,9 @@ const transactionsListItems = [
         moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
-        filename: undefined,
         violations: [],
-        convertedAmount: -5000,
-        convertedCurrency: 'USD',
+        groupAmount: -5000,
+        groupCurrency: 'USD',
     },
 ] as TransactionListItemType[];
 
@@ -1014,12 +1002,16 @@ const transactionReportGroupListItems = [
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
+        formattedFrom: 'Admin',
+        formattedStatus: 'Draft',
+        formattedTo: '',
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
             displayName: 'Admin',
-            login: adminEmail,
+            login: 'admin@policy.com',
         },
+        hasVisibleViolations: false,
         isOneTransactionReport: true,
         isWaitingOnBankAccount: false,
         keyForList: '123456789',
@@ -1029,15 +1021,12 @@ const transactionReportGroupListItems = [
         policyID: 'A1B2C3',
         reportID: '123456789',
         reportName: 'Expense Report #123',
+        shouldShowYear: true,
         stateNum: 0,
         statusNum: 0,
-        to: {
-            accountID: 0,
-            avatar: '',
-            displayName: undefined,
-            login: undefined,
-        },
+        to: emptyPersonalDetails,
         total: -5000,
+        transactionCount: 1,
         transactions: [
             {
                 action: 'submit',
@@ -1066,7 +1055,6 @@ const transactionReportGroupListItems = [
                     login: adminEmail,
                 },
                 hasEReceipt: false,
-                isFromOneTransactionReport: true,
                 keyForList: '1',
                 merchant: 'Expense',
                 modifiedAmount: 0,
@@ -1081,24 +1069,17 @@ const transactionReportGroupListItems = [
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
                 tag: '',
-                to: {
-                    accountID: 0,
-                    avatar: '',
-                    displayName: undefined,
-                    login: undefined,
-                },
+                to: emptyPersonalDetails,
                 transactionID: '1',
-                transactionThreadReportID: '456',
                 receipt: undefined,
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
                 moneyRequestReportActionID: '789',
                 errors: undefined,
-                filename: undefined,
                 violations: [],
-                convertedAmount: -5000,
-                convertedCurrency: 'USD',
+                groupAmount: -5000,
+                groupCurrency: 'USD',
             },
         ],
         type: 'expense',
@@ -1107,17 +1088,21 @@ const transactionReportGroupListItems = [
     {
         groupedBy: 'expense-report',
         accountID: 18439984,
-        action: 'review',
-        allActions: ['review', 'approve'],
+        action: 'approve',
+        allActions: ['approve'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
+        formattedFrom: 'Admin',
+        formattedStatus: 'Outstanding',
+        formattedTo: 'Admin',
         from: {
             accountID: 18439984,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
             displayName: 'Admin',
             login: adminEmail,
         },
+        hasVisibleViolations: true,
         isOneTransactionReport: true,
         isWaitingOnBankAccount: false,
         keyForList: '11111',
@@ -1127,6 +1112,7 @@ const transactionReportGroupListItems = [
         policyID: 'A1B2C3',
         reportID: '11111',
         reportName: 'Expense Report #123',
+        shouldShowYear: true,
         stateNum: 1,
         statusNum: 1,
         to: {
@@ -1136,10 +1122,11 @@ const transactionReportGroupListItems = [
             login: adminEmail,
         },
         total: -5000,
+        transactionCount: 1,
         transactions: [
             {
-                action: 'review',
-                allActions: ['review', 'approve'],
+                action: 'approve',
+                allActions: ['approve'],
                 report: report2,
                 policy,
                 reportAction: reportAction2,
@@ -1170,7 +1157,6 @@ const transactionReportGroupListItems = [
                         type: CONST.VIOLATION_TYPES.VIOLATION,
                     },
                 ],
-                isFromOneTransactionReport: true,
                 keyForList: '2',
                 merchant: 'Expense',
                 modifiedAmount: 0,
@@ -1191,7 +1177,6 @@ const transactionReportGroupListItems = [
                     login: adminEmail,
                 },
                 transactionID: '2',
-                transactionThreadReportID: '456',
                 receipt: undefined,
                 taxAmount: undefined,
                 mccGroup: undefined,
@@ -1199,9 +1184,8 @@ const transactionReportGroupListItems = [
                 moneyRequestReportActionID: '789',
                 pendingAction: undefined,
                 errors: undefined,
-                filename: undefined,
-                convertedAmount: -5000,
-                convertedCurrency: 'USD',
+                groupAmount: -5000,
+                groupCurrency: 'USD',
             },
         ],
         type: 'expense',
@@ -1214,6 +1198,10 @@ const transactionReportGroupListItems = [
         chatType: undefined,
         created: '2025-03-05 16:34:27',
         currency: 'VND',
+        formattedFrom: 'Admin',
+        formattedStatus: 'Outstanding',
+        formattedTo: 'Approver',
+        hasVisibleViolations: false,
         isOneTransactionReport: false,
         isOwnPolicyExpenseChat: false,
         isWaitingOnBankAccount: false,
@@ -1225,9 +1213,11 @@ const transactionReportGroupListItems = [
         private_isArchived: '',
         reportID: '99999',
         reportName: 'Approver owes ₫44.00',
+        shouldShowYear: true,
         stateNum: 1,
         statusNum: 1,
         total: 4400,
+        transactionCount: 2,
         type: 'iou',
         unheldTotal: 4400,
         action: 'pay',
@@ -1255,12 +1245,16 @@ const transactionReportGroupListItems = [
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         currency: 'USD',
+        formattedFrom: 'Admin',
+        formattedStatus: 'Draft',
+        formattedTo: '',
         from: {
-            accountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
-            avatar: '',
-            displayName: undefined,
-            login: undefined,
+            accountID: 18439984,
+            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
+            displayName: 'Admin',
+            login: 'admin@policy.com',
         },
+        hasVisibleViolations: false,
         isOneTransactionReport: true,
         isWaitingOnBankAccount: false,
         keyForList: reportID5,
@@ -1270,15 +1264,12 @@ const transactionReportGroupListItems = [
         policyID: 'A1B2C3',
         reportID: reportID5,
         reportName: 'Expense Report #123',
+        shouldShowYear: true,
         stateNum: 0,
         statusNum: 0,
-        to: {
-            accountID: 0,
-            avatar: '',
-            displayName: undefined,
-            login: undefined,
-        },
+        to: emptyPersonalDetails,
         total: 0,
+        transactionCount: 0,
         transactions: [],
         type: 'expense',
         unheldTotal: 0,
@@ -1419,6 +1410,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         count: 4,
         currency: 'USD',
         total: 40,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1431,6 +1423,7 @@ const transactionWithdrawalIDGroupListItems: TransactionWithdrawalIDGroupListIte
         count: 6,
         currency: 'USD',
         total: 20,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1446,6 +1439,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         count: 6,
         currency: 'USD',
         total: 20,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1458,6 +1452,7 @@ const transactionWithdrawalIDGroupListItemsSorted: TransactionWithdrawalIDGroupL
         count: 4,
         currency: 'USD',
         total: 40,
+        state: 8,
         groupedBy: 'withdrawal-id',
         transactions: [],
         transactionsQueryJSON: undefined,
@@ -1473,15 +1468,15 @@ describe('SearchUIUtils', () => {
     });
     describe('Test getAction', () => {
         test('Should return `View` action for an invalid key', () => {
-            const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, 'invalid_key', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
         test('Should return `Submit` action for transaction on policy with delayed submission and no violations', () => {
-            let action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            let action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
-            action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            action = SearchUIUtils.getActions(searchResults.data, {}, `transactions_${transactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
@@ -1504,36 +1499,12 @@ describe('SearchUIUtils', () => {
                     managerID: adminAccountID,
                 },
             };
-            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, submitterAccountID, '').at(0)).toStrictEqual(
+            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0)).toStrictEqual(
                 CONST.SEARCH.ACTION_TYPES.VIEW,
             );
-            expect(
-                SearchUIUtils.getActions(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, submitterAccountID, '').at(0),
-            ).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
-        });
-
-        test('Should return `Review` action for transaction with duplicate violation', async () => {
-            const duplicateViolation = {
-                [`transactionViolations_${transactionID2}`]: [
-                    {
-                        name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-                        type: CONST.VIOLATION_TYPES.WARNING,
-                        showInReview: true,
-                    },
-                ],
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`]);
-
-            const action = SearchUIUtils.getActions(searchResults.data, duplicateViolation, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
-        });
-
-        test('Should return `Review` action for transaction on policy with delayed submission and with violations', () => {
-            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
-
-            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
+            expect(SearchUIUtils.getActions(localSearchResults, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0)).toStrictEqual(
+                CONST.SEARCH.ACTION_TYPES.VIEW,
+            );
         });
 
         test('Should return `Paid` action for a manually settled report', () => {
@@ -1551,7 +1522,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -1575,7 +1546,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, paidReportID, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAID);
         });
 
@@ -1591,7 +1562,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
@@ -1609,27 +1580,13 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${closedReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
 
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.DONE);
         });
 
-        test('Should return `Review` action if report has errors', () => {
-            const errorReportID = 'report_error';
-            const localSearchResults = {
-                ...searchResults.data,
-                [`report_${errorReportID}`]: {
-                    ...searchResults.data[`report_${reportID}`],
-                    reportID: errorReportID,
-                    errors: {error: 'An error'},
-                },
-            };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${errorReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
-        });
-
         test('Should return `View` action for non-money request reports', () => {
-            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID4}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
 
@@ -1643,57 +1600,32 @@ describe('SearchUIUtils', () => {
                     reportID: 'non_existent_report',
                 },
             };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${orphanedTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${orphanedTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
         test('Should return `View` action for a transaction in a multi-transaction report', () => {
+            const multiTransactionReportID = 'report_multi';
             const multiTransactionID = 'transaction_multi';
             const localSearchResults = {
                 ...searchResults.data,
+                [`report_${multiTransactionReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    transactionCount: 2,
+                },
                 [`transactions_${multiTransactionID}`]: {
                     ...searchResults.data[`transactions_${transactionID}`],
                     transactionID: multiTransactionID,
-                    isFromOneTransactionReport: false,
+                    reportID: multiTransactionReportID,
                 },
             };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${multiTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
-        });
-        test('Should return `Review` action if report export has failed', () => {
-            const failedExportReportID = 'report_failed_export';
-            const localSearchResults = {
-                ...searchResults.data,
-                [`report_${failedExportReportID}`]: {
-                    ...searchResults.data[`report_${reportID}`],
-                    reportID: failedExportReportID,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                },
-                [`reportNameValuePairs_${failedExportReportID}`]: {
-                    exportFailedTime: '2024-01-01',
-                },
-            };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `report_${failedExportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
-        });
-        test('Should return `Review` action if transaction has errors', () => {
-            const errorTransactionID = 'transaction_error';
-            const localSearchResults = {
-                ...searchResults.data,
-                [`transactions_${errorTransactionID}`]: {
-                    ...searchResults.data[`transactions_${transactionID}`],
-                    transactionID: errorTransactionID,
-                    errors: {error: 'An error'},
-                },
-            };
-            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${errorTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
-            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.REVIEW);
         });
         test('Should return `Pay` action for an IOU report ready to be paid', async () => {
             Onyx.merge(ONYXKEYS.SESSION, {accountID: adminAccountID});
             await waitForBatchedUpdates();
             const iouReportKey = `report_${reportID3}`;
-            const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
     });
@@ -1707,8 +1639,8 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.STATUS.EXPENSE.ALL, undefined)).toStrictEqual(TransactionListItem);
         });
 
-        it('should return TransactionGroupListItem when type is EXPENSE-REPORT', () => {
-            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(TransactionGroupListItem);
+        it('should return ExpenseReportListItem when type is EXPENSE-REPORT', () => {
+            expect(SearchUIUtils.getListItem(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.STATUS.EXPENSE.ALL)).toStrictEqual(ExpenseReportListItem);
         });
 
         it('should return TransactionListItem when type is TRIP', () => {
@@ -1734,15 +1666,15 @@ describe('SearchUIUtils', () => {
 
     describe('Test getSections', () => {
         it('should return getReportActionsSections result when type is CHAT', () => {
-            expect(
-                SearchUIUtils.getSections({
-                    type: CONST.SEARCH.DATA_TYPES.CHAT,
-                    data: searchResults.data,
-                    currentAccountID: 2074551,
-                    currentUserEmail: '',
-                    formatPhoneNumber,
-                }),
-            ).toStrictEqual(reportActionListItems);
+            const [filteredReportActions, allReportActionsLength] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.CHAT,
+                data: searchResults.data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                formatPhoneNumber,
+            });
+            expect(filteredReportActions).toStrictEqual(reportActionListItems);
+            expect(allReportActionsLength).toBe(6);
         });
 
         it('should return getTransactionsSections result when groupBy is undefined', () => {
@@ -1753,7 +1685,7 @@ describe('SearchUIUtils', () => {
                     currentAccountID: 20745,
                     currentUserEmail: '',
                     formatPhoneNumber,
-                }),
+                })[0],
             ).toEqual(transactionsListItems);
         });
 
@@ -1777,14 +1709,14 @@ describe('SearchUIUtils', () => {
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            }) as TransactionListItemType[];
+            })[0] as TransactionListItemType[];
 
             const distanceTransaction = result.find((item) => item.transactionID === distanceTransactionID);
 
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 50;
+            const expectedPropertyCount = 47;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1808,7 +1740,7 @@ describe('SearchUIUtils', () => {
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            }) as TransactionGroupListItemType[];
+            })[0] as TransactionGroupListItemType[];
 
             const reportGroup = result.find((group) => group.transactions?.some((transaction) => transaction.transactionID === distanceTransactionID));
 
@@ -1817,7 +1749,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 50;
+            const expectedPropertyCount = 47;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1829,7 +1761,7 @@ describe('SearchUIUtils', () => {
                     currentAccountID: 2074551,
                     currentUserEmail: '',
                     formatPhoneNumber,
-                }),
+                })[0],
             ).toStrictEqual(transactionReportGroupListItems);
         });
 
@@ -1868,14 +1800,14 @@ describe('SearchUIUtils', () => {
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            });
+            })[0];
             const resultReportFirst = SearchUIUtils.getSections({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 data: testDataReportFirst,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
                 formatPhoneNumber,
-            });
+            })[0];
 
             expect(resultTransactionFirst).toBeDefined();
             expect(Array.isArray(resultTransactionFirst)).toBe(true);
@@ -1896,7 +1828,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
-                }),
+                })[0],
             ).toStrictEqual(transactionMemberGroupListItems);
         });
 
@@ -1909,7 +1841,7 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
-                }),
+                })[0],
             ).toStrictEqual(transactionCardGroupListItems);
         });
 
@@ -1922,8 +1854,31 @@ describe('SearchUIUtils', () => {
                     currentUserEmail: '',
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
-                }),
+                })[0],
             ).toStrictEqual(transactionWithdrawalIDGroupListItems);
+        });
+
+        it('should filter invalid withdrawal-id entries without accountNumber', () => {
+            const staleCacheData: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2074551` as const]: {
+                    accountID: 2074551,
+                    count: 1,
+                    currency: 'USD',
+                    total: 100,
+                },
+            };
+
+            const [result] = SearchUIUtils.getSections({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                data: staleCacheData,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                formatPhoneNumber,
+                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+            }) as [TransactionWithdrawalIDGroupListItemType[], number];
+
+            expect(result).toHaveLength(0);
         });
     });
 
@@ -1992,7 +1947,8 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {})
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -2007,7 +1963,7 @@ describe('SearchUIUtils', () => {
                     expect.objectContaining({
                         translationPath: 'common.reports',
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                        icon: Expensicons.Document,
+                        icon: icons.current.Document,
                     }),
                     expect.objectContaining({
                         translationPath: 'common.chats',
@@ -2070,18 +2026,19 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
             const sections = SearchUIUtils.createTypeMenuSections(
+                icons.current,
                 adminEmail,
                 adminAccountID,
                 mockCardFeedsByPolicy,
                 undefined,
                 mockPolicies,
-                undefined,
                 mockSavedSearches,
                 false,
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -2132,18 +2089,19 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
             const sections = SearchUIUtils.createTypeMenuSections(
+                icons.current,
                 adminEmail,
                 adminAccountID,
                 mockCardFeedsByPolicy,
                 undefined,
                 mockPolicies,
-                undefined,
                 mockSavedSearches,
                 false,
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -2173,7 +2131,8 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {});
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -2182,7 +2141,8 @@ describe('SearchUIUtils', () => {
         it('should not show saved section when there are no saved searches', () => {
             const mockSavedSearches = {};
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {});
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -2198,18 +2158,19 @@ describe('SearchUIUtils', () => {
                 },
             };
 
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
             const sections = SearchUIUtils.createTypeMenuSections(
+                icons.current,
                 adminEmail,
                 adminAccountID,
                 {},
                 undefined,
                 {},
-                undefined,
                 mockSavedSearches,
                 false, // not offline
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2226,18 +2187,19 @@ describe('SearchUIUtils', () => {
                 },
             };
 
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
             const sections = SearchUIUtils.createTypeMenuSections(
+                icons.current,
                 adminEmail,
                 adminAccountID,
                 {},
                 undefined,
                 {},
-                undefined,
                 mockSavedSearches,
                 true, // offline
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2258,7 +2220,8 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {});
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -2278,18 +2241,19 @@ describe('SearchUIUtils', () => {
                 },
             };
 
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
             const sections = SearchUIUtils.createTypeMenuSections(
+                icons.current,
                 adminEmail,
                 adminAccountID,
                 {}, // no card feeds
                 undefined,
                 mockPolicies,
-                undefined,
                 {},
                 false,
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -2320,7 +2284,8 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {});
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -2345,7 +2310,8 @@ describe('SearchUIUtils', () => {
             };
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
-            const sections = SearchUIUtils.createTypeMenuSections(adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false, {});
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
 
             expect(accountingSection).toBeDefined();
@@ -2354,7 +2320,8 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const menuItems = SearchUIUtils.createTypeMenuSections(undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
+            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
+            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {})
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -2382,7 +2349,6 @@ describe('SearchUIUtils', () => {
                         created: '2025-05-26',
                         currency: 'USD',
                         hasEReceipt: false,
-                        isFromOneTransactionReport: true,
                         merchant: '(none)',
                         modifiedAmount: -1000,
                         modifiedCreated: '2025-05-22',
@@ -2396,10 +2362,9 @@ describe('SearchUIUtils', () => {
                         reportID: '6523565988285061',
                         tag: '',
                         transactionID: '1805965960759424086',
-                        transactionThreadReportID: '4139222832581831',
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                        convertedAmount: -5000,
-                        convertedCurrency: 'USD',
+                        groupAmount: -5000,
+                        groupCurrency: 'USD',
                     },
                 },
                 search: {
@@ -2419,10 +2384,10 @@ describe('SearchUIUtils', () => {
         Onyx.merge(ONYXKEYS.SESSION, {accountID: overlimitApproverAccountID});
         searchResults.data[`policy_${policyID}`].role = CONST.POLICY.ROLE.USER;
         return waitForBatchedUpdates().then(() => {
-            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, overlimitApproverAccountID, '').at(0);
+            let action = SearchUIUtils.getActions(searchResults.data, allViolations, `report_${reportID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
 
-            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, overlimitApproverAccountID, '').at(0);
+            action = SearchUIUtils.getActions(searchResults.data, allViolations, `transactions_${transactionID2}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
         });
     });
@@ -2509,7 +2474,6 @@ describe('SearchUIUtils', () => {
                     created: '2025-05-26',
                     currency: 'USD',
                     hasEReceipt: false,
-                    isFromOneTransactionReport: true,
                     merchant: '(none)',
                     modifiedAmount: -1000,
                     modifiedCreated: '2025-05-22',
@@ -2523,9 +2487,8 @@ describe('SearchUIUtils', () => {
                     reportID: '6523565988285061',
                     tag: '',
                     transactionID: '1805965960759424086',
-                    transactionThreadReportID: '4139222832581831',
-                    convertedAmount: -5000,
-                    convertedCurrency: 'USD',
+                    groupAmount: -5000,
+                    groupCurrency: 'USD',
                 },
             },
             search: {
@@ -2538,7 +2501,7 @@ describe('SearchUIUtils', () => {
             },
         };
         return waitForBatchedUpdates().then(() => {
-            const action = SearchUIUtils.getActions(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminAccountID, '').at(0);
+            const action = SearchUIUtils.getActions(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.APPROVE);
         });
     });
@@ -2818,33 +2781,85 @@ describe('SearchUIUtils', () => {
         const threadReport = {reportID: threadReportID};
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
-        const iouReportAction = {reportActionID: transactionListItem.moneyRequestReportActionID} as OnyxTypes.ReportAction;
-        const hash = 12345;
         const backTo = '/search/all';
 
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
         test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
-            const setOptimisticDataForTransactionThreadMock = jest.spyOn(require('@userActions/Search'), 'setOptimisticDataForTransactionThreadPreview');
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
 
-            expect(setOptimisticDataForTransactionThreadMock).toHaveBeenCalled();
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, iouReportAction);
-            expect(updateSearchResultsWithTransactionThreadReportID).toHaveBeenCalledWith(hash, transactionID, threadReportID);
+            expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, {reportActionID: transactionListItem.moneyRequestReportActionID}, undefined, undefined);
+        });
+
+        test('Should create transaction thread report for legacy transactions without IOU action (moneyRequestReportActionID = "0")', () => {
+            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
+
+            // Create a legacy transaction item with moneyRequestReportActionID = '0'
+            const legacyTransactionItem = {
+                ...transactionListItem,
+                moneyRequestReportActionID: '0',
+            };
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(legacyTransactionItem, backTo, undefined, undefined, false);
+
+            // Extract the transaction by removing UI-specific and search-specific fields
+            const {
+                keyForList,
+                action,
+                allActions,
+                report,
+                from,
+                to,
+                formattedFrom,
+                formattedTo,
+                formattedTotal,
+                formattedMerchant,
+                date,
+                shouldShowMerchant,
+                shouldShowYear,
+                isAmountColumnWide,
+                isTaxAmountColumnWide,
+                violations,
+                hash: itemHash,
+                moneyRequestReportActionID,
+                canDelete,
+                accountID,
+                policyID: searchPolicyID,
+                ...expectedTransaction
+            } = legacyTransactionItem;
+
+            // For legacy transactions (moneyRequestReportActionID = '0'), should pass transaction and violations
+            // reportActionID will be undefined since there's no IOU action
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report, {reportActionID: undefined}, expect.objectContaining(expectedTransaction), violations);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         test('Should handle navigation if shouldNavigate = true', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, hash, backTo, undefined, true);
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}));
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, true);
+            // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
+            // instead of the transaction thread report
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
         });
     });
 
     describe('setOptimisticDataForTransactionThreadPreview', () => {
+        // These tests need the real implementation, so restore it before each test
+        beforeEach(() => {
+            (setOptimisticDataForTransactionThreadPreview as jest.Mock).mockRestore();
+            // Re-import the real implementation
+            const realModule = jest.requireActual<typeof SearchUtils>('@userActions/Search');
+            (setOptimisticDataForTransactionThreadPreview as jest.Mock).mockImplementation(realModule.setOptimisticDataForTransactionThreadPreview);
+        });
+
         it('Should create an optimistic parent report if the hasParentReport is false', async () => {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
@@ -2886,11 +2901,11 @@ describe('SearchUIUtils', () => {
         it('Should create an optimistic transaction thread if the hasTransactionThreadReport is false', async () => {
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const transactionListItem = transactionsListItems.at(0) as TransactionListItemType;
-            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasTransactionThreadReport: false} as SearchUtils.TransactionPreviewData);
+            setOptimisticDataForTransactionThreadPreview(transactionListItem, {hasTransactionThreadReport: false} as SearchUtils.TransactionPreviewData, '456');
 
             await waitForBatchedUpdates();
 
-            const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${transactionListItem.transactionThreadReportID}`);
+            const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}456`);
 
             expect(transactionThread).toBeTruthy();
         });
