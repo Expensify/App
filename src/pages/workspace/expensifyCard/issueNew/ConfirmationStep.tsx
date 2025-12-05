@@ -107,7 +107,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                 />
                 <MenuItemWithTopDescription
-                    description={translate('workspace.card.issueNewCard.name')}
+                    description={translate('workspace.card.issueNewCard.cardName')}
                     title={data?.cardTitle}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
