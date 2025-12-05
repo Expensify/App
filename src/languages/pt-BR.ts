@@ -2274,9 +2274,10 @@ ${amount} para ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `em ${policyName}`,
-        generatingPDF: 'Gerando PDF...',
-        waitForPDF: 'Por favor, aguarde enquanto geramos o PDF.',
+        generatingPDF: 'Gerar PDF',
+        waitForPDF: 'Aguarde enquanto geramos o PDF.',
         errorPDF: 'Ocorreu um erro ao tentar gerar seu PDF.',
+        successPDF: 'Seu PDF foi gerado! Se ele não foi baixado automaticamente, use o botão abaixo.',
     },
     reportDescriptionPage: {
         roomDescription: 'Descrição do quarto',
