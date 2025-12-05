@@ -14815,14 +14815,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     const transactionThreadReportScreen = Navigation.getReportRouteByID(transactionThreadReportID);
 
     // Reset selected transactions in search after saving split expenses
-    const clearSelectedTransactions = params?.searchContext?.clearSelectedTransactions;
-    if (clearSelectedTransactions) {
-        if (params?.searchContext?.lastSearchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-            clearSelectedTransactions(true);
-        } else {
-            clearSelectedTransactions();
-        }
-    }
+    params?.searchContext?.clearSelectedTransactions?.(0, true);
 
     if (isSearchPageTopmostFullScreenRoute || !transactionReport?.parentReportID) {
         Navigation.dismissModal();
