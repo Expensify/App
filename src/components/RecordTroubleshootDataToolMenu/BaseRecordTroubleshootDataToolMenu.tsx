@@ -1,10 +1,9 @@
 import type JSZip from 'jszip';
 import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Alert} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import DeviceInfo from 'react-native-device-info';
-import {startProfiling, stopProfiling} from 'react-native-release-profiler';
 import Button from '@components/Button';
 import Switch from '@components/Switch';
 import TestToolRow from '@components/TestToolRow';
@@ -12,15 +11,11 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {disableLoggingAndFlushLogs, setShouldStoreLogs} from '@libs/actions/Console';
-import toggleProfileTool from '@libs/actions/ProfilingTool';
-import {setShouldRecordTroubleshootData} from '@libs/actions/Troubleshoot';
+import {cleanupAfterDisable, disableRecording, enableRecording, stopProfilingAndGetData} from '@libs/actions/Troubleshoot';
+import type {ProfilingData} from '@libs/actions/Troubleshoot';
 import {parseStringifiedMessages} from '@libs/Console';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
-import {Memoize} from '@libs/memoize';
-import Performance from '@libs/Performance';
-import {shouldShowProfileTool as shouldShowProfileToolUtil} from '@userActions/TestTool';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -88,30 +83,11 @@ function BaseRecordTroubleshootDataToolMenu({
     const styles = useThemeStyles();
     const [shouldRecordTroubleshootData] = useOnyx(ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA, {canBeMissing: true});
     const [capturedLogs] = useOnyx(ONYXKEYS.LOGS, {canBeMissing: true});
-    const [isProfilingInProgress] = useOnyx(ONYXKEYS.APP_PROFILING_IN_PROGRESS, {canBeMissing: true});
     const [shareUrls, setShareUrls] = useState<string[]>();
     const [isDisabled, setIsDisabled] = useState<boolean>(false);
     const [profileTracePath, setProfileTracePath] = useState<string>();
 
-    const shouldShowProfileTool = useMemo(() => shouldShowProfileToolUtil(), []);
-
-    const onToggleProfiling = useCallback(() => {
-        const shouldProfiling = !isProfilingInProgress;
-        if (shouldProfiling) {
-            setShareUrls(undefined);
-            Memoize.startMonitoring();
-            Performance.enableMonitoring();
-            startProfiling();
-        } else {
-            Performance.disableMonitoring();
-        }
-        toggleProfileTool(shouldProfiling);
-        return () => {
-            Performance.disableMonitoring();
-        };
-    }, [isProfilingInProgress]);
-
-    const getAppInfo = useCallback(() => {
+    const getAppInfo = useCallback((profilingData: ProfilingData) => {
         return Promise.all([DeviceInfo.getTotalMemory(), DeviceInfo.getUsedMemory()]).then(([totalMemory, usedMemory]) => {
             return JSON.stringify({
                 appVersion: pkg.version,
@@ -119,21 +95,15 @@ function BaseRecordTroubleshootDataToolMenu({
                 platform: getPlatform(),
                 totalMemory: formatBytes(totalMemory, 2),
                 usedMemory: formatBytes(usedMemory, 2),
-                memoizeStats: Memoize.stopMonitoring(),
-                performance: shouldShowProfileTool ? Performance.getPerformanceMeasures() : undefined,
+                memoizeStats: profilingData.memoizeStats,
+                performance: profilingData.performanceMeasures,
             });
         });
-    }, [shouldShowProfileTool]);
-
-    const onStopProfiling = useMemo(() => (shouldShowProfileTool ? stopProfiling : () => Promise.resolve()), [shouldShowProfileTool]);
+    }, []);
 
     const onToggle = () => {
-        if (shouldShowProfileTool) {
-            onToggleProfiling();
-        }
         if (!shouldRecordTroubleshootData) {
-            setShouldStoreLogs(true);
-            setShouldRecordTroubleshootData(true);
+            enableRecording();
 
             if (onEnableLogging) {
                 onEnableLogging();
@@ -146,8 +116,7 @@ function BaseRecordTroubleshootDataToolMenu({
 
         if (!capturedLogs) {
             Alert.alert(translate('initialSettingsPage.troubleshoot.noLogsToShare'));
-            disableLoggingAndFlushLogs();
-            setShouldRecordTroubleshootData(false);
+            disableRecording();
             return;
         }
 
@@ -156,22 +125,22 @@ function BaseRecordTroubleshootDataToolMenu({
 
         const infoFileName = `App_Info_${pkg.version}.json`;
 
-        if (getPlatform() === CONST.PLATFORM.WEB) {
-            onStopProfiling(true, newFileName).then(() => {
-                getAppInfo().then((appInfo) => {
+        // Stop profiling and get data (centralized in Troubleshoot.ts)
+        stopProfilingAndGetData(newFileName).then((profilingData) => {
+            const {profilePath} = profilingData;
+
+            if (getPlatform() === CONST.PLATFORM.WEB) {
+                getAppInfo(profilingData).then((appInfo) => {
                     zipRef.current?.file(infoFileName, appInfo);
 
                     onDisableLogging(logsWithParsedMessages).then(() => {
-                        disableLoggingAndFlushLogs();
-                        setShouldRecordTroubleshootData(false);
+                        cleanupAfterDisable();
                         setIsDisabled(false);
                         onDownloadZip?.();
                     });
                 });
-            });
-        } else if (getPlatform() === CONST.PLATFORM.IOS) {
-            onStopProfiling(true, newFileName).then((path) => {
-                if (!path) {
+            } else if (getPlatform() === CONST.PLATFORM.IOS) {
+                if (!profilePath) {
                     return;
                 }
 
@@ -192,14 +161,13 @@ function BaseRecordTroubleshootDataToolMenu({
                         Log.hmmm('[ProfilingToolMenu] error checking/deleting existing file: ', typedError.message);
                     })
                     .then(() => {
-                        RNFS.copyFile(path, newFilePath)
+                        RNFS.copyFile(profilePath, newFilePath)
                             .then(() => {
-                                getAppInfo().then((appInfo) => {
+                                getAppInfo(profilingData).then((appInfo) => {
                                     zipRef.current?.file(infoFileName, appInfo);
 
                                     onDisableLogging(logsWithParsedMessages).then(() => {
-                                        disableLoggingAndFlushLogs();
-                                        setShouldRecordTroubleshootData(false);
+                                        cleanupAfterDisable();
                                         setIsDisabled(false);
                                         onDownloadZip?.();
                                     });
@@ -216,43 +184,37 @@ function BaseRecordTroubleshootDataToolMenu({
                         console.error('[ProfilingToolMenu] error copying file: ', error);
                         Log.hmmm('[ProfilingToolMenu] error copying file: ', error);
                     });
-            });
-        } else if (getPlatform() === CONST.PLATFORM.ANDROID) {
-            onStopProfiling(true, newFileName).then((path) => {
-                if (!path) {
+            } else if (getPlatform() === CONST.PLATFORM.ANDROID) {
+                if (!profilePath) {
                     return;
                 }
 
                 RNFetchBlob.fs
                     // Check if it is an internal path of `DownloadManager` then append content://media to create a valid url
-                    .stat(!path.startsWith('content://media/') && path.match(/\/downloads\/\d+$/) ? `content://media/${path}` : path)
+                    .stat(!profilePath.startsWith('content://media/') && profilePath.match(/\/downloads\/\d+$/) ? `content://media/${profilePath}` : profilePath)
                     .then(({path: realPath}) => setProfileTracePath(realPath))
-                    .catch(() => setProfileTracePath(path));
+                    .catch(() => setProfileTracePath(profilePath));
 
-                getAppInfo().then((appInfo) => {
+                getAppInfo(profilingData).then((appInfo) => {
                     zipRef.current?.file(infoFileName, appInfo);
 
                     onDisableLogging(logsWithParsedMessages).then(() => {
-                        disableLoggingAndFlushLogs();
-                        setShouldRecordTroubleshootData(false);
+                        cleanupAfterDisable();
                         setIsDisabled(false);
                     });
                 });
-            });
-        } else {
-            // Desktop
-            onStopProfiling(true, newFileName).then(() => {
-                getAppInfo().then((appInfo) => {
+            } else {
+                // Desktop
+                getAppInfo(profilingData).then((appInfo) => {
                     zipRef.current?.file(infoFileName, appInfo);
 
                     onDisableLogging(logsWithParsedMessages).then(() => {
-                        disableLoggingAndFlushLogs();
-                        setShouldRecordTroubleshootData(false);
+                        cleanupAfterDisable();
                         setIsDisabled(false);
                     });
                 });
-            });
-        }
+            }
+        });
     };
 
     useEffect(() => {
