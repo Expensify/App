@@ -1,15 +1,22 @@
-import React from 'react';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isUsingStagingApi} from '@libs/ApiUtils';
+import MultifactorAuthenticationObserver from '@libs/MultifactorAuthentication/Biometrics/Observer';
+import Navigation from '@libs/Navigation/Navigation';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {setIsDebugModeEnabled, setShouldUseStagingServer} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import Button from './Button';
+import useNativeBiometrics from './MultifactorAuthentication/useNativeBiometrics';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';
@@ -23,9 +30,22 @@ function TestToolMenu() {
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {setup} = useNativeBiometrics();
+
+    useEffect(() => MultifactorAuthenticationObserver.registerCallback('TestToolMenu', setup.refresh), [setup.refresh]);
+
+    const {singleExecution} = useSingleExecution();
+    const waitForNavigate = useWaitForNavigation();
+    const navigateToBiometricsTestPage = singleExecution(
+        waitForNavigate(() => {
+            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST);
+        }),
+    );
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
+
+    const biometricsTitle = translate('multifactorAuthentication.title', {registered: setup.isLocalPublicKeyInAuth});
 
     return (
         <>
@@ -72,6 +92,17 @@ function TestToolMenu() {
                             onPress={() => expireSessionWithDelay()}
                         />
                     </TestToolRow>
+
+                    {/* Allows you to test the Biometrics flow */}
+                    <TestToolRow title={biometricsTitle}>
+                        <View style={[styles.flexRow, styles.gap2]}>
+                            <Button
+                                small
+                                text={translate('common.test')}
+                                onPress={() => navigateToBiometricsTestPage()}
+                            />
+                        </View>
+                    </TestToolRow>
                 </>
             )}
 
@@ -88,7 +119,7 @@ function TestToolMenu() {
                 </TestToolRow>
             )}
 
-            {/* When toggled the app will be forced offline. */}
+            {/* When toggled, the app will be forced offline. */}
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.forceOffline')}>
                 <Switch
                     accessibilityLabel="Force offline"
@@ -98,7 +129,7 @@ function TestToolMenu() {
                 />
             </TestToolRow>
 
-            {/* When toggled the app will randomly change internet connection every 2-5 seconds */}
+            {/* When toggled, the app will randomly change internet connection every 2-5 seconds */}
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulatePoorConnection')}>
                 <Switch
                     accessibilityLabel="Simulate poor internet connection"
@@ -108,7 +139,7 @@ function TestToolMenu() {
                 />
             </TestToolRow>
 
-            {/* When toggled all network requests will fail. */}
+            {/* When toggled, all network requests will fail. */}
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.simulateFailingNetworkRequests')}>
                 <Switch
                     accessibilityLabel="Simulate failing network requests"
