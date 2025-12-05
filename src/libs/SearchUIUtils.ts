@@ -1522,6 +1522,18 @@ function getReportSections(
         {reportKeys: [] as string[], transactionKeys: [] as string[]},
     );
 
+    const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
+    for (const key of transactionKeys) {
+        if (isTransactionEntry(key)) {
+            const transaction = data[key];
+            const reportID = transaction.reportID;
+            if (!transactionsByReportID.has(reportID)) {
+                transactionsByReportID.set(reportID, []);
+            }
+            transactionsByReportID.get(reportID)?.push(transaction);
+        }
+    }
+
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
     const doesDataContainAPastYearReport = shouldShowYear(data, true);
 
@@ -1567,7 +1579,7 @@ function getReportSections(
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const formattedStatus = getReportStatusTranslation({stateNum: reportItem.stateNum, statusNum: reportItem.statusNum, translate: translateLocal});
 
-                const allReportTransactions = getTransactionsForReport(data, reportItem.reportID);
+                const allReportTransactions = transactionsByReportID.get(reportItem.reportID) ?? [];
                 const policy = getPolicyFromKey(data, reportItem);
 
                 const hasAnyViolationsForReport = hasAnyViolations(
