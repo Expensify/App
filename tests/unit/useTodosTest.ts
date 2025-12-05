@@ -188,7 +188,7 @@ describe('useTodos', () => {
             const reports: Record<string, Report> = {};
             for (const report of [...reportsToSubmit, ...reportsToApprove, ...reportsToPay, reportToExport, ...excludedReports]) {
                 reports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
-            };
+            }
 
             await act(async () => {
                 await Onyx.multiSet({
@@ -216,13 +216,13 @@ describe('useTodos', () => {
 
             for (const id of SUBMIT_REPORT_IDS) {
                 expect(result.current.reportsToSubmit.map((r) => r.reportID)).toContain(id);
-            };
+            }
             for (const id of APPROVE_REPORT_IDS) {
                 expect(result.current.reportsToApprove.map((r) => r.reportID)).toContain(id);
-            };
+            }
             for (const id of PAY_REPORT_IDS) {
                 expect(result.current.reportsToPay.map((r) => r.reportID)).toContain(id);
-            };
+            }
             expect(result.current.reportsToExport.map((r) => r.reportID)).toContain(EXPORT_REPORT_ID);
         });
     });
