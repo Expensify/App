@@ -536,6 +536,7 @@ type MoneyRequestInformationParams = {
     testDriveCommentReportActionID?: string;
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
+    optimisticTransactionReportID?: string;
     optimisticIOUReportID?: string;
     optimisticReportPreviewActionID?: string;
     shouldGenerateTransactionThreadReport?: boolean;
@@ -766,6 +767,7 @@ type UpdateSplitTransactionsParams = {
     allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
     allReportNameValuePairsList: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+    reportID: string;
     transactionData: {
         reportID: string;
         originalTransactionID: string;
@@ -3470,6 +3472,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         optimisticChatReportID,
         optimisticCreatedReportActionID,
         optimisticIOUReportID,
+        optimisticTransactionReportID,
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport = true,
         isSplitExpense,
@@ -3600,7 +3603,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             distance,
             ...(modifiedAmount !== undefined && {modifiedAmount: isExpenseReport(iouReport) ? -modifiedAmount : modifiedAmount}),
             currency,
-            reportID: iouReport.reportID,
+            reportID: optimisticTransactionReportID ?? iouReport.reportID,
             comment,
             attendees,
             created,
@@ -14180,9 +14183,6 @@ function initSplitExpense(
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
     if (isExpenseSplit) {
-        const originalTransactionID = transaction.comment?.originalTransactionID;
-        const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
-
         const relatedTransactions = getChildTransactions(transactions, originalTransactionID);
         const transactionDetails = getTransactionDetails(originalTransaction);
         const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
@@ -14421,6 +14421,7 @@ function updateSplitTransactions({
     allTransactionsList,
     allReportsList,
     allReportNameValuePairsList,
+    reportID,
     transactionData,
     hash,
     policyCategories,
@@ -14432,7 +14433,7 @@ function updateSplitTransactions({
     currentUserPersonalDetails,
     transactionViolations,
 }: UpdateSplitTransactionsParams) {
-    const transactionReport = getReportOrDraftReport(transactionData?.reportID);
+    const transactionReport = getReportOrDraftReport(reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
 
@@ -14574,12 +14575,25 @@ function updateSplitTransactions({
         const parsedComment = getParsedComment(Parser.htmlToMarkdown(transactionParams.comment ?? ''));
         transactionParams.comment = parsedComment;
 
+        const parentTransactionReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionReport?.parentReportID}`];
+
+        let moneyRequestReportID;
+        let optimisticTransactionReportID;
+
+        if (isSelfDM(transactionReport) || isSelfDM(parentTransactionReport)) {
+            moneyRequestReportID = generateReportID();
+            optimisticTransactionReportID = splitExpense?.reportID;
+        } else {
+            moneyRequestReportID = splitExpense?.reportID;
+            optimisticTransactionReportID = undefined;
+        }
+
         const {transactionThreadReportID, createdReportActionIDForThread, onyxData, iouAction} = getMoneyRequestInformation({
             participantParams,
             parentChatReport,
             policyParams,
             transactionParams,
-            moneyRequestReportID: splitExpense?.reportID,
+            moneyRequestReportID,
             existingTransaction,
             existingTransactionID,
             newReportTotal: calculatedNewReportTotal,
@@ -14590,6 +14604,7 @@ function updateSplitTransactions({
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
             transactionViolations,
+            optimisticTransactionReportID,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData = {};
@@ -14796,7 +14811,7 @@ function updateSplitTransactions({
             ...splits.at(0),
             comment: splits.at(0)?.comment?.comment,
         } as RevertSplitTransactionParams;
-        API.write(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+        // API.write(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
     } else {
         // Prepare splitApiParams for the Transaction_Split API call which requires a specific format for the splits
         // The format is: splits[0][amount], splits[0][category], splits[0][tag] etc.
@@ -14811,21 +14826,21 @@ function updateSplitTransactions({
             transactionID: originalTransactionID,
         };
 
-        if (isCreationOfSplits) {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
-        } else {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
-        }
+        // if (isCreationOfSplits) {
+        //     // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        //     API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+        // } else {
+        //     // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        //     API.write(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+        // }
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
+    // InteractionManager.runAfterInteractions(() => removeDraftSplitTransaction(originalTransactionID));
 }
 
 function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransactionsParams) {
     updateSplitTransactions(params);
-    const transactionReport = getReportOrDraftReport(params.transactionData?.reportID);
+    const transactionReport = getReportOrDraftReport(params.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
     const isSearchPageTopmostFullScreenRoute = isSearchTopmostFullScreenRoute();
