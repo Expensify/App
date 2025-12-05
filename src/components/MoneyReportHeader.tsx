@@ -487,7 +487,7 @@ function MoneyReportHeader({
                         offset: 0,
                         queryJSON: currentSearchQueryJSON,
                         isOffline,
-                        isLoading: !!currentSearchResults?.search.isLoading,
+                        isLoading: !!currentSearchResults?.search?.isLoading,
                     });
                 }
             }
@@ -507,7 +507,7 @@ function MoneyReportHeader({
             currentSearchQueryJSON,
             currentSearchKey,
             isOffline,
-            currentSearchResults?.search.isLoading,
+            currentSearchResults?.search?.isLoading,
         ],
     );
 
@@ -692,7 +692,7 @@ function MoneyReportHeader({
         formattedAmount: getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, actionType),
     });
 
-    const {formattedAmount: totalAmount} = hasOnlyHeldExpenses ? getAmount(CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW) : getAmount(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    const {formattedAmount: totalAmount} = getAmount(CONST.REPORT.PRIMARY_ACTIONS.PAY);
 
     const paymentButtonOptions = usePaymentOptions({
         currency: moneyRequestReport?.currency,
@@ -799,7 +799,7 @@ function MoneyReportHeader({
                             offset: 0,
                             queryJSON: currentSearchQueryJSON,
                             isOffline,
-                            isLoading: !!currentSearchResults?.search.isLoading,
+                            isLoading: !!currentSearchResults?.search?.isLoading,
                         });
                     }
                 }}
@@ -864,8 +864,9 @@ function MoneyReportHeader({
                     const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions, transactions, policy);
 
                     if (IOUActions.length) {
-                        // eslint-disable-next-line unicorn/no-array-for-each
-                        IOUActions.forEach(changeMoneyRequestHoldStatus);
+                        for (const action of IOUActions) {
+                            changeMoneyRequestHoldStatus(action);
+                        }
                         return;
                     }
 

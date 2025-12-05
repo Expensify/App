@@ -1176,7 +1176,9 @@ const translations = {
         findExpense: 'Find expense',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense (${amount} for ${merchant})`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
-        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense${reportName ? ` from <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedUnreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moved this expense from your <a href="${reportUrl}">personal space</a>`,
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `moved this expense to your <a href="${reportUrl}">personal space</a>`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
@@ -2650,27 +2652,24 @@ const translations = {
 
                         ${
                             integrationName && CONST.connectionsVideoPaths[integrationName]
-                                ? dedent(
-                                      `[Take me to accounting](${workspaceAccountingLink}).
+                                ? `[Take me to accounting](${workspaceAccountingLink}).
 
-                                      ![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`,
-                                  )
+                        ![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
                                 : `[Take me to accounting](${workspaceAccountingLink}).`
-                        }
-                    `),
+                        }`),
             },
             connectCorporateCardTask: {
-                title: ({corporateCardLink}) => `Connect [your corporate card](${corporateCardLink})`,
+                title: ({corporateCardLink}) => `Connect [your corporate cards](${corporateCardLink})`,
                 description: ({corporateCardLink}) =>
                     dedent(`
-                        Connect your corporate card to automatically import and code expenses.
+                        Connect the cards you already have for automatic transaction import, receipt matching, and reconciliation.
 
                         1. Click *Workspaces*.
                         2. Select your workspace.
-                        3. Click *Corporate cards*.
-                        4. Follow the prompts to connect your card.
+                        3. Click *Company cards*.
+                        4. Follow the prompts to connect your cards.
 
-                        [Take me to connect my corporate cards](${corporateCardLink}).
+                        [Take me to company cards](${corporateCardLink}).
                     `),
             },
 
@@ -5365,7 +5364,6 @@ const translations = {
                 cardType: 'Card type',
                 limit: 'Limit',
                 limitType: 'Limit type',
-                name: 'Name',
                 disabledApprovalForSmartLimitError: 'Please enable approvals in <strong>Workflows > Add approvals</strong> before setting up smart limits',
             },
             deactivateCardModal: {
@@ -6066,7 +6064,7 @@ const translations = {
                     expense: 'Individual expense',
                     expenseSubtitle: 'Flag expense amounts by category. This rule overrides the general workspace rule for max expense amount.',
                     daily: 'Category total',
-                    dailySubtitle: 'Flag total category spend per expense report.',
+                    dailySubtitle: 'Flag total daily category spend per expense report.',
                 },
                 requireReceiptsOver: 'Require receipts over',
                 requireReceiptsOverList: {
@@ -6330,6 +6328,36 @@ const translations = {
             `changed the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
+        updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
+            switch (featureName) {
+                case 'categories':
+                    return `${enabled ? 'enabled' : 'disabled'} categories`;
+                case 'tags':
+                    return `${enabled ? 'enabled' : 'disabled'} tags`;
+                case 'workflows':
+                    return `${enabled ? 'enabled' : 'disabled'} workflows`;
+                case 'distance rates':
+                    return `${enabled ? 'enabled' : 'disabled'} distance rates`;
+                case 'accounting':
+                    return `${enabled ? 'enabled' : 'disabled'} accounting`;
+                case 'Expensify Cards':
+                    return `${enabled ? 'enabled' : 'disabled'} Expensify Cards`;
+                case 'company cards':
+                    return `${enabled ? 'enabled' : 'disabled'} company cards`;
+                case 'invoicing':
+                    return `${enabled ? 'enabled' : 'disabled'} invoicing`;
+                case 'per diem':
+                    return `${enabled ? 'enabled' : 'disabled'} per diem`;
+                case 'receipt partners':
+                    return `${enabled ? 'enabled' : 'disabled'} receipt partners`;
+                case 'rules':
+                    return `${enabled ? 'enabled' : 'disabled'} rules`;
+                case 'tax tracking':
+                    return `${enabled ? 'enabled' : 'disabled'} tax tracking`;
+                default:
+                    return `${enabled ? 'enabled' : 'disabled'} ${featureName}`;
+            }
+        },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements for this workspace`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
@@ -6698,6 +6726,7 @@ const translations = {
     },
     report: {
         newReport: {
+            createExpense: 'Create expense',
             createReport: 'Create report',
             chooseWorkspace: 'Choose a workspace for this report.',
             emptyReportConfirmationTitle: 'You already have an empty report',
@@ -7117,6 +7146,7 @@ const translations = {
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,
+        reportContainsExpensesWithViolations: 'Report contains expenses with violations.',
     },
     violationDismissal: {
         rter: {
@@ -7673,6 +7703,8 @@ const translations = {
             anyMemberWillBeRequired: 'Any member signed in with a different method will be required to re-authenticate using SAML.',
             enableError: "Couldn't update SAML enablement setting",
             requireError: "Couldn't update SAML requirement setting",
+            disableSamlRequired: 'Disable SAML required',
+            oktaWarningPrompt: 'Are you sure? This will also disable Okta SCIM.',
         },
         samlConfigurationDetails: {
             title: 'SAML configuration details',
