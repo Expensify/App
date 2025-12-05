@@ -37,8 +37,8 @@ import {
     canDeleteTransaction,
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
-    canEditReportPolicy,
     canEditReportDescription,
+    canEditReportPolicy,
     canEditRoomVisibility,
     canEditWriteCapability,
     canFlagReportAction,
@@ -10138,14 +10138,14 @@ describe('ReportUtils', () => {
             };
 
             // Set up personal details for login/accountID resolution
-            const personalDetails = {
+            const testPersonalDetails = {
                 [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
                 [approverAccountID]: {accountID: approverAccountID, login: approverEmail},
             };
 
             await Onyx.merge(ONYXKEYS.SESSION, {email: approverEmail, accountID: approverAccountID});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithWorkflow);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
 
             await waitForBatchedUpdates();
         });
@@ -10170,7 +10170,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
             await waitForBatchedUpdates();
 
-            const policy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (val) => {
@@ -10181,7 +10181,7 @@ describe('ReportUtils', () => {
             });
 
             // When the workflow approver tries to edit the report policy
-            const canEdit = canEditReportPolicy(openExpenseReport, policy);
+            const canEdit = canEditReportPolicy(openExpenseReport, testPolicy);
 
             // Then they should be able to edit it
             expect(canEdit).toBe(true);
@@ -10206,7 +10206,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
             await waitForBatchedUpdates();
 
-            const policy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (val) => {
@@ -10217,7 +10217,7 @@ describe('ReportUtils', () => {
             });
 
             // When a random user tries to edit the report policy
-            const canEdit = canEditReportPolicy(openExpenseReport, policy);
+            const canEdit = canEditReportPolicy(openExpenseReport, testPolicy);
 
             // Then they should NOT be able to edit it
             expect(canEdit).toBe(false);
@@ -10239,7 +10239,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
             await waitForBatchedUpdates();
 
-            const policy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (val) => {
@@ -10250,7 +10250,7 @@ describe('ReportUtils', () => {
             });
 
             // When the submitter (current user who owns the report) tries to edit the report policy
-            const canEdit = canEditReportPolicy(openExpenseReport, policy);
+            const canEdit = canEditReportPolicy(openExpenseReport, testPolicy);
 
             // Then they should be able to edit it
             expect(canEdit).toBe(true);
@@ -10297,7 +10297,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const policy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (val) => {
@@ -10308,7 +10308,7 @@ describe('ReportUtils', () => {
             });
 
             // When the workflow approver tries to edit the money request
-            const canEdit = canEditMoneyRequest(moneyRequestAction, false, openExpenseReport, policy, transaction);
+            const canEdit = canEditMoneyRequest(moneyRequestAction, false, openExpenseReport, testPolicy, transaction);
 
             // Then they should be able to edit it
             expect(canEdit).toBe(true);
@@ -10355,7 +10355,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const policy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (val) => {
@@ -10367,7 +10367,7 @@ describe('ReportUtils', () => {
 
             // When the workflow approver tries to edit the money request on a SUBMITTED report
             // Our fix should NOT apply since the report is not OPEN
-            const canEdit = canEditMoneyRequest(moneyRequestAction, false, submittedExpenseReport, policy, transaction);
+            const canEdit = canEditMoneyRequest(moneyRequestAction, false, submittedExpenseReport, testPolicy, transaction);
 
             // Then they should NOT be able to edit it (because managerID is stale and our fix only applies to OPEN reports)
             // Note: In real usage, managerID would be updated when report is submitted, so this case is rare
@@ -10415,7 +10415,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const policy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (val) => {
@@ -10426,7 +10426,7 @@ describe('ReportUtils', () => {
             });
 
             // When the workflow approver tries to edit the REIMBURSABLE field
-            const canEdit = canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, false, false, undefined, transaction, openExpenseReport, policy);
+            const canEdit = canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, false, false, undefined, transaction, openExpenseReport, testPolicy);
 
             // Then they should be able to edit it
             expect(canEdit).toBe(true);
@@ -10477,7 +10477,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const policy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (val) => {
@@ -10488,7 +10488,7 @@ describe('ReportUtils', () => {
             });
 
             // When a random user tries to edit the REIMBURSABLE field
-            const canEdit = canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, false, false, undefined, transaction, openExpenseReport, policy);
+            const canEdit = canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, false, false, undefined, transaction, openExpenseReport, testPolicy);
 
             // Then they should NOT be able to edit it
             expect(canEdit).toBe(false);
