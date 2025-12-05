@@ -119,6 +119,7 @@ import type TransactionViolations from './TransactionViolation';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
+import type UnshareBankAccount from './UnshareBankAccount';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
@@ -152,6 +153,7 @@ export type {
     Currency,
     CurrencyList,
     CustomStatusDraft,
+    UnshareBankAccount,
     DismissedReferralBanners,
     Domain,
     Download,
