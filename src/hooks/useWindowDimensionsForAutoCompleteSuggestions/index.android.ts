@@ -1,9 +1,9 @@
 // eslint-disable-next-line no-restricted-imports
 import {Dimensions, useWindowDimensions} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useSafeAreaInsets from '../useSafeAreaInsets';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 
-function useWindowDimensionsForAutoCompleteSuggestion() {
+function useWindowDimensionsForAutoCompleteSuggestions() {
     const {width} = useWindowDimensions();
     const insets = useSafeAreaInsets();
     const StyleUtils = useStyleUtils();
@@ -16,4 +16,4 @@ function useWindowDimensionsForAutoCompleteSuggestion() {
     return {width, height};
 }
 
-export default useWindowDimensionsForAutoCompleteSuggestion;
+export default useWindowDimensionsForAutoCompleteSuggestions;
