@@ -1950,8 +1950,6 @@ function getRestrictedLogins(
 
 /**
  * Options are reports and personal details. This function filters out the options that are not valid to be displayed.
- *
- * @param shouldExcludeSelectedByReportID Whether to use the reportID to exclude it from the selected options.
  */
 function getValidOptions(
     options: OptionList,
@@ -1971,7 +1969,6 @@ function getValidOptions(
         maxElements,
         includeUserToInvite = false,
         maxRecentReportElements = undefined,
-        shouldExcludeSelectedByReportID = false,
         ...config
     }: GetOptionsConfig = {},
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
@@ -1994,7 +1991,7 @@ function getValidOptions(
                 continue;
             }
 
-            if (option.reportID && shouldExcludeSelectedByReportID) {
+            if (option.reportID) {
                 loginsToExclude[option.reportID] = true;
             }
         }
