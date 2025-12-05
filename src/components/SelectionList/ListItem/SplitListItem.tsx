@@ -27,7 +27,6 @@ function SplitListItem<TItem extends ListItem>({
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
     onFocus,
-    index,
     onInputFocus,
     onInputBlur,
 }: SplitListItemProps<TItem>) {
@@ -67,11 +66,8 @@ function SplitListItem<TItem extends ListItem>({
             return;
         }
 
-        if (!index && index !== 0) {
-            return;
-        }
-        onInputFocus(index);
-    }, [onInputFocus, index]);
+        onInputFocus?.(item);
+    }, [onInputFocus, item]);
 
     // Auto-focus input when item is selected and screen transition ends
     useLayoutEffect(() => {

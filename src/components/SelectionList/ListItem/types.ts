@@ -13,6 +13,7 @@ import type MultiSelectListItem from './MultiSelectListItem';
 import type RadioListItem from './RadioListItem';
 import type SingleSelectListItem from './SingleSelectListItem';
 import type SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
+import type SplitListItem from './SplitListItem';
 import type TravelDomainListItem from './TravelDomainListItem';
 
 type ListItem<K extends string | number = string> = {
@@ -242,7 +243,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     index?: number;
 
     /** Callback when the input inside the item is focused (if input exists) */
-    onInputFocus?: (index: number) => void;
+    onInputFocus?: (item: TItem) => void;
 
     /** Callback when the input inside the item is blurred (if input exists) */
     onInputBlur?: (e: BlurEvent) => void;
@@ -260,7 +261,8 @@ type ValidListItem =
     | typeof MultiSelectListItem
     | typeof SingleSelectListItem
     | typeof SpendCategorySelectorListItem
-    | typeof TravelDomainListItem;
+    | typeof TravelDomainListItem
+    | typeof SplitListItem;
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;

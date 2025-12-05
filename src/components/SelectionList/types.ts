@@ -9,7 +9,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     data: TItem[];
 
     /** Reference to the SelectionList component */
-    ref?: React.Ref<SelectionListHandle>;
+    ref?: React.Ref<SelectionListHandle<TItem>>;
 
     /** Component to render for each list item */
     ListItem: ValidListItem;
@@ -222,7 +222,7 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
-type SelectionListHandle = {
+type SelectionListHandle<TItem extends ListItem> = {
     /** Scrolls to and highlights the specified items */
     scrollAndHighlightItem: (items: string[]) => void;
 
@@ -233,7 +233,7 @@ type SelectionListHandle = {
     updateFocusedIndex: (newFocusedIndex: number, shouldScroll?: boolean) => void;
 
     /** Scrolls to the focused input on SplitExpensePage */
-    scrollToFocusedInput: (index: number) => void;
+    scrollToFocusedInput: (item: TItem) => void;
 };
 
 type DataDetailsType<TItem extends ListItem> = {
