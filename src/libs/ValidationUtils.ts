@@ -381,10 +381,10 @@ function isValidDisplayName(name: string): boolean {
 }
 
 /**
- * Checks that the provided legal name doesn't contain special characters
+ * Checks that the provided legal name doesn't contain special characters except hyphens when shouldAllowHyphen is passed as true.
  */
-function isValidLegalName(name: string): boolean {
-    return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
+function isValidLegalName(name: string, shouldAllowHyphen = false): boolean {
+    return shouldAllowHyphen ? CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS_WITH_HYPHEN.test(name) : CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
 }
 
 /**
