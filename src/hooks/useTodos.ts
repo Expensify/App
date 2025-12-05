@@ -37,7 +37,7 @@ export default function useTodos() {
             }
 
             const actions = getActions(data, allTransactionViolations, `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, currentSearchKey, currentUserEmail ?? '');
-
+            console.log('over here', report.reportID, actions);
             if (actions.includes(CONST.SEARCH.ACTION_TYPES.SUBMIT)) {
                 reportsToSubmit.push(report);
             }
@@ -53,5 +53,5 @@ export default function useTodos() {
         }
 
         return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
-    }, [data, allReports, allTransactionViolations, currentUserEmail]);
+    }, [data, allReports, allTransactionViolations, currentUserEmail, currentSearchKey]);
 }
