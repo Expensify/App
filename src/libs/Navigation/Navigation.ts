@@ -131,7 +131,7 @@ const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 /**
  * Close the side panel on narrow layout when navigating to a different screen.
  */
-function maybeCloseSidePanel() {
+function closeSidePanelOnNarrowScreen() {
     const isNarrowLayout = getIsNarrowLayout();
     if (!sidePanelNVP?.openNarrowScreen || !isNarrowLayout) {
         return;
@@ -242,7 +242,7 @@ function navigate(route: Route, options?: LinkToOptions) {
     }
 
     linkTo(navigationRef.current, route, options);
-    maybeCloseSidePanel();
+    closeSidePanelOnNarrowScreen();
 }
 
 /**
