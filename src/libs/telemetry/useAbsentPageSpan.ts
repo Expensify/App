@@ -2,10 +2,10 @@ import {useContext, useEffect} from 'react';
 import {Platform} from 'react-native';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import Navigation from '@libs/Navigation/Navigation';
-import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
+import {endSpan, startSpan} from './activeSpans';
 
-export default function useNotFoundSpan() {
+export default function useAbsentPageSpan() {
     const {initialURL} = useContext(InitialURLContext);
 
     useEffect(() => {
@@ -27,7 +27,7 @@ export default function useNotFoundSpan() {
             op: CONST.TELEMETRY.SPAN_NOT_FOUND_PAGE,
             attributes: {
                 url: currentUrl,
-                navigation_source: NAVIGATION_SOURCE,
+                navigationSource: NAVIGATION_SOURCE,
             },
         });
 
