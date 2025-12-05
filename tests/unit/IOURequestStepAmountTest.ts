@@ -8,9 +8,10 @@ jest.mock('@pages/iou/request/step/withWritableReportOrNotFound', () => () => (C
 jest.mock('@pages/iou/request/step/withFullTransactionOrNotFound', () => (Component: unknown) => Component);
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@libs/SubscriptionUtils', () => {
-    const actual = jest.requireActual('@libs/SubscriptionUtils') as Record<string, unknown> & {
+    const actual: {
         shouldRestrictUserBillableActions: typeof shouldRestrictUserBillableActions;
-    };
+        [key: string]: unknown;
+    } = jest.requireActual('@libs/SubscriptionUtils');
 
     return {
         ...actual,
