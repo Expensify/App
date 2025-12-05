@@ -2554,13 +2554,13 @@ ${amount} für ${merchant} - ${date}`,
                         4. Suche nach ${integrationName}.
                         5. Klicke auf *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Zur Buchhaltung](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Zur Buchhaltung](${workspaceAccountingLink}).
 
-![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Zur Buchhaltung](${workspaceAccountingLink}).`
-}`),
+                        ![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Zur Buchhaltung](${workspaceAccountingLink}).`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Verbinden Sie [Ihre Firmenkarten](${corporateCardLink})`,
@@ -5284,7 +5284,6 @@ ${
                 cardType: 'Kartentyp',
                 limit: 'Limit',
                 limitType: 'Typ begrenzen',
-                name: 'Name',
                 disabledApprovalForSmartLimitError:
                     'Bitte aktivieren Sie Genehmigungen unter <strong>Workflows > Genehmigungen hinzufügen</strong>, bevor Sie intelligente Limits einrichten',
             },
@@ -7771,6 +7770,8 @@ ${
             anyMemberWillBeRequired: 'Jedes Mitglied, das sich mit einer anderen Methode angemeldet hat, muss sich mithilfe von SAML erneut authentifizieren.',
             enableError: 'Konnte die SAML-Aktivierungseinstellung nicht aktualisieren',
             requireError: 'Die SAML-Anforderungseinstellung konnte nicht aktualisiert werden.',
+            disableSamlRequired: 'SAML-Pflicht deaktivieren',
+            oktaWarningPrompt: 'Bist du sicher? Dadurch wird auch Okta SCIM deaktiviert.',
         },
         samlConfigurationDetails: {
             title: 'SAML-Konfigurationsdetails',
