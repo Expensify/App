@@ -35,6 +35,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
     const styles = useThemeStyles();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [selectedIouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const {translate, localeCompare} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
@@ -83,6 +84,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
                                 latestBankItems,
                                 activeAdminPolicies,
                                 isUserValidated,
+                                session?.accountID,
                                 confirmPayment,
                             )
                         }

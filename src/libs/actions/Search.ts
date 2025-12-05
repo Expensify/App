@@ -53,14 +53,6 @@ import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
 
-let userAccountID = -1;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        userAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
 type OnyxSearchResponse = {
     data: [];
     search: {
@@ -1030,6 +1022,7 @@ function handleBulkPayItemSelected(
     latestBankItems: BankAccountMenuItem[] | undefined,
     activeAdminPolicies: Policy[],
     isUserValidated: boolean | undefined,
+    userAccountID: number | undefined,
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void,
 ) {
     const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
