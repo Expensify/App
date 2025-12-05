@@ -25,7 +25,7 @@ import {goBackFromInvalidPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@li
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {setApprovalWorkflowApprover} from '@userActions/Workflow';
+import {clearApprovalWorkflowApprover, setApprovalWorkflowApprover} from '@userActions/Workflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -106,13 +106,16 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     }, [hasSubmitted, onlyApproverEmpty, translate]);
     const bottomError = hasSubmitted && bothEmpty && !isEditFlow ? translate('workflowsApprovalLimitPage.enterBothError') : undefined;
 
+    const firstApprover = approvalWorkflow?.approvers?.at(0)?.email ?? '';
+
     const navigateAfterCompletion = useCallback(() => {
         if (isEditFlow) {
-            Navigation.goBack(backTo);
+            // In edit mode, always go directly to the Edit page when saving
+            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover));
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID));
-    }, [isEditFlow, backTo, policyID]);
+    }, [isEditFlow, policyID, firstApprover]);
 
     const updateCurrentApprover = useCallback(
         (update: Partial<Approver>) => {
@@ -146,7 +149,13 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     }, [resetApprovalLimit, navigateAfterCompletion]);
 
     const handleSubmit = useCallback(() => {
-        if (!approvalWorkflow || !currentApprover) {
+        if (!approvalWorkflow) {
+            return;
+        }
+
+        if (!currentApprover) {
+            clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow: approvalWorkflow});
+            navigateAfterCompletion();
             return;
         }
 
@@ -171,6 +180,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         approvalWorkflow,
         currentApprover,
         isEditFlow,
+        approverIndex,
         bothEmpty,
         onlyAmountEmpty,
         onlyApproverEmpty,
@@ -227,7 +237,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                 >
                     <HeaderWithBackButton
                         title={isEditFlow ? translate('workflowsPage.approver') : translate('workflowsApprovalLimitPage.title')}
-                        onBackButtonPress={() => Navigation.goBack(backTo)}
+                        onBackButtonPress={() => Navigation.goBack()}
                     />
                     <ScrollView
                         style={styles.flex1}

@@ -37,7 +37,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         selector: personalDetailsByEmailSelector,
     });
     const approverIndex = Number(route.params.approverIndex) ?? 0;
-    const isInitialCreationFlow = currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
+    const backTo = route.params.backTo;
+    const isInitialCreationFlow = currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !backTo;
+    const isComingFromLimitPage = backTo?.includes(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.route) ?? false;
     const defaultApprover = getDefaultApprover(policy);
     const firstApprover = currentApprovalWorkflow?.approvers?.[0]?.email ?? '';
     const rhpRoutes = useNavigationState((state) => state.routes);
@@ -157,8 +159,8 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 personalDetailsByEmail,
             });
 
-            const isLimitPageInStack = rhpRoutes.some((rhpRoute) => rhpRoute.name === SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT);
-            if (isLimitPageInStack) {
+            // If we came from the Limit page (changing approver), go back to it
+            if (isComingFromLimitPage) {
                 Navigation.goBack();
                 return;
             }
@@ -172,7 +174,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
 
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex, limitPageBackTo));
         },
-        [approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail, firstApprover, rhpRoutes],
+        [approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail, firstApprover, isComingFromLimitPage],
     );
 
     const subtitle = useMemo(
