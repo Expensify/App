@@ -53,14 +53,7 @@ import {
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {
-    canUserPerformWriteAction,
-    chatIncludesChronosWithID,
-    getOriginalReportID,
-    getReportLastVisibleActionCreated,
-    getReportOfflinePendingActionAndErrors,
-    isUnread,
-} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isUnread} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
@@ -77,6 +70,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
@@ -120,6 +114,9 @@ type MoneyRequestReportListProps = {
 
     /** Whether report actions are still loading and we load the report for the first time, since the last sign in */
     showReportActionsLoadingState?: boolean;
+
+    /** The type of action that's pending  */
+    reportPendingAction?: PendingAction | null;
 };
 
 function MoneyRequestReportActionsList({
@@ -133,6 +130,7 @@ function MoneyRequestReportActionsList({
     hasOlderActions,
     hasPendingDeletionTransaction,
     showReportActionsLoadingState,
+    reportPendingAction,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();
@@ -146,7 +144,6 @@ function MoneyRequestReportActionsList({
     // wrapped in useMemo to avoid unnecessary re-renders and improve performance
     const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`, {canBeMissing: true});
-    const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
 
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
