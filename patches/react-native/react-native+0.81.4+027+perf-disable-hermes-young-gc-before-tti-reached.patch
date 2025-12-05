@@ -1,14 +1,8 @@
 diff --git a/node_modules/react-native/ReactCommon/react/runtime/hermes/HermesInstance.cpp b/node_modules/react-native/ReactCommon/react/runtime/hermes/HermesInstance.cpp
-index d09f3a7..405a36f 100644
+index 9018067..405a36f 100644
 --- a/node_modules/react-native/ReactCommon/react/runtime/hermes/HermesInstance.cpp
 +++ b/node_modules/react-native/ReactCommon/react/runtime/hermes/HermesInstance.cpp
-@@ -126,11 +126,17 @@ std::unique_ptr<JSRuntime> HermesInstance::createJSRuntime(
-   assert(msgQueueThread != nullptr);
- 
-   auto gcConfig = ::hermes::vm::GCConfig::Builder()
-+                      .withInitHeapSize(150ll * 1024 * 1024)
-+                      .withShouldReleaseUnused(::hermes::vm::kReleaseUnusedNone)
-                       // Default to 3GB
+@@ -132,7 +132,11 @@ std::unique_ptr<JSRuntime> HermesInstance::createJSRuntime(
                        .withMaxHeapSize(3072 << 20)
                        .withName("RNBridgeless");
  
