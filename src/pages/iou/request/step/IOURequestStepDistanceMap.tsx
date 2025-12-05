@@ -152,6 +152,8 @@ function IOURequestStepDistanceMap({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
@@ -315,7 +317,7 @@ function IOURequestStepDistanceMap({
         // to the confirm step.
         // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
         if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
-            const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
+            const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
@@ -330,8 +332,8 @@ function IOURequestStepDistanceMap({
                         report,
                         isDraftPolicy: false,
                         participantParams: {
-                            payeeEmail: currentUserPersonalDetails.login,
-                            payeeAccountID: currentUserPersonalDetails.accountID,
+                            payeeEmail: currentUserEmailParam,
+                            payeeAccountID: currentUserAccountIDParam,
                             participant,
                         },
                         policyParams: {
@@ -359,8 +361,8 @@ function IOURequestStepDistanceMap({
                 createDistanceRequest({
                     report,
                     participants,
-                    currentUserLogin: currentUserPersonalDetails.login,
-                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    currentUserLogin: currentUserEmailParam,
+                    currentUserAccountID: currentUserAccountIDParam,
                     iouType,
                     existingTransaction: transaction,
                     transactionParams: {
@@ -382,7 +384,7 @@ function IOURequestStepDistanceMap({
                 });
                 return;
             }
-            setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
+            setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
                 navigateToConfirmationPage();
             });
             return;
@@ -396,7 +398,7 @@ function IOURequestStepDistanceMap({
             defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
             !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
         ) {
-            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
+            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
             const rateID = DistanceRequestUtils.getCustomUnitRateID({
@@ -407,7 +409,7 @@ function IOURequestStepDistanceMap({
             });
             setTransactionReport(transactionID, {reportID: transactionReportID}, true);
             setCustomUnitRateID(transactionID, rateID);
-            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+            setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat, currentUserPersonalDetails.accountID).then(() => {
                 Navigation.navigate(
                     ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
                         CONST.IOU.ACTION.CREATE,
@@ -433,8 +435,8 @@ function IOURequestStepDistanceMap({
         personalDetails,
         reportAttributesDerived,
         translate,
-        currentUserPersonalDetails.login,
-        currentUserPersonalDetails.accountID,
+        currentUserEmailParam,
+        currentUserAccountIDParam,
         policy,
         waypoints,
         lastSelectedDistanceRates,
@@ -445,6 +447,7 @@ function IOURequestStepDistanceMap({
         personalPolicy?.autoReporting,
         reportID,
         transactionViolations,
+        currentUserPersonalDetails.accountID,
     ]);
 
     const getError = () => {
@@ -520,6 +523,9 @@ function IOURequestStepDistanceMap({
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
                     transactionBackup,
+                    currentUserAccountIDParam,
+                    currentUserEmailParam,
+                    isASAPSubmitBetaEnabled,
                 });
             }
             transactionWasSaved.current = true;
@@ -544,6 +550,9 @@ function IOURequestStepDistanceMap({
         transaction?.routes,
         report?.reportID,
         policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
     ]);
 
     const renderItem = useCallback(

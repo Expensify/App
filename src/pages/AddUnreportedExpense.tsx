@@ -8,8 +8,8 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem, SectionListDataType, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -153,14 +153,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         });
     }, [debouncedSearchValue, shouldShowTextInput, transactions]);
 
-    const unreportedExpenses = useMemo(() => {
-        return createUnreportedExpenseSections(filteredTransactions)
-            .flatMap((section) => section.data)
-            .map((item) => ({
-                ...item,
-                isSelected: selectedIds.has(item.transactionID),
-            }));
-    }, [filteredTransactions, selectedIds]);
+    const sections: Array<SectionListDataType<Transaction & ListItem>> = useMemo(() => createUnreportedExpenseSections(filteredTransactions), [filteredTransactions]);
 
     const handleConfirm = useCallback(() => {
         if (selectedIds.size === 0) {
@@ -219,39 +212,11 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     }, [errorMessage, styles, translate, handleConfirm]);
 
     const headerMessage = useMemo(() => {
-        if (debouncedSearchValue.trim() && unreportedExpenses?.length === 0) {
+        if (debouncedSearchValue.trim() && sections.at(0)?.data.length === 0) {
             return translate('common.noResultsFound');
         }
         return '';
-    }, [debouncedSearchValue, unreportedExpenses?.length, translate]);
-
-    const textInputOptions = useMemo(
-        () => ({
-            value: searchValue,
-            label: shouldShowTextInput ? translate('iou.findExpense') : undefined,
-            onChangeText: setSearchValue,
-            headerMessage,
-        }),
-        [searchValue, shouldShowTextInput, translate, setSearchValue, headerMessage],
-    );
-
-    const onSelectRow = useCallback(
-        (item: {transactionID: string}) => {
-            setSelectedIds((prevIds) => {
-                const newIds = new Set(prevIds);
-                if (newIds.has(item.transactionID)) {
-                    newIds.delete(item.transactionID);
-                } else {
-                    newIds.add(item.transactionID);
-                    if (errorMessage) {
-                        setErrorMessage('');
-                    }
-                }
-                return newIds;
-            });
-        },
-        [errorMessage],
-    );
+    }, [debouncedSearchValue, sections, translate]);
 
     const hasSearchTerm = debouncedSearchValue.trim().length > 0;
     const isShowingEmptyState = !hasSearchTerm && transactions.length === 0;
@@ -333,12 +298,30 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 onBackButtonPress={Navigation.goBack}
             />
             <SelectionList<Transaction & ListItem>
-                data={unreportedExpenses}
                 ref={selectionListRef}
-                onSelectRow={onSelectRow}
-                textInputOptions={textInputOptions}
+                onSelectRow={(item) => {
+                    setSelectedIds((prevIds) => {
+                        const newIds = new Set(prevIds);
+                        if (newIds.has(item.transactionID)) {
+                            newIds.delete(item.transactionID);
+                        } else {
+                            newIds.add(item.transactionID);
+                            if (errorMessage) {
+                                setErrorMessage('');
+                            }
+                        }
+
+                        return newIds;
+                    });
+                }}
+                isSelected={(item) => selectedIds.has(item.transactionID)}
                 shouldShowTextInput={shouldShowTextInput}
+                textInputValue={searchValue}
+                textInputLabel={shouldShowTextInput ? translate('iou.findExpense') : undefined}
+                onChangeText={setSearchValue}
+                headerMessage={headerMessage}
                 canSelectMultiple
+                sections={sections}
                 ListItem={UnreportedExpenseListItem}
                 onEndReached={fetchMoreUnreportedTransactions}
                 onEndReachedThreshold={0.75}
