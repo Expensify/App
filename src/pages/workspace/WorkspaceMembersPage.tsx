@@ -219,6 +219,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         if (hasApprovers) {
             const ownerEmail = ownerDetails.login;
             for (const login of selectedEmployees) {
+                if (!isApprover(policy, login)) {
+                    continue;
+                }
+
                 const accountID = policyMemberEmailsToAccountIDs[login];
                 const removedApprover = personalDetails?.[accountID];
                 if (!removedApprover?.login || !ownerEmail) {
@@ -241,6 +245,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         }
 
         setRemoveMembersConfirmModalVisible(false);
+
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedEmployees([]);
