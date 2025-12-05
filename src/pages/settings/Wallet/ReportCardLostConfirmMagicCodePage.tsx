@@ -31,7 +31,7 @@ function ReportCardLostConfirmMagicCodePage({
     const primaryLogin = account?.primaryLogin ?? '';
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
     const physicalCard = cardList?.[cardID];
-    const [newCardID, setNewCardID] = useState<string>('23580564');
+    const [newCardID, setNewCardID] = useState<string>('');
     const previousCardList = usePrevious(cardList);
     const validateError = getLatestErrorMessageField(physicalCard);
 
