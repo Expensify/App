@@ -225,12 +225,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                      */
                     exclude: [new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`)],
                 },
-                // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
-                // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
-                {
-                    test: new RegExp('node_modules/pdfjs-dist/build/pdf.worker.min.mjs'),
-                    type: 'asset/source',
-                },
 
                 // Rule for react-native-web-webview
                 {
@@ -385,6 +379,20 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     heicTo: {
                         test: /[\\/]node_modules[\\/](heic-to)[\\/]/,
                         name: 'heicTo',
+                        chunks: 'all',
+                    },
+                    // react-fast-pdf library had a pdfjs-dist peer dependency that increases the size of vendors bundle
+                    // we want to load it separately to decrease the bundle size
+                    reactFastPdf: {
+                        test: /[\\/]node_modules[\\/](react-fast-pdf)[\\/]/,
+                        name: 'reactFastPdf',
+                        chunks: 'all',
+                    },
+                    // react-pdf library had a pdfjs-dist peer dependency that increases the size of vendors bundle
+                    // we want to load it separately to decrease the bundle size
+                    reactPdf: {
+                        test: /[\\/]node_modules[\\/](react-pdf)[\\/]/,
+                        name: 'reactPdf',
                         chunks: 'all',
                     },
                     // ExpensifyIcons chunk - separate chunk loaded eagerly for offline support

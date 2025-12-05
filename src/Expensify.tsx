@@ -11,6 +11,7 @@ import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
 import {InitialURLContext} from './components/InitialURLContextProvider';
+import {usePreloadLazyModules} from './components/PDF';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
@@ -122,6 +123,7 @@ function Expensify() {
 
     useDebugShortcut();
     usePriorityMode();
+    usePreloadLazyModules();
 
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
