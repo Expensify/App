@@ -27,7 +27,6 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
             isSelected: entityID === '',
         },
     ];
-    // eslint-disable-next-line unicorn/no-array-for-each
     policy?.connections?.intacct?.data?.entities.forEach((entity) => {
         sections.push({
             text: entity.name,

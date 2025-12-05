@@ -53,7 +53,6 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         (index: number) => {
             let pendingAction: PendingAction | undefined;
             if (index === 0) {
-                // eslint-disable-next-line unicorn/no-array-for-each
                 approvalWorkflow?.members?.forEach((member) => {
                     pendingAction = pendingAction ?? member.pendingFields?.submitsTo;
                 });
