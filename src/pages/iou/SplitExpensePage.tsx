@@ -398,6 +398,21 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         );
     }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense]);
 
+    const handleSelectRow = useCallback(
+        (item: SplitListItemType) => {
+            if (!item.isEditable) {
+                setCannotBeEditedModalVisible(true);
+                return;
+            }
+            Keyboard.dismiss();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
+            });
+        },
+        [draftTransaction, reportID],
+    );
+
     return (
         <ScreenWrapper
             testID={SplitExpensePage.displayName}
@@ -416,28 +431,17 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
 
                 <SelectionList
-                    onSelectRow={(item) => {
-                        if (!item.isEditable) {
-                            setCannotBeEditedModalVisible(true);
-                            return;
-                        }
-                        Keyboard.dismiss();
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
-                        InteractionManager.runAfterInteractions(() => {
-                            initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
-                        });
-                    }}
                     ref={listRef}
                     data={options}
-                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
+                    onSelectRow={handleSelectRow}
                     ListItem={SplitListItemWithInputFocus}
+                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
                     style={{containerStyle: styles.flexBasisAuto}}
-                    footerContent={footerContent}
                     listFooterContent={listFooterContent}
-                    disableKeyboardShortcuts
-                    shouldSingleExecuteRowSelect
-                    canSelectMultiple={false}
+                    footerContent={footerContent}
                     shouldPreventDefaultFocusOnSelectRow
+                    shouldSingleExecuteRowSelect
+                    disableKeyboardShortcuts
                 />
                 <ConfirmModal
                     title={translate('iou.splitExpenseCannotBeEditedModalTitle')}

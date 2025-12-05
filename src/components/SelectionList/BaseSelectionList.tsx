@@ -55,7 +55,6 @@ function BaseSelectionList<TItem extends ListItem>({
     listEmptyContent,
     listFooterContent,
     rightHandSideComponent,
-    renderScrollComponent,
     alternateNumberOfSupportedLines,
     selectedItems = CONST.EMPTY_ARRAY,
     style,
@@ -506,7 +505,6 @@ function BaseSelectionList<TItem extends ListItem>({
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     />
                     <FlashList
-                        renderScrollComponent={renderScrollComponent}
                         data={data}
                         renderItem={renderItem}
                         ref={listRef}
