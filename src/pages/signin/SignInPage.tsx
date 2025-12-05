@@ -1,7 +1,9 @@
+import * as Sentry from '@sentry/react-native';
 import {Str} from 'expensify-common';
 import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/Button';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
@@ -297,8 +299,16 @@ function SignInPage({ref}: SignInPageProps) {
     }));
     useHandleBackButton(navigateBack);
 
+    const throwError = () => {
+        Sentry.captureException(new Error('Source Map Test Error'));
+    };
+
     return (
         <ColorSchemeWrapper>
+            <Button
+                onPress={throwError}
+                text="Source Map Test Error"
+            />
             <CustomStatusBarAndBackground isNested />
             <LoginProvider>
                 <SignInPageLayout
