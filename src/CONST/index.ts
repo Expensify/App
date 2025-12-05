@@ -710,6 +710,7 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
+        NEW_DOT_DEW: 'newDotDEW',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1206,6 +1207,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // Deprecated OldDot Action
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
+                DEW_SUBMIT_FAILED: 'DEWSUBMITFAILED',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
                 EXPENSIFY_CARD_SYSTEM_MESSAGE: 'EXPENSIFYCARDSYSTEMMESSAGE',
@@ -1550,6 +1552,7 @@ const CONST = {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
             STOPWATCH: 'stopwatch',
+            DOT_INDICATOR: 'dotIndicator',
         },
         ETA_KEY: {
             SHORTLY: 'shortly',

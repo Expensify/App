@@ -5580,6 +5580,147 @@ describe('actions/IOU', () => {
                         }),
                 );
         });
+
+        it('should not set stateNum, statusNum, or nextStep optimistically when submitting with Dynamic External Workflow policy', () => {
+            const amount = 10000;
+            const comment = '💸💸💸💸';
+            const merchant = 'NASDAQ';
+            let expenseReport: OnyxEntry<Report>;
+            let chatReport: OnyxEntry<Report>;
+            let policy: OnyxEntry<Policy>;
+            const policyID = generatePolicyID();
+            createWorkspace({
+                policyOwnerEmail: CARLOS_EMAIL,
+                makeMeAdmin: true,
+                policyName: 'Test Workspace with Dynamic External Workflow',
+                policyID,
+            });
+            return waitForBatchedUpdates()
+                .then(() => {
+                    setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.POLICY,
+                                waitForCollectionCallback: true,
+                                callback: (allPolicies) => {
+                                    Onyx.disconnect(connection);
+                                    policy = Object.values(allPolicies ?? {}).find((p): p is OnyxEntry<Policy> => p?.id === policyID);
+                                    expect(policy).toBeTruthy();
+                                    expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+                                    chatReport = Object.values(allReports ?? {}).find(
+                                        (report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && report.policyID === policyID,
+                                    );
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    if (chatReport) {
+                        requestMoney({
+                            report: chatReport,
+                            participantParams: {
+                                payeeEmail: RORY_EMAIL,
+                                payeeAccountID: RORY_ACCOUNT_ID,
+                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
+                            },
+                            transactionParams: {
+                                amount,
+                                attendees: [],
+                                currency: CONST.CURRENCY.USD,
+                                created: '',
+                                merchant,
+                                comment,
+                                reimbursable: true,
+                            },
+                            shouldGenerateTransactionThreadReport: true,
+                            isASAPSubmitBetaEnabled: false,
+                            currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                            currentUserEmailParam: RORY_EMAIL,
+                            transactionViolations: {},
+                        });
+                    }
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+                                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE && report?.policyID === policyID);
+                                    Onyx.merge(`report_${expenseReport?.reportID}`, {
+                                        statusNum: 0,
+                                        stateNum: 0,
+                                    });
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+                                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE && report?.policyID === policyID);
+
+                                    expect(expenseReport?.stateNum).toBe(0);
+                                    expect(expenseReport?.statusNum).toBe(0);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    if (expenseReport) {
+                        submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
+                    }
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+                                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE && report?.policyID === policyID);
+
+                                    expect(expenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+                                    expect(expenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+                                    expect(expenseReport?.nextStep).toBeUndefined();
+                                    expect(expenseReport?.pendingFields?.nextStep).toBeUndefined();
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
     });
 
     describe('resolveDuplicate', () => {

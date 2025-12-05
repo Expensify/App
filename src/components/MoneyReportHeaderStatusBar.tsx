@@ -24,6 +24,7 @@ const iconMap: IconMap = {
     [CONST.NEXT_STEP.ICONS.HOURGLASS]: Expensicons.Hourglass,
     [CONST.NEXT_STEP.ICONS.CHECKMARK]: Expensicons.Checkmark,
     [CONST.NEXT_STEP.ICONS.STOPWATCH]: Expensicons.Stopwatch,
+    [CONST.NEXT_STEP.ICONS.DOT_INDICATOR]: Expensicons.DotIndicator,
 };
 
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
@@ -43,7 +44,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
                     src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? Expensicons.Hourglass}
                     height={variables.iconSizeSmall}
                     width={variables.iconSizeSmall}
-                    fill={theme.icon}
+                    fill={nextStep?.type === 'alert' ? theme.danger : theme.icon}
                 />
             </View>
             <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>

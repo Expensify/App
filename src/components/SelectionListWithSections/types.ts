@@ -554,6 +554,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     violations?: Record<string, TransactionViolations | undefined> | undefined;
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+    /** Whether the DEW beta flag is enabled */
+    isDEWBetaEnabled?: boolean;
 };
 
 type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -573,6 +575,9 @@ type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
 
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+
+    /** Whether the DEW beta flag is enabled */
+    isDEWBetaEnabled?: boolean;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -586,6 +591,8 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     violations?: Record<string, TransactionViolations | undefined> | undefined;
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+    /** Whether the DEW beta flag is enabled */
+    isDEWBetaEnabled?: boolean;
 };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<

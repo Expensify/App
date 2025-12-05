@@ -43,6 +43,7 @@ import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportU
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
+import {getMostRecentActiveDEWSubmitFailedAction, hasPendingSubmittedAction} from '@libs/ReportActionsUtils';
 import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
@@ -165,6 +166,7 @@ function MoneyRequestReportPreviewContent({
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const getCanIOUBePaid = useCallback(
@@ -256,7 +258,7 @@ function MoneyRequestReportPreviewContent({
     );
 
     const confirmApproval = () => {
-        if (hasDynamicExternalWorkflow(policy)) {
+        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
             setIsDEWModalVisible(true);
             return;
         }
@@ -488,6 +490,9 @@ function MoneyRequestReportPreviewContent({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
+    const hasDEWSubmitFailed = useMemo(() => !!getMostRecentActiveDEWSubmitFailedAction(reportActions), [reportActions]);
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    const hasPendingDEWSubmit = useMemo(() => isDEWPolicy && hasPendingSubmittedAction(reportActions), [isDEWPolicy, reportActions]);
     const reportPreviewAction = useMemo(() => {
         return getReportPreviewAction(
             isIouReportArchived || isChatReportArchived,
@@ -499,6 +504,8 @@ function MoneyRequestReportPreviewContent({
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
+            hasDEWSubmitFailed,
+            hasPendingDEWSubmit,
         );
     }, [
         isPaidAnimationRunning,
@@ -511,6 +518,8 @@ function MoneyRequestReportPreviewContent({
         invoiceReceiverPolicy,
         isChatReportArchived,
         currentUserDetails.accountID,
+        hasDEWSubmitFailed,
+        hasPendingDEWSubmit,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
@@ -527,7 +536,7 @@ function MoneyRequestReportPreviewContent({
                 success={isWaitingForSubmissionFromCurrentUser}
                 text={translate('common.submit')}
                 onPress={() => {
-                    if (hasDynamicExternalWorkflow(policy)) {
+                    if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
                         setIsDEWModalVisible(true);
                         return;
                     }

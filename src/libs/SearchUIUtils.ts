@@ -75,10 +75,12 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
 import {
     getIOUActionForReportID,
+    getMostRecentActiveDEWSubmitFailedAction,
     getOriginalMessage,
+    hasPendingSubmittedAction,
     isCreatedAction,
     isDeletedAction,
     isHoldAction,
@@ -1050,6 +1052,7 @@ function getTransactionsSections(
     currentUserEmail: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isActionLoadingSet: ReadonlySet<string> | undefined,
+    reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -1109,7 +1112,8 @@ function getTransactionsSections(
                 formatPhoneNumber,
                 report,
             );
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail);
+            const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions);
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 keyForList: transactionItem.transactionID,
@@ -1234,6 +1238,12 @@ function getActions(
     // We need to check both options for a falsy value since the transaction might not have an error but the report associated with it might. We return early if there are any errors for performance reasons, so we don't need to compute any other possible actions.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (transaction?.errors || report?.errors) {
+        return [CONST.SEARCH.ACTION_TYPES.VIEW];
+    }
+
+    // Check for DEW submit failed or pending DEW submission - show View instead of Submit
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (report.statusNum === CONST.REPORT.STATUS_NUM.OPEN && (!!getMostRecentActiveDEWSubmitFailedAction(reportActions) || (isDEWPolicy && hasPendingSubmittedAction(reportActions)))) {
         return [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
@@ -1831,7 +1841,7 @@ function getSections({
         }
     }
 
-    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet);
+    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, reportActions);
 }
 
 /**

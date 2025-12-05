@@ -43,7 +43,11 @@ import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButt
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
-import {buildOptimisticNextStepForPreventSelfApprovalsEnabled, buildOptimisticNextStepForStrictPolicyRuleViolations} from '@libs/NextStepUtils';
+import {
+    buildOptimisticNextStepForDynamicExternalWorkflowError,
+    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
+    buildOptimisticNextStepForStrictPolicyRuleViolations,
+} from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {selectPaymentType} from '@libs/PaymentUtils';
 import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
@@ -53,6 +57,7 @@ import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/
 import {
     changeMoneyRequestHoldStatus,
     getAddExpenseDropdownOptions,
+    getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getIntegrationExportIcon,
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
@@ -227,6 +232,7 @@ function MoneyReportHeader({
         'Export',
         'Document',
         'Feed',
+        'DotIndicator',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
@@ -292,6 +298,7 @@ function MoneyReportHeader({
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
@@ -439,6 +446,20 @@ function MoneyReportHeader({
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
     const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && nextApproverAccountID === moneyRequestReport?.ownerAccountID;
     let optimisticNextStep = isSubmitterSameAsNextApprover && policy?.preventSelfApproval ? buildOptimisticNextStepForPreventSelfApprovalsEnabled() : nextStep;
+
+    // Check for DEW submit failed - if the report has a DEW_SUBMIT_FAILED action, show the custom next step
+    if (isDEWBetaEnabled && hasDynamicExternalWorkflow(policy) && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+        const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
+            if (action.reportActionID) {
+                acc[action.reportActionID] = action;
+            }
+            return acc;
+        }, {});
+        const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
+        if (errors?.dewSubmitFailed) {
+            optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowError();
+        }
+    }
 
     if (shouldBlockSubmit && isReportOwner(moneyRequestReport) && isOpenExpenseReport(moneyRequestReport)) {
         optimisticNextStep = buildOptimisticNextStepForStrictPolicyRuleViolations();
@@ -786,7 +807,7 @@ function MoneyReportHeader({
                     if (!moneyRequestReport || shouldBlockSubmit) {
                         return;
                     }
-                    if (hasDynamicExternalWorkflow(policy)) {
+                    if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
                         showDWEModal();
                         return;
                     }
@@ -1019,7 +1040,7 @@ function MoneyReportHeader({
                 if (!moneyRequestReport) {
                     return;
                 }
-                if (hasDynamicExternalWorkflow(policy)) {
+                if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
                     showDWEModal();
                     return;
                 }
