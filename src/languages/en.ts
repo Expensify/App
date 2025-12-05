@@ -7638,9 +7638,9 @@ const translations = {
     },
     autoSubmitModal: {
         title: 'All clear and submitted!',
-        description: 'All warnings and violations has been cleared so:',
-        submittedExpensesTitle: 'These expenses have been submitted',
-        submittedExpensesDescription: 'These expenses have been sent to your approver but can still be edited until they are approved.',
+        description: 'All warnings and violations have been cleared so:',
+        submittedExpensesTitle: 'Compliant expenses have been submitted',
+        submittedExpensesDescription: 'Compliant expenses have been sent to your approver, but can still be edited until they’re approved.',
         pendingExpensesTitle: 'Pending expenses have been moved',
         pendingExpensesDescription: 'Any pending card expenses have been moved to a separate report until they post.',
     },
