@@ -2,8 +2,8 @@ import {useMemo} from 'react';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
-import useOnyx from './useOnyx';
 import {isSubmitAction, isApproveAction, isPrimaryPayAction, isExportAction} from '@libs/ReportPrimaryActionUtils';
+import useOnyx from './useOnyx';
 
 export default function useTodos() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
@@ -37,17 +37,17 @@ export default function useTodos() {
                 continue;
             }
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-            const chatReportRNPV = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`];
+            const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`];
             const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
             const reportTransactions = transactionsByReportID[report.reportID] ?? [];
 
-            if (isSubmitAction(report, reportTransactions, policy, chatReportRNPV)) {
+            if (isSubmitAction(report, reportTransactions, policy, reportNameValuePair)) {
                 reportsToSubmit.push(report);
             }
             if (isApproveAction(report, reportTransactions, policy)) {
                 reportsToApprove.push(report);
             }
-            if (isPrimaryPayAction(report, policy, chatReportRNPV)) {
+            if (isPrimaryPayAction(report, policy, reportNameValuePair)) {
                 reportsToPay.push(report);
             }
             if (isExportAction(report, policy, reportActions)) {
