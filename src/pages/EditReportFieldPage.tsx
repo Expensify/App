@@ -1,9 +1,10 @@
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {useSession} from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,7 +12,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {deleteReportField, updateReportField, updateReportName} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -132,10 +132,12 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                     cancelText: translate('common.cancel'),
                     danger: true,
                     shouldEnableNewFocusManagement: true,
+                    // eslint-disable-next-line rulesdir/prefer-early-return
                 }).then((result) => {
-                    if (result.action === ModalActions.CONFIRM) {
-                        handleReportFieldDelete();
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
                     }
+                    handleReportFieldDelete();
                 });
             },
             shouldCallAfterModalHide: true,
@@ -154,7 +156,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                 title={fieldName}
                 threeDotsMenuItems={menuItems}
                 shouldShowThreeDotsButton={!!menuItems?.length}
-                    onBackButtonPress={goBack}
+                onBackButtonPress={goBack}
             />
 
             {(reportField.type === CONST.REPORT_FIELD_TYPES.TEXT || isReportFieldTitle) && (

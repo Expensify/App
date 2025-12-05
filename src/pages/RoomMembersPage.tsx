@@ -8,6 +8,7 @@ import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonW
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -30,14 +31,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtils, isUserPolicyAdmin} from '@libs/PolicyUtils';
-import {getReportName, getReportPersonalDetailsParticipants, isChatThread, isDefaultRoom, isPolicyExpenseChat as isPolicyExpenseChatUtils, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {getReportName as getReportNameFromUtils} from '@libs/ReportNameUtils';
+import {getReportPersonalDetailsParticipants, isChatThread, isDefaultRoom, isPolicyExpenseChat as isPolicyExpenseChatUtils, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {clearAddRoomMemberError, openRoomMembersPage, removeFromRoom} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -133,7 +134,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
      * Remove selected users from the room
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
-    const removeUsers = () => {
+    const removeUsers = useCallback(() => {
         if (report) {
             removeFromRoom(report.reportID, selectedMembers);
         }
@@ -143,7 +144,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             setSelectedMembers([]);
             clearUserSearchPhrase();
         });
-    };
+    }, [report, selectedMembers, setSearchValue, setSelectedMembers]);
 
     /**
      * Add user from the selectedMembers list
@@ -329,16 +330,18 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         }),
                         confirmText: translate('common.remove'),
                         cancelText: translate('common.cancel'),
+                        // eslint-disable-next-line rulesdir/prefer-early-return
                     }).then((result) => {
-                        if (result.action === ModalActions.CONFIRM) {
-                            removeUsers();
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
                         }
+                        removeUsers();
                     });
                 },
             },
         ];
         return options;
-    }, [icons.RemoveMembers, translate, selectedMembers.length, showConfirmModal, formatPhoneNumber, currentUserAccountID, removeUsers]);
+    }, [icons.RemoveMembers, translate, selectedMembers, showConfirmModal, formatPhoneNumber, currentUserAccountID, removeUsers]);
 
     const headerButtons = useMemo(() => {
         return (
@@ -418,7 +421,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             >
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportNameFromUtils(report))}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             setSelectedMembers([]);

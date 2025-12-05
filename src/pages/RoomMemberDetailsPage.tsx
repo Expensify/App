@@ -6,13 +6,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -93,28 +93,28 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                             {displayName}
                         </Text>
                     )}
-                    <>
-                        <Button
-                            text={translate('workspace.people.removeRoomMemberButtonTitle')}
-                            onPress={() => {
-                                showConfirmModal({
-                                    danger: true,
-                                    title: translate('workspace.people.removeRoomMemberButtonTitle'),
-                                    prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
-                                    confirmText: translate('common.remove'),
-                                    cancelText: translate('common.cancel'),
-                                }).then((result) => {
-                                    if (result.action === ModalActions.CONFIRM) {
-                                        removeUser();
-                                    }
-                                });
-                            }}
-                            isDisabled={shouldDisableRemoveUser}
-                            icon={icons.RemoveMembers}
-                            iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                            style={styles.mv5}
-                        />
-                    </>
+                    <Button
+                        text={translate('workspace.people.removeRoomMemberButtonTitle')}
+                        onPress={() => {
+                            showConfirmModal({
+                                danger: true,
+                                title: translate('workspace.people.removeRoomMemberButtonTitle'),
+                                prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
+                                confirmText: translate('common.remove'),
+                                cancelText: translate('common.cancel'),
+                                // eslint-disable-next-line rulesdir/prefer-early-return
+                            }).then((result) => {
+                                if (result.action !== ModalActions.CONFIRM) {
+                                    return;
+                                }
+                                removeUser();
+                            });
+                        }}
+                        isDisabled={shouldDisableRemoveUser}
+                        icon={icons.RemoveMembers}
+                        iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                        style={styles.mv5}
+                    />
                 </View>
                 <View style={styles.w100}>
                     <MenuItem

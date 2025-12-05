@@ -7,16 +7,16 @@ import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View}
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {Actions, ActionSheetAwareScrollViewContext} from '@components/ActionSheetAwareScrollView';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {deleteTrackExpense} from '@libs/actions/IOU';
@@ -440,45 +440,41 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         composerToRefocusOnCloseEmojiPicker: composerToRefocusOnClose,
     }));
 
-    const reportAction = reportActionRef.current;
-
     return (
-        <>
-            <PopoverWithMeasuredContent
+        <PopoverWithMeasuredContent
+            isVisible={isPopoverVisible}
+            onClose={() => hideContextMenu()}
+            onModalShow={runAndResetOnPopoverShow}
+            onModalHide={runAndResetOnPopoverHide}
+            anchorPosition={popoverAnchorPosition.current}
+            animationIn="fadeIn"
+            disableAnimation={false}
+            shouldSetModalVisibility={false}
+            fullscreen
+            withoutOverlay={isWithoutOverlay}
+            anchorDimensions={contextMenuDimensions.current}
+            anchorRef={anchorRef}
+            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
+        >
+            <BaseReportActionContextMenu
                 isVisible={isPopoverVisible}
-                onClose={() => hideContextMenu()}
-                onModalShow={runAndResetOnPopoverShow}
-                onModalHide={runAndResetOnPopoverHide}
-                anchorPosition={popoverAnchorPosition.current}
-                animationIn="fadeIn"
-                disableAnimation={false}
-                shouldSetModalVisibility={false}
-                fullscreen
-                withoutOverlay={isWithoutOverlay}
-                anchorDimensions={contextMenuDimensions.current}
-                anchorRef={anchorRef}
-                shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
-            >
-                <BaseReportActionContextMenu
-                    isVisible={isPopoverVisible}
-                    type={typeRef.current}
-                    reportID={reportIDRef.current}
-                    reportActionID={reportActionIDRef.current}
-                    draftMessage={reportActionDraftMessageRef.current}
-                    selection={selectionRef.current}
-                    isArchivedRoom={isRoomArchived}
-                    isChronosReport={isChronosReportEnabled}
-                    isPinnedChat={isChatPinned}
-                    isUnreadChat={hasUnreadMessages}
-                    isThreadReportParentAction={isThreadReportParentAction}
-                    anchor={contextMenuTargetNode}
-                    contentRef={contentRef}
-                    originalReportID={originalReportIDRef.current}
-                    disabledActions={disabledActions}
-                    setIsEmojiPickerActive={onEmojiPickerToggle.current}
-                />
-            </PopoverWithMeasuredContent>
-        </>
+                type={typeRef.current}
+                reportID={reportIDRef.current}
+                reportActionID={reportActionIDRef.current}
+                draftMessage={reportActionDraftMessageRef.current}
+                selection={selectionRef.current}
+                isArchivedRoom={isRoomArchived}
+                isChronosReport={isChronosReportEnabled}
+                isPinnedChat={isChatPinned}
+                isUnreadChat={hasUnreadMessages}
+                isThreadReportParentAction={isThreadReportParentAction}
+                anchor={contextMenuTargetNode}
+                contentRef={contentRef}
+                originalReportID={originalReportIDRef.current}
+                disabledActions={disabledActions}
+                setIsEmojiPickerActive={onEmojiPickerToggle.current}
+            />
+        </PopoverWithMeasuredContent>
     );
 }
 

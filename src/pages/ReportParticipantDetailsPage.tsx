@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -14,7 +15,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -96,28 +96,28 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                         </Text>
                     )}
                     {isCurrentUserAdmin && (
-                        <>
-                            <Button
-                                text={translate('workspace.people.removeGroupMemberButtonTitle')}
-                                onPress={() => {
-                                    showConfirmModal({
-                                        danger: true,
-                                        title: translate('workspace.people.removeGroupMemberButtonTitle'),
-                                        prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
-                                        confirmText: translate('common.remove'),
-                                        cancelText: translate('common.cancel'),
-                                    }).then((result) => {
-                                        if (result.action === ModalActions.CONFIRM) {
-                                            removeUser();
-                                        }
-                                    });
-                                }}
-                                isDisabled={isSelectedMemberCurrentUser}
-                                icon={icons.RemoveMembers}
-                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                                style={styles.mv5}
-                            />
-                        </>
+                        <Button
+                            text={translate('workspace.people.removeGroupMemberButtonTitle')}
+                            onPress={() => {
+                                showConfirmModal({
+                                    danger: true,
+                                    title: translate('workspace.people.removeGroupMemberButtonTitle'),
+                                    prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
+                                    confirmText: translate('common.remove'),
+                                    cancelText: translate('common.cancel'),
+                                    // eslint-disable-next-line rulesdir/prefer-early-return
+                                }).then((result) => {
+                                    if (result.action !== ModalActions.CONFIRM) {
+                                        return;
+                                    }
+                                    removeUser();
+                                });
+                            }}
+                            isDisabled={isSelectedMemberCurrentUser}
+                            icon={icons.RemoveMembers}
+                            iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                            style={styles.mv5}
+                        />
                     )}
                 </View>
                 <View style={styles.w100}>

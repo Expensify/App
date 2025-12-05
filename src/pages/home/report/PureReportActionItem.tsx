@@ -17,6 +17,7 @@ import {Eye} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
@@ -41,7 +42,6 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -559,9 +559,10 @@ function PureReportActionItem({
                 shouldShowCancelButton: true,
                 danger: true,
             }).then((result) => {
-                if (result.action === ModalActions.CONFIRM) {
-                    dismissError();
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
                 }
+                dismissError();
             });
         } else {
             dismissError();

@@ -12,6 +12,7 @@ import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/Bu
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
@@ -21,7 +22,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -38,8 +38,8 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getReportName as getReportNameFromUtils} from '@libs/ReportNameUtils';
 import {
-    getReportName,
     getReportPersonalDetailsParticipants,
     isArchivedNonExpenseReport,
     isChatRoom,
@@ -241,7 +241,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
      * Remove selected users from the workspace
      * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
      */
-    const removeUsers = () => {
+    const removeUsers = useCallback(() => {
         // Remove the admin from the list
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         removeFromGroupChat(report.reportID, accountIDsToRemove);
@@ -251,7 +251,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             setSelectedMembers([]);
             clearUserSearchPhrase();
         });
-    };
+    }, [selectedMembers, currentUserAccountID, report.reportID, setSearchValue, setSelectedMembers]);
 
     const changeUserRole = useCallback(
         (role: ValueOf<typeof CONST.REPORT.ROLE>) => {
@@ -327,10 +327,12 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                                 textInputRef.current.focus();
                             });
                         },
+                        // eslint-disable-next-line rulesdir/prefer-early-return
                     }).then((result) => {
-                        if (result.action === ModalActions.CONFIRM) {
-                            removeUsers();
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
                         }
+                        removeUsers();
                     });
                 },
             },
@@ -359,7 +361,20 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         }
 
         return options;
-    }, [icons.RemoveMembers, icons.User, icons.MakeAdmin, changeUserRole, translate, showConfirmModal, selectedMembers, report.participants, formatPhoneNumber, currentUserAccountID, removeUsers, textInputRef]);
+    }, [
+        icons.RemoveMembers,
+        icons.User,
+        icons.MakeAdmin,
+        changeUserRole,
+        translate,
+        showConfirmModal,
+        selectedMembers,
+        report.participants,
+        formatPhoneNumber,
+        currentUserAccountID,
+        removeUsers,
+        textInputRef,
+    ]);
 
     const headerButtons = useMemo(() => {
         if (!isGroupChat) {
@@ -441,7 +456,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, undefined, undefined, undefined, undefined, reportAttributes))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportNameFromUtils(report, reportAttributes?.reports))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>

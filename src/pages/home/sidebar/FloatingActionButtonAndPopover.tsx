@@ -12,12 +12,12 @@ import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -52,11 +52,11 @@ import {
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
+import {getReportName as getReportNameFromUtils} from '@libs/ReportNameUtils';
 import {
     generateReportID,
     getDisplayNameForParticipant,
     getIcons,
-    getReportName,
     getWorkspaceChats,
     hasEmptyReportsForPolicy,
     hasViolations as hasViolationsReportUtils,
@@ -272,7 +272,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
 
     const quickActionSubtitle = useMemo(() => {
-        return !hideQABSubtitle ? (getReportName(quickActionReport, quickActionPolicy, undefined, personalDetails) ?? translate('quickAction.updateDestination')) : '';
+        return !hideQABSubtitle ? (getReportNameFromUtils(quickActionReport) ?? translate('quickAction.updateDestination')) : '';
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hideQABSubtitle, personalDetails, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
@@ -297,13 +297,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     confirmText: translate('exitSurvey.goToExpensifyClassic'),
                     cancelText: translate('common.cancel'),
                 }).then((result) => {
-                    if (result.action === ModalActions.CONFIRM) {
-                        if (CONFIG.IS_HYBRID_APP) {
-                            closeReactNativeApp({shouldSetNVP: true});
-                            return;
-                        }
-                        openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
                     }
+                    if (CONFIG.IS_HYBRID_APP) {
+                        closeReactNativeApp({shouldSetNVP: true});
+                        return;
+                    }
+                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                 });
                 return;
             }
@@ -407,14 +408,16 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                                 title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
                                 confirmText: translate('exitSurvey.goToExpensifyClassic'),
                                 cancelText: translate('common.cancel'),
+                                // eslint-disable-next-line rulesdir/prefer-early-return
                             }).then((result) => {
-                                if (result.action === ModalActions.CONFIRM) {
-                                    if (CONFIG.IS_HYBRID_APP) {
-                                        closeReactNativeApp({shouldSetNVP: true});
-                                        return;
-                                    }
-                                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                                if (result.action !== ModalActions.CONFIRM) {
+                                    return;
                                 }
+                                if (CONFIG.IS_HYBRID_APP) {
+                                    closeReactNativeApp({shouldSetNVP: true});
+                                    return;
+                                }
+                                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                             });
                             return;
                         }
@@ -422,7 +425,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     }),
             },
         ];
-    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID]);
+    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID, showConfirmModal]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
@@ -494,7 +497,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     ...baseQuickAction,
                     icon: Expensicons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
-                    description: getReportName(policyChatForActivePolicy),
+                    description: getReportNameFromUtils(policyChatForActivePolicy),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected,
                     rightIconReportID: policyChatForActivePolicy?.reportID,
@@ -561,14 +564,16 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                             title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
                             confirmText: translate('exitSurvey.goToExpensifyClassic'),
                             cancelText: translate('common.cancel'),
+                            // eslint-disable-next-line rulesdir/prefer-early-return
                         }).then((result) => {
-                            if (result.action === ModalActions.CONFIRM) {
-                                if (CONFIG.IS_HYBRID_APP) {
-                                    closeReactNativeApp({shouldSetNVP: true});
-                                    return;
-                                }
-                                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
                             }
+                            if (CONFIG.IS_HYBRID_APP) {
+                                closeReactNativeApp({shouldSetNVP: true});
+                                return;
+                            }
+                            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                         });
                         return;
                     }
@@ -591,14 +596,16 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                                       title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
                                       confirmText: translate('exitSurvey.goToExpensifyClassic'),
                                       cancelText: translate('common.cancel'),
+                                      // eslint-disable-next-line rulesdir/prefer-early-return
                                   }).then((result) => {
-                                      if (result.action === ModalActions.CONFIRM) {
-                                          if (CONFIG.IS_HYBRID_APP) {
-                                              closeReactNativeApp({shouldSetNVP: true});
-                                              return;
-                                          }
-                                          openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                                      if (result.action !== ModalActions.CONFIRM) {
+                                          return;
                                       }
+                                      if (CONFIG.IS_HYBRID_APP) {
+                                          closeReactNativeApp({shouldSetNVP: true});
+                                          return;
+                                      }
+                                      openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                                   });
                                   return;
                               }
@@ -647,14 +654,16 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                                       title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
                                       confirmText: translate('exitSurvey.goToExpensifyClassic'),
                                       cancelText: translate('common.cancel'),
+                                      // eslint-disable-next-line rulesdir/prefer-early-return
                                   }).then((result) => {
-                                      if (result.action === ModalActions.CONFIRM) {
-                                          if (CONFIG.IS_HYBRID_APP) {
-                                              closeReactNativeApp({shouldSetNVP: true});
-                                              return;
-                                          }
-                                          openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                                      if (result.action !== ModalActions.CONFIRM) {
+                                          return;
                                       }
+                                      if (CONFIG.IS_HYBRID_APP) {
+                                          closeReactNativeApp({shouldSetNVP: true});
+                                          return;
+                                      }
+                                      openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                                   });
                                   return;
                               }

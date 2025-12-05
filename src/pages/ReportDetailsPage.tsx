@@ -1,7 +1,6 @@
 import reportsSelector from '@selectors/Attributes';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -13,6 +12,7 @@ import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/M
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -48,6 +48,7 @@ import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getReportName as getReportNameFromUtils} from '@libs/ReportNameUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
@@ -66,7 +67,6 @@ import {
     getParticipantsList,
     getReportDescription,
     getReportFieldKey,
-    getReportName,
     isAdminOwnerApproverOrReportOwner,
     isArchivedNonExpenseReport,
     isCanceledTaskReport as isCanceledTaskReportUtil,
@@ -305,7 +305,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const isWorkspaceChat = useMemo(() => isWorkspaceChatUtil(report?.chatType ?? ''), [report?.chatType]);
 
-
     useEffect(() => {
         // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
         if (isPrivateNotesFetchTriggered || isOffline || isSelfDM) {
@@ -330,7 +329,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
 
-    const reportName = Parser.htmlToText(getReportName(report, undefined, undefined, undefined, undefined, reportAttributes));
+    const reportName = Parser.htmlToText(getReportNameFromUtils(report, reportAttributes?.reports));
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle
@@ -523,10 +522,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             prompt: translate('groupChat.lastMemberWarning'),
                             confirmText: translate('common.leave'),
                             cancelText: translate('common.cancel'),
+                            // eslint-disable-next-line rulesdir/prefer-early-return
                         }).then((result) => {
-                            if (result.action === ModalActions.CONFIRM) {
-                                leaveChat();
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
                             }
+                            leaveChat();
                         });
                         return;
                     }
@@ -585,6 +586,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         preferredPolicyID,
         introSelected,
         parentReport,
+        showConfirmModal,
+        translate,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -1017,10 +1020,12 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                                     cancelText: translate('common.cancel'),
                                     danger: true,
                                     shouldEnableNewFocusManagement: true,
+                                    // eslint-disable-next-line rulesdir/prefer-early-return
                                 }).then((result) => {
-                                    if (result.action === ModalActions.CONFIRM) {
-                                        isTransactionDeleted.current = true;
+                                    if (result.action !== ModalActions.CONFIRM) {
+                                        return;
                                     }
+                                    isTransactionDeleted.current = true;
                                 });
                             }}
                         />
