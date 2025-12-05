@@ -14172,18 +14172,36 @@ function initSplitExpenseItemData(
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
-function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, reports: OnyxCollection<OnyxTypes.Report>, transaction: OnyxEntry<OnyxTypes.Transaction>) {
+function initSplitExpense(
+    transactions: OnyxCollection<OnyxTypes.Transaction>,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    report: OnyxEntry<OnyxTypes.Report>,
+) {
     if (!transaction) {
         return;
     }
+    const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
 
-    const reportID = transaction.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+    const transactionReportID = transaction.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+    let reportID;
+
+    if (isSelfDM(report)) {
+        reportID = report?.reportID;
+    } else if (isSelfDM(parentReport)) {
+        reportID = parentReport?.reportID;
+    } else {
+        reportID = transactionReportID;
+    }
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
     if (isExpenseSplit) {
-        const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
+        const originalTransactionID = transaction.comment?.originalTransactionID;
+        const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
+
+        const relatedTransactions = getChildTransactions(transactions, originalTransactionID);
         const transactionDetails = getTransactionDetails(originalTransaction);
         const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
         const draftTransaction = buildOptimisticTransaction({
@@ -14196,7 +14214,7 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
                 participants: transaction?.participants,
                 merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
                 attendees: transactionDetails?.attendees as Attendee[],
-                reportID,
+                reportID: transactionReportID,
                 reimbursable: transactionDetails?.reimbursable,
             },
         });
@@ -14225,7 +14243,7 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
             merchant: transactionDetails?.merchant ?? '',
             participants: transaction?.participants,
             attendees: transactionDetails?.attendees as Attendee[],
-            reportID,
+            reportID: transactionReportID,
             reimbursable: transactionDetails?.reimbursable,
         },
     });
@@ -14238,7 +14256,7 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
 /**
  * Create a draft transaction to set up split expense details for edit split details
  */
-function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string, reportID: string) {
+function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string, transactionReportID: string, reportID: string) {
     if (!draftTransaction || !splitExpenseTransactionID) {
         return;
     }
@@ -14259,7 +14277,7 @@ function initDraftSplitExpenseDataForEdit(draftTransaction: OnyxEntry<OnyxTypes.
             merchant: splitTransactionData?.merchant,
             participants: draftTransaction?.participants,
             attendees: transactionDetails?.attendees as Attendee[],
-            reportID,
+            reportID: transactionReportID,
             created: splitTransactionData?.created ?? '',
             category: splitTransactionData?.category ?? '',
         },
@@ -14445,7 +14463,7 @@ function updateSplitTransactions({
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     // List of all child transactions that have been created after split
-    const originalChildTransactions = getChildTransactions(allTransactionsList, allReportsList, originalTransactionID);
+    const originalChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID);
     const processedChildTransactionIDs: string[] = [];
 
     const reportTotal = transactionReport?.total ?? 0;

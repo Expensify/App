@@ -1126,7 +1126,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                initSplitExpense(allTransactions, allReports, currentTransaction);
+                initSplitExpense(allTransactions, allReports, currentTransaction, moneyRequestReport);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {
