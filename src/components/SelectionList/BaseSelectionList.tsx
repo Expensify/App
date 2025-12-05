@@ -362,13 +362,16 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     };
 
-    // this function is used specifically for scrolling to the focused input to prevent it from appearing below opened keyboard
-    // and ensures the entire list item element is visible, not just the input field inside it
+    // The function scrolls to the focused input to prevent keyboard occlusion.
+    // It ensures the entire list item is visible, not just the input field.
+    // Added specifically for SplitExpensePage
     const scrollToFocusedInput = useCallback((item: TItem) => {
         if (!listRef.current) {
             return;
         }
 
+        // Delay scrolling by 100ms to allow the keyboard to open.
+        // This ensures FlashList calculates the correct window size.
         setTimeout(() => {
             listRef.current?.scrollToItem({item, viewPosition: 1});
         }, 100);
