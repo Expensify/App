@@ -28,9 +28,10 @@ import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
+import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {ImportedSpreadsheet, IntroSelected, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -48,6 +49,30 @@ Onyx.connect({
         allPolicyTags = value;
     },
 });
+
+let deprecatedIntroSelected: OnyxEntry<IntroSelected>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => (deprecatedIntroSelected = value),
+});
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
+});
+
+function completeSetupTagsTask() {
+    const setupTagsTaskReportID = deprecatedIntroSelected?.setupTags;
+    if (setupTagsTaskReportID) {
+        const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${setupTagsTaskReportID}`];
+
+        if (taskReport) {
+            Task.completeTask(taskReport, false, undefined);
+        }
+    }
+}
 
 function openPolicyTagsPage(policyID: string) {
     if (!policyID) {
@@ -187,6 +212,8 @@ function createPolicyTag(policyID: string, tagName: string, policyTags: PolicyTa
     };
 
     API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
+
+    completeSetupTagsTask();
 }
 
 function importPolicyTags(policyID: string, tags: PolicyTag[]) {
@@ -199,6 +226,8 @@ function importPolicyTags(policyID: string, tags: PolicyTag[]) {
     };
 
     API.write(WRITE_COMMANDS.IMPORT_TAGS_SPREADSHEET, parameters, onyxData);
+
+    completeSetupTagsTask();
 }
 
 function setWorkspaceTagEnabled(policyData: PolicyData, tagsToUpdate: Record<string, {name: string; enabled: boolean}>, tagListIndex: number) {
@@ -310,6 +339,8 @@ function setWorkspaceTagEnabled(policyData: PolicyData, tagsToUpdate: Record<str
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
+
+    completeSetupTagsTask();
 }
 
 function setWorkspaceTagRequired(policyData: PolicyData, tagListIndexes: number[], isRequired: boolean) {
@@ -796,6 +827,8 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
     if (enabled && getIsNarrowLayout()) {
         goBackWhenEnableFeature(policyID);
     }
+
+    completeSetupTagsTask();
 }
 
 function cleanPolicyTags(policyID: string) {
@@ -884,6 +917,7 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
             };
 
             API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData);
+            completeSetupTagsTask();
         },
         () => {},
         spreadsheet?.fileType ?? CONST.SHARE_FILE_MIMETYPE.CSV,
