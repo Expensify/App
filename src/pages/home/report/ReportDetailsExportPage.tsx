@@ -1,14 +1,15 @@
 import React, {useCallback, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
@@ -39,22 +40,22 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
     const styles = useThemeStyles();
     const lazyIllustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenAndHourglass']);
+    const {showConfirmModal} = useConfirmModal();
 
     const iconToDisplay = getIntegrationIcon(connectionName);
     const canBeExported = canBeExportedUtil(report);
     const isExported = isExportedUtil(reportActions);
 
     const confirmExport = useCallback(
-        (type = modalStatus) => {
+        (type: ExportType) => {
             if (type === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
                 exportToIntegration(reportID, connectionName);
             } else if (type === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
                 markAsManuallyExported(reportID, connectionName);
             }
-            setModalStatus(null);
             Navigation.dismissModal();
         },
-        [connectionName, modalStatus, reportID],
+        [connectionName, reportID],
     );
 
     const exportSelectorOptions: ExportSelectorType[] = [
@@ -118,20 +119,20 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 connectionName={connectionName}
                 onSelectRow={({value}) => {
                     if (isExported) {
-                        setModalStatus(value);
+                        showConfirmModal({
+                            title: translate('workspace.exportAgainModal.title'),
+                            prompt: translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', connectionName}),
+                            confirmText: translate('workspace.exportAgainModal.confirmText'),
+                            cancelText: translate('workspace.exportAgainModal.cancelText'),
+                        }).then((result) => {
+                            if (result.action === ModalActions.CONFIRM) {
+                                confirmExport(value);
+                            }
+                        });
                     } else {
                         confirmExport(value);
                     }
                 }}
-            />
-            <ConfirmModal
-                title={translate('workspace.exportAgainModal.title')}
-                onConfirm={confirmExport}
-                onCancel={() => setModalStatus(null)}
-                prompt={translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', connectionName})}
-                confirmText={translate('workspace.exportAgainModal.confirmText')}
-                cancelText={translate('workspace.exportAgainModal.cancelText')}
-                isVisible={!!modalStatus}
             />
         </>
     );

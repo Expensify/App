@@ -7,7 +7,6 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
@@ -15,8 +14,10 @@ import FloatingReceiptButton from '@components/FloatingReceiptButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -150,8 +151,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
-    const [modalVisible, setModalVisible] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
+    const {showConfirmModal} = useConfirmModal();
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
@@ -290,14 +291,27 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const startScan = useCallback(() => {
         interceptAnonymousUser(() => {
             if (shouldRedirectToExpensifyClassic) {
-                setModalVisible(true);
+                showConfirmModal({
+                    prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
+                    title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
+                    confirmText: translate('exitSurvey.goToExpensifyClassic'),
+                    cancelText: translate('common.cancel'),
+                }).then((result) => {
+                    if (result.action === ModalActions.CONFIRM) {
+                        if (CONFIG.IS_HYBRID_APP) {
+                            closeReactNativeApp({shouldSetNVP: true});
+                            return;
+                        }
+                        openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                    }
+                });
                 return;
             }
 
             // Start the scan flow directly
             startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, allTransactionDrafts);
         });
-    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts, reportID]);
+    }, [shouldRedirectToExpensifyClassic, allTransactionDrafts, reportID, showConfirmModal, translate]);
 
     const startQuickScan = useCallback(() => {
         interceptAnonymousUser(() => {
@@ -388,7 +402,20 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 onSelected: () =>
                     interceptAnonymousUser(() => {
                         if (shouldRedirectToExpensifyClassic) {
-                            setModalVisible(true);
+                            showConfirmModal({
+                                prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
+                                title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
+                                confirmText: translate('exitSurvey.goToExpensifyClassic'),
+                                cancelText: translate('common.cancel'),
+                            }).then((result) => {
+                                if (result.action === ModalActions.CONFIRM) {
+                                    if (CONFIG.IS_HYBRID_APP) {
+                                        closeReactNativeApp({shouldSetNVP: true});
+                                        return;
+                                    }
+                                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                                }
+                            });
                             return;
                         }
                         startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, undefined, undefined, undefined, allTransactionDrafts);
@@ -529,7 +556,20 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             onSelected: () => {
                 interceptAnonymousUser(() => {
                     if (shouldRedirectToExpensifyClassic) {
-                        setModalVisible(true);
+                        showConfirmModal({
+                            prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
+                            title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
+                            confirmText: translate('exitSurvey.goToExpensifyClassic'),
+                            cancelText: translate('common.cancel'),
+                        }).then((result) => {
+                            if (result.action === ModalActions.CONFIRM) {
+                                if (CONFIG.IS_HYBRID_APP) {
+                                    closeReactNativeApp({shouldSetNVP: true});
+                                    return;
+                                }
+                                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                            }
+                        });
                         return;
                     }
                     // Start the flow to start tracking a distance request
@@ -546,7 +586,20 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                       onSelected: () => {
                           interceptAnonymousUser(() => {
                               if (shouldRedirectToExpensifyClassic) {
-                                  setModalVisible(true);
+                                  showConfirmModal({
+                                      prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
+                                      title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
+                                      confirmText: translate('exitSurvey.goToExpensifyClassic'),
+                                      cancelText: translate('common.cancel'),
+                                  }).then((result) => {
+                                      if (result.action === ModalActions.CONFIRM) {
+                                          if (CONFIG.IS_HYBRID_APP) {
+                                              closeReactNativeApp({shouldSetNVP: true});
+                                              return;
+                                          }
+                                          openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                                      }
+                                  });
                                   return;
                               }
 
@@ -589,7 +642,20 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                       onSelected: () =>
                           interceptAnonymousUser(() => {
                               if (shouldRedirectToExpensifyClassic) {
-                                  setModalVisible(true);
+                                  showConfirmModal({
+                                      prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
+                                      title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
+                                      confirmText: translate('exitSurvey.goToExpensifyClassic'),
+                                      cancelText: translate('common.cancel'),
+                                  }).then((result) => {
+                                      if (result.action === ModalActions.CONFIRM) {
+                                          if (CONFIG.IS_HYBRID_APP) {
+                                              closeReactNativeApp({shouldSetNVP: true});
+                                              return;
+                                          }
+                                          openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                                      }
+                                  });
                                   return;
                               }
 
@@ -659,22 +725,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     };
                 })}
                 anchorRef={fabRef}
-            />
-            <ConfirmModal
-                prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
-                isVisible={modalVisible}
-                onConfirm={() => {
-                    setModalVisible(false);
-                    if (CONFIG.IS_HYBRID_APP) {
-                        closeReactNativeApp({shouldSetNVP: true});
-                        return;
-                    }
-                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                }}
-                onCancel={() => setModalVisible(false)}
-                title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
-                confirmText={translate('exitSurvey.goToExpensifyClassic')}
-                cancelText={translate('common.cancel')}
             />
             {!shouldUseNarrowLayout && (
                 <FloatingReceiptButton

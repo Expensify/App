@@ -5,7 +5,6 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
@@ -17,6 +16,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -30,6 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
@@ -55,11 +56,11 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
     const styles = useThemeStyles();
+    const {showConfirmModal} = useConfirmModal();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
     const currentUserAccountID = Number(session?.accountID);
     const {formatPhoneNumber, translate, localeCompare} = useLocalize();
-    const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
@@ -137,7 +138,6 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             removeFromRoom(report.reportID, selectedMembers);
         }
         setSearchValue('');
-        setRemoveMembersConfirmModalVisible(false);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedMembers([]);
@@ -319,11 +319,26 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: icons.RemoveMembers,
-                onSelected: () => setRemoveMembersConfirmModalVisible(true),
+                onSelected: () => {
+                    showConfirmModal({
+                        danger: true,
+                        title: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
+                        prompt: translate('roomMembersPage.removeMembersPrompt', {
+                            count: selectedMembers.length,
+                            memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
+                        }),
+                        confirmText: translate('common.remove'),
+                        cancelText: translate('common.cancel'),
+                    }).then((result) => {
+                        if (result.action === ModalActions.CONFIRM) {
+                            removeUsers();
+                        }
+                    });
+                },
             },
         ];
         return options;
-    }, [icons.RemoveMembers, translate, selectedMembers.length]);
+    }, [icons.RemoveMembers, translate, selectedMembers.length, showConfirmModal, formatPhoneNumber, currentUserAccountID, removeUsers]);
 
     const headerButtons = useMemo(() => {
         return (
@@ -416,26 +431,12 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                     }}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
-                <ConfirmModal
-                    danger
-                    title={translate('workspace.people.removeMembersTitle', {count: selectedMembers.length})}
-                    isVisible={removeMembersConfirmModalVisible}
-                    onConfirm={removeUsers}
-                    onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={translate('roomMembersPage.removeMembersPrompt', {
-                        count: selectedMembers.length,
-                        memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
-                    })}
-                    confirmText={translate('common.remove')}
-                    cancelText={translate('common.cancel')}
-                />
                 <View style={[styles.w100, styles.mt3, styles.flex1]}>
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         sections={[{data, isDisabled: false}]}
                         shouldShowTextInput={shouldShowTextInput}
                         textInputLabel={translate('selectionList.findMember')}
-                        disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         textInputValue={searchValue}
                         onChangeText={setSearchValue}
                         headerMessage={headerMessage}

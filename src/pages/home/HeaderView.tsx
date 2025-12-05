@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
-import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
@@ -23,6 +22,7 @@ import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useAncestors from '@hooks/useAncestors';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
@@ -104,7 +104,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
-    const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const invoiceReceiverPolicyID = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
@@ -372,20 +372,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 <HelpButton style={styles.ml2} />
                                 {shouldDisplaySearchRouter && <SearchButton />}
                             </View>
-                            <ConfirmModal
-                                isVisible={isDeleteTaskConfirmModalVisible}
-                                onConfirm={() => {
-                                    setIsDeleteTaskConfirmModalVisible(false);
-                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction ?? undefined, ancestors);
-                                }}
-                                onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
-                                title={translate('task.deleteTask')}
-                                prompt={translate('task.deleteConfirmation')}
-                                confirmText={translate('common.delete')}
-                                cancelText={translate('common.cancel')}
-                                danger
-                                shouldEnableNewFocusManagement
-                            />
                         </View>
                     )}
                 </View>

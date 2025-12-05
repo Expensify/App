@@ -9,7 +9,6 @@ import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -39,8 +38,10 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -534,7 +535,7 @@ function PureReportActionItem({
         currentSearchHash = searchContextCurrentSearchHash;
     }
 
-    const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const dismissError = useCallback(() => {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (transactionID) {
@@ -550,7 +551,18 @@ function PureReportActionItem({
         const hasReceiptError = Object.values(errorMessages).some((error) => isReceiptError(error));
 
         if (hasReceiptError) {
-            setShowConfirmDismissReceiptError(true);
+            showConfirmModal({
+                title: translate('iou.dismissReceiptError'),
+                prompt: translate('iou.dismissReceiptErrorConfirmation'),
+                confirmText: translate('common.dismiss'),
+                cancelText: translate('common.cancel'),
+                shouldShowCancelButton: true,
+                danger: true,
+            }).then((result) => {
+                if (result.action === ModalActions.CONFIRM) {
+                    dismissError();
+                }
+            });
         } else {
             dismissError();
         }
@@ -1838,22 +1850,6 @@ function PureReportActionItem({
             <View style={styles.reportActionSystemMessageContainer}>
                 <InlineSystemMessage message={action.error} />
             </View>
-            <ConfirmModal
-                isVisible={showConfirmDismissReceiptError}
-                onConfirm={() => {
-                    dismissError();
-                    setShowConfirmDismissReceiptError(false);
-                }}
-                onCancel={() => {
-                    setShowConfirmDismissReceiptError(false);
-                }}
-                title={translate('iou.dismissReceiptError')}
-                prompt={translate('iou.dismissReceiptErrorConfirmation')}
-                confirmText={translate('common.dismiss')}
-                cancelText={translate('common.cancel')}
-                shouldShowCancelButton
-                danger
-            />
         </PressableWithSecondaryInteraction>
     );
 }
