@@ -286,7 +286,7 @@ jobs:
 
       - name: Rock Remote Build - Android
         id: rock-remote-build-android
-        uses: LukasMod/android@68969e0075f437f7cc5fdf4cbfa328be246382cf
+        uses: LukasMod/android@c3070214406d788305c3998e2a07055666370b0f
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -295,6 +295,7 @@ jobs:
           variant: 'Adhoc'
           sign: true
           re-sign: true
+          ad-hoc: true
           keystore-file: './upload-key.keystore'
           keystore-store-file: 'upload-key.keystore'
           keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
@@ -434,7 +435,7 @@ jobs:
 
       - name: Rock Remote Build - iOS
         id: rock-remote-build-ios
-        uses: LukasMod/ios@319ee53ea1ac4c673e42cca1083e647fe6ddd6a0
+        uses: LukasMod/ios@77e2325c8ec386326708216545821d851bf065cf
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
