@@ -2288,9 +2288,10 @@ ${amount} pour ${merchant} - ${date}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `dans ${policyName}`,
-        generatingPDF: 'Génération du PDF...',
-        waitForPDF: 'Veuillez patienter pendant que nous générons le PDF',
+        generatingPDF: 'Générer un PDF',
+        waitForPDF: 'Veuillez patienter pendant que nous générons le PDF.',
         errorPDF: "Une erreur s'est produite lors de la tentative de génération de votre PDF.",
+        successPDF: "Votre PDF a été généré ! S'il ne s'est pas téléchargé automatiquement, utilisez le bouton ci-dessous.",
     },
     reportDescriptionPage: {
         roomDescription: 'Description de la chambre',
@@ -2554,13 +2555,13 @@ ${amount} pour ${merchant} - ${date}`,
                         4. Recherchez ${integrationName}.
                         5. Cliquez sur *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? dedent(`[Accéder à la comptabilité](${workspaceAccountingLink}).
+                        ${
+                            integrationName && CONST.connectionsVideoPaths[integrationName]
+                                ? `[Accéder à la comptabilité](${workspaceAccountingLink}).
 
-                                      ![Se connecter à ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`)
-        : `[Accéder à la comptabilité](${workspaceAccountingLink}).`
-}`),
+                        ![Se connecter à ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
+                                : `[Accéder à la comptabilité](${workspaceAccountingLink})`
+                        }`),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Connectez [vos cartes d’entreprise](${corporateCardLink})`,
@@ -5239,9 +5240,18 @@ ${
             removeMemberPrompt: ({memberName}: RemoveMemberPromptParams) => `Êtes-vous sûr de vouloir supprimer ${memberName} ?`,
             removeMemberTitle: 'Supprimer le membre',
             transferOwner: 'Transférer le propriétaire',
-            makeMember: 'Rendre membre',
-            makeAdmin: 'Nommer administrateur',
-            makeAuditor: 'Créer un auditeur',
+            makeMember: () => ({
+                one: 'Définir comme membre',
+                other: 'Rendre membres',
+            }),
+            makeAdmin: () => ({
+                one: 'Nommer administrateur',
+                other: 'Définir comme administrateurs',
+            }),
+            makeAuditor: () => ({
+                one: 'Nommer auditeur',
+                other: 'Définir comme auditeurs',
+            }),
             selectAll: 'Tout sélectionner',
             error: {
                 genericAdd: "Un problème est survenu lors de l'ajout de ce membre de l'espace de travail.",
@@ -5295,7 +5305,6 @@ ${
                 cardType: 'Type de carte',
                 limit: 'Limite',
                 limitType: 'Limiter le type',
-                name: 'Nom',
                 disabledApprovalForSmartLimitError:
                     'Veuillez activer les approbations dans <strong>Workflows > Ajouter des approbations</strong> avant de configurer les limites intelligentes',
             },
@@ -6001,7 +6010,7 @@ ${
                     expense: 'Dépense individuelle',
                     expenseSubtitle: "Marquer les montants des dépenses par catégorie. Cette règle remplace la règle générale de l'espace de travail pour le montant maximal des dépenses.",
                     daily: 'Total de la catégorie',
-                    dailySubtitle: 'Indiquer le total des dépenses par catégorie pour chaque rapport de dépenses.',
+                    dailySubtitle: 'Indiquer le total des dépenses par jour par catégorie pour chaque rapport de dépenses.',
                 },
                 requireReceiptsOver: 'Exiger des reçus au-dessus de',
                 requireReceiptsOverList: {
@@ -6718,6 +6727,7 @@ ${
     },
     report: {
         newReport: {
+            createExpense: 'Créer une dépense',
             createReport: 'Créer un rapport',
             chooseWorkspace: 'Choisissez un espace de travail pour ce rapport.',
             emptyReportConfirmationTitle: 'Vous avez déjà un rapport vide',
@@ -7828,6 +7838,8 @@ ${
             anyMemberWillBeRequired: 'Tout membre connecté avec une autre méthode devra se réauthentifier via SAML.',
             enableError: 'Impossible de mettre à jour le paramètre d’activation SAML',
             requireError: 'Impossible de mettre à jour le paramètre d’exigence SAML',
+            disableSamlRequired: 'Désactiver SAML requis',
+            oktaWarningPrompt: 'Êtes-vous sûr ? Cela désactivera également Okta SCIM.',
         },
         samlConfigurationDetails: {
             title: 'Détails de la configuration SAML',
