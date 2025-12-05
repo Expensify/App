@@ -143,6 +143,7 @@ function SearchPage({route}: SearchPageProps) {
         'Exclamation',
         'SmartScan',
         'MoneyBag',
+        'Workflows',
     ] as const);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -533,6 +534,30 @@ function SearchPage({route}: SearchPageProps) {
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
                     });
+                },
+            });
+        }
+
+        const shouldShowChangeApproverOption =
+            !isOffline &&
+            !isAnyTransactionOnHold &&
+            areSelectedTransactionsIncludedInReports &&
+            selectedReports.length &&
+            selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER));
+
+        if (shouldShowChangeApproverOption) {
+            options.push({
+                icon: expensifyIcons.Workflows,
+                text: translate('iou.changeApprover.title'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+
+                    Navigation.navigate(ROUTES.CHANGE_APPROVER_SEARCH_RHP);
                 },
             });
         }

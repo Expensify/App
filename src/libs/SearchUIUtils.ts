@@ -75,7 +75,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyPayer} from './PolicyUtils';
+import {arePaymentsEnabled, canSendInvoice, getGroupPaidPoliciesWithExpenseChatEnabled, getPolicy, isPaidGroupPolicy, isPolicyAdmin, isPolicyPayer} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -104,11 +104,14 @@ import {
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
+    isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isMoneyRequestReport,
+    isMoneyRequestReportPendingDeletion,
     isOneTransactionReport,
     isOpenExpenseReport,
     isOpenReport,
+    isProcessingReport,
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from './SearchQueryUtils';
@@ -1303,6 +1306,10 @@ function getActions(
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
     if (canSubmitReport(report, policy, allReportTransactions, allViolations, isIOUReportArchived || isChatReportArchived, currentUserEmail) && isAllowedToApproveExpenseReport) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+    }
+
+    if (report && policy && isPolicyAdmin(policy) && isExpenseReportUtil(report) && isProcessingReport(report) && !isMoneyRequestReportPendingDeletion(report)) {
+        allActions.push(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
     }
 
     if (reportNVP?.exportFailedTime) {
