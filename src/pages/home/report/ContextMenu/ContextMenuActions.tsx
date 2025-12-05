@@ -148,18 +148,7 @@ import {
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {
-    Beta,
-    Card,
-    Download as DownloadOnyx,
-    OnyxInputOrEntry,
-    Policy,
-    PolicyTagLists,
-    ReportAction,
-    ReportActionReactions,
-    Report as ReportType,
-    Transaction,
-} from '@src/types/onyx';
+import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, Policy, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';

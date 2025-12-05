@@ -649,7 +649,10 @@ function getLastMessageTextForReport({
         const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
         if (isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
             const harvestReport = getReportOrDraftReport(reportNameValuePairs?.originalID);
-            lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, getReportName(harvestReport), translateLocal)));
+            lastMessageTextFromReport = formatReportLastMessageText(
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                Parser.htmlToText(getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, getReportName(harvestReport), translateLocal)),
+            );
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
         const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, lastReportAction, true, false, null, true);

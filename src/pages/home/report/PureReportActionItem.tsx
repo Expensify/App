@@ -1671,7 +1671,7 @@ function PureReportActionItem({
 
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
-    
+
     let createdActionContent: React.JSX.Element | null = null;
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         const transactionID = isMoneyRequestAction(parentReportActionForTransactionThread) ? getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID : undefined;
