@@ -82,10 +82,12 @@ type ReportFooterProps = {
 };
 
 /**
- * Extracts key information from DOM elements in a clean, structured format
+ * Extracts page information in a simplified XML-like format for LLM understanding
+ * Uses semantic tags to describe what each element represents
  */
-function extractPageContext(element: Element): string[] {
+function extractPageContext(element: Element, depth = 0): string[] {
     const context: string[] = [];
+    const indent = '  '.repeat(depth);
 
     // Skip hidden elements
     if (element instanceof HTMLElement) {
@@ -110,30 +112,71 @@ function extractPageContext(element: Element): string[] {
         .join(' ')
         .trim();
 
-    // Add semantic markers for important elements
-    if (tagName === 'h1' && directText) {
-        context.push(`# ${directText}`);
-    } else if (tagName === 'h2' && directText) {
-        context.push(`## ${directText}`);
-    } else if (tagName === 'h3' && directText) {
-        context.push(`### ${directText}`);
-    } else if (['h4', 'h5', 'h6'].includes(tagName) && directText) {
-        context.push(`**${directText}**`);
-    } else if (tagName === 'button' && directText) {
-        context.push(`[Button: ${directText}]`);
-    } else if (tagName === 'a' && directText) {
-        context.push(`[Link: ${directText}]`);
-    } else if (tagName === 'li' && directText) {
-        context.push(`• ${directText}`);
+    // Get relevant attributes for context
+    const role = element.getAttribute('role') || '';
+    const ariaLabel = element.getAttribute('aria-label') || '';
+    const testId = element.getAttribute('data-testid') || '';
+    const className = element.className || '';
+
+    // Determine semantic tag based on element type and attributes
+    let semanticTag = '';
+    let hasChildren = element.children.length > 0;
+
+    if (tagName === 'button' || role === 'button') {
+        semanticTag = 'button';
+    } else if (tagName === 'a' || role === 'link') {
+        semanticTag = 'link';
+    } else if (tagName.match(/^h[1-6]$/)) {
+        semanticTag = `heading level="${tagName.slice(1)}"`;
+    } else if (tagName === 'li') {
+        semanticTag = 'list-item';
+    } else if (role === 'navigation' || tagName === 'nav') {
+        semanticTag = 'navigation';
+    } else if (role === 'menu' || role === 'menubar') {
+        semanticTag = 'menu';
+    } else if (role === 'table' || tagName === 'table') {
+        semanticTag = 'table';
+    } else if (testId.includes('report') || className.includes('report')) {
+        semanticTag = 'report-section';
+    } else if (testId || ariaLabel) {
+        // Use data-testid or aria-label as semantic hint
+        const hint = testId || ariaLabel;
+        semanticTag = `section name="${hint.replace(/"/g, "'")}"`;
+    } else if (['section', 'article', 'aside', 'main', 'header', 'footer'].includes(tagName)) {
+        semanticTag = tagName;
+    } else if (hasChildren && directText) {
+        semanticTag = 'group';
     } else if (directText && directText.length > 2) {
-        // Only add if it's meaningful text (more than 2 chars)
-        context.push(directText);
+        semanticTag = 'text';
     }
 
-    // Recursively process children
-    Array.from(element.children).forEach((child) => {
-        context.push(...extractPageContext(child));
-    });
+    // Output opening tag with text if meaningful
+    if (semanticTag && directText && directText.length > 2) {
+        // Self-closing tag with content
+        context.push(`${indent}<${semanticTag}>${directText}</${semanticTag.split(' ')[0]}>`);
+    } else if (semanticTag && hasChildren) {
+        // Opening tag for container
+        context.push(`${indent}<${semanticTag}>`);
+        
+        // Process children
+        Array.from(element.children).forEach((child) => {
+            context.push(...extractPageContext(child, depth + 1));
+        });
+        
+        // Closing tag
+        context.push(`${indent}</${semanticTag.split(' ')[0]}>`);
+        return context;
+    } else if (directText && directText.length > 2) {
+        // Plain text without semantic meaning
+        context.push(`${indent}${directText}`);
+    }
+
+    // Process children if we didn't already (for non-container semantic elements)
+    if (!hasChildren || !semanticTag) {
+        Array.from(element.children).forEach((child) => {
+            context.push(...extractPageContext(child, depth));
+        });
+    }
 
     return context;
 }
@@ -158,27 +201,27 @@ function captureSimplifiedPageHTML(): string {
 
         // Get the current page URL/path
         const currentPath = window.location.pathname + window.location.search;
-        const pageUrl = `Page URL: ${currentPath}`;
 
-        // Extract all context items
-        const contextItems = extractPageContext(rootElement);
+        // Extract all context items with hierarchy (starting at depth 1 for page content)
+        const contextItems = extractPageContext(rootElement, 1);
 
-        // Filter out duplicates and common UI elements that don't add value
-        const filtered = contextItems.filter((item, index, arr) => {
-            // Remove exact duplicates
-            if (arr.indexOf(item) !== index) {
+        // Filter out only truly meaningless items
+        const filtered = contextItems.filter((item) => {
+            const trimmed = item.trim();
+            // Remove empty lines
+            if (trimmed.length === 0) {
                 return false;
             }
-            // Remove single-character or very short items
-            if (item.length < 3 && !item.startsWith('#') && !item.startsWith('[')) {
+            // Remove single-character items
+            if (trimmed.length === 1) {
                 return false;
             }
-            // Keep everything else
+            // Keep everything else (including duplicates since indentation provides context)
             return true;
         });
 
-        // Prepend the page URL, then join all content with newlines
-        const structuredText = [pageUrl, '', ...filtered].join('\n');
+        // Wrap in a page tag with URL attribute, using XML-like structure
+        const structuredText = [`<page url="${currentPath}">`, ...filtered, '</page>'].join('\n');
 
         // Limit to ~10KB to avoid sending too much data to the LLM
         const maxLength = 10000;
