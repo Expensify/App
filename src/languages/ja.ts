@@ -2270,10 +2270,10 @@ ${date} - ${merchant}に${amount}`,
     },
     reportDetailsPage: {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `${policyName} 内`,
-        generatingPDF: 'PDFを生成中',
-        waitForPDF: 'PDFを生成するまでお待ちください',
+        generatingPDF: 'PDFを生成',
+        waitForPDF: 'PDFを生成しています。しばらくお待ちください。',
         errorPDF: 'PDFの生成中にエラーが発生しました。',
-        successPDF: 'PDFの生成が完了しました！自動的にダウンロードされない場合は、下のボタンを使用してください。',
+        successPDF: 'PDFが生成されました！自動的にダウンロードされなかった場合は、下のボタンを使用してください。',
     },
     reportDescriptionPage: {
         roomDescription: '部屋の説明',
