@@ -147,6 +147,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'mention-short': HTMLElementModel.fromCustomModel({tagName: 'mention-short', contentModel: HTMLContentModel.textual}),
             'copy-text': HTMLElementModel.fromCustomModel({tagName: 'copy-text', contentModel: HTMLContentModel.textual}),
             'concierge-link': HTMLElementModel.fromCustomModel({tagName: 'concierge-link', contentModel: HTMLContentModel.textual}),
+            'account-manager-link': HTMLElementModel.fromCustomModel({tagName: 'account-manager-link', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
                 mixedUAStyles: {...styles.textLabelSupporting, ...styles.lh16},
@@ -220,7 +221,16 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
-                onText: (text) => (text.data = convertToLTR(text.data)),
+                onText: (text) => {
+                    // Avoid injecting LTR controls into whitespace-only nodes.
+                    // Doing so turns otherwise ignorable whitespace into visible content in some renderers (Android),
+                    // which can create empty bullets between list items.
+                    if (!/\S/.test(text.data)) {
+                        return;
+                    }
+                    // eslint-disable-next-line no-param-reassign
+                    text.data = convertToLTR(text.data);
+                },
             }}
         >
             <RenderHTMLConfigProvider
