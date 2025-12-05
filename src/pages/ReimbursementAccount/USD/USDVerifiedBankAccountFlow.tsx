@@ -39,13 +39,12 @@ function USDVerifiedBankAccountFlow({
     switch (USDBankAccountStep) {
         case CONST.BANK_ACCOUNT.STEP.COUNTRY:
             CurrentStep = (
-                <Documents onBackButtonPress={onBackButtonPress} />
-                // <Country
-                //     onBackButtonPress={onBackButtonPress}
-                //     policyID={policyID}
-                //     setUSDBankAccountStep={setUSDBankAccountStep}
-                //     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
-                // />
+                <Country
+                    onBackButtonPress={onBackButtonPress}
+                    policyID={policyID}
+                    setUSDBankAccountStep={setUSDBankAccountStep}
+                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
+                />
             );
             break;
         case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
@@ -83,6 +82,9 @@ function USDVerifiedBankAccountFlow({
                     setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                 />
             );
+            break;
+        case CONST.BANK_ACCOUNT.STEP.KYB_DOCS:
+            CurrentStep = <Documents onBackButtonPress={onBackButtonPress} />;
             break;
         default:
             CurrentStep = null;

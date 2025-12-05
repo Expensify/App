@@ -519,6 +519,7 @@ const CONST = {
             ACH_CONTRACT: 'ACHContractStep',
             VALIDATION: 'ValidationStep',
             ENABLE: 'EnableStep',
+            KYB_DOCS: 'UploadKYBDocs',
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         SUBSTEP: {
