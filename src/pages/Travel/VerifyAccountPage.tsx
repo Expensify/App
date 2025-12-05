@@ -11,7 +11,7 @@ import type SCREENS from '@src/SCREENS';
 type VerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.VERIFY_ACCOUNT>;
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
-    const {domain} = route.params;
+    const {domain, backTo, policyID} = route.params;
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING, {canBeMissing: true});
 
     useEffect(() => {
@@ -21,11 +21,11 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     }, []);
 
     // Determine where to navigate after successful OTP validation
-    const navigateForwardTo = travelProvisioning?.nextStepRoute ?? ROUTES.TRAVEL_TCS.getRoute(domain);
+    const navigateForwardTo = travelProvisioning?.nextStepRoute ?? ROUTES.TRAVEL_TCS.getRoute(domain, policyID);
 
     return (
         <VerifyAccountPageBase
-            navigateBackTo={ROUTES.TRAVEL_MY_TRIPS}
+            navigateBackTo={backTo}
             navigateForwardTo={navigateForwardTo}
         />
     );

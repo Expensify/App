@@ -34,6 +34,7 @@ const enablePolicyFeatureCommand = [
     WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
     WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
     WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
+    WRITE_COMMANDS.ENABLE_POLICY_TRAVEL,
 ] as const;
 
 type EnablePolicyFeatureCommand = TupleToUnion<typeof enablePolicyFeatureCommand>;
