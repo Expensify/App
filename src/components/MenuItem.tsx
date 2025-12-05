@@ -390,6 +390,9 @@ type MenuItemBaseProps = {
 
     /** Whether the menu item contains nested submenu items. */
     hasSubMenuItems?: boolean;
+
+    /** Whether the screen containing the item is focused */
+    isFocused?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -516,6 +519,7 @@ function MenuItem({
     copyable = false,
     hasSubMenuItems = false,
     ref,
+    isFocused,
 }: MenuItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -684,7 +688,7 @@ function MenuItem({
                 shouldHideOnScroll={shouldHideOnScroll}
             >
                 <View>
-                    <Hoverable>
+                    <Hoverable isFocused={isFocused}>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
