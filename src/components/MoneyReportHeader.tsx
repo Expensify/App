@@ -24,6 +24,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
@@ -389,7 +390,10 @@ function MoneyReportHeader({
 
     const {wideRHPRouteKeys, superWideRHPRouteKeys} = useContext(WideRHPContext);
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
-    const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || ((wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0) && !isSmallScreenWidth);
+
+    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
+
+    const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
     const showExportProgressModal = useCallback(() => {
         return showConfirmModal({

@@ -95,11 +95,13 @@ function ParentNavigationSubtitle({
     const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
         const fullScreenRoute = state?.routes?.findLast((route) => isFullScreenName(route.name));
 
-        const focusedNavigator = !state?.routes
-            ? undefined
-            : state.routes.findLast((route) => {
+        // We need to track which navigator is focused to handle parent report navigation correctly:
+        // if we are in RHP, and parent report is opened in RHP, we want to go back to the parent report
+        const focusedNavigator = state?.routes
+            ? state.routes.findLast((route) => {
                   return route.state?.routes && route.state.routes.length > 0;
-              });
+              })
+            : undefined;
 
         return {
             currentFullScreenRoute: fullScreenRoute,
@@ -129,10 +131,11 @@ function ParentNavigationSubtitle({
                     }
                 }
 
+                const focusedNavigatorState = currentFocusedNavigator?.state;
+                const currentReportIndex = focusedNavigatorState?.index;
                 // Dismiss wide RHP and go back to already opened super wide RHP if the parent report is already opened there
-                if (currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && currentFocusedNavigator.state?.index) {
-                    const currentReportIndex = currentFocusedNavigator.state.index;
-                    const previousRoute = currentFocusedNavigator.state.routes[currentReportIndex - 1];
+                if (currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && currentReportIndex && currentReportIndex > 0) {
+                    const previousRoute = focusedNavigatorState.routes[currentReportIndex - 1];
 
                     if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT) {
                         const lastPreviousRoute = previousRoute.state?.routes.at(-1);

@@ -32,6 +32,7 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -173,10 +174,7 @@ function MoneyRequestReportActionsList({
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout: shouldUseNarrowLayoutByDefault, isSmallScreenWidth} = useResponsiveLayout();
-    const {superWideRHPRouteKeys} = useContext(WideRHPContext);
-    const shouldUseNarrowLayout = shouldUseNarrowLayoutByDefault && (superWideRHPRouteKeys.length === 0 || isSmallScreenWidth);
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
