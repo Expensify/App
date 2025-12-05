@@ -264,7 +264,7 @@ function SuggestionMention({
 
     const getUserMentionOptions = useCallback(
         (personalDetailsParam: PersonalDetailsList | SuggestionPersonalDetailsList | undefined, searchValue = ''): Mention[] => {
-            const suggestions = [];
+            const suggestions: Mention[] = [];
 
             if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue.toLowerCase())) {
                 suggestions.push({
