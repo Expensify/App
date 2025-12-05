@@ -33,7 +33,6 @@ import {
     hasPendingRTERViolation,
     hasViolation,
     hasWarningTypeViolation,
-    isAmountMissing,
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -78,11 +77,12 @@ const getReviewNavigationRoute = (
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>,
     policyCategories: OnyxTypes.PolicyCategories | undefined,
+    transactionReport: OnyxEntry<OnyxTypes.Report>,
 ) => {
     // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
     abandonReviewDuplicateTransactions();
-    const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transaction?.reportID, transaction?.transactionID, policyCategories);
+    const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transactionReport, transaction?.transactionID, policyCategories);
     setReviewDuplicatesKey({
         ...comparisonResult.keep,
         duplicates: duplicates.map((duplicate) => duplicate?.transactionID).filter(Boolean) as string[],
@@ -257,12 +257,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     if (hasFieldErrors && RBRMessage === undefined) {
         const merchantMissing = isMerchantMissing(transaction);
-        const amountMissing = isAmountMissing(transaction);
-        if (amountMissing && merchantMissing) {
-            RBRMessage = {translationPath: 'violations.reviewRequired'};
-        } else if (amountMissing) {
-            RBRMessage = {translationPath: 'iou.missingAmount'};
-        } else if (merchantMissing) {
+        if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
         }
     }
