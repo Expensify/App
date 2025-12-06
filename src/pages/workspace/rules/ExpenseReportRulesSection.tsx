@@ -154,7 +154,8 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
             isCentralPane
             title={translate('workspace.rules.expenseReportRules.title')}
             subtitle={translate('workspace.rules.expenseReportRules.subtitle')}
-            titleStyles={styles.accountSettingsSectionTitle}
+            titleStyles={[styles.accountSettingsSectionTitle, policy?.pendingAction && styles.opacitySemiTransparent]}
+            subtitleTextStyles={policy?.pendingAction ? styles.opacitySemiTransparent : undefined}
             subtitleMuted
         >
             {optionItems.map(({title, subtitle, shouldParseSubtitle, isActive, subMenuItems, showLockIcon, disabled, onToggle, pendingAction}, index) => {
