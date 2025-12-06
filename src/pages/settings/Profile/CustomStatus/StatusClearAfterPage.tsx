@@ -14,7 +14,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateDateTimeIsAtLeastOneMinuteInFuture} from '@libs/ValidationUtils';
 import {updateDraftCustomStatus, updateStatusDraftCustomClearAfterDate} from '@userActions/User';
-import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -72,7 +72,7 @@ const useValidateCustomDate = (data: string) => {
 
 function StatusClearAfterPage() {
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const clearAfter = currentUserPersonalDetails.status?.clearAfter ?? '';
     const [customStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT, {canBeMissing: true});
@@ -120,14 +120,7 @@ function StatusClearAfterPage() {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const customStatusDate = useMemo(() => {
-        if (!statusDraftCustomClearAfterDate) {
-            return '';
-        }
-        const date = new Date(statusDraftCustomClearAfterDate);
-        const formatter = new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]);
-        return formatter.format(date);
-    }, [statusDraftCustomClearAfterDate, preferredLocale]);
+    const customStatusDate = DateUtils.extractDate(statusDraftCustomClearAfterDate ?? '');
     const customStatusTime = DateUtils.extractTime12Hour(statusDraftCustomClearAfterDate ?? '');
 
     const listFooterContent = useMemo(() => {

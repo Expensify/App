@@ -1,24 +1,20 @@
 import {act, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 describe('ReportActionItemSingle', () => {
-    beforeAll(() => {
+    beforeAll(() =>
         Onyx.init({
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        });
-        IntlStore.load(CONST.LOCALES.DEFAULT);
-        return waitForBatchedUpdates();
-    });
+        }),
+    );
 
     beforeEach(async () => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates

@@ -1104,16 +1104,30 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
     const policyID = policyData.policy?.id;
     const policyUpdate: Partial<Policy> = {
         areCategoriesEnabled: enabled,
+        requiresCategory: enabled,
         pendingFields: {
             areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         },
     };
+    const policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = Object.fromEntries(
+        Object.entries(policyData.categories).map(([categoryName]) => [
+            categoryName,
+            {
+                enabled,
+            },
+        ]),
+    );
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: policyUpdate,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: policyCategoriesUpdate,
             },
         ],
         successData: [
@@ -1130,8 +1144,21 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: Object.fromEntries(
+                    Object.entries(policyData.categories).map(([categoryName]) => [
+                        categoryName,
+                        {
+                            enabled: !enabled,
+                        },
+                    ]),
+                ),
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
+                    requiresCategory: !enabled,
                     areCategoriesEnabled: !enabled,
                     pendingFields: {
                         areCategoriesEnabled: null,
@@ -1140,24 +1167,6 @@ function enablePolicyCategories(policyData: PolicyData, enabled: boolean, should
             },
         ],
     };
-
-    let policyCategoriesUpdate: Record<string, Partial<PolicyCategory>> = {};
-
-    if (!enabled) {
-        policyCategoriesUpdate = Object.fromEntries(
-            Object.entries(policyData.categories).map(([categoryName]) => [
-                categoryName,
-                {
-                    enabled: false,
-                },
-            ]),
-        );
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-            value: policyCategoriesUpdate,
-        });
-    }
 
     pushTransactionViolationsOnyxData(onyxData, policyData, policyUpdate, policyCategoriesUpdate);
 
