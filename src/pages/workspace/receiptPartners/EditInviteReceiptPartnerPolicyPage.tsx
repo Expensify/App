@@ -7,9 +7,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -247,17 +247,6 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         [applyTabStatusFilter, getSearchStateForTab, members],
     );
 
-    const buildSections = useCallback(
-        (data: MemberForList[]) => [
-            {
-                title: undefined,
-                data,
-                shouldShow: true,
-            },
-        ],
-        [],
-    );
-
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
@@ -317,20 +306,21 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                 return (
                                     <TabScreenWithFocusTrapWrapper>
                                         <SelectionList
+                                            data={filteredMembers}
                                             ListItem={UserListItem}
                                             onSelectRow={() => {}}
                                             onDismissError={dismissError}
-                                            listItemWrapperStyle={styles.cursorDefault}
+                                            style={{listItemWrapperStyle: styles.cursorDefault, listStyle: styles.mt3}}
                                             addBottomSafeAreaPadding
                                             shouldShowTextInput={shouldShowTextInput}
-                                            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-                                            textInputValue={searchTerm}
-                                            onChangeText={setSearchTerm}
-                                            headerMessage={currentHeaderMessage}
-                                            sections={buildSections(filteredMembers)}
+                                            textInputOptions={{
+                                                label: shouldShowTextInput ? translate('common.search') : undefined,
+                                                value: searchTerm,
+                                                onChangeText: setSearchTerm,
+                                                headerMessage: currentHeaderMessage,
+                                            }}
                                             listEmptyContent={listEmptyContent}
-                                            shouldShowListEmptyContent={shouldShowListEmptyContent}
-                                            sectionListStyle={styles.pt3}
+                                            showListEmptyContent={shouldShowListEmptyContent}
                                         />
                                     </TabScreenWithFocusTrapWrapper>
                                 );

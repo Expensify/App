@@ -6,16 +6,13 @@ import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,6 +20,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import {isInternalTestBuild} from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import colors from '@styles/theme/colors';
 import {openExternalLink} from '@userActions/Link';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -30,6 +28,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import pkg from '../../../../package.json';
+import useAboutSectionIllustration from './useAboutSectionIllustration';
 
 function getFlavor(): string {
     const bundleId = DeviceInfo.getBundleId();
@@ -58,7 +57,8 @@ function AboutPage() {
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {asset: PalmTree} = useMemoizedLazyAsset(() => loadIllustration('PalmTree' as IllustrationName));
+    const illustrations = useMemoizedLazyIllustrations(['PalmTree'] as const);
+    const aboutIllustration = useAboutSectionIllustration();
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
@@ -148,7 +148,7 @@ function AboutPage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 onBackButtonPress={Navigation.popToSidebar}
-                icon={PalmTree}
+                icon={illustrations.PalmTree}
                 shouldUseHeadlineHeader
             />
             <ScrollView contentContainerStyle={styles.pt3}>
@@ -158,9 +158,12 @@ function AboutPage() {
                         subtitle={translate('initialSettingsPage.aboutPage.description')}
                         isCentralPane
                         subtitleMuted
-                        illustration={LottieAnimations.Coin}
+                        illustrationContainerStyle={styles.cardSectionIllustrationContainer}
+                        illustrationBackgroundColor={colors.yellow600}
                         titleStyles={styles.accountSettingsSectionTitle}
                         overlayContent={overlayContent}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...aboutIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <MenuItemList

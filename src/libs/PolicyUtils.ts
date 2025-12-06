@@ -689,11 +689,12 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
  * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
 function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<string, string[]> {
     const allTaxRates: Record<string, string[]> = {};
-    // eslint-disable-next-line unicorn/no-array-for-each
-    Object.values(policies ?? {})?.forEach((policy) => {
+
+    for (const policy of Object.values(policies ?? {})) {
         if (!policy?.taxRates?.taxes) {
-            return;
+            continue;
         }
+
         for (const [taxRateKey, taxRate] of Object.entries(policy?.taxRates?.taxes)) {
             if (!allTaxRates[taxRate.name]) {
                 allTaxRates[taxRate.name] = [taxRateKey];
@@ -704,7 +705,8 @@ function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<st
             }
             allTaxRates[taxRate.name].push(taxRateKey);
         }
-    });
+    }
+
     return allTaxRates;
 }
 
@@ -873,18 +875,11 @@ function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, cu
 }
 
 /**
- * Checks whether the current user has a policy with admin access
+ * Given a list of admin policies for the current user, checks whether any of them
+ * has a Xero accounting software integration configured.
  */
-function hasActiveAdminWorkspaces(currentUserLogin: string | undefined) {
-    return getActiveAdminWorkspaces(allPolicies, currentUserLogin).length > 0;
-}
-
-/**
- *
- * Checks whether the current user has a policy with Xero accounting software integration
- */
-function hasPolicyWithXeroConnection(currentUserLogin: string | undefined) {
-    return getActiveAdminWorkspaces(allPolicies, currentUserLogin)?.some((policy) => !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]);
+function hasPolicyWithXeroConnection(adminPolicies: Policy[] | undefined) {
+    return adminPolicies?.some((policy) => !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.XERO]) ?? false;
 }
 
 /** Whether the user can send invoice from the workspace */
@@ -1646,7 +1641,6 @@ export {
     isTaxTrackingEnabled,
     shouldShowPolicy,
     getActiveAdminWorkspaces,
-    hasActiveAdminWorkspaces,
     getOwnedPaidPolicies,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,

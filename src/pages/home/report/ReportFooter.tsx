@@ -94,6 +94,7 @@ function ReportFooter({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetail = useCurrentUserPersonalDetails();
 
@@ -161,7 +162,7 @@ function ReportFooter({
                 }
             }
             createTaskAndNavigate({
-                parentReportID: report.reportID,
+                parentReport: report,
                 title,
                 description: '',
                 assigneeEmail: assignee?.login ?? '',
@@ -176,7 +177,7 @@ function ReportFooter({
             });
             return true;
         },
-        [allPersonalDetails, ancestors, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report.policyID, report.reportID],
+        [allPersonalDetails, ancestors, availableLoginsList, currentUserEmail, personalDetail.accountID, quickAction, report],
     );
 
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? report.reportID}`, {canBeMissing: true});

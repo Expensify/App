@@ -35,6 +35,7 @@ function AddPaymentCard() {
     const {translate} = useLocalize();
     const privateSubscription = usePrivateSubscription();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: false});
 
     const subscriptionPlan = useSubscriptionPlan();
     const subscriptionPrice = useSubscriptionPrice();
@@ -71,9 +72,9 @@ function AddPaymentCard() {
                 addressZip: values.addressZipCode,
                 currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
             };
-            addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData);
+            addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData, fundList);
         },
-        [accountID],
+        [accountID, fundList],
     );
 
     const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {canBeMissing: true});

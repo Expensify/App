@@ -99,6 +99,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         taskReport: setupCategoryTaskReport,
         taskParentReport: setupCategoryTaskParentReport,
         isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+        hasOutstandingChildTask,
+        parentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const fetchCategories = useCallback(() => {
@@ -158,9 +160,19 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
                 currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
             );
         },
-        [policyData, isSetupCategoryTaskParentReportArchived, setupCategoryTaskReport, setupCategoryTaskParentReport, currentUserPersonalDetails.accountID],
+        [
+            policyData,
+            isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
+            hasOutstandingChildTask,
+            parentReportAction,
+        ],
     );
 
     const categoryList = useMemo<PolicyOption[]>(() => {
@@ -278,6 +290,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
                 currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
             );
         }
         setDeleteCategoriesConfirmModalVisible(false);
@@ -402,6 +416,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
                             currentUserPersonalDetails.accountID,
+                            hasOutstandingChildTask,
+                            parentReportAction,
                         );
                     },
                 });
@@ -431,6 +447,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             setupCategoryTaskReport,
                             setupCategoryTaskParentReport,
                             currentUserPersonalDetails.accountID,
+                            hasOutstandingChildTask,
+                            parentReportAction,
                         );
                     },
                 });

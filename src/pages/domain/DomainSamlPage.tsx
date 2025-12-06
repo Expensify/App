@@ -110,6 +110,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                         domainName={domainName}
                                         isSamlEnabled={isSamlEnabled}
                                         isSamlRequired={isSamlRequired}
+                                        isOktaScimEnabled={!!domainSettings?.oktaSCIM}
                                     />
                                 </Section>
 

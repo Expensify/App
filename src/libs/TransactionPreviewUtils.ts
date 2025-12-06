@@ -33,7 +33,6 @@ import {
     hasPendingRTERViolation,
     hasViolation,
     hasWarningTypeViolation,
-    isAmountMissing,
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -78,11 +77,12 @@ const getReviewNavigationRoute = (
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>,
     policyCategories: OnyxTypes.PolicyCategories | undefined,
+    transactionReport: OnyxEntry<OnyxTypes.Report>,
 ) => {
     // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
     abandonReviewDuplicateTransactions();
-    const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transaction?.reportID, transaction?.transactionID, policyCategories);
+    const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transactionReport, transaction?.transactionID, policyCategories);
     setReviewDuplicatesKey({
         ...comparisonResult.keep,
         duplicates: duplicates.map((duplicate) => duplicate?.transactionID).filter(Boolean) as string[],
@@ -188,6 +188,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     violationMessage,
     reportActions,
     currentUserEmail,
+    currentUserAccountID,
     originalTransaction,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -200,6 +201,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     violationMessage?: string;
     reportActions?: OnyxTypes.ReportActions;
     currentUserEmail: string;
+    currentUserAccountID: number;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
@@ -219,7 +221,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(iouReport?.policyID);
-    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', iouReport, policy, true) && isPaidGroupPolicy;
+    const hasViolationsOfTypeNotice = hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport, policy, true) && isPaidGroupPolicy;
     const hasActionWithErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
@@ -255,12 +257,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     if (hasFieldErrors && RBRMessage === undefined) {
         const merchantMissing = isMerchantMissing(transaction);
-        const amountMissing = isAmountMissing(transaction);
-        if (amountMissing && merchantMissing) {
-            RBRMessage = {translationPath: 'violations.reviewRequired'};
-        } else if (amountMissing) {
-            RBRMessage = {translationPath: 'iou.missingAmount'};
-        } else if (merchantMissing) {
+        if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
         }
     }
@@ -348,6 +345,7 @@ function createTransactionPreviewConditionals({
     isReportAPolicyExpenseChat,
     areThereDuplicates,
     currentUserEmail,
+    currentUserAccountID,
 }: {
     iouReport: OnyxInputValue<OnyxTypes.Report> | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction> | undefined;
@@ -358,6 +356,7 @@ function createTransactionPreviewConditionals({
     isReportAPolicyExpenseChat: boolean;
     areThereDuplicates: boolean;
     currentUserEmail: string;
+    currentUserAccountID: number;
 }) {
     const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactionDetails;
 
@@ -372,7 +371,7 @@ function createTransactionPreviewConditionals({
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(iouReport?.policyID);
     const hasViolationsOfTypeNotice =
-        hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', iouReport ?? undefined, policy, true) && iouReport && isPaidGroupPolicyUtil(iouReport);
+        hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) && iouReport && isPaidGroupPolicyUtil(iouReport);
     const hasFieldErrors = hasMissingSmartscanFields(transaction);
 
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
@@ -392,8 +391,8 @@ function createTransactionPreviewConditionals({
         isUnreportedAndHasInvalidDistanceRateTransaction(transaction) ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         hasViolationsOfTypeNotice ||
-        hasWarningTypeViolation(transaction, violations, currentUserEmail ?? '', iouReport ?? undefined, policy) ||
-        hasViolation(transaction, violations, currentUserEmail ?? '', iouReport ?? undefined, policy, true) ||
+        hasWarningTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy) ||
+        hasViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) ||
         (isDistanceRequest(transaction) &&
             violations?.some(
                 (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),

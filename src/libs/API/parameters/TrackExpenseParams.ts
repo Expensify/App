@@ -1,9 +1,11 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Attendee} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 type TrackExpenseParams = {
     amount: number;
+    attendees?: Attendee[] | string;
     currency: string;
     comment: string;
     created: string;
@@ -33,6 +35,7 @@ type TrackExpenseParams = {
     customUnitRateID?: string;
     description?: string;
     distance?: number;
+    isDistance?: boolean;
 };
 
 export default TrackExpenseParams;

@@ -101,7 +101,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
         }
 
         createTaskAndNavigate({
-            parentReportID: parentReport?.reportID,
+            parentReport,
             title: task.title,
             description: task?.description ?? '',
             assigneeEmail: task?.assignee ?? '',

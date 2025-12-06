@@ -6,10 +6,8 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {MergeTransaction, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {Receipt} from '@src/types/onyx/Transaction';
 import SafeString from '@src/utils/SafeString';
 import {convertToDisplayString} from './CurrencyUtils';
-import getReceiptFilenameFromTransaction from './getReceiptFilenameFromTransaction';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {getIOUActionForReportID} from './ReportActionsUtils';
@@ -51,14 +49,6 @@ const MERGE_FIELD_TRANSLATION_KEYS = {
     reportID: 'common.report',
 } as const;
 
-// Get the filename from the receipt
-function getReceiptFileName(receipt?: Receipt) {
-    if (typeof receipt?.source === 'string') {
-        return receipt?.source?.split('/')?.pop();
-    }
-    return `${receipt?.filename ?? receipt?.source}`;
-}
-
 function getMergeFieldErrorText(translate: LocaleContextProps['translate'], mergeField: MergeFieldData) {
     if (mergeField.field === 'attendees') {
         return translate('transactionMerge.detailsPage.pleaseSelectAttendees');
@@ -75,7 +65,7 @@ function getMergeFieldErrorText(translate: LocaleContextProps['translate'], merg
  */
 function fillMissingReceiptSource(transaction: Transaction) {
     // If receipt.source already exists, no need to modify
-    if (!transaction.receipt || !!transaction.receipt?.source || !getReceiptFilenameFromTransaction(transaction)) {
+    if (!transaction.receipt || !!transaction.receipt.source || !transaction.receipt.filename) {
         return transaction;
     }
 
@@ -83,7 +73,7 @@ function fillMissingReceiptSource(transaction: Transaction) {
         ...transaction,
         receipt: {
             ...transaction.receipt,
-            source: `${RECEIPT_SOURCE_URL}${getReceiptFilenameFromTransaction(transaction)}`,
+            source: `${RECEIPT_SOURCE_URL}${transaction.receipt.filename}`,
         },
     };
 }
@@ -347,7 +337,6 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
         },
         reimbursable: mergeTransaction.reimbursable,
         billable: mergeTransaction.billable,
-        filename: getReceiptFileName(mergeTransaction.receipt),
         receipt: mergeTransaction.receipt,
         created: mergeTransaction.created,
         modifiedCreated: mergeTransaction.created,
@@ -517,7 +506,6 @@ export {
     isEmptyMergeValue,
     fillMissingReceiptSource,
     getTransactionThreadReportID,
-    getReceiptFileName,
     getDisplayValue,
     buildMergeFieldsData,
     getReportIDForExpense,
