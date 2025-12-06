@@ -55,7 +55,7 @@ function NewChatConfirmPage() {
         return options;
     }, [allPersonalDetails, newGroupDraft?.participants]);
 
-    // eslint-disable-next-line no-restricted-imports
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(newGroupDraft?.participants);
     const selectedParticipants: ListItem[] = useMemo(
         () =>
