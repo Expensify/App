@@ -101,7 +101,7 @@ function IOURequestStepDistanceManual({
             iouType === CONST.IOU.TYPE.CREATE &&
             isPaidGroupPolicy(defaultExpensePolicy) &&
             defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-            !shouldRestrictUserBillableActions(defaultExpensePolicy.id),
+            !shouldRestrictUserBillableActions(defaultExpensePolicy.id, currentUserAccountIDParam),
         [iouType, defaultExpensePolicy],
     );
 

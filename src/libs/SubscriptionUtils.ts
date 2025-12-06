@@ -52,14 +52,6 @@ type SubscriptionPlanIllustrations = {
     ShieldYellow: IconAsset;
 };
 
-let currentUserAccountID = -1;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
 let amountOwed: OnyxEntry<number>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
@@ -194,6 +186,7 @@ function shouldShowDiscountBanner(
     firstDayFreeTrial: string | undefined,
     lastDayFreeTrial: string | undefined,
     userBillingFundID: number | undefined,
+    currentUserAccountID: number | undefined,
 ): boolean {
     if (!getOwnedPaidPolicies(allPolicies, currentUserAccountID)?.length) {
         return false;
@@ -426,6 +419,7 @@ function getFreeTrialText(
     introSelected: OnyxEntry<IntroSelected>,
     firstDayFreeTrial: string | undefined,
     lastDayFreeTrial: string | undefined,
+    currentUserAccountID: number | undefined,
 ): string | undefined {
     const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
@@ -483,7 +477,7 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
 /**
  * Whether the user's billable actions should be restricted.
  */
-function shouldRestrictUserBillableActions(policyID: string): boolean {
+function shouldRestrictUserBillableActions(policyID: string, currentUserAccountID: number | undefined): boolean {
     const currentDate = new Date();
 
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -519,7 +513,7 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
     return false;
 }
 
-function shouldCalculateBillNewDot(canDowngrade: boolean | undefined = false): boolean {
+function shouldCalculateBillNewDot(currentUserAccountID: number | undefined, canDowngrade: boolean | undefined = false): boolean {
     return canDowngrade && getOwnedPaidPolicies(allPolicies, currentUserAccountID).length === 1;
 }
 
