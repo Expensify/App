@@ -170,7 +170,7 @@ import {
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {isOnHold} from '@libs/TransactionUtils';
+import {hasValidModifiedAmount, isOnHold} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -1179,7 +1179,11 @@ function openReport(
                 onboardingMessage.tasks = updatedTasks;
             }
 
-            const onboardingData = prepareOnboardingOnyxData(introSelected, choice, onboardingMessage);
+            const onboardingData = prepareOnboardingOnyxData({
+                introSelected,
+                engagementChoice: choice,
+                onboardingMessage,
+            });
 
             if (onboardingData) {
                 optimisticData.push(...onboardingData.optimisticData, {
@@ -1479,17 +1483,15 @@ function navigateToAndOpenReport(
     const report = isEmptyObject(chat) ? newChat : chat;
 
     if (shouldDismissModal) {
-        Navigation.onModalDismissedOnce(() => {
-            Navigation.onModalDismissedOnce(() => {
+        Navigation.dismissModal({
+            callback: () => {
                 if (!report?.reportID) {
                     return;
                 }
 
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-            });
+            },
         });
-
-        Navigation.dismissModal();
     } else if (report?.reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
     }
@@ -4330,6 +4332,7 @@ function completeOnboarding({
     selectedInterestedFeatures = [],
     shouldSkipTestDriveModal,
     isInvitedAccountant,
+    onboardingPurposeSelected,
 }: {
     engagementChoice: OnboardingPurpose;
     onboardingMessage: OnboardingMessage;
@@ -4344,8 +4347,9 @@ function completeOnboarding({
     selectedInterestedFeatures?: string[];
     shouldSkipTestDriveModal?: boolean;
     isInvitedAccountant?: boolean;
+    onboardingPurposeSelected?: OnboardingPurpose;
 }) {
-    const onboardingData = prepareOnboardingOnyxData(
+    const onboardingData = prepareOnboardingOnyxData({
         introSelected,
         engagementChoice,
         onboardingMessage,
@@ -4356,7 +4360,8 @@ function completeOnboarding({
         companySize,
         selectedInterestedFeatures,
         isInvitedAccountant,
-    );
+        onboardingPurposeSelected,
+    });
     if (!onboardingData) {
         return;
     }
@@ -5469,7 +5474,7 @@ function convertIOUReportToExpenseReport(iouReport: Report, policy: Policy, poli
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
             amount: -transaction.amount,
-            modifiedAmount: transaction.modifiedAmount ? -transaction.modifiedAmount : 0,
+            modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
         };
 
         transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
