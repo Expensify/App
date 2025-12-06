@@ -47,13 +47,14 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
 import useWalletSectionIllustration from './useWalletSectionIllustration';
+import {filterPersonalCards} from '@libs/CardUtils';
 
 const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
     Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
 
 function WalletPage() {
     const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
         canBeMissing: true,
         selector: fundListSelector,

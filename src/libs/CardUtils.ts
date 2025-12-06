@@ -780,6 +780,13 @@ function getCompanyCardFeed(feedWithDomainID: string): CompanyCardFeed {
     return feed as CompanyCardFeed;
 }
 
+/**
+ * Filter out personal (including cash) cards from the card list.
+ */
+function filterPersonalCards(cards: CardList | undefined): CardList {
+    return filterObject(cards ?? {}, (key, card) => !!card?.fundID && card.fundID !== "0");
+}
+
 export {
     getAssignedCardSortKey,
     isExpensifyCard,
@@ -842,4 +849,5 @@ export {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
+    filterPersonalCards,
 };
