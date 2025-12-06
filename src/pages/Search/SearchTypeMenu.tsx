@@ -22,7 +22,7 @@ import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAllFilters} from '@libs/actions/Search';
+import {clearAllFilters, setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -98,6 +98,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                 ...baseMenuItem,
                 onPress: () => {
                     clearAllFilters();
+                    setSearchContext(false);
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
                 },
                 rightComponent: (
@@ -244,6 +245,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                             const onPress = singleExecution(() => {
                                                 clearAllFilters();
                                                 clearSelectedTransactions();
+                                                setSearchContext(false);
                                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                                             });
 
