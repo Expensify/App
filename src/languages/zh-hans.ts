@@ -1179,7 +1179,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: '移除拆分',
         splitExpenseCannotBeEditedModalTitle: '此报销无法编辑',
         splitExpenseCannotBeEditedModalDescription: '已批准或已支付的费用无法编辑',
-        transactionDisplayName: ({amount, merchant}: TransactionDisplayNameParams) => `${amount} 用于 ${merchant}`,
+        transactionDisplayName: ({amount, merchant}: TransactionDisplayNameParams) => `${amount} 给 ${merchant}`,
         paySomeone: ({name}: PaySomeoneParams = {}) => `支付 ${name ?? '某人'}`,
         expense: '费用',
         categorize: '分类',

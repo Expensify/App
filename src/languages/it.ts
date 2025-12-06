@@ -1193,7 +1193,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: 'Rimuovi suddivisione',
         splitExpenseCannotBeEditedModalTitle: 'Questa spesa non può essere modificata',
         splitExpenseCannotBeEditedModalDescription: 'Le spese approvate o pagate non possono essere modificate',
-        transactionDisplayName: ({amount, merchant}: SplitExpenseEditTitleParams) => `${amount} per ${merchant}`,
+        transactionDisplayName: ({amount, merchant}: TransactionDisplayNameParams) => `${amount} per ${merchant}`,
         paySomeone: ({name}: PaySomeoneParams = {}) => `Paga ${name ?? 'qualcuno'}`,
         expense: 'Spesa',
         categorize: 'Classifica',

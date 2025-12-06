@@ -1197,7 +1197,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitExpenseCannotBeEditedModalTitle: 'この経費は編集できません',
         splitExpenseCannotBeEditedModalDescription: '承認済みまたは支払済みの経費は編集できません',
         paySomeone: ({name}: PaySomeoneParams = {}) => `${name ?? '誰か'} を支払う`,
-        transactionDisplayName: ({amount, merchant}: TransactionDisplayNameParams) => `${merchant}への${amount}`,
+        transactionDisplayName: ({amount, merchant}: TransactionDisplayNameParams) => `${merchant} への ${amount}`,
         expense: '経費',
         categorize: 'カテゴリ分け',
         share: '共有',
