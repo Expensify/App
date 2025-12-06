@@ -373,7 +373,7 @@ function IOURequestStepConfirmation({
         }
         // We don't want to clear out category every time the transactions change
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [policy, policyCategories, transactionsCategories]);
+    }, [policy?.id, policyCategories, transactionsCategories]);
 
     const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const defaultCategory = policyDistance?.defaultCategory ?? '';
@@ -387,7 +387,7 @@ function IOURequestStepConfirmation({
         }
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [transactionIDs, requestType, defaultCategory, policy]);
+    }, [transactionIDs, requestType, defaultCategory, policy?.id]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
