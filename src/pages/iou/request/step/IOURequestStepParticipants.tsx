@@ -21,7 +21,7 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getRequestType, isCorporateCardTransaction, isMerchantMissing, isPerDiemRequest} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
     navigateToStartStepIfScanFileCannotBeRead,
@@ -95,6 +95,7 @@ function IOURequestStepParticipants({
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? (participants.at(0)?.reportID ?? reportID) : reportID);
+    const selectedParticipants = useRef<Participant[]>(participants);
     // We can assume that shouldAutoReport is true as the initial value is not used. shouldAutoReport is only used after the selectedReportID changes in addParticipant where we'd update shouldAutoReport too
     const shouldAutoReport = useRef(true);
     const numberOfParticipants = useRef(participants?.length ?? 0);
@@ -231,6 +232,7 @@ function IOURequestStepParticipants({
         (val: Participant[]) => {
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
 
+            selectedParticipants.current = val;
             const firstParticipant = val.at(0);
 
             if (firstParticipant?.isSelfDM && !isSplitRequest) {
@@ -354,6 +356,9 @@ function IOURequestStepParticipants({
             return;
         }
 
+        const firstParticipant = selectedParticipants.current?.at(0);
+        const isMerchantRequired = !!firstParticipant?.isPolicyExpenseChat && isMerchantMissing(initialTransaction);
+
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,
             iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
@@ -364,9 +369,18 @@ function IOURequestStepParticipants({
             action === CONST.IOU.ACTION.SHARE ? Navigation.getActiveRoute() : undefined,
         );
 
+        // eslint-disable-next-line no-nested-ternary
         const route = isCategorizing
             ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, initialTransactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
-            : iouConfirmationPageRoute;
+            : isMerchantRequired
+              ? ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(
+                    action,
+                    iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
+                    initialTransactionID,
+                    newReportID,
+                    undefined,
+                )
+              : iouConfirmationPageRoute;
 
         Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE);
         waitForKeyboardDismiss(() => {
