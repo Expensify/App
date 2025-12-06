@@ -7482,6 +7482,16 @@ const CONST = {
         REGULAR: 'regular',
         INVERTED: 'inverted',
     },
+
+    SENTRY_LABEL: {
+        NAVIGATION_TAB_BAR: {
+            EXPENSIFY_LOGO: 'NavigationTabBar-ExpensifyLogo',
+            INBOX: 'NavigationTabBar-Inbox',
+            REPORTS: 'NavigationTabBar-Reports',
+            WORKSPACES: 'NavigationTabBar-Workspaces',
+            ACCOUNT: 'NavigationTabBar-Account',
+        },
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
