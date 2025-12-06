@@ -64,7 +64,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow', 'DotIndicator'] as const);
 
@@ -80,7 +80,6 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-        preferredLocale,
     );
     const badgeProps = useMemo(() => getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme), [withdrawalIDItem.state, translate, theme]);
     const settlementStatus = useMemo(() => getSettlementStatus(withdrawalIDItem.state), [withdrawalIDItem.state]);
