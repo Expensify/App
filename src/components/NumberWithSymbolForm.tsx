@@ -152,15 +152,16 @@ function NumberWithSymbolForm({
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberRef = useRef<string | undefined>(undefined);
+    const prevNumberProp = useRef(number);
     const [currentNumber, setCurrentNumber] = useState(typeof number === 'string' ? number : '');
 
-    useEffect(() => {
+    if (number !== prevNumberProp.current) {
+        prevNumberProp.current = number;
         const newNumber = typeof number === 'string' ? number : '';
         if (newNumber !== currentNumber) {
             setCurrentNumber(newNumber);
         }
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [number]);
+    }
 
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
