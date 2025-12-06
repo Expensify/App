@@ -970,6 +970,25 @@ function buildFilterFormValuesFromQuery(
 }
 
 /**
+ * Returns the policy name for a given policy ID.
+ * First checks the policies collection, then falls back to cached names in reports (policyName or oldPolicyName).
+ * This ensures workspace names remain visible even after a user is removed from the workspace.
+ */
+function getPolicyNameWithFallback(policyID: string, policies: OnyxCollection<OnyxTypes.Policy>, reports: OnyxCollection<OnyxTypes.Report>): string {
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+    const policy = policies?.[policyKey];
+
+    if (policy?.name) {
+        return policy.name;
+    }
+
+    // Fallback: find cached name from reports that reference this policy
+    const reportWithPolicyName = Object.values(reports ?? {}).find((report) => report?.policyID === policyID && (report?.policyName || report?.oldPolicyName));
+
+    return reportWithPolicyName?.policyName || reportWithPolicyName?.oldPolicyName || policyID;
+}
+
+/**
  * Returns the human-readable "pretty" string for a specified filter value.
  */
 function getFilterDisplayValue(
@@ -1014,7 +1033,7 @@ function getFilterDisplayValue(
         return cardFeedsForDisplay[filterValue]?.name ?? filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
-        return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${filterValue}`]?.name ?? filterValue;
+        return getPolicyNameWithFallback(filterValue, policies, reports);
     }
     return filterValue;
 }
@@ -1092,7 +1111,7 @@ function getDisplayQueryFiltersForKey(
     }));
 }
 
-function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: OnyxCollection<OnyxTypes.Policy>) {
+function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: OnyxCollection<OnyxTypes.Policy>, reports: OnyxCollection<OnyxTypes.Report>) {
     const rawValues = Array.isArray(rawFilter.value) ? rawFilter.value : [rawFilter.value];
     const cleanedValues = rawValues.map((val) => (typeof val === 'string' ? val.trim() : '')).filter((val) => val.length > 0);
 
@@ -1102,7 +1121,7 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
 
     if (rawFilter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         const workspaceValues = cleanedValues.map((id) => {
-            const policyName = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]?.name ?? id;
+            const policyName = getPolicyNameWithFallback(id, policies, reports);
             return sanitizeSearchValue(policyName);
         });
 
@@ -1170,7 +1189,7 @@ function buildUserReadableQueryString(
             }
 
             if (rawFilter.isDefault) {
-                const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies);
+                const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies, reports);
                 if (defaultSegment) {
                     segments.push(defaultSegment);
                 }
@@ -1217,7 +1236,7 @@ function buildUserReadableQueryString(
     }
 
     if (policyID && policyID.length > 0) {
-        title += ` workspace:${policyID.map((id) => sanitizeSearchValue(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]?.name ?? id)).join(',')}`;
+        title += ` workspace:${policyID.map((id) => sanitizeSearchValue(getPolicyNameWithFallback(id, policies, reports))).join(',')}`;
     }
 
     for (const filterObject of filters) {
@@ -1415,6 +1434,7 @@ export {
     buildSearchQueryString,
     buildUserReadableQueryString,
     getFilterDisplayValue,
+    getPolicyNameWithFallback,
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
     buildCannedSearchQuery,
