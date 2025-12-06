@@ -163,6 +163,7 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION: 'Settings_Wallet_ReportVirtualCardFraudConfirmation',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
             ENABLE_GLOBAL_REIMBURSEMENTS: 'Settings_Wallet_Enable_Global_Reimbursements',
+            SHARE_BANK_ACCOUNT: 'Settings_Wallet_Share_Bank_Account',
         },
 
         EXIT_SURVEY: {
