@@ -91,7 +91,7 @@ function Confirmation() {
             transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
         }
         closeReviewDuplicates();
-        IOU.mergeDuplicates(transactionsMergeParams);
+        IOU.mergeDuplicates({...transactionsMergeParams, currentUserEmail: currentUserPersonalDetails.email ?? ''});
     }, [reportAction?.childReportID, transactionsMergeParams, closeReviewDuplicates]);
 
     const resolveDuplicates = useCallback(() => {

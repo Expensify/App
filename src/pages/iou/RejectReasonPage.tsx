@@ -12,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 import RejectReasonFormView from './RejectReasonFormView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 type RejectReasonPageProps =
     | PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.REJECT>
@@ -22,9 +23,10 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
 
     const {transactionID, reportID, backTo} = route.params;
     const {removeTransaction} = useSearchContext();
+    const {email} = useCurrentUserPersonalDetails();
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment);
+        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, email ?? '');
         removeTransaction(transactionID);
         Navigation.dismissModal();
         if (urlToNavigateBack) {

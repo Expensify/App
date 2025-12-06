@@ -9,14 +9,16 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import RejectReasonFormView from '@pages/iou/RejectReasonFormView';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 function SearchRejectReasonPage() {
     const context = useSearchContext();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const {email} = useCurrentUserPersonalDetails();
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-            rejectMoneyRequestsOnSearch(context.currentSearchHash, context.selectedTransactions, comment, allPolicies, allReports);
+            rejectMoneyRequestsOnSearch(context.currentSearchHash, context.selectedTransactions, comment, allPolicies, allReports, email ?? '');
             context.clearSelectedTransactions();
             Navigation.goBack();
         },

@@ -903,7 +903,7 @@ function MoneyReportHeader({
                     if (!transaction?.transactionID) {
                         return;
                     }
-                    markRejectViolationAsResolved(transaction?.transactionID, transactionThreadReport?.reportID);
+                    markRejectViolationAsResolved(transaction?.transactionID, accountID,  transactionThreadReport?.reportID);
                 }}
                 text={translate('iou.reject.markAsResolved')}
             />
