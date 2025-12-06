@@ -27,6 +27,7 @@ export default function (): void {
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${pkg.version}`,
         beforeSendTransaction: processBeforeSendTransactions,
+        enableLogs: true,
     });
 
     startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {
