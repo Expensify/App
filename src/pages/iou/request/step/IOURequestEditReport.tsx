@@ -98,11 +98,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     const createReportForPolicy = () => {
-        if (!policyForMovingExpensesID) {
+        if (!policyForMovingExpenses?.id) {
             return;
         }
 
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses);
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 
