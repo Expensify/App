@@ -3,6 +3,7 @@ import React, {createContext, useCallback, useEffect, useMemo, useRef, useState}
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
+import Onyx from 'react-native-onyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -11,6 +12,7 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SidePanel} from '@src/types/onyx';
 
 type SidePanelContextProps = {
@@ -61,12 +63,12 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         Animated.parallel([
             Animated.timing(sidePanelOffset.current, {
                 toValue: shouldApplySidePanelOffset ? variables.sideBarWidth : 0,
-                duration: CONST.ANIMATED_TRANSITION,
+                duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
             Animated.timing(sidePanelTranslateX.current, {
                 toValue: shouldHideSidePanel ? sidePanelWidth : 0,
-                duration: CONST.ANIMATED_TRANSITION,
+                duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
         ]).start(() => setIsSidePanelTransitionEnded(true));
@@ -85,7 +87,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth || shouldUpdateNarrow);
 
             // Focus the composer after closing the Side Panel
-            focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
+            focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
         },
         [isExtraLargeScreenWidth, sidePanelNVP],
     );
@@ -100,9 +102,11 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             shouldHideToolTip,
             sidePanelOffset,
             sidePanelTranslateX,
-            // Help panel is currently disabled. To open it manually, run:
-            // Onyx.set('nvp_sidePanel', { open: true }) in the console.
-            openSidePanel: () => {},
+            //  in the console.
+            openSidePanel: () => {
+                // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true, openNarrowScreen: true});
+            },
             closeSidePanel,
             sidePanelNVP,
         }),

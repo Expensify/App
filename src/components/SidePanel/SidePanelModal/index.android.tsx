@@ -2,11 +2,10 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {BackHandler} from 'react-native';
 import Modal from '@components/Modal';
-import HelpContent from '@components/SidePanel/HelpComponents/HelpContent';
 import CONST from '@src/CONST';
-import type HelpProps from './types';
+import type SidePanelModalProps from './types';
 
-function Help({shouldHideSidePanel, closeSidePanel}: HelpProps) {
+function SidePanelModal({shouldHideSidePanel, closeSidePanel, children}: SidePanelModalProps) {
     // SidePanel isn't a native screen, this handles the back button press on Android
     useFocusEffect(
         useCallback(() => {
@@ -27,11 +26,11 @@ function Help({shouldHideSidePanel, closeSidePanel}: HelpProps) {
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             shouldHandleNavigationBack
         >
-            <HelpContent closeSidePanel={closeSidePanel} />
+            {children}
         </Modal>
     );
 }
 
-Help.displayName = 'Help';
+SidePanelModal.displayName = 'SidePanelModal';
 
-export default Help;
+export default SidePanelModal;
