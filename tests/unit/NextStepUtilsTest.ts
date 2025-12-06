@@ -6,6 +6,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+import createRandomPolicy from '../utils/collections/policies';
+import {createExpenseReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
@@ -881,36 +883,6 @@ describe('libs/NextStepUtils', () => {
         });
 
         describe('it generates an optimistic nextStep once a report has been approved', () => {
-            test('non-payer', () => {
-                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
-                optimisticNextStep.message = [
-                    {
-                        text: 'No further action required!',
-                    },
-                ];
-
-                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                    role: 'user',
-                }).then(() => {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    const result = buildNextStepNew({
-                        report,
-                        policy,
-                        currentUserAccountIDParam: currentUserAccountID,
-                        currentUserEmailParam: currentUserEmail,
-                        hasViolations: false,
-                        isASAPSubmitBetaEnabled: false,
-                        predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
-                        shouldFixViolations: false,
-                        isUnapprove: false,
-                        isReopen: false,
-                    });
-
-                    expect(result).toMatchObject(optimisticNextStep);
-                });
-            });
-
             test('payer', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
@@ -1028,6 +1000,34 @@ describe('libs/NextStepUtils', () => {
                     expect(result).toMatchObject(optimisticNextStep);
                 });
             });
+        });
+    });
+
+    describe('buildNextStepNew', () => {
+        const policyID = '9999';
+        const managerAccountID = 1234;
+        const currentUserAccountID = 6779;
+        const submittedExpenseReport = {
+            ...createExpenseReport(1233),
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            policyID,
+            managerID: managerAccountID,
+            nonReimbursableTotal: 0,
+        };
+        const predictedNextStatus = CONST.REPORT.STATUS_NUM.APPROVED;
+        const policy = {...createRandomPolicy(Number(policyID)), role: CONST.POLICY.ROLE.USER};
+
+        it('should return a generic "waiting for this report to be paid" message when a non-admin approver approves money request', () => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const nextStep = buildNextStepNew({
+                report: submittedExpenseReport,
+                policy,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: 'testingemail@gmail.com',
+                predictedNextStatus,
+            });
+            expect(nextStep?.message?.[0].text).toEqual('Waiting for this report to be paid.');
         });
     });
 
