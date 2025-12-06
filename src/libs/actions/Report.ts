@@ -5205,6 +5205,7 @@ function deleteAppReport(reportID: string | undefined, currentUserEmailParam: st
                 [reportActionID]: {
                     pendingAction: null,
                     errors: null,
+                    shouldShow: false,
                 },
             },
         });
