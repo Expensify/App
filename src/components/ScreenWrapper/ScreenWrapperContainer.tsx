@@ -224,6 +224,7 @@ function ScreenWrapperContainer({
                     // should be offset by the bottom safe area padding when the keyboard is open.
                     shouldOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
                     keyboardVerticalOffset={keyboardVerticalOffset}
+                    testID={testID}
                 >
                     <PickerAvoidingView
                         style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
