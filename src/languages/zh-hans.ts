@@ -245,6 +245,7 @@ import type {
     ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
+    TransactionDisplayNameParams,
     TransferParams,
     TravelTypeParams,
     TrialStartedTitleParams,
@@ -1178,7 +1179,7 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: '移除拆分',
         splitExpenseCannotBeEditedModalTitle: '此报销无法编辑',
         splitExpenseCannotBeEditedModalDescription: '已批准或已支付的费用无法编辑',
-        transactionDisplayName: ({amount, merchant}: SplitExpenseEditTitleParams) => `${amount} 用于 ${merchant}`,
+        transactionDisplayName: ({amount, merchant}: TransactionDisplayNameParams) => `${amount} 用于 ${merchant}`,
         paySomeone: ({name}: PaySomeoneParams = {}) => `支付 ${name ?? '某人'}`,
         expense: '费用',
         categorize: '分类',
@@ -2376,7 +2377,7 @@ ${amount}，商户：${merchant} - ${date}`,
         transferDetailDebitCard: '您的资金应会立即到账。',
         failedTransfer: '您的余额尚未完全结清。请转账到银行账户。',
         notHereSubTitle: '请在钱包页面转出您的余额',
-        goToWallet: '前往钱包',
+        goToWallet: '前往钱��',
     },
     chooseTransferAccountPage: {
         chooseAccount: '选择账户',
@@ -3489,7 +3490,7 @@ ${
         validateButtonText: '验证',
         validationInputLabel: '交易',
         maxAttemptsReached: '由于多次尝试验证失败，此银行账户的验证已被禁用。',
-        description: `在 1–2 个工作日内，我们会从类似 “Expensify, Inc. Validation” 的名称向您的银行账户发送三（3）笔小额交易。`,
+        description: `在 1–2 个工��日内，我们会从类似 “Expensify, Inc. Validation” 的名称向您的银行账户发送三（3）笔小额交易。`,
         descriptionCTA: '请在下面的字段中输入每笔交易金额。例如：1.51。',
         letsChatText: '快完成了！我们需要你在聊天中帮忙验证最后几条信息。准备好了吗？',
         enable2FATitle: '防止欺诈，启用双重身份验证（2FA）',
@@ -3800,11 +3801,7 @@ ${
             moreFeatures: '更多功能',
             requested: '已请求',
             distanceRates: '距离费率',
-<<<<<<< HEAD
-            defaultDescription: '一个地���管理您所有的收据和费用。',
-=======
             defaultDescription: '一个地方管理您所有的收据和报销。',
->>>>>>> main
             descriptionHint: '与所有成员共享此工作区的信息。',
             welcomeNote: '请使用 Expensify 提交报销收据，谢谢！',
             subscription: '订阅',
@@ -4521,7 +4518,7 @@ ${
                             customRecordScriptID: '交易列 ID',
                             mapping: '显示为',
                         },
-                        removeTitle: '移除自定义分段/记录',
+                        removeTitle: '移除自定义分��/记录',
                         removePrompt: '您确定要删除此自定义段/记录吗？',
                         addForm: {
                             customSegmentName: '自定义分段名称',
@@ -4757,15 +4754,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 amexBusiness: '如果您的卡片正面写着“Business”，请选择此项',
                 amexPersonal: '如果您的卡是个人卡，请选择此项',
                 error: {
-<<<<<<< HEAD
-                    pleaseSelectProvider: '请在继续之前选择一个卡提供商',
-                    pleaseSelectBankAccount: '请在继续之前选择一个银行账户',
-                    pleaseSelectBank: '请在继续之前选择一个��行',
-=======
                     pleaseSelectProvider: '在继续之前请选择一个发卡机构',
                     pleaseSelectBankAccount: '请先选择一个银行账户，然后再继续',
                     pleaseSelectBank: '请先选择一个银行，然后再继续',
->>>>>>> main
                     pleaseSelectCountry: '请在继续之前选择一个国家',
                     pleaseSelectFeedType: '请先选择一个馈送类型，然后再继续',
                 },
@@ -6415,7 +6406,7 @@ ${reportName}
     roomMembersPage: {
         memberNotFound: '未找到成员。',
         useInviteButton: '要邀请新成员加入聊天，请使用上方的邀请按钮。',
-        notAuthorized: `您无权访问此页面。如果您正尝试加入此聊天室，请让聊天室成员将您加入。还有其他问题？请联系 ${CONST.EMAIL.CONCIERGE}`,
+        notAuthorized: `您无权访问此页面。如果您正尝试加入此聊���室，请让聊天室成员将您加入。还有其他问题？请联系 ${CONST.EMAIL.CONCIERGE}`,
         roomArchived: `此房间似乎已被归档。如有问题，请联系 ${CONST.EMAIL.CONCIERGE}。`,
         removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `您确定要将 ${memberName} 从此房间中移除吗？`,
@@ -6702,11 +6693,7 @@ ${reportName}
         windowMenu: '窗口',
         minimize: '最小化',
         zoom: 'Zoom',
-<<<<<<< HEAD
-        front: '全部移��前面',
-=======
         front: '全部置于最前端',
->>>>>>> main
         helpMenu: '帮助',
         learnMore: '了解更多',
         documentation: '文档',
@@ -7602,7 +7589,7 @@ ${reportName}
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',
-        saveSearchTooltip: '<tooltip><strong>在这里重命名已保存的搜索</strong>！</tooltip>',
+        saveSearchTooltip: '<tooltip><strong>在这里重命名已保存的���索</strong>！</tooltip>',
         accountSwitcher: '<tooltip>在此访问你的<strong>Copilot 账户</strong></tooltip>',
         scanTestTooltip: {
             main: '<tooltip><strong>扫描我们的测试收据</strong>来查看它是如何工作的！</tooltip>',
@@ -7690,7 +7677,7 @@ ${reportName}
         },
         domainVerified: {
             title: '域名已验证',
-            header: '哇哦！您的域名已通过验��',
+            header: '哇哦！您的域名已通过验证',
             description: ({domainName}: {domainName: string}) =>
                 `<muted-text><centered-text>域名 <strong>${domainName}</strong> 已成功验证，您现在可以设置 SAML 和其他安全功能。</centered-text></muted-text>`,
         },

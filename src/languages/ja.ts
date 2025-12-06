@@ -245,6 +245,7 @@ import type {
     ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
+    TransactionDisplayNameParams,
     TransferParams,
     TravelTypeParams,
     TrialStartedTitleParams,
@@ -1195,8 +1196,8 @@ const translations: TranslationDeepObject<typeof en> = {
         removeSplit: '分割を削除',
         splitExpenseCannotBeEditedModalTitle: 'この経費は編集できません',
         splitExpenseCannotBeEditedModalDescription: '承認済みまたは支払済みの経費は編集できません',
-        transactionDisplayName: ({amount, merchant}: SplitExpenseEditTitleParams) => `${merchant}への${amount}`,
         paySomeone: ({name}: PaySomeoneParams = {}) => `${name ?? '誰か'} を支払う`,
+        transactionDisplayName: ({amount, merchant}: TransactionDisplayNameParams) => `${merchant}への${amount}`,
         expense: '経費',
         categorize: 'カテゴリ分け',
         share: '共有',
@@ -1228,11 +1229,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unreportedTransaction: ({reportUrl}: MovedTransactionParams) => `この経費はあなたの<a href="${reportUrl}">パーソナルスペース</a>に移動されました`,
         movedAction: ({shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName}: MovedActionParams) => {
             if (shouldHideMovedReportUrl) {
-<<<<<<< HEAD
-                return `<a href="${newParentReportUrl}">${toPolicyName}</a> ワークスペ��スにこのレポートを移動しました`;
-=======
                 return `このレポートを<a href="${newParentReportUrl}">${toPolicyName}</a>ワークスペースに移動しました`;
->>>>>>> main
             }
             return `この<a href="${movedReportUrl}">レポート</a>を<a href="${newParentReportUrl}">${toPolicyName}</a>ワークスペースに移動しました`;
         },
@@ -2016,7 +2013,7 @@ const translations: TranslationDeepObject<typeof en> = {
     lockAccountPage: {
         reportSuspiciousActivity: '不審なアクティビティを報告',
         lockAccount: 'アカウントをロック',
-        unlockAccount: 'アカウントのロック解除',
+        unlockAccount: 'アカウントのロック���除',
         compromisedDescription:
             'アカウントにおかしな点がありますか？報告すると、すぐにアカウントがロックされ、新しい Expensify Card の取引がブロックされ、アカウントの変更も行えなくなります。',
         domainAdminsDescription: 'ドメイン管理者向け：これにより、ドメイン内のすべての Expensify Card のアクティビティと管理者による操作も一時停止されます。',
@@ -2240,17 +2237,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `${platform}ウォレットに追加しました`,
         cardDetailsLoadingFailure: 'カードの詳細を読み込む際にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
-<<<<<<< HEAD
-        validateCardTitle: 'あなたであることを確認しましょう',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `カードの詳細を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
-        missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `<a href="${missingDetailsLink}">個人情報を追加</a>してから、もう一度お試���ください。`,
-        unexpectedError: 'Expensifyカードの詳細を取得しようとしてエラーが発生しました。もう一度お試しください。',
-=======
         validateCardTitle: 'あなた本人であることを確認しましょう',
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `カード情報を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
         missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `<a href="${missingDetailsLink}">個人情報を追加</a>してから、もう一度お試しください。`,
         unexpectedError: 'Expensifyカードの詳細を取得中にエラーが発生しました。もう一度お試しください。',
->>>>>>> main
         cardFraudAlert: {
             confirmButtonText: 'はい、そうです',
             reportFraudButtonText: 'いいえ、私ではありません',
@@ -2913,7 +2903,7 @@ ${
     privatePersonalDetails: {
         enterLegalName: 'あなたの法的な氏名は何ですか？',
         enterDateOfBirth: 'あなたの生年月日はいつですか？',
-        enterAddress: 'あなたの住所は何ですか？',
+        enterAddress: 'あなたの住����は何ですか？',
         enterPhoneNumber: '電話番号は何ですか？',
         personalDetails: '個人情報',
         privateDataMessage: 'これらの詳細は旅行と支払いに使用されます。あなたの公開プロフィールに表示されることは決してありません。',
@@ -2948,7 +2938,7 @@ ${
             `配信エラーにより、メールプロバイダーが一時的に ${login} へのメール送信を停止しました。ログインを再有効化するには、次の手順に従ってください。`,
         confirmThat: ({login}: ConfirmThatParams) =>
             `<strong>${login} が正しく綴られており、実際にメールを受信できる有効なメールアドレスであることを確認してください。</strong> 「expenses@domain.com」などのメールエイリアスは、有効な Expensify ログインとなるために、そのエイリアス専用のメール受信ボックスにアクセスできなければなりません。`,
-        ensureYourEmailClient: `<strong>お使いのメールクライアントで expensify.com からのメールが受信できるように設定してください。</strong> この手順の完了方法は<a href="${CONST.SET_NOTIFICATION_LINK}">こちら</a>で確認できますが、メール設定の構成については IT 部門のサポートが必要になる場合があります。`,
+        ensureYourEmailClient: `<strong>お使いのメールクライアントで expensify.com からのメールが受信できるように設定してください���</strong> この手順の完了方法��<a href="${CONST.SET_NOTIFICATION_LINK}">こちら</a>で確認できますが、メール設定の構成については IT 部門のサポートが必要になる場合があります。`,
         onceTheAbove: `上記の手順が完了したら、ログインのブロック解除のために<a href="mailto:${CONST.EMAIL.CONCIERGE}">${CONST.EMAIL.CONCIERGE}</a>までご連絡ください。`,
     },
     openAppFailureModal: {
@@ -3177,21 +3167,12 @@ ${
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} はすでに ${name} のメンバーです`,
     },
     onfidoStep: {
-<<<<<<< HEAD
-        acceptTerms: 'Expensifyウォレットの有効化リクエストを続行することで、あなたは読んで理解し、受け入れたことを確認します',
-        facialScan: 'Onfidoの顔認��ポリシーとリリース',
-        tryAgain: 'もう一度試してください。',
-        verifyIdentity: '本人確認を行う',
-        letsVerifyIdentity: 'あなたの身元を確認しましょう',
-        butFirst: `でもまずは退屈なことから。次のステップで法的文書を読んで、準備ができたら「承諾」をクリックしてください。`,
-=======
         acceptTerms: 'Expensifyウォレットの有効化リクエストを続行することにより、あなたは次の内容を読み、理解し、承諾したことを確認します',
         facialScan: 'Onfido 顔認証ポリシーおよび同意書',
         tryAgain: '再試行',
         verifyIdentity: '本人確認',
         letsVerifyIdentity: '本人確認を行いましょう',
         butFirst: `でもまずは、退屈な内容から。次のステップで利用規約をよく読んで、準備ができたら「同意する」をクリックしてください。`,
->>>>>>> main
         genericError: 'このステップの処理中にエラーが発生しました。もう一度お試しください。',
         cameraPermissionsNotGranted: 'カメラへのアクセスを有効にする',
         cameraRequestMessage: '銀行口座の認証を完了するには、カメラへのアクセス許可が必要です。設定 > New Expensify から有効にしてください。',
@@ -3788,7 +3769,7 @@ ${
             flightSeatConfirmed: ({airlineCode}: AirlineParams) => `${airlineCode}便の座席指定が確定しました。`,
             flightSeatChanged: ({airlineCode}: AirlineParams) => `ご搭乗便 ${airlineCode} の座席指定が変更されました。`,
             flightSeatCancelled: ({airlineCode}: AirlineParams) => `フライト ${airlineCode} の座席指定が解除されました。`,
-            paymentDeclined: '航空券の支払いに失敗しました。もう一度お試しください。',
+            paymentDeclined: '航空券の支払いに失敗しま������もう一度お試しください。',
             bookingCancelledByTraveler: ({type, id = ''}: TravelTypeParams) => `${type} の予約 ${id} をキャンセルしました。`,
             bookingCancelledByVendor: ({type, id = ''}: TravelTypeParams) => `ベンダーがあなたの${type}予約 ${id}をキャンセルしました。`,
             bookingRebooked: ({type, id = ''}: TravelTypeParams) => `あなたの${type}予約は再予約されました。新しい確認番号：${id}。`,
@@ -3854,8 +3835,8 @@ ${
             setAsDefault: 'デフォルトのワークスペースとして設定',
             defaultNote: `${CONST.EMAIL.RECEIPTS} に送信された領収書はこのワークスペースに表示されます。`,
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
-            deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？削除すると、すべてのカードフィードと割り当て済みカードが削除されます。',
-            unavailable: '利用できないワークスペース',
+            deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？削除すると、すべてのカードフィードと割り当て済みカードが���除されます。',
+            unavailable: '���用���きないワークスペース',
             memberNotFound: 'メンバーが見つかりません。ワークスペースに新しいメンバーを招待するには、上の招待ボタンを使用してください。',
             notAuthorized: `このページへのアクセス権がありません。このワークスペースに参加しようとしている場合は、ワークスペースのオーナーにメンバーとして追加してもらってください。ほかにお困りですか？${CONST.EMAIL.CONCIERGE} までご連絡ください。`,
             goToWorkspace: 'ワークスペースに移動',
@@ -4089,13 +4070,8 @@ ${
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
                 },
                 alternateText: {
-<<<<<<< HEAD
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自己負担の経費は最終承認時にエクスポートされます。',
-                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担の経費は支払わ��たときにエクスポートされます。',
-=======
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '最終承認されると、立替経費がエクスポートされます',
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '実費経費は支払い時にエクスポートされます',
->>>>>>> main
                 },
             },
         },
@@ -4634,10 +4610,10 @@ NetSuite でカスタムセグメントの内部 ID を見つけるには、次�
 
 1. *Customization > Lists, Records, & Fields > Custom Segments* を開きます。
 2. カスタムセグメントをクリックします。
-3. *Custom Record Type* の横にあるハイパーリンクをクリックします。
-4. 下部のテーブルで内部 ID を探します。
+3. *Custom Record Type* の横にあるハイパーリンクをクリックしま��。
+4. 下部のテーブルで内部 ID ��探しま��。
 
-_より詳細な手順については、[ヘルプサイトをご覧ください](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_`,
+_よ��詳細な手順については、[ヘルプサイトをご覧ください](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_`,
                             customRecordInternalIDFooter: `次の手順で、NetSuite 内のカスタムレコードの内部 ID を確認できます。
 
 1. グローバル検索で「Transaction Line Fields」と入力します。
@@ -5456,7 +5432,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 cannotRemove: '自分自身またはワークスペースのオーナーは削除できません',
                 genericRemove: 'そのワークスペースメンバーの削除中に問題が発生しました',
             },
-            addedWithPrimary: '一部のメンバーはプライマリログインで追加されました。',
+            addedWithPrimary: '���部のメン���ーはプライマリログインで追加されました。',
             invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `セカンダリログイン ${secondaryLogin} によって追加されました。`,
             workspaceMembersCount: ({count}: WorkspaceMembersCountParams) => `ワークスペースのメンバー合計: ${count}`,
             importMembers: 'メンバーをインポート',
@@ -5661,11 +5637,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                         case 'jobDone':
                             return 'インポートしたデータの読み込みを待機中';
                         case 'xeroSyncImportChartOfAccounts':
-<<<<<<< HEAD
-                            return '勘定科目��を同期中';
-=======
                             return '勘定科目表を同期しています';
->>>>>>> main
                         case 'xeroSyncImportCategories':
                             return 'カテゴリを同期中';
                         case 'xeroSyncImportCustomers':
@@ -6142,7 +6114,7 @@ ${reportName}
                 maxExpenseAmountDescription: 'カテゴリルールで上書きされない限り、この金額を超える支出にフラグを付けます。',
                 maxAge: '最大年齢',
                 maxExpenseAge: '経費の最大経過日数',
-                maxExpenseAgeDescription: '特定の日数より前の支出にフラグを付けます。',
+                maxExpenseAgeDescription: '特定の��数より前の支出にフラグを付けま��。',
                 maxExpenseAgeDays: () => ({
                     one: '1日',
                     other: (count: number) => `${count} 日`,
@@ -6461,16 +6433,6 @@ ${reportName}
             };
         },
         demotedFromWorkspace: ({policyName, oldRole}: DemotedFromWorkspaceParams) =>
-<<<<<<< HEAD
-            `${policyName}���のあなたの役割が${oldRole}からユーザーに更新されました。あなた自身のものを除くすべての提出者の経費チャットから削除されました。`,
-        updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `デフォルト通貨を${newCurrency}に更新しました（以前は${oldCurrency}）`,
-        updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) =>
-            `自動レポートの頻度を「${newFrequency}」（以前は「${oldFrequency}」）に更新しました。`,
-        updateApprovalMode: ({newValue, oldValue}: ChangeFieldParams) => `承認モードを"${oldValue}"から"${newValue}"に更新しました。`,
-        upgradedWorkspace: 'このワークスペースをコントロールプランにアップグレードしました',
-        forcedCorporateUpgrade: `このワークスペースは Control プランにアップグレードされました。詳しくは<a href="${CONST.COLLECT_UPGRADE_HELP_URL}">こちら</a>をご覧ください。`,
-        downgradedWorkspace: 'このワークスペースをCollectプランにダウングレードしました。',
-=======
             `${policyName} 内でのあなたのロールが、${oldRole} からユーザーに更新されました。あなた自身のものを除き、すべての精算者の経費チャットから削除されています。`,
         updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `デフォルト通貨を${newCurrency}（以前は${oldCurrency}）に更新しました`,
         updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) => `自動レポート頻度を「${newFrequency}」（以前は「${oldFrequency}」）に更新しました`,
@@ -6478,7 +6440,6 @@ ${reportName}
         upgradedWorkspace: 'このワークスペースを Control プランにアップグレードしました',
         forcedCorporateUpgrade: `このワークスペースは Control プランにアップグレードされました。詳しくは<a href="${CONST.COLLECT_UPGRADE_HELP_URL}">こちら</a>をクリックしてください。`,
         downgradedWorkspace: 'このワークスペースを Collect プランにダウングレードしました',
->>>>>>> main
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
             `手動承認にランダムに回されるレポートの割合を${Math.round(newAuditRate * 100)}%（以前は${Math.round(oldAuditRate * 100)}%）に変更しました`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) => `すべての経費の手動承認限度額を${newLimit}（以前は${oldLimit}）に変更しました`,
@@ -7073,7 +7034,7 @@ ${reportName}
     actionableMentionTrackExpense: {
         submit: '誰かに提出する',
         categorize: 'カテゴリ分けする',
-        share: '私の会計士と共有する',
+        share: '私の会計士���共有する',
         nothing: '今のところ何もありません',
     },
     teachersUnitePage: {
@@ -7182,7 +7143,7 @@ ${reportName}
         conversionSurcharge: ({surcharge}: ViolationsConversionSurchargeParams) => `適用された為替換算サーチャージ${surcharge}%`,
         customUnitOutOfPolicy: 'このワークスペースには有効なレートではありません',
         duplicatedTransaction: '重複の可能性',
-        fieldRequired: 'レポートフィールドは必須です',
+        fieldRequired: 'レポートフ���ールドは必須���す',
         futureDate: '未来の日付は使用できません',
         invoiceMarkup: ({invoiceMarkup}: ViolationsInvoiceMarkupParams) => `${invoiceMarkup}% 上乗せ済み`,
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `${maxAge}日より前の日付`,
@@ -7412,13 +7373,8 @@ ${reportName}
                     'ご利用の支払いカードは今月末で有効期限が切れます。すべてのお気に入りの機能を引き続きご利用いただくには、下の 3 点メニューをクリックしてカード情報を更新してください。',
             },
             retryBillingSuccess: {
-<<<<<<< HEAD
-                title: '成功���',
-                subtitle: 'あなたのカードは正常に請求されました。',
-=======
                 title: '成功しました！',
                 subtitle: 'カードの請求が正常に完了しました。',
->>>>>>> main
             },
             retryBillingError: {
                 title: 'あなたのカードに請求できませんでした',
@@ -7515,11 +7471,7 @@ ${reportName}
         },
         compareModal: {
             comparePlans: 'プランを比較',
-<<<<<<< HEAD
-            subtitle: `<muted-text>必要な機能を解放しましょう。あなたに最適なプランを選択してください。<a href="${CONST.PRICING}">料金ページをご覧いただくか</a>、各プランの機能詳細をご確��くださ���。</muted-text>`,
-=======
             subtitle: `<muted-text>あなたに最適なプランで、必要な機能をアンロックしましょう。各プランの機能の詳細は、<a href="${CONST.PRICING}">料金ページ</a>をご覧ください。</muted-text>`,
->>>>>>> main
         },
         details: {
             title: 'サブスクリプションの詳細',
