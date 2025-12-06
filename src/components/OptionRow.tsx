@@ -361,6 +361,7 @@ export default React.memo(
         prevProps.showSelectedState === nextProps.showSelectedState &&
         prevProps.highlightSelected === nextProps.highlightSelected &&
         prevProps.showTitleTooltip === nextProps.showTitleTooltip &&
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- icons array is created inline in some usages (e.g., BaseReactionList) with unstable references
         deepEqual(prevProps.option.icons, nextProps.option.icons) &&
         prevProps.optionIsFocused === nextProps.optionIsFocused &&
         prevProps.option.text === nextProps.option.text &&
@@ -373,6 +374,7 @@ export default React.memo(
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
         prevProps.option.customIcon === nextProps.option.customIcon &&
         prevProps.option.tabIndex === nextProps.option.tabIndex &&
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- amountInputProps origin and reference stability cannot be determined across all usages
         deepEqual(prevProps.option.amountInputProps, nextProps.option.amountInputProps),
 );
 
