@@ -168,7 +168,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
         // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
         if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
-            result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams}));
+            result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, allPersonalDetails: personalDetails}));
         }
         return result;
     }, [accountID, isCurrentUser, loginParams, report]);

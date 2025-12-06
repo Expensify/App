@@ -44,6 +44,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import {PersonalDetailsList} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -1381,6 +1382,7 @@ function getTaskSections(
 
 /** Creates transaction thread report and navigates to it from the search page */
 function createAndOpenSearchTransactionThread(
+    allPersonalDetails: OnyxEntry<PersonalDetailsList>,
     item: TransactionListItemType,
     backTo: string,
     IOUTransactionID?: string,
@@ -1406,7 +1408,7 @@ function createAndOpenSearchTransactionThread(
         const reportActionID = moneyRequestReportActionID ?? iouReportAction?.reportActionID;
         const transaction = !reportActionID ? getTransactionFromTransactionListItem(item) : undefined;
         const transactionViolations = !reportActionID ? item.violations : undefined;
-        transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID} as OnyxTypes.ReportAction, transaction, transactionViolations);
+        transactionThreadReport = createTransactionThreadReport(allPersonalDetails, item.report, {reportActionID} as OnyxTypes.ReportAction, transaction, transactionViolations);
     }
 
     if (shouldNavigate) {

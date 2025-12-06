@@ -54,7 +54,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
     });
-
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [hasOnceLoadedTransactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${targetTransaction?.reportID}`, {
         selector: hasOnceLoadedTransactionThreadReportActionsSelector,
         canBeMissing: true,
@@ -112,15 +112,15 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             // If the report was already loaded before, but there are still no transaction thread report info, it means it hasn't been created yet.
             // So we should create it.
             if (hasOnceLoadedTransactionThreadReportActions) {
-                createTransactionThreadReport(iouReportForTargetTransaction, iouActionForTargetTransaction);
+                createTransactionThreadReport(personalDetails, iouReportForTargetTransaction, iouActionForTargetTransaction);
                 setIsCheckingDataBeforeGoNext(false);
                 Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
                 return;
             }
-            return openReport(targetTransaction.reportID);
+            return openReport(personalDetails, targetTransaction.reportID);
         }
         if (targetTransactionThreadReportID && !targetTransactionThreadReport) {
-            return openReport(targetTransactionThreadReportID);
+            return openReport(personalDetails, targetTransactionThreadReportID);
         }
         // We need to wait for report to be loaded completely, avoid still optimistic loading
         if (!targetTransactionThreadReport?.reportID) {

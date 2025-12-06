@@ -205,6 +205,7 @@ function ReportActionsList({
     const topReportAction = sortedVisibleReportActions.at(-1);
     const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !reportActionID);
     const isAnonymousUser = useIsAnonymousUser();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     useEffect(() => {
         const unsubscribe = Visibility.onVisibilityChange(() => {
@@ -635,7 +636,7 @@ function ReportActionsList({
             } else {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
             }
-            openReport(report.reportID);
+            openReport(personalDetails, report.reportID);
             reportScrollManager.scrollToBottom();
             return;
         }

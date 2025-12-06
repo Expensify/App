@@ -602,7 +602,7 @@ function MoneyRequestReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            openReport(report.reportID);
+            openReport(personalDetails, report.reportID);
             reportScrollManager.scrollToEnd();
             return;
         }

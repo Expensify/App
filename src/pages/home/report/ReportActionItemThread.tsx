@@ -1,6 +1,7 @@
 import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
@@ -10,6 +11,7 @@ import {navigateToAndOpenChildReport} from '@libs/actions/Report';
 import Timing from '@libs/actions/Timing';
 import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
 type ReportActionItemThreadProps = {
@@ -42,6 +44,7 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
     const styles = useThemeStyles();
 
     const {translate, datetimeToCalendarTime} = useLocalize();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
@@ -54,7 +57,7 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
                 onPress={() => {
                     Performance.markStart(CONST.TIMING.OPEN_REPORT_THREAD);
                     Timing.start(CONST.TIMING.OPEN_REPORT_THREAD);
-                    navigateToAndOpenChildReport(reportAction.childReportID, reportAction, reportID);
+                    navigateToAndOpenChildReport(personalDetails, reportAction.childReportID, reportAction, reportID);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}

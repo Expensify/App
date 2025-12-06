@@ -32,6 +32,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     const reportActionID = useMemo(() => attachmentID?.split('_')?.[0], [attachmentID]);
     const originalReportID = useOriginalReportID(reportID, reportActionID ? (reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID] ?? {reportActionID}) : undefined);
     const reportActionReportID = originalReportID ?? reportID;
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionReportID}`, {canBeMissing: false});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportActionReportID}`, {
@@ -58,7 +59,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
     }, [isOffline, reportActionReportID, isLoadingApp, report, reportMetadata?.isLoadingInitialReportActions, shouldFetchReport]);
 
     const fetchReport = useCallback(() => {
-        openReport(reportActionReportID, reportActionID);
+        openReport(personalDetails, reportActionReportID, reportActionID);
     }, [reportActionReportID, reportActionID]);
 
     useEffect(() => {

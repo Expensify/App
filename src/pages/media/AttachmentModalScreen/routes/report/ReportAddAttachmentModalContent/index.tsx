@@ -51,6 +51,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const submitRef = useRef<View | HTMLElement>(null);
 
@@ -62,7 +63,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
     }, [reportActions, reportActionID]);
 
     const fetchReport = useCallback(() => {
-        openReport(reportID, reportActionID);
+        openReport(personalDetails, reportID, reportActionID);
     }, [reportID, reportActionID]);
 
     // Close the modal if user loses write access (e.g., admin switches "Who can post" to Admins only)
