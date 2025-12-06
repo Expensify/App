@@ -118,7 +118,7 @@ describe('Deep linking', () => {
 
         await waitForBatchedUpdates();
 
-        expect(lastVisitedPath).toBe(`/${ROUTES.REPORT}/${report.reportID}`);
+        expect(lastVisitedPath).toBe(`/${ROUTES.HOME}`);
 
         expect(hasAuthToken()).toBe(true);
 
