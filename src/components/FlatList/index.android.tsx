@@ -2,11 +2,12 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
-import type {CustomFlatListProps} from './index';
+import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
+import type {CustomFlatListProps} from './types';
 
 // FlatList wrapped with the freeze component will lose its scroll state when frozen (only for Android).
 // CustomFlatList saves the offset and use it for scrollToOffset() when unfrozen.
-function CustomFlatList<T>({ref, ...props}: CustomFlatListProps<T>) {
+function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMomentumScrollEnd, ...props}: CustomFlatListProps<T>) {
     const lastScrollOffsetRef = useRef(0);
 
     const onScreenFocus = useCallback(() => {
@@ -22,9 +23,13 @@ function CustomFlatList<T>({ref, ...props}: CustomFlatListProps<T>) {
     }, [ref]);
 
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    const onMomentumScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        lastScrollOffsetRef.current = event.nativeEvent.contentOffset.y;
-    }, []);
+    const handleScrollEnd = useCallback(
+        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+            onMomentumScrollEnd?.(event);
+            lastScrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+        },
+        [onMomentumScrollEnd],
+    );
 
     useFocusEffect(
         useCallback(() => {
@@ -32,16 +37,26 @@ function CustomFlatList<T>({ref, ...props}: CustomFlatListProps<T>) {
         }, [onScreenFocus]),
     );
 
+    if (enableAnimatedKeyboardDismissal) {
+        return (
+            <KeyboardDismissibleFlatList
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                ref={ref}
+                onMomentumScrollEnd={handleScrollEnd}
+            />
+        );
+    }
+
     return (
         <FlatList<T>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            onScroll={props.onScroll}
-            onMomentumScrollEnd={onMomentumScrollEnd}
             ref={ref}
+            onMomentumScrollEnd={handleScrollEnd}
         />
     );
 }
 
-CustomFlatList.displayName = 'CustomFlatListWithRef';
+CustomFlatList.displayName = 'CustomFlatList';
 export default CustomFlatList;
