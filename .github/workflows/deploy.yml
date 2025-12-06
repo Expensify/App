@@ -554,6 +554,8 @@ jobs:
           else
             npm run build-staging
           fi
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Build storybook docs
         continue-on-error: true

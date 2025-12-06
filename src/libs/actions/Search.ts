@@ -1039,11 +1039,12 @@ function handleBulkPayItemSelected(
         return;
     }
 
+    if (!isUserValidated) {
+        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+        return;
+    }
+
     if (!!selectedPolicy || shouldSelectPaymentMethod) {
-        if (!isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
-            return;
-        }
         triggerKYCFlow({
             event: undefined,
             iouPaymentType: paymentType,

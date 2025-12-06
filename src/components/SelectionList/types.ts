@@ -228,6 +228,9 @@ type SelectionListHandle = {
 
     /** Updates the focused index and optionally scrolls to it */
     updateFocusedIndex: (newFocusedIndex: number, shouldScroll?: boolean) => void;
+
+    /** Sets the focus to the textInput component */
+    focusTextInput: () => void;
 };
 
 type DataDetailsType<TItem extends ListItem> = {
