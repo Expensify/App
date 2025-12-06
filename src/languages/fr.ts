@@ -2356,7 +2356,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Le valideur n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
-        header: 'Envoyer à ce membre pour approbation :',
+        title: 'Définir l’approbateur',
         description: 'Cette personne approuvera les dépenses.',
     },
     workflowsApprovalLimitPage: {
