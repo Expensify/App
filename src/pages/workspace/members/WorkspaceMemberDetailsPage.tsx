@@ -56,14 +56,7 @@ import type {ListItemType} from '@pages/workspace/WorkspaceMemberRoleSelectionMo
 import WorkspaceMemberDetailsRoleSelectionModal from '@pages/workspace/WorkspaceMemberRoleSelectionModal';
 import variables from '@styles/variables';
 import {setIssueNewCardStepAndData} from '@userActions/Card';
-import {
-    clearWorkspaceOwnerChangeFlow,
-    isApprover as isApproverUserAction,
-    openPolicyMemberProfilePage,
-    removeMembers,
-    requestWorkspaceOwnerChange,
-    updateWorkspaceMembersRole,
-} from '@userActions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, openPolicyMemberProfilePage, removeMembers, updateWorkspaceMembersRole} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -343,9 +336,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const startChangeOwnershipFlow = useCallback(() => {
         clearWorkspaceOwnerChangeFlow(policyID);
-        requestWorkspaceOwnerChange(policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
         Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
-    }, [accountID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, policyID]);
+    }, [accountID, policyID]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
