@@ -119,13 +119,12 @@ import {
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
-    getRejectedReportMessage, // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getRejectedReportMessage, 
     getReportName,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getWorkspaceNameUpdatedMessage,
-    isActionCreator,
     isExpenseReport,
     shouldDisableThread,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
@@ -452,13 +451,12 @@ const ContextMenuActions: ContextMenuAction[] = [
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
-            const subscribed = childReportNotificationPreference !== 'hidden';
+            const subscribed = childReportNotificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
-            const hasThread = !!reportAction?.childReportID;
+            
             return (
-                hasThread &&
                 !subscribed &&
                 !isWhisperAction &&
                 !isTaskAction &&
@@ -488,20 +486,16 @@ const ContextMenuActions: ContextMenuAction[] = [
         textTranslateKey: 'reportActionContextMenu.leaveThread',
         icon: Expensicons.Exit,
         shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction}) => {
-            const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
+            const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);            
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
-            const subscribed = childReportNotificationPreference !== 'hidden';
+            const subscribed = childReportNotificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
-            const isThreadCreator = isActionCreator(reportAction);
-            const hasThread = !!reportAction?.childReportID;
-
+            
             return (
-                hasThread &&
                 subscribed &&
-                !isThreadCreator &&
                 !isWhisperAction &&
                 !isTaskAction &&
                 !isExpenseReportAction &&
