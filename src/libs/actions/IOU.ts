@@ -947,12 +947,12 @@ Onyx.connect({
     },
 });
 
-let quickAction: OnyxEntry<OnyxTypes.QuickAction> = {};
+let deprecatedQuickAction: OnyxEntry<OnyxTypes.QuickAction> = {};
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
     callback: (value) => {
-        quickAction = value;
+        deprecatedQuickAction = value;
     },
 });
 
@@ -2120,13 +2120,13 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             value: {
                 action: newQuickAction,
                 chatReportID: chat.report?.reportID,
-                isFirstQuickAction: isEmptyObject(quickAction),
+                isFirstQuickAction: isEmptyObject(deprecatedQuickAction),
             },
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: quickAction ?? null,
+            value: deprecatedQuickAction ?? null,
         });
     }
 
@@ -2672,7 +2672,7 @@ function buildOnyxDataForTrackExpense({
                 value: {
                     action: newQuickAction,
                     chatReportID: chatReport.reportID,
-                    isFirstQuickAction: isEmptyObject(quickAction),
+                    isFirstQuickAction: isEmptyObject(deprecatedQuickAction),
                 },
             },
         );
@@ -2901,7 +2901,7 @@ function buildOnyxDataForTrackExpense({
     failureData.push({
         onyxMethod: Onyx.METHOD.SET,
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-        value: quickAction ?? null,
+        value: deprecatedQuickAction ?? null,
     });
 
     if (iouReport) {
@@ -7053,7 +7053,7 @@ function createSplitsAndOnyxData({
             value: {
                 action: iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ? CONST.QUICK_ACTIONS.SPLIT_DISTANCE : CONST.QUICK_ACTIONS.SPLIT_MANUAL,
                 chatReportID: splitChatReport.reportID,
-                isFirstQuickAction: isEmptyObject(quickAction),
+                isFirstQuickAction: isEmptyObject(deprecatedQuickAction),
             },
         },
         existingSplitChatReport
@@ -7137,7 +7137,7 @@ function createSplitsAndOnyxData({
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: quickAction ?? null,
+            value: deprecatedQuickAction ?? null,
         },
     ];
 
@@ -7714,7 +7714,7 @@ function startSplitBill({
             value: {
                 action: CONST.QUICK_ACTIONS.SPLIT_SCAN,
                 chatReportID: splitChatReport.reportID,
-                isFirstQuickAction: isEmptyObject(quickAction),
+                isFirstQuickAction: isEmptyObject(deprecatedQuickAction),
             },
         },
         existingSplitChatReport
@@ -7796,7 +7796,7 @@ function startSplitBill({
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: quickAction ?? null,
+            value: deprecatedQuickAction ?? null,
         },
     ];
 
@@ -9423,18 +9423,31 @@ function deleteTrackExpense({
  * @param managerID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
-function getSendMoneyParams(
-    report: OnyxEntry<OnyxTypes.Report>,
-    amount: number,
-    currency: string,
-    commentParam: string,
-    paymentMethodType: PaymentMethodType,
-    managerID: number,
-    recipient: Participant,
-    created?: string,
-    merchant?: string,
-    receipt?: Receipt,
-): SendMoneyParamsData {
+function getSendMoneyParams({
+    report,
+    quickAction,
+    amount,
+    currency,
+    commentParam,
+    paymentMethodType,
+    managerID,
+    recipient,
+    created,
+    merchant,
+    receipt,
+}: {
+    report: OnyxEntry<OnyxTypes.Report>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    amount: number;
+    currency: string;
+    commentParam: string;
+    paymentMethodType: PaymentMethodType;
+    managerID: number;
+    recipient: Participant;
+    created?: string;
+    merchant?: string;
+    receipt?: Receipt;
+}): SendMoneyParamsData {
     const recipientEmail = addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
     const comment = getParsedComment(commentParam);
@@ -10408,6 +10421,7 @@ function getPayMoneyRequestParams({
  */
 function sendMoneyElsewhere(
     report: OnyxEntry<OnyxTypes.Report>,
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
     amount: number,
     currency: string,
     comment: string,
@@ -10417,18 +10431,19 @@ function sendMoneyElsewhere(
     merchant?: string,
     receipt?: Receipt,
 ) {
-    const {params, optimisticData, successData, failureData} = getSendMoneyParams(
+    const {params, optimisticData, successData, failureData} = getSendMoneyParams({
         report,
+        quickAction,
         amount,
         currency,
-        comment,
-        CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+        commentParam: comment,
+        paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
         managerID,
         recipient,
         created,
         merchant,
         receipt,
-    );
+    });
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
@@ -10442,6 +10457,7 @@ function sendMoneyElsewhere(
  */
 function sendMoneyWithWallet(
     report: OnyxEntry<OnyxTypes.Report>,
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
     amount: number,
     currency: string,
     comment: string,
@@ -10451,18 +10467,19 @@ function sendMoneyWithWallet(
     merchant?: string,
     receipt?: Receipt,
 ) {
-    const {params, optimisticData, successData, failureData} = getSendMoneyParams(
+    const {params, optimisticData, successData, failureData} = getSendMoneyParams({
         report,
+        quickAction,
         amount,
         currency,
-        comment,
-        CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+        commentParam: comment,
+        paymentMethodType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
         managerID,
         recipient,
         created,
         merchant,
         receipt,
-    );
+    });
     playSound(SOUNDS.DONE);
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
