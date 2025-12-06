@@ -76,7 +76,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
         if (skipConfirmation) {
             setShareDestinationValue(task?.parentReportID);
             createTaskAndNavigate({
-                parentReportID: task?.parentReportID,
+                parentReport,
                 title: values.taskTitle,
                 description: values.taskDescription ?? '',
                 assigneeEmail: task?.assignee ?? '',

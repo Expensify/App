@@ -944,7 +944,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'category':
         case 'merchant':
         case 'taxCode':
-        case 'filename':
         case 'modifiedCurrency':
         case 'modifiedMerchant':
         case 'transactionID':
@@ -1054,7 +1053,6 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     created: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                    filename: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     iouRequestType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     modifiedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,

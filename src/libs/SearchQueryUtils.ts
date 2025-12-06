@@ -65,22 +65,20 @@ const createKeyToUserFriendlyMap = () => {
     const map = new Map<string, string>();
 
     // Map SYNTAX_FILTER_KEYS values to their user-friendly names
-    // eslint-disable-next-line unicorn/no-array-for-each
-    Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS).forEach(([keyName, keyValue]) => {
+    for (const [keyName, keyValue] of Object.entries(CONST.SEARCH.SYNTAX_FILTER_KEYS)) {
         if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
-            return;
+            continue;
         }
         map.set(keyValue, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS[keyName as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS]);
-    });
+    }
 
     // Map SYNTAX_ROOT_KEYS values to their user-friendly names
-    // eslint-disable-next-line unicorn/no-array-for-each
-    Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS).forEach(([keyName, keyValue]) => {
+    for (const [keyName, keyValue] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
         if (!(keyName in CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS)) {
-            return;
+            continue;
         }
         map.set(keyValue, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS[keyName as keyof typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS]);
-    });
+    }
 
     return map;
 };
@@ -193,8 +191,7 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
     const allowedOps = new Set<string>([CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO]);
 
     let filterValueString = '';
-    // eslint-disable-next-line unicorn/no-array-for-each
-    queryFilters.forEach((queryFilter, index) => {
+    for (const [index, queryFilter] of queryFilters.entries()) {
         const previousValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index - 1)?.operator === queryFilter.operator;
         const nextValueHasSameOp = allowedOps.has(queryFilter.operator) && queryFilters?.at(index + 1)?.operator === queryFilter.operator;
 
@@ -208,7 +205,7 @@ function buildFilterValuesString(filterName: string, queryFilters: QueryFilter[]
         } else {
             filterValueString += ` ${filterName}${operatorToCharMap[queryFilter.operator]}${sanitizeSearchValue(queryFilter.value.toString())}`;
         }
-    });
+    }
 
     return filterValueString;
 }
@@ -252,13 +249,12 @@ function getFilters(queryJSON: SearchQueryJSON) {
                 value: node.right as string | number,
             });
         } else {
-            // eslint-disable-next-line unicorn/no-array-for-each
-            node.right.forEach((element) => {
+            for (const element of node.right) {
                 filterArray.push({
                     operator: node.operator,
                     value: element,
                 });
-            });
+            }
         }
         filters.push({key: nodeKey, filters: filterArray});
     }
@@ -351,26 +347,26 @@ function getQueryHashes(query: SearchQueryJSON): {primaryHash: number; recentSea
     // their value when computing the similarSearchHash
     const similarSearchValueBasedFilters = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION]);
 
-    query.flatFilters
+    const flatFilters = query.flatFilters
         .map((filter) => {
             const filterKey = filter.key;
             const filters = cloneDeep(filter.filters);
             filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
             return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
         })
-        .sort((a, b) => customCollator.compare(a.filterString, b.filterString))
-        // eslint-disable-next-line unicorn/no-array-for-each
-        .forEach(({filterString, filterKey}) => {
-            if (!similarSearchIgnoredFilters.has(filterKey)) {
-                filterSet.add(filterKey);
-            }
+        .sort((a, b) => customCollator.compare(a.filterString, b.filterString));
 
-            if (similarSearchValueBasedFilters.has(filterKey)) {
-                filterSet.add(filterString.trim());
-            }
+    for (const {filterString, filterKey} of flatFilters) {
+        if (!similarSearchIgnoredFilters.has(filterKey)) {
+            filterSet.add(filterKey);
+        }
 
-            orderedQuery += ` ${filterString}`;
-        });
+        if (similarSearchValueBasedFilters.has(filterKey)) {
+            filterSet.add(filterString.trim());
+        }
+
+        orderedQuery += ` ${filterString}`;
+    }
 
     const similarSearchHash = hashText(Array.from(filterSet).join(''), 2 ** 32);
     const recentSearchHash = hashText(orderedQuery, 2 ** 32);
@@ -555,14 +551,13 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
     // When switching types/setting the type, ensure we aren't polluting our query with filters that are
     // only available for the previous type. Remove all filters that are not allowed for the new type
     const providedFilterKeys = Object.keys(supportedFilterValues) as SearchAdvancedFiltersKey[];
-    // eslint-disable-next-line unicorn/no-array-for-each
-    providedFilterKeys.forEach((filter) => {
+    for (const filter of providedFilterKeys) {
         if (isFilterSupported(filter, supportedFilterValues.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE)) {
-            return;
+            continue;
         }
 
         supportedFilterValues[filter] = undefined;
-    });
+    }
 
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
     const {type, status, groupBy, ...otherFilters} = supportedFilterValues;
@@ -701,17 +696,15 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     filtersString.push(...mappedFilters);
 
-    // eslint-disable-next-line unicorn/no-array-for-each
-    DATE_FILTER_KEYS.forEach((dateKey) => {
+    for (const dateKey of DATE_FILTER_KEYS) {
         const dateFilter = buildDateFilterQuery(supportedFilterValues, dateKey);
         filtersString.push(dateFilter);
-    });
+    }
 
-    // eslint-disable-next-line unicorn/no-array-for-each
-    AMOUNT_FILTER_KEYS.forEach((filterKey) => {
+    for (const filterKey of AMOUNT_FILTER_KEYS) {
         const amountFilter = buildAmountFilterQuery(filterKey, supportedFilterValues);
         filtersString.push(amountFilter);
-    });
+    }
 
     return filtersString.filter(Boolean).join(' ').trim();
 }
@@ -1007,6 +1000,7 @@ function getFilterDisplayValue(
         return getCardDescription(cardList?.[cardID]) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
@@ -1295,6 +1289,10 @@ function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
     return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !queryJSON.status && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
 }
 
+function isDefaultExpenseReportsQuery(queryJSON: SearchQueryJSON) {
+    return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !queryJSON.status && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
+}
+
 /**
  * Always show `No category` and `No tag` as the first option
  */
@@ -1431,6 +1429,7 @@ export {
     getCurrentSearchQueryJSON,
     getQueryWithoutFilters,
     isDefaultExpensesQuery,
+    isDefaultExpenseReportsQuery,
     sortOptionsWithEmptyValue,
     shouldHighlight,
     getAllPolicyValues,
