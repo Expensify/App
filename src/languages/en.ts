@@ -1155,6 +1155,7 @@ const translations = {
     },
     iou: {
         amount: 'Amount',
+        percent: 'Percent',
         taxAmount: 'Tax amount',
         taxRate: 'Tax rate',
         approve: ({formattedAmount}: {formattedAmount?: string} = {}) => (formattedAmount ? `Approve ${formattedAmount}` : 'Approve'),
@@ -1165,6 +1166,7 @@ const translations = {
         split: 'Split',
         splitExpense: 'Split expense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} from ${merchant}`,
+        splitByPercentage: 'Split by percentage',
         addSplit: 'Add split',
         makeSplitsEven: 'Make splits even',
         editSplits: 'Edit splits',

@@ -91,6 +91,61 @@ function calculateAmount(numberOfSplits: number, total: number, currency: string
 }
 
 /**
+ * Calculate a split amount in backend cents from a percentage of the original amount.
+ * - Clamps percentage to [0, 100]
+ * - Rounds percentage to whole numbers (per product spec)
+ * - Uses absolute value of the total amount (cents)
+ */
+function calculateSplitAmountFromPercentage(totalInCents: number, percentage: number): number {
+    const totalAbs = Math.abs(totalInCents);
+    const clamped = Math.min(100, Math.max(0, Math.round(percentage)));
+    return Math.round((totalAbs * clamped) / 100);
+}
+
+/**
+ * Calculate display percentages for split amounts with stability and a visual leader bump.
+ *
+ * Behavior:
+ * - Stability: Identical amounts always map to identical integer percentages (each row = round(amount/total*100)).
+ * - Leader bump: If there is a unique largest amount and it is not already strictly higher than all others,
+ *   nudge that row's percentage by +1 for visibility (e.g., to avoid all rows showing 8%).
+ * - Sum: The resulting percentages are not forced to sum to 100. This is intentional to preserve stability.
+ *
+ * Intended use:
+ * - For UI display where consistency across identical amounts matters more than summing to exactly 100.
+ * - Do not use when you must strictly sum to 100.
+ */
+function calculateSplitPercentagesFromAmounts(amountsInCents: number[], totalInCents: number): number[] {
+    const totalAbs = Math.abs(totalInCents);
+    if (totalAbs <= 0 || amountsInCents.length === 0) {
+        return amountsInCents.map(() => 0);
+    }
+
+    const amountsAbs = amountsInCents.map((a) => Math.abs(a ?? 0));
+    // Step 1: stable independent rounding so identical amounts map to identical percentages
+    let percentages = amountsAbs.map((amount) => (totalAbs > 0 ? Math.round((amount / totalAbs) * 100) : 0));
+    // Step 2: nudge unique max by +1% if not already strictly leading
+    const maxAmount = Math.max(...amountsAbs);
+    const indicesWithMax = amountsAbs.reduce<number[]>((acc, amt, i) => {
+        if (amt === maxAmount) {
+            acc.push(i);
+        }
+        return acc;
+    }, []);
+
+    if (indicesWithMax.length === 1) {
+        const idx = indicesWithMax.at(0);
+        const othersMax = percentages.filter((_, i) => i !== idx).reduce((m, v) => Math.max(m, v), -Infinity);
+        const currentPercentage = percentages.at(typeof idx === 'number' && idx >= 0 ? idx : percentages.length);
+        if (othersMax !== -Infinity && currentPercentage !== undefined && currentPercentage <= othersMax) {
+            percentages = percentages.map((p, i) => (i === idx ? p + 1 : p));
+        }
+    }
+
+    return percentages;
+}
+
+/**
  * The owner of the IOU report is the account who is owed money and the manager is the one who owes money!
  * In case the owner/manager swap, we need to update the owner of the IOU report and the report total, since it is always positive.
  * For example: if user1 owes user2 $10, then we have: {ownerAccountID: user2, managerID: user1, total: $10 (a positive amount, owed to user2)}
@@ -241,6 +296,8 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
 
 export {
     calculateAmount,
+    calculateSplitAmountFromPercentage,
+    calculateSplitPercentagesFromAmounts,
     insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,
