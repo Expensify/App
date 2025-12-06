@@ -1685,6 +1685,7 @@ const CONST = {
         SPAN_OPEN_SEARCH_ROUTER: 'ManualOpenSearchRouter',
         SPAN_OPEN_CREATE_EXPENSE: 'ManualOpenCreateExpense',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
+        SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_SKELETON: 'ManualSkeleton',
         SPAN_BOOTSPLASH: {
             ROOT: 'BootsplashVisible',
