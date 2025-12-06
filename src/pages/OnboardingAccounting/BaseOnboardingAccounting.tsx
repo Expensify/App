@@ -110,7 +110,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         if (!paidGroupPolicy || onboardingPolicyID) {
             return;
         }
-        setOnboardingAdminsChatReportID(paidGroupPolicy.chatReportIDAdmins?.toString());
+        setOnboardingAdminsChatReportID(paidGroupPolicy.chatReportIDAdmins);
         setOnboardingPolicyID(paidGroupPolicy.id);
     }, [paidGroupPolicy, onboardingPolicyID]);
 
