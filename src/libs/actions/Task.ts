@@ -995,6 +995,7 @@ function getShareDestination(
     }
     return {
         icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar),
+        // eslint-disable-next-line no-restricted-imports
         displayName: ReportUtils.getReportName(report),
         subtitle,
         displayNamesWithTooltips,

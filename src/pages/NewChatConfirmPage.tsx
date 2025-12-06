@@ -55,6 +55,7 @@ function NewChatConfirmPage() {
         return options;
     }, [allPersonalDetails, newGroupDraft?.participants]);
 
+    // eslint-disable-next-line no-restricted-imports
     const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(newGroupDraft?.participants);
     const selectedParticipants: ListItem[] = useMemo(
         () =>
