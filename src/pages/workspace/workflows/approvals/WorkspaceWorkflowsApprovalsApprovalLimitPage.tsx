@@ -48,7 +48,6 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const policyID = route.params.policyID;
     const approverIndex = Number(route.params.approverIndex) || 0;
-    const backTo = route.params?.backTo;
     const isEditFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT;
     const currentApprover = approvalWorkflow?.approvers?.[approverIndex];
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -206,14 +205,14 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const navigateToApproverSelector = useCallback(() => {
         saveCurrentStateToOnyx();
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(policyID, approverIndex, backTo));
-    }, [saveCurrentStateToOnyx, policyID, approverIndex, backTo]);
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(policyID, approverIndex));
+    }, [saveCurrentStateToOnyx, policyID, approverIndex]);
 
     const navigateToApproverChange = useCallback(() => {
         saveCurrentStateToOnyx();
-        const approvalLimitBackTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex, backTo);
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, approvalLimitBackTo));
-    }, [saveCurrentStateToOnyx, policyID, approverIndex, backTo]);
+        // Use the dedicated route for changing approver - it will go BACK to this page after selection
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE.getRoute(policyID, approverIndex));
+    }, [saveCurrentStateToOnyx, policyID, approverIndex]);
 
     const buttonContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mh5, styles.mb5]});
 

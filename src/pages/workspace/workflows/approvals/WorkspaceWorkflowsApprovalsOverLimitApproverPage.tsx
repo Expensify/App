@@ -38,7 +38,6 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
 
     const policyID = route.params.policyID;
     const approverIndex = Number(route.params.approverIndex) ?? 0;
-    const backTo = route.params?.backTo;
     const currentApprover = approvalWorkflow?.approvers?.[approverIndex];
 
     const employeeList = policy?.employeeList;
@@ -106,8 +105,8 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading;
 
     const goBack = useCallback(() => {
-        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex, backTo));
-    }, [policyID, approverIndex, backTo]);
+        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex));
+    }, [policyID, approverIndex]);
 
     const selectApprover = useCallback(
         (approvers: SelectionListApprover[]) => {

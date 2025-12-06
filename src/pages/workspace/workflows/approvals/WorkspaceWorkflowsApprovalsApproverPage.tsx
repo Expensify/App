@@ -19,12 +19,12 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import {personalDetailsByEmailSelector} from '@src/selectors/PersonalDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type WorkspaceWorkflowsApprovalsApproverPageProps = WithPolicyAndFullscreenLoadingProps &
-    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER>;
+    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE>;
 
 function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
     const styles = useThemeStyles();
@@ -37,12 +37,13 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         selector: personalDetailsByEmailSelector,
     });
     const approverIndex = Number(route.params.approverIndex) ?? 0;
-    const backTo = route.params.backTo;
-    const isInitialCreationFlow = currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !backTo;
-    const isComingFromLimitPage = backTo?.includes(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.route) ?? false;
+    const rhpRoutes = useNavigationState((state) => state.routes);
     const defaultApprover = getDefaultApprover(policy);
     const firstApprover = currentApprovalWorkflow?.approvers?.[0]?.email ?? '';
-    const rhpRoutes = useNavigationState((state) => state.routes);
+
+    const isChangeApproverRoute = route.name === SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE;
+    const backTo = 'backTo' in route.params ? route.params.backTo : undefined;
+    const isInitialCreationFlow = currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !backTo;
     const currentApprover = currentApprovalWorkflow?.approvers[approverIndex];
     const selectedApproverEmail = currentApprover?.email;
 
@@ -159,22 +160,15 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 personalDetailsByEmail,
             });
 
-            // If we came from the Limit page (changing approver), go back to it
-            if (isComingFromLimitPage) {
-                Navigation.goBack();
-                return;
+            // If this is the change approver route, go back to the Approval Limit page
+            // Otherwise, navigate forward to set the approval limit
+            if (isChangeApproverRoute) {
+                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex));
+            } else {
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex));
             }
-
-            const approverPageBackTo =
-                currentApprovalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
-                    ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover)
-                    : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
-
-            const limitPageBackTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, approverIndex, approverPageBackTo);
-
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex, limitPageBackTo));
         },
-        [approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail, firstApprover, isComingFromLimitPage],
+        [approverIndex, currentApprovalWorkflow, employeeList, personalDetails, policy, route.params.policyID, goBack, personalDetailsByEmail, isChangeApproverRoute],
     );
 
     const subtitle = useMemo(
