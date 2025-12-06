@@ -1229,7 +1229,22 @@ function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticI
 }
 
 function isPayAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+    const isIOUType = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU);
+    const originalMsg = getOriginalMessage(reportAction);
+    const messageType = originalMsg?.type;
+    const result = isIOUType && messageType === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+
+    // eslint-disable-next-line no-console
+    console.log('🔍 [isPayAction Debug]', JSON.stringify({
+        actionName: reportAction?.actionName ?? 'N/A',
+        reportActionID: reportAction?.reportActionID ?? 'N/A',
+        isIOUType,
+        messageType: messageType ?? 'N/A',
+        expectedPayType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        result,
+    }, null, 2));
+
+    return result;
 }
 
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -2119,22 +2134,71 @@ function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction
  * Get IOU action for a reportID and transactionID
  */
 function getIOUActionForReportID(reportID: string | undefined, transactionID: string | undefined): OnyxEntry<ReportAction> {
+    // eslint-disable-next-line no-console
+    console.log('🔍 [getIOUActionForReportID Debug] Called with', JSON.stringify({reportID, transactionID}, null, 2));
+
     if (!reportID || !transactionID) {
+        // eslint-disable-next-line no-console
+        console.log('🔍 [getIOUActionForReportID Debug] Early return - missing params', JSON.stringify({reportID: !!reportID, transactionID: !!transactionID}, null, 2));
         return undefined;
     }
     const reportActions = getAllReportActions(reportID);
+    const reportActionsArray = Object.values(reportActions ?? {});
 
-    return getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
+    // eslint-disable-next-line no-console
+    console.log('🔍 [getIOUActionForReportID Debug] Report actions found', JSON.stringify({
+        reportActionsCount: reportActionsArray.length,
+        actionNames: reportActionsArray.map((a) => a.actionName),
+        actionIDs: reportActionsArray.map((a) => a.reportActionID),
+    }, null, 2));
+
+    const result = getIOUActionForTransactionID(reportActionsArray, transactionID);
+
+    // eslint-disable-next-line no-console
+    console.log('🔍 [getIOUActionForReportID Debug] Result', JSON.stringify({
+        found: !!result,
+        resultActionName: result?.actionName ?? 'N/A',
+        resultActionID: result?.reportActionID ?? 'N/A',
+    }, null, 2));
+
+    return result;
 }
 
 /**
  * Get the IOU action for a transactionID from given reportActions
  */
 function getIOUActionForTransactionID(reportActions: ReportAction[], transactionID: string): OnyxEntry<ReportAction> {
-    return reportActions.find((reportAction) => {
-        const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
+    // eslint-disable-next-line no-console
+    console.log('🔍 [getIOUActionForTransactionID Debug] Searching for transactionID', JSON.stringify({
+        transactionID,
+        reportActionsCount: reportActions.length,
+    }, null, 2));
+
+    const result = reportActions.find((reportAction) => {
+        const isMoneyRequest = isMoneyRequestAction(reportAction);
+        const originalMsg = getOriginalMessage(reportAction);
+        const IOUTransactionID = isMoneyRequest ? originalMsg?.IOUTransactionID : undefined;
+
+        // eslint-disable-next-line no-console
+        console.log('🔍 [getIOUActionForTransactionID Debug] Checking action', JSON.stringify({
+            actionName: reportAction.actionName,
+            reportActionID: reportAction.reportActionID,
+            isMoneyRequestAction: isMoneyRequest,
+            IOUTransactionID: IOUTransactionID ?? 'N/A',
+            targetTransactionID: transactionID,
+            matches: IOUTransactionID === transactionID,
+        }, null, 2));
+
         return IOUTransactionID === transactionID;
     });
+
+    // eslint-disable-next-line no-console
+    console.log('🔍 [getIOUActionForTransactionID Debug] Search complete', JSON.stringify({
+        found: !!result,
+        resultActionName: result?.actionName ?? 'N/A',
+    }, null, 2));
+
+    return result;
 }
 
 /**

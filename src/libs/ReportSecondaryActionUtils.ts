@@ -19,7 +19,7 @@ import {
     isPreferredExporter,
     isSubmitAndClose,
 } from './PolicyUtils';
-import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, getReportAction, isPayAction} from './ReportActionsUtils';
+import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isPayAction} from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
@@ -278,43 +278,168 @@ function isUnapproveAction(currentUserLogin: string, report: Report, policy?: Po
 
 function isCancelPaymentAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
+    const session = getSession();
+
+    // eslint-disable-next-line no-console
+    console.log('🔍 [Cancel Payment Debug] Step 1 - Initial Check', JSON.stringify({
+        reportID: report.reportID,
+        isExpenseReport,
+    }, null, 2));
 
     if (!isExpenseReport) {
+        // eslint-disable-next-line no-console
+        console.log('❌ [Cancel Payment Debug] BLOCKED: Not an expense report');
         return false;
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = isPayerUtils(getSession(), report, false, policy);
+    const isPayer = isPayerUtils(session, report, false, policy);
+
+    // eslint-disable-next-line no-console
+    console.log('🔍 [Cancel Payment Debug] Step 2 - Permission Check', JSON.stringify({
+        isAdmin,
+        isPayer,
+        policyRole: policy?.role,
+        policyType: policy?.type,
+        sessionEmail: session?.email,
+        sessionAccountID: session?.accountID,
+        reportManagerID: report.managerID,
+        reportOwnerAccountID: report.ownerAccountID,
+    }, null, 2));
 
     if (!isAdmin || !isPayer) {
+        // eslint-disable-next-line no-console
+        console.log('❌ [Cancel Payment Debug] BLOCKED: Permission check failed', JSON.stringify({isAdmin, isPayer}, null, 2));
         return false;
     }
 
-    const isReportPaidElsewhere = report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    // eslint-disable-next-line no-console
+    console.log('🔍 [Cancel Payment Debug] Step 3 - Starting Pay Actions Search', JSON.stringify({
+        reportID: report.reportID,
+        reportTransactionsCount: reportTransactions.length,
+        transactionIDs: reportTransactions.map((t) => t.transactionID),
+    }, null, 2));
 
-    if (isReportPaidElsewhere) {
-        return true;
-    }
-
-    const isPaymentProcessing = !!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-
+    // Get pay actions first to check payment type
     const payActions = reportTransactions.reduce((acc, transaction) => {
+        // eslint-disable-next-line no-console
+        console.log('🔍 [Cancel Payment Debug] Step 3a - Looking up action for transaction', JSON.stringify({
+            transactionID: transaction.transactionID,
+            reportID: report.reportID,
+        }, null, 2));
+
         const action = getIOUActionForReportID(report.reportID, transaction.transactionID);
-        if (action && isPayAction(action)) {
-            acc.push(action);
+
+        // eslint-disable-next-line no-console
+        console.log('🔍 [Cancel Payment Debug] Step 3b - getIOUActionForReportID result', JSON.stringify({
+            transactionID: transaction.transactionID,
+            actionFound: !!action,
+            actionName: action?.actionName ?? 'N/A',
+            reportActionID: action?.reportActionID ?? 'N/A',
+            originalMessage: action ? getOriginalMessage(action) : 'N/A',
+        }, null, 2));
+
+        if (action) {
+            const originalMsg = getOriginalMessage(action);
+            const isPayActionResult = isPayAction(action);
+            // eslint-disable-next-line no-console
+            console.log('🔍 [Cancel Payment Debug] Step 3c - isPayAction check', JSON.stringify({
+                transactionID: transaction.transactionID,
+                actionName: action.actionName,
+                isIOUAction: action.actionName === 'IOU',
+                originalMessageType: originalMsg && 'type' in originalMsg ? originalMsg.type : 'N/A',
+                expectedPayType: 'pay',
+                isPayAction: isPayActionResult,
+            }, null, 2));
+
+            if (isPayActionResult) {
+                acc.push(action);
+            }
         }
         return acc;
     }, [] as ReportAction[]);
+
+    // eslint-disable-next-line no-console
+    console.log('🔍 [Cancel Payment Debug] Step 3d - Pay Actions Summary', JSON.stringify({
+        payActionsCount: payActions.length,
+        reportTransactionsCount: reportTransactions.length,
+        payActionDetails: payActions.map((a) => {
+            const msg = getOriginalMessage(a);
+            return {
+                reportActionID: a.reportActionID,
+                created: a.created,
+                paymentType: msg && 'paymentType' in msg ? msg.paymentType : 'N/A',
+            };
+        }),
+    }, null, 2));
+
+    // Check if payment was made via bank account (not elsewhere)
+    // If no pay actions exist, we can't determine the payment type, so we assume it was NOT a bank payment
+    const isPaidViaBankAccount =
+        payActions.length > 0 &&
+        payActions.every((action) => {
+            const originalMessage = getOriginalMessage(action);
+            return originalMessage && 'paymentType' in originalMessage && originalMessage.paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+        });
+
+    // eslint-disable-next-line no-console
+    console.log('🔍 [Cancel Payment Debug] Step 4 - Payment Type Check', JSON.stringify({
+        isPaidViaBankAccount,
+        stateNum: report.stateNum,
+        statusNum: report.statusNum,
+        STATE_NUM_APPROVED: CONST.REPORT.STATE_NUM.APPROVED,
+        STATE_NUM_BILLING: CONST.REPORT.STATE_NUM.BILLING,
+        STATUS_NUM_APPROVED: CONST.REPORT.STATUS_NUM.APPROVED,
+        STATUS_NUM_REIMBURSED: CONST.REPORT.STATUS_NUM.REIMBURSED,
+    }, null, 2));
+
+    // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
+    if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
+        // eslint-disable-next-line no-console
+        console.log('✅ [Cancel Payment Debug] SHOW BUTTON: Paid elsewhere path');
+        return true;
+    }
+
+    const isBankProcessing = isPaidViaBankAccount && report.stateNum === CONST.REPORT.STATE_NUM.BILLING && report.statusNum !== CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const isPaymentProcessing = (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) || isBankProcessing;
+
+    // eslint-disable-next-line no-console
+    console.log('🔍 [Cancel Payment Debug] Step 5 - Processing Check', JSON.stringify({
+        isBankProcessing,
+        isPaymentProcessing,
+        isWaitingOnBankAccount: report.isWaitingOnBankAccount,
+        waitingOnBankCondition: !!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED,
+    }, null, 2));
 
     const hasDailyNachaCutoffPassed = payActions.some((action) => {
         const now = new Date();
         const paymentDatetime = new Date(action.created);
         const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
         const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
-        return nowUTC.getTime() < cutoffTimeUTC.getTime();
+        const cutoffPassed = nowUTC.getTime() > cutoffTimeUTC.getTime();
+
+        // eslint-disable-next-line no-console
+        console.log('🔍 [Cancel Payment Debug] Step 6 - NACHA Cutoff', JSON.stringify({
+            actionCreated: action.created,
+            nowUTC: nowUTC.toISOString(),
+            cutoffTimeUTC: cutoffTimeUTC.toISOString(),
+            cutoffPassed,
+        }, null, 2));
+
+        return cutoffPassed;
     });
 
-    return isPaymentProcessing && !hasDailyNachaCutoffPassed;
+    const finalResult = isPaymentProcessing && !hasDailyNachaCutoffPassed;
+
+    // eslint-disable-next-line no-console
+    console.log('🔍 [Cancel Payment Debug] Step 7 - Final Decision', JSON.stringify({
+        isPaymentProcessing,
+        hasDailyNachaCutoffPassed,
+        finalResult,
+        decision: finalResult ? '✅ SHOW BUTTON' : '❌ HIDE BUTTON',
+    }, null, 2));
+
+    return finalResult;
 }
 
 function isExportAction(report: Report, policy?: Policy): boolean {
