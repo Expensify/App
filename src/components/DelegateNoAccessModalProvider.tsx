@@ -1,13 +1,13 @@
-import React, {createContext, useMemo, useState} from 'react';
+import React, {createContext, useEffect, useMemo, useState} from 'react';
 import type {PropsWithChildren} from 'react';
 import {View} from 'react-native';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ConfirmModal from './ConfirmModal';
 import RenderHTML from './RenderHTML';
 
 type DelegateNoAccessContextType = {
@@ -30,6 +30,7 @@ const DelegateNoAccessContext = createContext<DelegateNoAccessContextType>({
 function DelegateNoAccessModalProvider({children}: PropsWithChildren) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {showConfirmModal} = useConfirmModal();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const delegatorEmail = currentUserDetails?.login ?? '';
@@ -42,6 +43,21 @@ function DelegateNoAccessModalProvider({children}: PropsWithChildren) {
             <RenderHTML html={translate('delegate.notAllowedMessage', {accountOwnerEmail: delegatorEmail})} />
         </View>
     );
+
+    useEffect(() => {
+        if (!isModalOpen) {
+            return;
+        }
+        showConfirmModal({
+            title: translate('delegate.notAllowed'),
+            prompt: delegateNoAccessPrompt,
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        }).then(() => {
+            setIsModalOpen(false);
+        });
+    }, [isModalOpen, showConfirmModal, translate, delegateNoAccessPrompt]);
+
     const contextValue = useMemo(
         () => ({
             isActingAsDelegate,
@@ -51,20 +67,7 @@ function DelegateNoAccessModalProvider({children}: PropsWithChildren) {
         [isActingAsDelegate, isDelegateAccessRestricted],
     );
 
-    return (
-        <DelegateNoAccessContext.Provider value={contextValue}>
-            {children}
-            <ConfirmModal
-                isVisible={isModalOpen}
-                onConfirm={() => setIsModalOpen(false)}
-                onCancel={() => setIsModalOpen(false)}
-                title={translate('delegate.notAllowed')}
-                prompt={delegateNoAccessPrompt}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-            />
-        </DelegateNoAccessContext.Provider>
-    );
+    return <DelegateNoAccessContext.Provider value={contextValue}>{children}</DelegateNoAccessContext.Provider>;
 }
 
 DelegateNoAccessModalProvider.displayName = 'DelegateNoAccessModalProvider';

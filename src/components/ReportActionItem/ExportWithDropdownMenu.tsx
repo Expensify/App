@@ -4,7 +4,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, ReportExportType} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -45,6 +45,7 @@ function ExportWithDropdownMenu({
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
     const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD, {canBeMissing: true});
@@ -112,7 +113,20 @@ function ExportWithDropdownMenu({
                 anchorAlignment={dropdownAnchorAlignment}
                 onPress={(_, value) => {
                     if (isExported) {
-                        setModalStatus(value);
+                        showConfirmModal({
+                            title: translate('workspace.exportAgainModal.title'),
+                            prompt: translate('workspace.exportAgainModal.description', {connectionName, reportName: report?.reportName ?? ''}),
+                            confirmText: translate('workspace.exportAgainModal.confirmText'),
+                            cancelText: translate('workspace.exportAgainModal.cancelText'),
+                        }).then(({action}) => {
+                            if (action === 'CONFIRM' && reportID) {
+                                if (value === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
+                                    exportToIntegration(reportID, connectionName);
+                                } else if (value === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
+                                    markAsManuallyExported(reportID, connectionName);
+                                }
+                            }
+                        });
                         return;
                     }
                     if (!reportID) {
@@ -129,15 +143,6 @@ function ExportWithDropdownMenu({
                 style={[shouldUseNarrowLayout && styles.flexGrow1]}
                 wrapperStyle={flattenedWrapperStyle}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-            />
-            <ConfirmModal
-                title={translate('workspace.exportAgainModal.title')}
-                onConfirm={confirmExport}
-                onCancel={() => setModalStatus(null)}
-                prompt={translate('workspace.exportAgainModal.description', {connectionName, reportName: report?.reportName ?? ''})}
-                confirmText={translate('workspace.exportAgainModal.confirmText')}
-                cancelText={translate('workspace.exportAgainModal.cancelText')}
-                isVisible={!!modalStatus}
             />
         </>
     );

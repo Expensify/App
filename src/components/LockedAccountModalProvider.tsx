@@ -1,8 +1,8 @@
-import React, {createContext, useMemo, useState} from 'react';
+import React, {createContext, useEffect, useMemo, useState} from 'react';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ConfirmModal from './ConfirmModal';
 
 type LockedAccountContextType = {
     showLockedAccountModal: () => void;
@@ -16,9 +16,24 @@ const LockedAccountContext = createContext<LockedAccountContextType>({
 
 function LockedAccountModalProvider({children}: React.PropsWithChildren) {
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS, {canBeMissing: true});
     const isAccountLocked = lockAccountDetails?.isLocked ?? false;
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    useEffect(() => {
+        if (!isModalOpen) {
+            return;
+        }
+        showConfirmModal({
+            title: translate('lockedAccount.title'),
+            prompt: translate('lockedAccount.description'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        }).then(() => {
+            setIsModalOpen(false);
+        });
+    }, [isModalOpen, showConfirmModal, translate]);
 
     const contextValue = useMemo(
         () => ({
@@ -28,20 +43,7 @@ function LockedAccountModalProvider({children}: React.PropsWithChildren) {
         [isAccountLocked],
     );
 
-    return (
-        <LockedAccountContext.Provider value={contextValue}>
-            {children}
-            <ConfirmModal
-                isVisible={isModalOpen}
-                onConfirm={() => setIsModalOpen(false)}
-                onCancel={() => setIsModalOpen(false)}
-                title={translate('lockedAccount.title')}
-                prompt={translate('lockedAccount.description')}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-            />
-        </LockedAccountContext.Provider>
-    );
+    return <LockedAccountContext.Provider value={contextValue}>{children}</LockedAccountContext.Provider>;
 }
 
 LockedAccountModalProvider.displayName = 'LockedAccountModal';

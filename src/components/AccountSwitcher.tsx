@@ -2,6 +2,7 @@ import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -21,7 +22,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
-import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import type {PopoverMenuItem} from './PopoverMenu';
@@ -43,6 +43,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const theme = useTheme();
     const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
+    const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
@@ -57,7 +58,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const {windowHeight} = useWindowDimensions();
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
@@ -141,7 +141,14 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                 createBaseMenuItem(delegatePersonalDetails, error, {
                     onSelected: () => {
                         if (isOffline) {
-                            close(() => setShouldShowOfflineModal(true));
+                            close(() => {
+                                showConfirmModal({
+                                    title: translate('common.youAppearToBeOffline'),
+                                    confirmText: translate('common.buttonConfirm'),
+                                    prompt: translate('common.offlinePrompt'),
+                                    shouldShowCancelButton: false,
+                                });
+                            });
                             return;
                         }
                         disconnect({stashedCredentials, stashedSession});
@@ -161,7 +168,14 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     badgeText: translate('delegate.role', {role}),
                     onSelected: () => {
                         if (isOffline) {
-                            close(() => setShouldShowOfflineModal(true));
+                            close(() => {
+                                showConfirmModal({
+                                    title: translate('common.youAppearToBeOffline'),
+                                    confirmText: translate('common.buttonConfirm'),
+                                    prompt: translate('common.offlinePrompt'),
+                                    shouldShowCancelButton: false,
+                                });
+                            });
                             return;
                         }
                         connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
@@ -266,15 +280,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     shouldUpdateFocusedIndex={false}
                 />
             )}
-            <ConfirmModal
-                title={translate('common.youAppearToBeOffline')}
-                isVisible={shouldShowOfflineModal}
-                onConfirm={() => setShouldShowOfflineModal(false)}
-                onCancel={() => setShouldShowOfflineModal(false)}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('common.offlinePrompt')}
-                shouldShowCancelButton={false}
-            />
         </>
     );
 }
