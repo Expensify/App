@@ -430,9 +430,10 @@ function EmptySearchViewContent({
                                                 confirmText: translate('exitSurvey.goToExpensifyClassic'),
                                                 cancelText: translate('common.cancel'),
                                             }).then((result) => {
-                                                if (result.action === ModalActions.CONFIRM) {
-                                                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                                                if (result.action !== ModalActions.CONFIRM) {
+                                                    return;
                                                 }
+                                                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                                             });
                                             return;
                                         }
@@ -470,9 +471,10 @@ function EmptySearchViewContent({
                                                 confirmText: translate('exitSurvey.goToExpensifyClassic'),
                                                 cancelText: translate('common.cancel'),
                                             }).then((result) => {
-                                                if (result.action === ModalActions.CONFIRM) {
-                                                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                                                if (result.action !== ModalActions.CONFIRM) {
+                                                    return;
                                                 }
+                                                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                                             });
                                             return;
                                         }
@@ -519,6 +521,7 @@ function EmptySearchViewContent({
         defaultChatEnabledPolicyID,
         handleCreateReportClick,
         queryJSON,
+        showConfirmModal,
     ]);
 
     return (

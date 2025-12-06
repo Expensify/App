@@ -190,7 +190,7 @@ function IOURequestStepSubrate({
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
-                    title={'1234'}
+                    title={backTo ? translate('common.subrate') : tabTitles[iouType]}
                     shouldShowBackButton
                     onBackButtonPress={goBack}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}

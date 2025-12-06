@@ -6,10 +6,10 @@ import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCar
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,6 +39,7 @@ function ReceiptView({route}: ReceiptViewProps) {
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const [currentReceipt, setCurrentReceipt] = useState<ReceiptWithTransactionIDAndSource | null>();
     const [page, setPage] = useState<number>(-1);
 
@@ -106,7 +107,7 @@ function ReceiptView({route}: ReceiptViewProps) {
             >
                 <Button
                     shouldShowRightIcon
-                    iconRight={Expensicons.Trashcan}
+                    iconRight={expensifyIcons.Trashcan}
                     onPress={deleteReceipt}
                     innerStyles={styles.bgTransparent}
                     large

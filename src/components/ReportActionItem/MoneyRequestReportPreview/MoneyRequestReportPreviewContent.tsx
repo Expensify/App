@@ -264,9 +264,10 @@ function MoneyRequestReportPreviewContent({
                 confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
                 shouldShowCancelButton: false,
             }).then((result) => {
-                if (result.action === ModalActions.CONFIRM) {
-                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
                 }
+                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
             });
             return;
         }
@@ -544,9 +545,10 @@ function MoneyRequestReportPreviewContent({
                             confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
                             shouldShowCancelButton: false,
                         }).then((result) => {
-                            if (result.action === ModalActions.CONFIRM) {
-                                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
                             }
+                            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                         });
                         return;
                     }

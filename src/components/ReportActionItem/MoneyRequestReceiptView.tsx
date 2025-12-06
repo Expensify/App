@@ -327,9 +327,10 @@ function MoneyRequestReceiptView({
                                 shouldShowCancelButton: true,
                                 danger: true,
                             }).then((result) => {
-                                if (result.action === ModalActions.CONFIRM) {
-                                    dismissReceiptError();
+                                if (result.action !== ModalActions.CONFIRM) {
+                                    return;
                                 }
+                                dismissReceiptError();
                             });
                         } else {
                             dismissReceiptError();

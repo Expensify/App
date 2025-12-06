@@ -10,7 +10,6 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -136,6 +135,7 @@ function SearchPage({route}: SearchPageProps) {
         'Send',
         'Trashcan',
         'ThumbsUp',
+        'ThumbsDown',
         'ArrowRight',
         'Stopwatch',
         'Exclamation',
@@ -273,9 +273,10 @@ function SearchPage({route}: SearchPageProps) {
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
             }).then((result) => {
-                if (result.action === ModalActions.CONFIRM) {
-                    clearSelectedTransactions(undefined, true);
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
                 }
+                clearSelectedTransactions(undefined, true);
             });
         },
         [queryJSON, selectedTransactionsKeys, areAllMatchingItemsSelected, selectedTransactionReportIDs, showConfirmModal, translate, clearSelectedTransactions],
@@ -407,6 +408,60 @@ function SearchPage({route}: SearchPageProps) {
         );
     }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID, currentSearchResults?.data]);
 
+    const createExportAll = useCallback(() => {
+        if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
+            return;
+        }
+
+        showConfirmModal({
+            title: translate('search.exportSearchResults.title'),
+            prompt: translate('search.exportSearchResults.description'),
+            confirmText: translate('search.exportSearchResults.title'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
+            queueExportSearchItemsToCSV({
+                query: status,
+                jsonQuery: JSON.stringify(queryJSON),
+                reportIDList,
+                transactionIDList: selectedTransactionsKeys,
+            });
+            selectAllMatchingItems(false);
+            clearSelectedTransactions();
+        });
+    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, selectAllMatchingItems, clearSelectedTransactions, showConfirmModal, translate]);
+
+    const handleDeleteExpenses = useCallback(() => {
+        if (selectedTransactionsKeys.length === 0 || !hash) {
+            return;
+        }
+
+        showConfirmModal({
+            title: translate('iou.deleteExpense', {count: selectedTransactionsKeys.length}),
+            prompt: translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length}),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            // Translations copy for delete modal depends on amount of selected items,
+            // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
+
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
+                clearSelectedTransactions();
+            });
+        });
+    }, [selectedTransactionsKeys, hash, showConfirmModal, translate, clearSelectedTransactions]);
+
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
@@ -534,9 +589,10 @@ function SearchPage({route}: SearchPageProps) {
                             confirmText: translate('customApprovalWorkflow.goToExpensifyClassic'),
                             shouldShowCancelButton: false,
                         }).then((result) => {
-                            if (result.action === ModalActions.CONFIRM) {
-                                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
                             }
+                            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
                         });
                         return;
                     }
@@ -586,7 +642,7 @@ function SearchPage({route}: SearchPageProps) {
 
         if (shouldShowRejectOption) {
             options.push({
-                icon: Expensicons.ThumbsDown,
+                icon: expensifyIcons.ThumbsDown,
                 text: translate('search.bulkActions.reject'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
                 shouldCloseModalOnSelect: true,
@@ -808,40 +864,26 @@ function SearchPage({route}: SearchPageProps) {
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
-        expensifyIcons,
+        expensifyIcons.Table,
+        expensifyIcons.Export,
+        expensifyIcons.ArrowRight,
+        expensifyIcons.ThumbsUp,
+        expensifyIcons.ThumbsDown,
+        expensifyIcons.Send,
+        expensifyIcons.MoneyBag,
+        expensifyIcons.Stopwatch,
+        expensifyIcons.DocumentMerge,
+        expensifyIcons.Trashcan,
+        expensifyIcons.Exclamation,
         dismissedHoldUseExplanation,
         dismissedRejectUseExplanation,
         areAllTransactionsFromSubmitter,
         bulkRejectHydrationStatus,
         currentUserPersonalDetails?.login,
+        createExportAll,
+        handleDeleteExpenses,
+        showConfirmModal,
     ]);
-
-    const handleDeleteExpenses = () => {
-        if (selectedTransactionsKeys.length === 0 || !hash) {
-            return;
-        }
-
-        showConfirmModal({
-            title: translate('iou.deleteExpense', {count: selectedTransactionsKeys.length}),
-            prompt: translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length}),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            // Translations copy for delete modal depends on amount of selected items,
-            // We need to wait for modal to fully disappear before clearing them to avoid translation flicker between singular vs plural
-
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
-                clearSelectedTransactions();
-            });
-        });
-    };
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         const initialTransaction = initMoneyRequest({
@@ -913,33 +955,6 @@ function SearchPage({route}: SearchPageProps) {
 
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
     };
-
-    const createExportAll = useCallback(() => {
-        if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
-            return;
-        }
-
-        showConfirmModal({
-            title: translate('search.exportSearchResults.title'),
-            prompt: translate('search.exportSearchResults.description'),
-            confirmText: translate('search.exportSearchResults.title'),
-            cancelText: translate('common.cancel'),
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            const reportIDList = selectedReports?.filter((report) => !!report).map((report) => report.reportID) ?? [];
-            queueExportSearchItemsToCSV({
-                query: status,
-                jsonQuery: JSON.stringify(queryJSON),
-                reportIDList,
-                transactionIDList: selectedTransactionsKeys,
-            });
-            selectAllMatchingItems(false);
-            clearSelectedTransactions();
-        });
-    }, [selectedTransactionsKeys, status, hash, selectedReports, queryJSON, selectAllMatchingItems, clearSelectedTransactions, showConfirmModal, translate]);
 
     const {resetVideoPlayerData} = usePlaybackContext();
 

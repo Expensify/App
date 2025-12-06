@@ -207,7 +207,7 @@ function MoneyRequestReportActionsList({
         [report, policy?.id, showConfirmModal, translate, clearSelectedTransactions],
     );
 
-    const {options: selectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
+    const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
         report,
         reportActions,
         allTransactionsLength: transactions.length,
@@ -217,6 +217,38 @@ function MoneyRequestReportActionsList({
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
     });
+
+    const selectedTransactionsOptions = useMemo(() => {
+        return originalSelectedTransactionsOptions.map((option) => {
+            if (option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE) {
+                return {
+                    ...option,
+                    onSelected: () => {
+                        showConfirmModal({
+                            title: translate('iou.deleteExpense', {count: selectedTransactionIDs.length}),
+                            prompt: translate('iou.deleteConfirmation', {count: selectedTransactionIDs.length}),
+                            confirmText: translate('common.delete'),
+                            cancelText: translate('common.cancel'),
+                            danger: true,
+                            shouldEnableNewFocusManagement: true,
+                        }).then((result) => {
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
+                            }
+                            const shouldNavigateBack =
+                                transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length;
+                            handleDeleteTransactions();
+                            if (shouldNavigateBack) {
+                                const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
+                                Navigation.goBack(backToRoute);
+                            }
+                        });
+                    },
+                };
+            }
+            return option;
+        });
+    }, [originalSelectedTransactionsOptions, showConfirmModal, translate, selectedTransactionIDs.length, transactions, handleDeleteTransactions, route.params?.backTo, chatReport?.reportID]);
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
