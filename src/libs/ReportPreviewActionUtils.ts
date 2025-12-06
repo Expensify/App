@@ -1,23 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
-import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
-import {isAddExpenseAction} from './ReportPrimaryActionUtils';
-import {
-    getMoneyRequestSpendBreakdown,
-    getParentReport,
-    getReportTransactions,
-    isClosedReport,
-    isCurrentUserSubmitter,
-    isExpenseReport,
-    isInvoiceReport,
-    isIOUReport,
-    isOpenReport,
-    isPayer,
-    isProcessingReport,
-    isReportApproved,
-    isSettled,
-} from './ReportUtils';
+import {getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
+import {canPayReport, isAddExpenseAction} from './ReportPrimaryActionUtils';
+import {getReportTransactions, isClosedReport, isCurrentUserSubmitter, isExpenseReport, isIOUReport, isOpenReport, isProcessingReport, isReportApproved, isSettled} from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {isPending, isScanning} from './TransactionUtils';
 
@@ -75,48 +61,18 @@ function canApprove(report: Report, currentUserAccountID: number, policy?: Polic
 }
 
 function canPay(report: Report, isReportArchived: boolean, currentUserAccountID: number, policy?: Policy, invoiceReceiverPolicy?: Policy) {
-    if (isReportArchived) {
+    if (isIOUReport(report) && isSettled(report)) {
         return false;
     }
 
-    const isReportPayer = isPayer(getSession(), report, false, policy);
-    const isExpense = isExpenseReport(report);
-    const isPaymentsEnabled = arePaymentsEnabled(policy);
-    const isProcessing = isProcessingReport(report);
-    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
-    const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessing;
-    const isApproved = isReportApproved({report}) || isSubmittedWithoutApprovalsEnabled;
-    const isClosed = isClosedReport(report);
-    const isReportFinished = (isApproved || isClosed) && !report.isWaitingOnBankAccount;
-    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
-    const isReimbursed = isSettled(report);
-
-    if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && reimbursableSpend !== 0) {
-        return true;
-    }
-
-    if (!isProcessing) {
-        return false;
-    }
-
-    const isIOU = isIOUReport(report);
-
-    if (isIOU && isReportPayer && !isReimbursed && reimbursableSpend > 0) {
-        return true;
-    }
-
-    const isInvoice = isInvoiceReport(report);
-
-    if (!isInvoice) {
-        return false;
-    }
-
-    const parentReport = getParentReport(report);
-    if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL && reimbursableSpend > 0) {
-        return parentReport?.invoiceReceiver?.accountID === currentUserAccountID;
-    }
-
-    return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
+    return canPayReport({
+        report,
+        policy,
+        session: getSession(),
+        currentUserAccountID,
+        invoiceReceiverPolicy,
+        isArchived: isReportArchived,
+    });
 }
 
 function canExport(report: Report, policy?: Policy) {

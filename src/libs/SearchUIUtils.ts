@@ -87,7 +87,7 @@ import {
     isWhisperActionTargetedToOthers,
     shouldReportActionBeVisible,
 } from './ReportActionsUtils';
-import {isExportAction} from './ReportPrimaryActionUtils';
+import {canPayReport, isExportAction} from './ReportPrimaryActionUtils';
 import {
     canUserPerformWriteAction,
     getIcons,
@@ -1272,9 +1272,10 @@ function getActions(
     const chatReport = getChatReport(data, report);
     const canBePaid = canIOUBePaid(report, chatReport, policy, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
     const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(report, chatReport, policy, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
+    const canPay = canPayReport({report, policy, invoiceReceiverPolicy, isArchived: isIOUReportArchived || isChatReportArchived});
 
     // We're not supporting pay partial amount on search page now.
-    if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(report.reportID, allReportTransactions)) {
+    if ((canBePaid || shouldOnlyShowElsewhere || canPay) && !hasHeldExpenses(report.reportID, allReportTransactions)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.PAY);
     }
 

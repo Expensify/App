@@ -2,6 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type Session from '@src/types/onyx/Session';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
@@ -63,6 +64,15 @@ type GetReportPrimaryActionParams = {
     isPaidAnimationRunning?: boolean;
     isApprovedAnimationRunning?: boolean;
     isSubmittingAnimationRunning?: boolean;
+};
+
+type CanPayParams = {
+    report: Report;
+    policy?: Policy;
+    session?: OnyxEntry<Session>;
+    currentUserAccountID?: number;
+    invoiceReceiverPolicy?: Policy;
+    isArchived?: boolean;
 };
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
@@ -139,12 +149,16 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     return isProcessingReportUtils(report);
 }
 
-function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, isChatReportArchived?: boolean, invoiceReceiverPolicy?: Policy) {
-    if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
+function canPayReport({report, policy, session, currentUserAccountID, invoiceReceiverPolicy, isArchived}: CanPayParams): boolean {
+    if (isArchived) {
         return false;
     }
+
+    const resolvedSession = session ?? getSession();
+    const resolvedAccountID = currentUserAccountID ?? getCurrentUserAccountID();
+
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportPayer = isPayer(getSession(), report, false, policy);
+    const isReportPayer = isPayer(resolvedSession, report, false, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -178,10 +192,16 @@ function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePair
 
     const parentReport = getParentReport(report);
     if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL && reimbursableSpend > 0) {
-        return parentReport?.invoiceReceiver?.accountID === getCurrentUserAccountID();
+        return parentReport?.invoiceReceiver?.accountID === resolvedAccountID;
     }
 
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
+}
+
+function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, isChatReportArchived?: boolean, invoiceReceiverPolicy?: Policy) {
+    const isArchived = isArchivedReport(reportNameValuePairs) || isChatReportArchived;
+    
+    return canPayReport({report, policy, invoiceReceiverPolicy, isArchived});
 }
 
 function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]) {
@@ -480,6 +500,7 @@ function getTransactionThreadPrimaryAction(
 }
 
 export {
+    canPayReport,
     getReportPrimaryAction,
     getTransactionThreadPrimaryAction,
     isAddExpenseAction,
