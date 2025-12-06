@@ -98,11 +98,12 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     };
 
     const createReportForPolicy = () => {
-        if (!policyForMovingExpensesID) {
+        if (!hasPerDiemTransactions && !policyForMovingExpensesID) {
             return;
         }
 
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID);
+        const policyForNewReport = hasPerDiemTransactions ? selectedReport?.policyID : policyForMovingExpensesID;
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport);
         selectReport({value: optimisticReport.reportID}, optimisticReport);
     };
 
@@ -114,7 +115,11 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
-        if (!policyForMovingExpensesID && !shouldSelectPolicy) {
+        if (hasPerDiemTransactions) {
+            handleCreateReport();
+            return;
+        }
+        if (!hasPerDiemTransactions && !policyForMovingExpensesID && !shouldSelectPolicy) {
             return;
         }
         if (shouldSelectPolicy) {
