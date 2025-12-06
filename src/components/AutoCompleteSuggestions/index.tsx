@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 // The coordinates are based on the App's height, not the device height.
 // So we need to get the height from useWindowDimensions to calculate the position correctly. More details: https://github.com/Expensify/App/issues/53180
 // eslint-disable-next-line no-restricted-imports
-import {useWindowDimensions} from 'react-native';
+import {Platform, useWindowDimensions} from 'react-native';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -57,7 +57,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const isSuggestionMenuAboveRef = React.useRef<boolean>(false);
     const leftValue = React.useRef<number>(0);
     const prevLeftValue = React.useRef<number>(0);
-    const {height: windowHeight, width: windowWidth} = useWindowDimensions();
+    const {height: baseWindowHeight, width: windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [suggestionHeight, setSuggestionHeight] = React.useState(0);
     const [containerState, setContainerState] = React.useState(initialContainerState);
@@ -65,6 +65,10 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const insets = useSafeAreaInsets();
     const {keyboardHeight, isKeyboardAnimatingRef} = useKeyboardState();
     const {paddingBottom: bottomInset, paddingTop: topInset} = StyleUtils.getPlatformSafeAreaPadding(insets ?? undefined);
+
+    // On Android < 15, the window height does not include the system bars height, so we subtract them for now.
+    // TODO: Adjust position calculation once https://github.com/facebook/react-native/pull/53254 is merged (stop subtracting insets).
+    const windowHeight = Platform.OS === 'android' && Number(Platform.Version) >= 35 ? baseWindowHeight - insets.top - insets.bottom : baseWindowHeight;
 
     useEffect(() => {
         const container = containerRef.current;
