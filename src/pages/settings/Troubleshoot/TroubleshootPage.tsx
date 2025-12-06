@@ -4,8 +4,6 @@ import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImportOnyxState from '@components/ImportOnyxState';
 import MenuItemList from '@components/MenuItemList';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -48,7 +46,7 @@ type BaseMenuItem = {
 };
 
 function TroubleshootPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'ExpensifyLogoNew'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'ExpensifyLogoNew', 'Bug', 'RotateLeft'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Lightbulb'] as const);
     const troubleshootIllustration = useTroubleshootSectionIllustration();
     const {translate} = useLocalize();
@@ -73,12 +71,28 @@ function TroubleshootPage() {
 
     const surveyCompletedWithinLastMonth = useMemo(() => {
         const surveyThresholdInDays = 30;
-        if (!tryNewDot?.classicRedirect?.timestamp || !tryNewDot?.classicRedirect?.dismissed) {
+        const {dismissedReasons} = tryNewDot?.classicRedirect ?? {};
+        if (dismissedReasons?.length === 0) {
             return false;
         }
-        const daysSinceLastSurvey = differenceInDays(new Date(), new Date(tryNewDot.classicRedirect.timestamp));
+
+        let timestampToCheck;
+        if (dismissedReasons && dismissedReasons.length > 0) {
+            const latestReason = dismissedReasons.reduce((latest, current) => {
+                const currentDate = current.timestamp;
+                const latestDate = latest.timestamp;
+                return currentDate > latestDate ? current : latest;
+            });
+            timestampToCheck = latestReason.timestamp;
+        }
+
+        if (!timestampToCheck) {
+            return false;
+        }
+
+        const daysSinceLastSurvey = differenceInDays(new Date(), timestampToCheck);
         return daysSinceLastSurvey < surveyThresholdInDays;
-    }, [tryNewDot?.classicRedirect?.timestamp, tryNewDot?.classicRedirect?.dismissed]);
+    }, [tryNewDot?.classicRedirect]);
 
     const classicRedirectMenuItem: BaseMenuItem | null = useMemo(() => {
         if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
@@ -114,14 +128,14 @@ function TroubleshootPage() {
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
             translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
-            icon: Expensicons.Bug,
+            icon: icons.Bug,
             action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(ROUTES.SETTINGS_TROUBLESHOOT))),
         };
 
         const baseMenuItems: BaseMenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.troubleshoot.clearCacheAndRestart',
-                icon: Expensicons.RotateLeft,
+                icon: icons.RotateLeft,
                 action: () => setIsConfirmationModalVisible(true),
             },
             {
@@ -146,7 +160,7 @@ function TroubleshootPage() {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             }))
             .reverse();
-    }, [icons.Download, waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription, classicRedirectMenuItem]);
+    }, [icons.Bug, icons.RotateLeft, icons.Download, waitForNavigate, exportOnyxState, shouldStoreLogs, classicRedirectMenuItem, translate, styles.sectionMenuItemTopDescription]);
 
     return (
         <ScreenWrapper

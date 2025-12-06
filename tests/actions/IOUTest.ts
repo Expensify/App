@@ -382,6 +382,54 @@ describe('actions/IOU', () => {
             iouReport.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
             expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, iouReport, false, transaction)).toBeFalsy();
         });
+
+        it('when the current hash includes a policyID filter it should only return true if the iou report matches the policyID filter', () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+            };
+            const policyID = '12345';
+            const currentSearchQueryJSON = {
+                type: 'expense',
+                status: '',
+                sortBy: 'date',
+                sortOrder: 'desc',
+                policyID: [policyID],
+                filters: null,
+                inputQuery: `type:expense sortBy:date sortOrder:desc policyID:${policyID}`,
+                flatFilters: [],
+                hash: 591785022,
+                recentSearchHash: 714245044,
+                similarSearchHash: 1023624110,
+                rawFilterList: [
+                    {
+                        key: 'policyID',
+                        operator: 'eq',
+                        value: policyID,
+                        isDefault: true,
+                    },
+                ],
+            } as unknown as SearchQueryJSON;
+
+            // When the IOU report has a matching policyID, it should return true
+            const matchingIOUReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, matchingIOUReport, false, transaction)).toBeTruthy();
+
+            // When the IOU report has a different policyID, it should return false
+            const nonMatchingIOUReport: Report = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'differentPolicyID',
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            expect(shouldOptimisticallyUpdateSearch(currentSearchQueryJSON, nonMatchingIOUReport, false, transaction)).toBeFalsy();
+        });
     });
 
     describe('trackExpense', () => {
@@ -1117,7 +1165,7 @@ describe('actions/IOU', () => {
                             attendees: [],
                             currency: CONST.CURRENCY.USD,
                             created: '',
-                            merchant: '',
+                            merchant: '(none)',
                             comment,
                         },
                         shouldGenerateTransactionThreadReport: true,
@@ -1434,7 +1482,7 @@ describe('actions/IOU', () => {
                                     expect(newTransaction?.reportID).toBe(iouReportID);
                                     expect(newTransaction?.amount).toBe(amount);
                                     expect(newTransaction?.comment?.comment).toBe(comment);
-                                    expect(newTransaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+                                    expect(newTransaction?.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
                                     expect(newTransaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                     // The transactionID on the iou action should match the one from the transactions collection
@@ -1612,7 +1660,7 @@ describe('actions/IOU', () => {
                                         expect(transaction?.reportID).toBe(iouReportID);
                                         expect(transaction?.amount).toBe(amount);
                                         expect(transaction?.comment?.comment).toBe(comment);
-                                        expect(transaction?.merchant).toBe(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT);
+                                        expect(transaction?.merchant).toBe(CONST.TRANSACTION.DEFAULT_MERCHANT);
                                         expect(transaction?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                                         // The transactionID on the iou action should match the one from the transactions collection
@@ -4072,7 +4120,15 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When the expense is deleted
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, true, undefined);
+                deleteMoneyRequest({
+                    transactionID: transaction?.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isChatIOUReportArchived: true,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4151,7 +4207,15 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When the IOU expense is deleted
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, true);
+                deleteMoneyRequest({
+                    transactionID: transaction?.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isChatIOUReportArchived: true,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4217,7 +4281,14 @@ describe('actions/IOU', () => {
             // When we attempt to delete an expense from the IOU report
             mockFetch?.pause?.();
             if (transaction && createIOUAction) {
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest({
+                    transactionID: transaction?.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4312,7 +4383,14 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When Deleting an expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest({
+                    transactionID: transaction?.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4440,7 +4518,14 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When Deleting an expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest({
+                    transactionID: transaction?.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4514,7 +4599,14 @@ describe('actions/IOU', () => {
 
             if (transaction && createIOUAction) {
                 // When deleting expense
-                deleteMoneyRequest(transaction?.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest({
+                    transactionID: transaction?.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4665,7 +4757,15 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             if (transaction && createIOUAction) {
                 // When we delete the expense
-                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isChatIOUReportArchived: undefined,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4761,7 +4861,15 @@ describe('actions/IOU', () => {
             mockFetch?.pause?.();
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
-                deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                deleteMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isChatIOUReportArchived: undefined,
+                });
             }
             await waitForBatchedUpdates();
 
@@ -4841,7 +4949,15 @@ describe('actions/IOU', () => {
 
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
-                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined, true);
+                navigateToAfterDelete = deleteMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                    isSingleTransactionView: true,
+                });
             }
 
             let allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
@@ -4889,7 +5005,14 @@ describe('actions/IOU', () => {
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
                 // When we delete the expense and we should delete the IOU report
-                navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, {}, {}, iouReport, chatReport, undefined);
+                navigateToAfterDelete = deleteMoneyRequest({
+                    transactionID: transaction.transactionID,
+                    reportAction: createIOUAction,
+                    transactions: {},
+                    violations: {},
+                    iouReport,
+                    chatReport,
+                });
             }
             // Then we expect to navigate to the chat report
             expect(chatReport?.reportID).not.toBeUndefined();
@@ -4953,19 +5076,26 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
             const selectedTransactionIDs = [transaction1.transactionID, transaction2.transactionID];
-            deleteMoneyRequest(transaction1.transactionID, moneyRequestAction1, {}, {}, expenseReport, expenseReport, undefined, undefined, [], selectedTransactionIDs);
-            deleteMoneyRequest(
-                transaction2.transactionID,
-                moneyRequestAction2,
-                {},
-                {},
-                expenseReport,
-                expenseReport,
-                undefined,
-                undefined,
-                [transaction1.transactionID],
+            deleteMoneyRequest({
+                transactionID: transaction1.transactionID,
+                reportAction: moneyRequestAction1,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                chatReport: expenseReport,
+                transactionIDsPendingDeletion: [],
                 selectedTransactionIDs,
-            );
+            });
+            deleteMoneyRequest({
+                transactionID: transaction2.transactionID,
+                reportAction: moneyRequestAction2,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                chatReport: expenseReport,
+                transactionIDsPendingDeletion: [transaction1.transactionID],
+                selectedTransactionIDs,
+            });
 
             await waitForBatchedUpdates();
 
@@ -6465,7 +6595,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(0),
                 reportID,
                 amount: 0,
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -6477,7 +6607,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reportID,
                 amount: 0,
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -6527,7 +6657,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reportID,
                 amount: 0,
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 receipt: {
                     source: 'test',
                     state: CONST.IOU.RECEIPT_STATE.SCANNING,
@@ -6819,7 +6949,7 @@ describe('actions/IOU', () => {
             reportID: fakeReport.reportID,
             transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
             isFromGlobalCreate: true,
-            merchant: '(none)',
+            merchant: 'Expense',
         };
 
         const currentDate = '2025-04-01';
@@ -6869,6 +6999,7 @@ describe('actions/IOU', () => {
                 .then(async () => {
                     expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
                         ...transactionResult,
+                        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                     });
                 });
@@ -7019,7 +7150,7 @@ describe('actions/IOU', () => {
                     },
                 });
             });
-            expect(updatedTransaction?.modifiedAmount).toBe(0);
+            expect(updatedTransaction?.modifiedAmount).toBe('');
         });
     });
 

@@ -9,8 +9,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
-import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
-import {getReceiptFileName} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -56,7 +54,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return {
                 ...transactionMain,
                 receipt: mergeTransaction.receipt,
-                filename: getReceiptFileName(mergeTransaction.receipt),
             };
         }
 
@@ -100,7 +97,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         }
 
         const requestType = getRequestType(transaction);
-        const receiptFilename = getReceiptFilenameFromTransaction(transaction);
+        const receiptFilename = transaction?.receipt?.filename;
         const receiptType = transaction?.receipt?.type;
         navigateToStartStepIfScanFileCannotBeRead(
             receiptFilename,
@@ -136,7 +133,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             ? !transaction
             : moneyRequestReportID !== transaction?.reportID;
 
-    const originalFileName = isDraftTransaction ? getReceiptFilenameFromTransaction(transaction) : receiptURIs?.filename;
+    const originalFileName = isDraftTransaction ? transaction?.receipt?.filename : receiptURIs?.filename;
     const headerTitle = translate('common.receipt');
 
     /**
