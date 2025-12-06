@@ -605,6 +605,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(displayMessage);
                 } else if (isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = getForReportActionTemp({
+                        translate,
                         reportAction,
                         policy,
                         movedFromReport,
