@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import ONYX_DERIVED_VALUES from './ONYX_DERIVED_VALUES';
 import type {DerivedValueContext} from './types';
-import {setDerivedValue} from './utils';
+import {prepareSourceValuesForLogging, setDerivedValue} from './utils';
 
 /**
  * Initialize all Onyx derived values, store them in Onyx, and setup listeners to update them when dependencies change.
@@ -97,7 +97,7 @@ function init() {
                         key: dependencyOnyxKey,
                         waitForCollectionCallback: true,
                         callback: (value, collectionKey, sourceValue) => {
-                            Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
+                            Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`, false, {sourceValue: prepareSourceValuesForLogging(sourceValue)});
                             setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
                             recomputeDerivedValue(dependencyOnyxKey, sourceValue, dependencyIndex);
                         },

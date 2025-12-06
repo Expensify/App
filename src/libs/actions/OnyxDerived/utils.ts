@@ -4,6 +4,8 @@ import type {NonEmptyTuple} from 'type-fest';
 import type {OnyxDerivedKey, OnyxKey} from '@src/ONYXKEYS';
 import type {DerivedValueContext} from './types';
 
+const MAX_SOURCE_VALUES_LENGTH_FOR_LOGGING = 5;
+
 /**
  * Check if a specific key exists in sourceValue from OnyxDerived
  */
@@ -25,4 +27,19 @@ const setDerivedValue = (key: OnyxDerivedKey, value: OnyxInput<OnyxDerivedKey>) 
         skipCacheCheck: true,
     });
 
-export {hasKeyTriggeredCompute, setDerivedValue};
+/**
+ * Source values can contain thousands of entries, so
+ * we prepare source values for logging by truncating the object to the first 5 entries
+ * this way we can see in the logs what payload was sent to the compute function
+ */
+const prepareSourceValuesForLogging = (sourceValues: Record<string, unknown> | undefined) => {
+    if(!sourceValues) {
+        return;
+    }
+    
+    const entries = Object.entries(sourceValues);
+    const partialSourceValues = Object.fromEntries(entries.slice(0, MAX_SOURCE_VALUES_LENGTH_FOR_LOGGING));
+    return partialSourceValues;
+};
+
+export {hasKeyTriggeredCompute, setDerivedValue, prepareSourceValuesForLogging};
