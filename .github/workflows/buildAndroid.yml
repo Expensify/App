@@ -75,16 +75,12 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Get Java version
-        id: getJavaVersion
-        uses: ./.github/actions/composite/getJavaVersion
-
       - name: Setup Java
         # v4
         uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
           distribution: oracle
-          java-version: ${{ steps.getJavaVersion.outputs.version }}
+          java-version: 17
 
       - name: Setup Gradle
         # v4
