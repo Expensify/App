@@ -18,7 +18,16 @@ import {canModifyPlan, getPerDiemCustomUnit, isControlPolicy} from '@libs/Policy
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
-import {enableCompanyCards, enablePolicyReportFields, enablePolicyRules, setPolicyPreventMemberCreatedTitle, upgradeToCorporate} from '@src/libs/actions/Policy/Policy';
+import {
+    enableAutoApprovalOptions,
+    enableCompanyCards,
+    enablePolicyAutoReimbursementLimit,
+    enablePolicyReportFields,
+    enablePolicyRules,
+    setPolicyPreventMemberCreatedTitle,
+    setPolicyPreventSelfApproval,
+    upgradeToCorporate,
+} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -77,6 +86,27 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         switch (feature?.id) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.multiApprovalLevels.id:
+                Navigation.goBack();
+                if (route.params.backTo) {
+                    Navigation.navigate(route.params.backTo);
+                }
+                return;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id:
+                setPolicyPreventSelfApproval(policyID, true);
+                Navigation.goBack();
+                if (route.params.backTo) {
+                    Navigation.navigate(route.params.backTo);
+                }
+                return;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id:
+                enableAutoApprovalOptions(policyID, true);
+                Navigation.goBack();
+                if (route.params.backTo) {
+                    Navigation.navigate(route.params.backTo);
+                }
+                return;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
+                enablePolicyAutoReimbursementLimit(policyID, true);
                 Navigation.goBack();
                 if (route.params.backTo) {
                     Navigation.navigate(route.params.backTo);
