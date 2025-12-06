@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
@@ -9,7 +10,6 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import RejectReasonFormView from '@pages/iou/RejectReasonFormView';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 function SearchRejectReasonPage() {
     const context = useSearchContext();
