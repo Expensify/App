@@ -86,7 +86,6 @@ import {
     getMemberAccountIDsForWorkspace,
     getPerDiemCustomUnit,
     getPerDiemRateCustomUnitRate,
-    getPersonalPolicy,
     getPolicy,
     getSubmitToAccountID,
     hasDependentTags,
@@ -291,6 +290,7 @@ type BaseTransactionParams = {
 type InitMoneyRequestParams = {
     reportID: string;
     policy?: OnyxEntry<OnyxTypes.Policy>;
+    personalPolicy: Pick<OnyxTypes.Policy, 'id' | 'type' | 'autoReporting' | 'outputCurrency'> | undefined;
     isFromGlobalCreate?: boolean;
     currentIouRequestType?: IOURequestType | undefined;
     newIouRequestType: IOURequestType | undefined;
@@ -1060,6 +1060,7 @@ function getReportPreviewAction(chatReportID: string | undefined, iouReportID: s
 function initMoneyRequest({
     reportID,
     policy,
+    personalPolicy,
     isFromGlobalCreate,
     currentIouRequestType,
     newIouRequestType,
@@ -1070,9 +1071,6 @@ function initMoneyRequest({
     currentUserPersonalDetails,
 }: InitMoneyRequestParams) {
     // Generate a brand new transactionID
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const personalPolicy = getPolicy(getPersonalPolicy()?.id);
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const currency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
