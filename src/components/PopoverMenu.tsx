@@ -443,7 +443,14 @@ function BasePopoverMenu({
 
     const handleModalHide = () => {
         onModalHide?.();
-        setFocusedIndex(currentMenuItemsFocusedIndex);
+        const keyPath = buildKeyPathFromIndexPath(menuItems, enteredSubMenuIndexes);
+        const resolved = resolveIndexPathByKeyPath(menuItems, keyPath);
+
+        if (resolved.found) {
+            setFocusedIndex(getSelectedItemIndex(resolved.itemsAtLeaf));
+        } else {
+            setFocusedIndex(currentMenuItemsFocusedIndex);
+        }
     };
 
     // When the menu items are changed, we want to reset the sub-menu to make sure
