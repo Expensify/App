@@ -2889,6 +2889,11 @@ ${
             title: 'Leden uitnodigen',
             subtitle: 'Voeg je team toe of nodig je accountant uit. Hoe meer zielen, hoe meer vreugd!',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'Het aanmaken van werkruimtes is voorbehouden aan beheerders. Sluit je aan bij een van de onderstaande werkruimtes of neem contact op met je beheerder voor meer informatie.',
+            skipForNow: 'Voor nu overslaan',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Laat dit niet meer zien',
@@ -5396,6 +5401,8 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
             subtitle: 'Volg bonnetjes, vergoed uitgaven, beheer reizen, verstuur facturen en meer.',
+            restrictedPolicyTitle: 'Geen werkruimtes gevonden',
+            restrictedPolicySubtitle: 'Het aanmaken van werkruimtes is alleen voorbehouden aan beheerders. Vraag een beheerder om je uit te nodigen voor een bestaande werkruimte.',
             createAWorkspaceCTA: 'Aan de slag',
             features: {
                 trackAndCollect: 'Bonnen volgen en verzamelen',

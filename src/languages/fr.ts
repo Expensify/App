@@ -2906,6 +2906,11 @@ ${
             title: 'Inviter des membres',
             subtitle: 'Ajoutez votre équipe ou invitez votre comptable. Plus on est de fous, plus on rit !',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'La création d’espaces de travail est réservée aux administrateurs. Rejoignez l’un des espaces de travail ci-dessous ou contactez votre administrateur pour plus d’informations.',
+            skipForNow: "Ignorer pour l'instant",
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Ne plus me montrer ceci',
@@ -5430,6 +5435,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',
             subtitle: 'Suivez les reçus, remboursez les dépenses, gérez les déplacements, envoyez des factures et bien plus encore.',
+            restrictedPolicyTitle: 'Aucun espace de travail trouvé',
+            restrictedPolicySubtitle:
+                'La création d’espaces de travail est réservée aux administrateurs. Merci de demander à un administrateur de vous inviter dans un espace de travail existant.',
             createAWorkspaceCTA: 'Commencer',
             features: {
                 trackAndCollect: 'Suivez et collectez les reçus',

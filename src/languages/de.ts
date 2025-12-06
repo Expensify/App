@@ -2903,6 +2903,10 @@ ${
             title: 'Mitglieder einladen',
             subtitle: 'Füge dein Team hinzu oder lade deinen Buchhalter ein. Je mehr, desto besser!',
         },
+        domainWorkspaceRestriction: {
+            subtitle: 'Die Erstellung von Workspaces ist auf Admins beschränkt. Tritt einem der unten aufgeführten Workspaces bei oder wende dich für weitere Informationen an deinen Admin.',
+            skipForNow: 'Vorerst überspringen',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Nicht mehr anzeigen',
@@ -5425,6 +5429,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             title: 'Du hast keine Arbeitsbereiche',
             subtitle: 'Belege erfassen, Ausgaben erstatten, Reisen verwalten, Rechnungen versenden und mehr.',
             createAWorkspaceCTA: 'Erste Schritte',
+            restrictedPolicyTitle: 'Keine Arbeitsbereiche gefunden',
+            restrictedPolicySubtitle:
+                'Die Erstellung von Arbeitsbereichen ist nur Administratoren vorbehalten. Bitte bitte einen Administrator, dich zu einem bestehenden Arbeitsbereich einzuladen.',
             features: {
                 trackAndCollect: 'Belege nachverfolgen und sammeln',
                 reimbursements: 'Mitarbeitende erstatten',

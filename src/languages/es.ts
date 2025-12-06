@@ -2477,6 +2477,11 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Invita a miembros',
             subtitle: 'Añade a tu equipo o invita a tu contador. ¡Cuantos más, mejor!',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'La creación de espacios de trabajo está restringida a los administradores. Únete a uno de los espacios a continuación o contacta a tu administrador para más información.',
+            skipForNow: 'Omitir por ahora',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'No muestres esto otra vez',
@@ -4936,6 +4941,9 @@ ${amount} para ${merchant} - ${date}`,
         emptyWorkspace: {
             title: 'No tienes espacios de trabajo',
             subtitle: 'Organiza recibos, reembolsa gastos, gestiona viajes, envía facturas y mucho más.',
+            restrictedPolicyTitle: 'No se encontraron espacios de trabajo.',
+            restrictedPolicySubtitle:
+                'La creación de espacios de trabajo está limitada solo a los administradores. Por favor, pide a un administrador que te invite a un espacio de trabajo existente.',
             createAWorkspaceCTA: 'Comenzar',
             features: {
                 trackAndCollect: 'Organiza recibos',

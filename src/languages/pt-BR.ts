@@ -2887,6 +2887,11 @@ ${
             title: 'Convidar membros',
             subtitle: 'Adicione sua equipe ou convide seu contador. Quanto mais gente, melhor!',
         },
+        domainWorkspaceRestriction: {
+            subtitle:
+                'A criação de espaços de trabalho está restrita aos administradores. Entre em um dos espaços de trabalho abaixo ou contate seu administrador para obter mais informações.',
+            skipForNow: 'Pular por enquanto',
+        },
     },
     featureTraining: {
         doNotShowAgain: 'Não mostrar isso novamente',
@@ -5388,6 +5393,8 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
         emptyWorkspace: {
             title: 'Você não tem espaços de trabalho',
             subtitle: 'Acompanhe recibos, reembolse despesas, gerencie viagens, envie faturas e muito mais.',
+            restrictedPolicyTitle: 'Nenhum workspace encontrado',
+            restrictedPolicySubtitle: 'A criação de workspaces é limitada apenas aos administradores. Peça para um administrador convidar você para um workspace existente.',
             createAWorkspaceCTA: 'Começar',
             features: {
                 trackAndCollect: 'Acompanhe e colete recibos',

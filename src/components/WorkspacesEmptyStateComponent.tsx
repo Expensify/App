@@ -24,8 +24,8 @@ function WorkspacesEmptyStateComponent() {
             SkeletonComponent={WorkspaceRowSkeleton}
             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
             headerMedia={LottieAnimations.WorkspacePlanet}
-            title={translate('workspace.emptyWorkspace.title')}
-            subtitle={translate('workspace.emptyWorkspace.subtitle')}
+            title={isRestrictedPolicyCreation ? translate('workspace.emptyWorkspace.restrictedPolicyTitle') : translate('workspace.emptyWorkspace.title')}
+            subtitle={isRestrictedPolicyCreation ? translate('workspace.emptyWorkspace.restrictedPolicySubtitle') : translate('workspace.emptyWorkspace.subtitle')}
             titleStyles={styles.pt2}
             headerStyles={[styles.overflowHidden, StyleUtils.getBackgroundColorStyle(colors.pink800), StyleUtils.getHeight(variables.sectionIllustrationHeight)]}
             lottieWebViewStyles={styles.emptyWorkspaceListIllustrationStyle}

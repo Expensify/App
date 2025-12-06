@@ -2865,6 +2865,10 @@ const translations = {
             title: 'Invite members',
             subtitle: 'Add your team or invite your accountant. The more, the merrier!',
         },
+        domainWorkspaceRestriction: {
+            subtitle: 'Workspace creation is restricted to admins. Join one of the workspaces below or contact your admin for more information.',
+            skipForNow: 'Skip for now',
+        },
     },
     featureTraining: {
         doNotShowAgain: "Don't show me this again",
@@ -5301,6 +5305,8 @@ const translations = {
         emptyWorkspace: {
             title: 'You have no workspaces',
             subtitle: 'Track receipts, reimburse expenses, manage travel, send invoices, and more.',
+            restrictedPolicyTitle: 'No workspaces found',
+            restrictedPolicySubtitle: 'Workspace creation is limited to admins only. Please ask an admin to invite you to an existing workspace.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
