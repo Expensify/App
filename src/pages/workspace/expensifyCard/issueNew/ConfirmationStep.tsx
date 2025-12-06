@@ -12,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import AccountUtils from '@libs/AccountUtils';
 import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
@@ -46,6 +47,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const validateError = getLatestErrorMessageField(issueNewCard);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const data = issueNewCard?.data;
@@ -70,12 +72,51 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
         setIsValidateCodeActionModalVisible(false);
     }, [isSuccessful]);
 
+    // If there's a validateCode error after using extended access, show the modal immediately so the user can see the error
+    // We compute these values outside the useEffect so we can use them to hide errors from the main screen
+    const validateCodeErrorField = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard';
+    const hasValidateCodeError = !!validateCodeAction?.errorFields?.[validateCodeErrorField];
+
+    useEffect(() => {
+        if (hasValidateCodeError && !isValidateCodeActionModalVisible) {
+            setIsValidateCodeActionModalVisible(true);
+        }
+    }, [hasValidateCodeError, isValidateCodeActionModalVisible]);
+
+    // If the card was issued successfully using extended access (without showing the modal), handle the redirect
+    useEffect(() => {
+        if (!isSuccessful || isValidateCodeActionModalVisible) {
+            return;
+        }
+
+        // Call redirect directly since onModalHide won't be triggered when modal was never shown
+        if (backTo) {
+            Navigation.goBack(backTo);
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        }
+
+        clearIssueNewCardFlow(policyID);
+    }, [isSuccessful, isValidateCodeActionModalVisible, backTo, policyID]);
+
     const submit = (validateCode: string) => {
         // NOTE: For Expensify Card UK/EU, the backend will automatically detect the correct feedCountry to use
         issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, validateCode, data);
     };
 
-    const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
+    const handleIssueCard = () => {
+        // If the user has extended access and is trying to issue a virtual card, issue the card directly without requiring validateCode
+        const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
+        if (isVirtualCard && AccountUtils.hasValidateCodeExtendedAccess(account)) {
+            submit('');
+        } else {
+            setIsValidateCodeActionModalVisible(true);
+        }
+    };
+
+    // Don't show validateCode errors on the main screen - they should only appear in the modal
+    // This prevents the error from flashing on screen before the modal opens
+    const errorMessage = hasValidateCodeError ? '' : (getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : ''));
 
     const editStep = (step: IssueNewCardStep) => {
         setIssueNewCardStepAndData({step, isEditing: true, policyID});
@@ -158,7 +199,7 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
                         isDisabled={isOffline || shouldDisableSubmitButton}
                         isMessageHtml={shouldDisableSubmitButton}
                         isLoading={issueNewCard?.isLoading}
-                        onSubmit={() => setIsValidateCodeActionModalVisible(true)}
+                        onSubmit={handleIssueCard}
                         buttonText={translate('workspace.card.issueCard')}
                     />
                 </View>
@@ -168,10 +209,16 @@ function ConfirmationStep({policyID, backTo, stepNames, startStepIndex}: Confirm
                     handleSubmitForm={submit}
                     isLoading={issueNewCard?.isLoading}
                     sendValidateCode={requestValidateCodeAction}
-                    validateCodeActionErrorField={data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL ? 'createExpensifyCard' : 'createAdminIssuedVirtualCard'}
+                    validateCodeActionErrorField={validateCodeErrorField}
                     validateError={validateError}
                     clearError={() => clearIssueNewCardError(policyID)}
-                    onClose={() => setIsValidateCodeActionModalVisible(false)}
+                    onClose={() => {
+                        setIsValidateCodeActionModalVisible(false);
+                        // If the modal was opened due to an error , allow going back
+                        if (hasValidateCodeError) {
+                            handleBackButtonPress();
+                        }
+                    }}
                     isVisible={isValidateCodeActionModalVisible}
                     title={translate('cardPage.validateCardTitle')}
                     descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
