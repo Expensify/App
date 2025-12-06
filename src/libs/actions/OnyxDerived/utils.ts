@@ -33,10 +33,10 @@ const setDerivedValue = (key: OnyxDerivedKey, value: OnyxInput<OnyxDerivedKey>) 
  * this way we can see in the logs what payload was sent to the compute function
  */
 const prepareSourceValuesForLogging = (sourceValues: Record<string, unknown> | undefined) => {
-    if(!sourceValues) {
+    if (!sourceValues) {
         return;
     }
-    
+
     const entries = Object.entries(sourceValues);
     const partialSourceValues = Object.fromEntries(entries.slice(0, MAX_SOURCE_VALUES_LENGTH_FOR_LOGGING));
     return partialSourceValues;
