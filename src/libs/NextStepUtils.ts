@@ -38,7 +38,7 @@ type BuildNextStepNewParams = {
      * Bypass Next Approver ID is used when an approver is bypassed so that we can show the next approver in the chain.
      * This is necessary in the case where report actions are not yet updated to determine the bypass action.
      */
-    bypassNextApproverID: number | null;
+    bypassNextApproverID?: number;
 };
 
 function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
