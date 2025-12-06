@@ -79,6 +79,9 @@ type NumberWithSymbolFormProps = {
     /** Whether to allow flipping amount */
     allowFlippingAmount?: boolean;
 
+    /** Whether the input should be disabled */
+    disabled?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
@@ -140,6 +143,7 @@ function NumberWithSymbolForm({
     allowFlippingAmount = false,
     toggleNegative,
     clearNegative,
+    disabled = false,
     ref,
     ...props
 }: NumberWithSymbolFormProps) {
@@ -148,7 +152,16 @@ function NumberWithSymbolForm({
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberRef = useRef<string | undefined>(undefined);
+    const prevNumberProp = useRef(number);
     const [currentNumber, setCurrentNumber] = useState(typeof number === 'string' ? number : '');
+
+    if (number !== prevNumberProp.current) {
+        prevNumberProp.current = number;
+        const newNumber = typeof number === 'string' ? number : '';
+        if (newNumber !== currentNumber) {
+            setCurrentNumber(newNumber);
+        }
+    }
 
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
@@ -381,6 +394,7 @@ function NumberWithSymbolForm({
                 autoFocus={props.autoFocus}
                 autoGrowExtraSpace={props.autoGrowExtraSpace}
                 autoGrowMarginSide={props.autoGrowMarginSide}
+                disabled={disabled}
             />
         );
     }

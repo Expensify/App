@@ -12,12 +12,16 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
+import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {personalDetailsByEmailSelector} from '@src/selectors/PersonalDetails';
 import type {ApprovalWorkflowOnyx, Policy} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -42,7 +46,12 @@ type ApprovalWorkflowEditorProps = {
 function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, policy, policyID, ref}: ApprovalWorkflowEditorProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
+    const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+        selector: personalDetailsByEmailSelector,
+    });
     const approverCount = approvalWorkflow.approvers.length;
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     const approverDescription = useCallback(
         (index: number) => (approverCount > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`),
@@ -105,16 +114,26 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID, backTo));
     }, [approvalWorkflow.action, policyID]);
 
+    const firstApprover = approvalWorkflow.approvers.at(0)?.email ?? '';
+
     const editApprover = useCallback(
         (approverIndex: number) => {
-            const backTo = approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID) : undefined;
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, backTo));
+            if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)));
+            } else {
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex));
+            }
         },
         [approvalWorkflow.action, policyID],
     );
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {
+        const backTo =
+            approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT
+                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policyID, firstApprover)
+                : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
+
         if (!isControlPolicy(policy) && approverCount > 0) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(
@@ -125,8 +144,8 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
             );
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)));
-    }, [approverCount, policy, policyID]);
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount, backTo));
+    }, [approvalWorkflow.action, approverCount, firstApprover, policy, policyID]);
 
     return (
         <ScrollView
@@ -158,7 +177,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     const hintText =
                         !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email)
                             ? translate('workflowsPage.approverInMultipleWorkflows')
-                            : undefined;
+                            : getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail});
 
                     return (
                         <OfflineWithFeedback

@@ -226,7 +226,19 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
     // Check if the approver forwards to other approvers and add them to the list
     if (policy.employeeList[approver.email]?.forwardsTo) {
         const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail});
+
         approvers.splice(approverIndex, approvers.length, ...additionalApprovers);
+
+        // Preserve the new approvalLimit and overLimitForwardsTo values that were passed in,
+        // since calculateApprovers reads from stale policy data
+        const existingApprover = approvers.at(approverIndex);
+        if (existingApprover) {
+            approvers[approverIndex] = {
+                ...existingApprover,
+                approvalLimit: approver.approvalLimit,
+                overLimitForwardsTo: approver.overLimitForwardsTo,
+            };
+        }
     }
 
     // Always clear the additional approver error when an approver is added

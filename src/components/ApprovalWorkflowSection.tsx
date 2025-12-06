@@ -3,10 +3,15 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
+import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsByEmailSelector} from '@src/selectors/PersonalDetails';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
 // eslint-disable-next-line no-restricted-imports
@@ -21,14 +26,21 @@ type ApprovalWorkflowSectionProps = {
 
     /** A function that is called when the section is pressed */
     onPress: () => void;
+
+    /** Currency used for formatting approval limits */
+    currency?: string;
 };
 
-function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSectionProps) {
+function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CURRENCY.USD}: ApprovalWorkflowSectionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Users', 'UserCheck'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+        selector: personalDetailsByEmailSelector,
+    });
 
     const approverTitle = useCallback(
         (index: number) =>
@@ -102,6 +114,8 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                             iconFill={theme.icon}
                             onPress={onPress}
                             shouldRemoveBackground
+                            helperText={getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail})}
+                            helperTextStyle={styles.workflowApprovalLimitText}
                         />
                     </View>
                 ))}
