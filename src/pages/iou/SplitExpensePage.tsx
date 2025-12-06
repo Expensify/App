@@ -1,21 +1,21 @@
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
-import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SelectionList from '@components/SelectionListWithSections';
-import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import SplitListItem from '@components/SelectionList/ListItem/SplitListItem';
+import type {ListItem, SplitListItemType} from '@components/SelectionList/ListItem/types';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -53,10 +53,29 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
 
+type SplitListItemProps = React.ComponentProps<typeof SplitListItem>;
+
+function SplitListItemWithInputFocusWrapper(props: SplitListItemProps & {onInputFocusHandler: (item: SplitListItemType) => void}) {
+    const {onInputFocusHandler, ...restProps} = props;
+
+    const onInputFocus = (item: ListItem) => {
+        onInputFocusHandler(item as SplitListItemType);
+    };
+    return (
+        <SplitListItem
+            onInputFocus={onInputFocus}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...restProps}
+        />
+    );
+}
+
+SplitListItemWithInputFocusWrapper.displayName = SplitListItem.displayName;
+
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {listRef, viewRef, footerRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus'] as const);
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -102,6 +121,25 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const listRef = useRef<SelectionListHandle<SplitListItemType>>(null);
+
+    const handleInputFocus = useCallback((item: SplitListItemType) => {
+        if (!listRef.current) {
+            return;
+        }
+        listRef.current?.scrollToFocusedInput(item);
+    }, []);
+
+    const SplitListItemWithInputFocus = useCallback(
+        (props: SplitListItemProps) => (
+            <SplitListItemWithInputFocusWrapper
+                onInputFocusHandler={handleInputFocus}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            />
+        ),
+        [handleInputFocus],
+    ) as typeof SplitListItem;
 
     const {isBetaEnabled} = usePermissions();
 
@@ -234,7 +272,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
 
-    const [sections] = useMemo(() => {
+    const options = useMemo(() => {
         const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
         const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
         const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
@@ -281,9 +319,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             };
         });
 
-        const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
-
-        return [newSections];
+        return items;
     }, [
         transaction,
         draftTransaction?.comment?.splitExpenses,
@@ -297,6 +333,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         getTranslatedText,
     ]);
 
+    const initiallyFocusedOptionKey = useMemo(() => options.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList, [options, splitExpenseTransactionID]);
+
     const listFooterContent = useMemo(() => {
         const shouldShowMakeSplitsEven = childTransactions.length === 0;
         return (
@@ -304,20 +342,33 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 <MenuItem
                     onPress={onAddSplitExpense}
                     title={translate('iou.addSplit')}
-                    icon={Expensicons.Plus}
+                    icon={expensifyIcons.Plus}
                     style={[styles.ph4]}
                 />
                 {shouldShowMakeSplitsEven && (
                     <MenuItem
                         onPress={onMakeSplitsEven}
                         title={translate('iou.makeSplitsEven')}
-                        icon={Expensicons.ArrowsLeftRight}
+                        icon={expensifyIcons.ArrowsLeftRight}
                         style={[styles.ph4]}
                     />
                 )}
             </View>
         );
-    }, [onAddSplitExpense, onMakeSplitsEven, translate, childTransactions.length, shouldUseNarrowLayout, styles.w100, styles.ph4, styles.flexColumn, styles.mt1, styles.mb3]);
+    }, [
+        childTransactions.length,
+        styles.w100,
+        styles.flexColumn,
+        styles.mt1,
+        styles.mb3,
+        styles.ph4,
+        shouldUseNarrowLayout,
+        onAddSplitExpense,
+        translate,
+        expensifyIcons.Plus,
+        expensifyIcons.ArrowsLeftRight,
+        onMakeSplitsEven,
+    ]);
 
     const footerContent = useMemo(() => {
         const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
@@ -325,7 +376,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails.currency)})
             : '';
         return (
-            <View ref={footerRef}>
+            <View>
                 {(!!errorMessage || !!warningMessage) && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
@@ -345,11 +396,21 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             </View>
         );
-    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense, footerRef]);
+    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, onSaveSplitExpense]);
 
-    const initiallyFocusedOptionKey = useMemo(
-        () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
-        [sections, splitExpenseTransactionID],
+    const handleSelectRow = useCallback(
+        (item: SplitListItemType) => {
+            if (!item.isEditable) {
+                setCannotBeEditedModalVisible(true);
+                return;
+            }
+            Keyboard.dismiss();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
+            });
+        },
+        [draftTransaction, reportID],
     );
 
     return (
@@ -360,56 +421,28 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             shouldDismissKeyboardBeforeClose={false}
         >
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
-                <View
-                    ref={viewRef}
-                    style={styles.flex1}
-                    onLayout={() => {
-                        scrollToFocusedInput();
-                    }}
-                >
-                    <HeaderWithBackButton
-                        title={splitExpenseTransactionID ? translate('iou.editSplits') : translate('iou.split')}
-                        subtitle={translate('iou.splitExpenseSubtitle', {
-                            amount: convertToDisplayString(transactionDetailsAmount, transactionDetails?.currency),
-                            merchant: draftTransaction?.merchant ?? '',
-                        })}
-                        onBackButtonPress={() => Navigation.goBack(backTo)}
-                    />
+                <HeaderWithBackButton
+                    title={splitExpenseTransactionID ? translate('iou.editSplits') : translate('iou.split')}
+                    subtitle={translate('iou.splitExpenseSubtitle', {
+                        amount: convertToDisplayString(transactionDetailsAmount, transactionDetails?.currency),
+                        merchant: draftTransaction?.merchant ?? '',
+                    })}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
+                />
 
-                    <SelectionList
-                        /* Keeps input fields visible above keyboard on mobile */
-                        renderScrollComponent={(props) => (
-                            <KeyboardAwareScrollView
-                                // eslint-disable-next-line react/jsx-props-no-spreading
-                                {...props}
-                                bottomOffset={bottomOffset.current} /* Bottom offset ensures inputs stay above the "save" button */
-                            />
-                        )}
-                        onSelectRow={(item) => {
-                            if (!item.isEditable) {
-                                setCannotBeEditedModalVisible(true);
-                                return;
-                            }
-                            Keyboard.dismiss();
-                            // eslint-disable-next-line @typescript-eslint/no-deprecated
-                            InteractionManager.runAfterInteractions(() => {
-                                initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
-                            });
-                        }}
-                        ref={listRef}
-                        sections={sections}
-                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                        ListItem={SplitListItem}
-                        containerStyle={[styles.flexBasisAuto]}
-                        footerContent={footerContent}
-                        listFooterContent={listFooterContent}
-                        disableKeyboardShortcuts
-                        shouldSingleExecuteRowSelect
-                        canSelectMultiple={false}
-                        shouldPreventDefaultFocusOnSelectRow
-                        removeClippedSubviews={false}
-                    />
-                </View>
+                <SelectionList
+                    ref={listRef}
+                    data={options}
+                    onSelectRow={handleSelectRow}
+                    ListItem={SplitListItemWithInputFocus}
+                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
+                    style={{containerStyle: styles.flexBasisAuto}}
+                    listFooterContent={listFooterContent}
+                    footerContent={footerContent}
+                    shouldPreventDefaultFocusOnSelectRow
+                    shouldSingleExecuteRowSelect
+                    disableKeyboardShortcuts
+                />
                 <ConfirmModal
                     title={translate('iou.splitExpenseCannotBeEditedModalTitle')}
                     prompt={translate('iou.splitExpenseCannotBeEditedModalDescription')}

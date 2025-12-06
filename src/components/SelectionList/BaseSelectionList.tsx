@@ -362,6 +362,21 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     };
 
+    // The function scrolls to the focused input to prevent keyboard occlusion.
+    // It ensures the entire list item is visible, not just the input field.
+    // Added specifically for SplitExpensePage
+    const scrollToFocusedInput = useCallback((item: TItem) => {
+        if (!listRef.current) {
+            return;
+        }
+
+        // Delay scrolling by 100ms to allow the keyboard to open.
+        // This ensures FlashList calculates the correct window size.
+        setTimeout(() => {
+            listRef.current?.scrollToItem({item, viewPosition: 1});
+        }, 100);
+    }, []);
+
     const scrollAndHighlightItem = useCallback(
         (items: string[]) => {
             const newItemsToHighlight = new Set<string>(items);
@@ -472,10 +487,11 @@ function BaseSelectionList<TItem extends ListItem>({
         }
     }, [onSelectAll, shouldShowTextInput, shouldPreventDefaultFocusOnSelectRow]);
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex, focusTextInput}), [
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, scrollToIndex, updateFocusedIndex, scrollToFocusedInput, focusTextInput}), [
         focusTextInput,
         scrollAndHighlightItem,
         scrollToIndex,
+        scrollToFocusedInput,
         updateFocusedIndex,
     ]);
 
