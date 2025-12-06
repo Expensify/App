@@ -12,6 +12,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -19,6 +20,8 @@ import {getSettlementStatus, getSettlementStatusBadgeProps} from '@libs/SearchUI
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
+import ExpensesCell from './ExpensesCell';
 import TotalCell from './TotalCell';
 
 type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
@@ -60,9 +63,17 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow', 'DotIndicator'] as const);
+
+    const accountLabel = useMemo(() => {
+        const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
+        const maskedNumber = withdrawalIDItem.accountNumber ? `xx${withdrawalIDItem.accountNumber.slice(-4)}` : '';
+
+        return `${formattedBankName} ${maskedNumber}`;
+    }, [withdrawalIDItem.accountNumber, withdrawalIDItem.bankName]);
 
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
     const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
@@ -73,6 +84,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const badgeProps = useMemo(() => getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme), [withdrawalIDItem.state, translate, theme]);
     const settlementStatus = useMemo(() => getSettlementStatus(withdrawalIDItem.state), [withdrawalIDItem.state]);
     const withdrawalInfoText = translate('settlement.withdrawalInfo', {date: formattedWithdrawalDate, withdrawalID: withdrawalIDItem.entryID});
+
     const failedErrorHTML = useMemo(() => {
         if (settlementStatus !== CONST.SEARCH.SETTLEMENT_STATUS.FAILED) {
             return '';
@@ -81,8 +93,8 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
         return translate('settlement.failedError', {link: walletLink});
     }, [settlementStatus, environmentURL, translate]);
 
-    return (
-        <View>
+    if (!isLargeScreenWidth) {
+        return (
             <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
@@ -125,26 +137,85 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                         total={withdrawalIDItem.total}
                         currency={withdrawalIDItem.currency}
                     />
-                    {!isLargeScreenWidth && !!onDownArrowClick && (
-                        <View>
-                            <PressableWithFeedback
-                                onPress={onDownArrowClick}
-                                style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
-                            >
-                                {({hovered}) => (
-                                    <Icon
-                                        src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
-                                        fill={theme.icon}
-                                        additionalStyles={!hovered && styles.opacitySemiTransparent}
-                                        small
-                                    />
-                                )}
-                            </PressableWithFeedback>
-                        </View>
+                    {!!onDownArrowClick && (
+                        <ExpandCollapseArrowButton
+                            isExpanded={isExpanded ?? false}
+                            onPress={onDownArrowClick}
+                        />
                     )}
                 </View>
+            </View>
+        );
+    }
+
+    return (
+        <View>
+            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
+                {!!canSelectMultiple && (
+                    <Checkbox
+                        onPress={() => onCheckboxPress?.(withdrawalIDItem as unknown as TItem)}
+                        isChecked={isSelectAllChecked}
+                        disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
+                        accessibilityLabel={translate('common.select')}
+                        isIndeterminate={isIndeterminate}
+                    />
+                )}
+                <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.gap3]}>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)]}>
+                        <Icon
+                            src={icon}
+                            width={iconSize}
+                            height={iconSize}
+                            additionalStyles={iconStyles}
+                        />
+                    </View>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT)]}>
+                        <TextWithTooltip
+                            text={accountLabel}
+                            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                        />
+                    </View>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN)]}>
+                        <TextWithTooltip
+                            text={withdrawalIDItem.formattedWithdrawalDate ?? ''}
+                            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                        />
+                    </View>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID)]}>
+                        <TextWithTooltip
+                            text={withdrawalIDItem.entryID?.toString() ?? ''}
+                            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                        />
+                    </View>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)]}>
+                        <ExpensesCell count={withdrawalIDItem.count} />
+                    </View>
+                    <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+                        <TotalCell
+                            total={withdrawalIDItem.total}
+                            currency={withdrawalIDItem.currency}
+                        />
+                    </View>
+                </View>
+                {!isLargeScreenWidth && !!onDownArrowClick && (
+                    <View>
+                        <PressableWithFeedback
+                            onPress={onDownArrowClick}
+                            style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                        >
+                            {({hovered}) => (
+                                <Icon
+                                    src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
+                                    fill={theme.icon}
+                                    additionalStyles={!hovered && styles.opacitySemiTransparent}
+                                    small
+                                />
+                            )}
+                        </PressableWithFeedback>
+                    </View>
+                )}
             </View>
             {settlementStatus === CONST.SEARCH.SETTLEMENT_STATUS.FAILED && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph3, styles.pb1]}>

@@ -41,7 +41,7 @@ import navigationRef from './Navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
-import {getReportName} from './ReportUtils';
+import {getReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -396,6 +396,49 @@ function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTyp
         const isReportFieldSupported = supportedFilter === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD && filter.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX);
         return supportedFilter === filter || isReportFieldSupported;
     });
+}
+
+/**
+ * Get the default sort column based on groupBy value
+ * - For groupBy:from -> sort by 'from' column
+ * - For groupBy:card -> sort by 'card' column
+ * - For groupBy:withdrawal-id -> sort by 'withdrawalID' column
+ * - For no groupBy -> sort by 'date' column
+ */
+function getDefaultSortColumn(type: SearchDataTypes | undefined, groupBy: string | undefined): ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS> {
+    // TODO: UPDATE THIS AFTER BACKEND PR MERGED
+    switch (groupBy) {
+        case CONST.SEARCH.GROUP_BY.FROM:
+            // return CONST.SEARCH.TABLE_COLUMNS.FROM;
+            return CONST.SEARCH.TABLE_COLUMNS.TOTAL;
+        case CONST.SEARCH.GROUP_BY.CARD:
+            // return CONST.SEARCH.TABLE_COLUMNS.CARD;
+            return CONST.SEARCH.TABLE_COLUMNS.TOTAL;
+        case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+            // return CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN;
+            return CONST.SEARCH.TABLE_COLUMNS.TOTAL;
+        default:
+            return CONST.SEARCH.TABLE_COLUMNS.DATE;
+    }
+}
+
+/**
+ * Detects if sortBy needs to be updated to the default value when groupBy changes between queries
+ */
+function updateQueryJSONWithDefaultSort(currentQueryJSON?: SearchQueryJSON, previousQueryJSON?: SearchQueryJSON): SearchQueryJSON | undefined {
+    if (!currentQueryJSON) {
+        return undefined;
+    }
+
+    const result = {...currentQueryJSON};
+    const groupByChanged = result.groupBy !== previousQueryJSON?.groupBy;
+
+    if (groupByChanged) {
+        result.sortBy = getDefaultSortColumn(result.type, result.groupBy);
+        result.sortOrder = CONST.SEARCH.SORT_ORDER.DESC;
+    }
+
+    return result;
 }
 
 /**
@@ -1435,4 +1478,6 @@ export {
     getAllPolicyValues,
     getUserFriendlyValue,
     getUserFriendlyKey,
+    getDefaultSortColumn,
+    updateQueryJSONWithDefaultSort,
 };

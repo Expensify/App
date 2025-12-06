@@ -73,7 +73,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, updateQueryJSONWithDefaultSort} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getTransactionViolationsOfTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
@@ -128,7 +128,6 @@ function SearchPage({route}: SearchPageProps) {
     > | null>(null);
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {canBeMissing: true});
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true});
-    const queryJSON = useMemo(() => buildSearchQueryJSON(route.params.q, route.params.rawQuery), [route.params.q, route.params.rawQuery]);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, currentUserPersonalDetails?.accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -144,6 +143,23 @@ function SearchPage({route}: SearchPageProps) {
         'SmartScan',
         'MoneyBag',
     ] as const);
+
+    // Track previous query to detect groupBy changes
+    const previousQueryRef = useRef<string | undefined>(undefined);
+    const queryJSON = useMemo(() => {
+        const previousQueryJSON = previousQueryRef.current ? buildSearchQueryJSON(previousQueryRef.current) : undefined;
+        const currentQueryJSON = buildSearchQueryJSON(route.params.q);
+        const updatedQueryJSON = updateQueryJSONWithDefaultSort(currentQueryJSON, previousQueryJSON);
+
+        // If sortBy was updated due to groupBy change, navigate to the new query
+        if (updatedQueryJSON && updatedQueryJSON.sortBy !== currentQueryJSON?.sortBy) {
+            const updatedQuery = buildSearchQueryString(updatedQueryJSON);
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
+        }
+
+        previousQueryRef.current = route.params.q;
+        return updatedQueryJSON;
+    }, [route.params.q]);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});

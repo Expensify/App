@@ -1,12 +1,10 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithFeedback} from '@components/Pressable';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {ListItem, TransactionCardGroupListItemType} from '@components/SelectionListWithSections/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,6 +13,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
+import ExpensesCell from './ExpensesCell';
 import TotalCell from './TotalCell';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
@@ -66,8 +66,8 @@ function CardListItemHeader<TItem extends ListItem>({
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
-    return (
-        <View>
+    if (!isLargeScreenWidth) {
+        return (
             <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
@@ -92,7 +92,7 @@ function CardListItemHeader<TItem extends ListItem>({
                                 style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
                             />
                             <TextWithTooltip
-                                text={`${cardItem.cardName}${cardItem.lastFourPAN ? ` ${CONST.DOT_SEPARATOR} ` : ''}${cardItem.lastFourPAN}`}
+                                text={cardItem.formattedCardName ?? ''}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         </View>
@@ -103,26 +103,60 @@ function CardListItemHeader<TItem extends ListItem>({
                         total={cardItem.total}
                         currency={cardItem.currency}
                     />
-                    {!isLargeScreenWidth && !!onDownArrowClick && (
-                        <View>
-                            <PressableWithFeedback
-                                onPress={onDownArrowClick}
-                                style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
-                            >
-                                {({hovered}) => (
-                                    <Icon
-                                        src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
-                                        fill={theme.icon}
-                                        additionalStyles={!hovered && styles.opacitySemiTransparent}
-                                        small
-                                    />
-                                )}
-                            </PressableWithFeedback>
-                        </View>
+                    {!!onDownArrowClick && (
+                        <ExpandCollapseArrowButton
+                            isExpanded={isExpanded ?? false}
+                            onPress={onDownArrowClick}
+                        />
                     )}
                 </View>
+            </View>
+        );
+    }
+
+    return (
+        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pl3]}>
+            {!!canSelectMultiple && (
+                <Checkbox
+                    onPress={() => onCheckboxPress?.(cardItem as unknown as TItem)}
+                    isChecked={isSelectAllChecked}
+                    isIndeterminate={isIndeterminate}
+                    disabled={!!isDisabled || cardItem.isDisabledCheckbox}
+                    accessibilityLabel={translate('common.select')}
+                    style={[styles.mr1]}
+                />
+            )}
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)]}>
+                <UserDetailsTooltip accountID={cardItem.accountID}>
+                    <View>
+                        <ReportActionAvatars
+                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
+                            subscriptAvatarBorderColor={backgroundColor}
+                            noRightMarginOnSubscriptContainer
+                            accountIDs={[cardItem.accountID]}
+                        />
+                    </View>
+                </UserDetailsTooltip>
+            </View>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}>
+                <View style={[styles.gapHalf, styles.flexShrink1]}>
+                    <TextWithTooltip text={cardItem.formattedCardName ?? ''} />
+                </View>
+            </View>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FEED)]}>
+                <TextWithTooltip
+                    text={cardItem.formattedFeedName ?? ''}
+                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                />
+            </View>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)]}>
+                <ExpensesCell count={cardItem.count} />
+            </View>
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL)]}>
+                <TotalCell
+                    total={cardItem.total}
+                    currency={cardItem.currency}
+                />
             </View>
         </View>
     );
