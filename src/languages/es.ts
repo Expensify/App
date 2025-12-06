@@ -7855,6 +7855,30 @@ ${amount} para ${merchant} - ${date}`,
             fetchError: 'No se pudieron obtener los detalles de configuración de SAML',
             setMetadataGenericError: 'No se pudieron establecer los metadatos de SAML',
         },
+        accessRestricted: {
+            title: 'Acceso restringido',
+            subtitle: (domainName: string) => `Por favor, verifícate como un administrador autorizado de la empresa para <strong>${domainName}</strong> si necesitas control sobre:`,
+            companyCardManagement: 'Gestión de tarjetas de la empresa',
+            accountCreationAndDeletion: 'Creación y eliminación de cuentas',
+            workspaceCreation: 'Creación de espacios de trabajo',
+            samlSSO: 'SAML SSO',
+        },
+        addDomain: {
+            title: 'Añadir dominio',
+            subtitle: 'Introduce el nombre del dominio privado al que deseas acceder (por ejemplo, expensify.com).',
+            domainName: 'Nombre de dominio',
+            newDomain: 'Nuevo dominio',
+        },
+        domainAdded: {
+            title: 'Dominio añadido',
+            description: 'A continuación, deberás verificar la propiedad del dominio y ajustar tu configuración de seguridad.',
+            configure: 'Configurar',
+        },
+        enhancedSecurity: {
+            title: 'Seguridad mejorada',
+            subtitle: 'Solicita que los miembros de tu dominio inicien sesión mediante inicio de sesión único, restringe la creación de espacios de trabajo y más.',
+            enable: 'Habilitar',
+        },
     },
 };
 
