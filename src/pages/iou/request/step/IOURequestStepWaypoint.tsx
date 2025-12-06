@@ -5,14 +5,14 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import type BaseModalProps from '@components/Modal/types';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
 import useNetwork from '@hooks/useNetwork';
@@ -66,12 +66,12 @@ function IOURequestStepWaypoint({
     transaction,
 }: IOURequestStepWaypointProps) {
     const styles = useThemeStyles();
-    const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
-    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
+    const {showConfirmModal} = useConfirmModal();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
     const textInput = useRef<TextInput | null>(null);
     const parsedWaypointIndex = parseInt(pageIndex, 10);
     const allWaypoints = transaction?.comment?.waypoints ?? {};
@@ -153,11 +153,22 @@ function IOURequestStepWaypoint({
         goBack();
     };
 
-    const deleteStopAndHideModal = () => {
-        removeWaypoint(transaction, pageIndex, shouldUseTransactionDraft(action));
-        setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
-        setIsDeleteStopModalOpen(false);
-        goBack();
+    const deleteWaypoint = () => {
+        showConfirmModal({
+            title: translate('distance.deleteWaypoint'),
+            prompt: translate('distance.deleteWaypointConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            shouldEnableNewFocusManagement: true,
+            danger: true,
+            restoreFocusType: undefined,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            removeWaypoint(transaction, pageIndex, shouldUseTransactionDraft(action));
+            goBack();
+        });
     };
 
     const selectWaypoint = (values: Waypoint) => {
@@ -207,28 +218,12 @@ function IOURequestStepWaypoint({
                     shouldSetModalVisibility={false}
                     threeDotsMenuItems={[
                         {
-                            icon: Expensicons.Trashcan,
+                            icon: expensifyIcons.Trashcan,
                             text: translate('distance.deleteWaypoint'),
-                            onSelected: () => {
-                                setRestoreFocusType(undefined);
-                                setIsDeleteStopModalOpen(true);
-                            },
+                            onSelected: deleteWaypoint,
                             shouldCallAfterModalHide: true,
                         },
                     ]}
-                />
-                <ConfirmModal
-                    title={translate('distance.deleteWaypoint')}
-                    isVisible={isDeleteStopModalOpen}
-                    onConfirm={deleteStopAndHideModal}
-                    onCancel={() => setIsDeleteStopModalOpen(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate('distance.deleteWaypointConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    shouldEnableNewFocusManagement
-                    danger
-                    restoreFocusType={restoreFocusType}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}

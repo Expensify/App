@@ -7,13 +7,13 @@ import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewS
 import {Linking, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
-import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
 import LottieAnimations from '@components/LottieAnimations';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
@@ -21,6 +21,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
@@ -152,6 +153,7 @@ function EmptySearchViewContent({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'Alert'] as const);
+    const {showConfirmModal} = useConfirmModal();
 
     const tripsFeatures: FeatureListItem[] = useMemo(
         () => [
@@ -170,7 +172,6 @@ function EmptySearchViewContent({
     const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
         setContextMenuAnchor(node);
     }, []);
-    const [modalVisible, setModalVisible] = useState(false);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -423,7 +424,17 @@ function EmptySearchViewContent({
                                 buttonAction: () =>
                                     interceptAnonymousUser(() => {
                                         if (shouldRedirectToExpensifyClassic) {
-                                            setModalVisible(true);
+                                            showConfirmModal({
+                                                prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
+                                                title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
+                                                confirmText: translate('exitSurvey.goToExpensifyClassic'),
+                                                cancelText: translate('common.cancel'),
+                                            }).then((result) => {
+                                                if (result.action !== ModalActions.CONFIRM) {
+                                                    return;
+                                                }
+                                                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                                            });
                                             return;
                                         }
                                         startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID());
@@ -454,7 +465,17 @@ function EmptySearchViewContent({
                                 buttonAction: () =>
                                     interceptAnonymousUser(() => {
                                         if (shouldRedirectToExpensifyClassic) {
-                                            setModalVisible(true);
+                                            showConfirmModal({
+                                                prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
+                                                title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
+                                                confirmText: translate('exitSurvey.goToExpensifyClassic'),
+                                                cancelText: translate('common.cancel'),
+                                            }).then((result) => {
+                                                if (result.action !== ModalActions.CONFIRM) {
+                                                    return;
+                                                }
+                                                openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+                                            });
                                             return;
                                         }
                                         startMoneyRequest(CONST.IOU.TYPE.INVOICE, generateReportID());
@@ -500,6 +521,7 @@ function EmptySearchViewContent({
         defaultChatEnabledPolicyID,
         handleCreateReportClick,
         queryJSON,
+        showConfirmModal,
     ]);
 
     return (
@@ -525,18 +547,6 @@ function EmptySearchViewContent({
                 </EmptyStateComponent>
             </ScrollView>
             {CreateReportConfirmationModal}
-            <ConfirmModal
-                prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
-                isVisible={modalVisible}
-                onConfirm={() => {
-                    setModalVisible(false);
-                    openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-                }}
-                onCancel={() => setModalVisible(false)}
-                title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}
-                confirmText={translate('exitSurvey.goToExpensifyClassic')}
-                cancelText={translate('common.cancel')}
-            />
         </>
     );
 }

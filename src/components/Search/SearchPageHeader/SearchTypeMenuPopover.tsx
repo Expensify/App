@@ -2,10 +2,10 @@ import React, {useRef} from 'react';
 import Button from '@components/Button';
 import PopoverMenu from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useSearchTypeMenu from '@hooks/useSearchTypeMenu';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Expensicons from '@src/components/Icon/Expensicons';
 
 type SearchTypeMenuNarrowProps = {
     queryJSON: SearchQueryJSON;
@@ -13,7 +13,8 @@ type SearchTypeMenuNarrowProps = {
 
 function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const styles = useThemeStyles();
-    const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, DeleteConfirmModal, windowHeight} = useSearchTypeMenu(queryJSON);
+    const {isPopoverVisible, delayPopoverMenuFirstRender, openMenu, closeMenu, allMenuItems, windowHeight} = useSearchTypeMenu(queryJSON);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Menu'] as const);
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
@@ -21,7 +22,7 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     return (
         <>
             <Button
-                icon={Expensicons.Menu}
+                icon={expensifyIcons.Menu}
                 onPress={openMenu}
             />
             {!delayPopoverMenuFirstRender && (
@@ -39,10 +40,6 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
                     scrollContainerStyle={styles.pv0}
                 />
             )}
-            {/* DeleteConfirmModal is a stable JSX element returned by the hook.
-                Returning the element directly keeps the component identity across re-renders so React
-                can play its exit animation instead of removing it instantly. */}
-            {DeleteConfirmModal}
         </>
     );
 }
