@@ -11,7 +11,7 @@ import type {BankAccountMenuItem} from '@components/Search/types';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -40,6 +40,7 @@ type SelectPaymentTypeParams = {
     isUserValidated?: boolean;
     confirmApproval?: () => void;
     iouReport?: OnyxEntry<Report>;
+    iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
 };
 
 /**
@@ -140,8 +141,21 @@ function calculateWalletTransferBalanceFee(currentBalance: number, methodType: s
  * handles direct approvals, or proceeds with basic payment processing.
  */
 const selectPaymentType = (params: SelectPaymentTypeParams) => {
-    const {event, iouPaymentType, triggerKYCFlow, policy, onPress, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, isUserValidated, confirmApproval, iouReport} =
-        params;
+    const {
+        event,
+        iouPaymentType,
+        triggerKYCFlow,
+        policy,
+        onPress,
+        currentAccountID,
+        currentEmail,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        isUserValidated,
+        confirmApproval,
+        iouReport,
+        iouReportNextStep,
+    } = params;
     if (policy && shouldRestrictUserBillableActions(policy.id)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
@@ -161,7 +175,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         if (confirmApproval) {
             confirmApproval();
         } else {
-            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, true);
+            approveMoneyRequest(iouReport, policy, currentAccountID, currentEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true);
         }
         return;
     }
