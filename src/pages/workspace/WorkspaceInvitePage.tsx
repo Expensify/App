@@ -116,7 +116,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         }
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions, translate]);
+    }, [areOptionsInitialized, selectedOptionsForDisplay, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     const handleToggleSelection = useCallback(
         (option: OptionData) => {
@@ -152,7 +152,10 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
     }, [route.params.policyID, selectedOptions]);
 
-    const [policyName, shouldShowAlertPrompt] = useMemo(() => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage], [policy]);
+    const [policyName, shouldShowAlertPrompt] = useMemo(
+        () => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage],
+        [policy?.name, policy?.errors, policy?.alertMessage],
+    );
 
     const headerMessage = useMemo(() => {
         const searchValue = searchTerm.trim().toLowerCase();
@@ -165,8 +168,18 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
-        return getHeaderMessage(searchOptions.personalDetails.length !== 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
-    }, [searchTerm, availableOptions.userToInvite, excludedUsers, countryCode, searchOptions.personalDetails.length, translate, policyName]);
+        return getHeaderMessage(searchOptions.personalDetails.length + selectedOptions.length !== 0, !!searchOptions.userToInvite, searchValue, countryCode, false);
+    }, [
+        searchTerm,
+        availableOptions.userToInvite,
+        excludedUsers,
+        countryCode,
+        searchOptions.personalDetails.length,
+        searchOptions.userToInvite,
+        selectedOptions.length,
+        translate,
+        policyName,
+    ]);
 
     const footerContent = useMemo(
         () => (

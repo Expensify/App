@@ -1,12 +1,12 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -71,8 +71,6 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     });
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currency = useCurrencyForExpensifyCard({policyID});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
-
     const isEditing = issueNewCard?.isEditing;
 
     const submit = (assignee: ListItem) => {
@@ -138,7 +136,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
                 isSelected: issueNewCard?.data?.assigneeEmail === email,
                 icons: [
                     {
-                        source: personalDetail?.avatar ?? expensifyIcons.FallbackAvatar,
+                        source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
                         name: formatPhoneNumber(email),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: personalDetail?.accountID,
@@ -150,66 +148,33 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [policy?.employeeList, localeCompare, isOffline, issueNewCard?.data?.assigneeEmail, formatPhoneNumber, expensifyIcons.FallbackAvatar]);
+    }, [policy?.employeeList, localeCompare, isOffline, issueNewCard?.data?.assigneeEmail, formatPhoneNumber]);
 
-    const sections = useMemo(() => {
+    const assignees = useMemo(() => {
         if (!debouncedSearchTerm) {
-            return [
-                {
-                    data: membersDetails,
-                    shouldShow: true,
-                },
-            ];
+            return membersDetails;
         }
-
-        const sectionsArr = [];
 
         if (!areOptionsInitialized) {
             return [];
         }
 
         const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-        const filteredOptions = tokenizedSearch(membersDetails, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
-        sectionsArr.push({
-            title: undefined,
-            data: filteredOptions,
-            shouldShow: true,
-        });
+        const filteredMembers = tokenizedSearch(membersDetails, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
-        // Selected options section
-        if (selectedOptionsForDisplay.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: selectedOptionsForDisplay,
-            });
-        }
+        const options = [
+            ...filteredMembers,
+            ...selectedOptionsForDisplay,
+            ...availableOptions.recentReports,
+            ...availableOptions.personalDetails,
+            ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
+        ];
 
-        // Recent reports section
-        if (availableOptions.recentReports.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: availableOptions.recentReports,
-            });
-        }
-
-        // Contacts section
-        if (availableOptions.personalDetails.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: availableOptions.personalDetails,
-            });
-        }
-
-        // User to invite section
-        if (availableOptions.userToInvite) {
-            sectionsArr.push({
-                title: undefined,
-                data: [availableOptions.userToInvite],
-            });
-        }
-
-        return sectionsArr;
+        return options.map((option) => ({
+            ...option,
+            keyForList: option.keyForList ?? option.login ?? '',
+        }));
     }, [
         debouncedSearchTerm,
         areOptionsInitialized,
@@ -230,14 +195,18 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        return getHeaderMessage(
-            sections.some((section) => section.data.length > 0),
-            !!availableOptions.userToInvite,
-            searchValue,
-            countryCode,
-            false,
-        );
-    }, [searchTerm, availableOptions.userToInvite, sections, countryCode, translate]);
+        return getHeaderMessage(assignees.length > 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
+    }, [searchTerm, availableOptions.userToInvite, assignees.length, countryCode, translate]);
+
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('selectionList.nameEmailOrPhoneNumber'),
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage,
+        }),
+        [headerMessage, searchTerm, setSearchTerm, translate],
+    );
 
     return (
         <InteractiveStepWrapper
@@ -253,17 +222,15 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.whoNeedsCard')}</Text>
             <SelectionList
-                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                sections={sections}
-                headerMessage={headerMessage}
-                ListItem={UserListItem}
-                shouldUpdateFocusedIndex
-                initiallyFocusedOptionKey={issueNewCard?.data?.assigneeEmail}
+                data={assignees}
                 onSelectRow={submit}
-                addBottomSafeAreaPadding
+                ListItem={UserListItem}
+                textInputOptions={textInputOptions}
                 isLoadingNewOptions={!!isSearchingForReports}
+                initiallyFocusedItemKey={issueNewCard?.data?.assigneeEmail}
+                disableMaintainingScrollPosition
+                shouldUpdateFocusedIndex
+                addBottomSafeAreaPadding
             />
         </InteractiveStepWrapper>
     );

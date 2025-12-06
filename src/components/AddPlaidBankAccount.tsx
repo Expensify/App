@@ -103,7 +103,7 @@ function AddPlaidBankAccount({
      */
     const isAuthenticatedWithPlaid = useCallback(
         () => (!!receivedRedirectURI && !!plaidLinkOAuthToken) || !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors),
-        [plaidData, plaidLinkOAuthToken, receivedRedirectURI],
+        [plaidData?.bankAccounts?.length, plaidData?.errors, plaidLinkOAuthToken, receivedRedirectURI],
     );
 
     /**
