@@ -927,8 +927,8 @@ Onyx.connect({
     },
 });
 
-// let userAccountID = -1;
-// let currentUserEmail = '';
+let userAccountID = -1;
+let currentUserEmail = '';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.SESSION,
