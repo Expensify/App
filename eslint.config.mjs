@@ -147,6 +147,17 @@ const restrictedImportPatterns = [
 ];
 
 const config = defineConfig([
+    // Global ignores - these directories/files are excluded from linting
+    // Note: Using eslint . ensures new directories are automatically included
+    {
+        ignores: [
+            'Mobile-Expensify/**',
+            'docs/**',
+            'coverage/**',
+            'android/**/build/**',
+            'ios/**/build/**',
+        ],
+    },
     expensifyConfig,
     typescriptEslint.configs.recommendedTypeChecked,
     typescriptEslint.configs.stylisticTypeChecked,
@@ -176,6 +187,9 @@ const config = defineConfig([
 
             parserOptions: {
                 project: path.resolve(dirname, './tsconfig.json'),
+                projectService: {
+                    allowDefaultProject: ['*.js', '*.jsx'],
+                },
             },
 
             globals: {
@@ -402,6 +416,30 @@ const config = defineConfig([
         },
     },
 
+
+    // TS: use project for type-aware rules
+    {
+        files: ['**/*.ts', '**/*.tsx'],
+        languageOptions: {
+            parser: tsParser,
+            parserOptions: {
+                project: path.resolve(dirname, './tsconfig.json'),
+            },
+        },
+    },
+
+    // JS: no TS project (no type-aware program, much faster)
+    {
+        files: ['**/*.js', '**/*.jsx'],
+        languageOptions: {
+            parser: tsParser,
+            parserOptions: {
+                ecmaVersion: 'latest',
+                sourceType: 'module',
+            },
+        },
+    },
+
     // Some rules became stricter or stopped working after upgrading to ESLint 9, so these configs adjust the rules to match the old behavior.
     {
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
@@ -467,6 +505,10 @@ const config = defineConfig([
         ...typescriptEslint.configs.disableTypeChecked,
     },
     {
+        files: ['.github/**/*', 'scripts/**/*', 'tests/**/*', '__mocks__/**/*', 'jest/**/*'],
+        ...typescriptEslint.configs.disableTypeChecked,
+    },
+    {
         files: ['**/*.js', '**/*.jsx'],
         rules: {
             '@typescript-eslint/prefer-nullish-coalescing': 'off',
@@ -503,10 +545,13 @@ const config = defineConfig([
     },
 
     {
-        files: ['.github/**/*', 'scripts/**/*'],
+        files: ['.github/**/*', 'scripts/**/*', 'tests/**/*', '__mocks__/**/*', 'jest/**/*'],
         rules: {
             // For all these Node.js scripts, we do not want to disable `console` statements
             'no-console': 'off',
+            // Disable type-requiring rules since we disabled type-checked rules for these files
+            'rulesdir/prefer-at': 'off',
+            'rulesdir/boolean-conditional-rendering': 'off',
         },
     },
 
@@ -594,6 +639,8 @@ const config = defineConfig([
         'src/libs/SearchParser/autocompleteParser.js',
         'help/_scripts/**/*',
         'modules/ExpensifyNitroUtils/nitrogen/**/*',
+        'Mobile-Expensify',
+        'Mobile-Expensify/**',
         'Mobile-Expensify/**/*',
         '**/vendor',
         'modules/group-ib-fp/**/*',
