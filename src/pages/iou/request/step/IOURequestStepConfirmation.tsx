@@ -36,7 +36,6 @@ import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils'
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import {
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
@@ -245,7 +244,7 @@ function IOURequestStepConfirmation({
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const parentReportAction = useParentReportAction(viewTourTaskReport);
 
-    const receiptFilename = getReceiptFilenameFromTransaction(transaction);
+    const receiptFilename = transaction?.receipt?.filename;
     const receiptPath = transaction?.receipt?.source;
     const isEditingReceipt = hasReceipt(transaction);
     const customUnitRateID = getRateID(transaction) ?? '';
@@ -463,7 +462,7 @@ function IOURequestStepConfirmation({
 
         Promise.all(
             transactions.map((item) => {
-                const itemReceiptFilename = getReceiptFilenameFromTransaction(item);
+                const itemReceiptFilename = item.receipt?.filename;
                 const itemReceiptPath = item.receipt?.source;
                 const itemReceiptType = item.receipt?.type;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
@@ -1247,8 +1246,7 @@ function IOURequestStepConfirmation({
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
-    const shouldShowSmartScanFields =
-        !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
+    const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
