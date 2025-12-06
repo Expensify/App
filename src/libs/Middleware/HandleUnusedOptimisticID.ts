@@ -4,6 +4,14 @@ import type {Middleware} from '@libs/Request';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Report from '@src/types/onyx/Report';
+import { prepareOnyxDataForCleanUpOptimisticParticipants } from '@libs/actions/Report';
+import Onyx, { OnyxEntry } from 'react-native-onyx';
+import { PersonalDetailsList } from '@src/types/onyx';
+import { WRITE_COMMANDS } from '@libs/API/types';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
+
+// Local cache of reportID to optimistic Onyx data
+const reportOptimisticData = new Map<string, { settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null> } | undefined>();
 
 /**
  * This middleware checks for the presence of a field called preexistingReportID in the response.
@@ -17,6 +25,15 @@ import type Report from '@src/types/onyx/Report';
  */
 const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSequentialQueue) =>
     requestResponse.then((response) => {
+        const currentRequestReportID = request?.data?.reportID as string;
+        const isCreatingNewReport = request?.command === WRITE_COMMANDS.OPEN_REPORT && !!request?.data?.createdReportActionID && !!currentRequestReportID;
+        if (isCreatingNewReport) {
+            // We're opening a new report, which can be a new or preexisting report
+            // For new report, clean up optimistic data after this request returned successfully
+            // For report redirect a preexisting repoort, clean up optimistic data after the request of preexisting report returned successfully
+            reportOptimisticData.set(currentRequestReportID, prepareOnyxDataForCleanUpOptimisticParticipants(currentRequestReportID));
+        }
+
         const responseOnyxData = response?.onyxData ?? [];
         for (const onyxData of responseOnyxData) {
             const key = onyxData.key;
@@ -35,6 +52,12 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
             }
             const oldReportID = key.split(ONYXKEYS.COLLECTION.REPORT).at(-1) ?? request.data?.reportID ?? request.data?.optimisticReportID;
 
+            if (isCreatingNewReport && currentRequestReportID === oldReportID) {
+                // move optimistic data to preexisting reportID, so it'll be cleaned up after preexisting report is returned successfully
+                reportOptimisticData.set(preexistingReportID, reportOptimisticData.get(currentRequestReportID));
+                reportOptimisticData.delete(currentRequestReportID);
+            }
+
             if (isFromSequentialQueue) {
                 const ongoingRequest = PersistedRequests.getOngoingRequest();
                 const ongoingRequestReportIDParam = ongoingRequest?.data?.reportID ?? ongoingRequest?.data?.optimisticReportID;
@@ -49,6 +72,27 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
                 const persistedRequestClone = clone(persistedRequest);
                 persistedRequestClone.data = deepReplaceKeysAndValues(persistedRequest.data, oldReportID as string, preexistingReportID);
                 PersistedRequests.update(index, persistedRequestClone);
+            }
+        }
+
+        if (!!currentRequestReportID && request?.command === WRITE_COMMANDS.OPEN_REPORT && !!response?.onyxData && reportOptimisticData.has(currentRequestReportID)) {
+            const { settledPersonalDetails, redundantParticipants } = reportOptimisticData.get(currentRequestReportID) ?? {};
+            reportOptimisticData.delete(currentRequestReportID);
+            if (!isEmptyObject(settledPersonalDetails) && !isEmptyObject(redundantParticipants)) {
+                response.onyxData.push(
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${currentRequestReportID}`,
+                        value: {
+                            participants: redundantParticipants,
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: redundantParticipants,
+                    }
+                );
             }
         }
         return response;
