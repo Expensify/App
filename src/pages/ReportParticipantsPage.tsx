@@ -36,7 +36,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
-import {computeReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportPersonalDetailsParticipants,
     isArchivedNonExpenseReport,
@@ -314,7 +314,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
         if (isAtLeastOneAdminSelected) {
             options.push({
-                text: translate('workspace.people.makeMember'),
+                text: translate('workspace.people.makeMember', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
                 icon: icons.User,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
@@ -325,7 +325,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
         if (isAtLeastOneMemberSelected) {
             options.push({
-                text: translate('workspace.people.makeAdmin'),
+                text: translate('workspace.people.makeAdmin', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
                 icon: icons.MakeAdmin,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
@@ -415,7 +415,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(computeReportName(report))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal
