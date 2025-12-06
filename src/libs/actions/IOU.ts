@@ -189,6 +189,7 @@ import {
     isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
     isPayer as isPayerReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
+    isProcessingReport,
     isReportApproved,
     isReportManager,
     isSelectedManagerMcTest,
@@ -9933,6 +9934,9 @@ function getReportFromHoldRequestsOnyxData(
         };
     }
 
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReport.policyID}`];
+    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -9950,6 +9954,12 @@ function getReportFromHoldRequestsOnyxData(
                 ...optimisticExpenseReport,
                 unheldTotal: 0,
                 unheldNonReimbursableTotal: 0,
+                ...(isProcessingReport(iouReport) && isApprovalEnabled
+                    ? {
+                          stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                          statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                      }
+                    : {}),
             },
         },
         // add preview report action to main chat
