@@ -1,0 +1,179 @@
+diff --git a/node_modules/react-native-keyboard-controller/ios/animations/SpringAnimation.swift b/node_modules/react-native-keyboard-controller/ios/animations/SpringAnimation.swift
+index 8712c29..ddfb495 100644
+--- a/node_modules/react-native-keyboard-controller/ios/animations/SpringAnimation.swift
++++ b/node_modules/react-native-keyboard-controller/ios/animations/SpringAnimation.swift
+@@ -31,6 +31,7 @@ public final class SpringAnimation: KeyboardAnimation {
+   private let initialVelocity: Double
+ 
+   init(animation: CASpringAnimation, fromValue: Double, toValue: Double) {
++    print("kav::spring \(animation) | \(fromValue) -> \(toValue)")
+     stiffness = animation.stiffness
+     damping = animation.damping
+     mass = animation.mass
+diff --git a/node_modules/react-native-keyboard-controller/ios/animations/TimingAnimation.swift b/node_modules/react-native-keyboard-controller/ios/animations/TimingAnimation.swift
+index 7120bdb..7dd38bd 100644
+--- a/node_modules/react-native-keyboard-controller/ios/animations/TimingAnimation.swift
++++ b/node_modules/react-native-keyboard-controller/ios/animations/TimingAnimation.swift
+@@ -20,6 +20,7 @@ public final class TimingAnimation: KeyboardAnimation {
+   private let p2: CGPoint
+ 
+   init(animation: CABasicAnimation, fromValue: Double, toValue: Double) {
++    print("kav::timing \(animation) | \(fromValue) -> \(toValue)")
+     let timingFunction = animation.timingFunction
+     var controlPoints: ContiguousArray<Float> = ContiguousArray([0, 0, 0, 0])
+     timingFunction?.getControlPoint(at: 1, values: &controlPoints[0])
+diff --git a/node_modules/react-native-keyboard-controller/ios/observers/movement/KeyboardTrackingView.swift b/node_modules/react-native-keyboard-controller/ios/observers/movement/KeyboardTrackingView.swift
+index dc07c23..813b377 100644
+--- a/node_modules/react-native-keyboard-controller/ios/observers/movement/KeyboardTrackingView.swift
++++ b/node_modules/react-native-keyboard-controller/ios/observers/movement/KeyboardTrackingView.swift
+@@ -40,9 +40,11 @@ public final class KeyboardTrackingView: UIView {
+ 
+   private func setup() {
+     // for debug purposes
+-    // self.backgroundColor = .red
+-    isUserInteractionEnabled = false
+-    isHidden = true
++    self.backgroundColor = .red
++      // 10 px height
++    self.frame = CGRect(x: 0, y: 0, width: 1, height: 2)
++    // isUserInteractionEnabled = false
++    // isHidden = true
+ 
+     NotificationCenter.default.addObserver(
+       self,
+@@ -87,7 +89,7 @@ public final class KeyboardTrackingView: UIView {
+         leadingAnchor.constraint(equalTo: topView.leadingAnchor, constant: 0),
+         trailingAnchor.constraint(equalTo: topView.trailingAnchor, constant: 0),
+         bottomAnchor.constraint(equalTo: topView.keyboardLayoutGuide.topAnchor, constant: 0),
+-        heightAnchor.constraint(equalToConstant: 0),
++        heightAnchor.constraint(equalToConstant: 2),
+       ])
+     }
+     isAttaching = false
+diff --git a/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Watcher.swift b/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Watcher.swift
+index 53148a6..4001123 100644
+--- a/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Watcher.swift
++++ b/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Watcher.swift
+@@ -22,6 +22,8 @@ extension KeyboardMovementObserver {
+   }
+ 
+   @objc func updateKeyboardFrame(link: CADisplayLink) {
++    print("kav 1")
++      
+     if keyboardTrackingView.view == nil {
+       return
+     }
+@@ -29,11 +31,16 @@ extension KeyboardMovementObserver {
+     let (visibleKeyboardHeight, keyboardFrameY) = keyboardTrackingView.view.frameTransitionInWindow
+     var keyboardPosition = visibleKeyboardHeight - KeyboardAreaExtender.shared.offset
+ 
++    print("kav 2 \(keyboardPosition) \(prevKeyboardPosition) \(keyboardFrameY)")
++      
+     if keyboardPosition == prevKeyboardPosition || keyboardFrameY == 0 {
+       return
+     }
+       
++    print("kav 3")
++
+     if animation == nil {
++      print("kav - initialize animation: \(prevKeyboardPosition) -> \(keyboardHeight)")
+       initializeAnimation(fromValue: prevKeyboardPosition, toValue: keyboardHeight)
+     }
+ 
+@@ -61,6 +68,8 @@ extension KeyboardMovementObserver {
+       keyboardPosition = race(position, keyboardPosition)
+     }
+       
++    print("kav 4 \(keyboardPosition)")
++
+     onEvent(
+       "onKeyboardMove",
+       keyboardPosition as NSNumber,
+diff --git a/node_modules/react-native-keyboard-controller/src/components/KeyboardAvoidingView/hooks.ts b/node_modules/react-native-keyboard-controller/src/components/KeyboardAvoidingView/hooks.ts
+index 4d504fe..c6a5bab 100644
+--- a/node_modules/react-native-keyboard-controller/src/components/KeyboardAvoidingView/hooks.ts
++++ b/node_modules/react-native-keyboard-controller/src/components/KeyboardAvoidingView/hooks.ts
+@@ -7,7 +7,7 @@ import { useKeyboardHandler } from "../../hooks";
+ 
+ const OS = Platform.OS;
+ 
+-export const useKeyboardAnimation = () => {
++export const useKeyboardAnimation = (testId) => {
+   const { reanimated } = useKeyboardContext();
+ 
+   const heightWhenOpened = useSharedValue(0);
+@@ -24,6 +24,8 @@ export const useKeyboardAnimation = () => {
+     height.value = initialHeight;
+     progress.value = initialProgress;
+     isClosed.value = initialProgress === 0;
++
++    console.debug("kav-hook", "effect", testId, initialHeight);
+   }, []);
+ 
+   useKeyboardHandler(
+@@ -31,6 +33,8 @@ export const useKeyboardAnimation = () => {
+       onStart: (e) => {
+         "worklet";
+ 
++        console.debug("kav-hook", "onStart", testId, e.height);
++
+         if (e.height > 0) {
+           isClosed.value = false;
+           heightWhenOpened.value = e.height;
+@@ -39,6 +43,8 @@ export const useKeyboardAnimation = () => {
+       onMove: (e) => {
+         "worklet";
+ 
++        console.debug("kav-hook", "onMove", testId, e.height, e.progress);
++
+         progress.value = e.progress;
+         height.value = e.height;
+       },
+@@ -51,13 +57,15 @@ export const useKeyboardAnimation = () => {
+       onEnd: (e) => {
+         "worklet";
+ 
++        console.debug("kav-hook", "onEnd", testId, e.height);
++
+         isClosed.value = e.height === 0;
+ 
+         height.value = e.height;
+         progress.value = e.progress;
+       },
+     },
+-    [],
++    [testId],
+   );
+ 
+   return { height, progress, heightWhenOpened, isClosed };
+diff --git a/node_modules/react-native-keyboard-controller/src/components/KeyboardAvoidingView/index.tsx b/node_modules/react-native-keyboard-controller/src/components/KeyboardAvoidingView/index.tsx
+index ba162c2..7bfed06 100644
+--- a/node_modules/react-native-keyboard-controller/src/components/KeyboardAvoidingView/index.tsx
++++ b/node_modules/react-native-keyboard-controller/src/components/KeyboardAvoidingView/index.tsx
+@@ -87,6 +87,7 @@ const KeyboardAvoidingView = forwardRef<
+       keyboardVerticalOffset = 0,
+       style,
+       onLayout: onLayoutProps,
++      testID,
+       ...props
+     },
+     ref,
+@@ -95,7 +96,7 @@ const KeyboardAvoidingView = forwardRef<
+     const frame = useDerivedValue(() => initialFrame.value || defaultLayout);
+ 
+     const { translate, padding } = useTranslateAnimation();
+-    const keyboard = useKeyboardAnimation();
++    const keyboard = useKeyboardAnimation(testID);
+     const { height: screenHeight } = useWindowDimensions();
+ 
+     const relativeKeyboardHeight = useCallback(() => {
+@@ -146,6 +147,9 @@ const KeyboardAvoidingView = forwardRef<
+       const bottom = interpolateToRelativeKeyboardHeight(
+         keyboard.progress.value,
+       );
++
++      console.log("kav-style", keyboard.progress.value, bottom);
++
+       const translateY = interpolateToRelativeKeyboardHeight(translate.value);
+       const paddingBottom = interpolateToRelativeKeyboardHeight(padding.value);
+       const height = frame.value.height - bottom;
