@@ -41,7 +41,7 @@ type AmountTextInputProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur' | 'disabled'>;
 
 function AmountTextInput({
     formattedAmount,
@@ -57,6 +57,7 @@ function AmountTextInput({
     hideFocusedState = true,
     shouldApplyPaddingToContainer = false,
     ref,
+    disabled,
     ...rest
 }: AmountTextInputProps) {
     return (
@@ -69,6 +70,7 @@ function AmountTextInput({
             textInputContainerStyles={containerStyle}
             onChangeText={onChangeAmount}
             ref={ref}
+            disabled={disabled}
             value={formattedAmount}
             placeholder={placeholder}
             inputMode={CONST.INPUT_MODE.DECIMAL}
