@@ -15,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -81,6 +82,7 @@ function IOURequestStepDistanceManual({
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const policy = usePolicy(report?.policyID);
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -105,7 +107,6 @@ function IOURequestStepDistanceManual({
         [iouType, defaultExpensePolicy],
     );
 
-    const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
     const distance = transaction?.comment?.customUnit?.quantity ? roundToTwoDecimalPlaces(transaction.comment.customUnit.quantity) : undefined;
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -207,7 +208,7 @@ function IOURequestStepDistanceManual({
                                 participant,
                             },
                             policyParams: {
-                                policy,
+                                policy: policyForMovingExpenses,
                             },
                             transactionParams: {
                                 amount: 0,
@@ -217,7 +218,12 @@ function IOURequestStepDistanceManual({
                                 merchant: translate('iou.fieldPending'),
                                 receipt: {},
                                 billable: false,
-                                customUnitRateID,
+                                customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({
+                                    reportID: report.reportID,
+                                    isTrackDistanceExpense: true,
+                                    policy: policyForMovingExpenses,
+                                    isPolicyExpenseChat: false,
+                                }),
                                 attendees: transaction?.comment?.attendees,
                             },
                             isASAPSubmitBetaEnabled,
@@ -308,12 +314,12 @@ function IOURequestStepDistanceManual({
             lastSelectedDistanceRates,
             backToReport,
             isASAPSubmitBetaEnabled,
-            customUnitRateID,
             navigateToConfirmationPage,
             defaultExpensePolicy,
             personalPolicy?.autoReporting,
             transactionViolations,
             currentUserPersonalDetails.accountID,
+            policyForMovingExpenses,
         ],
     );
 

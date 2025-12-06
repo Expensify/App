@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -91,6 +92,8 @@ function DistanceRequestStartPage({
     const navigateBack = () => {
         Navigation.closeRHPFlow();
     };
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
 
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
@@ -100,8 +103,9 @@ function DistanceRequestStartPage({
             }
             initMoneyRequest({
                 reportID,
-                policy,
+                policy: isTrackDistanceExpense ? policyForMovingExpenses : policy,
                 isFromGlobalCreate,
+                isTrackDistanceExpense,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
                 report,
@@ -111,7 +115,19 @@ function DistanceRequestStartPage({
                 currentUserPersonalDetails,
             });
         },
-        [transaction?.iouRequestType, reportID, policy, isFromGlobalCreate, report, parentReport, currentDate, lastSelectedDistanceRates, currentUserPersonalDetails],
+        [
+            transaction?.iouRequestType,
+            reportID,
+            policy,
+            isFromGlobalCreate,
+            report,
+            parentReport,
+            currentDate,
+            lastSelectedDistanceRates,
+            currentUserPersonalDetails,
+            isTrackDistanceExpense,
+            policyForMovingExpenses,
+        ],
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.

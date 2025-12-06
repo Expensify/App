@@ -2367,7 +2367,6 @@ export {
     createUnreportedExpenseSections,
     isDemoTransaction,
     shouldShowViolation,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
     getTransactionViolationsOfTransaction,
     isExpenseSplit,
     getAttendeesListDisplayString,
