@@ -119,7 +119,7 @@ import {
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
-    getRejectedReportMessage, 
+    getRejectedReportMessage,
     getReportName,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
@@ -455,7 +455,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
-            
+
             return (
                 !subscribed &&
                 !isWhisperAction &&
@@ -486,14 +486,14 @@ const ContextMenuActions: ContextMenuAction[] = [
         textTranslateKey: 'reportActionContextMenu.leaveThread',
         icon: Expensicons.Exit,
         shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction}) => {
-            const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);            
+            const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
             const subscribed = childReportNotificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
-            
+
             return (
                 subscribed &&
                 !isWhisperAction &&
