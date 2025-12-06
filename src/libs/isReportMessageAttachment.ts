@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {Message} from '@src/types/onyx/ReportAction';
 
@@ -19,19 +18,7 @@ function isReportMessageAttachment(message: Message | undefined): boolean {
         return message.text === CONST.ATTACHMENT_MESSAGE_TEXT && message.translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
     }
 
-    const hasAttachmentHtml = attachmentRegex.test(message.html);
-
-    if (!hasAttachmentHtml) {
-        return false;
-    }
-
-    const isAttachmentMessageText = message.text === CONST.ATTACHMENT_MESSAGE_TEXT;
-
-    if (isAttachmentMessageText) {
-        return true;
-    }
-
-    return Str.isVideo(message.text);
+    return attachmentRegex.test(message.html);
 }
 
 // eslint-disable-next-line import/prefer-default-export
