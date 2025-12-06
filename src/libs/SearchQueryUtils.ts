@@ -983,9 +983,13 @@ function getPolicyNameWithFallback(policyID: string, policies: OnyxCollection<On
     }
 
     // Fallback: find cached name from reports that reference this policy
-    const reportWithPolicyName = Object.values(reports ?? {}).find((report) => report?.policyID === policyID && (report?.policyName || report?.oldPolicyName));
+    if (!reports) {
+        return policyID;
+    }
 
-    return reportWithPolicyName?.policyName || reportWithPolicyName?.oldPolicyName || policyID;
+    const reportWithPolicyName = Object.values(reports).find((report) => report?.policyID === policyID && (report?.policyName ?? report?.oldPolicyName));
+
+    return reportWithPolicyName?.policyName ?? reportWithPolicyName?.oldPolicyName ?? policyID;
 }
 
 /**
