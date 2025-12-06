@@ -328,7 +328,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             Navigation.dismissModalWithReport({reportID: report.parentReportID});
             Navigation.isNavigationReady().then(() => {
                 const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-                leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+                leaveRoom(personalDetails, report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
             });
             return;
         }
@@ -336,13 +336,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             if (isRootGroupChat) {
-                leaveGroupChat(report.reportID, quickAction?.chatReportID?.toString() === report.reportID);
+                leaveGroupChat(personalDetails, report.reportID, quickAction?.chatReportID?.toString() === report.reportID);
                 return;
             }
             const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-            leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+            leaveRoom(personalDetails, report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isRootGroupChat, isPolicyEmployee, isChatThread, isPolicyAdmin, quickAction?.chatReportID, report]);
+    }, [isRootGroupChat, personalDetails, isPolicyEmployee, isChatThread, isPolicyAdmin, quickAction?.chatReportID, report]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;

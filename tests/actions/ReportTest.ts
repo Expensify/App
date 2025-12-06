@@ -220,8 +220,9 @@ describe('actions/Report', () => {
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT.reportID}`, REPORT_METADATA);
 
         return waitForBatchedUpdates()
-            .then(() => {
-                Report.clearCreateChatError(REPORT);
+            .then(async () => {
+                const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+                Report.clearCreateChatError(REPORT, allPersonalDetails);
                 return waitForBatchedUpdates();
             })
             .then(
@@ -371,7 +372,7 @@ describe('actions/Report', () => {
                 ]);
                 return waitForNetworkPromises();
             })
-            .then(() => {
+            .then(async () => {
                 // Then the report will be unread
                 expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(true);
 
@@ -380,7 +381,8 @@ describe('actions/Report', () => {
 
                 // When the user visits the report
                 currentTime = DateUtils.getDBTime();
-                Report.openReport(REPORT_ID);
+                const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+                Report.openReport(allPersonalDetails, REPORT_ID);
                 Report.readNewestAction(REPORT_ID);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();
@@ -551,7 +553,7 @@ describe('actions/Report', () => {
         // We should generate link
         let originalCommentMarkdown = 'Original Comment';
         let afterEditCommentText = 'Original Comment www.google.com';
-        let newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        let newCommentHTML = Report.handleUserDeletedLinksInHtml(undefined, afterEditCommentText, originalCommentMarkdown);
         let expectedOutput = 'Original Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -559,7 +561,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)';
         afterEditCommentText = 'Comment www.google.com';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(undefined, afterEditCommentText, originalCommentMarkdown);
         expectedOutput = 'Comment www.google.com';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -567,7 +569,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)';
         afterEditCommentText = 'Comment [www.google.com]';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(undefined, afterEditCommentText, originalCommentMarkdown);
         expectedOutput = 'Comment [www.google.com]';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -575,7 +577,7 @@ describe('actions/Report', () => {
         // We should generate both links
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'Comment www.google.com www.facebook.com';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(undefined, afterEditCommentText, originalCommentMarkdown);
         expectedOutput =
             'Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a> ' +
             '<a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
@@ -585,7 +587,7 @@ describe('actions/Report', () => {
         // Should not generate link again for the deleted one
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)  [www.facebook.com](https://www.facebook.com)';
         afterEditCommentText = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(undefined, afterEditCommentText, originalCommentMarkdown);
         expectedOutput = 'Comment www.google.com  <a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -593,7 +595,7 @@ describe('actions/Report', () => {
         // We should generate link
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(undefined, afterEditCommentText, originalCommentMarkdown);
         expectedOutput = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -601,7 +603,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = '[https://www.facebook.com/hashtag/__main/?__eep__=6](https://www.facebook.com/hashtag/__main/?__eep__=6)';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(undefined, afterEditCommentText, originalCommentMarkdown);
         expectedOutput = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -609,7 +611,7 @@ describe('actions/Report', () => {
         // We should generate link
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(undefined, afterEditCommentText, originalCommentMarkdown);
         expectedOutput = '<a href="http://example.com/foo/*/bar/*/test.txt" target="_blank" rel="noreferrer noopener">http://example.com/foo/*/bar/*/test.txt</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -617,7 +619,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = '[http://example.com/foo/*/bar/*/test.txt](http://example.com/foo/*/bar/*/test.txt)';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown);
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(undefined, afterEditCommentText, originalCommentMarkdown);
         expectedOutput = 'http://example.com/foo/*/bar/*/test.txt';
         expect(newCommentHTML).toBe(expectedOutput);
     });
@@ -864,8 +866,9 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
 
+        const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         for (let i = 0; i < 5; i++) {
-            Report.openReport(REPORT_ID, undefined, ['test@user.com'], {
+            Report.openReport(allPersonalDetails, REPORT_ID, undefined, ['test@user.com'], {
                 reportID: REPORT_ID,
             });
         }
@@ -920,7 +923,8 @@ describe('actions/Report', () => {
         expect(transaction).toBeTruthy();
 
         // Call openReport with transaction object to trigger the legacy preview flow
-        Report.openReport(CHILD_REPORT_ID, undefined, [], undefined, undefined, false, [], undefined, false, transaction ?? undefined, undefined, SELF_DM_ID);
+        const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        Report.openReport(allPersonalDetails, CHILD_REPORT_ID, undefined, [], undefined, undefined, false, [], undefined, false, transaction ?? undefined, undefined, SELF_DM_ID);
         await waitForBatchedUpdates();
 
         // Validate the correct Onyx key received the new action and existing one is preserved
@@ -959,12 +963,13 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
 
+        const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         for (let i = 0; i < 8; i++) {
             let reportID = REPORT_ID;
             if (i > 4) {
                 reportID = `${i}`;
             }
-            Report.openReport(reportID, undefined, ['test@user.com'], {
+            Report.openReport(allPersonalDetails, reportID, undefined, ['test@user.com'], {
                 reportID: REPORT_ID,
             });
         }
@@ -998,7 +1003,8 @@ describe('actions/Report', () => {
         };
 
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
-        Report.editReportComment(originalReport, newReportAction, ancestors.current, 'Testing an edited comment', undefined, undefined);
+        const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        Report.editReportComment(originalReport, newReportAction, ancestors.current, 'Testing an edited comment', undefined, undefined, allPersonalDetails);
 
         await waitForBatchedUpdates();
 
@@ -1080,7 +1086,8 @@ describe('actions/Report', () => {
         };
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
 
-        Report.editReportComment(originalReport, reportAction, ancestors.current, 'Testing an edited comment', undefined, undefined);
+        const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        Report.editReportComment(originalReport, reportAction, ancestors.current, 'Testing an edited comment', undefined, undefined, allPersonalDetails);
 
         await waitForBatchedUpdates();
 
@@ -1586,7 +1593,9 @@ describe('actions/Report', () => {
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
         const reportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
 
+        const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
         Report.openReport(
+            allPersonalDetails,
             REPORT_ID,
             undefined,
             ['test@user.com'],
@@ -1640,7 +1649,8 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, reportAction, [], 'Testing an edited comment', undefined, undefined);
+        const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        Report.editReportComment(originalReport, reportAction, [], 'Testing an edited comment', undefined, undefined, allPersonalDetails);
 
         await waitForBatchedUpdates();
 
@@ -1678,9 +1688,10 @@ describe('actions/Report', () => {
 
         const {result: ancestors} = renderHook(() => useAncestors(originalReport));
 
-        Report.editReportComment(originalReport, action, ancestors.current, 'value1', undefined, undefined);
-        Report.editReportComment(originalReport, action, ancestors.current, 'value2', undefined, undefined);
-        Report.editReportComment(originalReport, action, ancestors.current, 'value3', undefined, undefined);
+        const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        Report.editReportComment(originalReport, action, ancestors.current, 'value1', undefined, undefined, allPersonalDetails);
+        Report.editReportComment(originalReport, action, ancestors.current, 'value2', undefined, undefined, allPersonalDetails);
+        Report.editReportComment(originalReport, action, ancestors.current, 'value3', undefined, undefined, allPersonalDetails);
 
         const requests = PersistedRequests?.getAll();
 

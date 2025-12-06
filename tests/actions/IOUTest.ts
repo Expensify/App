@@ -4355,7 +4355,8 @@ describe('actions/IOU', () => {
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
 
             // When Opening a thread report with the given details
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            openReport(allPersonalDetails, thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
@@ -4446,7 +4447,8 @@ describe('actions/IOU', () => {
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
 
             // When Opening a thread report with the given details
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            openReport(allPersonalDetails, thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
@@ -4556,7 +4558,8 @@ describe('actions/IOU', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            openReport(allPersonalDetails, thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             Onyx.connect({
@@ -4657,7 +4660,8 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            openReport(allPersonalDetails, thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
 
             await waitForBatchedUpdates();
 
@@ -4924,7 +4928,8 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            openReport(allPersonalDetails, thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
@@ -8765,7 +8770,7 @@ describe('actions/IOU', () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+            writeSpy = jest.spyOn(API, 'write').mockImplementation((_command, _params, options) => {
                 // Apply optimistic data for testing
                 if (options?.optimisticData) {
                     for (const update of options.optimisticData) {
@@ -9031,7 +9036,7 @@ describe('actions/IOU', () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            writeSpy = jest.spyOn(API, 'write').mockImplementation((command, params, options) => {
+            writeSpy = jest.spyOn(API, 'write').mockImplementation((_command, _params, options) => {
                 // Apply optimistic data for testing
                 if (options?.optimisticData) {
                     for (const update of options.optimisticData) {

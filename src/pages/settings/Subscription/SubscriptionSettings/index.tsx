@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -63,6 +64,7 @@ function SubscriptionSettings() {
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
     });
     const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins.toString() : undefined;
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const onOptionSelected = (option: SubscriptionType) => {
         if (privateSubscription?.type !== option && isActingAsDelegate) {
@@ -246,7 +248,7 @@ function SubscriptionSettings() {
                     shouldShowRightIcon
                     onPress={() => {
                         requestTaxExempt();
-                        navigateToConciergeChat();
+                        navigateToConciergeChat(personalDetails);
                     }}
                     icon={Expensicons.Coins}
                     wrapperStyle={styles.sectionMenuItemTopDescription}

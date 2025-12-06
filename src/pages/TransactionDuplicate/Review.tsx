@@ -58,6 +58,7 @@ function TransactionDuplicateReview() {
                 .sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime()),
         [transactionIDs],
     );
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const [transactions] = useOnyx(
         ONYXKEYS.COLLECTION.TRANSACTION,
@@ -107,8 +108,8 @@ function TransactionDuplicateReview() {
         if (!route.params.threadReportID || report?.reportID) {
             return;
         }
-        openReport(route.params.threadReportID);
-    }, [report?.reportID, route.params.threadReportID]);
+        openReport(personalDetails, route.params.threadReportID);
+    }, [report?.reportID, route.params.threadReportID, personalDetails]);
 
     const isLoadingPage = (!report?.reportID && reportMetadata?.isLoadingInitialReportActions !== false) || !reportAction?.reportActionID;
 

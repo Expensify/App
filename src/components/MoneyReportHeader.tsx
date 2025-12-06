@@ -302,6 +302,7 @@ function MoneyReportHeader({
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
@@ -918,7 +919,7 @@ function MoneyReportHeader({
                         const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction, email ?? '', accountID, moneyRequestReport, policy));
                         const transactionID = duplicateTransaction?.transactionID;
                         const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                        const createdTransactionThreadReport = createTransactionThreadReport(moneyRequestReport, iouAction);
+                        const createdTransactionThreadReport = createTransactionThreadReport(personalDetails, moneyRequestReport, iouAction);
                         threadID = createdTransactionThreadReport?.reportID;
                     }
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));

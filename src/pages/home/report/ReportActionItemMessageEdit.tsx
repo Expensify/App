@@ -12,6 +12,7 @@ import type {TextSelection} from '@components/Composer/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
@@ -134,6 +135,7 @@ function ReportActionItemMessageEdit({
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const debouncedValidateCommentMaxLength = useMemo(() => lodashDebounce(validateCommentMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME), [validateCommentMaxLength]);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
@@ -311,9 +313,30 @@ function ReportActionItemMessageEdit({
             ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(originalReport, action, ancestors, trimmedNewDraft, isOriginalReportArchived, isOriginalParentReportArchived, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(
+            originalReport,
+            action,
+            ancestors,
+            trimmedNewDraft,
+            isOriginalReportArchived,
+            isOriginalParentReportArchived,
+            personalDetails,
+            Object.fromEntries(draftMessageVideoAttributeCache),
+        );
         deleteDraft();
-    }, [reportID, action, ancestors, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived, debouncedValidateCommentMaxLength]);
+    }, [
+        reportID,
+        action,
+        ancestors,
+        personalDetails,
+        deleteDraft,
+        draft,
+        originalReportID,
+        isOriginalReportArchived,
+        originalReport,
+        isOriginalParentReportArchived,
+        debouncedValidateCommentMaxLength,
+    ]);
 
     /**
      * @param emoji

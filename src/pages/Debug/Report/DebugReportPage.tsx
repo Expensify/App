@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -72,6 +73,7 @@ function DebugReportPage({
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
@@ -160,7 +162,7 @@ function DebugReportPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                 }}
                 onDelete={() => {
-                    navigateToConciergeChatAndDeleteReport(reportID, true, true);
+                    navigateToConciergeChatAndDeleteReport(personalDetails, reportID, true, true);
                 }}
                 validate={DebugUtils.validateReportDraftProperty}
             >
@@ -220,6 +222,7 @@ function DebugReportPage({
             theme.cardBG,
             transactionID,
             translate,
+            personalDetails,
         ],
     );
 

@@ -59,6 +59,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [message, setMessage] = useState(isTextShared ? (currentAttachment?.content ?? '') : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const ancestors = useAncestors(report);
@@ -138,6 +139,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             (file) => {
                 if (isDraft) {
                     openReport(
+                        personalDetails,
                         report.reportID,
                         '',
                         displayReport.participantsList?.filter((u) => u.accountID !== currentUserID).map((u) => u.login ?? '') ?? [],

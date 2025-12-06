@@ -602,7 +602,7 @@ function MoneyRequestReportActionsList({
         setIsFloatingMessageCounterVisible(false);
 
         if (!hasNewestReportAction) {
-            openReport(report.reportID);
+            openReport(personalDetails, report.reportID);
             reportScrollManager.scrollToEnd();
             return;
         }
@@ -610,7 +610,7 @@ function MoneyRequestReportActionsList({
         reportScrollManager.scrollToEnd();
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, personalDetails]);
 
     const scrollToNewTransaction = useCallback(
         (pageY: number) => {
