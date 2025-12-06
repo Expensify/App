@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -38,13 +37,12 @@ function NewChatSelectorPage() {
         setActiveTabContainerElement(activeTabElement ?? null);
     }, []);
 
-    // We're focusing the input using internal onPageSelected to fix input focus inconsistencies on native.
+    // We're focusing the input using internal onPageSelected to fix input focus inconsistencies.
     // More info: https://github.com/Expensify/App/issues/59388
     const onTabSelectFocusHandler = ({index}: {index: number}) => {
-        // We runAfterInteractions since the function is called in the animate block on web-based
-        // implementation, this fixes an animation glitch and matches the native internal delay
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
+        // We requestAnimationFrame since the function is called in the animate block in the web implementation
+        // which fixes a locked animation glitch when swiping between tabs, and aligns with the native implementation internal delay
+        requestAnimationFrame(() => {
             // Chat tab (0) / Room tab (1) according to OnyxTabNavigator (see below)
             if (index === 0) {
                 chatPageInputRef.current?.focus();
