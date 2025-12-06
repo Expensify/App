@@ -773,7 +773,7 @@ function Search({
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
         },
-        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, markReportIDAsExpense],
+        [isMobileSelectionModeEnabled, toggleTransaction, queryJSON, handleSearch, searchKey, markReportIDAsExpense, personalDetails],
     );
 
     const currentColumns = useMemo(() => {

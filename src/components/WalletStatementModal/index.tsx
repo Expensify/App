@@ -33,6 +33,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
                     height="100%"
                     width="100%"
                     seamless
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     frameBorder="0"
                     onLoad={() => {
                         setIsLoading(false);

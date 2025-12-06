@@ -1,4 +1,5 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {ChatBubble, Pencil, RotateLeft} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';

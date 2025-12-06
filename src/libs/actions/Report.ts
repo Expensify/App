@@ -3618,7 +3618,7 @@ function getCurrentUserEmail(): string | undefined {
     return currentUserEmail;
 }
 
-function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
+function navigateToMostRecentReport(allPersonalDetails: OnyxEntry<PersonalDetailsList>, currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
@@ -3632,7 +3632,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
             Navigation.goBack();
         }
 
-        navigateToConciergeChat(false, () => true, {forceReplace: true});
+        navigateToConciergeChat(allPersonalDetails, false, () => true, {forceReplace: true});
     }
 }
 
@@ -3654,7 +3654,7 @@ function joinRoom(report: OnyxEntry<Report>) {
     );
 }
 
-function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
+function leaveGroupChat(allPersonalDetails: OnyxEntry<PersonalDetailsList>, reportID: string, shouldClearQuickAction: boolean) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
@@ -3718,12 +3718,12 @@ function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
         },
     ];
 
-    navigateToMostRecentReport(report);
+    navigateToMostRecentReport(allPersonalDetails, report);
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
 
 /** Leave a report by setting the state to submitted and closed */
-function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
+function leaveRoom(allPersonalDetails: OnyxEntry<PersonalDetailsList>, reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (!report) {
@@ -3842,7 +3842,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report);
+    navigateToMostRecentReport(allPersonalDetails, report);
 }
 
 function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {

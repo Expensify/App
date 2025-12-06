@@ -1,6 +1,7 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
+// eslint-disable-next-line no-restricted-imports
 import {CompanyCardsPendingState} from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';

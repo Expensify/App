@@ -469,7 +469,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 throw error;
             }
         },
-        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue],
+        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, submitSearch, textInputValue, personalDetails],
     );
 
     const updateAutocompleteSubstitutions = useCallback(

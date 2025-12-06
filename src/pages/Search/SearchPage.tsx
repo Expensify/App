@@ -11,6 +11,7 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -232,7 +233,7 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         lastPrefetchKeyRef.current = key;
-    }, [bulkRejectHydrationStatus, isOffline]);
+    }, [bulkRejectHydrationStatus, isOffline, personalDetails]);
 
     // Allow retry on reconnect
     const prevIsOffline = usePrevious(isOffline);

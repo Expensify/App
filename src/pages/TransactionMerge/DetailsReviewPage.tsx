@@ -130,6 +130,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         setIsCheckingDataBeforeGoNext(false);
     }, [
+        personalDetails,
         isCheckingDataBeforeGoNext,
         targetTransactionThreadReportID,
         targetTransaction?.reportID,

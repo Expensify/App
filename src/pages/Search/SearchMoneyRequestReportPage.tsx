@@ -167,6 +167,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         const violations = allReportViolations[transaction.transactionID] ?? snapshotViolations;
         createTransactionThreadReport(personalDetails, report, undefined, transaction, violations);
     }, [
+        personalDetails,
         allReportTransactions,
         allReportViolations,
         report,

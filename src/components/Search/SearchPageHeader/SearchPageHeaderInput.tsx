@@ -318,7 +318,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 throw error;
             }
         },
-        [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue],
+        [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue, personalDetails],
     );
 
     const updateAutocompleteSubstitutions = useCallback(

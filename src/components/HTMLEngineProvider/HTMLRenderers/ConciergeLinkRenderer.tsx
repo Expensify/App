@@ -15,7 +15,7 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     const styles = useThemeStyles();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
-    // Define link style based on contextsa
+    // Define link style based on context
     let linkStyle: StyleProp<TextStyle> = styles.link;
 
     // Special handling for links in RBR to maintain consistent font size

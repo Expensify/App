@@ -64,7 +64,7 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
 
     const fetchReport = useCallback(() => {
         openReport(personalDetails, reportID, reportActionID);
-    }, [reportID, reportActionID]);
+    }, [reportID, reportActionID, personalDetails]);
 
     // Close the modal if user loses write access (e.g., admin switches "Who can post" to Admins only)
     useEffect(() => {

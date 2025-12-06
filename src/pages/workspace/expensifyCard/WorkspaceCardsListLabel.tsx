@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import {Info} from '@components/Icon/Expensicons';
 import Popover from '@components/Popover';
 import {PressableWithFeedback} from '@components/Pressable';

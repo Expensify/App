@@ -643,7 +643,7 @@ function ReportActionsList({
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo]);
+    }, [setIsFloatingMessageCounterVisible, personalDetails, hasNewestReportAction, reportScrollManager, report.reportID, backTo]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on

@@ -12,6 +12,7 @@ import type {TextSelection} from '@components/Composer/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
@@ -323,7 +324,19 @@ function ReportActionItemMessageEdit({
             Object.fromEntries(draftMessageVideoAttributeCache),
         );
         deleteDraft();
-    }, [reportID, action, ancestors, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived, debouncedValidateCommentMaxLength]);
+    }, [
+        reportID,
+        action,
+        ancestors,
+        personalDetails,
+        deleteDraft,
+        draft,
+        originalReportID,
+        isOriginalReportArchived,
+        originalReport,
+        isOriginalParentReportArchived,
+        debouncedValidateCommentMaxLength,
+    ]);
 
     /**
      * @param emoji

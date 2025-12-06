@@ -60,7 +60,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     const fetchReport = useCallback(() => {
         openReport(personalDetails, reportActionReportID, reportActionID);
-    }, [reportActionReportID, reportActionID]);
+    }, [reportActionReportID, reportActionID, personalDetails]);
 
     useEffect(() => {
         if (!reportActionReportID || !shouldFetchReport) {

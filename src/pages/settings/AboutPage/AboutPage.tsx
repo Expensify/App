@@ -122,7 +122,7 @@ function AboutPage() {
             shouldBlockSelection: !!link,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [icons.NewWindow, styles, translate, waitForNavigate]);
+    }, [icons.NewWindow, styles, translate, waitForNavigate, personalDetails]);
 
     const overlayContent = useCallback(
         () => (

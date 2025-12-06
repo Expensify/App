@@ -149,7 +149,7 @@ function ReportActionItemParentAction({
                 shouldDisableOpacity
                 errors={report?.errorFields?.createChatThread}
                 errorRowStyles={[styles.ml10, styles.mr2]}
-                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true)}
+                onClose={() => navigateToConciergeChatAndDeleteReport(personalDetails, report?.reportID, undefined, true)}
             >
                 {/* eslint-disable-next-line react-compiler/react-compiler */}
                 {ancestors.map((ancestor) => {
@@ -171,7 +171,7 @@ function ReportActionItemParentAction({
                             pendingAction={ancestorReport?.pendingFields?.addWorkspaceRoom ?? ancestorReport?.pendingFields?.createChat}
                             errors={ancestorReport?.errorFields?.addWorkspaceRoom ?? ancestorReport?.errorFields?.createChat}
                             errorRowStyles={[styles.ml10, styles.mr2]}
-                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID)}
+                            onClose={() => navigateToConciergeChatAndDeleteReport(personalDetails, ancestorReport.reportID)}
                         >
                             {shouldDisplayThreadDivider && (
                                 <ThreadDivider

@@ -109,7 +109,7 @@ function TransactionDuplicateReview() {
             return;
         }
         openReport(personalDetails, route.params.threadReportID);
-    }, [report?.reportID, route.params.threadReportID]);
+    }, [report?.reportID, route.params.threadReportID, personalDetails]);
 
     const isLoadingPage = (!report?.reportID && reportMetadata?.isLoadingInitialReportActions !== false) || !reportAction?.reportActionID;
 

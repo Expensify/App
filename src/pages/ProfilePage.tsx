@@ -7,6 +7,7 @@ import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -171,7 +172,7 @@ function ProfilePage({route}: ProfilePageProps) {
             result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, allPersonalDetails: personalDetails}));
         }
         return result;
-    }, [accountID, isCurrentUser, loginParams, report]);
+    }, [accountID, isCurrentUser, loginParams, report, personalDetails]);
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>

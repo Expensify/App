@@ -1,5 +1,6 @@
 import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -20,6 +21,7 @@ import {createAndOpenSearchTransactionThread, getColumnsToShow} from '@libs/Sear
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function TransactionGroupListExpanded<TItem extends ListItem>({
@@ -93,6 +95,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isExpenseReportType && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
         const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
@@ -112,7 +115,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
         const navigateToTransactionThread = () => {
             if (!transactionItem?.reportAction?.childReportID) {
-                createAndOpenSearchTransactionThread(transactionItem, backTo, transactionItem?.reportAction?.childReportID);
+                createAndOpenSearchTransactionThread(personalDetails, transactionItem, backTo, transactionItem?.reportAction?.childReportID);
                 return;
             }
             markReportIDAsExpense(reportID);

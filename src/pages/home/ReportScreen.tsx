@@ -512,7 +512,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
         createTransactionThreadReport(personalDetails, report, iouAction, currentReportTransaction.at(0));
-    }, [report, reportID]);
+    }, [report, reportID, personalDetails]);
 
     const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
     const isOnboardingCompleted = onboarding?.hasCompletedGuidedSetupFlow ?? false;
@@ -551,6 +551,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         reportMetadata.isOptimisticReport,
         report,
         isOffline,
+        personalDetails,
         transactionThreadReportID,
         transactionThreadReport,
         reportIDFromRoute,
@@ -890,7 +891,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // For legacy transactions, pass undefined as IOU action and the transaction object
         // It will be created optimistically and in the backend when call openReport
         createTransactionThreadReport(personalDetails, report, undefined, transaction);
-    }, [report, visibleTransactions, transactionThreadReport, transactionThreadReportID, reportID, route.name]);
+    }, [report, visibleTransactions, transactionThreadReport, transactionThreadReportID, reportID, route.name, personalDetails]);
 
     const lastRoute = usePrevious(route);
 

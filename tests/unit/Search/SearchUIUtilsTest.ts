@@ -2790,10 +2790,10 @@ describe('SearchUIUtils', () => {
         test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread({}, transactionListItem, backTo, threadReportID, undefined, false);
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, {reportActionID: transactionListItem.moneyRequestReportActionID}, undefined, undefined);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith({}, report1, {reportActionID: transactionListItem.moneyRequestReportActionID}, undefined, undefined);
         });
 
         test('Should create transaction thread report for legacy transactions without IOU action (moneyRequestReportActionID = "0")', () => {
@@ -2805,7 +2805,7 @@ describe('SearchUIUtils', () => {
                 moneyRequestReportActionID: '0',
             };
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(legacyTransactionItem, backTo, undefined, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread({}, legacyTransactionItem, backTo, undefined, undefined, false);
 
             // Extract the transaction by removing UI-specific and search-specific fields
             const {
@@ -2835,16 +2835,16 @@ describe('SearchUIUtils', () => {
 
             // For legacy transactions (moneyRequestReportActionID = '0'), should pass transaction and violations
             // reportActionID will be undefined since there's no IOU action
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report, {reportActionID: undefined}, expect.objectContaining(expectedTransaction), violations);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith({}, report, {reportActionID: undefined}, expect.objectContaining(expectedTransaction), violations);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread({}, transactionListItem, backTo, threadReportID, undefined, false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         test('Should handle navigation if shouldNavigate = true', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, true);
+            SearchUIUtils.createAndOpenSearchTransactionThread({}, transactionListItem, backTo, threadReportID, undefined, true);
             // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
             // instead of the transaction thread report
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
