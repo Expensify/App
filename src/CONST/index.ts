@@ -6823,7 +6823,7 @@ const CONST = {
             BEFORE_PREFIX: 'reportFieldBefore-',
         },
         TAG_EMPTY_VALUE: 'none',
-        CATEGORY_EMPTY_VALUE: 'none,Uncategorized',
+        CATEGORY_EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
             CONTEXTUAL_SUGGESTION: 'contextualSuggestion',
             AUTOCOMPLETE_SUGGESTION: 'autocompleteSuggestion',
