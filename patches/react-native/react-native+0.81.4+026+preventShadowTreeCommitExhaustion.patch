@@ -1,0 +1,65 @@
+diff --git a/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlags.cpp b/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlags.cpp
+index 667aec1..5cd9376 100644
+--- a/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlags.cpp
++++ b/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlags.cpp
+@@ -215,7 +215,7 @@ double ReactNativeFeatureFlags::preparedTextCacheSize() {
+ }
+ 
+ bool ReactNativeFeatureFlags::preventShadowTreeCommitExhaustion() {
+-  return getAccessor().preventShadowTreeCommitExhaustion();
++  return true;
+ }
+ 
+ bool ReactNativeFeatureFlags::traceTurboModulePromiseRejectionsOnAndroid() {
+diff --git a/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsAccessor.cpp b/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsAccessor.cpp
+index d3b0351..8d6c090 100644
+--- a/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsAccessor.cpp
++++ b/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsAccessor.cpp
+@@ -876,6 +876,7 @@ double ReactNativeFeatureFlagsAccessor::preparedTextCacheSize() {
+ }
+ 
+ bool ReactNativeFeatureFlagsAccessor::preventShadowTreeCommitExhaustion() {
++    return true;
+   auto flagValue = preventShadowTreeCommitExhaustion_.load();
+ 
+   if (!flagValue.has_value()) {
+diff --git a/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h b/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h
+index e0742c9..a5cd8cf 100644
+--- a/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h
++++ b/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h
+@@ -216,7 +216,7 @@ class ReactNativeFeatureFlagsDefaults : public ReactNativeFeatureFlagsProvider {
+   }
+ 
+   bool preventShadowTreeCommitExhaustion() override {
+-    return false;
++    return true;
+   }
+ 
+   bool traceTurboModulePromiseRejectionsOnAndroid() override {
+diff --git a/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDynamicProvider.h b/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDynamicProvider.h
+index f5c85f5..731aa2f 100644
+--- a/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDynamicProvider.h
++++ b/node_modules/react-native/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDynamicProvider.h
+@@ -474,7 +474,7 @@ class ReactNativeFeatureFlagsDynamicProvider : public ReactNativeFeatureFlagsDef
+       return value.getBool();
+     }
+ 
+-    return ReactNativeFeatureFlagsDefaults::preventShadowTreeCommitExhaustion();
++    return true;
+   }
+ 
+   bool traceTurboModulePromiseRejectionsOnAndroid() override {
+diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/featureflags/NativeReactNativeFeatureFlags.cpp b/node_modules/react-native/ReactCommon/react/nativemodule/featureflags/NativeReactNativeFeatureFlags.cpp
+index 1e9e0ff..71b54d7 100644
+--- a/node_modules/react-native/ReactCommon/react/nativemodule/featureflags/NativeReactNativeFeatureFlags.cpp
++++ b/node_modules/react-native/ReactCommon/react/nativemodule/featureflags/NativeReactNativeFeatureFlags.cpp
+@@ -281,7 +281,7 @@ double NativeReactNativeFeatureFlags::preparedTextCacheSize(
+ 
+ bool NativeReactNativeFeatureFlags::preventShadowTreeCommitExhaustion(
+     jsi::Runtime& /*runtime*/) {
+-  return ReactNativeFeatureFlags::preventShadowTreeCommitExhaustion();
++  return true;
+ }
+ 
+ bool NativeReactNativeFeatureFlags::traceTurboModulePromiseRejectionsOnAndroid(
+diff
