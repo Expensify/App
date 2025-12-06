@@ -1,11 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,6 +14,7 @@ function SessionExpiredPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
     const illustrations = useMemoizedLazyIllustrations(['RocketBlue'] as const);
 
     return (
@@ -48,7 +47,7 @@ function SessionExpiredPage() {
                     width={154}
                     height={34}
                     fill={theme.success}
-                    src={Expensicons.ExpensifyWordmark}
+                    src={icons.ExpensifyWordmark}
                 />
             </View>
         </View>
