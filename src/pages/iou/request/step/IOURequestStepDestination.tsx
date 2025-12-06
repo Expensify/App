@@ -94,7 +94,7 @@ function IOURequestStepDestination({
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, accountID);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
-                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '');
+                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
             setCustomUnitRateID(transactionID, destination.keyForList ?? '');
             setMoneyRequestCurrency(transactionID, destination.currency);

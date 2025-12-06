@@ -365,7 +365,7 @@ function IOURequestStepConfirmation({
                 if (existingCategory) {
                     const isExistingCategoryEnabled = policyCategories?.[existingCategory]?.enabled;
                     if (isExistingCategoryEnabled) {
-                        setMoneyRequestCategory(item.transactionID, existingCategory, policy?.id);
+                        setMoneyRequestCategory(item.transactionID, existingCategory, policy);
                     }
                 }
                 continue;
@@ -373,7 +373,7 @@ function IOURequestStepConfirmation({
         }
         // We don't want to clear out category every time the transactions change
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [policy?.id, policyCategories, transactionsCategories]);
+    }, [policy, policyCategories, transactionsCategories]);
 
     const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
     const defaultCategory = policyDistance?.defaultCategory ?? '';
@@ -383,11 +383,11 @@ function IOURequestStepConfirmation({
             if (!isDistanceRequest || !!item?.category) {
                 continue;
             }
-            setMoneyRequestCategory(item.transactionID, defaultCategory, policy?.id);
+            setMoneyRequestCategory(item.transactionID, defaultCategory, policy);
         }
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [transactionIDs, requestType, defaultCategory, policy?.id]);
+    }, [transactionIDs, requestType, defaultCategory, policy]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
