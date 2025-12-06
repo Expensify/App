@@ -37,7 +37,7 @@ type AttachmentCarouselPagerContextValue = {
     isScrollEnabled: SharedValue<boolean>;
 
     /** Function to call after a tap event */
-    onTap?: () => void;
+    onTap?: (shouldShowArrows?: boolean) => void;
 
     /** Function to call when the scale changes */
     onScaleChanged?: (scale: number) => void;

@@ -140,7 +140,7 @@ function AttachmentView({
     const {updateCurrentURLAndReportID, currentlyPlayingURL, playVideo} = usePlaybackContext();
 
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
-    const {onAttachmentError} = attachmentCarouselPagerContext ?? {};
+    const {onAttachmentError, onTap} = attachmentCarouselPagerContext ?? {};
     const theme = useTheme();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const styles = useThemeStyles();
@@ -365,6 +365,7 @@ function AttachmentView({
                 isHovered={isHovered}
                 duration={duration}
                 reportID={reportID}
+                onTap={onTap}
             />
         );
     }
