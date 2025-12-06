@@ -23,7 +23,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {
     checkIfFeedConnectionIsBroken,
-    filterInactiveCards,
     flatAllCardsList,
     getBankName,
     getCardFeedIcon,
@@ -81,9 +80,8 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const currentFeedData = companyFeeds?.[selectedFeed];
     const bankName = plaidUrl && formattedFeedName ? formattedFeedName : getBankName(feed);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeedData);
-    const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`]);
     const hasFeedError = !!cardFeeds?.[selectedFeed]?.errors;
-    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
+    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed) || hasFeedError;
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
 
@@ -140,7 +138,6 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                     shouldChangeLayout={shouldChangeLayout}
                     feedName={formattedFeedName}
                     supportingText={supportingText}
-                    shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed)}
                 />
                 <View style={[styles.flexRow, styles.gap2]}>
                     {!!shouldShowAssignCardButton && (
