@@ -1388,7 +1388,7 @@ function createAndOpenSearchTransactionThread(
     shouldNavigate = true,
 ) {
     const iouReportAction = getIOUActionForReportID(item.reportID, item.transactionID);
-    const moneyRequestReportActionID = item.moneyRequestReportActionID !== '0' ? item.moneyRequestReportActionID : undefined;
+    const moneyRequestReportActionID = item.reportAction?.reportActionID ?? undefined;
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
@@ -2651,7 +2651,6 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
         isTaxAmountColumnWide,
         violations,
         hash,
-        moneyRequestReportActionID,
         canDelete,
         accountID,
         policyID,
