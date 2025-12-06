@@ -109,8 +109,8 @@ import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    Beta,
     BankAccountList,
+    Beta,
     CardFeeds,
     DuplicateWorkspace,
     IntroSelected,
@@ -837,7 +837,16 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
 
         const nextStepKey: `${typeof ONYXKEYS.COLLECTION.NEXT_STEP}${string}` = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`;
         const currentNextStep: OnyxEntry<ReportNextStepDeprecated> | null = resolvedReportNextSteps[nextStepKey] ?? null;
-        const hasViolations = ReportUtils.hasViolations(reportID, resolvedTransactionViolations);
+        const hasViolations = ReportUtils.hasViolations(
+            reportID,
+            resolvedTransactionViolations,
+            sessionAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            sessionEmail ?? '',
+            undefined,
+            undefined,
+            report,
+            updatedPolicy,
+        );
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStep = buildNextStepNew({
             report,
