@@ -4946,31 +4946,22 @@ function deleteAppReport(reportID: string | undefined, currentUserEmailParam: st
             },
         );
 
+        // The backend already returns the real Self DM data which will be merged into Onyx.
         successData.push(
             {
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`,
-                value: {
-                    pendingFields: {
-                        createChat: null,
-                    },
-                },
+                value: null,
             },
             {
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${selfDMReport.reportID}`,
-                value: {
-                    isOptimisticReport: false,
-                },
+                value: null,
             },
             {
-                onyxMethod: Onyx.METHOD.MERGE,
+                onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
-                value: {
-                    [createdAction.reportActionID]: {
-                        pendingAction: null,
-                    },
-                },
+                value: null,
             },
         );
     }
@@ -5205,7 +5196,6 @@ function deleteAppReport(reportID: string | undefined, currentUserEmailParam: st
                 [reportActionID]: {
                     pendingAction: null,
                     errors: null,
-                    shouldShow: false,
                 },
             },
         });
