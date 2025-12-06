@@ -4908,7 +4908,7 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
 
     if (isOnHold) {
         if (reportAction.childReportID) {
-            unholdRequest(transactionID, reportAction.childReportID);
+            unholdRequest(transactionID, reportAction.childReportID, currentUserAccountID);
         } else {
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }

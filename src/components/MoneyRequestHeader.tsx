@@ -215,7 +215,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     if (!transaction?.transactionID) {
                         return;
                     }
-                    markRejectViolationAsResolved(transaction?.transactionID, reportID);
+                    markRejectViolationAsResolved(transaction?.transactionID, accountID, reportID);
                 }}
                 text={translate('iou.reject.markAsResolved')}
             />
