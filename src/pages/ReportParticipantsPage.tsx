@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TextInput} from 'react-native';
@@ -36,8 +37,8 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
 import {
+    getReportName,
     getReportPersonalDetailsParticipants,
     isArchivedNonExpenseReport,
     isChatRoom,
@@ -80,6 +81,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = useMemo(() => isGroupChatUtils(report), [report]);
@@ -415,7 +417,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal
