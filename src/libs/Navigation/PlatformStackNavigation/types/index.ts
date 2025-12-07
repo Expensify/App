@@ -14,8 +14,6 @@ import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navig
 import type CommonProperties from '@src/types/utils/CommonProperties';
 import type {PlatformStackNavigationOptions} from './NavigationOptions';
 
-// ScreenOptionsOrCallback is no longer exported from @react-navigation/native in v7.13.5+
-// Define it locally - using a simplified version that accepts any function returning ScreenOptions
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenOptionsOrCallback<ScreenOptions extends object> = ScreenOptions | ((props: any) => ScreenOptions);
 
