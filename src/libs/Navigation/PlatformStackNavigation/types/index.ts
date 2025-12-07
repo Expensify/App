@@ -14,7 +14,7 @@ import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navig
 import type CommonProperties from '@src/types/utils/CommonProperties';
 import type {PlatformStackNavigationOptions} from './NavigationOptions';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-restricted-types
 type ScreenOptionsOrCallback<ScreenOptions extends object> = ScreenOptions | ((props: any) => ScreenOptions);
 
 // Represents the navigation state type for a platform-specific stack.
