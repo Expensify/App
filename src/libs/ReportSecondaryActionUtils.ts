@@ -276,7 +276,7 @@ function isUnapproveAction(currentUserLogin: string, report: Report, policy?: Po
     return isReportApprover;
 }
 
-function isCancelPaymentAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+function isCancelPaymentAction(currentAccountID: number, currentUserEmail: string, report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (!isExpenseReport) {
@@ -284,7 +284,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = isPayerUtils(getSession(), report, false, policy);
+    const isPayer = isPayerUtils(currentAccountID, currentUserEmail, report, false, policy);
 
     if (!isAdmin || !isPayer) {
         return false;
@@ -317,7 +317,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
-function isExportAction(report: Report, policy?: Policy): boolean {
+function isExportAction(currentAccountID: number, currentUserEmail: string, report: Report, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -341,7 +341,7 @@ function isExportAction(report: Report, policy?: Policy): boolean {
     }
 
     const isReportApproved = isReportApprovedUtils({report});
-    const isReportPayer = isPayerUtils(getSession(), report, false, policy);
+    const isReportPayer = isPayerUtils(currentAccountID, currentUserEmail, report, false, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportClosed = isClosedReportUtils(report);
 
@@ -359,7 +359,7 @@ function isExportAction(report: Report, policy?: Policy): boolean {
     return isAdmin && isReportFinished && syncEnabled;
 }
 
-function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
+function isMarkAsExportedAction(currentAccountID: number, currentUserEmail: string, report: Report, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -382,7 +382,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
         return false;
     }
 
-    const isReportPayer = isPayerUtils(getSession(), report, false, policy);
+    const isReportPayer = isPayerUtils(currentAccountID, currentUserEmail, report, false, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -687,7 +687,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
 
-    if (isCancelPaymentAction(report, reportTransactions, policy)) {
+    if (isCancelPaymentAction(currentUserAccountID, currentUserEmail, report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
@@ -743,13 +743,19 @@ function getSecondaryReportActions({
     return options;
 }
 
-function getSecondaryExportReportActions(report: Report, policy?: Policy, exportTemplates: ExportTemplate[] = []): Array<ValueOf<string>> {
+function getSecondaryExportReportActions(
+    currentUserAccountID: number,
+    currentUserEmail: string,
+    report: Report,
+    policy?: Policy,
+    exportTemplates: ExportTemplate[] = [],
+): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
-    if (isExportAction(report, policy)) {
+    if (isExportAction(currentUserAccountID, currentUserEmail, report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
 
-    if (isMarkAsExportedAction(report, policy)) {
+    if (isMarkAsExportedAction(currentUserAccountID, currentUserEmail, report, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
     }
 
