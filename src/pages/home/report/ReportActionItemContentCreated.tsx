@@ -216,7 +216,7 @@ export default memo(
     ReportActionItemContentCreated,
     (prevProps, nextProps) =>
         prevProps.contextValue === nextProps.contextValue &&
-        prevProps.parentReport === nextProps.parentReport &&
+        prevProps.parentReportAction === nextProps.parentReportAction &&
         prevProps.transactionID === nextProps.transactionID &&
         prevProps.draftMessage === nextProps.draftMessage &&
         prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine,
