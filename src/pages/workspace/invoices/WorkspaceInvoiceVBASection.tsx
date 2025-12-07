@@ -120,8 +120,8 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
         setShouldShowDefaultDeleteMenu(false);
     }, [setShouldShowDefaultDeleteMenu]);
 
-    const deletePaymentMethod = useCallback(async () => {
-        const result = await showConfirmModal({
+    const deletePaymentMethod = useCallback(() => {
+        showConfirmModal({
             danger: true,
             title: translate('walletPage.deleteAccount'),
             prompt: translate('walletPage.deleteConfirmation'),
@@ -129,17 +129,17 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
             onModalHide: resetSelectedPaymentMethodData,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
+            if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
+                deletePaymentBankAccount(bankAccountID);
+            }
+            hideDefaultDeleteMenu();
         });
-
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
-        }
-
-        const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
-        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
-            deletePaymentBankAccount(bankAccountID);
-        }
-        hideDefaultDeleteMenu();
     }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethodType, showConfirmModal, translate, resetSelectedPaymentMethodData, hideDefaultDeleteMenu]);
 
     const makeDefaultPaymentMethod = useCallback(() => {

@@ -119,20 +119,18 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
             CurrentStep = (
                 <PlaidConnectionStep
-                    onExit={async () => {
-                        const result = await showConfirmModal({
+                    onExit={() => {
+                        showConfirmModal({
                             success: true,
                             title: translate('workspace.companyCards.addNewCard.exitModal.title'),
                             prompt: translate('workspace.companyCards.addNewCard.exitModal.prompt'),
                             confirmText: translate('workspace.companyCards.addNewCard.exitModal.confirmText'),
                             cancelText: translate('workspace.companyCards.addNewCard.exitModal.cancelText'),
+                        }).then((result) => {
+                            if (result.action === ModalActions.CONFIRM) {
+                                navigateToConciergeChat();
+                            }
                         });
-
-                        if (result.action === ModalActions.CONFIRM) {
-                            navigateToConciergeChat();
-                        }
-
-                        return;
                     }}
                 />
             );

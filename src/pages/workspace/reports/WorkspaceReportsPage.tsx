@@ -82,24 +82,23 @@ function WorkspaceReportFieldsPage({
 
     const illustrations = useMemoizedLazyIllustrations(['ReportReceipt'] as const);
 
-    const onDisabledOrganizeSwitchPress = useCallback(async () => {
+    const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnections) {
             return;
         }
 
-        const result = await showConfirmModal({
+        showConfirmModal({
             title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
             prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
             confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
             cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM || !policyID) {
+                return;
+            }
+
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
         });
-
-        if (result.action !== ModalActions.CONFIRM || !policyID) {
-            return;
-        }
-
-        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
-        return;
     }, [hasAccountingConnections, showConfirmModal, translate, policyID]);
 
     const fetchReportFields = useCallback(() => {
@@ -269,22 +268,22 @@ function WorkspaceReportFieldsPage({
                                 subtitle={getHeaderText()}
                                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                                 isActive={!!policy?.areReportFieldsEnabled}
-                                onToggle={async (isEnabled) => {
+                                onToggle={(isEnabled) => {
                                     if (!isEnabled) {
-                                        const result = await showConfirmModal({
+                                        showConfirmModal({
                                             danger: true,
                                             title: translate('workspace.reportFields.disableReportFields'),
                                             prompt: translate('workspace.reportFields.disableReportFieldsConfirmation'),
                                             confirmText: translate('common.disable'),
                                             cancelText: translate('common.cancel'),
-                                        });
+                                        }).then((result) => {
+                                            if (result.action !== ModalActions.CONFIRM || !policyID) {
+                                                return;
+                                            }
 
-                                        if (result.action !== ModalActions.CONFIRM || !policyID) {
+                                            enablePolicyReportFields(policyID, false);
                                             return;
-                                        }
-
-                                        enablePolicyReportFields(policyID, false);
-                                        return;
+                                        });
                                     }
                                     if (!isControlPolicy(policy)) {
                                         Navigation.navigate(
@@ -293,7 +292,6 @@ function WorkspaceReportFieldsPage({
                                         return;
                                     }
                                     enablePolicyReportFields(policyID, isEnabled);
-                                    return;
                                 }}
                                 disabled={hasAccountingConnections}
                                 disabledAction={onDisabledOrganizeSwitchPress}

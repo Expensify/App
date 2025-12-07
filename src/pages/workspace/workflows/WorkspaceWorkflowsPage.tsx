@@ -174,10 +174,13 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         return approvalWorkflows.filter((workflow) => workflow.isDefault);
     }, [policy?.approvalMode, approvalWorkflows]);
 
-    const updateWorkspaceCurrencyPrompt = (
-        <View style={[styles.renderHTML, styles.flexRow]}>
-            <RenderHTML html={translate('workspace.bankAccount.yourWorkspace')} />
-        </View>
+    const updateWorkspaceCurrencyPrompt = useMemo(
+        () => (
+            <View style={[styles.renderHTML, styles.flexRow]}>
+                <RenderHTML html={translate('workspace.bankAccount.yourWorkspace')} />
+            </View>
+        ),
+        [],
     );
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);

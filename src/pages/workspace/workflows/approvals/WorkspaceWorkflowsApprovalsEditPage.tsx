@@ -60,28 +60,28 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         });
     }, [approvalWorkflow, initialApprovalWorkflow, policy]);
 
-    const removeApprovalWorkflowCallback = useCallback(async () => {
+    const removeApprovalWorkflowCallback = useCallback(() => {
         if (!initialApprovalWorkflow) {
             return;
         }
 
-        const result = await showConfirmModal({
+        showConfirmModal({
             danger: true,
             title: translate('workflowsEditApprovalsPage.deleteTitle'),
             prompt: translate('workflowsEditApprovalsPage.deletePrompt'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-        });
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
 
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
-        }
-
-        Navigation.dismissModal();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            // Remove the approval workflow using the initial data as it could be already edited
-            removeApprovalWorkflow(initialApprovalWorkflow, policy);
+            Navigation.dismissModal();
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                // Remove the approval workflow using the initial data as it could be already edited
+                removeApprovalWorkflow(initialApprovalWorkflow, policy);
+            });
         });
     }, [initialApprovalWorkflow, policy, showConfirmModal, translate]);
 
