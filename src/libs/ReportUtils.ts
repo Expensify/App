@@ -160,6 +160,7 @@ import {
     isPaidGroupPolicy as isPaidGroupPolicyPolicyUtils,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyAuditor,
+    isPolicyMember,
     isPolicyOwner,
     isSubmitAndClose,
     shouldShowPolicy,
@@ -11048,7 +11049,7 @@ function isAdminOwnerApproverOrReportOwner(report: OnyxEntry<Report>, policy: On
 /**
  * Whether the user can join a report
  */
-function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>, policy: OnyxInputOrEntry<Policy>, isReportArchived = false): boolean {
+function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>, policy: OnyxEntry<Policy>, isReportArchived = false): boolean {
     // We disabled thread functions for whisper action
     // So we should not show join option for existing thread on whisper message that has already been left, or manually leave it
     if (isWhisperAction(parentReportAction)) {
@@ -11068,6 +11069,11 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxInputOrE
 
     // The user who is a member of the workspace has already joined the public announce room.
     if (isPublicAnnounceRoom(report) && !isEmptyObject(policy)) {
+        return false;
+    }
+
+    // For restricted visibility rooms, the user must be a workspace member to join
+    if (isUserCreatedPolicyRoom(report) && report?.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && !isPolicyMember(policy, currentUserEmail)) {
         return false;
     }
 
