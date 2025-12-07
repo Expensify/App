@@ -66,6 +66,7 @@ import {
     getParticipantsList,
     getReportDescription,
     getReportFieldKey,
+    getReportName,
     isAdminOwnerApproverOrReportOwner,
     isArchivedNonExpenseReport,
     isCanceledTaskReport as isCanceledTaskReportUtil,
