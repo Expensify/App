@@ -654,7 +654,7 @@ function getSecondaryReportActions({
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    if (isPrimaryPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID)) {
+    if (isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 

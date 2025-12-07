@@ -74,12 +74,12 @@ function canApprove(report: Report, currentUserAccountID: number, policy?: Polic
     return isExpense && isProcessing && !!isApprovalEnabled && reportTransactions.length > 0 && isCurrentUserManager;
 }
 
-function canPay(report: Report, isReportArchived: boolean, currentUserAccountID: number, policy?: Policy, invoiceReceiverPolicy?: Policy) {
+function canPay(report: Report, isReportArchived: boolean, currentUserAccountID: number, currentUserEmail: string, policy?: Policy, invoiceReceiverPolicy?: Policy) {
     if (isReportArchived) {
         return false;
     }
 
-    const isReportPayer = isPayer(getSession(), report, false, policy);
+    const isReportPayer = isPayer(currentUserAccountID, currentUserEmail, report, false, policy);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
@@ -152,6 +152,7 @@ function canExport(report: Report, policy?: Policy) {
 function getReportPreviewAction(
     isReportArchived: boolean,
     currentUserAccountID: number,
+    currentUserEmail: string,
     report: Report | undefined,
     policy: Policy | undefined,
     transactions: Transaction[],
@@ -183,7 +184,7 @@ function getReportPreviewAction(
     if (canApprove(report, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, isReportArchived, currentUserAccountID, policy, invoiceReceiverPolicy)) {
+    if (canPay(report, isReportArchived, currentUserAccountID, currentUserEmail, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
     if (canExport(report, policy)) {

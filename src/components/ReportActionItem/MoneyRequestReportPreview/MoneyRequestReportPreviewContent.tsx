@@ -492,6 +492,7 @@ function MoneyRequestReportPreviewContent({
         return getReportPreviewAction(
             isIouReportArchived || isChatReportArchived,
             currentUserDetails.accountID,
+            currentUserDetails.email ?? '',
             iouReport,
             policy,
             transactions,
