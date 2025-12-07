@@ -251,7 +251,7 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
  * @returns true if merchant is required and missing, false otherwise
  */
 function shouldRequireMerchant(transaction: OnyxInputOrEntry<Transaction> | undefined, report: OnyxInputOrEntry<Report> | undefined, isEditingSplitBill = false): boolean {
-    if (!transaction || !report) {
+    if (!transaction) {
         return false;
     }
 

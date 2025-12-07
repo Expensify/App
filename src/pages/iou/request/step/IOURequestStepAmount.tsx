@@ -292,6 +292,10 @@ function IOURequestStepAmount({
                 const chatReportID = selectedReport?.chatReportID ?? iouReportID;
 
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    if (shouldRequireMerchant(transaction, selectedReport, isEditingSplitBill)) {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, chatReportID, undefined, reportActionID));
+                        return;
+                    }
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, navigationIOUType, transactionID, chatReportID));
                 });
             } else {
