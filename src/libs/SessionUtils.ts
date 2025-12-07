@@ -35,7 +35,7 @@ let currentSession: OnyxEntry<OnyxTypes.Session>;
 
 // To tell if the user logged in during this session we will check the value of session.authToken once when the app's JS inits. When the user logs out
 // we can reset this flag so that it can be updated again.
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
         currentSession = session;
