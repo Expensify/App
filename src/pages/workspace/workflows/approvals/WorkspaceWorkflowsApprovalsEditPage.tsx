@@ -3,12 +3,13 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ScrollView} from 'react-native';
 import {InteractionManager} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,10 +35,10 @@ type WorkspaceWorkflowsApprovalsEditPageProps = WithPolicyAndFullscreenLoadingPr
 function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsEditPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [initialApprovalWorkflow, setInitialApprovalWorkflow] = useState<ApprovalWorkflow | undefined>();
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const formRef = useRef<ScrollView>(null);
 
     const updateApprovalWorkflowCallback = useCallback(() => {
@@ -59,19 +60,30 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         });
     }, [approvalWorkflow, initialApprovalWorkflow, policy]);
 
-    const removeApprovalWorkflowCallback = useCallback(() => {
+    const removeApprovalWorkflowCallback = useCallback(async () => {
         if (!initialApprovalWorkflow) {
             return;
         }
 
-        setIsDeleteModalVisible(false);
+        const result = await showConfirmModal({
+            danger: true,
+            title: translate('workflowsEditApprovalsPage.deleteTitle'),
+            prompt: translate('workflowsEditApprovalsPage.deletePrompt'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+        });
+
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
         Navigation.dismissModal();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             // Remove the approval workflow using the initial data as it could be already edited
             removeApprovalWorkflow(initialApprovalWorkflow, policy);
         });
-    }, [initialApprovalWorkflow, policy]);
+    }, [initialApprovalWorkflow, policy, showConfirmModal, translate]);
 
     const {currentApprovalWorkflow, defaultWorkflowMembers, usedApproverEmails} = useMemo(() => {
         if (!policy || !personalDetails) {
@@ -143,7 +155,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                         <>
                             <ApprovalWorkflowEditor
                                 approvalWorkflow={approvalWorkflow}
-                                removeApprovalWorkflow={() => setIsDeleteModalVisible(true)}
+                                removeApprovalWorkflow={removeApprovalWorkflowCallback}
                                 policy={policy}
                                 policyID={route.params.policyID}
                                 ref={formRef}
@@ -162,16 +174,6 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                     )}
                     {!initialApprovalWorkflow && <FullScreenLoadingIndicator />}
                 </FullPageNotFoundView>
-                <ConfirmModal
-                    title={translate('workflowsEditApprovalsPage.deleteTitle')}
-                    isVisible={isDeleteModalVisible}
-                    onConfirm={removeApprovalWorkflowCallback}
-                    onCancel={() => setIsDeleteModalVisible(false)}
-                    prompt={translate('workflowsEditApprovalsPage.deletePrompt')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

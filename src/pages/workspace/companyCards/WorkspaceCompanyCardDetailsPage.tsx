@@ -2,7 +2,6 @@ import {format, parseISO} from 'date-fns';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import {FallbackAvatar, Hourglass} from '@components/Icon/Expensicons';
@@ -11,12 +10,14 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -55,8 +56,8 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
     const {translate, getLocalDateFromDatetime} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
@@ -80,8 +81,20 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[bank]);
     const plaidUrl = getPlaidInstitutionIconUrl(bank);
 
-    const unassignCard = () => {
-        setIsUnassignModalVisible(false);
+    const unassignCard = async () => {
+        const result = await showConfirmModal({
+            danger: true,
+            title: translate('workspace.moreFeatures.companyCards.unassignCard'),
+            prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
+            confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
+            cancelText: translate('common.cancel'),
+            shouldSetModalVisibility: false,
+        });
+
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
         if (card) {
             unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, feed, card);
         }
@@ -237,18 +250,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         icon={expensifyIcons.RemoveMembers}
                         title={translate('workspace.moreFeatures.companyCards.unassignCard')}
                         style={styles.mb1}
-                        onPress={() => setIsUnassignModalVisible(true)}
-                    />
-                    <ConfirmModal
-                        title={translate('workspace.moreFeatures.companyCards.unassignCard')}
-                        isVisible={isUnassignModalVisible}
-                        onConfirm={unassignCard}
-                        onCancel={() => setIsUnassignModalVisible(false)}
-                        shouldSetModalVisibility={false}
-                        prompt={translate('workspace.moreFeatures.companyCards.unassignCardDescription')}
-                        confirmText={translate('workspace.moreFeatures.companyCards.unassign')}
-                        cancelText={translate('common.cancel')}
-                        danger
+                        onPress={unassignCard}
                     />
                 </ScrollView>
             </ScreenWrapper>

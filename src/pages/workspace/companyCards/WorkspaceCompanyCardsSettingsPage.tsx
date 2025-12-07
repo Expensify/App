@@ -1,16 +1,17 @@
 import React, {useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -37,9 +38,9 @@ function WorkspaceCompanyCardsSettingsPage({
 }: WorkspaceCompanyCardsSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [deleteCompanyCardConfirmModalVisible, setDeleteCompanyCardConfirmModalVisible] = useState(false);
 
     const [cardFeeds] = useCardFeeds(policyID);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
@@ -75,8 +76,19 @@ function WorkspaceCompanyCardsSettingsPage({
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.getRoute(policyID));
     };
 
-    const deleteCompanyCardFeed = () => {
-        setDeleteCompanyCardConfirmModalVisible(false);
+    const deleteCompanyCardFeed = async () => {
+        const result = await showConfirmModal({
+            title: feedName && translate('workspace.moreFeatures.companyCards.removeCardFeedTitle', {feedName}),
+            prompt: translate('workspace.moreFeatures.companyCards.removeCardFeedDescription'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        });
+
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
         Navigation.goBack();
         if (feed) {
             const {cardList, ...cards} = cardsList ?? {};
@@ -151,19 +163,9 @@ function WorkspaceCompanyCardsSettingsPage({
                         <MenuItem
                             icon={Expensicons.Trashcan}
                             title={translate('workspace.moreFeatures.companyCards.removeCardFeed')}
-                            onPress={() => setDeleteCompanyCardConfirmModalVisible(true)}
+                            onPress={deleteCompanyCardFeed}
                         />
                     </View>
-                    <ConfirmModal
-                        isVisible={deleteCompanyCardConfirmModalVisible}
-                        onConfirm={deleteCompanyCardFeed}
-                        onCancel={() => setDeleteCompanyCardConfirmModalVisible(false)}
-                        title={feedName && translate('workspace.moreFeatures.companyCards.removeCardFeedTitle', {feedName})}
-                        prompt={translate('workspace.moreFeatures.companyCards.removeCardFeedDescription')}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

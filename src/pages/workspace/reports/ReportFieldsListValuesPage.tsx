@@ -3,11 +3,11 @@ import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
@@ -18,6 +18,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -70,6 +71,7 @@ function ReportFieldsListValuesPage({
 }: ReportFieldsListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here to use the mobile selection mode on small screens only
     // See https://github.com/Expensify/App/issues/48724 for more details
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -79,7 +81,6 @@ function ReportFieldsListValuesPage({
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers'] as const);
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
-    const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
 
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
@@ -169,7 +170,19 @@ function ReportFieldsListValuesPage({
         setSelectedValues(selectedValuesArray.length > 0 ? {} : Object.fromEntries(filteredListValuesArray.map((value) => [value, true])));
     };
 
-    const handleDeleteValues = () => {
+    const handleDeleteValues = async () => {
+        const result = await showConfirmModal({
+            danger: true,
+            title: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
+            prompt: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValuePrompt' : 'workspace.reportFields.deleteValuesPrompt'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+        });
+
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
         const valuesToDelete = selectedValuesArray.reduce<number[]>((acc, valueName) => {
             const index = listValues?.indexOf(valueName) ?? -1;
 
@@ -189,8 +202,6 @@ function ReportFieldsListValuesPage({
                 disabledListValues,
             });
         }
-
-        setDeleteValuesConfirmModalVisible(false);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
@@ -228,7 +239,7 @@ function ReportFieldsListValuesPage({
                     icon: Expensicons.Trashcan,
                     text: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                    onSelected: () => setDeleteValuesConfirmModalVisible(true),
+                    onSelected: handleDeleteValues,
                 });
             }
             const enabledValues = selectedValuesArray.filter((valueName) => {
@@ -410,16 +421,6 @@ function ReportFieldsListValuesPage({
                         shouldShowRightCaret
                     />
                 )}
-                <ConfirmModal
-                    isVisible={deleteValuesConfirmModalVisible}
-                    onConfirm={handleDeleteValues}
-                    onCancel={() => setDeleteValuesConfirmModalVisible(false)}
-                    title={translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues')}
-                    prompt={translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValuePrompt' : 'workspace.reportFields.deleteValuesPrompt')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

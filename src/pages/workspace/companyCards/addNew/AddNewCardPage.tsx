@@ -1,10 +1,11 @@
 import {isActingAsDelegateSelector} from '@selectors/Account';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -41,8 +42,8 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const {currentStep} = addNewCardFeed ?? {};
     const {isBetaEnabled} = usePermissions();
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
-    const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: false});
 
@@ -116,7 +117,23 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             CurrentStep = <AmexCustomFeed />;
             break;
         case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
-            CurrentStep = <PlaidConnectionStep onExit={() => setIsModalVisible(true)} />;
+            CurrentStep = (
+                <PlaidConnectionStep
+                    onExit={async () => {
+                        const result = await showConfirmModal({
+                            success: true,
+                            title: translate('workspace.companyCards.addNewCard.exitModal.title'),
+                            prompt: translate('workspace.companyCards.addNewCard.exitModal.prompt'),
+                            confirmText: translate('workspace.companyCards.addNewCard.exitModal.confirmText'),
+                            cancelText: translate('workspace.companyCards.addNewCard.exitModal.cancelText'),
+                        });
+
+                        if (result.action === ModalActions.CONFIRM) {
+                            navigateToConciergeChat();
+                        }
+                    }}
+                />
+            );
             break;
         case CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE:
             CurrentStep = <StatementCloseDateStep policyID={policyID} />;
@@ -130,27 +147,12 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     }
 
     return (
-        <>
-            <View
-                style={styles.flex1}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
-            >
-                {CurrentStep}
-            </View>
-            <ConfirmModal
-                isVisible={isModalVisible}
-                title={translate('workspace.companyCards.addNewCard.exitModal.title')}
-                success
-                confirmText={translate('workspace.companyCards.addNewCard.exitModal.confirmText')}
-                cancelText={translate('workspace.companyCards.addNewCard.exitModal.cancelText')}
-                prompt={translate('workspace.companyCards.addNewCard.exitModal.prompt')}
-                onCancel={() => setIsModalVisible(false)}
-                onConfirm={() => {
-                    setIsModalVisible(false);
-                    navigateToConciergeChat();
-                }}
-            />
-        </>
+        <View
+            style={styles.flex1}
+            fsClass={CONST.FULLSTORY.CLASS.MASK}
+        >
+            {CurrentStep}
+        </View>
     );
 }
 

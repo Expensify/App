@@ -7,18 +7,19 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 // eslint-disable-next-line no-restricted-imports
 import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import SearchBar from '@components/SearchBar';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -96,13 +97,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<TextInput>(null);
-    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
@@ -181,14 +181,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     }, [getWorkspaceMembers]);
 
     useEffect(() => {
-        if (!removeMembersConfirmModalVisible || deepEqual(accountIDs, prevAccountIDs)) {
-            return;
-        }
-        setRemoveMembersConfirmModalVisible(false);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [accountIDs]);
-
-    useEffect(() => {
         const isReconnecting = prevIsOffline && !isOffline;
         if (!isReconnecting) {
             return;
@@ -244,8 +236,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             }
         }
 
-        setRemoveMembersConfirmModalVisible(false);
-
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedEmployees([]);
@@ -256,8 +246,20 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     /**
      * Show the modal to confirm removal of the selected members
      */
-    const askForConfirmationToRemove = () => {
-        setRemoveMembersConfirmModalVisible(true);
+    const askForConfirmationToRemove = async () => {
+        const result = await showConfirmModal({
+            danger: true,
+            title: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
+            prompt: confirmModalPrompt,
+            confirmText: translate('common.remove'),
+            cancelText: translate('common.cancel'),
+        });
+
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
+        removeUsers();
     };
 
     /**
@@ -643,7 +645,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         return;
                     }
                     if (isOffline) {
-                        close(() => setIsOfflineModalVisible(true));
+                        close(() => {
+                            showConfirmModal({
+                                title: translate('common.youAppearToBeOffline'),
+                                prompt: translate('common.thisFeatureRequiresInternet'),
+                                confirmText: translate('common.buttonConfirm'),
+                                shouldShowCancelButton: false,
+                                shouldHandleNavigationBack: true,
+                            });
+                        });
                         return;
                     }
                     Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID));
@@ -655,7 +665,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
-                        close(() => setIsOfflineModalVisible(true));
+                        close(() => {
+                            showConfirmModal({
+                                title: translate('common.youAppearToBeOffline'),
+                                prompt: translate('common.thisFeatureRequiresInternet'),
+                                confirmText: translate('common.buttonConfirm'),
+                                shouldShowCancelButton: false,
+                                shouldHandleNavigationBack: true,
+                            });
+                        });
                         return;
                     }
 
@@ -670,7 +688,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         ];
 
         return menuItems;
-    }, [icons.Download, icons.Table, policyID, translate, isOffline, isPolicyAdmin, isAccountLocked, showLockedAccountModal]);
+    }, [icons.Download, icons.Table, policyID, translate, isOffline, isPolicyAdmin, isAccountLocked, showLockedAccountModal, showConfirmModal]);
 
     const getHeaderButtons = () => {
         if (!isPolicyAdmin) {
@@ -760,36 +778,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             {() => (
                 <>
                     {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                    <ConfirmModal
-                        isVisible={isOfflineModalVisible}
-                        onConfirm={() => setIsOfflineModalVisible(false)}
-                        title={translate('common.youAppearToBeOffline')}
-                        prompt={translate('common.thisFeatureRequiresInternet')}
-                        confirmText={translate('common.buttonConfirm')}
-                        shouldShowCancelButton={false}
-                        onCancel={() => setIsOfflineModalVisible(false)}
-                        shouldHandleNavigationBack
-                    />
-
-                    <ConfirmModal
-                        danger
-                        title={translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length})}
-                        isVisible={removeMembersConfirmModalVisible}
-                        onConfirm={removeUsers}
-                        onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                        prompt={confirmModalPrompt}
-                        confirmText={translate('common.remove')}
-                        cancelText={translate('common.cancel')}
-                        onModalHide={() => {
-                            // eslint-disable-next-line @typescript-eslint/no-deprecated
-                            InteractionManager.runAfterInteractions(() => {
-                                if (!textInputRef.current) {
-                                    return;
-                                }
-                                textInputRef.current.focus();
-                            });
-                        }}
-                    />
                     <DecisionModal
                         title={translate('common.downloadFailedTitle')}
                         prompt={translate('common.downloadFailedDescription')}
