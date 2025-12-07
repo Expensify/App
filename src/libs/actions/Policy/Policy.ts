@@ -98,8 +98,8 @@ import {
     navigateToReceiptPartnersPage,
 } from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import {getSession} from '@libs/SessionUtils';
+import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
