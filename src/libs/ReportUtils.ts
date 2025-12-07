@@ -57,7 +57,6 @@ import type {
     ReportNameValuePairs,
     ReportViolationName,
     ReportViolations,
-    Session,
     Task,
     Transaction,
     TransactionViolation,
@@ -2641,7 +2640,7 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
 
 function isPayer(
     currentAccountID: number | undefined,
-    currentUserEmail: string | undefined,
+    currentUserEmailParm: string | undefined,
     iouReport: OnyxEntry<Report>,
     onlyShowPayElsewhere = false,
     reportPolicy?: OnyxInputOrEntry<Policy>,
@@ -2659,7 +2658,7 @@ function isPayer(
             }
 
             // If we are the reimburser and the report is approved or we are the manager then we can pay it.
-            const isReimburser = currentUserEmail === policy?.achAccount?.reimburser;
+            const isReimburser = currentUserEmailParm === policy?.achAccount?.reimburser;
             return isReimburser;
         }
         if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {

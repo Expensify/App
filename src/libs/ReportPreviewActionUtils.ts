@@ -18,7 +18,6 @@ import {
     isReportApproved,
     isSettled,
 } from './ReportUtils';
-import {getSession} from './SessionUtils';
 import {isPending, isScanning} from './TransactionUtils';
 
 function canSubmit(report: Report, isReportArchived: boolean, currentUserAccountID: number, policy?: Policy, transactions?: Transaction[]) {

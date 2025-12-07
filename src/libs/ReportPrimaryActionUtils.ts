@@ -35,7 +35,6 @@ import {
     isReportManager,
     isSettled,
 } from './ReportUtils';
-import {getSession} from './SessionUtils';
 import {
     allHavePendingRTERViolation,
     getTransactionViolations,

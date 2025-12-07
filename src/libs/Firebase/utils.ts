@@ -1,7 +1,8 @@
 // We have opted for `Onyx.connectWithoutView` here as this logic is strictly non-UI in nature.
-import Onyx, {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Session} from '@src/types/onyx';
+import type {Session} from '@src/types/onyx';
 import type {PerfAttributes} from './types';
 
 let reportsCount = 0;
