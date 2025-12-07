@@ -89,7 +89,6 @@ import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getSession} from '@libs/SessionUtils';
 import {
     getCustomUnitsForDuplication,
     getMemberAccountIDsForWorkspace,
@@ -100,6 +99,7 @@ import {
 } from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
+import {getSession} from '@libs/SessionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -841,16 +841,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
 
         const nextStepKey: `${typeof ONYXKEYS.COLLECTION.NEXT_STEP}${string}` = `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`;
         const currentNextStep: OnyxEntry<ReportNextStepDeprecated> | null = resolvedReportNextSteps[nextStepKey] ?? null;
-        const hasViolations = ReportUtils.hasViolations(
-            reportID,
-            resolvedTransactionViolations,
-            currentUserAccountID,
-            currentUserEmail,
-            undefined,
-            undefined,
-            report,
-            updatedPolicy,
-        );
+        const hasViolations = ReportUtils.hasViolations(reportID, resolvedTransactionViolations, currentUserAccountID, currentUserEmail, undefined, undefined, report, updatedPolicy);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStep = buildNextStepNew({
             report,
