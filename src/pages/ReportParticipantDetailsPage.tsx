@@ -55,7 +55,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
         setIsRemoveMemberConfirmModalVisible(false);
         removeFromGroupChat(report?.reportID, [accountID]);
         Navigation.goBack(backTo);
-    }, [backTo, report, accountID]);
+    }, [backTo, report?.reportID, accountID]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));

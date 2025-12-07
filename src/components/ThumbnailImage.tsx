@@ -132,7 +132,7 @@ function ThumbnailImage({
 
             setImageDimensions({width, height});
         },
-        [previewSourceURL, imageDimensions, shouldDynamicallyResize],
+        [previewSourceURL, imageDimensions.width, imageDimensions.height, shouldDynamicallyResize],
     );
 
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];

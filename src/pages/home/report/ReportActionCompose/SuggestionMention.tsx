@@ -111,7 +111,7 @@ function SuggestionMention({
                   }
                 : null,
         );
-    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails]);
+    }, [policyID, policy, currentReport, personalDetails, getPersonalDetailsWeight, currentUserPersonalDetails.accountID]);
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
@@ -315,6 +315,7 @@ function SuggestionMention({
             // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
             const sortedPersonalDetails = getSortedPersonalDetails(filteredPersonalDetails, localeCompare);
 
+            // eslint-disable-next-line unicorn/no-array-for-each
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
                     text: formatLoginPrivateDomain(getDisplayNameOrDefault(detail), detail?.login),
@@ -340,6 +341,7 @@ function SuggestionMention({
     const getRoomMentionOptions = useCallback(
         (searchTerm: string, reportBatch: OnyxCollection<Report>): Mention[] => {
             const filteredRoomMentions: Mention[] = [];
+            // eslint-disable-next-line unicorn/no-array-for-each
             Object.values(reportBatch ?? {}).forEach((report) => {
                 if (!canReportBeMentionedWithinPolicy(report, policyID)) {
                     return;
@@ -438,7 +440,7 @@ function SuggestionMention({
             },
             [calculateMentionSuggestion],
         ),
-        CONST.TIMING.MENTION_SUGGESTION_DEBOUNCE_TIME,
+        CONST.TIMING.SUGGESTION_DEBOUNCE_TIME,
     );
 
     useEffect(() => {
@@ -465,7 +467,7 @@ function SuggestionMention({
         [shouldBlockCalc],
     );
 
-    const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
+    const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues.suggestedMentions]);
     const getIsSuggestionsMenuVisible = useCallback(() => isMentionSuggestionsMenuVisible, [isMentionSuggestionsMenuVisible]);
 
     useImperativeHandle(

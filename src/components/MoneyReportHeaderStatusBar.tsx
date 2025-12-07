@@ -1,7 +1,11 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+<<<<<<< HEAD
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+=======
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+>>>>>>> upstream/main
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseMessage} from '@libs/NextStepUtils';
@@ -23,6 +27,7 @@ type IconMap = Record<IconName, IconAsset>;
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+<<<<<<< HEAD
     const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch'] as const);
     const iconMap: IconMap = useMemo(
         () => ({
@@ -36,6 +41,15 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
         const messageArray = nextStep?.message;
         return parseMessage(messageArray);
     }, [nextStep?.message]);
+=======
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails.login ?? '';
+    const messageContent = useMemo(() => {
+        const messageArray = nextStep?.message;
+        return parseMessage(messageArray, currentUserEmail);
+    }, [nextStep?.message, currentUserEmail]);
+
+>>>>>>> upstream/main
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>

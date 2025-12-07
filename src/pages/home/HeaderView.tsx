@@ -9,7 +9,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
-import {DotIndicator} from '@components/Icon/Expensicons';
+import {BackArrow, DotIndicator} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
@@ -24,8 +24,8 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -103,7 +103,6 @@ type HeaderViewProps = {
 function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false}: HeaderViewProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow'] as const);
     const route = useRoute();
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const invoiceReceiverPolicyID = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
@@ -122,6 +121,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const {translate, localeCompare} = useLocalize();
     const theme = useTheme();
@@ -278,7 +278,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     >
                                         <View>
                                             <Icon
-                                                src={expensifyIcons.BackArrow}
+                                                src={BackArrow}
                                                 fill={theme.icon}
                                             />
                                         </View>
@@ -314,6 +314,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                                reportID={parentNavigationReport?.reportID}
                                                 parentReportID={parentNavigationReport?.parentReportID}
                                                 parentReportActionID={isParentOneTransactionThread ? undefined : parentNavigationReport?.parentReportActionID}
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
@@ -375,7 +376,15 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, ancestors);
+                                    deleteTask(
+                                        report,
+                                        parentReport,
+                                        isReportArchived,
+                                        currentUserPersonalDetails.accountID,
+                                        hasOutstandingChildTask,
+                                        parentReportAction ?? undefined,
+                                        ancestors,
+                                    );
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}

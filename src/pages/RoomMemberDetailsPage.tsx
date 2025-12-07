@@ -57,7 +57,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
         setIsRemoveMemberConfirmModalVisible(false);
         removeFromRoom(report?.reportID, [accountID]);
         Navigation.goBack(backTo);
-    }, [backTo, report, accountID]);
+    }, [backTo, report?.reportID, accountID]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
