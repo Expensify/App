@@ -227,35 +227,61 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         navigateAfterInteraction(() => Navigation.goBack());
     }, [member?.pendingAction, prevMember]);
 
-    const askForConfirmationToRemove = async () => {
+    const askForConfirmationToRemove = () => {
         if (isReimburser) {
-            await showConfirmModal({
+            return showConfirmModal({
                 title: translate('workspace.people.removeMemberTitle'),
                 prompt: confirmModalPrompt,
                 confirmText: translate('common.buttonConfirm'),
                 success: true,
                 shouldShowCancelButton: false,
             });
-            return;
         }
 
-        const result = await showConfirmModal({
+        showConfirmModal({
             danger: true,
             title: translate('workspace.people.removeMemberTitle'),
             prompt: confirmModalPrompt,
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-        });
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
 
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
-        }
+            const ownerEmail = ownerDetails?.login;
+            const removedApprover = personalDetails?.[accountID];
 
-        const ownerEmail = ownerDetails?.login;
-        const removedApprover = personalDetails?.[accountID];
+            // If the user is not an approver, proceed with member removal
+            if (!isApproverUserAction(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
+                removeMembers(policyID, [memberLogin], {[memberLogin]: accountID});
+                const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
+                const remainingEmployeeCount = previousEmployeesCount - 1;
+                if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
+                    // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
+                    setPolicyPreventSelfApproval(policyID, false);
+                }
+                return;
+            }
 
-        // If the user is not an approver, proceed with member removal
-        if (!isApproverUserAction(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
+            // Update approval workflows after approver removal
+            const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows,
+                removedApprover,
+                ownerDetails,
+            });
+
+            for (const workflow of updatedWorkflows) {
+                if (workflow?.removeApprovalWorkflow) {
+                    const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+
+                    removeApprovalWorkflowAction(updatedWorkflow, policy);
+                } else {
+                    updateApprovalWorkflow(workflow, [], [], policy);
+                }
+            }
+
+            // Remove the member
             removeMembers(policyID, [memberLogin], {[memberLogin]: accountID});
             const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
             const remainingEmployeeCount = previousEmployeesCount - 1;
@@ -263,34 +289,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                 // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
                 setPolicyPreventSelfApproval(policyID, false);
             }
-            return;
-        }
-
-        // Update approval workflows after approver removal
-        const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
-            approvalWorkflows,
-            removedApprover,
-            ownerDetails,
         });
-
-        for (const workflow of updatedWorkflows) {
-            if (workflow?.removeApprovalWorkflow) {
-                const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
-
-                removeApprovalWorkflowAction(updatedWorkflow, policy);
-            } else {
-                updateApprovalWorkflow(workflow, [], [], policy);
-            }
-        }
-
-        // Remove the member
-        removeMembers(policyID, [memberLogin], {[memberLogin]: accountID});
-        const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
-        const remainingEmployeeCount = previousEmployeesCount - 1;
-        if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
-            // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
-            setPolicyPreventSelfApproval(policyID, false);
-        }
     };
 
     const navigateToProfile = useCallback(() => {
