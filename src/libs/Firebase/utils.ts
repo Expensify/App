@@ -1,8 +1,8 @@
 // We have opted for `Onyx.connectWithoutView` here as this logic is strictly non-UI in nature.
-import Onyx from 'react-native-onyx';
-import * as SessionUtils from '@libs/SessionUtils';
+import Onyx, { OnyxEntry } from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PerfAttributes} from './types';
+import { Session } from '@src/types/onyx';
 
 let reportsCount = 0;
 Onyx.connectWithoutView({
@@ -57,9 +57,15 @@ Onyx.connectWithoutView({
     },
 });
 
-function getAttributes<T extends keyof PerfAttributes>(attributes?: T[]): Pick<PerfAttributes, T> {
-    const session = SessionUtils.getSession();
+let session: OnyxEntry<Session>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        session = value;
+    },
+});
 
+function getAttributes<T extends keyof PerfAttributes>(attributes?: T[]): Pick<PerfAttributes, T> {
     const allAttributes: PerfAttributes = {
         accountId: session?.accountID?.toString() ?? 'N/A',
         reportsLength: reportsCount.toString(),
