@@ -1,5 +1,5 @@
 import {isActingAsDelegateSelector} from '@selectors/Account';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -131,6 +131,8 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                         if (result.action === ModalActions.CONFIRM) {
                             navigateToConciergeChat();
                         }
+
+                        return;
                     }}
                 />
             );

@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';

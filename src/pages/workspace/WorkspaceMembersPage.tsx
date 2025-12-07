@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import {deepEqual} from 'fast-equals';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
@@ -797,7 +796,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         turnOnSelectionModeOnLongPress={isPolicyAdmin}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
                         shouldUseUserSkeletonView
-                        disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={shouldUseNarrowLayout ? headerMessage : undefined}
                         onSelectRow={openMemberDetails}
                         shouldSingleExecuteRowSelect={!isPolicyAdmin}

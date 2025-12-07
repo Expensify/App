@@ -1,5 +1,5 @@
 import {format, parseISO} from 'date-fns';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';

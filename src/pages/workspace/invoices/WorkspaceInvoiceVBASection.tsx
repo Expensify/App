@@ -188,49 +188,47 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 }}
                 anchorRef={paymentMethodButtonRef as RefObject<View | null>}
             >
-                {!showConfirmModal && (
-                    <View
-                        style={[
-                            !shouldUseNarrowLayout
-                                ? {
-                                      ...styles.sidebarPopover,
-                                      ...styles.pv4,
-                                  }
-                                : styles.pt5,
-                        ]}
-                    >
-                        {isPopoverBottomMount && (
-                            <MenuItem
-                                title={paymentMethod.formattedSelectedPaymentMethod.title}
-                                icon={paymentMethod.formattedSelectedPaymentMethod.icon?.icon}
-                                iconHeight={paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
-                                iconWidth={paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
-                                iconStyles={paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles}
-                                description={paymentMethod.formattedSelectedPaymentMethod.description}
-                                wrapperStyle={[styles.mb4, styles.ph5, styles.pv0]}
-                                interactive={false}
-                                displayInDefaultIconColor
-                            />
-                        )}
-                        {shouldShowMakeDefaultButton && (
-                            <MenuItem
-                                title={translate('walletPage.setDefaultConfirmation')}
-                                icon={icons.Star}
-                                onPress={() => {
-                                    makeDefaultPaymentMethod();
-                                    setShouldShowDefaultDeleteMenu(false);
-                                }}
-                                wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
-                            />
-                        )}
+                <View
+                    style={[
+                        !shouldUseNarrowLayout
+                            ? {
+                                  ...styles.sidebarPopover,
+                                  ...styles.pv4,
+                              }
+                            : styles.pt5,
+                    ]}
+                >
+                    {isPopoverBottomMount && (
                         <MenuItem
-                            title={translate('common.delete')}
-                            icon={icons.Trashcan}
-                            onPress={() => closeModal(deletePaymentMethod)}
+                            title={paymentMethod.formattedSelectedPaymentMethod.title}
+                            icon={paymentMethod.formattedSelectedPaymentMethod.icon?.icon}
+                            iconHeight={paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
+                            iconWidth={paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize}
+                            iconStyles={paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles}
+                            description={paymentMethod.formattedSelectedPaymentMethod.description}
+                            wrapperStyle={[styles.mb4, styles.ph5, styles.pv0]}
+                            interactive={false}
+                            displayInDefaultIconColor
+                        />
+                    )}
+                    {shouldShowMakeDefaultButton && (
+                        <MenuItem
+                            title={translate('walletPage.setDefaultConfirmation')}
+                            icon={icons.Star}
+                            onPress={() => {
+                                makeDefaultPaymentMethod();
+                                setShouldShowDefaultDeleteMenu(false);
+                            }}
                             wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                         />
-                    </View>
-                )}
+                    )}
+                    <MenuItem
+                        title={translate('common.delete')}
+                        icon={icons.Trashcan}
+                        onPress={() => closeModal(deletePaymentMethod)}
+                        wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                    />
+                </View>
             </Popover>
         </Section>
     );

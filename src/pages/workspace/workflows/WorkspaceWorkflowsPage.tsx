@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -145,11 +145,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const confirmDisableApprovals = useCallback(() => {
-        setIsDisableApprovalsConfirmModalOpen(false);
-        setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL);
-    }, [route.params.policyID, policy?.owner]);
-
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {
         setApprovalWorkflow({
@@ -178,6 +173,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         }
         return approvalWorkflows.filter((workflow) => workflow.isDefault);
     }, [policy?.approvalMode, approvalWorkflows]);
+
+    const updateWorkspaceCurrencyPrompt = (
+        <View style={[styles.renderHTML, styles.flexRow]}>
+            <RenderHTML html={translate('workspace.bankAccount.yourWorkspace')} />
+        </View>
+    );
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
 
@@ -230,10 +231,11 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 onToggle: async (isEnabled: boolean) => {
                     if (!isEnabled) {
                         const result = await showConfirmModal({
-                            title: translate('workspace.moreFeatures.workflows.disableApprovalTitle'),
-                            prompt: translate('workspace.moreFeatures.workflows.disableApprovalPrompt'),
-                            confirmText: translate('workspace.moreFeatures.workflows.disableApprovalButton'),
+                            title: translate('workspace.bankAccount.areYouSure'),
+                            prompt: translate('workflowsPage.disableApprovalPromptDescription'),
+                            confirmText: translate('common.disable'),
                             cancelText: translate('common.cancel'),
+                            danger: true,
                         });
 
                         if (result.action !== ModalActions.CONFIRM) {
@@ -427,6 +429,9 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         onPressAutoReportingFrequency,
         isSmartLimitEnabled,
         filteredApprovalWorkflows,
+        confirmCurrencyChangeAndNavigate,
+        showConfirmModal,
+        updateWorkspaceCurrencyPrompt,
         addApprovalAction,
         isOffline,
         isPolicyAdmin,
@@ -464,12 +469,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 disabled={item.disabled}
             />
         </Section>
-    );
-
-    const updateWorkspaceCurrencyPrompt = (
-        <View style={[styles.renderHTML, styles.flexRow]}>
-            <RenderHTML html={translate('workspace.bankAccount.yourWorkspace')} />
-        </View>
     );
 
     const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);

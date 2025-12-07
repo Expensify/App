@@ -1,7 +1,7 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -99,6 +99,7 @@ function WorkspaceReportFieldsPage({
         }
 
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+        return;
     }, [hasAccountingConnections, showConfirmModal, translate, policyID]);
 
     const fetchReportFields = useCallback(() => {
@@ -292,6 +293,7 @@ function WorkspaceReportFieldsPage({
                                         return;
                                     }
                                     enablePolicyReportFields(policyID, isEnabled);
+                                    return;
                                 }}
                                 disabled={hasAccountingConnections}
                                 disabledAction={onDisabledOrganizeSwitchPress}
