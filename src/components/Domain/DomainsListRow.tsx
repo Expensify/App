@@ -31,6 +31,7 @@ type DomainsListRowProps = {
 function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuItems}: DomainsListRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'ArrowRight', 'DotIndicator'] as const);
 
     return (

@@ -2221,7 +2221,7 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {});
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -2285,7 +2285,7 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Pencil']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {});
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
