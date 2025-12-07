@@ -266,6 +266,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         retryBillingFailed,
         fundList,
         freeTrialText,
+        billingStatus,
     ]);
 
     const classicRedirectMenuItem: MenuData | null = useMemo(() => {
