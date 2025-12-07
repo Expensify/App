@@ -52,7 +52,6 @@ import {
     isSettled,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
-import {getSession} from './SessionUtils';
 import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
