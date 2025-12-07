@@ -74,7 +74,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                 }
             }
         },
-        [integrations],
+        [integrations?.uber?.connectFormData],
     );
 
     const fetchReceiptPartners = useCallback(() => {

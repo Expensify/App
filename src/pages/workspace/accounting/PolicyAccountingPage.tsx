@@ -92,7 +92,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const policyID = policy?.id;
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'Gear', 'NewWindow', 'Key', 'Pencil', 'ExpensifyCard'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'NewWindow', 'Key', 'Pencil', 'ExpensifyCard'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Accounting'] as const);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
@@ -122,7 +122,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(shouldShowReinstallConnectorMenuItem
                 ? [
                       {
-                          icon: icons.CircularArrowBackwards,
+                          icon: Expensicons.CircularArrowBackwards,
                           text: translate('workspace.accounting.reinstall'),
                           onSelected: () => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.QBD}),
                           shouldCallAfterModalHide: true,
@@ -157,18 +157,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 shouldCallAfterModalHide: true,
             },
         ],
-        [
-            icons.Key,
-            icons.NewWindow,
-            icons.CircularArrowBackwards,
-            shouldShowEnterCredentials,
-            shouldShowReinstallConnectorMenuItem,
-            translate,
-            isOffline,
-            policy,
-            connectedIntegration,
-            startIntegrationFlow,
-        ],
+        [icons.Key, icons.NewWindow, shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow],
     );
 
     useFocusEffect(
@@ -202,7 +191,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     ? {}
                     : {
                           description: translate('workspace.xero.organization'),
-                          iconRight: icons.ArrowRight,
+                          iconRight: Expensicons.ArrowRight,
                           title: getCurrentXeroOrganizationName(policy),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
@@ -224,7 +213,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     ? {}
                     : {
                           description: translate('workspace.netsuite.subsidiary'),
-                          iconRight: icons.ArrowRight,
+                          iconRight: Expensicons.ArrowRight,
                           title: policy?.connections?.netsuite?.options?.config?.subsidiary ?? '',
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
@@ -244,7 +233,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     ? {}
                     : {
                           description: translate('workspace.intacct.entity'),
-                          iconRight: icons.ArrowRight,
+                          iconRight: Expensicons.ArrowRight,
                           title: getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel')),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           titleStyle: styles.fontWeightNormal,
@@ -274,7 +263,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             default:
                 return undefined;
         }
-    }, [connectedIntegration, currentXeroOrganization?.id, policy, policyID, styles.fontWeightNormal, styles.sectionMenuItemTopDescription, tenants.length, translate, icons.ArrowRight]);
+    }, [connectedIntegration, currentXeroOrganization?.id, policy, policyID, styles.fontWeightNormal, styles.sectionMenuItemTopDescription, tenants.length, translate]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress && policyID) {
@@ -338,7 +327,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const configurationOptions = [
             {
                 icon: icons.Pencil,
-                iconRight: icons.ArrowRight,
+                iconRight: Expensicons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.import'),
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -348,7 +337,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             },
             {
                 icon: Expensicons.Send,
-                iconRight: icons.ArrowRight,
+                iconRight: Expensicons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.export'),
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -363,7 +352,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ? [
                       {
                           icon: icons.ExpensifyCard,
-                          iconRight: icons.ArrowRight,
+                          iconRight: Expensicons.ArrowRight,
                           shouldShowRightIcon: true,
                           title: translate('workspace.accounting.cardReconciliation'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -373,7 +362,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 : []),
             {
                 icon: icons.Gear,
-                iconRight: icons.ArrowRight,
+                iconRight: Expensicons.ArrowRight,
                 shouldShowRightIcon: true,
                 title: translate('workspace.accounting.advanced'),
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
@@ -435,7 +424,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         startIntegrationFlow,
         popoverAnchorRefs,
         datetimeToRelative,
-        icons.ArrowRight,
         icons.ExpensifyCard,
     ]);
 

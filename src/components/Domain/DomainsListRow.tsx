@@ -1,10 +1,8 @@
-import type {ReactElement} from 'react';
 import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -28,21 +26,18 @@ type DomainsListRowProps = {
 
     /** The type of brick road indicator to show */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-
-    /** Icon to display at the end of the row */
-    rightIcon: ReactElement<typeof Icon>;
 };
 
-function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuItems, rightIcon}: DomainsListRowProps) {
+function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuItems}: DomainsListRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Globe'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Globe', 'ArrowRight', 'DotIndicator'] as const);
 
     return (
         <View style={[styles.flexRow, styles.highlightBG, styles.br3, styles.p5, styles.pr3, styles.alignItemsCenter, styles.gap3, isHovered && styles.hoveredComponentBG]}>
             <View style={[styles.flex1, styles.flexRow, styles.bgTransparent, styles.gap3, styles.alignItemsCenter, styles.justifyContentStart]}>
                 <Icon
-                    src={expensifyIcons.Globe}
+                    src={icons.Globe}
                     fill={theme.icon}
                     additionalStyles={styles.domainIcon}
                 />
@@ -69,7 +64,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.workspaceListRBR, styles.pr3, styles.mt0]}>
                             {!!brickRoadIndicator && (
                                 <Icon
-                                    src={Expensicons.DotIndicator}
+                                    src={icons.DotIndicator}
                                     fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
                                 />
                             )}
@@ -85,7 +80,15 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                         )}
                     </View>
                 </View>
-                <View style={styles.touchableButtonImage}>{rightIcon}</View>
+                <View style={styles.touchableButtonImage}>
+                    <Icon
+                        src={icons.ArrowRight}
+                        fill={theme.icon}
+                        additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
+                        isButtonIcon
+                        medium
+                    />
+                </View>
             </View>
         </View>
     );

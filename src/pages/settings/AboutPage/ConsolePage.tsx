@@ -63,7 +63,7 @@ function ConsolePage() {
                 disabled: true,
             },
             {
-                icon: expensifyIcons.All,
+                icon: Expensicons.All,
                 text: translate('common.all'),
                 iconFill: activeFilterIndex === filterBy.all ? theme.iconSuccessFill : theme.icon,
                 iconRight: Expensicons.Checkmark,

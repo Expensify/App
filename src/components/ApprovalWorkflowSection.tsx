@@ -22,12 +22,11 @@ type ApprovalWorkflowSectionProps = {
 };
 
 function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSectionProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Users', 'UserCheck'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Users', 'UserCheck'] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb'] as const);
 
     const approverTitle = useCallback(
         (index: number) =>
@@ -56,7 +55,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                 {approvalWorkflow.isDefault && (
                     <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.pb1, styles.pt1]}>
                         <Icon
-                            src={expensifyIcons.Lightbulb}
+                            src={icons.Lightbulb}
                             fill={theme.icon}
                             additionalStyles={styles.mr2}
                             small
@@ -106,7 +105,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress}: ApprovalWorkflowSe
                 ))}
             </View>
             <Icon
-                src={expensifyIcons.ArrowRight}
+                src={icons.ArrowRight}
                 fill={theme.icon}
                 additionalStyles={[styles.alignSelfCenter]}
             />
