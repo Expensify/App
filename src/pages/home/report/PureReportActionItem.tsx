@@ -1766,7 +1766,8 @@ function PureReportActionItem({
     };
 
     return (
-        <>
+        <View>
+            {createdActionContent}
             <PressableWithSecondaryInteraction
                 ref={popoverAnchorRef}
                 onPress={() => {
@@ -1890,8 +1891,7 @@ function PureReportActionItem({
                     danger
                 />
             </PressableWithSecondaryInteraction>
-            {createdActionContent}
-        </>
+        </View>
     );
 }
 
