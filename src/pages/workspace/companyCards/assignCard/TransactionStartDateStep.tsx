@@ -124,7 +124,7 @@ function TransactionStartDateStep() {
                                     value={startDate}
                                     label={translate('iou.startDate')}
                                     onInputChange={(value) => {
-                                        if (!value) {
+                                        if (!isRequiredFulfilled(value)) {
                                             setErrorText(translate('common.error.fieldRequired'));
                                         } else {
                                             setErrorText('');
