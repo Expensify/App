@@ -282,7 +282,6 @@ function WorkspaceReportFieldsPage({
                                             }
 
                                             enablePolicyReportFields(policyID, false);
-                                            return;
                                         });
                                     }
                                     if (!isControlPolicy(policy)) {

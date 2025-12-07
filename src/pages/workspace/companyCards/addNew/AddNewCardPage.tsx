@@ -127,9 +127,10 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                             confirmText: translate('workspace.companyCards.addNewCard.exitModal.confirmText'),
                             cancelText: translate('workspace.companyCards.addNewCard.exitModal.cancelText'),
                         }).then((result) => {
-                            if (result.action === ModalActions.CONFIRM) {
-                                navigateToConciergeChat();
+                            if (result.action !== ModalActions.CONFIRM) {
+                                return;
                             }
+                            navigateToConciergeChat();
                         });
                     }}
                 />

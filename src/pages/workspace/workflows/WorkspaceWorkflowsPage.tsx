@@ -180,7 +180,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 <RenderHTML html={translate('workspace.bankAccount.yourWorkspace')} />
             </View>
         ),
-        [],
+        [styles, translate],
     );
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
