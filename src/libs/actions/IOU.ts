@@ -10550,15 +10550,7 @@ function canIOUBePaid(
         return (invoiceReceiverPolicy ?? getPolicy(chatReport?.invoiceReceiver?.policyID))?.role === CONST.POLICY.ROLE.ADMIN;
     }
 
-    const isPayer = isPayerReportUtils(
-        {
-            email: currentUserEmail,
-            accountID: userAccountID,
-        },
-        iouReport,
-        onlyShowPayElsewhere,
-        policy,
-    );
+    const isPayer = isPayerReportUtils(userAccountID, currentUserEmail, iouReport, onlyShowPayElsewhere, policy);
 
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(iouReport);
 
@@ -10583,7 +10575,7 @@ function canIOUBePaid(
 }
 
 function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxEntry<OnyxTypes.Session>) {
-    return isPayerReportUtils(session, iouReport) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
+    return isPayerReportUtils(session?.accountID, session?.email, iouReport) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
 }
 
 function canSubmitReport(
