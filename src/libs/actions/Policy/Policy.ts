@@ -89,6 +89,7 @@ import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {getSession} from '@libs/SessionUtils';
 import {
     getCustomUnitsForDuplication,
     getMemberAccountIDsForWorkspace,
@@ -816,6 +817,10 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         ...value,
     } as OnyxEntry<Policy>;
 
+    const session = getSession();
+    const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const currentUserEmail = session?.email ?? '';
+
     const nextStepOptimisticData: OnyxUpdate[] = [];
     const nextStepFailureData: OnyxUpdate[] = [];
     const {reportNextSteps, transactionViolations, betas} = additionalData;
@@ -839,8 +844,8 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         const hasViolations = ReportUtils.hasViolations(
             reportID,
             resolvedTransactionViolations,
-            sessionAccountID ?? CONST.DEFAULT_NUMBER_ID,
-            sessionEmail ?? '',
+            currentUserAccountID,
+            currentUserEmail,
             undefined,
             undefined,
             report,
@@ -850,8 +855,8 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         const optimisticNextStep = buildNextStepNew({
             report,
             policy: updatedPolicy,
-            currentUserAccountIDParam: sessionAccountID ?? CONST.DEFAULT_NUMBER_ID,
-            currentUserEmailParam: sessionEmail ?? '',
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserEmailParam: currentUserEmail,
             hasViolations,
             isASAPSubmitBetaEnabled,
             predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
