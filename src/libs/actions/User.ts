@@ -568,9 +568,9 @@ function validateSecondaryLogin(
             ],
         );
 
-        Object.values(allPolicies ?? {}).forEach((policy) => {
+        for (const policy of Object.values(allPolicies ?? {})) {
             if (!policy) {
-                return;
+                continue;
             }
 
             let optimisticPolicyDataValue;
@@ -599,7 +599,7 @@ function validateSecondaryLogin(
                     value: optimisticPolicyDataValue,
                 });
             }
-        });
+        }
     }
 
     const failureData: OnyxUpdate[] = [
@@ -661,16 +661,20 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
 }
 
 function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
-    onyxUpdates.forEach((update) => {
+    for (const update of onyxUpdates) {
         if (!update.shouldNotify && !update.shouldShowPushNotification) {
-            return;
+            continue;
         }
 
         const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
 
-        reportActions.forEach((action) => action && showReportActionNotification(reportID, action));
-    });
+        for (const action of reportActions) {
+            if (action) {
+                showReportActionNotification(reportID, action);
+            }
+        }
+    }
 }
 
 const isChannelMuted = (reportId: string) =>
@@ -1208,9 +1212,9 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneN
         },
     ];
 
-    Object.values(allPolicies ?? {}).forEach((policy) => {
+    for (const policy of Object.values(allPolicies ?? {})) {
         if (!policy) {
-            return;
+            continue;
         }
 
         let optimisticPolicyDataValue;
@@ -1255,7 +1259,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneN
                 value: failurePolicyDataValue,
             });
         }
-    });
+    }
     const parameters: SetContactMethodAsDefaultParams = {
         partnerUserID: newDefaultContactMethod,
     };
@@ -1379,6 +1383,7 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
     };
 
     const optimisticData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: name,
@@ -1386,6 +1391,7 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
         },
     ];
 
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const failureData: OnyxUpdate[] | undefined = shouldRevertValue
         ? [
               {

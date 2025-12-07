@@ -1,15 +1,15 @@
 import {createPoliciesSelector} from '@selectors/Policy';
-import {useMemo} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
+import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
-import usePermissions from './usePermissions';
 
 const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -45,30 +45,58 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
 const useSearchTypeMenuSections = () => {
     const {defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard} = useCardFeedsForDisplay();
 
+    const icons = useMemoizedLazyExpensifyIcons(['Document'] as const);
     const {isOffline} = useNetwork();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const {isBetaEnabled} = usePermissions();
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
+    const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: () => void} | null>(null);
+
+    const handlePendingConfirm = useCallback(() => {
+        pendingReportCreation?.onConfirm();
+        setPendingReportCreation(null);
+    }, [pendingReportCreation, setPendingReportCreation]);
+
+    const handlePendingCancel = useCallback(() => {
+        setPendingReportCreation(null);
+    }, [setPendingReportCreation]);
+
+    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+        policyID: pendingReportCreation?.policyID,
+        policyName: pendingReportCreation?.policyName ?? '',
+        onConfirm: handlePendingConfirm,
+        onCancel: handlePendingCancel,
+    });
+
+    useEffect(() => {
+        if (!pendingReportCreation) {
+            return;
+        }
+        openCreateReportConfirmation();
+    }, [pendingReportCreation, openCreateReportConfirmation]);
+
+    const isSuggestedSearchDataReady = useMemo(() => {
+        const policiesList = Object.values(allPolicies ?? {}).filter((policy): policy is NonNullable<typeof policy> => policy !== null && policy !== undefined);
+
+        return policiesList.some((policy) => policy.employeeList !== undefined && policy.exporter !== undefined);
+    }, [allPolicies]);
 
     const typeMenuSections = useMemo(
         () =>
             createTypeMenuSections(
+                icons,
                 currentUserLoginAndAccountID?.email,
                 currentUserLoginAndAccountID?.accountID,
                 cardFeedsByPolicy,
                 defaultCardFeed ?? defaultExpensifyCard,
                 allPolicies,
-                activePolicyID,
                 savedSearches,
                 isOffline,
                 defaultExpensifyCard,
-                isASAPSubmitBetaEnabled,
-                hasViolations,
+                shouldRedirectToExpensifyClassic,
+                allTransactionDrafts,
             ),
         [
             currentUserLoginAndAccountID?.email,
@@ -77,15 +105,19 @@ const useSearchTypeMenuSections = () => {
             defaultCardFeed,
             defaultExpensifyCard,
             allPolicies,
-            activePolicyID,
             savedSearches,
             isOffline,
-            isASAPSubmitBetaEnabled,
-            hasViolations,
+            shouldRedirectToExpensifyClassic,
+            allTransactionDrafts,
+            icons,
         ],
     );
 
-    return {typeMenuSections};
+    return {
+        typeMenuSections,
+        CreateReportConfirmationModal,
+        shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
+    };
 };
 
 export default useSearchTypeMenuSections;

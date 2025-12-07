@@ -84,6 +84,7 @@ function HeaderPageLayout({
             offlineIndicatorStyle={[appBGColor]}
             testID={testID}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
+            shouldEnableMaxHeight
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>

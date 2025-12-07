@@ -7,7 +7,7 @@ import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getDefaultAvatarURL} from '@libs/UserUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 
@@ -33,7 +33,12 @@ function WorkspaceCompanyCardsListRow({cardholder, name, cardNumber, isHovered}:
         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.br3, styles.p4]}>
             <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex3]}>
                 <Avatar
-                    source={cardholder?.avatar ?? getDefaultAvatarURL(cardholder?.accountID)}
+                    source={
+                        cardholder?.avatar ??
+                        getDefaultAvatarURL({
+                            accountID: cardholder?.accountID,
+                        })
+                    }
                     avatarID={cardholder?.accountID}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.DEFAULT}

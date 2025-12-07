@@ -76,10 +76,8 @@ function WorkspaceReportFieldsPage({
             return {};
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        return Object.fromEntries(
-            Object.entries(policy.fieldList).filter(([, value]) => value.fieldID !== 'text_title' && value.target !== CONST.REPORT_FIELD_TARGETS.INVOICE),
-        );
-    }, [policy]);
+        return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title' && value.target !== CONST.REPORT_FIELD_TARGETS.INVOICE));
+    }, [policy?.fieldList]);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
     const illustrations = useMemoizedLazyIllustrations(['ReportReceipt'] as const);
@@ -168,6 +166,8 @@ function WorkspaceReportFieldsPage({
         clearPolicyTitleFieldError(policyID);
     };
 
+    const toggleTitleStyle = useMemo(() => [styles.pv2, styles.pr3], [styles.pv2, styles.pr3]);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -210,14 +210,15 @@ function WorkspaceReportFieldsPage({
                                 pendingAction={reportTitlePendingFields.defaultValue}
                                 shouldForceOpacity={!!reportTitlePendingFields.defaultValue}
                                 errors={reportTitleErrors}
-                                errorRowStyles={styles.mh0}
+                                errorRowStyles={[styles.mh0]}
+                                errorRowTextStyles={[styles.mv2]}
                                 onClose={clearTitleFieldError}
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reports.customNameTitle')}
                                     title={Str.htmlDecode(policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].defaultValue ?? '')}
                                     shouldShowRightIcon
-                                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                                    style={[styles.sectionMenuItemTopDescription, styles.mt6]}
                                     onPress={() => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID))}
                                 />
                             </OfflineWithFeedback>
@@ -225,8 +226,8 @@ function WorkspaceReportFieldsPage({
                                 pendingAction={reportTitlePendingFields.deletable}
                                 title={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt6]}
-                                titleStyle={styles.pv2}
+                                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
+                                titleStyle={toggleTitleStyle}
                                 isActive={!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE].deletable}
                                 onToggle={(isEnabled) => {
                                     if (isEnabled && !isControlPolicy(policy)) {

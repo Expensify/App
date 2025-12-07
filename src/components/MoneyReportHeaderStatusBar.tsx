@@ -1,20 +1,21 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseMessage} from '@libs/NextStepUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type ReportNextStep from '@src/types/onyx/ReportNextStep';
+import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDeprecated';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
-    /** The next step for the report */
-    nextStep: ReportNextStep | undefined;
+    /** The next step for the report (deprecated old format) */
+    nextStep: ReportNextStepDeprecated | undefined;
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
@@ -28,10 +29,12 @@ const iconMap: IconMap = {
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails.login ?? '';
     const messageContent = useMemo(() => {
         const messageArray = nextStep?.message;
-        return parseMessage(messageArray);
-    }, [nextStep?.message]);
+        return parseMessage(messageArray, currentUserEmail);
+    }, [nextStep?.message, currentUserEmail]);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>

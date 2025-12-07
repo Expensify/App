@@ -4,7 +4,8 @@ import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import ImageSize from 'react-native-image-size';
-import {interpolate, runOnUI, useSharedValue} from 'react-native-reanimated';
+import {interpolate, useSharedValue} from 'react-native-reanimated';
+import {scheduleOnUI} from 'react-native-worklets';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
@@ -372,64 +373,66 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                     onBackButtonPress={onClose}
                 />
                 <Text style={[styles.mh5]}>{translate('avatarCropModal.description')}</Text>
-                <GestureHandlerRootView
+                <View
+                    style={[styles.flex1, styles.m5, styles.alignSelfStretch]}
                     onLayout={initializeImageContainer}
-                    style={[styles.alignSelfStretch, styles.m5, styles.flex1, styles.alignItemsCenter]}
                 >
-                    {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
-                    {!isImageInitialized || !isImageContainerInitialized ? (
-                        <ActivityIndicator
-                            style={[styles.flex1]}
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        />
-                    ) : (
-                        <>
-                            <ImageCropView
-                                imageUri={imageUri}
-                                containerSize={imageContainerSize}
-                                panGesture={panGesture}
-                                originalImageHeight={originalImageHeight}
-                                originalImageWidth={originalImageWidth}
-                                scale={scale}
-                                translateY={translateY}
-                                translateX={translateX}
-                                rotation={rotation}
-                                maskImage={maskImage}
+                    <GestureHandlerRootView style={[styles.flex1, styles.alignItemsCenter]}>
+                        {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
+                        {!isImageInitialized || !isImageContainerInitialized ? (
+                            <ActivityIndicator
+                                style={[styles.flex1]}
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             />
-                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
-                                <Icon
-                                    src={Expensicons.Zoom}
-                                    fill={theme.icon}
+                        ) : (
+                            <>
+                                <ImageCropView
+                                    imageUri={imageUri}
+                                    containerSize={imageContainerSize}
+                                    panGesture={panGesture}
+                                    originalImageHeight={originalImageHeight}
+                                    originalImageWidth={originalImageWidth}
+                                    scale={scale}
+                                    translateY={translateY}
+                                    translateX={translateX}
+                                    rotation={rotation}
+                                    maskImage={maskImage}
                                 />
-
-                                <PressableWithoutFeedback
-                                    style={[styles.mh5, styles.flex1]}
-                                    onLayout={initializeSliderContainer}
-                                    onPressIn={(e) => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
-                                    accessibilityLabel="slider"
-                                    role={CONST.ROLE.SLIDER}
-                                >
-                                    <Slider
-                                        sliderValue={translateSlider}
-                                        gestureCallbacks={sliderPanGestureCallbacks}
+                                <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
+                                    <Icon
+                                        src={Expensicons.Zoom}
+                                        fill={theme.icon}
                                     />
-                                </PressableWithoutFeedback>
-                                <Tooltip
-                                    text={translate('common.rotate')}
-                                    shiftVertical={-2}
-                                >
-                                    <View>
-                                        <Button
-                                            icon={Expensicons.Rotate}
-                                            iconFill={theme.icon}
-                                            onPress={rotateImage}
+
+                                    <PressableWithoutFeedback
+                                        style={[styles.mh5, styles.flex1]}
+                                        onLayout={initializeSliderContainer}
+                                        onPressIn={(e) => scheduleOnUI(sliderOnPress, e.nativeEvent.locationX)}
+                                        accessibilityLabel="slider"
+                                        role={CONST.ROLE.SLIDER}
+                                    >
+                                        <Slider
+                                            sliderValue={translateSlider}
+                                            gestureCallbacks={sliderPanGestureCallbacks}
                                         />
-                                    </View>
-                                </Tooltip>
-                            </View>
-                        </>
-                    )}
-                </GestureHandlerRootView>
+                                    </PressableWithoutFeedback>
+                                    <Tooltip
+                                        text={translate('common.rotate')}
+                                        shiftVertical={-2}
+                                    >
+                                        <View>
+                                            <Button
+                                                icon={Expensicons.Rotate}
+                                                iconFill={theme.icon}
+                                                onPress={rotateImage}
+                                            />
+                                        </View>
+                                    </Tooltip>
+                                </View>
+                            </>
+                        )}
+                    </GestureHandlerRootView>
+                </View>
                 <Button
                     success
                     style={[styles.m5]}

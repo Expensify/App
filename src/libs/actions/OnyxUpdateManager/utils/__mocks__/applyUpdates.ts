@@ -21,11 +21,11 @@ const mockValuesProxy = createProxyForObject(mockValues);
 const applyUpdates = jest.fn((updates: DeferredUpdatesDictionary) => {
     const createChain = () => {
         let chain = Promise.resolve();
-        Object.values(updates).forEach((update) => {
+        for (const update of Object.values(updates)) {
             chain = chain.then(() => {
                 return OnyxUpdates.apply(update).then(() => undefined);
             });
-        });
+        }
 
         return chain;
     };

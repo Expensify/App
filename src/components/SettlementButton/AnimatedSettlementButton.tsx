@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import Animated, {Keyframe, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
@@ -54,10 +55,10 @@ function AnimatedSettlementButton({
             buttonMarginTop.set(withTiming(willShowPaymentButton ? gap : 0, {duration: buttonDuration}));
         }
         if (willShowPaymentButton) {
-            runOnJS(onAnimationFinish)();
+            scheduleOnRN(onAnimationFinish);
             return;
         }
-        height.set(withTiming(0, {duration: buttonDuration}, () => runOnJS(onAnimationFinish)()));
+        height.set(withTiming(0, {duration: buttonDuration}, () => scheduleOnRN(onAnimationFinish)));
     }, [buttonDuration, buttonMarginTop, gap, height, onAnimationFinish, shouldAddTopMargin, willShowPaymentButton]);
 
     const buttonAnimation = useMemo(

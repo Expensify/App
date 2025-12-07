@@ -33,8 +33,9 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector, canBeMissing: true});
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const isAnonymousUser = isAnonymousUserUtil(session);
+
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
-    const isWideRhpVisible = !!wideRHPRouteKeys.length;
+    const isWideRHPVisible = !!wideRHPRouteKeys.length;
 
     const displaySignIn = isAnonymousUser;
     const displaySearch = !isAnonymousUser && shouldDisplaySearch;
@@ -71,7 +72,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                 {shouldDisplayHelpButton && <HelpButton />}
                 {displaySearch && <SearchButton />}
             </View>
-            <LoadingBar shouldShow={!isWideRhpVisible && (shouldShowLoadingBarForReports || shouldShowLoadingBar)} />
+            <LoadingBar shouldShow={!isWideRHPVisible && (shouldShowLoadingBarForReports || shouldShowLoadingBar)} />
         </View>
     );
 }

@@ -27,10 +27,26 @@ const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typ
 // Mock useIsHomeRouteActive to avoid navigation state issues
 jest.mock('@navigation/helpers/useIsHomeRouteActive', () => (): boolean => false);
 
+let mockUseAnimatedStyleUpdater: () => Record<string, unknown>;
 // Silence react-native-reanimated warnings in Jest
 jest.mock('react-native-reanimated', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return require('react-native-reanimated/mock');
+    return {
+        ...require('react-native-reanimated/mock'),
+        interpolateColor: (value: number, input: number[], output: string[]) => {
+            const [, inputMax] = input;
+            const [colorMin, colorMax] = output;
+
+            if (value >= inputMax) {
+                return colorMax;
+            }
+            return colorMin;
+        },
+        useAnimatedStyle: (updater: () => Record<string, unknown>) => {
+            mockUseAnimatedStyleUpdater = updater;
+            return updater();
+        },
+    };
 });
 
 describe('FloatingActionButton hover', () => {
@@ -67,13 +83,15 @@ describe('FloatingActionButton hover', () => {
         // Before hover, should not have successHover background
         expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.productDark500});
 
+        expect(mockUseAnimatedStyleUpdater()).not.toEqual(expect.objectContaining({backgroundColor: colors.productDark500}));
+
         // Test hover in
         fireEvent(fab, 'hoverIn');
-        expect(animatedContainer).toHaveStyle({backgroundColor: colors.productDark500});
+        expect(mockUseAnimatedStyleUpdater()).toEqual(expect.objectContaining({backgroundColor: colors.productDark500}));
 
         // Test hover out
         fireEvent(fab, 'hoverOut');
-        expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.productDark500});
+        expect(mockUseAnimatedStyleUpdater()).not.toEqual(expect.objectContaining({backgroundColor: colors.productDark500}));
     });
 
     it('should render animated button if LHB is visible', () => {

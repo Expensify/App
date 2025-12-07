@@ -107,7 +107,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                         if (!('name' in item)) {
                             return;
                         }
-                        onEmojiSelected(emoji, item, preferredSkinTone);
+                        onEmojiSelected(emoji, item);
                     })}
                     emoji={emojiCode ?? ''}
                     isHighlighted={shouldEmojiBeHighlighted}

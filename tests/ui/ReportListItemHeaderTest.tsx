@@ -10,7 +10,7 @@ import ReportListItemHeader from '@components/SelectionListWithSections/Search/R
 import type {TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
+import type {PersonalDetails} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -36,7 +36,7 @@ const mockSearchContext = {
     selectAllMatchingItems: jest.fn(),
 };
 
-const mockPersonalDetails: Record<string, SearchPersonalDetails> = {
+const mockPersonalDetails: Record<string, PersonalDetails> = {
     john: {
         accountID: 1,
         displayName: 'John Doe',

@@ -1,4 +1,4 @@
-import type {PropsWithChildren} from 'react';
+import type {ForwardedRef, PropsWithChildren} from 'react';
 
 type AvatarCaptureHandle = {
     /** Captures the avatar view and returns a File/Blob */
@@ -7,6 +7,7 @@ type AvatarCaptureHandle = {
 
 type AvatarCaptureProps = PropsWithChildren<{
     fileName: string;
+    ref: ForwardedRef<AvatarCaptureHandle>;
 }>;
 
 export type {AvatarCaptureHandle, AvatarCaptureProps};

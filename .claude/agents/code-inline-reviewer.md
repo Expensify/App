@@ -198,39 +198,6 @@ memo(ReportActionItem, (prevProps, nextProps) =>
 )
 ```
 
----
-
-### [PERF-6] Use specific properties as hook dependencies
-
-- **Search patterns**: `useEffect`, `useMemo`, `useCallback` dependency arrays
-
-- **Condition**: In `useEffect`, `useMemo`, and `useCallback`, specify individual object properties as dependencies instead of passing entire objects.
-- **Reasoning**: Passing entire objects as dependencies causes hooks to re-execute whenever any property changes, even unrelated ones. Specifying individual properties creates more granular dependency tracking, reducing unnecessary hook executions and improving performance predictability.
-
-Good:
-
-```tsx
-const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
-    return {
-        amountColumnSize: transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        taxAmountColumnSize: transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-    };
-}, [transactionItem.isAmountColumnWide, transactionItem.isTaxAmountColumnWide, transactionItem.shouldShowYear]);
-```
-
-Bad:
-
-```tsx
-const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
-    return {
-        amountColumnSize: transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        taxAmountColumnSize: transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-        dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
-    };
-}, [transactionItem]);
-```
-
 ## Instructions
 
 1. **First, get the list of changed files and their diffs:**
@@ -248,17 +215,17 @@ const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
    - `body`: Concise and actionable description of the violation and fix, following the below Comment Format
 6. **Each comment must reference exactly one Rule ID.**
 7. **Output must consist exclusively of calls to mcp__github_inline_comment__create_inline_comment in the required format.** No other text, Markdown, or prose is allowed.
-8. **If no violations are found, create a comment** (with no quotes, markdown, or additional text):
-   LGTM 👍 Thank you for your hard work!
-9. **Output LGTM if and only if**:
+8. **If no violations are found, add a reaction to the PR**:
+   Add a 👍 (+1) reaction to the PR using the `addPrReaction` script (available in PATH from `.claude/scripts/`). The script takes ONLY the PR number as argument - it always adds a "+1" reaction, so do NOT pass any reaction type or emoji.
+9. **Add reaction if and only if**:
    - You examined EVERY changed line in EVERY changed file (via diff + targeted grep/read)
    - You checked EVERY changed file against ALL rules
    - You found ZERO violations matching the exact rule criteria
    - You verified no false negatives by checking each rule systematically
-    If you found even ONE violation or have ANY uncertainty do NOT create LGTM comment - create inline comments instead.
+    If you found even ONE violation or have ANY uncertainty do NOT add the reaction - create inline comments instead.
 10. **DO NOT invent new rules, stylistic preferences, or commentary outside the listed rules.**
 11. **DO NOT describe what you are doing, create comments with a summary, explanations, extra content, comments on rules that are NOT violated or ANYTHING ELSE.**
-    Only inline comments regarding rules violations or general comment with LGTM message are allowed.
+    Only inline comments regarding rules violations are allowed. If no violations are found, add a reaction instead of creating any comment.
     EXCEPTION: If you believe something MIGHT be a Rule violation but are uncertain, err on the side of creating an inline comment with your concern rather than skipping it.
 
 ## Tool Usage Example
@@ -268,16 +235,18 @@ CRITICAL: **DO NOT** use the Bash tool for inline comments:
 
 ```
 mcp__github_inline_comment__create_inline_comment:
-  path: "src/components/ReportActionsList.tsx"
+  path: 'src/components/ReportActionsList.tsx'
   line: 128
-  body: "<Body of the comment according to the Comment Format>"
+  body: '<Body of the comment according to the Comment Format>'
 ```
 
-If ZERO violations are found, use the Bash tool to create a top-level PR comment.:
+If ZERO violations are found, use the Bash tool to add a reaction to the PR body:
 
 ```bash
-gh pr comment --body "LGTM :feelsgood:. Thank you for your hard work!"
+addPrReaction.sh <PR_NUMBER>
 ```
+
+**IMPORTANT**: Always use the `addPrReaction.sh` script (available in PATH from `.claude/scripts/`) instead of calling `gh api` directly. 
 
 ## Comment Format
 

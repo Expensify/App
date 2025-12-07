@@ -275,9 +275,9 @@ const updateCurrentDate = throttle(() => {
  */
 function startCurrentDateUpdater() {
     const trackedEvents = ['mousemove', 'touchstart', 'keydown', 'scroll'];
-    trackedEvents.forEach((eventName) => {
+    for (const eventName of trackedEvents) {
         document.addEventListener(eventName, updateCurrentDate);
-    });
+    }
 }
 
 function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
@@ -482,14 +482,19 @@ function getLocalizedTimePeriodDescription(data: string): string {
 
 /**
  * receive date like 2020-05-16 05:34:14 and format it to show in string like "Until 05:34 PM"
+ * param {string} inputDate - Date string in 'YYYY-MM-DD HH:mm:ss' format representing the source time.
+ * param {SelectedTimezone} inputDateTimeZone - Timezone in which the inputDate is provided.
+ * param {SelectedTimezone} currentSelectedTimezone - Current user's timezone to display the result in.
+ * returns {string} - A localized string such as 'Until 05:34 PM', 'Until tomorrow', or 'Until Jul 01 05:34 PM'.
  */
-function getStatusUntilDate(inputDate: string): string {
+function getStatusUntilDate(inputDate: string, inputDateTimeZone: SelectedTimezone, currentSelectedTimezone: SelectedTimezone): string {
     if (!inputDate) {
         return '';
     }
 
-    const input = new Date(inputDate);
-    const now = new Date();
+    const date = fromZonedTime(inputDate, inputDateTimeZone);
+    const input = toZonedTime(date, currentSelectedTimezone);
+    const now = toZonedTime(new Date(), currentSelectedTimezone);
     const endOfToday = endOfDay(now);
 
     // If the date is adjusted to the following day

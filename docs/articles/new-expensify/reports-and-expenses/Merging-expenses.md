@@ -38,7 +38,7 @@ To merge two expenses, they must meet all of the following:
   - **Approvers and Admins** can merge expenses on the same report
 
 - **By status**:
-  - Both expenses must be editable. That includes unreported expenses, or ones on a Draft or Processing report that hasn’t yet been approved.
+  - Both expenses must be editable. That includes unreported expenses, or ones on a Draft or Outstanding report that hasn’t yet been approved.
 
 ## What happens when you merge?
 

@@ -53,6 +53,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         (index: number) => {
             let pendingAction: PendingAction | undefined;
             if (index === 0) {
+                // eslint-disable-next-line unicorn/no-array-for-each
                 approvalWorkflow?.members?.forEach((member) => {
                     pendingAction = pendingAction ?? member.pendingFields?.submitsTo;
                 });
@@ -77,7 +78,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
     const approverErrorMessage = useCallback(
         (approver: Approver | undefined, approverIndex: number) => {
-            const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).filter(Boolean).at(-1);
+            const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).findLast(Boolean);
             const error = approvalWorkflow?.errors?.[`approver-${approverIndex}`];
 
             if (!error) {
@@ -115,7 +116,13 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {
         if (!isControlPolicy(policy) && approverCount > 0) {
-            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, Navigation.getActiveRoute()));
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(
+                    policyID,
+                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
+                    ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount),
+                ),
+            );
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID)));

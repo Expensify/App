@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -22,6 +23,7 @@ import {setCustomUnitRateID, setMoneyRequestParticipants} from '@userActions/IOU
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -40,6 +42,7 @@ function IOURequestStepUpgrade({
     const personalDetails = usePersonalDetails();
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
 
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [showConfirmationForm, setShowConfirmationForm] = useState(false);
@@ -48,6 +51,8 @@ function IOURequestStepUpgrade({
     const isDistanceRateUpgrade = upgradePath === CONST.UPGRADE_PATHS.DISTANCE_RATES;
     const isCategorizing = upgradePath === CONST.UPGRADE_PATHS.CATEGORIES;
     const isReporting = upgradePath === CONST.UPGRADE_PATHS.REPORTS;
+    const platform = getPlatform();
+    const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
 
     const feature = useMemo(
         () =>
@@ -55,6 +60,17 @@ function IOURequestStepUpgrade({
                 .filter((value) => value.id !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id)
                 .find((f) => f.alias === upgradePath),
         [upgradePath],
+    );
+
+    const navigateWithMicrotask = useCallback(
+        (route: Route) => {
+            if (isWebOrDesktop) {
+                Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(route));
+            } else {
+                Navigation.navigate(route);
+            }
+        },
+        [isWebOrDesktop],
     );
 
     const afterUpgradeAcknowledged = useCallback(() => {
@@ -83,18 +99,21 @@ function IOURequestStepUpgrade({
                 // Let the confirmation step decide the distance rate because policy data is not fully available at this step
                 setCustomUnitRateID(transactionID, '-1');
                 Navigation.setParams({reportID: expenseReportID});
-                Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID, transactionID, expenseReportID));
+
+                navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, expenseReportID));
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+
                 break;
             case CONST.UPGRADE_PATHS.CATEGORIES:
-                Navigation.navigate(backTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                navigateWithMicrotask(backTo ?? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+
                 break;
             default:
         }
-    }, [action, backTo, reportID, shouldSubmitExpense, transactionID, upgradePath]);
+    }, [action, backTo, navigateWithMicrotask, reportID, shouldSubmitExpense, transactionID, upgradePath]);
 
     const adminParticipant = useMemo(() => {
         const participant = transaction?.participants?.[0];
@@ -124,10 +143,11 @@ function IOURequestStepUpgrade({
             ],
             adminParticipant,
             hasOutstandingChildRequest: false,
+            onboardingPurposeSelected,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
-    }, [isCategorizing, isReporting, currentUserPersonalDetails?.localCurrencyCode, isDistanceRateUpgrade, adminParticipant]);
+    }, [isCategorizing, isReporting, currentUserPersonalDetails?.localCurrencyCode, isDistanceRateUpgrade, adminParticipant, onboardingPurposeSelected]);
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
@@ -140,6 +160,7 @@ function IOURequestStepUpgrade({
             currency: params.currency,
             file: params.avatarFile as File,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            onboardingPurposeSelected,
         });
         policyDataRef.current = policyData;
         setCreatedPolicyName(params.name);

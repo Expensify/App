@@ -1,14 +1,17 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import useCardFeeds from '@hooks/useCardFeeds';
+import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
+import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -26,7 +29,6 @@ import {
 } from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isCollectPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -39,8 +41,11 @@ import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeed} from '@src/types/onyx';
 
 type CardFeedListItem = ListItem & {
+    /** Combined feed key */
+    value: CompanyCardFeedWithDomainID;
+
     /** Card feed value */
-    value: CompanyCardFeed;
+    feed: CompanyCardFeed;
 };
 
 type WorkspaceCompanyCardFeedSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
@@ -51,6 +56,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {translate} = useLocalize();
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const [cardFeeds] = useCardFeeds(policyID);
@@ -58,23 +64,27 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const isCollect = isCollectPolicy(policy);
+    const {isBlockedToAddNewFeeds} = useIsBlockedToAddFeed(policyID);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus'] as const);
 
-    const feeds: CardFeedListItem[] = Object.entries(companyFeeds).map(([key, feedSettings]) => {
-        const feed = key as CompanyCardFeed;
+    const feeds: CardFeedListItem[] = (Object.entries(companyFeeds) as Array<[CompanyCardFeedWithDomainID, CombinedCardFeed]>).map(([key, feedSettings]) => {
         const filteredFeedCards = filterInactiveCards(
-            allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getDomainOrWorkspaceAccountID(workspaceAccountID, feedSettings)}_${feed}`],
+            allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getDomainOrWorkspaceAccountID(workspaceAccountID, feedSettings)}_${feedSettings.feed}`],
         );
         const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards);
-        const plaidUrl = getPlaidInstitutionIconUrl(feed);
+        const plaidUrl = getPlaidInstitutionIconUrl(feedSettings.feed);
+        const domain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${feedSettings.domainID}`];
+        const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
 
         return {
-            value: feed,
-            text: getCustomOrFormattedFeedName(feed, cardFeeds?.settings?.companyCardNicknames),
-            keyForList: feed,
-            isSelected: feed === selectedFeed,
-            isDisabled: companyFeeds[feed]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            pendingAction: companyFeeds[feed]?.pendingAction,
+            value: key,
+            feed: feedSettings.feed,
+            alternateText: domainName ?? policy?.name,
+            text: getCustomOrFormattedFeedName(feedSettings.feed, feedSettings.customFeedName),
+            keyForList: key,
+            isSelected: key === selectedFeed,
+            isDisabled: feedSettings.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            pendingAction: feedSettings.pendingAction,
             brickRoadIndicator: isFeedConnectionBroken ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             canShowSeveralIndicators: isFeedConnectionBroken,
             leftElement: plaidUrl ? (
@@ -84,7 +94,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 />
             ) : (
                 <Icon
-                    src={getCardFeedIcon(feed, illustrations)}
+                    src={getCardFeedIcon(feedSettings.feed, illustrations)}
                     height={variables.cardIconHeight}
                     width={variables.cardIconWidth}
                     additionalStyles={[styles.mr3, styles.cardIcon]}
@@ -95,7 +105,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
 
     const onAddCardsPress = () => {
         clearAddNewCardFlow();
-        if (isCollect && feeds.length === 1) {
+        if (isBlockedToAddNewFeeds) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)),
             );
@@ -129,15 +139,14 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 <SelectionList
                     ListItem={RadioListItem}
                     onSelectRow={selectFeed}
-                    sections={[{data: feeds}]}
-                    shouldUpdateFocusedIndex
-                    isAlternateTextMultilineSupported
-                    initiallyFocusedOptionKey={selectedFeed}
+                    data={feeds}
+                    alternateNumberOfSupportedLines={2}
+                    initiallyFocusedItemKey={selectedFeed}
                     addBottomSafeAreaPadding
                     listFooterContent={
                         <MenuItem
                             title={translate('workspace.companyCards.addCards')}
-                            icon={Expensicons.Plus}
+                            icon={icons.Plus}
                             onPress={onAddCardsPress}
                         />
                     }

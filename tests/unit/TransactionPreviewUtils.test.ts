@@ -11,7 +11,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx';
+import type {ReportActions, Transaction} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
@@ -43,6 +43,8 @@ const basicProps = {
     shouldShowRBR: false,
     isReportAPolicyExpenseChat: false,
     areThereDuplicates: false,
+    currentUserEmail: '',
+    currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
 };
 
 describe('TransactionPreviewUtils', () => {
@@ -104,15 +106,15 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual('$0.00');
         });
 
-        it('returns merchant missing and amount missing message when appropriate', () => {
+        it('returns missing field message when appropriate', () => {
             const functionArgs = {
                 ...basicProps,
-                transaction: {...basicProps.transaction, merchant: '', amount: 0},
+                transaction: {...basicProps.transaction, created: '', amount: 100},
                 originalTransaction: undefined,
                 shouldShowRBR: true,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.RBRMessage.translationPath).toEqual('violations.reviewRequired');
+            expect(result.RBRMessage.translationPath).toEqual('iou.missingMerchant');
         });
 
         it('should display showCashOrCard in previewHeaderText', () => {
@@ -138,7 +140,12 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('displays description when receipt is being scanned', () => {
-            const functionArgs = {...basicProps, transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}}, originalTransaction: undefined};
+            const functionArgs = {
+                ...basicProps,
+                transaction: {...basicProps.transaction, merchant: '(none)', receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
+                originalTransaction: undefined,
+                merchant: 'Expense',
+            };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.receipt'}]));
         });
@@ -153,14 +160,14 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {
                 ...basicProps,
                 transactionDetails: {amount: 300, currency: 'EUR'},
-                transaction: {...basicProps.transaction, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
+                transaction: {...basicProps.transaction, merchant: '(none)', receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING}},
                 originalTransaction: undefined,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.displayAmountText.translationPath).toEqual('iou.receiptStatusTitle');
         });
 
-        it('handles currency and amount display correctly for scan split bill manually completed', async () => {
+        it('handles currency and amount display correctly for scan split bill manually completed', () => {
             const modifiedAmount = 300;
             const currency = 'EUR';
             const originalTransactionID = '2';
@@ -169,20 +176,20 @@ describe('TransactionPreviewUtils', () => {
                 transactionDetails: {amount: modifiedAmount / 2, currency},
                 transaction: {...basicProps.transaction, amount: modifiedAmount / 2, currency, comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT}},
                 isBillSplit: true,
+                originalTransaction: {
+                    reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                    transactionID: originalTransactionID,
+                    comment: {
+                        splits: [
+                            {accountID: 1, email: 'aa@gmail.com'},
+                            {accountID: 2, email: 'cc@gmail.com'},
+                        ],
+                    },
+                    modifiedAmount,
+                    amount: 0,
+                    currency,
+                } as Transaction,
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
-                reportID: CONST.REPORT.SPLIT_REPORT_ID,
-                transactionID: originalTransactionID,
-                comment: {
-                    splits: [
-                        {accountID: 1, email: 'aa@gmail.com'},
-                        {accountID: 2, email: 'cc@gmail.com'},
-                    ],
-                },
-                modifiedAmount,
-                amount: 0,
-                currency,
-            });
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });

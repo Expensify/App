@@ -38,7 +38,7 @@ type AddReactionBubbleProps = {
     /**
      * Called when the user selects an emoji.
      */
-    onSelectEmoji: (emoji: Emoji, preferredSkinTone: number) => void;
+    onSelectEmoji: (emoji: Emoji) => void;
 
     /**
      * ReportAction for EmojiPicker.
@@ -63,8 +63,8 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                 onModalHide: () => {
                     setIsEmojiPickerActive?.(false);
                 },
-                onEmojiSelected: (emojiCode, emojiObject, preferredSkinTone) => {
-                    onSelectEmoji(emojiObject, preferredSkinTone);
+                onEmojiSelected: (emojiCode, emojiObject) => {
+                    onSelectEmoji(emojiObject);
                 },
                 emojiPopoverAnchor: refParam ?? ref,
                 anchorOrigin,

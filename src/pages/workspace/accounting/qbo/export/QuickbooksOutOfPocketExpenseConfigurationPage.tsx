@@ -59,6 +59,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                 description = translate('workspace.qbo.accountsPayable');
                 break;
             default:
+                description = translate('workspace.qbo.account');
                 break;
         }
 

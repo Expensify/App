@@ -106,19 +106,19 @@ function PhoneNumberPage() {
                                 InputComponent={TextInput}
                                 ref={inputCallbackRef}
                                 inputID={INPUT_IDS.PHONE_NUMBER}
-                                name="legalFirstName"
+                                name="phoneNumber"
                                 label={translate('common.phoneNumber')}
                                 aria-label={translate('common.phoneNumber')}
                                 role={CONST.ROLE.PRESENTATION}
                                 defaultValue={phoneNumber}
                                 spellCheck={false}
+                                inputMode={CONST.INPUT_MODE.TEL}
                                 onBlur={() => {
                                     if (!validateLoginError) {
                                         return;
                                     }
                                     clearPhoneNumberError();
                                 }}
-                                inputMode={CONST.INPUT_MODE.TEL}
                             />
                         </OfflineWithFeedback>
                     </FormProvider>

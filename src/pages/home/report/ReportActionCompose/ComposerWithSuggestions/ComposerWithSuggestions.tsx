@@ -25,7 +25,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
-import {containsOnlyEmojis, extractEmojis, getAddedEmojis, replaceAndExtractEmojis} from '@libs/EmojiUtils';
+import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getPreferredSkinToneIndex, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
@@ -249,7 +249,7 @@ function ComposerWithSuggestions({
     const commentRef = useRef(value);
 
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {selector: getPreferredSkinToneIndex, canBeMissing: true});
     const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
 
     const lastTextRef = useRef(value);
@@ -259,8 +259,7 @@ function ComposerWithSuggestions({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-
-    const shouldAutoFocus = shouldFocusInputOnScreenFocus && !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && !modal?.isVisible && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -608,7 +607,7 @@ function ComposerWithSuggestions({
         // Checking whether the screen is focused or not, helps avoid `modal.isVisible` false when popups are closed, even if the modal is opened.
         const isComposerCoveredUp = !isFocused || isEmojiPickerVisible() || isMenuVisible || !!modal?.isVisible || modal?.willAlertModalBecomeVisible;
         return !isComposerCoveredUp;
-    }, [isMenuVisible, modal, isFocused]);
+    }, [isMenuVisible, modal?.isVisible, modal?.willAlertModalBecomeVisible, isFocused]);
 
     const focusComposerOnKeyPress = useCallback(
         (e: KeyboardEvent) => {
@@ -812,6 +811,21 @@ function ComposerWithSuggestions({
         onFocus();
     }, [onFocus, setUpComposeFocusManager]);
 
+    // When using the suggestions box (Suggestions) we need to imperatively
+    // set the cursor to the end of the suggestion/mention after it's selected.
+    const onSuggestionSelected = useCallback((suggestionSelection: TextSelection) => {
+        const endOfSuggestionSelection = suggestionSelection.end;
+        setSelection(suggestionSelection);
+
+        if (endOfSuggestionSelection === undefined) {
+            return;
+        }
+
+        queueMicrotask(() => {
+            textInputRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
+        });
+    }, []);
+
     return (
         <>
             <View
@@ -865,7 +879,7 @@ function ComposerWithSuggestions({
                 // Input
                 value={value}
                 selection={selection}
-                setSelection={setSelection}
+                setSelection={onSuggestionSelected}
                 resetKeyboardInput={resetKeyboardInput}
             />
 

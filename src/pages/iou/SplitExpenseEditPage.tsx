@@ -13,6 +13,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU';
+import {getDecodedCategoryName, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,6 +53,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: false});
+    const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`, {canBeMissing: true});
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
 
@@ -66,10 +68,11 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], policy);
+    const isSplitAvailable = report && transaction && isSplitAction(report, [transaction], originalTransaction, policy);
 
     const isCategoryRequired = !!policy?.requiresCategory;
     const reportName = getReportName(report, policy);
+    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, policy?.areRulesEnabled);
 
     const shouldShowTags = !!policy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
     const tagVisibility = useMemo(
@@ -117,13 +120,14 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.moneyRequestMenuItem]}
                             titleWrapperStyle={styles.flex1}
                             numberOfLinesTitle={2}
+                            rightLabel={isDescriptionRequired ? translate('common.required') : ''}
                         />
                         {shouldShowCategory && (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
                                 key={translate('common.category')}
                                 description={translate('common.category')}
-                                title={splitExpenseDraftTransactionDetails?.category}
+                                title={getDecodedCategoryName(splitExpenseDraftTransactionDetails?.category ?? '')}
                                 numberOfLinesTitle={2}
                                 rightLabel={isCategoryRequired ? translate('common.required') : ''}
                                 onPress={() => {
