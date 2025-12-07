@@ -99,6 +99,19 @@ function openPolicyReportFieldsPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_REPORT_FIELDS_PAGE, params);
 }
 
+function openPolicyInvoiceFieldsPage(policyID: string) {
+    if (!policyID) {
+        Log.warn('openPolicyInvoiceFieldsPage invalid params', {policyID});
+        return;
+    }
+
+    const params: OpenPolicyReportFieldsPageParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_INVOICE_FIELDS_PAGE, params);
+}
+
 /**
  * Sets the initial form values for the workspace report fields form.
  */
@@ -263,7 +276,9 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
         reportFields: JSON.stringify([optimisticReportFieldDataForPolicy]),
     };
 
-    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD, parameters, onyxData);
+    const createCommand =
+        target === CONST.REPORT_FIELD_TARGETS.INVOICE ? WRITE_COMMANDS.CREATE_WORKSPACE_INVOICE_FIELD : WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD;
+    API.write(createCommand, parameters, onyxData);
 }
 
 function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsParams) {
@@ -550,6 +565,7 @@ export {
     updateReportFieldInitialValue,
     updateReportFieldListValueEnabled,
     openPolicyReportFieldsPage,
+    openPolicyInvoiceFieldsPage,
     addReportFieldListValue,
     removeReportFieldListValue,
 };

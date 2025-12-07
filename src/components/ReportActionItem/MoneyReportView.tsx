@@ -108,9 +108,14 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
         return isReportFieldOfTypeTitle(reportField) || (!fieldValue && !hasEnableOption);
     };
 
+    const isReportFieldsFeatureEnabled =
+        report?.type === CONST.REPORT.TYPE.INVOICE
+            ? policy?.areInvoiceFieldsEnabled ?? policy?.areReportFieldsEnabled
+            : policy?.areReportFieldsEnabled;
     const shouldShowReportField =
         !isClosedExpenseReportWithNoExpenses &&
         (isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
+        isReportFieldsFeatureEnabled &&
         (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
         !sortedPolicyReportFields.every(shouldHideSingleReportField);
 
@@ -137,7 +142,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
                         {(isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
-                            policy?.areReportFieldsEnabled &&
+                            isReportFieldsFeatureEnabled &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (shouldHideSingleReportField(reportField)) {

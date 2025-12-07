@@ -18,11 +18,11 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
-import {enablePolicyReportFields} from '@libs/actions/Policy/Policy';
+import {enablePolicyInvoiceFields} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
-import {openPolicyReportFieldsPage} from '@userActions/Policy/ReportField';
+import {openPolicyInvoiceFieldsPage} from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -60,8 +60,10 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
     const currentConnectionName = getCurrentConnectionName(policy);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const fetchReportFields = useCallback(() => {
-        openPolicyReportFieldsPage(policyID);
+        openPolicyInvoiceFieldsPage(policyID);
     }, [policyID]);
+    const invoiceFieldsEnabled = policy?.areInvoiceFieldsEnabled ?? policy?.areReportFieldsEnabled;
+    const invoiceFieldsPendingAction = policy?.pendingFields?.areInvoiceFieldsEnabled ?? policy?.pendingFields?.areReportFieldsEnabled;
 
     const {isOffline} = useNetwork({onReconnect: fetchReportFields});
 
@@ -137,12 +139,12 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
                 containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
             >
                 <ToggleSettingOptionRow
-                    pendingAction={policy?.pendingFields?.areReportFieldsEnabled}
+                    pendingAction={invoiceFieldsPendingAction}
                     title={translate('workspace.common.invoiceFields')}
                     switchAccessibilityLabel={translate('workspace.common.invoiceFields')}
                     subtitle={getHeaderText()}
                     titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
-                    isActive={!!policy?.areReportFieldsEnabled}
+                    isActive={!!invoiceFieldsEnabled}
                     onToggle={(isEnabled) => {
                         if (!isEnabled) {
                             setIsReportFieldsWarningModalOpen(true);
@@ -160,12 +162,12 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
                             return;
                         }
 
-                        enablePolicyReportFields(policyID, isEnabled);
+                        enablePolicyInvoiceFields(policyID, isEnabled);
                     }}
                     disabled={hasAccountingConnections}
                     disabledAction={() => setIsOrganizeWarningModalOpen(true)}
                     subMenuItems={
-                        !!policy?.areReportFieldsEnabled && (
+                        !!invoiceFieldsEnabled && (
                             <>
                                 <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, styles.mt6]}>
                                     {!isLoading && (
@@ -200,7 +202,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
                 isVisible={isReportFieldsWarningModalOpen}
                 onConfirm={() => {
                     setIsReportFieldsWarningModalOpen(false);
-                    enablePolicyReportFields(policyID, false);
+                    enablePolicyInvoiceFields(policyID, false);
                 }}
                 onCancel={() => setIsReportFieldsWarningModalOpen(false)}
                 prompt={translate('workspace.invoiceFields.disableInvoiceFieldsConfirmation')}
