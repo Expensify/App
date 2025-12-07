@@ -245,6 +245,7 @@ import type {
     ToggleImportTitleParams,
     TotalAmountGreaterOrLessThanOriginalParams,
     ToValidateLoginParams,
+    TransactionDisplayNameParams,
     TransferParams,
     TravelTypeParams,
     TrialStartedTitleParams,
