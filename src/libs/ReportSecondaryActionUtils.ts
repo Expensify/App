@@ -125,6 +125,7 @@ function isSplitAction(report: Report, reportTransactions: Transaction[], origin
     }
 
     // Hide split option for the submitter if the report is forwarded
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return (isSubmitter && isAwaitingFirstLevelApproval(report)) || isAdmin || isManager;
 }
 

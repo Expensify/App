@@ -1966,6 +1966,9 @@ function requiresManualSubmission(report: OnyxEntry<Report>, policy: OnyxEntry<P
     return isManualSubmitEnabled || (isOpenReport(report) && isInstantSubmitEnabled(policy) && isSubmitAndClose(policy));
 }
 
+/**
+ * @deprecated This function will be removed soon. Please use isAwaitingFirstLevelApprovalNew instead
+ */
 function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return false;
@@ -1999,6 +2002,9 @@ function isAwaitingFirstLevelApprovalNew(report: OnyxEntry<Report>, reportAction
         return true;
     }
 
+    // If the report is part of a policy with Instant Submit, this data should be stored in the CREATED action
+    // as Instant Submit reports do not have a SUBMITTED action.
+    // For all other cases, use the most recent SUBMITTED action instead.
     const usedReportAction = isInstantSubmitEnabled(policy)
         ? reportActions?.find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED)
         : reportActions
@@ -2810,6 +2816,7 @@ function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean
     }
 
     if (isSubmitter) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return isOpenReport(report) || (isIOUReport(report) && isProcessingReport(report)) || isAwaitingFirstLevelApproval(report);
     }
 
@@ -4701,6 +4708,7 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
         }
 
         if (isSubmitted) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return (isSubmitter && isAwaitingFirstLevelApproval(report)) || isManager || isAdmin;
         }
 
