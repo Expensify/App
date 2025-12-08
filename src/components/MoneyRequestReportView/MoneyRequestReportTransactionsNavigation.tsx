@@ -38,6 +38,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, {
         canBeMissing: true,
     });
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const {markReportIDAsExpense} = useContext(WideRHPContext);
 
@@ -138,7 +139,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
         // The transaction thread doesn't exist yet, so we should create it
         if (!nextThreadReportID) {
-            const transactionThreadReport = createTransactionThreadReport(parentReport, nextParentReportAction, nextTransaction);
+            const transactionThreadReport = createTransactionThreadReport(personalDetails, parentReport, nextParentReportAction, nextTransaction);
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
@@ -166,7 +167,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
         // The transaction thread doesn't exist yet, so we should create it
         if (!prevThreadReportID) {
-            const transactionThreadReport = createTransactionThreadReport(parentReport, prevParentReportAction, prevTransaction);
+            const transactionThreadReport = createTransactionThreadReport(personalDetails, parentReport, prevParentReportAction, prevTransaction);
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating

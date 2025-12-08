@@ -19,20 +19,24 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const webViewRef = useRef<WebView>(null);
     const authToken = session?.authToken ?? null;
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
-    const onMessage = useCallback((event: WebViewMessageEvent) => {
-        try {
-            const parsedData = JSON.parse(event.nativeEvent.data) as WebViewNavigationEvent;
-            const {type, url} = parsedData || {};
-            if (!webViewRef.current) {
-                return;
+    const onMessage = useCallback(
+        (event: WebViewMessageEvent) => {
+            try {
+                const parsedData = JSON.parse(event.nativeEvent.data) as WebViewNavigationEvent;
+                const {type, url} = parsedData || {};
+                if (!webViewRef.current) {
+                    return;
+                }
+
+                handleWalletStatementNavigation(personalDetails, type, url);
+            } catch (error) {
+                console.error('Error parsing message from WebView:', error);
             }
-
-            handleWalletStatementNavigation(type, url);
-        } catch (error) {
-            console.error('Error parsing message from WebView:', error);
-        }
-    }, []);
+        },
+        [personalDetails],
+    );
 
     return (
         <WebView

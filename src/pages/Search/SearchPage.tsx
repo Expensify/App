@@ -11,6 +11,7 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -151,6 +152,7 @@ function SearchPage({route}: SearchPageProps) {
     const selectedTransactionReportIDs = useMemo(() => [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))], [selectedTransactions]);
     const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     // Collate a list of policyIDs from the selected transactions
     const selectedPolicyIDs = useMemo(
@@ -220,7 +222,7 @@ function SearchPage({route}: SearchPageProps) {
         // Prefetch once per unique set of missing IDs
         for (const id of missingReportIDs) {
             if (id) {
-                openReport(id);
+                openReport(personalDetails, id);
             }
         }
 
@@ -231,7 +233,7 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         lastPrefetchKeyRef.current = key;
-    }, [bulkRejectHydrationStatus, isOffline]);
+    }, [bulkRejectHydrationStatus, isOffline, personalDetails]);
 
     // Allow retry on reconnect
     const prevIsOffline = usePrevious(isOffline);

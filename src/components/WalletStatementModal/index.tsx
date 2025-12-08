@@ -12,6 +12,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const styles = useThemeStyles();
     const [isLoading, setIsLoading] = useState(true);
     const authToken = session?.authToken ?? null;
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     /**
      * Handles in-app navigation for iframe links
@@ -19,7 +20,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const navigate = (event: MessageEvent<WalletStatementMessage>) => {
         const {data} = event;
         const {type, url} = data || {};
-        handleWalletStatementNavigation(type, url);
+        handleWalletStatementNavigation(personalDetails, type, url);
     };
 
     return (
@@ -32,6 +33,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
                     height="100%"
                     width="100%"
                     seamless
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     frameBorder="0"
                     onLoad={() => {
                         setIsLoading(false);

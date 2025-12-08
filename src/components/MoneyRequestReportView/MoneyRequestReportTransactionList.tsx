@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
@@ -358,7 +359,7 @@ function MoneyRequestReportTransactionList({
 
             if (!reportIDToNavigate) {
                 const transaction = sortedTransactions.find((t) => t.transactionID === activeTransactionID);
-                const transactionThreadReport = createTransactionThreadReport(report, iouAction, transaction);
+                const transactionThreadReport = createTransactionThreadReport(personalDetailsList, report, iouAction, transaction);
                 if (transactionThreadReport) {
                     reportIDToNavigate = transactionThreadReport.reportID;
                     routeParams.reportID = reportIDToNavigate;
@@ -376,7 +377,7 @@ function MoneyRequestReportTransactionList({
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
-        [reportActions, visualOrderTransactionIDs, sortedTransactions, report, markReportIDAsExpense],
+        [reportActions, visualOrderTransactionIDs, sortedTransactions, report, markReportIDAsExpense, personalDetailsList],
     );
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {

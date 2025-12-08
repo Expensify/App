@@ -205,6 +205,7 @@ function ReportActionsList({
     const topReportAction = sortedVisibleReportActions.at(-1);
     const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !reportActionID);
     const isAnonymousUser = useIsAnonymousUser();
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     useEffect(() => {
         const unsubscribe = Visibility.onVisibilityChange(() => {
@@ -635,14 +636,14 @@ function ReportActionsList({
             } else {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
             }
-            openReport(report.reportID);
+            openReport(personalDetails, report.reportID);
             reportScrollManager.scrollToBottom();
             return;
         }
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         readNewestAction(report.reportID);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo]);
+    }, [setIsFloatingMessageCounterVisible, personalDetails, hasNewestReportAction, reportScrollManager, report.reportID, backTo]);
 
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on

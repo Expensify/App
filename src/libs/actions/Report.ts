@@ -332,14 +332,6 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        allPersonalDetails = value ?? {};
-    },
-});
-
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
@@ -976,6 +968,7 @@ function clearAvatarErrors(reportID: string) {
  */
 // eslint-disable-next-line @typescript-eslint/max-params
 function openReport(
+    allPersonalDetails: OnyxEntry<PersonalDetailsList>,
     reportID: string | undefined,
     reportActionID?: string,
     participantLoginList: string[] = [],
@@ -1396,6 +1389,7 @@ function getOptimisticChatReport(accountID: number): OptimisticChatReport {
 }
 
 function createTransactionThreadReport(
+    allPersonalDetails: OnyxEntry<PersonalDetailsList>,
     iouReport?: OnyxEntry<Report>,
     iouReportAction?: OnyxEntry<ReportAction>,
     transaction?: Transaction,
@@ -1427,6 +1421,7 @@ function createTransactionThreadReport(
     const optimisticTransactionThreadReportID = generateReportID();
     const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
     openReport(
+        allPersonalDetails,
         optimisticTransactionThreadReportID,
         undefined,
         currentUserEmail ? [currentUserEmail] : [],
@@ -1450,6 +1445,7 @@ function createTransactionThreadReport(
  * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
 function navigateToAndOpenReport(
+    allPersonalDetails: OnyxEntry<PersonalDetailsList>,
     userLogins: string[],
     shouldDismissModal = true,
     reportName?: string,
@@ -1478,7 +1474,7 @@ function navigateToAndOpenReport(
             });
         }
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
+        openReport(allPersonalDetails, newChat?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
@@ -1506,7 +1502,7 @@ function navigateToAndOpenReport(
  *
  * @param participantAccountIDs of user logins to start a chat report with.
  */
-function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) {
+function navigateToAndOpenReportWithAccountIDs(allPersonalDetails: OnyxEntry<PersonalDetailsList>, participantAccountIDs: number[]) {
     let newChat: OptimisticChatReport | undefined;
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     if (!chat) {
@@ -1514,7 +1510,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
             participantList: [...participantAccountIDs, currentUserAccountID],
         });
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, '', [], newChat, '0', false, participantAccountIDs);
+        openReport(allPersonalDetails, newChat?.reportID, '', [], newChat, '0', false, participantAccountIDs);
     }
     const report = chat ?? newChat;
 
@@ -1528,7 +1524,12 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
  * @param parentReportAction the parent comment of a thread
  * @param parentReportID The reportID of the parent
  */
-function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
+function navigateToAndOpenChildReport(
+    allPersonalDetails: OnyxEntry<PersonalDetailsList>,
+    childReportID: string | undefined,
+    parentReportAction: Partial<ReportAction> = {},
+    parentReportID?: string,
+) {
     const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
     if (childReport?.reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
@@ -1552,7 +1553,7 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
 
         if (!childReportID) {
             const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
+            openReport(allPersonalDetails, newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
         } else {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
@@ -2125,7 +2126,12 @@ function removeLinksFromHtml(html: string, links: string[]): string {
  * @param originalCommentMarkdown original markdown of the comment before editing.
  * @param videoAttributeCache cache of video attributes ([videoSource]: videoAttributes)
  */
-function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMarkdown: string, videoAttributeCache?: Record<string, string>): string {
+function handleUserDeletedLinksInHtml(
+    allPersonalDetails: OnyxEntry<PersonalDetailsList>,
+    newCommentText: string,
+    originalCommentMarkdown: string,
+    videoAttributeCache?: Record<string, string>,
+): string {
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
@@ -2154,6 +2160,7 @@ function editReportComment(
     textForNewComment: string,
     isOriginalReportArchived: boolean | undefined,
     isOriginalParentReportArchived: boolean | undefined,
+    allPersonalDetails: OnyxEntry<PersonalDetailsList>,
     videoAttributeCache?: Record<string, string>,
 ) {
     const originalReportID = originalReport?.reportID;
@@ -2173,7 +2180,7 @@ function editReportComment(
     if (originalCommentMarkdown === textForNewComment) {
         return;
     }
-    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown, videoAttributeCache);
+    const htmlForNewComment = handleUserDeletedLinksInHtml(allPersonalDetails, textForNewComment, originalCommentMarkdown, videoAttributeCache);
 
     const reportComment = Parser.htmlToText(htmlForNewComment);
 
@@ -2388,13 +2395,14 @@ function updateRoomVisibility(reportID: string, previousValue: RoomVisibility | 
  * @param prevNotificationPreference The previous notification preference for the child report
  */
 function toggleSubscribeToChildReport(
+    allPersonalDetails: OnyxEntry<PersonalDetailsList>,
     childReportID: string | undefined,
     parentReportAction: Partial<ReportAction> = {},
     parentReportID?: string,
     prevNotificationPreference?: NotificationPreference,
 ) {
     if (childReportID) {
-        openReport(childReportID);
+        openReport(allPersonalDetails, childReportID);
         const parentReportActionID = parentReportAction?.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, parentReportID, parentReportActionID);
@@ -2416,7 +2424,7 @@ function toggleSubscribeToChildReport(
         });
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
-        openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
+        openReport(allPersonalDetails, newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, parentReportID, parentReportAction?.reportActionID);
     }
@@ -2811,7 +2819,13 @@ function updateWriteCapability(report: Report, newValue: WriteCapability) {
 /**
  * Navigates to the 1:1 report with Concierge
  */
-function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageActive = () => true, linkToOptions?: LinkToOptions, reportActionID?: string) {
+function navigateToConciergeChat(
+    allPersonalDetails: OnyxEntry<PersonalDetailsList>,
+    shouldDismissModal = false,
+    checkIfCurrentPageActive = () => true,
+    linkToOptions?: LinkToOptions,
+    reportActionID?: string,
+) {
     // If conciergeReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
     if (!conciergeReportID) {
@@ -2822,7 +2836,7 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
+            navigateToAndOpenReport(allPersonalDetails, [CONST.EMAIL.CONCIERGE], shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});
@@ -3234,21 +3248,21 @@ function deleteReport(reportID: string | undefined, shouldDeleteChildReports = f
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeleteReport(reportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
+function navigateToConciergeChatAndDeleteReport(allPersonalDetails: OnyxEntry<PersonalDetailsList>, reportID: string | undefined, shouldPopToTop = false, shouldDeleteChildReports = false) {
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
         Navigation.popToSidebar();
     } else {
         Navigation.goBack();
     }
-    navigateToConciergeChat();
+    navigateToConciergeChat(allPersonalDetails);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
     });
 }
 
-function clearCreateChatError(report: OnyxEntry<Report>) {
+function clearCreateChatError(report: OnyxEntry<Report>, allPersonalDetails: OnyxEntry<PersonalDetailsList>) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
     if (report?.errorFields?.createChat && !isOptimisticReport) {
@@ -3256,7 +3270,7 @@ function clearCreateChatError(report: OnyxEntry<Report>) {
         return;
     }
 
-    navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true);
+    navigateToConciergeChatAndDeleteReport(allPersonalDetails, report?.reportID, undefined, true);
 }
 
 /**
@@ -3596,7 +3610,7 @@ function getCurrentUserEmail(): string | undefined {
     return currentUserEmail;
 }
 
-function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
+function navigateToMostRecentReport(allPersonalDetails: OnyxEntry<PersonalDetailsList>, currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
@@ -3610,7 +3624,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
             Navigation.goBack();
         }
 
-        navigateToConciergeChat(false, () => true, {forceReplace: true});
+        navigateToConciergeChat(allPersonalDetails, false, () => true, {forceReplace: true});
     }
 }
 
@@ -3632,7 +3646,7 @@ function joinRoom(report: OnyxEntry<Report>) {
     );
 }
 
-function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
+function leaveGroupChat(allPersonalDetails: OnyxEntry<PersonalDetailsList>, reportID: string, shouldClearQuickAction: boolean) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
@@ -3696,12 +3710,12 @@ function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
         },
     ];
 
-    navigateToMostRecentReport(report);
+    navigateToMostRecentReport(allPersonalDetails, report);
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
 
 /** Leave a report by setting the state to submitted and closed */
-function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
+function leaveRoom(allPersonalDetails: OnyxEntry<PersonalDetailsList>, reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (!report) {
@@ -3820,7 +3834,7 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report);
+    navigateToMostRecentReport(allPersonalDetails, report);
 }
 
 function buildInviteToRoomOnyxData(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {

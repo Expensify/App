@@ -204,6 +204,7 @@ function MoneyRequestReceiptView({
     const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && !isEmptyObject(errors);
 
     const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const dismissReceiptError = useCallback(() => {
         if (!report?.reportID) {
@@ -211,7 +212,7 @@ function MoneyRequestReceiptView({
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
+                navigateToConciergeChatAndDeleteReport(personalDetails, chatReport.reportID, true, true);
                 return;
             }
             if (parentReportAction) {
@@ -236,7 +237,7 @@ function MoneyRequestReceiptView({
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
-            navigateToConciergeChatAndDeleteReport(report.reportID, true, true);
+            navigateToConciergeChatAndDeleteReport(personalDetails, report.reportID, true, true);
         }
     }, [
         transaction,
@@ -250,6 +251,7 @@ function MoneyRequestReceiptView({
         errorsWithoutReportCreation,
         reportCreationError,
         isInNarrowPaneModal,
+        personalDetails,
     ]);
 
     let receiptStyle: StyleProp<ViewStyle>;

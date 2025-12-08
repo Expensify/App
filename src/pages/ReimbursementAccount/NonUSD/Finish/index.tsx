@@ -26,6 +26,7 @@ function Finish() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow'] as const);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -33,7 +34,7 @@ function Finish() {
     const handleBackButtonPress = () => {
         Navigation.goBack();
     };
-    const handleNavigateToConciergeChat = () => navigateToConciergeChat(true);
+    const handleNavigateToConciergeChat = () => navigateToConciergeChat(personalDetails, true);
 
     return (
         <ScreenWrapper

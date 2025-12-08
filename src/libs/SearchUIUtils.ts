@@ -1381,6 +1381,7 @@ function getTaskSections(
 
 /** Creates transaction thread report and navigates to it from the search page */
 function createAndOpenSearchTransactionThread(
+    allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     item: TransactionListItemType,
     backTo: string,
     IOUTransactionID?: string,
@@ -1406,7 +1407,7 @@ function createAndOpenSearchTransactionThread(
         const reportActionID = moneyRequestReportActionID ?? iouReportAction?.reportActionID;
         const transaction = !reportActionID ? getTransactionFromTransactionListItem(item) : undefined;
         const transactionViolations = !reportActionID ? item.violations : undefined;
-        transactionThreadReport = createTransactionThreadReport(item.report, {reportActionID} as OnyxTypes.ReportAction, transaction, transactionViolations);
+        transactionThreadReport = createTransactionThreadReport(allPersonalDetails, item.report, {reportActionID} as OnyxTypes.ReportAction, transaction, transactionViolations);
     }
 
     if (shouldNavigate) {

@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import {Info} from '@components/Icon/Expensicons';
 import Popover from '@components/Popover';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -53,6 +54,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const [isVisible, setVisible] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
     const anchorRef = useRef(null);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -88,7 +90,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const requestLimitIncrease = () => {
         requestExpensifyCardLimitIncrease(cardSettings?.paymentBankAccountID);
         setVisible(false);
-        navigateToConciergeChat();
+        navigateToConciergeChat(personalDetails);
     };
 
     const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
