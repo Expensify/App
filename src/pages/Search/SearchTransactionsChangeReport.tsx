@@ -103,7 +103,7 @@ function SearchTransactionsChangeReport() {
                 optimisticReport,
                 policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined,
                 reportNextStep,
-                undefined,
+                allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
             );
             clearSelectedTransactions();
         });
