@@ -17,8 +17,8 @@ import {
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
+    shouldHideSingleReportField,
 } from '@libs/ReportUtils';
-import {shouldHideSingleReportField} from '@libs/WorkspaceReportFieldUtils';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

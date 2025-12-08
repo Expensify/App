@@ -33,8 +33,8 @@ import {
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
     isSettled as isSettledReportUtils,
+    shouldHideSingleReportField,
 } from '@libs/ReportUtils';
-import {shouldHideSingleReportField} from '@libs/WorkspaceReportFieldUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
