@@ -85,6 +85,7 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 onSelectRow={saveSelectedTimezone}
                 textInputOptions={textInputOptions}
                 initiallyFocusedItemKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
+                isDisabled={timezone.automatic}
                 shouldShowTooltips={false}
                 shouldSingleExecuteRowSelect
                 showScrollIndicator
