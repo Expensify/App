@@ -5826,32 +5826,6 @@ function getReportName(
 }
 
 /**
- * @deprecated Moved to src/libs/ReportNameUtils.ts.
- * Use ReportNameUtils.computeReportName(...) in search contexts instead.
- * @param props
- */
-function getSearchReportName(props: GetReportNameParams): string {
-    const {report, policy} = props;
-    if (isChatThread(report) && policy?.name) {
-        return policy.name;
-    }
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return getReportName(
-        report,
-        policy,
-        props.parentReportActionParam,
-        props.personalDetails,
-        props.invoiceReceiverPolicy,
-        undefined,
-        props.transactions,
-        props.isReportArchived,
-        props.reports,
-        props.policies,
-    );
-}
-
-/**
  * Get the payee name given a report.
  */
 function getPayeeName(report: OnyxEntry<Report>): string | undefined {
@@ -12861,9 +12835,6 @@ export {
     getReportDescription,
     getReportFieldKey,
     getReportIDFromLink,
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getSearchReportName,
     getReportTransactions,
     reportTransactionsSelector,
     getReportNotificationPreference,

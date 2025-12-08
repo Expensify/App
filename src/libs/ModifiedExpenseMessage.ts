@@ -17,6 +17,7 @@ import Log from './Log';
 import Parser from './Parser';
 import {getCleanedTagName, getPolicy, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
+// eslint-disable-next-line import/no-cycle
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName} from './ReportNameUtils';
 // eslint-disable-next-line import/no-cycle
 import {getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
