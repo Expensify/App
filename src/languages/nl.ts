@@ -731,6 +731,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopiëren naar klembord',
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
+        viewReport: 'Rapport bekijken',
         actionRequired: 'Actie vereist',
     },
     supportalNoAccess: {
@@ -6077,6 +6078,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                     toUpgrade: 'Om te upgraden, klik',
                     selectWorkspace: 'selecteer een workspace en wijzig het type abonnement in',
                 },
+                upgradeWorkspaceWarning: 'Kan werkruimte niet upgraden',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Uw bedrijf heeft de creatie van werkruimten beperkt. Neem contact op met een beheerder voor hulp.',
             },
         },
         downgrade: {
@@ -6506,7 +6509,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'ingeschakeld' : 'Uitgeschakeld'} bijhouden van deelnemers`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'ingeschakeld' : 'Uitgeschakeld'} terugbetalingen voor deze werkruimte`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} terugbetalingen`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting “${taxName}” toegevoegd`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `heeft de belasting “${taxName}” verwijderd`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6739,6 +6742,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         groupBy: 'Groeperen op',
         moneyRequestReport: {
             emptyStateTitle: 'Dit rapport bevat geen onkosten.',
+            accessPlaceHolder: 'Open voor details',
         },
         noCategory: 'Geen categorie',
         noTag: 'Geen tag',

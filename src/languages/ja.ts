@@ -731,6 +731,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '予想より時間がかかっています…',
         domains: 'ドメイン',
+        viewReport: 'レポートを表示',
         actionRequired: '対応が必要',
     },
     supportalNoAccess: {
@@ -6052,6 +6053,8 @@ ${reportName}
                     toUpgrade: 'アップグレードするには、クリックしてください',
                     selectWorkspace: 'ワークスペースを選択し、プランの種類を 次に変更してください',
                 },
+                upgradeWorkspaceWarning: 'ワークスペースをアップグレードできません',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '会社がワークスペースの作成を制限しています。管理者に連絡してください。',
             },
         },
         downgrade: {
@@ -6472,7 +6475,7 @@ ${reportName}
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 出席者の追跡`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `このワークスペースの${enabled ? '有効' : '無効'}払い戻し`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? '有効' : '無効'} 件の払い戻し`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `税「${taxName}」を追加しました`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `税「${taxName}」を削除しました`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6704,6 +6707,7 @@ ${reportName}
         groupBy: 'グループ化',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',
+            accessPlaceHolder: '詳細を開く',
         },
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',

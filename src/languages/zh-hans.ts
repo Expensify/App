@@ -727,6 +727,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这比预期花费的时间更长...',
         domains: '域名',
+        viewReport: '查看报告',
         actionRequired: '需要操作',
     },
     supportalNoAccess: {
@@ -5965,6 +5966,8 @@ ${reportName}
                     toUpgrade: '要升级，请点击',
                     selectWorkspace: '选择一个工作区，并将套餐类型更改为',
                 },
+                upgradeWorkspaceWarning: '无法升级工作区',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '您的公司已限制工作区创建。请联系管理员寻求帮助。',
             },
         },
         downgrade: {
@@ -6375,7 +6378,7 @@ ${reportName}
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 与会者跟踪`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `此工作区的 ${enabled ? '已启用' : '已禁用'} 报销`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? '已启用' : '已禁用'} 笔报销`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税费“${taxName}”`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已移除税费“${taxName}”`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6608,6 +6611,7 @@ ${reportName}
         groupBy: '分组依据',
         moneyRequestReport: {
             emptyStateTitle: '此报表没有任何报销。',
+            accessPlaceHolder: '打开以查看详情',
         },
         noCategory: '无类别',
         noTag: '无标签',
