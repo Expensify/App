@@ -257,6 +257,7 @@ function BaseVideoPlayer({
     });
 
     useEventListener(videoPlayerRef.current, 'playToEnd', () => {
+        setIsEnded(true);
         setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
         controlsOpacity.set(1);
     });
