@@ -387,6 +387,7 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID}`]: {
             amount: -5000,
             canDelete: true,
+            canReject: false,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -418,6 +419,7 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID2}`]: {
             amount: -5000,
             canDelete: true,
+            canReject: false,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -450,6 +452,7 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID3}`]: {
             amount: 1200,
             canDelete: true,
+            canReject: false,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -481,6 +484,7 @@ const searchResults: OnyxTypes.SearchResults = {
         [`transactions_${transactionID4}`]: {
             amount: 3200,
             canDelete: true,
+            canReject: false,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -768,6 +772,7 @@ const transactionsListItems = [
         reportAction: reportAction1,
         holdReportAction: undefined,
         canDelete: true,
+        canReject: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -821,6 +826,7 @@ const transactionsListItems = [
         reportAction: reportAction2,
         holdReportAction: undefined,
         canDelete: true,
+        canReject: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -884,6 +890,7 @@ const transactionsListItems = [
         reportAction: reportAction3,
         holdReportAction: undefined,
         canDelete: true,
+        canReject: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -942,6 +949,7 @@ const transactionsListItems = [
         reportAction: reportAction4,
         holdReportAction: undefined,
         canDelete: true,
+        canReject: false,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -1037,6 +1045,7 @@ const transactionReportGroupListItems = [
                 holdReportAction: undefined,
                 amount: -5000,
                 canDelete: true,
+                canReject: false,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1133,6 +1142,7 @@ const transactionReportGroupListItems = [
                 holdReportAction: undefined,
                 amount: -5000,
                 canDelete: true,
+                canReject: false,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -2342,6 +2352,7 @@ describe('SearchUIUtils', () => {
                     transactions_1805965960759424086: {
                         amount: 0,
                         canDelete: false,
+                        canReject: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
                         comment: {
                             comment: '',
@@ -2465,6 +2476,7 @@ describe('SearchUIUtils', () => {
                 transactions_1805965960759424086: {
                     amount: 0,
                     canDelete: false,
+                    canReject: false,
                     cardID: undefined,
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',
