@@ -3092,7 +3092,6 @@ ${
         routingNumber: 'Routing-Nummer',
         chooseAnAccountBelow: 'Wählen Sie unten ein Konto aus',
         addBankAccount: 'Bankkonto hinzufügen',
-        addNewBankAccount: 'Ein neues Bankkonto hinzufügen',
         chooseAnAccount: 'Konto auswählen',
         connectOnlineWithPlaid: 'Melden Sie sich bei Ihrer Bank an',
         connectManually: 'Manuell verbinden',

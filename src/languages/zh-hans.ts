@@ -3038,7 +3038,6 @@ ${
         routingNumber: '路由号码',
         chooseAnAccountBelow: '在下方选择一个账户',
         addBankAccount: '添加银行账户',
-        addNewBankAccount: '添加新的银行账户',
         chooseAnAccount: '选择一个账户',
         connectOnlineWithPlaid: '登录到您的银行',
         connectManually: '手动连接',

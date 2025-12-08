@@ -3075,7 +3075,6 @@ ${
         routingNumber: 'ルーティング番号',
         chooseAnAccountBelow: '以下のアカウントから選択',
         addBankAccount: '銀行口座を追加',
-        addNewBankAccount: '新しい銀行口座を追加',
         chooseAnAccount: 'アカウントを選択',
         connectOnlineWithPlaid: '銀行にログイン',
         connectManually: '手動で接続',

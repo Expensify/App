@@ -3081,7 +3081,6 @@ ${
         routingNumber: 'Numero di instradamento',
         chooseAnAccountBelow: 'Scegli un conto qui sotto',
         addBankAccount: 'Aggiungi conto bancario',
-        addNewBankAccount: 'Aggiungi un nuovo conto bancario',
         chooseAnAccount: 'Scegli un account',
         connectOnlineWithPlaid: 'Accedi alla tua banca',
         connectManually: 'Connetti manualmente',

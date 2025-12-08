@@ -3075,7 +3075,6 @@ ${
         routingNumber: 'Numer rozliczeniowy',
         chooseAnAccountBelow: 'Wybierz konto poniżej',
         addBankAccount: 'Dodaj konto bankowe',
-        addNewBankAccount: 'Dodaj nowe konto bankowe',
         chooseAnAccount: 'Wybierz konto',
         connectOnlineWithPlaid: 'Zaloguj się do swojego banku',
         connectManually: 'Połącz ręcznie',

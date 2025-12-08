@@ -3077,7 +3077,6 @@ ${
         routingNumber: 'Routingnummer',
         chooseAnAccountBelow: 'Kies een account hieronder',
         addBankAccount: 'Bankrekening toevoegen',
-        addNewBankAccount: 'Een nieuwe bankrekening toevoegen',
         chooseAnAccount: 'Kies een account',
         connectOnlineWithPlaid: 'Log in bij uw bank',
         connectManually: 'Handmatig verbinden',
