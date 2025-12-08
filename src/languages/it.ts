@@ -732,6 +732,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copia negli appunti',
         thisIsTakingLongerThanExpected: 'Sta richiedendo più tempo del previsto...',
         domains: 'Domini',
+        viewReport: 'Visualizza rendiconto',
         actionRequired: 'Azione richiesta',
     },
     supportalNoAccess: {
@@ -6520,7 +6521,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `Monitoraggio partecipanti ${enabled ? 'abilitato' : 'disabilitato'}`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'abilitato' : 'disabilitato'} rimborsi per questo spazio di lavoro`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'abilitato' : 'disabilitato'} rimborsi`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `ha aggiunto l’imposta "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `ha rimosso l'imposta "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6753,6 +6754,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         groupBy: 'Raggruppa per',
         moneyRequestReport: {
             emptyStateTitle: 'Questo report non ha spese.',
+            accessPlaceHolder: 'Apri per i dettagli',
         },
         noCategory: 'Nessuna categoria',
         noTag: 'Nessun tag',
