@@ -46,7 +46,7 @@ type BaseMenuItem = {
 };
 
 function TroubleshootPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'ExpensifyLogoNew', 'Bug', 'RotateLeft'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'ExpensifyLogoNew'] as const);
     const illustrations = useMemoizedLazyIllustrations(['Lightbulb'] as const);
     const troubleshootIllustration = useTroubleshootSectionIllustration();
     const {translate} = useLocalize();

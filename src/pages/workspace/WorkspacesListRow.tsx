@@ -127,6 +127,7 @@ function WorkspacesListRow({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass' as const]);
     const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow'] as const);
 
     const workspaceTypeIcon = useCallback(
@@ -182,7 +183,7 @@ function WorkspacesListRow({
                         text={translate('workspace.common.requested')}
                         textStyles={styles.textStrong}
                         badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
-                        icon={Expensicons.Hourglass}
+                        icon={icons.Hourglass}
                     />
                 </View>
             )}

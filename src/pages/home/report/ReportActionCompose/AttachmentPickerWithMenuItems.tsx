@@ -137,7 +137,7 @@ function AttachmentPickerWithMenuItems({
     raiseIsScrollLikelyLayoutTriggered,
     shouldDisableAttachmentItem,
 }: AttachmentPickerWithMenuItemsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Paperclip'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Paperclip', 'Task'] as const);
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -305,13 +305,13 @@ function AttachmentPickerWithMenuItems({
 
         return [
             {
-                icon: Expensicons.Task,
+                icon: icons.Task,
                 text: translate('newTaskPage.assignTask'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
                 onSelected: () => clearOutTaskInfoAndNavigate(currentUserPersonalDetails.accountID, undefined, reportID, report),
             },
         ];
-    }, [report, translate, shouldUseNarrowLayout, currentUserPersonalDetails.accountID, reportID]);
+    }, [report, translate, shouldUseNarrowLayout, currentUserPersonalDetails.accountID, reportID, icons.Task]);
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);

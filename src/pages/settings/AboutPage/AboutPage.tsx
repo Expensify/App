@@ -51,7 +51,8 @@ type MenuItem = {
 };
 
 function AboutPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Link', 'Keyboard', 'Eye', 'MoneyBag', 'Bug'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PalmTree'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
@@ -64,17 +65,17 @@ function AboutPage() {
         const baseMenuItems: MenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
-                icon: Expensicons.Link,
+                icon: icons.Link,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
-                icon: Expensicons.Keyboard,
+                icon: icons.Keyboard,
                 action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()))),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
-                icon: Expensicons.Eye,
+                icon: icons.Eye,
                 iconRight: icons.NewWindow,
                 action: () => {
                     openExternalLink(CONST.GITHUB_URL);
@@ -84,7 +85,7 @@ function AboutPage() {
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
-                icon: Expensicons.MoneyBag,
+                icon: icons.MoneyBag,
                 iconRight: icons.NewWindow,
                 action: () => {
                     openExternalLink(CONST.UPWORK_URL);
@@ -94,7 +95,7 @@ function AboutPage() {
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
-                icon: Expensicons.Bug,
+                icon: icons.Bug,
                 action: waitForNavigate(navigateToConciergeChat),
             },
         ];
@@ -119,7 +120,7 @@ function AboutPage() {
             shouldBlockSelection: !!link,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [icons.NewWindow, styles, translate, waitForNavigate]);
+    }, [icons, styles, translate, waitForNavigate]);
 
     const overlayContent = useCallback(
         () => (
