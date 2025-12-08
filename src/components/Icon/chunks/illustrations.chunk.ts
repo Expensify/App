@@ -130,6 +130,7 @@ import VirtualCard from '@assets/images/simple-illustrations/simple-illustration
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
+import LaptopOnDeskDeprecated from '@assets/images/laptop-on-desk-deprecated.svg';
 
 // Create the illustrations object with all imported illustrations
 const Illustrations = {
@@ -269,6 +270,7 @@ const Illustrations = {
     LockOpen,
     Mailbox,
     ShieldYellow,
+    LaptopOnDeskDeprecated,
 };
 
 /**

@@ -65,6 +65,7 @@ import Mailbox from '@assets/images/simple-illustrations/simple-illustration__ma
 import Pencil from '@assets/images/simple-illustrations/simple-illustration__pencil.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
+import LaptopOnDeskDeprecated from '@assets/images/laptop-on-desk-deprecated.svg';
 
 export {
     Encryption,
@@ -134,4 +135,5 @@ export {
     PlaidCompanyCardDetail,
     EmptyShelves,
     BlueShield,
+    LaptopOnDeskDeprecated,
 };

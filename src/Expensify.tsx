@@ -50,6 +50,7 @@ import './libs/telemetry/TelemetrySynchronizer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
+import getPlatform from './libs/getPlatform';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -119,6 +120,7 @@ function Expensify() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
+    const isDesktop = getPlatform() === CONST.PLATFORM.DESKTOP;
 
     useDebugShortcut();
     usePriorityMode();
@@ -352,6 +354,10 @@ function Expensify() {
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
+    }
+
+    if (isDesktop) {
+        throw new Error(CONST.ERROR.DESKTOP_APP_RETIRED)
     }
 
     if (updateRequired) {
