@@ -593,16 +593,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
         introSelected,
-        expensifyIcons.Users,
-        expensifyIcons.Gear,
-        expensifyIcons.Send,
-        expensifyIcons.Folder,
-        expensifyIcons.UserPlus,
-        expensifyIcons.Pencil,
-        expensifyIcons.Checkmark,
-        expensifyIcons.Building,
-        expensifyIcons.Exit,
-        expensifyIcons.Bug,
         parentReport,
     ]);
 
