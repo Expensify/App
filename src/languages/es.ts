@@ -7841,7 +7841,7 @@ ${amount} para ${merchant} - ${date}`,
         samlConfigurationDetails: {
             title: 'Detalles de configuración de SAML',
             subtitle: 'Utiliza estos detalles para configurar SAML.',
-            identityProviderMetaData: 'Metadatos del proveedor de identidad',
+            identityProviderMetadata: 'Metadatos del proveedor de identidad',
             entityID: 'ID de entidad',
             nameIDFormat: 'Formato de ID de nombre',
             loginUrl: 'URL de inicio de sesión',

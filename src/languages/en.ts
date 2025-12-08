@@ -7719,7 +7719,7 @@ const translations = {
         samlConfigurationDetails: {
             title: 'SAML configuration details',
             subtitle: 'Use these details to get SAML set up.',
-            identityProviderMetaData: 'Identity Provider MetaData',
+            identityProviderMetadata: 'Identity Provider Metadata',
             entityID: 'Entity ID',
             nameIDFormat: 'Name ID Format',
             loginUrl: 'Login URL',

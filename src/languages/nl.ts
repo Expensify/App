@@ -7738,7 +7738,7 @@ ${amount} voor ${merchant} - ${date}`,
         samlConfigurationDetails: {
             title: 'SAML-configuratiedetails',
             subtitle: 'Gebruik deze gegevens om SAML in te stellen.',
-            identityProviderMetaData: 'Metagegevens van identiteitsprovider',
+            identityProviderMetadata: 'Metagegevens van identiteitsprovider',
             entityID: 'Entiteit-ID',
             nameIDFormat: 'Naam-ID-formaat',
             loginUrl: 'Inlog-URL',

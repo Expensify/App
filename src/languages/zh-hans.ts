@@ -7572,7 +7572,7 @@ ${merchant}的${amount} - ${date}`,
         samlConfigurationDetails: {
             title: 'SAML 配置详细信息',
             subtitle: '使用这些详细信息来设置 SAML。',
-            identityProviderMetaData: '身份提供者元数据',
+            identityProviderMetadata: '身份提供者元数据',
             entityID: '实体 ID',
             nameIDFormat: '名称 ID 格式',
             loginUrl: '登录网址',

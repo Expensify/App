@@ -7694,7 +7694,7 @@ ${date} - ${merchant}に${amount}`,
         samlConfigurationDetails: {
             title: 'SAML 設定の詳細',
             subtitle: 'これらの詳細を使用して SAML をセットアップしてください。',
-            identityProviderMetaData: 'アイデンティティプロバイダーのメタデータ',
+            identityProviderMetadata: 'アイデンティティプロバイダーのメタデータ',
             entityID: 'エンティティ ID',
             nameIDFormat: 'Name ID 形式',
             loginUrl: 'ログインURL',

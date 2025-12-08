@@ -7729,7 +7729,7 @@ ${amount} dla ${merchant} - ${date}`,
         samlConfigurationDetails: {
             title: 'Szczegóły konfiguracji SAML',
             subtitle: 'Skorzystaj z tych informacji, aby skonfigurować SAML.',
-            identityProviderMetaData: 'Metadane dostawcy tożsamości',
+            identityProviderMetadata: 'Metadane dostawcy tożsamości',
             entityID: 'Identyfikator podmiotu',
             nameIDFormat: 'Format identyfikatora nazwy',
             loginUrl: 'Adres URL logowania',
