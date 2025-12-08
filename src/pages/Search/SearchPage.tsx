@@ -212,6 +212,11 @@ function SearchPage({route}: SearchPageProps) {
             return;
         }
 
+        const totalMissing = missingReportIDs.length + missingPolicyIDs.length;
+        if (totalMissing > 5) {  // pick from const ?
+            return; // skip prefetching entirely
+        }
+
         const key = `${[...missingReportIDs].sort().join(',')}|${[...missingPolicyIDs].sort().join(',')}`;
         if (key === lastPrefetchKeyRef.current) {
             return;
