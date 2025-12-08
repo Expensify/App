@@ -1,4 +1,4 @@
-import type {VideoPlayer, VideoView} from 'expo-video';
+import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
 
@@ -92,6 +92,16 @@ type PlaybackContextValues = {
      * Sets the URL of the currently playing video.
      */
     setCurrentlyPlayingURL: React.Dispatch<React.SetStateAction<string | null>>;
+
+    /**
+     * Array of currently mounted Video Player instances
+     */
+    mountedVideoPlayersRef: RefObject<string[]>;
+
+    /**
+     * Status of the currently used Video Player
+     */
+    playerStatus: RefObject<VideoPlayerStatus>;
 };
 
 /**
@@ -159,7 +169,6 @@ type PlaybackContext = PlaybackContextValues & {
     checkIfVideoIsPlaying: PlaybackContextVideoRefs['isPlaying'];
     currentVideoPlayerRef: PlaybackContextVideoRefs['playerRef'];
     currentVideoViewRef: PlaybackContextVideoRefs['viewRef'];
-    mountedVideoPlayersRef: RefObject<string[]>;
 };
 
 export type {PlaybackContextVideoRefs, StopVideo, PlaybackContextValues, PlaybackContext, OriginalParent};

@@ -65,6 +65,7 @@ function BaseVideoPlayer({
         updateCurrentURLAndReportID,
         setCurrentlyPlayingURL,
         mountedVideoPlayersRef,
+        playerStatus,
     } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
@@ -94,7 +95,7 @@ function BaseVideoPlayer({
 
     const isPlaying = videoPlayerRef.current.playing;
     const {currentTime, bufferedPosition} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0} as TimeUpdateEventPayload);
-    const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: 'loading'} as StatusChangeEventPayload);
+    const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: shouldUseSharedVideoElement ? playerStatus.current : 'loading'} as StatusChangeEventPayload);
 
     const isLoading = useMemo(() => {
         return status === 'loading';
@@ -120,8 +121,8 @@ function BaseVideoPlayer({
     const shouldShowLoadingIndicator = useMemo(() => {
         // We want to show LoadingIndicator when video's loading and paused, except when it's loading
         // for the first time, then playing/loading may vary. Video should be online and without errors.
-        return isLoading && (!isPlaying || !shouldUseSharedVideoElement) && !isOffline && !hasError;
-    }, [hasError, isLoading, isOffline, isPlaying, shouldUseSharedVideoElement]);
+        return isLoading && (!isPlaying || currentTime <= 0) && !isEnded && !isOffline && !hasError;
+    }, [currentTime, hasError, isEnded, isLoading, isOffline, isPlaying]);
     const shouldShowOfflineIndicator = useMemo(() => {
         return isOffline && currentTime + bufferedPosition <= 0;
     }, [bufferedPosition, currentTime, isOffline]);
@@ -240,6 +241,9 @@ function BaseVideoPlayer({
     });
 
     useEventListener(videoPlayerRef.current, 'statusChange', (payload: StatusChangeEventPayload) => {
+        if (payload.status !== 'error') {
+            playerStatus.current = payload.status;
+        }
         if (payload.status !== 'readyToPlay') {
             return;
         }
@@ -326,6 +330,9 @@ function BaseVideoPlayer({
     // update shared video elements
     useEffect(() => {
         // On mobile safari, we need to auto-play when sharing video element here
+        if (status !== 'error') {
+            playerStatus.current = status;
+        }
         shareVideoPlayerElements(
             videoPlayerRef.current,
             videoViewRef.current,
@@ -334,7 +341,20 @@ function BaseVideoPlayer({
             (isUploading && !isCurrentlyURLSet) || isFullScreenRef.current || !isReadyForDisplayRef.current || hasError,
             {shouldUseSharedVideoElement, url, reportID},
         );
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, reportID, videoPlayerRef, isFullScreenRef, hasError, isCurrentlyURLSet]);
+    }, [
+        currentlyPlayingURL,
+        shouldUseSharedVideoElement,
+        shareVideoPlayerElements,
+        url,
+        isUploading,
+        reportID,
+        videoPlayerRef,
+        isFullScreenRef,
+        hasError,
+        isCurrentlyURLSet,
+        playerStatus,
+        status,
+    ]);
 
     // append shared video element to new parent (used for example in attachment modal)
     useEffect(() => {
