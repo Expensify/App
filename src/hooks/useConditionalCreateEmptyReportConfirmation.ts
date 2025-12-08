@@ -1,6 +1,5 @@
 import {accountIDSelector} from '@selectors/Session';
 import {useCallback, useMemo} from 'react';
-import type {ReactNode} from 'react';
 import {hasEmptyReportsForPolicy, reportSummariesOnyxSelector} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import getEmptyArray from '@src/types/utils/getEmptyArray';

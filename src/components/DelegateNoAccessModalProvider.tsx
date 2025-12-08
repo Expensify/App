@@ -46,7 +46,7 @@ function DelegateNoAccessModalProvider({children}: PropsWithChildren) {
             title: translate('delegate.notAllowed'),
             prompt: (
                 <View style={[styles.renderHTML, styles.flexRow]}>
-                    <RenderHTML html={translate('delegate.notAllowedMessage', {accountOwnerEmail: delegatorEmail})} />
+                    <RenderHTML html={translate('delegate.notAllowedMessage', delegatorEmail)} />
                 </View>
             ),
             confirmText: translate('common.buttonConfirm'),

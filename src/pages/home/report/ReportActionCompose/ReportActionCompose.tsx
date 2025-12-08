@@ -483,7 +483,7 @@ function ReportActionCompose({
         [isComposerFullSize, reportID, debouncedValidate],
     );
 
-    const {validateAttachments, onReceiptDropped, PDFValidationComponent, ErrorModal} = useAttachmentUploadValidation({
+    const {validateAttachments, onReceiptDropped, PDFValidationComponent} = useAttachmentUploadValidation({
         policy,
         reportID,
         addAttachment,
@@ -623,7 +623,6 @@ function ReportActionCompose({
                             handleSendMessage={handleSendMessage}
                         />
                     </View>
-                    {ErrorModal}
                     <View
                         style={[
                             styles.flexRow,
