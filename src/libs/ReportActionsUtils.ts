@@ -2994,7 +2994,7 @@ function getAddedConnectionMessage(reportAction: OnyxEntry<ReportAction>): strin
     const originalMessage = getOriginalMessage(reportAction);
     const connectionName = originalMessage?.connectionName;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return connectionName ? translateLocal('report.actions.type.addedConnection', {connectionName}) : '';
+    return connectionName ? translateLocal('report.actions.type.addedConnection', connectionName) : '';
 }
 
 function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): string {
@@ -3004,7 +3004,7 @@ function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): str
     const originalMessage = getOriginalMessage(reportAction);
     const connectionName = originalMessage?.connectionName;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return connectionName ? translateLocal('report.actions.type.removedConnection', {connectionName}) : '';
+    return connectionName ? translateLocal('report.actions.type.removedConnection', connectionName) : '';
 }
 
 function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, isExpenseReport: boolean, actorName?: string) {
