@@ -205,23 +205,23 @@ function MyComponent({ id, onSelect }) {
 }
 ```
 
-**2. Extracting data from Onyx**
+**2. Object props passed to memoized children**
 
 Good:
 ```tsx
-// ✅ Use Onyx selector - component only re-renders when selected value changes
-const reportNameSelector = (report: OnyxEntry<Report>) => report?.reportName;
+// ✅ Object reference stays stable between renders
+const options = useMemo(() => ({
+    showHeader: true,
+    pageSize: 10,
+}), []);
 
-const [reportName] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-    selector: reportNameSelector
-});
+return <MemoizedList options={options} />;
 ```
 
 Bad:
 ```tsx
-// ❌ Component re-renders on ANY change to report, then useMemo runs
-const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-const reportName = useMemo(() => report?.reportName, [report]);
+// ❌ New object created every render - breaks MemoizedList's memoization
+return <MemoizedList options={{ showHeader: true, pageSize: 10 }} />;
 ```
 
 ---
