@@ -92,14 +92,13 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const changedReportsEntries = useMemo(() => {
         const result: OnyxCollection<OnyxEntry<Report> | null> = {};
 
-        // eslint-disable-next-line unicorn/no-array-for-each
-        Object.keys(changedReports ?? {}).forEach((key) => {
+        for (const key of Object.keys(changedReports ?? {})) {
             let report: Report | null = reports?.[key] ?? null;
             result[key] = report;
             if (reports?.[key] === undefined && prevReports?.[key]) {
                 report = null;
             }
-        });
+        }
         return result;
     }, [changedReports, reports, prevReports]);
 
@@ -118,8 +117,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             }
 
             const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
-            // eslint-disable-next-line unicorn/no-array-for-each
-            changedReportKeys.forEach((reportKey) => {
+            for (const reportKey of changedReportKeys) {
                 const report = changedReportsEntries[reportKey];
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
                 const {reportOption} = processReport(report, personalDetails, reportAttributes?.reports);
@@ -129,7 +127,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 } else {
                     updatedReportsMap.delete(reportID);
                 }
-            });
+            }
 
             return {
                 ...prevOptions,
@@ -150,10 +148,9 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             }
 
             const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
-            // eslint-disable-next-line unicorn/no-array-for-each
-            changedReportActionsEntries.forEach(([key, reportAction]) => {
+            for (const [key, reportAction] of changedReportActionsEntries) {
                 if (!reportAction) {
-                    return;
+                    continue;
                 }
 
                 const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
@@ -162,7 +159,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
                 }
-            });
+            }
 
             return {
                 ...prevOptions,
@@ -201,31 +198,34 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             newReportOption: SearchOption<Report>;
         }> = [];
 
-        // eslint-disable-next-line unicorn/no-array-for-each
-        Object.keys(personalDetails).forEach((accountID) => {
+        for (const accountID of Object.keys(personalDetails)) {
             const prevPersonalDetail = prevPersonalDetails?.[accountID];
             const personalDetail = personalDetails[accountID];
 
             if (prevPersonalDetail && personalDetail && isEqualPersonalDetail(prevPersonalDetail, personalDetail)) {
-                return;
+                continue;
             }
 
-            Object.values(reports ?? {})
-                .filter((report) => accountID in (report?.participants ?? {}) || (isSelfDM(report) && report?.ownerAccountID === Number(accountID)))
-                // eslint-disable-next-line unicorn/no-array-for-each
-                .forEach((report) => {
-                    if (!report) {
-                        return;
-                    }
-                    const reportPolicyTags = report.policyID ? policyTags?.[report.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
-                    const newReportOption = createOptionFromReport(report, personalDetails, reportPolicyTags, reportAttributes?.reports, {showPersonalDetails: true});
-                    const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
-                    newReportOptions.push({
-                        newReportOption,
-                        replaceIndex,
-                    });
+            for (const report of Object.values(reports ?? {})) {
+                if (!report) {
+                    continue;
+                }
+
+                const isParticipant = accountID in (report.participants ?? {});
+                const isOwnerOfSelfDM = isSelfDM(report) && report?.ownerAccountID === Number(accountID);
+                if (!isParticipant && !isOwnerOfSelfDM) {
+                    continue;
+                }
+
+                const reportPolicyTags = report.policyID ? policyTags?.[report.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
+                const newReportOption = createOptionFromReport(report, personalDetails, reportPolicyTags, reportAttributes?.reports, {showPersonalDetails: true});
+                const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
+                newReportOptions.push({
+                    newReportOption,
+                    replaceIndex,
                 });
-        });
+            }
+        }
 
         // since personal details are not a collection, we need to recreate the whole list from scratch
         const newPersonalDetailsOptions = createOptionList(personalDetails, policyTags, reports, reportAttributes?.reports).personalDetails;
@@ -233,8 +233,9 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
             newOptions.personalDetails = newPersonalDetailsOptions;
-            // eslint-disable-next-line unicorn/no-array-for-each
-            newReportOptions.forEach((newReportOption) => (newOptions.reports[newReportOption.replaceIndex] = newReportOption.newReportOption));
+            for (const newReportOption of newReportOptions) {
+                newOptions.reports[newReportOption.replaceIndex] = newReportOption.newReportOption;
+            }
             return newOptions;
         });
 
