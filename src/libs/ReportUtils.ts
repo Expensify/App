@@ -1192,10 +1192,10 @@ Onyx.connectWithoutView({
     },
 });
 
-let nvp_selfDMReportID: OnyxEntry<string>;
+let cachedSelfDMReportID: OnyxEntry<string>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.SELF_DM_REPORT_ID,
-    callback: (value) => (nvp_selfDMReportID = value),
+    callback: (value) => (cachedSelfDMReportID = value),
 });
 
 let hiddenTranslation = '';
@@ -1861,8 +1861,8 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 function findSelfDMReportID(): string | undefined {
-    if (nvp_selfDMReportID) {
-        return nvp_selfDMReportID;
+    if (cachedSelfDMReportID) {
+        return cachedSelfDMReportID;
     }
     if (!allReports) {
         return;
