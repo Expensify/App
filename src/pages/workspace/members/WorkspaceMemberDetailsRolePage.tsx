@@ -33,7 +33,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
                 return;
             }
             updateWorkspaceMembersRole(policyID, [memberLogin], [accountID], value);
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
         },
         [accountID, member?.role, memberLogin, policyID],
     );
