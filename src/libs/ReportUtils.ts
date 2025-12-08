@@ -4757,7 +4757,7 @@ function canEditFieldOfMoneyRequest(
     const transactionRaw = linkedTransaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`];
     // Type guard: if it's a SearchTransaction, we can't use isCardTransactionTransactionUtils on it
     // For now, we'll only check if it's an OnyxEntry<Transaction>
-    const transaction = transactionRaw && !isSearchTransaction(transactionRaw) ? transactionRaw : (transactionRaw as OnyxEntry<Transaction> | undefined) ?? ({} as Transaction);
+    const transaction = transactionRaw && !isSearchTransaction(transactionRaw) ? transactionRaw : ((transactionRaw as OnyxEntry<Transaction> | undefined) ?? ({} as Transaction));
 
     if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
         return false;
