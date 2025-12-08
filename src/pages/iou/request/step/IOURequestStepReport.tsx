@@ -183,7 +183,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         handleRegularReportSelection({value: optimisticReport.reportID}, optimisticReport);
     };
 
-    const {handleCreateReport, CreateReportConfirmationModal} = useConditionalCreateEmptyReportConfirmation({
+    const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
         policyID: policyForMovingExpensesID,
         policyName: policyForMovingExpenses?.name ?? '',
         onCreateReport: createReportForPolicy,
@@ -207,22 +207,19 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     };
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <IOURequestEditReportCommon
-                backTo={backTo}
-                selectReport={selectReport}
-                transactionIDs={transaction ? [transaction.transactionID] : []}
-                selectedReportID={selectedReportID}
-                selectedPolicyID={!isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined}
-                removeFromReport={removeFromReport}
-                isEditing={isEditing}
-                isUnreported={isUnreported}
-                shouldShowNotFoundPage={shouldShowNotFoundPage}
-                isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
-                createReport={action === CONST.IOU.ACTION.EDIT && (policyForMovingExpensesID || shouldSelectPolicy) ? createReport : undefined}
-            />
-        </>
+        <IOURequestEditReportCommon
+            backTo={backTo}
+            selectReport={selectReport}
+            transactionIDs={transaction ? [transaction.transactionID] : []}
+            selectedReportID={selectedReportID}
+            selectedPolicyID={!isEditing && !isFromGlobalCreate ? reportOrDraftReport?.policyID : undefined}
+            removeFromReport={removeFromReport}
+            isEditing={isEditing}
+            isUnreported={isUnreported}
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
+            isPerDiemRequest={transaction ? isPerDiemRequest(transaction) : false}
+            createReport={action === CONST.IOU.ACTION.EDIT && (policyForMovingExpensesID || shouldSelectPolicy) ? createReport : undefined}
+        />
     );
 }
 

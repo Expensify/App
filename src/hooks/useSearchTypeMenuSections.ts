@@ -63,7 +63,7 @@ const useSearchTypeMenuSections = () => {
         setPendingReportCreation(null);
     }, [setPendingReportCreation]);
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: pendingReportCreation?.policyID,
         policyName: pendingReportCreation?.policyName ?? '',
         onConfirm: handlePendingConfirm,
@@ -115,7 +115,6 @@ const useSearchTypeMenuSections = () => {
 
     return {
         typeMenuSections,
-        CreateReportConfirmationModal,
         shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
     };
 };

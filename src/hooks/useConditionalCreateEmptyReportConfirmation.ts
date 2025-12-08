@@ -25,8 +25,6 @@ type UseConditionalCreateEmptyReportConfirmationResult = {
     handleCreateReport: () => void;
     /** Whether an empty report already exists for the provided policy */
     hasEmptyReport: boolean;
-    /** The confirmation modal React component to render */
-    CreateReportConfirmationModal: ReactNode;
 };
 
 /**
@@ -49,7 +47,7 @@ export default function useConditionalCreateEmptyReportConfirmation({
 
     const hasEmptyReport = useMemo(() => hasEmptyReportsForPolicy(reportSummaries, policyID, accountID), [accountID, policyID, reportSummaries]);
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID,
         policyName,
         onConfirm: onCreateReport,
@@ -68,6 +66,5 @@ export default function useConditionalCreateEmptyReportConfirmation({
     return {
         handleCreateReport,
         hasEmptyReport,
-        CreateReportConfirmationModal,
     };
 }

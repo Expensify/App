@@ -224,7 +224,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         });
     }, [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled, isReportInSearch]);
 
-    const {openCreateReportConfirmation: openFabCreateReportConfirmation, CreateReportConfirmationModal: FabCreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation: openFabCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
@@ -646,7 +646,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     return (
         <View style={[styles.justifyContentCenter, styles.flexGrow1, styles.gap3, shouldUseNarrowLayout ? styles.w100 : styles.pv4]}>
-            {FabCreateReportConfirmationModal}
             <PopoverMenu
                 onClose={hideCreateMenu}
                 shouldEnableMaxHeight={false}

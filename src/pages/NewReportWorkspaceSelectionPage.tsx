@@ -178,7 +178,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         setPendingPolicySelection(null);
     }, []);
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: pendingPolicySelection?.policy.policyID,
         policyName: pendingPolicySelection?.policy.text ?? '',
         onConfirm: handleConfirmCreateReport,
@@ -301,7 +301,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                         title={translate('report.newReport.createReport')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    {CreateReportConfirmationModal}
                     {shouldShowLoadingIndicator ? (
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     ) : (

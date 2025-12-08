@@ -174,7 +174,7 @@ function AttachmentPickerWithMenuItems({
         [policy],
     );
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: report?.policyID,
         policyName: policy?.name ?? '',
         onConfirm: () => selectOption(() => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID, true), true),
@@ -390,7 +390,6 @@ function AttachmentPickerWithMenuItems({
                 ];
                 return (
                     <>
-                        {CreateReportConfirmationModal}
                         <View style={outerContainerStyles}>
                             <View style={innerContainerStyles}>
                                 <View style={createButtonContainerStyles}>

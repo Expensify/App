@@ -49,7 +49,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const {typeMenuSections, CreateReportConfirmationModal, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
+    const {typeMenuSections, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
     const isFocused = useIsFocused();
     const {
         shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
@@ -209,68 +209,65 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems]);
 
     return (
-        <>
-            {CreateReportConfirmationModal}
-            <ScrollView
-                onScroll={onScroll}
-                ref={scrollViewRef}
-                showsVerticalScrollIndicator={false}
-            >
-                {shouldShowSuggestedSearchSkeleton ? (
-                    <View style={[styles.pb4, styles.mh3, styles.gap4]}>
-                        <SuggestedSearchSkeleton />
-                    </View>
-                ) : (
-                    <View style={[styles.pb4, styles.mh3, styles.gap4]}>
-                        {typeMenuSections.map((section, sectionIndex) => (
-                            <View key={section.translationPath}>
-                                <Text style={styles.sectionTitle}>{translate(section.translationPath)}</Text>
+        <ScrollView
+            onScroll={onScroll}
+            ref={scrollViewRef}
+            showsVerticalScrollIndicator={false}
+        >
+            {shouldShowSuggestedSearchSkeleton ? (
+                <View style={[styles.pb4, styles.mh3, styles.gap4]}>
+                    <SuggestedSearchSkeleton />
+                </View>
+            ) : (
+                <View style={[styles.pb4, styles.mh3, styles.gap4]}>
+                    {typeMenuSections.map((section, sectionIndex) => (
+                        <View key={section.translationPath}>
+                            <Text style={styles.sectionTitle}>{translate(section.translationPath)}</Text>
 
-                                {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
-                                    <>
-                                        {renderSavedSearchesSection(savedSearchesMenuItems)}
-                                        {/* DeleteConfirmModal is a stable JSX element returned by the hook.
+                            {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
+                                <>
+                                    {renderSavedSearchesSection(savedSearchesMenuItems)}
+                                    {/* DeleteConfirmModal is a stable JSX element returned by the hook.
                                         Returning the element directly keeps the component identity across re-renders so React
                                         can play its exit animation instead of removing it instantly. */}
-                                        {DeleteConfirmModal}
-                                    </>
-                                ) : (
-                                    <>
-                                        {section.menuItems.map((item, itemIndex) => {
-                                            const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
-                                            const flattenedIndex = previousItemCount + itemIndex;
-                                            const focused = activeItemIndex === flattenedIndex;
+                                    {DeleteConfirmModal}
+                                </>
+                            ) : (
+                                <>
+                                    {section.menuItems.map((item, itemIndex) => {
+                                        const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
+                                        const flattenedIndex = previousItemCount + itemIndex;
+                                        const focused = activeItemIndex === flattenedIndex;
 
-                                            const onPress = singleExecution(() => {
-                                                clearAllFilters();
-                                                clearSelectedTransactions();
-                                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
-                                            });
+                                        const onPress = singleExecution(() => {
+                                            clearAllFilters();
+                                            clearSelectedTransactions();
+                                            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
+                                        });
 
-                                            return (
-                                                <MenuItem
-                                                    key={item.key}
-                                                    disabled={false}
-                                                    interactive
-                                                    title={translate(item.translationPath)}
-                                                    icon={item.icon}
-                                                    iconWidth={variables.iconSizeNormal}
-                                                    iconHeight={variables.iconSizeNormal}
-                                                    wrapperStyle={styles.sectionMenuItem}
-                                                    focused={focused}
-                                                    onPress={onPress}
-                                                    shouldIconUseAutoWidthStyle
-                                                />
-                                            );
-                                        })}
-                                    </>
-                                )}
-                            </View>
-                        ))}
-                    </View>
-                )}
-            </ScrollView>
-        </>
+                                        return (
+                                            <MenuItem
+                                                key={item.key}
+                                                disabled={false}
+                                                interactive
+                                                title={translate(item.translationPath)}
+                                                icon={item.icon}
+                                                iconWidth={variables.iconSizeNormal}
+                                                iconHeight={variables.iconSizeNormal}
+                                                wrapperStyle={styles.sectionMenuItem}
+                                                focused={focused}
+                                                onPress={onPress}
+                                                shouldIconUseAutoWidthStyle
+                                            />
+                                        );
+                                    })}
+                                </>
+                            )}
+                        </View>
+                    ))}
+                </View>
+            )}
+        </ScrollView>
     );
 }
 

@@ -1,7 +1,6 @@
 import {hasSeenTourSelector, tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ImageStyle, Text as RNText, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
@@ -68,7 +67,6 @@ type EmptySearchViewContentProps = EmptySearchViewProps & {
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
     introSelected: OnyxEntry<IntroSelected>;
     hasSeenTour: boolean;
-    searchMenuCreateReportConfirmationModal: ReactNode;
 };
 
 type EmptySearchViewItem = {
@@ -88,7 +86,7 @@ type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
 
 function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {typeMenuSections, CreateReportConfirmationModal: SearchMenuCreateReportConfirmationModal} = useSearchTypeMenuSections();
+    const {typeMenuSections} = useSearchTypeMenuSections();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
 
@@ -119,7 +117,6 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: Empty
                 groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
                 introSelected={introSelected}
                 hasSeenTour={hasSeenTour}
-                searchMenuCreateReportConfirmationModal={SearchMenuCreateReportConfirmationModal}
                 queryJSON={queryJSON}
             />
         </SearchScopeProvider>
@@ -144,7 +141,6 @@ function EmptySearchViewContent({
     groupPoliciesWithChatEnabled,
     introSelected,
     hasSeenTour,
-    searchMenuCreateReportConfirmationModal,
     queryJSON,
 }: EmptySearchViewContentProps) {
     const theme = useTheme();
@@ -216,7 +212,7 @@ function EmptySearchViewContent({
         });
     }, [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled]);
 
-    const {openCreateReportConfirmation: openCreateReportFromSearch, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation: openCreateReportFromSearch} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
@@ -504,7 +500,6 @@ function EmptySearchViewContent({
 
     return (
         <>
-            {searchMenuCreateReportConfirmationModal}
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
@@ -524,7 +519,6 @@ function EmptySearchViewContent({
                     {content.children}
                 </EmptyStateComponent>
             </ScrollView>
-            {CreateReportConfirmationModal}
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
                 isVisible={modalVisible}

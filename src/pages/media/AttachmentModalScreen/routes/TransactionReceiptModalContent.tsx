@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -194,10 +194,11 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                             confirmText: translate('common.delete'),
                             cancelText: translate('common.cancel'),
                             danger: true,
-                        }).then(({action}) => {
-                            if (action === 'CONFIRM') {
-                                deleteReceiptAndClose();
+                        }).then(({action: modalAction}) => {
+                            if (modalAction !== 'CONFIRM') {
+                                return;
                             }
+                            deleteReceiptAndClose();
                         });
                     },
                     shouldCallAfterModalHide: true,
