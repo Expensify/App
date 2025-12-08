@@ -34,7 +34,7 @@ function ImTeacherUpdateEmailPage() {
                 title={translate('teachersUnitePage.updateYourEmail')}
                 CustomSubtitle={
                     <Text style={[styles.textAlignCenter]}>
-                        <RenderHTML html={translate('teachersUnitePage.schoolMailAsDefault', {contactMethodsRoute})} />
+                        <RenderHTML html={translate('teachersUnitePage.schoolMailAsDefault', contactMethodsRoute)} />
                     </Text>
                 }
                 iconWidth={variables.signInLogoWidthLargeScreen}

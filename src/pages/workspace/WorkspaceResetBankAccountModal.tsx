@@ -102,7 +102,7 @@ function WorkspaceResetBankAccountModal({
             prompt={
                 isInOpenState ? (
                     <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('workspace.bankAccount.disconnectYourBankAccount', {bankName: bankShortName})} />
+                        <RenderHTML html={translate('workspace.bankAccount.disconnectYourBankAccount', bankShortName)} />
                     </View>
                 ) : (
                     translate('workspace.bankAccount.clearProgress')
