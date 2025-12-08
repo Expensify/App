@@ -208,7 +208,7 @@ function WorkspaceReportFieldsPage({
                         >
                             <OfflineWithFeedback
                                 pendingAction={reportTitlePendingFields.defaultValue}
-                                shouldForceOpacity={!!reportTitlePendingFields.defaultValue}
+                                shouldForceOpacity={reportTitlePendingFields.defaultValue === 'update'}
                                 errors={reportTitleErrors}
                                 errorRowStyles={[styles.mh0]}
                                 errorRowTextStyles={[styles.mv2]}
