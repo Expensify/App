@@ -38,25 +38,40 @@ You can add expenses using SmartScan or by creating them manually.
 
 SmartScan reads receipt details like merchant, date, total, and currency automatically.
 
-1. On mobile, tap the green camera button and take a photo of the receipt or upload from gallery.
-2. On desktop, click the green add receipt button and drag and drop the receipt or click **Choose files** to upload.
-3. Enter the workspace or recipient’s email/phone number.
-4. Add details like description, category, tags, and tax.
-5. Click **Create expense**.
+**On mobile:**
+1. Tap the green camera button and take a photo of the receipt or upload from gallery.
+2. Enter the workspace or recipient’s email/phone number.
+3. Add details like description, category, tags, and tax.
+4. Tap **Create expense**.
+
+**On desktop:**
+1. Click the green receipt button and drag and drop the receipt or click **Choose files** to upload.
+2. Enter the workspace or recipient’s email/phone number.
+3. Add details like description, category, tags, and tax.
+4. Click **Create expense**.
 
 💡 **Note:** 
-- You can also forward receipts to `receipts@expensify.com` using a verified email address.
-- Upload your receipt via SMS by texting the photo of your receipt to 47777. To start sending receipts via SMS, add your phone number to your account from **Account > Profile > Phone Number**.
+Other ways to SmartScan receipts include:
+- Forward your digital receipts to `receipts@expensify.com`.
+- Text a photo of your receipts to 47777 (US numbers only). Just make sure you [add your phone number to Expensify](https://new.expensify.com/settings/profile/contact-methods).
 
 ## How to Manually Enter an Expense
 
-1. On mobile, tap the green camera button.
-2. On desktop, click the green add receipt button.
-3. Select **Manual**.
-4. Enter the amount and currency, then click **Next**.
-5. Choose a workspace or an individual.
-6. Add optional fields like category, tags, or description.
-7. Click **Create expense**.
+**On mobile:**
+1. Tap the green camera button.
+2. Select **Manual**.
+3. Enter the amount and currency, then tap **Next**.
+4. Choose a workspace or an individual.
+5. Add optional fields like category, tags, or description.
+6. Tap **Create expense**.
+
+**On desktop:**
+1. Click the green add receipt button.
+2. Select **Manual**.
+3. Enter the amount and currency, then click **Next**.
+4. Choose a workspace or an individual.
+5. Add optional fields like category, tags, or description.
+6. Click **Create expense**.
 
 Learn more about [creating expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense)
 
