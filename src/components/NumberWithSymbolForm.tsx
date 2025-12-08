@@ -79,7 +79,7 @@ type NumberWithSymbolFormProps = {
     /** Whether to allow flipping amount */
     allowFlippingAmount?: boolean;
 
-    /** Whether the input should be disabled */
+    /** Whether the input is disabled or not */
     disabled?: boolean;
 
     /** Reference to the outer element */
@@ -145,6 +145,7 @@ function NumberWithSymbolForm({
     clearNegative,
     disabled = false,
     ref,
+    disabled,
     ...props
 }: NumberWithSymbolFormProps) {
     const styles = useThemeStyles();
@@ -382,6 +383,7 @@ function NumberWithSymbolForm({
                         ref.current = newRef;
                     }
                 }}
+                disabled={disabled}
                 prefixCharacter={symbol}
                 prefixStyle={styles.colorMuted}
                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -414,6 +416,7 @@ function NumberWithSymbolForm({
                 }
                 textInput.current = newRef;
             }}
+            disabled={disabled}
             symbol={symbol}
             hideSymbol={hideSymbol}
             symbolPosition={symbolPosition}
