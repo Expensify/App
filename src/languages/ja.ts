@@ -731,6 +731,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '予想より時間がかかっています…',
         domains: 'ドメイン',
+        viewReport: 'レポートを表示',
         actionRequired: '対応が必要',
     },
     supportalNoAccess: {
@@ -6704,6 +6705,7 @@ ${reportName}
         groupBy: 'グループ化',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',
+            accessPlaceHolder: '詳細を開く',
         },
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',

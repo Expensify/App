@@ -732,6 +732,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopiuj do schowka',
         thisIsTakingLongerThanExpected: 'To trwa dłużej, niż się spodziewaliśmy…',
         domains: 'Domeny',
+        viewReport: 'Wyświetl raport',
         actionRequired: 'Wymagane działanie',
     },
     supportalNoAccess: {
@@ -6730,6 +6731,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         groupBy: 'Grupuj według',
         moneyRequestReport: {
             emptyStateTitle: 'Ten raport nie ma żadnych wydatków.',
+            accessPlaceHolder: 'Otwórz, aby zobaczyć szczegóły',
         },
         noCategory: 'Brak kategorii',
         noTag: 'Brak tagu',

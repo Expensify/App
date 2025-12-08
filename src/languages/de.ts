@@ -731,6 +731,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'In die Zwischenablage kopieren',
         thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet ...',
         domains: 'Domänen',
+        viewReport: 'Bericht anzeigen',
         actionRequired: 'Aktion erforderlich',
     },
     supportalNoAccess: {
@@ -6772,6 +6773,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         groupBy: 'Gruppieren nach',
         moneyRequestReport: {
             emptyStateTitle: 'Dieser Bericht enthält keine Ausgaben.',
+            accessPlaceHolder: 'Für Details öffnen',
         },
         noCategory: 'Keine Kategorie',
         noTag: 'Kein Tag',

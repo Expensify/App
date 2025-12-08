@@ -732,6 +732,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copier dans le presse-papiers',
         thisIsTakingLongerThanExpected: 'Cela prend plus de temps que prévu...',
         domains: 'Domaines',
+        viewReport: 'Voir le rapport',
         actionRequired: 'Action requise',
     },
     supportalNoAccess: {
@@ -6780,6 +6781,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         groupBy: 'Grouper par',
         moneyRequestReport: {
             emptyStateTitle: 'Ce rapport n’a aucune dépense.',
+            accessPlaceHolder: 'Ouvrir pour plus de détails',
         },
         noCategory: 'Aucune catégorie',
         noTag: 'Aucune étiquette',

@@ -727,6 +727,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这比预期花费的时间更长...',
         domains: '域名',
+        viewReport: '查看报告',
         actionRequired: '需要操作',
     },
     supportalNoAccess: {
@@ -6608,6 +6609,7 @@ ${reportName}
         groupBy: '分组依据',
         moneyRequestReport: {
             emptyStateTitle: '此报表没有任何报销。',
+            accessPlaceHolder: '打开以查看详情',
         },
         noCategory: '无类别',
         noTag: '无标签',

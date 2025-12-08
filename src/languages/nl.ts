@@ -731,6 +731,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopiëren naar klembord',
         thisIsTakingLongerThanExpected: 'Dit duurt langer dan verwacht...',
         domains: 'Domeinen',
+        viewReport: 'Rapport bekijken',
         actionRequired: 'Actie vereist',
     },
     supportalNoAccess: {
@@ -6739,6 +6740,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         groupBy: 'Groeperen op',
         moneyRequestReport: {
             emptyStateTitle: 'Dit rapport bevat geen onkosten.',
+            accessPlaceHolder: 'Open voor details',
         },
         noCategory: 'Geen categorie',
         noTag: 'Geen tag',
