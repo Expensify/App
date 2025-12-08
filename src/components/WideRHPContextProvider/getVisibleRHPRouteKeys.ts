@@ -1,8 +1,7 @@
 import extractNavigationKeys from '@libs/Navigation/helpers/extractNavigationKeys';
 import getLastVisibleRHPRouteKey from '@libs/Navigation/helpers/getLastVisibleRHPRouteKey';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import SCREENS from '@src/SCREENS';
-import {SUPER_WIDE_RIGHT_MODALS, WIDE_RIGHT_MODALS} from '.';
+import {SUPER_WIDE_RIGHT_MODALS, WIDE_RIGHT_MODALS} from './WIDE_RIGHT_MODALS';
 
 /**
  * Extracts the keys of the screens that are currently displayed from the array of all Wide/Super Wide RHP keys

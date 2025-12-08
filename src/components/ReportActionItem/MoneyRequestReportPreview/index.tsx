@@ -118,7 +118,7 @@ function MoneyRequestReportPreview({
         } else {
             Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()}));
         }
-    }, [iouReportID]);
+    }, [iouReportID, isSmallScreenWidth]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
