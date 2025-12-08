@@ -1,5 +1,5 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useRef} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -207,34 +207,34 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
-    const continueDeleteWorkspace = useCallback(async () => {
-        const result = await showConfirmModal({
+    const continueDeleteWorkspace = useCallback(() => {
+        showConfirmModal({
             title: translate('workspace.common.delete'),
             prompt: hasCardFeedOrExpensifyCard ? translate('workspace.common.deleteWithCardsConfirmation') : translate('workspace.common.deleteConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             danger: true,
-        });
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM || !policy?.id || !policyName) {
+                return;
+            }
 
-        if (result.action !== ModalActions.CONFIRM || !policy?.id || !policyName) {
-            return;
-        }
-
-        deleteWorkspace({
-            policyID: policy.id,
-            activePolicyID,
-            policyName,
-            lastAccessedWorkspacePolicyID,
-            policyCardFeeds: defaultCardFeeds,
-            reportsToArchive,
-            transactionViolations,
-            reimbursementAccountError,
-            bankAccountList,
-            lastUsedPaymentMethods: lastPaymentMethod,
+            deleteWorkspace({
+                policyID: policy.id,
+                activePolicyID,
+                policyName,
+                lastAccessedWorkspacePolicyID,
+                policyCardFeeds: defaultCardFeeds,
+                reportsToArchive,
+                transactionViolations,
+                reimbursementAccountError,
+                bankAccountList,
+                lastUsedPaymentMethods: lastPaymentMethod,
+            });
+            if (isOffline) {
+                goBackFromInvalidPolicy();
+            }
         });
-        if (isOffline) {
-            goBackFromInvalidPolicy();
-        }
     }, [
         showConfirmModal,
         translate,
@@ -369,12 +369,12 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         return translate('common.leaveWorkspaceConfirmation');
     }, [policy, personalDetails, session?.email, translate]);
 
-    const handleLeave = useCallback(async () => {
+    const handleLeave = useCallback(() => {
         const isReimburser = policy?.achAccount?.reimburser === session?.email;
         const prompt = confirmModalPrompt();
 
         if (isReimburser) {
-            await showConfirmModal({
+            showConfirmModal({
                 title: translate('common.leaveWorkspace'),
                 prompt,
                 confirmText: translate('common.buttonConfirm'),
@@ -384,18 +384,18 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        const result = await showConfirmModal({
+        const result = showConfirmModal({
             title: translate('common.leaveWorkspace'),
             prompt,
             confirmText: translate('common.leave'),
             cancelText: translate('common.cancel'),
             danger: true,
+        }).then((result) => {
+            if (result.action === ModalActions.CONFIRM && policy?.id) {
+                leaveWorkspace(policy.id);
+                goBackFromInvalidPolicy();
+            }
         });
-
-        if (result.action === ModalActions.CONFIRM && policy?.id) {
-            leaveWorkspace(policy.id);
-            goBackFromInvalidPolicy();
-        }
     }, [policy?.achAccount?.reimburser, policy?.id, session?.email, showConfirmModal, translate, confirmModalPrompt]);
 
     const renderDropdownMenu = (options: Array<DropdownOption<string>>) => (

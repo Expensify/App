@@ -46,15 +46,31 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const canPerformDowngrade = useMemo(() => canModifyPlan(ownerPolicies, policy), [ownerPolicies, policy]);
     const isDowngraded = useMemo(() => isCollectPolicy(policy), [policy]);
 
+    const onMoveToCompanyCardFeeds = () => {
+        if (!policyID) {
+            return;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => dismissModalAndNavigate(policyID));
+    };
+
     const onDowngradeToTeam = useCallback(async () => {
         if (!canPerformDowngrade || !policy) {
             return;
         }
         if (Object.keys(companyFeeds).length > 1) {
             const result = await showConfirmModal({
-                title: translate('workspace.downgrade.downgradeToTeam'),
-                prompt: translate('workspace.downgrade.multipleCompanyCardsWarning'),
-                confirmText: translate('workspace.downgrade.moveToCompanyCards'),
+                title: translate('workspace.moreFeatures.companyCards.downgradeTitle'),
+                prompt: (
+                    <View style={styles.flexRow}>
+                        <RenderHTML
+                            html={translate('workspace.moreFeatures.companyCards.downgradeSubTitle')}
+                            onLinkPress={onMoveToCompanyCardFeeds}
+                        />
+                    </View>
+                ),
+                confirmText: translate('common.buttonConfirm'),
                 cancelText: translate('common.cancel'),
                 danger: true,
             });

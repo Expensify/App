@@ -179,6 +179,8 @@ function WorkspacesListPage() {
             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areCompanyCardsEnabled) &&
             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID);
 
+    const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
+
     const continueDeleteWorkspace = useCallback(async () => {
         const result = await showConfirmModal({
             title: translate('workspace.common.delete'),
@@ -192,12 +194,38 @@ function WorkspacesListPage() {
             return;
         }
 
-        deleteWorkspace({policyID: policyIDToDelete, policyName: policyNameToDelete, reportsToArchive, transactionViolations});
+        deleteWorkspace({
+            policyID: policyIDToDelete,
+            activePolicyID,
+            policyName: policyNameToDelete,
+            lastAccessedWorkspacePolicyID,
+            policyCardFeeds: defaultCardFeeds,
+            reportsToArchive,
+            transactionViolations,
+            reimbursementAccountError,
+            bankAccountList,
+            lastUsedPaymentMethods: lastPaymentMethod,
+        });
         if (isOffline) {
             setPolicyIDToDelete(undefined);
             setPolicyNameToDelete(undefined);
         }
-    }, [hasCardFeedOrExpensifyCard, showConfirmModal, translate, policyIDToDelete, policyNameToDelete, reportsToArchive, transactionViolations, isOffline]);
+    }, [
+        hasCardFeedOrExpensifyCard,
+        showConfirmModal,
+        translate,
+        policyIDToDelete,
+        policyNameToDelete,
+        activePolicyID,
+        lastAccessedWorkspacePolicyID,
+        defaultCardFeeds,
+        reportsToArchive,
+        transactionViolations,
+        reimbursementAccountError,
+        bankAccountList,
+        lastPaymentMethod,
+        isOffline,
+    ]);
 
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
         usePayAndDowngrade(continueDeleteWorkspace);
@@ -209,7 +237,6 @@ function WorkspacesListPage() {
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const flatlistRef = useRef<FlatList | null>(null);
-    const [lastAccessedWorkspacePolicyID] = useOnyx(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, {canBeMissing: true});
 
     const prevPolicyToDelete = usePrevious(policyToDelete);
 
@@ -497,6 +524,7 @@ function WorkspacesListPage() {
             icons,
             expensifyIcons.Building,
             expensifyIcons.Exit,
+            handleLeave,
         ],
     );
 

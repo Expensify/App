@@ -129,36 +129,36 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'ReceiptPartners',
     ] as const);
 
-    const onDisabledOrganizeSwitchPress = useCallback(async () => {
+    const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnection) {
             return;
         }
-        const result = await showConfirmModal({
+        showConfirmModal({
             title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
             prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
             confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
             cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action === ModalActions.CONFIRM && policyID) {
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            }
         });
-
-        if (result.action === ModalActions.CONFIRM && policyID) {
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
-        }
     }, [hasAccountingConnection, showConfirmModal, translate, policyID]);
 
-    const onDisabledWorkflowPress = useCallback(async () => {
+    const onDisabledWorkflowPress = useCallback(() => {
         if (!isSmartLimitEnabled) {
             return;
         }
-        const result = await showConfirmModal({
+        showConfirmModal({
             title: translate('workspace.moreFeatures.workflowWarningModal.featureEnabledTitle'),
             prompt: translate('workspace.moreFeatures.workflowWarningModal.featureEnabledText'),
             confirmText: translate('workspace.moreFeatures.workflowWarningModal.confirmText'),
             cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action === ModalActions.CONFIRM) {
+                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+            }
         });
-
-        if (result.action === ModalActions.CONFIRM) {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
-        }
     }, [isSmartLimitEnabled, showConfirmModal, translate, policyID]);
 
     const spendItems: Item[] = [
@@ -195,16 +195,16 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 enableExpensifyCard(policyID, isEnabled);
             },
             disabledAction: async () => {
-                const result = await showConfirmModal({
+                showConfirmModal({
                     title: translate('workspace.moreFeatures.expensifyCard.disableCardTitle'),
                     prompt: translate('workspace.moreFeatures.expensifyCard.disableCardPrompt'),
                     confirmText: translate('workspace.moreFeatures.expensifyCard.disableCardButton'),
                     cancelText: translate('common.cancel'),
+                }).then((result) => {
+                    if (result.action === ModalActions.CONFIRM) {
+                        navigateToConciergeChat();
+                    }
                 });
-
-                if (result.action === ModalActions.CONFIRM) {
-                    navigateToConciergeChat();
-                }
             },
             onPress: () => {
                 if (!policyID) {
@@ -228,17 +228,17 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             }
             enableCompanyCards(policyID, isEnabled, true);
         },
-        disabledAction: async () => {
-            const result = await showConfirmModal({
+        disabledAction: () => {
+            showConfirmModal({
                 title: translate('workspace.moreFeatures.companyCards.disableCardTitle'),
                 prompt: translate('workspace.moreFeatures.companyCards.disableCardPrompt'),
                 confirmText: translate('workspace.moreFeatures.companyCards.disableCardButton'),
                 cancelText: translate('common.cancel'),
+            }).then((result) => {
+                if (result.action === ModalActions.CONFIRM) {
+                    navigateToConciergeChat();
+                }
             });
-
-            if (result.action === ModalActions.CONFIRM) {
-                navigateToConciergeChat();
-            }
         },
         onPress: () => {
             if (!policyID) {
@@ -412,20 +412,20 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
             isActive: isAccountingEnabled,
             pendingAction: policy?.pendingFields?.areConnectionsEnabled,
-            disabledAction: async () => {
+            disabledAction: () => {
                 if (!hasAccountingConnection) {
                     return;
                 }
-                const result = await showConfirmModal({
+                showConfirmModal({
                     title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
                     prompt: translate('workspace.moreFeatures.connectionsWarningModal.disconnectText'),
                     confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
                     cancelText: translate('common.cancel'),
+                }).then((result) => {
+                    if (result.action === ModalActions.CONFIRM && policyID) {
+                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+                    }
                 });
-
-                if (result.action === ModalActions.CONFIRM && policyID) {
-                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
-                }
             },
             action: (isEnabled: boolean) => {
                 if (!policyID) {
@@ -457,11 +457,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.subtitle',
             isActive: policy?.receiptPartners?.enabled ?? false,
             pendingAction: policy?.pendingFields?.receiptPartners,
-            disabledAction: async () => {
+            disabledAction: () => {
                 if (!isUberConnected) {
                     return;
                 }
-                await showConfirmModal({
+                showConfirmModal({
                     title: translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle'),
                     prompt: translate('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText'),
                     confirmText: translate('workspace.moreFeatures.receiptPartnersWarningModal.confirmText'),
