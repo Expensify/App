@@ -2252,11 +2252,54 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
 }
 
 /**
+ * Type guard to check if a value is a SearchTransaction
+ */
+function isSearchTransaction(transaction: Transaction | OnyxEntry<Transaction> | undefined): transaction is Transaction {
+    if (!transaction) {
+        return false;
+    }
+    // SearchTransaction is a plain object, while OnyxEntry can be undefined or have Onyx metadata
+    // Check if it has the required SearchTransaction properties and is not an OnyxEntry
+    return 'transactionID' in transaction && 'reportID' in transaction && typeof transaction === 'object' && !('pendingFields' in transaction);
+}
+
+/**
+ * Helper to convert SearchTransaction to OnyxEntry<Transaction> for use with TransactionUtils functions
+ * This is a workaround since SearchTransaction is deprecated and similar to Transaction
+ */
+function ensureTransactionType(transaction: Transaction | OnyxEntry<Transaction> | undefined): OnyxEntry<Transaction> | undefined {
+    if (!transaction) {
+        return undefined;
+    }
+    if (isSearchTransaction(transaction)) {
+        // Cast SearchTransaction to Transaction since they have similar structure
+        return transaction as unknown as OnyxEntry<Transaction>;
+    }
+    return transaction;
+}
+
+/**
+ * Helper to safely get reportID from either SearchTransaction or OnyxEntry<Transaction>
+ */
+function getTransactionReportID(transaction: Transaction | OnyxEntry<Transaction> | undefined): string | undefined {
+    if (!transaction) {
+        return undefined;
+    }
+    return 'reportID' in transaction ? transaction.reportID : undefined;
+}
+
+/**
  * Whether the provided report has expenses
  */
-function hasExpenses(reportID?: string, transactions?: SearchTransaction[] | Array<OnyxEntry<Transaction>>): boolean {
+function hasExpenses(reportID?: string, transactions?: Transaction[] | Array<OnyxEntry<Transaction>>): boolean {
     if (transactions) {
-        return !!transactions?.find((transaction) => transaction?.reportID === reportID);
+        return !!transactions?.find((transaction) => {
+            if (!transaction) {
+                return false;
+            }
+            const tx = transaction as Transaction | OnyxEntry<Transaction>;
+            return tx?.reportID === reportID;
+        });
     }
     return !!Object.values(allTransactions ?? {}).find((transaction) => transaction?.reportID === reportID);
 }
@@ -2264,7 +2307,7 @@ function hasExpenses(reportID?: string, transactions?: SearchTransaction[] | Arr
 /**
  * Whether the provided report is a closed expense report with no expenses
  */
-function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: SearchTransaction[] | Array<OnyxEntry<Transaction>>): boolean {
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: Transaction[] | Array<OnyxEntry<Transaction>>): boolean {
     if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
         return false;
     }
@@ -4479,13 +4522,14 @@ function getTransactionDetails(
         return;
     }
 
-    const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
+    const transactionReportID = 'reportID' in transaction ? transaction.reportID : undefined;
+    const report = getReportOrDraftReport(transactionReportID, undefined, 'report' in transaction ? transaction.report : undefined);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
 
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
-        amount: getTransactionAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
+        amount: getTransactionAmount(transaction, isFromExpenseReport, transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
         attendees: getAttendees(transaction, currentUserDetails),
         taxAmount: getTaxAmount(transaction, isFromExpenseReport),
         taxCode: getTaxCode(transaction),
@@ -4535,7 +4579,7 @@ function canEditMoneyRequest(
     isChatReportArchived = false,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
-    linkedTransaction?: OnyxEntry<Transaction> | SearchTransaction,
+    linkedTransaction?: OnyxEntry<Transaction> | Transaction,
 ): boolean {
     const isDeleted = isDeletedAction(reportAction);
 
@@ -4554,7 +4598,12 @@ function canEditMoneyRequest(
     const transaction = linkedTransaction ?? getLinkedTransaction(reportAction ?? undefined);
 
     // In case the transaction is failed to be created, we should disable editing the money request
-    if (!transaction?.transactionID || (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(transaction.errors))) {
+    if (!transaction || !('transactionID' in transaction) || !transaction.transactionID) {
+        return false;
+    }
+    const transactionPendingAction = 'pendingAction' in transaction ? transaction.pendingAction : undefined;
+    const transactionErrors = 'errors' in transaction ? transaction.errors : undefined;
+    if (transactionPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && transactionErrors && !isEmptyObject(transactionErrors)) {
         return false;
     }
 
@@ -4677,7 +4726,7 @@ function canEditFieldOfMoneyRequest(
     isDeleteAction?: boolean,
     isChatReportArchived = false,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    linkedTransaction?: OnyxEntry<Transaction> | SearchTransaction,
+    linkedTransaction?: OnyxEntry<Transaction> | Transaction,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
 ): boolean {
@@ -4705,7 +4754,10 @@ function canEditFieldOfMoneyRequest(
 
     const iouMessage = getOriginalMessage(reportAction);
     const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
-    const transaction = linkedTransaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`] ?? ({} as Transaction);
+    const transactionRaw = linkedTransaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouMessage?.IOUTransactionID}`];
+    // Type guard: if it's a SearchTransaction, we can't use isCardTransactionTransactionUtils on it
+    // For now, we'll only check if it's an OnyxEntry<Transaction>
+    const transaction = transactionRaw && !isSearchTransaction(transactionRaw) ? transactionRaw : (transactionRaw as OnyxEntry<Transaction> | undefined) ?? ({} as Transaction);
 
     if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
         return false;
@@ -4713,6 +4765,7 @@ function canEditFieldOfMoneyRequest(
 
     if (
         (fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY || fieldToEdit === CONST.EDIT_REQUEST_FIELD.DATE) &&
+        !isSearchTransaction(transactionRaw) &&
         isCardTransactionTransactionUtils(transaction)
     ) {
         return false;
@@ -4762,7 +4815,8 @@ function canEditFieldOfMoneyRequest(
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
         // Unreported transaction from OldDot can have the reportID as an empty string
-        const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const transactionReportID = getTransactionReportID(transactionRaw);
+        const isUnreportedExpense = !transactionReportID || transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
         if (isUnreportedExpense) {
             return true;
@@ -4975,14 +5029,18 @@ function areAllRequestsBeingSmartScanned(iouReportID: string | undefined, report
  *
  * NOTE: This method is only meant to be used inside this action file. Do not export and use it elsewhere. Use useOnyx instead.
  */
-function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions?: SearchTransaction[]): OnyxEntry<Transaction> | SearchTransaction {
+function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, transactions?: Transaction[]): OnyxEntry<Transaction> | Transaction | undefined {
     let transactionID: string | undefined;
 
     if (isMoneyRequestAction(reportAction)) {
         transactionID = getOriginalMessage(reportAction)?.IOUTransactionID;
     }
 
-    return transactions ? transactions.find((transaction) => transaction.transactionID === transactionID) : allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (transactions) {
+        const found = transactions.find((transaction) => transaction.transactionID === transactionID);
+        return found;
+    }
+    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
 
 /**
@@ -5004,10 +5062,14 @@ function getReportActionWithMissingSmartscanFields(iouReportID: string | undefin
             return false;
         }
         const transaction = getLinkedTransaction(action);
-        if (isEmptyObject(transaction)) {
+        if (!transaction || isEmptyObject(transaction)) {
             return false;
         }
         if (!wasActionTakenByCurrentUser(action)) {
+            return false;
+        }
+        // hasMissingSmartscanFieldsTransactionUtils expects OnyxEntry<Transaction>, so we need to ensure it's not SearchTransaction
+        if (isSearchTransaction(transaction)) {
             return false;
         }
         return hasMissingSmartscanFieldsTransactionUtils(transaction);
@@ -5043,13 +5105,16 @@ function getTransactionReportName({
         return translateLocal('parentReportAction.deletedExpense');
     }
 
-    const transaction = getLinkedTransaction(reportAction, transactions);
-
-    if (isEmptyObject(transaction)) {
+    const transactionRaw = getLinkedTransaction(reportAction, transactions);
+    if (!transactionRaw || isEmptyObject(transactionRaw)) {
         // Transaction data might be empty on app's first load, if so we fallback to Expense/Track Expense
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return isTrackExpenseAction(reportAction) ? translateLocal('iou.createExpense') : translateLocal('iou.expense');
     }
+
+    // If it's a SearchTransaction, we can't use all the TransactionUtils functions, so convert it or handle it differently
+    // For now, we'll treat SearchTransaction as if it were a Transaction for these utility functions
+    const transaction = isSearchTransaction(transactionRaw) ? (transactionRaw as unknown as OnyxEntry<Transaction>) : transactionRaw;
 
     if (isScanning(transaction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -5070,8 +5135,9 @@ function getTransactionReportName({
         return getIOUReportActionDisplayMessage(reportAction as ReportAction, transaction);
     }
 
-    const report = getReportOrDraftReport(transaction?.reportID, reports);
-    const amount = getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
+    const transactionReportID = 'reportID' in transactionRaw ? transactionRaw.reportID : undefined;
+    const report = getReportOrDraftReport(transactionReportID, reports);
+    const amount = getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const comment = getMerchantOrDescription(transaction);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -5112,33 +5178,37 @@ function getReportPreviewMessage(
 
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillReportAction(iouReportAction)) {
         // This covers group chats where the last action is a split expense action
-        const linkedTransaction = getLinkedTransaction(iouReportAction);
-        if (isEmptyObject(linkedTransaction)) {
+        const linkedTransactionRaw = getLinkedTransaction(iouReportAction);
+        if (!linkedTransactionRaw || isEmptyObject(linkedTransactionRaw)) {
             return reportActionMessage;
         }
 
-        if (!isEmptyObject(linkedTransaction)) {
-            if (isScanning(linkedTransaction)) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('iou.receiptScanning', {count: 1});
-            }
-
-            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction)) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('iou.receiptMissingDetails');
-            }
-
-            const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
-            const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('iou.didSplitAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
+        const linkedTransaction = ensureTransactionType(linkedTransactionRaw);
+        if (!linkedTransaction) {
+            return reportActionMessage;
         }
+
+        if (isScanning(linkedTransaction)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('iou.receiptScanning', {count: 1});
+        }
+
+        if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('iou.receiptMissingDetails');
+        }
+
+        const transactionReportID = 'reportID' in linkedTransactionRaw ? linkedTransactionRaw.reportID : linkedTransaction.reportID;
+        const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
+        const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('iou.didSplitAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
     }
 
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && !isExpenseReport(report) && iouReportAction && isTrackExpenseAction(iouReportAction)) {
         // This covers group chats where the last action is a track expense action
-        const linkedTransaction = getLinkedTransaction(iouReportAction);
-        if (isEmptyObject(linkedTransaction)) {
+        const linkedTransactionRaw = getLinkedTransaction(iouReportAction);
+        if (!linkedTransactionRaw || isEmptyObject(linkedTransactionRaw)) {
             const originalMessage = getOriginalMessage(iouReportAction);
             const amount = originalMessage?.amount;
             const currency = originalMessage?.currency;
@@ -5153,22 +5223,26 @@ function getReportPreviewMessage(
             return reportActionMessage;
         }
 
-        if (!isEmptyObject(linkedTransaction)) {
-            if (isScanning(linkedTransaction)) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('iou.receiptScanning', {count: 1});
-            }
-
-            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction)) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('iou.receiptMissingDetails');
-            }
-
-            const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
-            const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('iou.trackedAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
+        const linkedTransaction = ensureTransactionType(linkedTransactionRaw);
+        if (!linkedTransaction) {
+            return reportActionMessage;
         }
+
+        if (isScanning(linkedTransaction)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('iou.receiptScanning', {count: 1});
+        }
+
+        if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction)) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal('iou.receiptMissingDetails');
+        }
+
+        const transactionReportID = 'reportID' in linkedTransactionRaw ? linkedTransactionRaw.reportID : linkedTransaction.reportID;
+        const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
+        const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('iou.trackedAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
     }
 
     const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
@@ -5192,17 +5266,18 @@ function getReportPreviewMessage(
 
     const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
 
-    let linkedTransaction;
+    let linkedTransactionRaw: OnyxEntry<Transaction> | Transaction | undefined;
     if (!isEmptyObject(iouReportAction) && shouldConsiderScanningReceiptOrPendingRoute && iouReportAction && isMoneyRequestAction(iouReportAction)) {
-        linkedTransaction = getLinkedTransaction(iouReportAction);
+        linkedTransactionRaw = getLinkedTransaction(iouReportAction);
     }
 
-    if (!isEmptyObject(linkedTransaction) && isScanning(linkedTransaction)) {
+    const linkedTransaction = ensureTransactionType(linkedTransactionRaw);
+    if (linkedTransaction && isScanning(linkedTransaction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.receiptScanning', {count: numberOfScanningReceipts});
     }
 
-    if (!isEmptyObject(linkedTransaction) && isFetchingWaypointsFromServer(linkedTransaction) && !getTransactionAmount(linkedTransaction)) {
+    if (linkedTransaction && isFetchingWaypointsFromServer(linkedTransaction) && !getTransactionAmount(linkedTransaction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.fieldPending');
     }
@@ -5272,11 +5347,21 @@ function getReportPreviewMessage(
         currency = getCurrency(linkedTransaction);
     }
 
-    if (isEmptyObject(linkedTransaction) && !isEmptyObject(iouReportAction)) {
-        linkedTransaction = getLinkedTransaction(iouReportAction);
+    if (!linkedTransactionRaw && !isEmptyObject(iouReportAction)) {
+        linkedTransactionRaw = getLinkedTransaction(iouReportAction);
+        const linkedTransactionFromAction = ensureTransactionType(linkedTransactionRaw);
+        if (linkedTransactionFromAction) {
+            // Update the linkedTransaction variable for use below
+            const updatedLinkedTransaction = linkedTransactionFromAction;
+            if (!isEmptyObject(updatedLinkedTransaction)) {
+                amount = getTransactionAmount(updatedLinkedTransaction, isExpenseReport(report));
+                currency = getCurrency(updatedLinkedTransaction);
+            }
+        }
     }
 
-    let comment = !isEmptyObject(linkedTransaction) ? getMerchantOrDescription(linkedTransaction) : undefined;
+    const finalLinkedTransaction = ensureTransactionType(linkedTransactionRaw);
+    let comment = finalLinkedTransaction && !isEmptyObject(finalLinkedTransaction) ? getMerchantOrDescription(finalLinkedTransaction) : undefined;
     if (!isEmptyObject(originalReportAction) && isReportPreviewAction(originalReportAction) && getNumberOfMoneyRequests(originalReportAction) !== 1) {
         comment = undefined;
     }
@@ -9215,7 +9300,9 @@ function hasNoticeTypeViolations(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     shouldShowInReview?: boolean,
-    reportTransactions?: SearchTransaction[],
+    reportTransactions?: Transaction[],
+    report?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
 ): boolean {
     const transactions = reportTransactions ?? getReportTransactions(reportID);
     return transactions.some((transaction) =>

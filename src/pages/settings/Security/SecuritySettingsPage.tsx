@@ -58,7 +58,7 @@ type BaseMenuItemType = {
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus', 'Shield'] as const);
     const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();

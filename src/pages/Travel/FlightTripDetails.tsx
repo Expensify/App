@@ -15,6 +15,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
+import { useMemoizedLazyExpensifyIcons } from '@hooks/useLazyAsset';
 
 type FlightTripDetailsProps = {
     reservation: Reservation;
@@ -26,7 +27,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass'] as const);
 
     const cabinClassMapping: Record<string, string> = {
         UNKNOWN_CABIN: translate('travel.flightDetails.cabinClasses.unknown'),
