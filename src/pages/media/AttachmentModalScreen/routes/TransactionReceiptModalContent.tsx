@@ -12,7 +12,6 @@ import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt
 import {openReport} from '@libs/actions/Report';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
-import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -85,7 +84,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isTrackExpenseActionValue = isTrackExpenseAction(parentReportAction);
     const iouType = useMemo(() => iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseActionValue, iouTypeParam]);
 
-    const receiptFilename = getReceiptFilenameFromTransaction(transaction);
+    const receiptFilename = transaction?.receipt?.filename;
     const isImage = !!receiptFilename && Str.isImage(receiptFilename);
 
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
@@ -163,7 +162,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             ? !transaction
             : moneyRequestReportID !== transaction?.reportID;
 
-    const originalFileName = isDraftTransaction ? getReceiptFilenameFromTransaction(transaction) : receiptURIs?.filename;
+    const originalFileName = isDraftTransaction ? transaction?.receipt?.filename : receiptURIs?.filename;
     const headerTitle = translate('common.receipt');
 
     /**
