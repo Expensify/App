@@ -90,6 +90,10 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
 
+// Maximum number of items that can be selected for bulk reject prefetching
+// Beyond this threshold, prefetching is skipped and reject option is hidden to prevent performance issues
+const MAX_BULK_REJECT_PREFETCH_ITEMS = 5;
+
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
 function SearchPage({route}: SearchPageProps) {
@@ -201,6 +205,11 @@ function SearchPage({route}: SearchPageProps) {
     // Prefetch missing report and policy data when items are selected
     const lastPrefetchKeyRef = useRef('');
     useEffect(() => {
+        // Skip prefetching if too many items selected to prevent performance issues
+        if (Object.keys(selectedTransactions).length > MAX_BULK_REJECT_PREFETCH_ITEMS) {
+            return;
+        }
+
         const {areHydrated, missingReportIDs, missingPolicyIDs} = bulkRejectHydrationStatus;
 
         // If hydrated or nothing selected, clear and exit
@@ -231,7 +240,7 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         lastPrefetchKeyRef.current = key;
-    }, [bulkRejectHydrationStatus, isOffline]);
+    }, [bulkRejectHydrationStatus, isOffline, selectedTransactions]);
 
     // Allow retry on reconnect
     const prevIsOffline = usePrevious(isOffline);
@@ -563,7 +572,8 @@ function SearchPage({route}: SearchPageProps) {
         const {areHydrated: areItemsHydratedForReject} = bulkRejectHydrationStatus;
 
         // Show the Reject option unless we know for sure it's not allowed
-        const shouldShowRejectOption = !isOffline && areAllExplicitlyRejectable && hasNoRejectedTransaction;
+        // Hide reject option if too many items selected
+        const shouldShowRejectOption = !isOffline && selectedTransactionsKeys.length <= MAX_BULK_REJECT_PREFETCH_ITEMS && areAllExplicitlyRejectable && hasNoRejectedTransaction;
 
         // Disabled if not hydrated
         const isRejectDisabled = !areItemsHydratedForReject;
