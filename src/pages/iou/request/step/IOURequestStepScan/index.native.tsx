@@ -48,7 +48,6 @@ import HapticFeedback from '@libs/HapticFeedback';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import navigationRef from '@libs/Navigation/navigationRef';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {findSelfDMReportID, generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
@@ -552,22 +551,19 @@ function IOURequestStepScan({
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            // Fix for the issue where the navigation state is lost after returning from device settings https://github.com/Expensify/App/issues/65992
-            const navigationState = navigationRef.current?.getState();
-            const reportsSplitNavigator = navigationState?.routes?.findLast((route) => route.name === 'ReportsSplitNavigator');
-            const hasLostNavigationsState = reportsSplitNavigator && !reportsSplitNavigator.state;
-            if (hasLostNavigationsState) {
-                if (backTo) {
-                    Navigation.navigate(backTo as Route);
-                } else {
-                    Navigation.navigate(ROUTES.HOME);
-                }
-            } else {
-                navigateBack();
+            const normalizedBackTo = backTo?.trim();
+            let fallbackRoute: Route = ROUTES.HOME;
+
+            if (normalizedBackTo && backTo) {
+                fallbackRoute = backTo;
+            } else if (reportID) {
+                fallbackRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID);
             }
+
+            Navigation.goBack(fallbackRoute);
             replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicyCategories: policyCategories});
         },
-        [initialTransactionID, policyCategories, backTo],
+        [initialTransactionID, policyCategories, backTo, reportID],
     );
 
     /**
