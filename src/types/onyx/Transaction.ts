@@ -439,9 +439,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Server side errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
 
-        /** The name of the file used for a receipt (formerly receiptFilename) */
-        filename?: string;
-
         /** The transaction converted amount in `groupCurrency` currency */
         groupAmount?: number;
 
@@ -455,7 +452,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         merchant: string;
 
         /** The edited transaction amount */
-        modifiedAmount?: number;
+        modifiedAmount?: number | string;
 
         /** The edited attendees list */
         modifiedAttendees?: Attendee[];

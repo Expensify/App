@@ -291,6 +291,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                             transaction,
                             removeSettledAndApprovedTransactions(Object.values(duplicateTransactions ?? {}).filter((t) => t?.transactionID !== transaction?.transactionID)),
                             policyCategories,
+                            transactionReport,
                         ),
                     );
                 }}
