@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -22,9 +23,10 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
 
     const {transactionID, reportID, backTo} = route.params;
     const {removeTransaction} = useSearchContext();
+    const {email} = useCurrentUserPersonalDetails();
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment);
+        const urlToNavigateBack = rejectMoneyRequest(transactionID, reportID, values.comment, email ?? '');
         removeTransaction(transactionID);
         Navigation.dismissModal();
         if (urlToNavigateBack) {

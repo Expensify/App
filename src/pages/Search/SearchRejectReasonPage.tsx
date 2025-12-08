@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
 import {rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
@@ -14,9 +15,10 @@ function SearchRejectReasonPage() {
     const context = useSearchContext();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const {email} = useCurrentUserPersonalDetails();
     const onSubmit = useCallback(
         ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
-            rejectMoneyRequestsOnSearch(context.currentSearchHash, context.selectedTransactions, comment, allPolicies, allReports);
+            rejectMoneyRequestsOnSearch(context.currentSearchHash, context.selectedTransactions, comment, allPolicies, allReports, email ?? '');
             context.clearSelectedTransactions();
             Navigation.goBack();
         },

@@ -205,7 +205,7 @@ function useSelectedTransactionsActions({
                         if (!action?.childReportID) {
                             continue;
                         }
-                        unholdRequest(transactionID, action?.childReportID);
+                        unholdRequest(transactionID, action?.childReportID, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
                     }
                     clearSelectedTransactions(true);
                 },
