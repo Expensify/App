@@ -47,9 +47,6 @@ type OnyxTabNavigatorProps = ChildrenProps & {
     /** Whether to show the label when the tab is inactive */
     shouldShowLabelWhenInactive?: boolean;
 
-    /** Disable swipe between tabs */
-    disableSwipe?: boolean;
-
     /** Determines whether the product training tooltip should be displayed to the user. */
     shouldShowProductTrainingTooltip?: boolean;
 
@@ -103,7 +100,6 @@ function OnyxTabNavigator({
     onTabSelected = () => {},
     screenListeners,
     shouldShowLabelWhenInactive = true,
-    disableSwipe = false,
     shouldShowProductTrainingTooltip,
     renderProductTrainingTooltip,
     lazyLoadEnabled = false,
@@ -201,7 +197,7 @@ function OnyxTabNavigator({
                 }}
                 screenOptions={{
                     ...defaultScreenOptions,
-                    swipeEnabled: !disableSwipe,
+                    swipeEnabled: false,
                     lazy: lazyLoadEnabled,
                     lazyPlaceholder: LazyPlaceholder,
                 }}

@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setNewRoomFormLoading} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,7 +24,6 @@ function NewChatSelectorPage() {
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
     const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {canBeMissing: true});
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const chatPageInputRef = useRef<AnimatedTextInputRef | null>(null);
     const roomPageInputRef = useRef<AnimatedTextInputRef | null>(null);
 
@@ -86,7 +84,6 @@ function NewChatSelectorPage() {
                 tabBar={TabSelector}
                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                 onActiveTabFocusTrapContainerElementChanged={onTabFocusTrapContainerElementChanged}
-                disableSwipe={!!formState?.isLoading && shouldUseNarrowLayout}
                 onTabSelect={onTabSelectFocusHandler}
             >
                 <TopTab.Screen name={CONST.TAB.NEW_CHAT}>
