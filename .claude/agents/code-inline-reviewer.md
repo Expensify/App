@@ -207,7 +207,7 @@ function MyComponent({ id, onSelect }) {
 
 **2. Object props passed to memoized children**
 
-Good:
+Good (parent NOT compiled):
 ```tsx
 // ✅ Object reference stays stable between renders
 const options = useMemo(() => ({
@@ -218,10 +218,16 @@ const options = useMemo(() => ({
 return <MemoizedList options={options} />;
 ```
 
-Bad:
+Bad (parent NOT compiled):
 ```tsx
 // ❌ New object created every render - breaks MemoizedList's memoization
-return <MemoizedList options={{ showHeader: true, pageSize: 10 }} />;
+// Fix: Wrap in useMemo OR fix compiler compliance issues
+const options = {
+    showHeader: true,
+    pageSize: 10,
+};
+
+return <MemoizedList options={options} />;
 ```
 
 ---
