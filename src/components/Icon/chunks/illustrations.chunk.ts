@@ -14,6 +14,7 @@ import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 // Other Images
 import Hand from '@assets/images/hand.svg';
+import LaptopOnDeskDeprecated from '@assets/images/laptop-on-desk-deprecated.svg';
 import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
@@ -131,7 +132,6 @@ import VirtualCard from '@assets/images/simple-illustrations/simple-illustration
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
-import LaptopOnDeskDeprecated from '@assets/images/laptop-on-desk-deprecated.svg';
 
 // Create the illustrations object with all imported illustrations
 const Illustrations = {

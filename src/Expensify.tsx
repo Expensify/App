@@ -32,6 +32,7 @@ import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
 import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
+import getPlatform from './libs/getPlatform';
 import Growl, {growlRef} from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
@@ -50,7 +51,6 @@ import './libs/telemetry/TelemetrySynchronizer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
-import getPlatform from './libs/getPlatform';
 import ONYXKEYS from './ONYXKEYS';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -357,7 +357,7 @@ function Expensify() {
     }
 
     if (isDesktop) {
-        throw new Error(CONST.ERROR.DESKTOP_APP_RETIRED)
+        throw new Error(CONST.ERROR.DESKTOP_APP_RETIRED);
     }
 
     if (updateRequired) {

@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import BootSplash from '@libs/BootSplash';
+import DesktopAppRetiredView from '@pages/ErrorPage/DesktopAppRetiredPage';
 import GenericErrorPage from '@pages/ErrorPage/GenericErrorPage';
 import UpdateRequiredView from '@pages/ErrorPage/UpdateRequiredView';
-import DesktopAppRetiredView from '@pages/ErrorPage/DesktopAppRetiredPage';
 import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 import type {BaseErrorBoundaryProps} from './types';
