@@ -60,7 +60,7 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     canRejectReportAction,
     checkBulkRejectHydration,
@@ -151,6 +151,7 @@ function SearchPage({route}: SearchPageProps) {
     const selectedTransactionReportIDs = useMemo(() => [...new Set(Object.values(selectedTransactions).map((transaction) => transaction.reportID))], [selectedTransactions]);
     const selectedReportIDs = Object.values(selectedReports).map((report) => report.reportID);
     const isCurrencySupportedBulkWallet = isCurrencySupportWalletBulkPay(selectedReports, selectedTransactions);
+    const hasOnlyPersonalPolicies = hasOnlyPersonalPoliciesUtil(policies);
 
     // Collate a list of policyIDs from the selected transactions
     const selectedPolicyIDs = useMemo(
@@ -826,6 +827,7 @@ function SearchPage({route}: SearchPageProps) {
             parentReport: newParentReport,
             currentDate,
             currentUserPersonalDetails,
+            hasOnlyPersonalPolicies,
         });
 
         const newReceiptFiles: ReceiptFile[] = [];

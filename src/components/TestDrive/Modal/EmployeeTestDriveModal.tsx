@@ -25,6 +25,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TestDriveModalNavigatorParamList} from '@libs/Navigation/types';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -45,6 +46,8 @@ function EmployeeTestDriveModal() {
     const [isLoading, setIsLoading] = useState(false);
     const {testDrive} = useOnboardingMessages();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const hasOnlyPersonalPolicies = hasOnlyPersonalPoliciesUtil(allPolicies);
 
     const onBossEmailChange = useCallback((value: string) => {
         setBossEmail(value);
@@ -78,6 +81,7 @@ function EmployeeTestDriveModal() {
                             parentReport,
                             currentDate,
                             currentUserPersonalDetails,
+                            hasOnlyPersonalPolicies,
                         });
 
                         setMoneyRequestReceipt(transactionID, source, filename, true, CONST.TEST_RECEIPT.FILE_TYPE, false, true);

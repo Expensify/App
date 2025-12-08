@@ -565,9 +565,9 @@ function IOURequestStepScan({
             } else {
                 navigateBack();
             }
-            replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicyCategories: policyCategories});
+            replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
         },
-        [initialTransactionID, policyCategories, backTo],
+        [initialTransactionID, policy, policyCategories, backTo],
     );
 
     /**
