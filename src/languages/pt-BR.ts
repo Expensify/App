@@ -6072,6 +6072,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                     toUpgrade: 'Para fazer upgrade, clique',
                     selectWorkspace: 'selecione um workspace e altere o tipo de plano para',
                 },
+                upgradeWorkspaceWarning: 'Não é possível atualizar o espaço de trabalho',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Sua empresa restringiu a criação de espaços de trabalho. Entre em contato com um administrador para obter ajuda.',
             },
         },
         downgrade: {

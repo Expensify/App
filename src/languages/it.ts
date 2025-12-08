@@ -6089,6 +6089,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     toUpgrade: 'Per eseguire l’upgrade, fai clic',
                     selectWorkspace: 'seleziona uno spazio di lavoro e modifica il tipo di piano in',
                 },
+                upgradeWorkspaceWarning: 'Impossibile aggiornare lo spazio di lavoro',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'La tua azienda ha limitato la creazione di spazi di lavoro. Contatta un amministratore per assistenza.',
             },
         },
         downgrade: {

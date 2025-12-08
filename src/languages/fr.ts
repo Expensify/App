@@ -6118,6 +6118,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                     toUpgrade: 'Pour mettre à niveau, cliquez',
                     selectWorkspace: 'sélectionnez un espace de travail et changez le type de forfait en',
                 },
+                upgradeWorkspaceWarning: "Impossible de mettre à niveau l'espace de travail",
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
+                    "Votre entreprise a restreint la création d'espaces de travail. Veuillez contacter un administrateur pour obtenir de l'aide.",
             },
         },
         downgrade: {

@@ -6110,6 +6110,9 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                     toUpgrade: 'Zum Aktualisieren klicken',
                     selectWorkspace: 'Wähle einen Workspace aus und ändere den Plantyp in',
                 },
+                upgradeWorkspaceWarning: 'Arbeitsbereich kann nicht aktualisiert werden',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
+                    'Ihr Unternehmen hat die Erstellung von Arbeitsbereichen eingeschränkt. Bitte wenden Sie sich an einen Administrator.',
             },
         },
         downgrade: {
