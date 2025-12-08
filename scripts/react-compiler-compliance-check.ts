@@ -359,19 +359,18 @@ async function filterResultsByDiff(
         // Filter failures to only include those on changed lines
         const filteredFailures = new Map<string, CompilerFailure>();
 
-        // eslint-disable-next-line unicorn/no-array-for-each
-        failures.forEach((failure, key) => {
+        for (const [key, failure] of failures.entries()) {
             const changedLines = changedLinesMap.get(failure.file);
 
             // If the file is not in the diff, skip this failure
             if (!changedLines) {
-                return;
+                continue;
             }
 
             // If the file has eslint-disable comment, include ALL failures for this file
             if (filesWithEslintDisable.has(failure.file)) {
                 filteredFailures.set(key, failure);
-                return;
+                continue;
             }
 
             // If the failure has a line number, check if it's in the changed lines or eslint-disable-next-line
@@ -382,12 +381,12 @@ async function filterResultsByDiff(
                 if (isLineChanged || isLineEslintDisabled) {
                     filteredFailures.set(key, failure);
                 }
-                return;
+                continue;
             }
 
             // If there's no line number, include the failure if the file has changes
             filteredFailures.set(key, failure);
-        });
+        }
 
         return filteredFailures;
     }
@@ -399,13 +398,12 @@ async function filterResultsByDiff(
     // Filter success set to only include files that are in the diff
     const changedFiles = new Set(diffResult.files.map((file) => file.filePath));
     const filteredSuccesses = new Set<string>();
-    // eslint-disable-next-line unicorn/no-array-for-each
-    results.success.forEach((file) => {
+    for (const file of results.success) {
         if (!changedFiles.has(file)) {
-            return;
+            continue;
         }
         filteredSuccesses.add(file);
-    });
+    }
 
     if (shouldPrintSuccesses) {
         if (filteredSuccesses.size === 0) {
@@ -442,10 +440,9 @@ function printResults({success, failures, suppressedFailures}: CompilerResults, 
         logSuccess(`Successfully compiled ${success.size} files with React Compiler:`);
         log();
 
-        // eslint-disable-next-line unicorn/no-array-for-each
-        success.forEach((successFile) => {
+        for (const successFile of success) {
             logSuccess(`${successFile}`);
-        });
+        }
 
         log();
     }
@@ -453,10 +450,9 @@ function printResults({success, failures, suppressedFailures}: CompilerResults, 
     if (shouldPrintSuppressedErrors && suppressedFailures.size > 0) {
         // Create a Map of suppressed error type -> Failure[] with distinct errors and a list of failures with that error
         const suppressedErrorMap = new Map<string, CompilerFailure[]>();
-        // eslint-disable-next-line unicorn/no-array-for-each
-        suppressedFailures.forEach((failure) => {
+        for (const [, failure] of suppressedFailures) {
             if (!failure.reason) {
-                return;
+                continue;
             }
 
             if (!suppressedErrorMap.has(failure.reason)) {
@@ -464,7 +460,7 @@ function printResults({success, failures, suppressedFailures}: CompilerResults, 
             }
 
             suppressedErrorMap.get(failure.reason)?.push(failure);
-        });
+        }
 
         log();
         logWarn(`Suppressed the following errors in these files:`);
@@ -486,21 +482,19 @@ function printResults({success, failures, suppressedFailures}: CompilerResults, 
     }
 
     const distinctFileNames = new Set<string>();
-    // eslint-disable-next-line unicorn/no-array-for-each
-    failures.forEach((failure) => {
+    for (const [, failure] of failures) {
         distinctFileNames.add(failure.file);
-    });
+    }
 
     log();
     logError(`Failed to compile ${distinctFileNames.size} files with React Compiler:`);
     log();
 
-    // eslint-disable-next-line unicorn/no-array-for-each
-    failures.forEach((failure) => {
+    for (const [, failure] of failures) {
         const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
         logBold(`${failure.file}${location}`);
         logNote(`${TAB}${failure.reason ?? 'No reason provided'}`);
-    });
+    }
 
     log();
     logError('The files above failed to compile with React Compiler, probably because of Rules of React violations. Please fix the issues and run the check again.');
