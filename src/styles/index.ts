@@ -5674,7 +5674,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         createMenuPositionReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
             ({
                 // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
-                horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWithLHBWidth : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) + 18,
+                horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWithLHBWidth : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) + variables.popoverMargin,
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             }) satisfies AnchorPosition,
 
@@ -5684,14 +5684,16 @@ const dynamicStyles = (theme: ThemeColors) =>
                 horizontal:
                     (shouldUseNarrowLayout
                         ? windowWidth - calculateReceiptPaneRHPWidth(windowWidth) - variables.sideBarWidth
-                        : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) + 18,
+                        : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) + variables.popoverMargin,
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             }) satisfies AnchorPosition,
 
         createMenuPositionSuperWideRHPReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
             ({
                 // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
-                horizontal: (shouldUseNarrowLayout ? windowWidth - calculateSuperWideRHPWidth(windowWidth) : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) + 18,
+                horizontal:
+                    (shouldUseNarrowLayout ? windowWidth - calculateSuperWideRHPWidth(windowWidth) : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) +
+                    variables.popoverMargin,
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             }) satisfies AnchorPosition,
 
