@@ -99,7 +99,7 @@ function isCategoryMissing(category: string | undefined): boolean {
         return true;
     }
 
-    return category === CONST.SEARCH.CATEGORY_EMPTY_VALUE;
+    return category === CONST.SEARCH.CATEGORY_EMPTY_VALUE || category === CONST.SEARCH.CATEGORY_DEFAULT_VALUE;
 }
 
 function isCategoryDescriptionRequired(policyCategories: PolicyCategories | undefined, category: string | undefined, areRulesEnabled: boolean | undefined): boolean {
