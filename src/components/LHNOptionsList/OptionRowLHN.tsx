@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+import FS from '@libs/Fullstory';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -79,7 +80,7 @@ function OptionRowLHN({
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(tooltipToRender, shouldShowTooltip);
 
-    const {translate, preferredLocale} = useLocalize();
+    const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -160,12 +161,14 @@ function OptionRowLHN({
     const statusText = optionItem.status?.text ?? '';
     const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
     const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
-    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate, optionItem?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone, preferredLocale);
+    const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate, optionItem?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
     const isStatusVisible = !!emojiCode && isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 
     const subscriptAvatarBorderColor = isOptionFocused ? focusedBackgroundColor : theme.sidebar;
     const firstIcon = optionItem.icons?.at(0);
+
+    const alternateTextFSClass = FS.getChatFSClass(report);
 
     const onOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         Performance.markStart(CONST.TIMING.OPEN_REPORT);
@@ -299,7 +302,7 @@ function OptionRowLHN({
                                                     style={alternateTextStyle}
                                                     numberOfLines={1}
                                                     accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
-                                                    fsClass={CONST.FULLSTORY.CLASS.MASK}
+                                                    fsClass={alternateTextFSClass}
                                                 >
                                                     {alternateTextContainsCustomEmojiWithText ? (
                                                         <TextWithEmojiFragment
@@ -316,7 +319,7 @@ function OptionRowLHN({
                                         {optionItem?.descriptiveText ? (
                                             <View
                                                 style={[styles.flexWrap]}
-                                                fsClass={CONST.FULLSTORY.CLASS.MASK}
+                                                fsClass={alternateTextFSClass}
                                             >
                                                 <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                             </View>
