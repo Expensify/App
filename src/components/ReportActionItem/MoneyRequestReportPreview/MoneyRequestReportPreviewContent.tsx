@@ -703,7 +703,7 @@ function MoneyRequestReportPreviewContent({
                                                                     <Text style={[styles.reportStatusText, {color: reportStatusColorStyle?.textColor}]}>{reportStatus}</Text>
                                                                 </View>
                                                             )}
-                                                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{expenseCount}</Text>
+                                                            <Text style={[styles.textLabelSupporting]}>{expenseCount}</Text>
                                                         </View>
                                                     )
                                                 )}
