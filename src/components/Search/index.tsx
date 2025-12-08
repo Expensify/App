@@ -956,6 +956,7 @@ function Search({
                     similarSearchHash={similarSearchHash}
                     type={type}
                     hasResults={searchResults?.search?.hasResults}
+                    queryJSON={queryJSON}
                 />
             </View>
         );

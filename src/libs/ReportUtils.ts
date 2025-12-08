@@ -965,7 +965,7 @@ getEnvironment().then((env) => {
 const parsedReportActionMessageCache: Record<string, string> = {};
 
 let conciergeReportID: OnyxEntry<string>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.CONCIERGE_REPORT_ID,
     callback: (value) => {
         conciergeReportID = value;
@@ -973,7 +973,7 @@ Onyx.connect({
 });
 
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         // When signed out, val is undefined
@@ -991,7 +991,7 @@ Onyx.connect({
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 let allPersonalDetailLogins: string[];
 let currentUserPersonalDetails: OnyxEntry<PersonalDetails>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         if (currentUserAccountID) {
@@ -1003,14 +1003,14 @@ Onyx.connect({
 });
 
 let allReportsDraft: OnyxCollection<Report>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
     waitForCollectionCallback: true,
     callback: (value) => (allReportsDraft = value),
 });
 
 let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
@@ -1025,7 +1025,7 @@ Onyx.connectWithoutView({
 
 let allReports: OnyxCollection<Report>;
 let reportsByPolicyID: ReportByPolicyMap;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1063,14 +1063,14 @@ Onyx.connect({
 });
 
 let allBetas: OnyxEntry<Beta[]>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.BETAS,
     callback: (value) => (allBetas = value),
 });
 
 let allTransactions: OnyxCollection<Transaction> = {};
 let reportsTransactions: Record<string, Transaction[]> = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1096,7 +1096,7 @@ Onyx.connect({
 });
 
 let allReportActions: OnyxCollection<ReportActions>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
     callback: (actions) => {
@@ -1109,7 +1109,7 @@ Onyx.connect({
 
 let allReportMetadata: OnyxCollection<ReportMetadata>;
 const allReportMetadataKeyValue: Record<string, ReportMetadata> = {};
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_METADATA,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1130,7 +1130,7 @@ Onyx.connect({
 });
 
 let allReportNameValuePair: OnyxCollection<ReportNameValuePairs>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1142,7 +1142,7 @@ Onyx.connect({
 });
 
 let allReportsViolations: OnyxCollection<ReportViolations>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
     waitForCollectionCallback: true,
     callback: (value) => {
@@ -1154,13 +1154,13 @@ Onyx.connect({
 });
 
 let onboarding: OnyxEntry<Onboarding>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_ONBOARDING,
     callback: (value) => (onboarding = value),
 });
 
 let delegateEmail = '';
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         delegateEmail = value?.delegatedAccess?.delegate ?? '';
@@ -1168,13 +1168,13 @@ Onyx.connect({
 });
 
 let activePolicyID: OnyxEntry<string>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
 });
 
 let reportAttributesDerivedValue: ReportAttributesDerivedValue['reports'];
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
         reportAttributesDerivedValue = value?.reports ?? {};
@@ -1182,13 +1182,13 @@ Onyx.connect({
 });
 
 let newGroupChatDraft: OnyxEntry<NewGroupChatDraft>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
     callback: (value) => (newGroupChatDraft = value),
 });
 
 let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
     callback: (value) => {
         onboardingCompanySize = value;
@@ -1198,7 +1198,7 @@ Onyx.connect({
 let hiddenTranslation = '';
 let unavailableTranslation = '';
 
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
     initWithStoredValues: false,
     callback: (value) => {
@@ -11147,7 +11147,32 @@ function getReportActionActorAccountID(
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED:
-            return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
+        case CONST.REPORT.ACTIONS.TYPE.APPROVED:
+        case CONST.REPORT.ACTIONS.TYPE.FORWARDED:
+        case CONST.REPORT.ACTIONS.TYPE.IOU: {
+            const originalMessage = getOriginalMessage(reportAction);
+            const actionName = reportAction?.actionName;
+
+            // Check if this should show Concierge as the actor
+            const wasSubmittedViaHarvesting = originalMessage && 'harvesting' in originalMessage ? originalMessage.harvesting : false;
+            const wasAutomatic = originalMessage && 'automaticAction' in originalMessage ? originalMessage.automaticAction : false;
+            const isPayment = originalMessage && 'type' in originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+
+            // Show Concierge for:
+            // - Harvesting (delayed submissions)
+            // - Automatic approvals/forwards via workspace rules
+            // - Automatic payments via workspace rules
+            if (wasSubmittedViaHarvesting || (wasAutomatic && actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) || (wasAutomatic && isPayment)) {
+                return CONST.ACCOUNT_ID.CONCIERGE;
+            }
+
+            // For SUBMITTED actions, check adminAccountID first (admin-submit case)
+            if (actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED || actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) {
+                return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
+            }
+
+            return reportAction?.actorAccountID;
+        }
 
         default:
             return reportAction?.actorAccountID;
@@ -11452,7 +11477,7 @@ function prepareOnboardingOnyxData({
     userReportedIntegration,
     wasInvited,
     companySize,
-    selectedInterestedFeatures = [],
+    selectedInterestedFeatures,
     isInvitedAccountant,
     onboardingPurposeSelected,
 }: PrepareOnboardingOnyxDataParams) {
@@ -11544,7 +11569,7 @@ function prepareOnboardingOnyxData({
     const tasksData = onboardingMessage.tasks
         .filter((task) => {
             if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-                if (selectedInterestedFeatures?.length && TASK_TO_FEATURE[task.type] && !selectedInterestedFeatures.includes(TASK_TO_FEATURE[task.type])) {
+                if (!!selectedInterestedFeatures && TASK_TO_FEATURE[task.type] && !selectedInterestedFeatures.includes(TASK_TO_FEATURE[task.type])) {
                     return false;
                 }
             }
