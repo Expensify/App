@@ -318,14 +318,6 @@ type MoneyRequestInformation = {
     reimbursable?: boolean;
 };
 
-type RejectMoneyRequestData = {
-    optimisticData: OnyxUpdate[];
-    successData: OnyxUpdate[];
-    failureData: OnyxUpdate[];
-    parameters: RejectMoneyRequestParams;
-    urlToNavigateBack: Route | undefined;
-};
-
 type TrackExpenseInformation = {
     createdWorkspaceParams?: CreateWorkspaceParams;
     iouReport?: OnyxTypes.Report;
@@ -13292,21 +13284,13 @@ function dismissRejectUseExplanation() {
 }
 
 /**
- * Retrieve the reject money request data
+ * Reject a money request
  * @param transactionID - The ID of the transaction to reject
  * @param reportID - The ID of the expense report to reject
  * @param comment - The comment to add to the reject action
- * @param options
- *   - sharedRejectedToReportID: When rejecting multiple expenses sequentially, pass a single shared destination reportID so all rejections land in the same new report.
- * @returns optimisticData, successData, failureData, parameters, urlToNavigateBack
+ * @returns The route to navigate back to
  */
-function prepareRejectMoneyRequestData(
-    transactionID: string,
-    reportID: string,
-    comment: string,
-    options?: {sharedRejectedToReportID?: string},
-    shouldUseBulkAction?: boolean,
-): RejectMoneyRequestData | undefined {
+function rejectMoneyRequest(transactionID: string, reportID: string, comment: string): Route | undefined {
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionAmount = getAmount(transaction);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -13328,7 +13312,7 @@ function prepareRejectMoneyRequestData(
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
 
     let movedToReport;
-    let rejectedToReportID = options?.sharedRejectedToReportID;
+    let rejectedToReportID;
     let urlToNavigateBack;
     let reportPreviewAction: OnyxTypes.ReportAction | undefined;
     let createdIOUReportActionID;
@@ -13366,7 +13350,7 @@ function prepareRejectMoneyRequestData(
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    if ((!isPolicyDelayedSubmissionEnabled || isIOU) && !shouldUseBulkAction) {
+    if (!isPolicyDelayedSubmissionEnabled || isIOU) {
         if (hasMultipleExpenses) {
             // For reports with multiple expenses: Update report total
             optimisticData.push(
@@ -13507,7 +13491,7 @@ function prepareRejectMoneyRequestData(
                 urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(report.chatReportID);
             }
         }
-    } else if (hasMultipleExpenses && !shouldUseBulkAction) {
+    } else if (hasMultipleExpenses) {
         if (isUserOnSearchPage || isUserOnSearchMoneyRequestReport) {
             // Navigate to the existing Reports > Expense view.
             urlToNavigateBack = undefined;
@@ -13603,10 +13587,8 @@ function prepareRejectMoneyRequestData(
                 },
             );
         } else {
-            // When no existing open report is found, use the sharedRejectedToReportID
-            // so multiple sequential rejections land in the same destination report
-            // Fallback to generating a fresh ID if not provided
-            rejectedToReportID = rejectedToReportID ?? generateReportID();
+            // Create optimistic report for the rejected transaction
+            rejectedToReportID = generateReportID();
             const newExpenseReport = buildOptimisticExpenseReport(
                 report.chatReportID,
                 report?.policyID,
@@ -14026,19 +14008,10 @@ function prepareRejectMoneyRequestData(
         expenseCreatedReportActionID,
     };
 
-    return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
-}
-
-function rejectMoneyRequest(transactionID: string, reportID: string, comment: string, options?: {sharedRejectedToReportID?: string}): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, options);
-    if (!data) {
-        return;
-    }
-    const {urlToNavigateBack, optimisticData, successData, failureData, parameters} = data;
     // Make API call
     API.write(WRITE_COMMANDS.REJECT_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 
-    return urlToNavigateBack;
+    return urlToNavigateBack as Route;
 }
 
 function markRejectViolationAsResolved(transactionID: string, reportID?: string) {
@@ -15141,7 +15114,6 @@ export {
     calculateDiffAmount,
     dismissRejectUseExplanation,
     rejectMoneyRequest,
-    prepareRejectMoneyRequestData,
     markRejectViolationAsResolved,
     setMoneyRequestReimbursable,
     computePerDiemExpenseAmount,

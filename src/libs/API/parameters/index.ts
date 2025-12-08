@@ -289,7 +289,6 @@ export type {default as MarkAsExportedParams} from './MarkAsExportedParams';
 export type {default as UpgradeToCorporateParams} from './UpgradeToCorporateParams';
 export type {default as DowngradeToTeamParams} from './DowngradeToTeamParams';
 export type {default as DeleteMoneyRequestOnSearchParams} from './DeleteMoneyRequestOnSearchParams';
-export type {default as RejectMoneyRequestInBulkParams} from './RejectMoneyRequestInBulkParams';
 export type {default as HoldMoneyRequestOnSearchParams} from './HoldMoneyRequestOnSearchParams';
 export type {default as ApproveMoneyRequestOnSearchParams} from './ApproveMoneyRequestOnSearchParams';
 export type {default as PayMoneyRequestOnSearchParams} from './PayMoneyRequestOnSearchParams';
