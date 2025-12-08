@@ -11,7 +11,6 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
 import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
