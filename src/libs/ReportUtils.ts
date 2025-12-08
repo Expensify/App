@@ -2012,14 +2012,18 @@ function isAwaitingFirstLevelApprovalNew(report: OnyxEntry<Report>, reportAction
               ?.at(0);
 
     const originalMessage = getOriginalMessage(usedReportAction);
-    let submittedTo = originalMessage?.submittedTo;
+    if (!originalMessage) {
+        return false;
+    }
+    let submittedTo: number | undefined = 'submittedTo' in originalMessage ? originalMessage?.submittedTo : undefined;
 
     if (!submittedTo) {
-        submittedTo = getAccountIDsByLogins([originalMessage?.to])?.at(0);
+        const submittedToLogin = 'to' in originalMessage ? (originalMessage?.to ?? '') : '';
+        submittedTo = getAccountIDsByLogins([submittedToLogin])?.at(0);
     }
 
     if (!submittedTo) {
-        const managerID = originalMessage?.managerOnVacation ?? report.managerID;
+        const managerID = 'managerOnVacation' in originalMessage && originalMessage?.managerOnVacation ? originalMessage?.managerOnVacation : report.managerID;
         const approverAccountID =
             policy?.employeeList?.[getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? '']?.submitsTo ?? getAccountIDsByLogins([getDefaultApprover(policy)])?.at(0);
         return managerID === approverAccountID;

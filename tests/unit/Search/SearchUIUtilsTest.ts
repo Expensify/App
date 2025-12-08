@@ -2815,7 +2815,6 @@ describe('SearchUIUtils', () => {
                 violations,
                 hash: itemHash,
                 moneyRequestReportActionID,
-                canDelete,
                 accountID,
                 policyID: searchPolicyID,
                 ...expectedTransaction
