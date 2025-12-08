@@ -158,13 +158,13 @@ function BaseVideoPlayer({
             return;
         }
 
-        if (isEnded) {
+        if (isEnded && currentTime === duration) {
             replayVideo();
             return;
         }
 
         playVideo();
-    }, [isCurrentlyURLSet, isLoading, updateCurrentURLAndReportID, url, reportID, pauseVideo, isEnded, playVideo, replayVideo]);
+    }, [isCurrentlyURLSet, isLoading, isEnded, currentTime, duration, playVideo, updateCurrentURLAndReportID, url, reportID, pauseVideo, replayVideo]);
 
     const hideControl = useCallback(() => {
         if (isEnded) {
