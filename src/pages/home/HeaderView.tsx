@@ -377,7 +377,15 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction ?? undefined, ancestors);
+                                    deleteTask(
+                                        report,
+                                        parentReport,
+                                        isReportArchived,
+                                        currentUserPersonalDetails.accountID,
+                                        hasOutstandingChildTask,
+                                        parentReportAction ?? undefined,
+                                        ancestors,
+                                    );
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}

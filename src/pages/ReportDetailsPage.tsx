@@ -174,6 +174,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const transactionThreadReportID = useMemo(() => getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline), [reportActions, isOffline, report, chatReport]);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan'] as const);
 
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
@@ -324,6 +325,15 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const leaveChat = useCallback(() => {
+        if (isChatThread && report.parentReportID) {
+            Navigation.dismissModalWithReport({reportID: report.parentReportID});
+            Navigation.isNavigationReady().then(() => {
+                const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
+                leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+            });
+            return;
+        }
+
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             if (isRootGroupChat) {
@@ -333,7 +343,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
             leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report]);
+    }, [isRootGroupChat, isPolicyEmployee, isChatThread, isPolicyAdmin, quickAction?.chatReportID, report]);
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
@@ -492,7 +502,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     isAnonymousAction: false,
                     action: callFunctionIfActionIsAllowed(() => {
                         Navigation.goBack(backTo);
-                        reopenTask(report, currentUserPersonalDetails?.accountID);
+                        reopenTask(report, parentReport, currentUserPersonalDetails?.accountID);
                     }),
                 });
             }
@@ -551,6 +561,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
+        expensifyIcons,
         isDefaultRoom,
         isChatThread,
         isPolicyEmployee,
@@ -593,6 +604,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         expensifyIcons.Building,
         expensifyIcons.Exit,
         expensifyIcons.Bug,
+        parentReport,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -665,6 +677,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isChatRoom,
         isThread,
         isGroupChat,
+        expensifyIcons,
         icons,
         report,
         styles.avatarXLarge,
@@ -832,7 +845,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(report, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction, ancestors);
+            deleteTask(report, parentReport, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction, ancestors);
             return;
         }
 
@@ -881,6 +894,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         isChatIOUReportArchived,
         hasOutstandingChildTask,
         parentReportAction,
+        parentReport,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
