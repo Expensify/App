@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+
+/* eslint-disable @typescript-eslint/no-deprecated */
 import {beforeAll} from '@jest/globals';
 import {act, renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
@@ -69,6 +71,7 @@ import {
     getReportIDFromLink,
     getReportName as getReportNameDeprecated,
     getReportOrDraftReport,
+    getReportPreviewMessage,
     getReportStatusTranslation,
     getReportURLForCurrentContext,
     getWorkspaceIcon,
@@ -7707,7 +7710,8 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(Number(transactionID)),
                 reportID: parentReport.reportID,
-                amount: 0,
+                created: '',
+                modifiedCreated: '',
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
@@ -7732,7 +7736,8 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(12345),
                 reportID: parentReport.reportID,
-                amount: 0,
+                created: '',
+                modifiedCreated: '',
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
@@ -10101,5 +10106,46 @@ describe('ReportUtils', () => {
 
         expect(reasonAfterRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
         await Onyx.clear();
+    });
+
+    describe('getReportPreviewMessage', () => {
+        it('should return childReportName when report is empty and originalReportAction has childReportName with childMoneyRequestCount === 0', async () => {
+            // Given an empty report (undefined)
+            const report = undefined;
+
+            // Given a report action with childReportName and childMoneyRequestCount === 0
+            const reportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportName: 'Expense Report 2025-01-15',
+                childMoneyRequestCount: 0,
+            };
+
+            // When we call getReportPreviewMessage
+            const result = getReportPreviewMessage(report, reportAction, false, false, undefined, false, reportAction);
+
+            // Then it should return the childReportName instead of "payer owes $0"
+            expect(result).toBe('Expense Report 2025-01-15');
+        });
+
+        it('should return reportActionMessage when report is empty and childMoneyRequestCount > 0', async () => {
+            // Given an empty report (undefined)
+            const report = undefined;
+
+            // Given a report action with childReportName but childMoneyRequestCount > 0
+            const reportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportName: 'Expense Report 2025-01-15',
+                childMoneyRequestCount: 3,
+                message: [{html: 'payer owes $100', type: 'COMMENT', text: 'payer owes $100'}],
+            };
+
+            // When we call getReportPreviewMessage
+            const result = getReportPreviewMessage(report, reportAction, false, false, undefined, false, reportAction);
+
+            // Then it should return the message from the report action (not the childReportName)
+            expect(result).toBe('payer owes $100');
+        });
     });
 });

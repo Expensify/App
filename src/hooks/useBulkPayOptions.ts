@@ -6,7 +6,7 @@ import {Bank, Cash, Wallet} from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import {canIOUBePaid} from '@libs/actions/IOU';
-import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
+import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
@@ -79,7 +79,10 @@ function useBulkPayOptions({
     const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedWallet;
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
-    const onlyShowPayElsewhere = useMemo(() => canIOUBePaid(iouReport, chatReport, policy, undefined, true), [iouReport, chatReport, policy]);
+    const onlyShowPayElsewhere = useMemo(
+        () => !canIOUBePaid(iouReport, chatReport, policy, undefined, false) && canIOUBePaid(iouReport, chatReport, policy, undefined, true),
+        [iouReport, chatReport, policy],
+    );
 
     function getLatestBankAccountItem() {
         if (!policy?.achAccount?.bankAccountID) {
@@ -180,7 +183,7 @@ function useBulkPayOptions({
         }
 
         if (isInvoiceReport) {
-            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
+            const isCurrencySupported = isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
