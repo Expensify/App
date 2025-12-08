@@ -60,8 +60,6 @@ function AddDomainPage() {
         )?.accountID;
         if (accountID) {
             Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ADDED.getRoute(accountID), {forceReplace: true});
-        } else {
-            console.error('Could not find the created domain to navigate to after domain creation succeeded.');
         }
     }, [form?.hasCreationSucceeded, allDomains]);
 
