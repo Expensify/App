@@ -76,7 +76,7 @@ function WorkspaceReportFieldsPage({
             return {};
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
+        return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title' && value.target !== CONST.REPORT_FIELD_TARGETS.INVOICE));
     }, [policy?.fieldList]);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 

@@ -222,6 +222,7 @@ export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDis
 export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
 export type {default as SetPolicyTagsEnabled} from './SetPolicyTagsEnabled';
 export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';
+export type {default as EnablePolicyInvoiceFieldsParams} from './EnablePolicyInvoiceFieldsParams';
 export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyReportFieldsParams';
 export type {default as EnablePolicyExpensifyCardsParams} from './EnablePolicyExpensifyCardsParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';

@@ -51,7 +51,8 @@ type DeleteReportFieldsListValueParams = {
 type CreateReportFieldParams = Pick<WorkspaceReportFieldForm, 'name' | 'type' | 'initialValue'> & {
     listValues: string[];
     disabledListValues: boolean[];
-    policyExpenseReportIDs: Array<string | undefined> | undefined;
+    policyReportIDs: Array<string | undefined> | undefined;
+    target?: PolicyReportField['target'];
     policy: OnyxEntry<Policy>;
 };
 
@@ -96,6 +97,19 @@ function openPolicyReportFieldsPage(policyID: string) {
     };
 
     API.read(READ_COMMANDS.OPEN_POLICY_REPORT_FIELDS_PAGE, params);
+}
+
+function openPolicyInvoiceFieldsPage(policyID: string) {
+    if (!policyID) {
+        Log.warn('openPolicyInvoiceFieldsPage invalid params', {policyID});
+        return;
+    }
+
+    const params: OpenPolicyReportFieldsPageParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_INVOICE_FIELDS_PAGE, params);
 }
 
 /**
@@ -165,7 +179,7 @@ function deleteReportFieldsListValue({valueIndexes, listValues, disabledListValu
 /**
  * Creates a new report field.
  */
-function createReportField({name, type, initialValue, listValues, disabledListValues, policyExpenseReportIDs, policy}: CreateReportFieldParams) {
+function createReportField({name, type, initialValue, listValues, disabledListValues, policyReportIDs, target = CONST.REPORT_FIELD_TARGETS.EXPENSE, policy}: CreateReportFieldParams) {
     if (!policy) {
         Log.warn('Policy data is not present');
         return;
@@ -205,7 +219,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 errorFields: null,
             },
         },
-        ...(policyExpenseReportIDs ?? []).map((reportID) => ({
+        ...(policyReportIDs ?? []).map((reportID) => ({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
@@ -229,7 +243,7 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
                 },
             },
         },
-        ...(policyExpenseReportIDs ?? []).map((reportID) => ({
+        ...(policyReportIDs ?? []).map((reportID) => ({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
@@ -262,7 +276,9 @@ function createReportField({name, type, initialValue, listValues, disabledListVa
         reportFields: JSON.stringify([optimisticReportFieldDataForPolicy]),
     };
 
-    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD, parameters, onyxData);
+    const createCommand =
+        target === CONST.REPORT_FIELD_TARGETS.INVOICE ? WRITE_COMMANDS.CREATE_WORKSPACE_INVOICE_FIELD : WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD;
+    API.write(createCommand, parameters, onyxData);
 }
 
 function deleteReportFields({policy, reportFieldsToUpdate}: DeleteReportFieldsParams) {
@@ -549,6 +565,7 @@ export {
     updateReportFieldInitialValue,
     updateReportFieldListValueEnabled,
     openPolicyReportFieldsPage,
+    openPolicyInvoiceFieldsPage,
     addReportFieldListValue,
     removeReportFieldListValue,
 };
