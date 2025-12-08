@@ -90,7 +90,7 @@ type SearchTransaction = {
     canDelete: boolean;
 
     /** The edited transaction amount */
-    modifiedAmount: number;
+    modifiedAmount: number | string;
 
     /** The transaction currency */
     currency: string;
@@ -146,21 +146,11 @@ type SearchTransaction = {
     /** The ID of the report the transaction is associated with */
     reportID: string;
 
-    /**
-     * @deprecated - Use getReceiptFilenameFromTransaction to get filename
-     *
-     * The name of the file used for a receipt
-     */
-    filename?: string;
-
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 
     /** The modified MCC Group associated with the transaction */
     modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
-
-    /** The ID of the money request reportAction associated with the transaction */
-    moneyRequestReportActionID?: string;
 
     /** Whether the transaction has violations or errors */
     errors?: OnyxCommon.Errors;
