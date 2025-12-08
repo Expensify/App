@@ -18,7 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import runOnLiveMarkdownRuntime from '@libs/runOnLiveMarkdownRuntime';
+import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
@@ -142,35 +142,35 @@ function SearchAutocompleteInput({
     });
 
     useEffect(() => {
-        runOnLiveMarkdownRuntime(() => {
+        scheduleOnLiveMarkdownRuntime(() => {
             'worklet';
 
             emailListSharedValue.set(emailList);
-        })();
+        });
     }, [emailList, emailListSharedValue]);
 
     useEffect(() => {
-        runOnLiveMarkdownRuntime(() => {
+        scheduleOnLiveMarkdownRuntime(() => {
             'worklet';
 
             currencySharedValue.set(currencyAutocompleteList);
-        })();
+        });
     }, [currencyAutocompleteList, currencySharedValue]);
 
     useEffect(() => {
-        runOnLiveMarkdownRuntime(() => {
+        scheduleOnLiveMarkdownRuntime(() => {
             'worklet';
 
             categorySharedValue.set(categoryAutocompleteList);
-        })();
+        });
     }, [categorySharedValue, categoryAutocompleteList]);
 
     useEffect(() => {
-        runOnLiveMarkdownRuntime(() => {
+        scheduleOnLiveMarkdownRuntime(() => {
             'worklet';
 
             tagSharedValue.set(tagAutocompleteList);
-        })();
+        });
     }, [tagSharedValue, tagAutocompleteList]);
 
     const parser = useCallback(

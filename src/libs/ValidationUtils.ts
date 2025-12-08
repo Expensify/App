@@ -124,13 +124,13 @@ function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<st
 function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxValues<TFormID>, requiredFields: Array<FormOnyxKeys<TFormID>>): FormInputErrors<TFormID> {
     const errors: FormInputErrors<TFormID> = {};
 
-    requiredFields.forEach((fieldKey) => {
+    for (const fieldKey of requiredFields) {
         if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
-            return;
+            continue;
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[fieldKey] = translateLocal('common.error.fieldRequired');
-    });
+    }
 
     return errors;
 }
@@ -278,12 +278,12 @@ function validateIdentity(identity: Record<string, string>): Record<string, bool
     const errors: Record<string, boolean> = {};
 
     // Check that all required fields are filled
-    requiredFields.forEach((fieldName) => {
+    for (const fieldName of requiredFields) {
         if (isRequiredFulfilled(identity[fieldName])) {
-            return;
+            continue;
         }
         errors[fieldName] = true;
-    });
+    }
 
     if (!isValidAddress(identity.street)) {
         errors.street = true;
@@ -572,13 +572,13 @@ function isValidOwnershipPercentage(value: string, totalOwnedPercentage: Record<
 
     let totalOwnedPercentageSum = 0;
     const totalOwnedPercentageKeys = Object.keys(totalOwnedPercentage);
-    totalOwnedPercentageKeys.forEach((key) => {
+    for (const key of totalOwnedPercentageKeys) {
         if (key === ownerBeingModifiedID) {
-            return;
+            continue;
         }
 
         totalOwnedPercentageSum += totalOwnedPercentage[key];
-    });
+    }
 
     const isTotalSumValid = totalOwnedPercentageSum + parsedValue <= 100;
 

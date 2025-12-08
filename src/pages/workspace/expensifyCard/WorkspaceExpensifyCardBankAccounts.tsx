@@ -7,7 +7,6 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getBankIcon from '@components/Icon/BankIcons';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -15,6 +14,7 @@ import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -44,6 +44,8 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const policyID = route?.params?.policyID;
     const policy = usePolicy(policyID);
+
+    const illustrations = useMemoizedLazyIllustrations(['Puzzle'] as const);
 
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
@@ -134,7 +136,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                         <BlockingView
                             title={translate('workspace.expensifyCard.oneMoreStep')}
                             subtitle={translate('workspace.expensifyCard.oneMoreStepDescription')}
-                            icon={Illustrations.Puzzle}
+                            icon={illustrations.Puzzle}
                             subtitleStyle={styles.textLabelSupporting}
                             iconHeight={variables.cardPreviewHeight}
                             iconWidth={variables.cardPreviewHeight}

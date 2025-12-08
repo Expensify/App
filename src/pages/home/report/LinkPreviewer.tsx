@@ -24,14 +24,14 @@ function filterNonUniqueLinks(linkMetadata: LinkMetadata[]): LinkMetadata[] {
     const linksMap = new Map<string, string>();
     const result: LinkMetadata[] = [];
 
-    linkMetadata.forEach((item) => {
+    for (const item of linkMetadata) {
         if (!item.url || linksMap.has(item.url)) {
-            return;
+            continue;
         }
 
         linksMap.set(item.url, item.url);
         result.push(item);
-    });
+    }
 
     return result;
 }

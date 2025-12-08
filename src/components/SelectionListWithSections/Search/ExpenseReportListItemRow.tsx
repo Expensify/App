@@ -1,16 +1,19 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import type {ExpenseReportListItemType} from '@components/SelectionListWithSections/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
 import ActionCell from './ActionCell';
 import DateCell from './DateCell';
 import StatusCell from './StatusCell';
@@ -21,32 +24,32 @@ import UserInfoCell from './UserInfoCell';
 
 type ExpenseReportListItemRowProps = {
     item: ExpenseReportListItemType;
+    policy?: Policy;
     showTooltip: boolean;
     canSelectMultiple?: boolean;
     isActionLoading?: boolean;
     onButtonPress?: () => void;
     onCheckboxPress?: () => void;
     containerStyle?: StyleProp<ViewStyle>;
-    avatarBorderColor?: ColorValue;
     isSelectAllChecked?: boolean;
     isIndeterminate?: boolean;
-    isDisabled?: boolean;
+    isDisabledCheckbox?: boolean;
     isHovered?: boolean;
     isFocused?: boolean;
 };
 
 function ExpenseReportListItemRow({
     item,
+    policy,
     onCheckboxPress = () => {},
     onButtonPress = () => {},
     isActionLoading,
     containerStyle,
     showTooltip,
     canSelectMultiple,
-    avatarBorderColor,
     isSelectAllChecked,
     isIndeterminate,
-    isDisabled,
+    isDisabledCheckbox,
     isHovered = false,
     isFocused = false,
 }: ExpenseReportListItemRowProps) {
@@ -54,6 +57,7 @@ function ExpenseReportListItemRow({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     const {total, currency} = useMemo(() => {
         let reportTotal = item.total ?? 0;
@@ -75,7 +79,9 @@ function ExpenseReportListItemRow({
     const showUserInfo = (item.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (item.type === CONST.REPORT.TYPE.EXPENSE && !!item?.from);
 
     // Calculate the correct border color for avatars based on hover and focus states
-    const finalAvatarBorderColor = isHovered && !isFocused ? theme.border : avatarBorderColor;
+    const finalAvatarBorderColor =
+        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused || !!isHovered, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
+        theme.highlightBG;
 
     if (!isLargeScreenWidth) {
         return (
@@ -95,10 +101,10 @@ function ExpenseReportListItemRow({
                                 isChecked={isSelectAllChecked}
                                 isIndeterminate={isIndeterminate}
                                 containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
-                                disabled={!!isDisabled || item.isDisabledCheckbox}
+                                disabled={isDisabledCheckbox}
                                 accessibilityLabel={item.text ?? ''}
                                 shouldStopMouseDownPropagation
-                                style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
+                                style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled]}
                             />
                         )}
                         <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.mr2]}>
@@ -130,15 +136,17 @@ function ExpenseReportListItemRow({
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
                         containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
-                        disabled={!!isDisabled || item.isDisabledCheckbox}
+                        disabled={isDisabledCheckbox}
                         accessibilityLabel={item.text ?? ''}
                         shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
+                        style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), isDisabledCheckbox && styles.cursorDisabled, styles.mr1]}
                     />
                 )}
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), {alignItems: 'stretch'}]}>
                     <ReportActionAvatars
+                        report={item}
                         reportID={item.reportID}
+                        policy={policy}
                         shouldShowTooltip={showTooltip}
                         subscriptAvatarBorderColor={finalAvatarBorderColor}
                     />
@@ -198,6 +206,15 @@ function ExpenseReportListItemRow({
                         amount={item.total}
                     />
                 </View>
+            </View>
+            <View style={styles.ml2}>
+                <Icon
+                    src={expensifyIcons.ArrowRight}
+                    width={variables.iconSizeSmall}
+                    height={variables.iconSizeSmall}
+                    fill={theme.icon}
+                    additionalStyles={!isHovered && styles.opacitySemiTransparent}
+                />
             </View>
         </View>
     );

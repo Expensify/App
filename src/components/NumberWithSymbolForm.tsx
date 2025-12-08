@@ -303,7 +303,7 @@ function NumberWithSymbolForm({
             const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`);
             setNewNumber(newNumber);
         },
-        [currentNumber, selection, shouldUpdateSelection, setNewNumber],
+        [currentNumber, selection.start, selection.end, shouldUpdateSelection, setNewNumber],
     );
 
     /**

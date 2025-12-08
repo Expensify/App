@@ -1,7 +1,7 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {SearchColumnType, SearchGroupBy, SortOrder} from '@components/Search/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -129,11 +129,11 @@ const taskHeaders: SearchColumnConfig[] = [
     },
 ];
 
-const expenseReportHeaders: SearchColumnConfig[] = [
+const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
         translationKey: undefined,
-        icon: Expensicons.Profile,
+        icon: profileIcon,
         isColumnSortable: false,
     },
     {
@@ -167,7 +167,7 @@ const expenseReportHeaders: SearchColumnConfig[] = [
     },
 ];
 
-function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy?: SearchGroupBy) {
+function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy?: SearchGroupBy, profileIcon?: IconAsset) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return getExpenseHeaders(groupBy);
@@ -178,7 +178,7 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy
         case CONST.SEARCH.DATA_TYPES.TASK:
             return taskHeaders;
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-            return expenseReportHeaders;
+            return getExpenseReportHeaders(profileIcon);
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
             return null;
@@ -219,6 +219,9 @@ function SearchTableHeader({
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
+    // Only load Profile icon when it's needed for EXPENSE_REPORT type
+    const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? (['Profile'] as const) : ([] as const));
+
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
             return columns.includes(columnName);
@@ -226,11 +229,11 @@ function SearchTableHeader({
         [columns],
     );
 
+    const columnConfig = useMemo(() => getSearchColumns(type, groupBy, icons.Profile), [type, groupBy, icons.Profile]);
+
     if (displayNarrowVersion) {
         return;
     }
-
-    const columnConfig = getSearchColumns(type, groupBy);
 
     if (!columnConfig) {
         return;

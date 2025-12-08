@@ -1233,8 +1233,9 @@ describe('DebugUtils', () => {
                         accountID: 12345,
                     },
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                        amount: 0,
-                        modifiedAmount: 0,
+                        amount: 100,
+                        created: '',
+                        modifiedCreated: '',
                     },
                 });
                 const {reportAction} =
@@ -1293,8 +1294,9 @@ describe('DebugUtils', () => {
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                            amount: 0,
-                            modifiedAmount: 0,
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
                         },
                         [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_CHAT_REPORT,
                         [`${ONYXKEYS.COLLECTION.REPORT}2` as const]: MOCK_IOU_REPORT,
@@ -1358,8 +1360,9 @@ describe('DebugUtils', () => {
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                            amount: 0,
-                            modifiedAmount: 0,
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
                         },
                         [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_CHAT_REPORT,
                         [`${ONYXKEYS.COLLECTION.REPORT}2` as const]: MOCK_IOU_REPORT,
@@ -1515,6 +1518,7 @@ describe('DebugUtils', () => {
                         reportID: '1',
                         parentReportActionID: '0',
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                         ownerAccountID: 1234,
                         policyID: '1',
                     },
@@ -1522,7 +1526,7 @@ describe('DebugUtils', () => {
                         transactionID: '1',
                         amount: 10,
                         modifiedAmount: 10,
-                        reportID: '0',
+                        reportID: '1',
                     },
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1` as const]: [
                         {

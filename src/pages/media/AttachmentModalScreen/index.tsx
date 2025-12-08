@@ -1,4 +1,5 @@
 import React, {useContext, useMemo} from 'react';
+import Log from '@libs/Log';
 import SCREENS from '@src/SCREENS';
 import AttachmentModalContext from './AttachmentModalContext';
 import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
@@ -90,6 +91,8 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
             />
         );
     }
+
+    Log.warn('Unknown attachment modal screen. Make sure to add the new screen as a route to the AttachmentModalScreen component.', {route});
 
     return null;
 }

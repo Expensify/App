@@ -72,6 +72,8 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
                       currency,
                       file: undefined,
                       shouldAddOnboardingTasks: false,
+                      shouldAddGuideWelcomeMessage: false,
+                      onboardingPurposeSelected,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 

@@ -180,7 +180,9 @@ function SignInPage({ref}: SignInPageProps) {
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
 
-    useEffect(() => Performance.measureTTI(), []);
+    useEffect(() => {
+        Performance.measureTTI();
+    }, []);
 
     useEffect(() => {
         if (credentials?.login) {

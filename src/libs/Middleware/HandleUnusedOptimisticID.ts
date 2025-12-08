@@ -18,20 +18,20 @@ import type Report from '@src/types/onyx/Report';
 const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSequentialQueue) =>
     requestResponse.then((response) => {
         const responseOnyxData = response?.onyxData ?? [];
-        responseOnyxData.forEach((onyxData) => {
+        for (const onyxData of responseOnyxData) {
             const key = onyxData.key;
             if (!key?.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
-                return;
+                continue;
             }
 
             if (!onyxData.value) {
-                return;
+                continue;
             }
 
             const report: Report = onyxData.value as Report;
             const preexistingReportID = report.preexistingReportID;
             if (!preexistingReportID) {
-                return;
+                continue;
             }
             const oldReportID = key.split(ONYXKEYS.COLLECTION.REPORT).at(-1) ?? request.data?.reportID ?? request.data?.optimisticReportID;
 
@@ -45,12 +45,12 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
                 }
             }
 
-            PersistedRequests.getAll().forEach((persistedRequest, index) => {
+            for (const [index, persistedRequest] of PersistedRequests.getAll().entries()) {
                 const persistedRequestClone = clone(persistedRequest);
                 persistedRequestClone.data = deepReplaceKeysAndValues(persistedRequest.data, oldReportID as string, preexistingReportID);
                 PersistedRequests.update(index, persistedRequestClone);
-            });
-        });
+            }
+        }
         return response;
     });
 

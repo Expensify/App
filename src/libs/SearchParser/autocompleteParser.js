@@ -398,7 +398,7 @@ function peg$parse(input, options) {
         }));
     };
   var peg$f3 = function(rest) {
-      const suffix = rest.replace(/^-+/, "");
+      const suffix = rest.replaceAll(/^-+/g, "");
       return "reportField-" + (suffix ? suffix : "");
     };
   var peg$f4 = function() { autocomplete = null; };

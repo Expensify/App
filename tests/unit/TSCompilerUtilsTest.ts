@@ -1435,4 +1435,73 @@ describe('TSCompilerUtils', () => {
             expect(TSCompilerUtils.isStringConcatenationChain(outerBinary)).toBe(false);
         });
     });
+
+    describe('getIndentationOfNode', () => {
+        it('should return 0 for a node at column 0', () => {
+            const source = createSourceFile(
+                dedent(`
+                    const x = 1;
+                `),
+            );
+
+            const statement = source.statements[0];
+            expect(TSCompilerUtils.getIndentationOfNode(statement, source)).toBe(0);
+        });
+
+        it('should return correct indentation for a node with leading spaces', () => {
+            const source = createSourceFile(
+                dedent(`
+                    function example() {
+                        const x = 1;
+                    }
+                `),
+            );
+
+            // Find the const declaration inside the function
+            const functionDecl = source.statements[0] as ts.FunctionDeclaration;
+            const functionBody = functionDecl.body;
+            const constStatement = functionBody?.statements[0];
+
+            expect(constStatement).toBeDefined();
+            if (constStatement) {
+                expect(TSCompilerUtils.getIndentationOfNode(constStatement, source)).toBe(4);
+            }
+        });
+
+        it('should handle nested indentation', () => {
+            const source = createSourceFile(
+                dedent(`
+                    class MyClass {
+                        method() {
+                            if (true) {
+                                const x = 1;
+                            }
+                        }
+                    }
+                `),
+            );
+
+            // Navigate to the deeply nested const statement
+            const classDecl = source.statements[0] as ts.ClassDeclaration;
+            const methodDecl = classDecl.members[0] as ts.MethodDeclaration;
+            const ifStatement = methodDecl.body?.statements[0] as ts.IfStatement;
+            const constStatement = (ifStatement.thenStatement as ts.Block).statements[0];
+
+            expect(TSCompilerUtils.getIndentationOfNode(constStatement, source)).toBe(12);
+        });
+
+        it('should handle tabs as single characters', () => {
+            const source = createSourceFile('\t\tconst x = 1;');
+
+            const statement = source.statements[0];
+            expect(TSCompilerUtils.getIndentationOfNode(statement, source)).toBe(2);
+        });
+
+        it('should handle mixed tabs and spaces', () => {
+            const source = createSourceFile('\t    const x = 1;');
+
+            const statement = source.statements[0];
+            expect(TSCompilerUtils.getIndentationOfNode(statement, source)).toBe(5);
+        });
+    });
 });

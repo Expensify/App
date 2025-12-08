@@ -14,12 +14,14 @@ import {clearErrors, setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import SafeString from '@src/utils/SafeString';
 import Address from './BeneficialOwnerDetailsFormSubSteps/Address';
 import Confirmation from './BeneficialOwnerDetailsFormSubSteps/Confirmation';
 import DateOfBirth from './BeneficialOwnerDetailsFormSubSteps/DateOfBirth';
 import Documents from './BeneficialOwnerDetailsFormSubSteps/Documents';
 import Last4SSN from './BeneficialOwnerDetailsFormSubSteps/Last4SSN';
 import Name from './BeneficialOwnerDetailsFormSubSteps/Name';
+import Nationality from './BeneficialOwnerDetailsFormSubSteps/Nationality';
 import OwnershipPercentage from './BeneficialOwnerDetailsFormSubSteps/OwnershipPercentage';
 import BeneficialOwnersList from './BeneficialOwnersList';
 
@@ -35,7 +37,7 @@ type BeneficialOwnerInfoProps = {
 };
 
 const {OWNS_MORE_THAN_25_PERCENT, ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE, BENEFICIAL_OWNERS, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const {COUNTRY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
+const {NATIONALITY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 const SUBSTEP = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.SUBSTEP;
 
 type BeneficialOwnerDetailsFormProps = SubStepProps & {
@@ -46,7 +48,7 @@ type BeneficialOwnerDetailsFormProps = SubStepProps & {
     setTotalOwnedPercentage: (ownedPercentage: Record<string, number>) => void;
 };
 
-const bodyContent: Array<ComponentType<BeneficialOwnerDetailsFormProps>> = [Name, OwnershipPercentage, DateOfBirth, Address, Last4SSN, Documents, Confirmation];
+const bodyContent: Array<ComponentType<BeneficialOwnerDetailsFormProps>> = [Name, Nationality, OwnershipPercentage, DateOfBirth, Address, Last4SSN, Documents, Confirmation];
 
 function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: BeneficialOwnerInfoProps) {
     const {translate} = useLocalize();
@@ -100,7 +102,7 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
         return () => {
             clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners();
         };
-    }, [reimbursementAccount, onSubmit]);
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields, reimbursementAccount?.isSuccess, onSubmit]);
 
     const addOwner = (ownerID: string) => {
         const newOwners = [...ownerKeys, ownerID];
@@ -151,8 +153,8 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
     };
 
     const countryStepCountryValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
-    const beneficialOwnerAddressCountryInputID = `${PREFIX}_${ownerBeingModifiedID}_${COUNTRY}` as const;
-    const beneficialOwnerAddressCountryValue = reimbursementAccountDraft?.[beneficialOwnerAddressCountryInputID] ?? '';
+    const beneficialOwnerNationalityInputID = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
+    const beneficialOwnerNationality = SafeString(reimbursementAccountDraft?.[beneficialOwnerNationalityInputID]);
 
     const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
@@ -172,18 +174,18 @@ function BeneficialOwnerInfo({onBackButtonPress, onSubmit, stepNames}: Beneficia
         } else if (currentSubStep === SUBSTEP.IS_ANYONE_ELSE_BENEFICIAL_OWNER) {
             setCurrentSubStep(SUBSTEP.IS_USER_BENEFICIAL_OWNER);
         } else if (currentSubStep === SUBSTEP.BENEFICIAL_OWNER_DETAILS_FORM && screenIndex > 0) {
-            if (screenIndex === 5) {
+            if (screenIndex === 6) {
                 // User is on documents sub step and is not from US (no SSN needed)
-                if (beneficialOwnerAddressCountryValue !== CONST.COUNTRY.US) {
-                    moveTo(3, false);
+                if (beneficialOwnerNationality !== CONST.COUNTRY.US) {
+                    moveTo(4, false);
                     return;
                 }
             }
 
-            if (screenIndex === 6) {
+            if (screenIndex === 7) {
                 // User is on confirmation screen and is GB (no SSN or documents needed)
-                if (countryStepCountryValue === CONST.COUNTRY.GB && beneficialOwnerAddressCountryValue === CONST.COUNTRY.GB) {
-                    moveTo(3, false);
+                if (countryStepCountryValue === CONST.COUNTRY.GB && beneficialOwnerNationality === CONST.COUNTRY.GB) {
+                    moveTo(4, false);
                     return;
                 }
             }

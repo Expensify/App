@@ -48,6 +48,7 @@ import Checkbox from '@assets/images/checkbox.svg';
 import CheckmarkCircle from '@assets/images/checkmark-circle.svg';
 import Checkmark from '@assets/images/checkmark.svg';
 import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg';
+import Clock from '@assets/images/clock.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
 import Coins from '@assets/images/coins.svg';
@@ -71,18 +72,10 @@ import DragAndDrop from '@assets/images/drag-and-drop.svg';
 import DragHandles from '@assets/images/drag-handles.svg';
 import Emoji from '@assets/images/emoji.svg';
 import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
-import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
-import EmptyStateSpyPigeon from '@assets/images/emptystate__spy-pigeon.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
 import Expand from '@assets/images/expand.svg';
-import ExpensifyAppIcon from '@assets/images/expensify-app-icon.svg';
-import ExpensifyCard from '@assets/images/expensify-card-icon.svg';
-import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
-import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
-import ExpensifyLogoNew from '@assets/images/expensify-logo-new.svg';
-import ExpensifyWordmark from '@assets/images/expensify-wordmark.svg';
 import Export from '@assets/images/export.svg';
 import EyeDisabled from '@assets/images/eye-disabled.svg';
 import Eye from '@assets/images/eye.svg';
@@ -168,7 +161,6 @@ import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
-import ReceiptBody from '@assets/images/receipt-body.svg';
 import ReceiptMultiple from '@assets/images/receipt-multiple.svg';
 import ReceiptPlaceholderPlus from '@assets/images/receipt-placeholder-plus.svg';
 import ReceiptPlus from '@assets/images/receipt-plus.svg';
@@ -181,12 +173,8 @@ import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
 import Send from '@assets/images/send.svg';
 import Shield from '@assets/images/shield.svg';
-import AppleLogo from '@assets/images/signIn/apple-logo.svg';
-import GoogleLogo from '@assets/images/signIn/google-logo.svg';
 import AdvancedApprovalsSquare from '@assets/images/simple-illustrations/advanced-approvals-icon-square.svg';
-import MessageInABottle from '@assets/images/simple-illustrations/simple-illustration__messageinabottle.svg';
 import ReplaceReceipt from '@assets/images/simple-illustrations/simple-illustration__replace-receipt.svg';
-import SmartScan from '@assets/images/simple-illustrations/simple-illustration__smartscan.svg';
 import Facebook from '@assets/images/social-facebook.svg';
 import Instagram from '@assets/images/social-instagram.svg';
 import Linkedin from '@assets/images/social-linkedin.svg';
@@ -207,7 +195,6 @@ import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
-import TreasureChest from '@assets/images/treasure-chest.svg';
 import Unlock from '@assets/images/unlock.svg';
 import UploadAlt from '@assets/images/upload-alt.svg';
 import Upload from '@assets/images/upload.svg';
@@ -227,13 +214,11 @@ import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
 
 export {
-    ReceiptBody,
     ActiveRoomAvatar,
     AddReaction,
     All,
     Android,
     Apple,
-    AppleLogo,
     ArrowSplit,
     ArrowCollapse,
     ArrowRight,
@@ -261,6 +246,7 @@ export {
     ChatBubbles,
     Checkbox,
     Checkmark,
+    Clock,
     Close,
     ClosedSign,
     Collapse,
@@ -285,14 +271,8 @@ export {
     DragHandles,
     EReceiptIcon,
     Emoji,
-    EmptyStateRoutePending,
     Exclamation,
     Exit,
-    ExpensifyAppIcon,
-    ExpensifyCard,
-    ExpensifyWordmark,
-    ExpensifyFooterLogo,
-    ExpensifyFooterLogoVertical,
     Expand,
     Export,
     Eye,
@@ -312,7 +292,6 @@ export {
     Gallery,
     Gear,
     Globe,
-    GoogleLogo,
     Hashtag,
     Heart,
     History,
@@ -338,7 +317,6 @@ export {
     Menu,
     Meter,
     Megaphone,
-    MessageInABottle,
     MoneyBag,
     MoneyCircle,
     MoneySearch,
@@ -346,7 +324,6 @@ export {
     MoneyHourglass,
     Monitor,
     Mute,
-    ExpensifyLogoNew,
     NewWindow,
     NewWorkspace,
     NotificationsAvatar,
@@ -364,7 +341,6 @@ export {
     QBOSquare,
     QrCode,
     QuestionMark,
-    TreasureChest,
     Receipt,
     ReceiptPlaceholderPlus,
     ReceiptPlus,
@@ -378,7 +354,6 @@ export {
     Scan,
     Send,
     Shield,
-    SmartScan,
     Stopwatch,
     Suitcase,
     Sync,
@@ -447,7 +422,6 @@ export {
     Minus,
     ThumbsDown,
     UserLock,
-    EmptyStateSpyPigeon,
     NetSuiteExport,
     QBOExport,
     SageIntacctExport,

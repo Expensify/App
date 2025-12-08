@@ -22,21 +22,28 @@ function StatusCell({stateNum, statusNum}: StatusCellProps) {
     const statusText = useMemo(() => getReportStatusTranslation({stateNum, statusNum, translate}), [stateNum, statusNum, translate]);
     const reportStatusColorStyle = useMemo(() => getReportStatusColorStyle(theme, stateNum, statusNum), [theme, stateNum, statusNum]);
 
+    const backgroundColorStyle = useMemo(
+        () => ({
+            backgroundColor: reportStatusColorStyle?.backgroundColor,
+        }),
+        [reportStatusColorStyle?.backgroundColor],
+    );
+
+    const textColorStyle = useMemo(
+        () => ({
+            color: reportStatusColorStyle?.textColor,
+        }),
+        [reportStatusColorStyle?.textColor],
+    );
+
     if (!statusText || !reportStatusColorStyle) {
         return null;
     }
 
     return (
         <View style={[styles.w100, styles.justifyContentCenter]}>
-            <View
-                style={[
-                    styles.reportStatusContainer,
-                    {
-                        backgroundColor: reportStatusColorStyle.backgroundColor,
-                    },
-                ]}
-            >
-                <Text style={[styles.reportStatusText, {color: reportStatusColorStyle.textColor}]}>{statusText}</Text>
+            <View style={[styles.reportStatusContainer, backgroundColorStyle]}>
+                <Text style={[styles.reportStatusText, textColorStyle]}>{statusText}</Text>
             </View>
         </View>
     );
