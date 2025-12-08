@@ -348,6 +348,7 @@ function IOURequestStepAmount({
 
     const hideCurrencyPicker = useCallback(() => {
         setIsCurrencyPickerVisible(false);
+        textInput.current?.focus();
     }, []);
 
     const updateSelectedCurrency = useCallback((value: string) => {
