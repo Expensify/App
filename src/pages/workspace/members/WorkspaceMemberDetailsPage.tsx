@@ -6,18 +6,19 @@ import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -94,8 +95,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
+    const {showConfirmModal} = useConfirmModal();
 
-    const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
 
     const accountID = Number(route.params.accountID);
@@ -116,7 +117,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
     const isReimburser = policy?.achAccount?.reimburser === memberLogin;
-    const [isCannotRemoveUser, setIsCannotRemoveUser] = useState(false);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const {approvalWorkflows} = useMemo(
@@ -229,54 +229,68 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const askForConfirmationToRemove = () => {
         if (isReimburser) {
-            setIsCannotRemoveUser(true);
-            return;
-        }
-        setIsRemoveMemberConfirmModalVisible(true);
-    };
-
-    // Function to remove a member and close the modal
-    const removeMemberAndCloseModal = useCallback(() => {
-        removeMembers(policyID, [memberLogin], {[memberLogin]: accountID});
-        const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
-        const remainingEmployeeCount = previousEmployeesCount - 1;
-        if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
-            // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
-            setPolicyPreventSelfApproval(policyID, false);
-        }
-        setIsRemoveMemberConfirmModalVisible(false);
-    }, [accountID, memberLogin, policy?.employeeList, policy?.preventSelfApproval, policyID]);
-
-    const removeUser = useCallback(() => {
-        const ownerEmail = ownerDetails?.login;
-        const removedApprover = personalDetails?.[accountID];
-
-        // If the user is not an approver, proceed with member removal
-        if (!isApproverUserAction(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
-            removeMemberAndCloseModal();
-            return;
+            return showConfirmModal({
+                title: translate('workspace.people.removeMemberTitle'),
+                prompt: confirmModalPrompt,
+                confirmText: translate('common.buttonConfirm'),
+                success: true,
+                shouldShowCancelButton: false,
+            });
         }
 
-        // Update approval workflows after approver removal
-        const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
-            approvalWorkflows,
-            removedApprover,
-            ownerDetails,
-        });
-
-        for (const workflow of updatedWorkflows) {
-            if (workflow?.removeApprovalWorkflow) {
-                const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
-
-                removeApprovalWorkflowAction(updatedWorkflow, policy);
-            } else {
-                updateApprovalWorkflow(workflow, [], [], policy);
+        showConfirmModal({
+            danger: true,
+            title: translate('workspace.people.removeMemberTitle'),
+            prompt: confirmModalPrompt,
+            confirmText: translate('common.remove'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
             }
-        }
 
-        // Remove the member and close the modal
-        removeMemberAndCloseModal();
-    }, [accountID, approvalWorkflows, ownerDetails, personalDetails, policy, removeMemberAndCloseModal, memberLogin]);
+            const ownerEmail = ownerDetails?.login;
+            const removedApprover = personalDetails?.[accountID];
+
+            // If the user is not an approver, proceed with member removal
+            if (!isApproverUserAction(policy, memberLogin) || !removedApprover?.login || !ownerEmail) {
+                removeMembers(policyID, [memberLogin], {[memberLogin]: accountID});
+                const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
+                const remainingEmployeeCount = previousEmployeesCount - 1;
+                if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
+                    // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
+                    setPolicyPreventSelfApproval(policyID, false);
+                }
+                return;
+            }
+
+            // Update approval workflows after approver removal
+            const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
+                approvalWorkflows,
+                removedApprover,
+                ownerDetails,
+            });
+
+            for (const workflow of updatedWorkflows) {
+                if (workflow?.removeApprovalWorkflow) {
+                    const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+
+                    removeApprovalWorkflowAction(updatedWorkflow, policy);
+                } else {
+                    updateApprovalWorkflow(workflow, [], [], policy);
+                }
+            }
+
+            // Remove the member
+            removeMembers(policyID, [memberLogin], {[memberLogin]: accountID});
+            const previousEmployeesCount = Object.keys(policy?.employeeList ?? {}).length;
+            const remainingEmployeeCount = previousEmployeesCount - 1;
+            if (remainingEmployeeCount === 1 && policy?.preventSelfApproval) {
+                // We can't let the "Prevent Self Approvals" enabled if there's only one workspace user
+                setPolicyPreventSelfApproval(policyID, false);
+            }
+        });
+    };
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
@@ -410,27 +424,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     style={styles.mb5}
                                 />
                             )}
-                            <ConfirmModal
-                                danger
-                                title={translate('workspace.people.removeMemberTitle')}
-                                isVisible={isRemoveMemberConfirmModalVisible}
-                                onConfirm={removeUser}
-                                onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                                prompt={confirmModalPrompt}
-                                confirmText={translate('common.remove')}
-                                cancelText={translate('common.cancel')}
-                            />
-                            <ConfirmModal
-                                title={translate('workspace.people.removeMemberTitle')}
-                                isVisible={isCannotRemoveUser}
-                                onConfirm={() => {
-                                    setIsCannotRemoveUser(false);
-                                }}
-                                prompt={confirmModalPrompt}
-                                confirmText={translate('common.buttonConfirm')}
-                                success
-                                shouldShowCancelButton={false}
-                            />
                         </View>
                         <View style={styles.w100}>
                             <MenuItemWithTopDescription

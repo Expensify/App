@@ -1,15 +1,15 @@
 import {FlashList} from '@shopify/flash-list';
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Plus} from '@components/Icon/Expensicons';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,6 +17,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -62,7 +63,7 @@ function WorkspaceReportFieldsPage({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
-    const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
@@ -78,7 +79,6 @@ function WorkspaceReportFieldsPage({
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
     }, [policy?.fieldList]);
-    const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
 
     const illustrations = useMemoizedLazyIllustrations(['ReportReceipt'] as const);
 
@@ -86,8 +86,20 @@ function WorkspaceReportFieldsPage({
         if (!hasAccountingConnections) {
             return;
         }
-        setIsOrganizeWarningModalOpen(true);
-    }, [hasAccountingConnections]);
+
+        showConfirmModal({
+            title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
+            prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
+            confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM || !policyID) {
+                return;
+            }
+
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+        });
+    }, [hasAccountingConnections, showConfirmModal, translate, policyID]);
 
     const fetchReportFields = useCallback(() => {
         openPolicyReportFieldsPage(policyID);
@@ -258,7 +270,19 @@ function WorkspaceReportFieldsPage({
                                 isActive={!!policy?.areReportFieldsEnabled}
                                 onToggle={(isEnabled) => {
                                     if (!isEnabled) {
-                                        setIsReportFieldsWarningModalOpen(true);
+                                        showConfirmModal({
+                                            danger: true,
+                                            title: translate('workspace.reportFields.disableReportFields'),
+                                            prompt: translate('workspace.reportFields.disableReportFieldsConfirmation'),
+                                            confirmText: translate('common.disable'),
+                                            cancelText: translate('common.cancel'),
+                                        }).then((result) => {
+                                            if (result.action !== ModalActions.CONFIRM || !policyID) {
+                                                return;
+                                            }
+
+                                            enablePolicyReportFields(policyID, false);
+                                        });
                                         return;
                                     }
                                     if (!isControlPolicy(policy)) {
@@ -297,37 +321,6 @@ function WorkspaceReportFieldsPage({
                         </Section>
                     </ScrollView>
                 )}
-                <ConfirmModal
-                    title={translate('workspace.reportFields.disableReportFields')}
-                    isVisible={isReportFieldsWarningModalOpen}
-                    onConfirm={() => {
-                        if (!policyID) {
-                            return;
-                        }
-                        setIsReportFieldsWarningModalOpen(false);
-                        enablePolicyReportFields(policyID, false);
-                    }}
-                    onCancel={() => setIsReportFieldsWarningModalOpen(false)}
-                    prompt={translate('workspace.reportFields.disableReportFieldsConfirmation')}
-                    confirmText={translate('common.disable')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
-                <ConfirmModal
-                    title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}
-                    onConfirm={() => {
-                        if (!policyID) {
-                            return;
-                        }
-                        setIsOrganizeWarningModalOpen(false);
-                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
-                    }}
-                    onCancel={() => setIsOrganizeWarningModalOpen(false)}
-                    isVisible={isOrganizeWarningModalOpen}
-                    prompt={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText')}
-                    confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
-                    cancelText={translate('common.cancel')}
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
