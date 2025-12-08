@@ -48,6 +48,7 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
                             Navigation.goBack(route.params.backTo);
                         });
                     }}
+                    navigateBackTo={route.params.backTo}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

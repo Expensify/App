@@ -11,6 +11,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
@@ -51,6 +52,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
                     role={member?.role}
                     policy={policy}
                     onSelectRole={changeRole}
+                    navigateBackTo={ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID)}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
