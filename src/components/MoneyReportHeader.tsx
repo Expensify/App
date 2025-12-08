@@ -590,7 +590,7 @@ function MoneyReportHeader({
         }
 
         if (hasDuplicates) {
-            return {icon: getStatusIcon(expensifyIcons.Flag), description: translate('iou.duplicateTransaction', {isSubmitted: isProcessingReport(moneyRequestReport)})};
+            return {icon: getStatusIcon(expensifyIcons.Flag), description: translate('iou.duplicateTransaction', isProcessingReport(moneyRequestReport))};
         }
 
         // Show the broken connection violation message only if it's part of transactionViolations (i.e., visible to the user).
