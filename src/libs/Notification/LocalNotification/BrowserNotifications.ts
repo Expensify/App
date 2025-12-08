@@ -168,9 +168,11 @@ export default {
      * @param shouldClearNotification a function that receives notification.data and returns true/false if the notification should be cleared
      */
     clearNotifications(shouldClearNotification: (notificationData: LocalNotificationData) => boolean) {
-        Object.values(notificationCache)
-            .filter((notification) => shouldClearNotification(notification.data as LocalNotificationData))
-            // eslint-disable-next-line unicorn/no-array-for-each
-            .forEach((notification) => notification.close());
+        for (const notification of Object.values(notificationCache)) {
+            if (!shouldClearNotification(notification.data as LocalNotificationData)) {
+                continue;
+            }
+            notification.close();
+        }
     },
 };

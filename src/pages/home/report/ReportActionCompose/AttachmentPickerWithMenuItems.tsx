@@ -154,8 +154,8 @@ function AttachmentPickerWithMenuItems({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
     const [reportSummaries = getEmptyArray<ReturnType<typeof reportSummariesOnyxSelector>[number]>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: true,
         selector: reportSummariesOnyxSelector,
@@ -164,7 +164,7 @@ function AttachmentPickerWithMenuItems({
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
-            if (shouldRestrictAction && policy && shouldRestrictUserBillableActions(policy.id)) {
+            if (shouldRestrictAction && policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && shouldRestrictUserBillableActions(policy.id)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }

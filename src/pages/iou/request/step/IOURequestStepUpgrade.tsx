@@ -42,6 +42,7 @@ function IOURequestStepUpgrade({
     const personalDetails = usePersonalDetails();
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
 
     const [isUpgraded, setIsUpgraded] = useState(false);
     const [showConfirmationForm, setShowConfirmationForm] = useState(false);
@@ -52,6 +53,8 @@ function IOURequestStepUpgrade({
     const isReporting = upgradePath === CONST.UPGRADE_PATHS.REPORTS;
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const feature = useMemo(
         () =>
@@ -99,7 +102,7 @@ function IOURequestStepUpgrade({
                 setCustomUnitRateID(transactionID, '-1');
                 Navigation.setParams({reportID: expenseReportID});
 
-                navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID, transactionID, expenseReportID));
+                navigateWithMicrotask(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE.getRoute(policyID, transactionID, expenseReportID));
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
@@ -142,10 +145,26 @@ function IOURequestStepUpgrade({
             ],
             adminParticipant,
             hasOutstandingChildRequest: false,
+            introSelectedParam: introSelected,
+            activePolicyIDParam: activePolicyID,
+            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+            onboardingPurposeSelected,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
-    }, [isCategorizing, isReporting, currentUserPersonalDetails?.localCurrencyCode, isDistanceRateUpgrade, adminParticipant]);
+    }, [
+        isCategorizing,
+        isReporting,
+        currentUserPersonalDetails?.localCurrencyCode,
+        isDistanceRateUpgrade,
+        adminParticipant,
+        activePolicyID,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
+        introSelected,
+        onboardingPurposeSelected,
+    ]);
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
@@ -158,6 +177,11 @@ function IOURequestStepUpgrade({
             currency: params.currency,
             file: params.avatarFile as File,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            introSelectedParam: introSelected,
+            activePolicyIDParam: activePolicyID,
+            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+            onboardingPurposeSelected,
         });
         policyDataRef.current = policyData;
         setCreatedPolicyName(params.name);

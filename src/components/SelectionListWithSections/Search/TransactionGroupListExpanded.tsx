@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchColumnType} from '@components/Search/types';
 import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ListItem, TransactionGroupListExpandedProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
@@ -48,7 +47,6 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const styles = useThemeStyles();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
-    const {currentSearchHash} = useSearchContext();
     const transactionsSnapshotMetadata = useMemo(() => {
         return transactionsSnapshot?.search;
     }, [transactionsSnapshot?.search]);
@@ -110,11 +108,11 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const {markReportIDAsExpense} = useContext(WideRHPContext);
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const backTo = Navigation.getActiveRoute();
-        const reportID = getReportIDForTransaction(transactionItem);
+        const reportID = getReportIDForTransaction(transactionItem, transactionItem?.reportAction?.childReportID);
 
         const navigateToTransactionThread = () => {
-            if (transactionItem.transactionThreadReportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                createAndOpenSearchTransactionThread(transactionItem, currentSearchHash, backTo);
+            if (!transactionItem?.reportAction?.childReportID) {
+                createAndOpenSearchTransactionThread(transactionItem, backTo, transactionItem?.reportAction?.childReportID);
                 return;
             }
             markReportIDAsExpense(reportID);
@@ -190,7 +188,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         <TransactionItemRow
                             report={transaction.report}
                             transactionItem={transaction}
-                            violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', transaction.report, transaction.policy)}
+                            violations={getTransactionViolations(
+                                transaction,
+                                violations,
+                                currentUserDetails.email ?? '',
+                                currentUserDetails.accountID,
+                                transaction.report,
+                                transaction.policy,
+                            )}
                             isSelected={!!transaction.isSelected}
                             dateColumnSize={dateColumnSize}
                             amountColumnSize={amountColumnSize}

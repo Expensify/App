@@ -24,7 +24,7 @@ type SearchFiltersParticipantsSelectorProps = {
 };
 
 function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}: SearchFiltersParticipantsSelectorProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: false, initWithStoredValues: false});
@@ -83,6 +83,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
                 accountID: chatOptions.currentUserOption.accountID,
                 shouldAddCurrentUserPostfix: true,
                 personalDetailsData: personalDetails,
+                formatPhoneNumber,
             });
             chatOptions.currentUserOption.text = formattedName;
 

@@ -2,12 +2,11 @@ import {accountIDSelector} from '@selectors/Session';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import type {SectionListData} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import SelectionList from '@components/SelectionListWithSections';
-import UserSelectionListItem from '@components/SelectionListWithSections/Search/UserSelectionListItem';
-import type {Section, SelectionListHandle} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,8 +18,6 @@ import {getParticipantsOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
 
 type UserSelectPopupProps = {
     /** The currently selected users */
@@ -75,7 +72,15 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     });
 
     const listData = useMemo(() => {
-        const combinedOptions = [...selectedOptionsForDisplay, ...availableOptions.personalDetails, ...availableOptions.recentReports];
+        const personalDetailsList = availableOptions.personalDetails.map((participant) => ({
+            ...participant,
+            keyForList: String(participant.accountID),
+        }));
+        const recentReports = availableOptions.recentReports.map((report) => ({
+            ...report,
+            keyForList: String(report.reportID),
+        }));
+        const combinedOptions = [...selectedOptionsForDisplay, ...personalDetailsList, ...recentReports];
 
         combinedOptions.sort((a, b) => {
             // selected items first
@@ -96,31 +101,22 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             return 0;
         });
 
-        return combinedOptions;
+        const combinedOptionsWithKeyForList = combinedOptions.map((option) => ({
+            ...option,
+            keyForList: option.keyForList ?? option.login ?? '',
+        }));
+        return combinedOptionsWithKeyForList;
     }, [availableOptions.personalDetails, availableOptions.recentReports, selectedOptionsForDisplay, accountID]);
 
-    const {sections, headerMessage} = useMemo(() => {
-        const newSections: Sections = [
-            {
-                title: '',
-                data: listData,
-                shouldShow: !isEmpty(listData),
-            },
-        ];
-
+    const headerMessage = useMemo(() => {
         const noResultsFound = isEmpty(listData);
-        const message = noResultsFound ? translate('common.noResultsFound') : undefined;
-
-        return {
-            sections: newSections,
-            headerMessage: message,
-        };
+        return noResultsFound ? translate('common.noResultsFound') : undefined;
     }, [listData, translate]);
 
     const selectUser = useCallback(
         (option: OptionData) => {
             toggleSelection(option);
-            selectionListRef?.current?.scrollToIndex(0, true);
+            selectionListRef?.current?.scrollToIndex(0);
         },
         [toggleSelection],
     );
@@ -137,23 +133,29 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, [closeOverlay, onChange]);
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const dataLength = sections.flatMap((section) => section.data).length;
+    const dataLength = listData.length;
+
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchTerm,
+            label: translate('selectionList.searchForSomeone'),
+            onChangeText: setSearchTerm,
+            headerMessage,
+            disableAutoFocus: !shouldFocusInputOnScreenFocus,
+        }),
+        [searchTerm, translate, setSearchTerm, headerMessage, shouldFocusInputOnScreenFocus],
+    );
 
     return (
         <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
             <SelectionList
+                data={listData}
                 ref={selectionListRef}
+                textInputOptions={textInputOptions}
                 canSelectMultiple
-                textInputAutoFocus={shouldFocusInputOnScreenFocus}
-                headerMessage={headerMessage}
-                sections={sections}
                 ListItem={UserSelectionListItem}
-                containerStyle={[!shouldUseNarrowLayout && styles.pt4]}
-                contentContainerStyle={[styles.pb2]}
-                textInputLabel={translate('selectionList.searchForSomeone')}
-                textInputValue={searchTerm}
+                style={{containerStyle: [!shouldUseNarrowLayout && styles.pt4], listStyle: styles.pb2}}
                 onSelectRow={selectUser}
-                onChangeText={setSearchTerm}
                 isLoadingNewOptions={isLoadingNewOptions}
                 showLoadingPlaceholder={!areOptionsInitialized}
                 onEndReached={onListEndReached}
