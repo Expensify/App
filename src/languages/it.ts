@@ -733,6 +733,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copia negli appunti',
         thisIsTakingLongerThanExpected: 'Sta richiedendo più tempo del previsto...',
         domains: 'Domini',
+        viewReport: 'Visualizza rendiconto',
         actionRequired: 'Azione richiesta',
     },
     supportalNoAccess: {
@@ -6090,6 +6091,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     toUpgrade: 'Per eseguire l’upgrade, fai clic',
                     selectWorkspace: 'seleziona uno spazio di lavoro e modifica il tipo di piano in',
                 },
+                upgradeWorkspaceWarning: 'Impossibile aggiornare lo spazio di lavoro',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'La tua azienda ha limitato la creazione di spazi di lavoro. Contatta un amministratore per assistenza.',
             },
         },
         downgrade: {
@@ -6522,7 +6525,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `Monitoraggio partecipanti ${enabled ? 'abilitato' : 'disabilitato'}`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'abilitato' : 'disabilitato'} rimborsi per questo spazio di lavoro`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'abilitato' : 'disabilitato'} rimborsi`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `ha aggiunto l’imposta "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `ha rimosso l'imposta "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6755,6 +6758,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         groupBy: 'Raggruppa per',
         moneyRequestReport: {
             emptyStateTitle: 'Questo report non ha spese.',
+            accessPlaceHolder: 'Apri per i dettagli',
         },
         noCategory: 'Nessuna categoria',
         noTag: 'Nessun tag',

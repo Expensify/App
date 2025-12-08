@@ -731,6 +731,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copiar para a área de transferência',
         thisIsTakingLongerThanExpected: 'Isso está levando mais tempo do que o esperado...',
         domains: 'Domínios',
+        viewReport: 'Ver relatório',
         actionRequired: 'Ação necessária',
     },
     supportalNoAccess: {
@@ -6073,6 +6074,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                     toUpgrade: 'Para fazer upgrade, clique',
                     selectWorkspace: 'selecione um workspace e altere o tipo de plano para',
                 },
+                upgradeWorkspaceWarning: 'Não é possível atualizar o espaço de trabalho',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Sua empresa restringiu a criação de espaços de trabalho. Entre em contato com um administrador para obter ajuda.',
             },
         },
         downgrade: {
@@ -6503,7 +6506,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `Rastreamento de participante ${enabled ? 'ativado' : 'desativado'}`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `Reembolsos ${enabled ? 'ativado' : 'desativado'} para este workspace`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'ativado' : 'desativado'} reembolsos`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `adicionou o imposto "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removeu o imposto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6736,6 +6739,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         groupBy: 'Agrupar por',
         moneyRequestReport: {
             emptyStateTitle: 'Este relatório não tem despesas.',
+            accessPlaceHolder: 'Abra para ver detalhes',
         },
         noCategory: 'Sem categoria',
         noTag: 'Sem tag',

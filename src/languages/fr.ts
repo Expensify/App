@@ -733,6 +733,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Copier dans le presse-papiers',
         thisIsTakingLongerThanExpected: 'Cela prend plus de temps que prévu...',
         domains: 'Domaines',
+        viewReport: 'Voir le rapport',
         actionRequired: 'Action requise',
     },
     supportalNoAccess: {
@@ -6119,6 +6120,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                     toUpgrade: 'Pour mettre à niveau, cliquez',
                     selectWorkspace: 'sélectionnez un espace de travail et changez le type de forfait en',
                 },
+                upgradeWorkspaceWarning: "Impossible de mettre à niveau l'espace de travail",
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
+                    "Votre entreprise a restreint la création d'espaces de travail. Veuillez contacter un administrateur pour obtenir de l'aide.",
             },
         },
         downgrade: {
@@ -6550,7 +6554,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `suivi des participants ${enabled ? 'activé' : 'Désactivé'}`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `Remboursements ${enabled ? 'activé' : 'Désactivé'} pour cet espace de travail`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'activé' : 'désactivé'} remboursements`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `a ajouté la taxe « ${taxName} »`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `a supprimé la taxe « ${taxName} »`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6782,6 +6786,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         groupBy: 'Grouper par',
         moneyRequestReport: {
             emptyStateTitle: 'Ce rapport n’a aucune dépense.',
+            accessPlaceHolder: 'Ouvrir pour plus de détails',
         },
         noCategory: 'Aucune catégorie',
         noTag: 'Aucune étiquette',

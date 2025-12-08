@@ -733,6 +733,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'Kopiuj do schowka',
         thisIsTakingLongerThanExpected: 'To trwa dłużej, niż się spodziewaliśmy…',
         domains: 'Domeny',
+        viewReport: 'Wyświetl raport',
         actionRequired: 'Wymagane działanie',
     },
     supportalNoAccess: {
@@ -6072,6 +6073,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     toUpgrade: 'Aby zaktualizować, kliknij',
                     selectWorkspace: 'wybierz przestrzeń roboczą i zmień typ planu na',
                 },
+                upgradeWorkspaceWarning: 'Nie można ulepszyć przestrzeni roboczej',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Twoja firma ograniczyła tworzenie przestrzeni roboczych. Skontaktuj się z administratorem, aby uzyskać pomoc.',
             },
         },
         downgrade: {
@@ -6499,7 +6502,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `śledzenie uczestników ${enabled ? 'włączone' : 'Wyłączone'}`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'włączone' : 'Wyłączone'} zwrotów kosztów dla tego obszaru roboczego`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'włączone' : 'wyłączone'} zwroty kosztów`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `dodano podatek „${taxName}”`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `usunął podatek „${taxName}”`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6732,6 +6735,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         groupBy: 'Grupuj według',
         moneyRequestReport: {
             emptyStateTitle: 'Ten raport nie ma żadnych wydatków.',
+            accessPlaceHolder: 'Otwórz, aby zobaczyć szczegóły',
         },
         noCategory: 'Brak kategorii',
         noTag: 'Brak tagu',
