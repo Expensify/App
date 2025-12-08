@@ -208,7 +208,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
             return translate('messages.errorMessageInvalidEmail');
         }
         return getHeaderMessage(assignees.length > 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
-    }, [searchTerm, availableOptions.userToInvite, assignees, countryCode, translate]);
+    }, [searchTerm, availableOptions.userToInvite, assignees?.length, countryCode, translate]);
 
     const textInputOptions = useMemo(
         () => ({

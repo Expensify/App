@@ -64,7 +64,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
-    }, [assignCard, policyID, currentFullScreenRoute?.state?.routes]);
+    }, [assignCard?.isAssigned, policyID, currentFullScreenRoute?.state?.routes]);
 
     const submit = () => {
         if (!policyID) {

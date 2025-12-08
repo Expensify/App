@@ -53,7 +53,7 @@ function PlaidConnectionStep({route}: PlaidConnectionStepProps) {
     useAssignCardNavigation(policyID, feed);
     useAddNewCardNavigation(policyID);
 
-    const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData]);
+    const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData?.bankAccounts?.length, plaidData?.errors]);
 
     /**
      * Blocks the keyboard shortcuts that can navigate

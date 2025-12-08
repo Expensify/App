@@ -40,7 +40,7 @@ function FullScreenBlockingViewContextProvider({children}: FullScreenBlockingVie
         });
     }, []);
 
-    const isBlockingViewVisible = useMemo(() => routeKeys.size > 0, [routeKeys]);
+    const isBlockingViewVisible = useMemo(() => routeKeys.size > 0, [routeKeys.size]);
 
     const contextValue = useMemo(
         () => ({
