@@ -1,9 +1,8 @@
 import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import type {EventMapCore, NavigationState, ParamListBase, ScreenListeners} from '@react-navigation/native';
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
@@ -233,7 +232,6 @@ function OnyxTabNavigator({
 function TabScreenWithFocusTrapWrapper({children}: {children?: React.ReactNode}) {
     const route = useRoute();
     const styles = useThemeStyles();
-    const isFocused = useIsFocused();
     const setTabContainerElement = useContext(TabFocusTrapContext);
     const handleContainerElementChanged = useCallback(
         (element: HTMLElement | null) => {
@@ -248,7 +246,6 @@ function TabScreenWithFocusTrapWrapper({children}: {children?: React.ReactNode})
             style={[styles.w100, styles.h100]}
         >
             {children}
-            {!isFocused && <View style={StyleSheet.absoluteFill} />}
         </FocusTrapContainerElement>
     );
 }
