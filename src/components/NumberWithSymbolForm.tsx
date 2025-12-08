@@ -3,6 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
@@ -25,7 +26,6 @@ import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
-import * as Expensicons from './Icon/Expensicons';
 import ScrollView from './ScrollView';
 import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
@@ -149,6 +149,7 @@ function NumberWithSymbolForm({
 }: NumberWithSymbolFormProps) {
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat, translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus'] as const);
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberRef = useRef<string | undefined>(undefined);
@@ -234,11 +235,11 @@ function NumberWithSymbolForm({
             let hasSelectionBeenSet = false;
             const strippedNumber = stripCommaFromAmount(finalNumber);
             numberRef.current = strippedNumber;
-            setCurrentNumber((prevNumber) => {
-                const isForwardDelete = prevNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
+            setCurrentNumber((prevCurrentNumber) => {
+                const isForwardDelete = prevCurrentNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
                 if (!hasSelectionBeenSet) {
                     hasSelectionBeenSet = true;
-                    setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedNumber.length : prevNumber.length, strippedNumber.length));
+                    setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedNumber.length : prevCurrentNumber.length, strippedNumber.length));
                     willSelectionBeUpdatedManually.current = false;
                 }
                 return strippedNumber;
@@ -480,7 +481,7 @@ function NumberWithSymbolForm({
                             <Button
                                 shouldShowRightIcon
                                 small
-                                iconRight={Expensicons.DownArrow}
+                                iconRight={icons.DownArrow}
                                 onPress={onSymbolButtonPress}
                                 style={styles.minWidth18}
                                 isContentCentered
@@ -505,7 +506,7 @@ function NumberWithSymbolForm({
                     <Button
                         shouldShowRightIcon
                         small
-                        iconRight={Expensicons.DownArrow}
+                        iconRight={icons.DownArrow}
                         onPress={onSymbolButtonPress}
                         style={styles.minWidth18}
                         isContentCentered
@@ -516,7 +517,7 @@ function NumberWithSymbolForm({
                     <Button
                         shouldShowRightIcon
                         small
-                        iconRight={Expensicons.PlusMinus}
+                        iconRight={icons.PlusMinus}
                         onPress={toggleNegative}
                         style={styles.minWidth18}
                         isContentCentered
