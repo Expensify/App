@@ -566,6 +566,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                 shouldShowErrorMessages={false}
                             >
                                 <MenuItem
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     title={getReportName(currentUserPolicyExpenseChat)}
                                     description={translate('workspace.common.workspace')}
                                     onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID))}

@@ -1592,8 +1592,6 @@ function getTravelStep(
     policies: OnyxCollection<Policy>,
     currentUserLogin: string | undefined,
 ): TravelStep {
-    const hasAcceptedTerms = policy?.travelSettings?.hasAcceptedTerms ?? travelSettings?.hasAcceptedTerms;
-
     const adminDomains = getAdminsPrivateEmailDomains(policy);
     const activePolicies = getActivePolicies(policies, currentUserLogin);
     const groupPaidPolicies = activePolicies.filter(isPaidGroupPolicy);
@@ -1601,10 +1599,10 @@ function getTravelStep(
     if (adminDomains.length === 0 || groupPaidPolicies.length < 1 || !isPaidGroupPolicy(policy)) {
         return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
     }
-    if (hasAcceptedTerms) {
+    if (policy?.travelSettings?.hasAcceptedTerms) {
         return CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP;
     }
-    if (!policy?.travelSettings?.hasAcceptedTerms && !isTravelVerifiedBetaEnabled && travelSettings?.lastTravelSignupRequestTime) {
+    if (!isTravelVerifiedBetaEnabled && travelSettings?.lastTravelSignupRequestTime) {
         return CONST.TRAVEL.STEPS.REVIEWING_REQUEST;
     }
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
