@@ -5,11 +5,12 @@ import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 
 function getTestBuildMessage(appPr?: number, mobileExpensifyPr?: number): string {
-    const inputs = ['ANDROID', 'IOS', 'WEB'] as const;
+    const inputs = ['ANDROID', 'DESKTOP', 'IOS', 'WEB'] as const;
     const names = {
         [inputs[0]]: 'Android',
-        [inputs[1]]: 'iOS',
-        [inputs[2]]: 'Web',
+        [inputs[1]]: 'Desktop',
+        [inputs[2]]: 'iOS',
+        [inputs[3]]: 'Web',
     };
 
     const result = inputs.reduce(
@@ -46,17 +47,17 @@ function getTestBuildMessage(appPr?: number, mobileExpensifyPr?: number): string
         {} as Record<TupleToUnion<typeof inputs>, {link: string; qrCode: string}>,
     );
 
-    const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS${appPr ? ', and Web' : ''}. Happy testing! :test_tube::test_tube:
+    const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS${appPr ? ', Desktop, and Web' : ''}. Happy testing! :test_tube::test_tube:
 Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? ` Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}` : ''}.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | ${result.ANDROID.link}  | ${result.IOS.link}  |
 | ${result.ANDROID.qrCode}  | ${result.IOS.qrCode}  |
 
-| Web :spider_web: |
-| ------------- |
-| ${result.WEB.link}  |
-| ${result.WEB.qrCode}  |
+| Desktop :computer: | Web :spider_web: |
+| ------------- | ------------- |
+| ${result.DESKTOP.link}  | ${result.WEB.link}  |
+| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |
 
 ---
 

@@ -37,7 +37,7 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
             : '';
         setTitleText(title);
         setPromptText(prompt);
-    }, [isVisible, spreadsheet?.importFinalModal, translate]);
+    }, [isVisible, spreadsheet, translate]);
 
     useEffect(() => {
         if (!isVisible || !titleText || !promptText) {
