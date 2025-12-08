@@ -373,8 +373,8 @@ function BaseSelectionList<TItem extends ListItem>({
         // Delay scrolling by 100ms to allow the keyboard to open.
         // This ensures FlashList calculates the correct window size.
         setTimeout(() => {
-            listRef.current?.scrollToItem({item, viewPosition: 1});
-        }, 100);
+            listRef.current?.scrollToItem({item, viewPosition: 1, animated: true});
+        }, 200);
     }, []);
 
     const scrollAndHighlightItem = useCallback(
