@@ -1,10 +1,9 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, LogBox, View} from 'react-native';
+import {Keyboard, LogBox, StyleSheet, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 import ActivityIndicator from '@components/ActivityIndicator';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -480,7 +479,11 @@ function AddressSearch({
                     </GooglePlacesAutocomplete>
                 </View>
             </ScrollView>
-            {isFetchingCurrentLocation && <FullScreenLoadingIndicator />}
+            {isFetchingCurrentLocation && (
+                <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
+            )}
         </>
     );
 }
