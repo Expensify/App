@@ -14,7 +14,6 @@ import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Icon from '@components/Icon';
-import {Eye} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
@@ -40,6 +39,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
@@ -54,6 +54,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
@@ -496,10 +497,13 @@ function PureReportActionItem({
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
+    const isNarrowLayout = getIsNarrowLayout();
     const isActionableWhisper =
         isActionableMentionWhisper(action) || isActionableMentionInviteToSubmitExpenseConfirmWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
     const isReportArchived = useReportIsArchived(reportID);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const isInlineEditing = !isNarrowLayout && draftMessage !== undefined;
+    const {Eye} = useMemoizedLazyExpensifyIcons(['Eye']);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1484,7 +1488,7 @@ function PureReportActionItem({
                 <MentionReportContext.Provider value={mentionReportContextValue}>
                     <ShowContextMenuContext.Provider value={contextValue}>
                         <AttachmentContext.Provider value={attachmentContextValue}>
-                            {draftMessage === undefined ? (
+                            {!isInlineEditing ? (
                                 <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                                     <ReportActionItemMessage
                                         reportID={reportID}
@@ -1622,7 +1626,7 @@ function PureReportActionItem({
             return emptyHTML;
         }
 
-        if (draftMessage !== undefined) {
+        if (!isNarrowLayout && draftMessage !== undefined) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
         }
 
@@ -1630,7 +1634,7 @@ function PureReportActionItem({
             return (
                 <ReportActionItemSingle
                     action={action}
-                    showHeader={draftMessage === undefined}
+                    showHeader={draftMessage === undefined || isNarrowLayout}
                     wrapperStyle={{
                         ...(isOnSearch && styles.p0),
                         ...(isWhisper && styles.pt1),
@@ -1754,7 +1758,7 @@ function PureReportActionItem({
         >
             <Hoverable
                 shouldHandleScroll
-                isDisabled={draftMessage !== undefined}
+                isDisabled={draftMessage !== undefined && !isNarrowLayout}
                 shouldFreezeCapture={isPaymentMethodPopoverActive}
                 onHoverIn={() => {
                     setIsReportActionActive(false);
@@ -1775,7 +1779,7 @@ function PureReportActionItem({
                                 isArchivedRoom={isArchivedRoom}
                                 displayAsGroup={displayAsGroup}
                                 disabledActions={disabledActions}
-                                isVisible={hovered && draftMessage === undefined && !hasErrors}
+                                isVisible={hovered && (!draftMessage || isNarrowLayout) && !hasErrors}
                                 isThreadReportParentAction={isThreadReportParentAction}
                                 draftMessage={draftMessage}
                                 isChronosReport={isChronosReport}
