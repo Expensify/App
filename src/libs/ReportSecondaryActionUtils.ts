@@ -675,8 +675,6 @@ function getSecondaryReportActions({
         isChatReportArchived,
     });
 
-    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-
     if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
@@ -728,6 +726,8 @@ function getSecondaryReportActions({
     if (isChangeWorkspaceAction(report, policies, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
+
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
     if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
