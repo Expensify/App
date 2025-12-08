@@ -33,7 +33,7 @@ import {
     hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
-    isArchivedReport,
+    isArchivedReport, // eslint-disable-next-line @typescript-eslint/no-deprecated
     isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
