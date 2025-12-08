@@ -5213,9 +5213,10 @@ describe('actions/IOU', () => {
                             });
                         }),
                 )
-                .then(() => {
+                .then(async () => {
                     if (expenseReport) {
-                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
+                        const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -5359,9 +5360,10 @@ describe('actions/IOU', () => {
                             });
                         }),
                 )
-                .then(() => {
+                .then(async () => {
                     if (expenseReport) {
-                        submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
+                        const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+                        submitReport(expenseReport, policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -5550,10 +5552,11 @@ describe('actions/IOU', () => {
                             });
                         }),
                 )
-                .then(() => {
+                .then(async () => {
                     mockFetch?.fail?.();
                     if (expenseReport) {
-                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true);
+                        const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+                        submitReport(expenseReport, {} as Policy, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, true, true, nextStep);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -10130,7 +10133,7 @@ describe('actions/IOU', () => {
             };
 
             // When retracting the submitted expense report
-            retractReport(expenseReport, chatReport, policy, 1, 'test@example.com', false, false);
+            retractReport(expenseReport, chatReport, policy, 1, 'test@example.com', false, false, undefined);
 
             // Then the chat report iouReportID should be set back to the retracted expense report
             const iouReportID = await new Promise<string | undefined>((resolve) => {
@@ -10262,7 +10265,7 @@ describe('actions/IOU', () => {
             });
 
             // Admin approves the report
-            approveMoneyRequest(expenseReport, policy, adminAccountID, adminEmail, false, false);
+            approveMoneyRequest(expenseReport, policy, adminAccountID, adminEmail, false, false, undefined);
             await waitForBatchedUpdates();
 
             // Should be approved since admin took control and is the last approver
@@ -10300,7 +10303,7 @@ describe('actions/IOU', () => {
             });
 
             // Manager approves the report
-            approveMoneyRequest(expenseReport, policy, managerAccountID, managerEmail, false, false);
+            approveMoneyRequest(expenseReport, policy, managerAccountID, managerEmail, false, false, undefined);
             await waitForBatchedUpdates();
 
             // Should be submitted to senior manager (normal flow) since take control was invalidated
@@ -10334,7 +10337,7 @@ describe('actions/IOU', () => {
             });
 
             // Admin approves the report
-            approveMoneyRequest(expenseReport, policy, adminAccountID, adminEmail, false, false);
+            approveMoneyRequest(expenseReport, policy, adminAccountID, adminEmail, false, false, undefined);
             await waitForBatchedUpdates();
 
             // Get the optimistic next step
@@ -10444,7 +10447,7 @@ describe('actions/IOU', () => {
             });
 
             // Manager approves the report (no take control actions)
-            approveMoneyRequest(expenseReport, policy, managerAccountID, managerEmail, false, false);
+            approveMoneyRequest(expenseReport, policy, managerAccountID, managerEmail, false, false, undefined);
             await waitForBatchedUpdates();
 
             // Should be submitted to admin (next in approval chain) since manager is not the final approver
@@ -10461,7 +10464,7 @@ describe('actions/IOU', () => {
                 accountID: managerAccountID,
             });
 
-            approveMoneyRequest(expenseReport, policy, managerAccountID, managerEmail, false, false);
+            approveMoneyRequest(expenseReport, policy, managerAccountID, managerEmail, false, false, undefined);
             await waitForBatchedUpdates();
 
             // Should be submitted to admin
@@ -10476,7 +10479,7 @@ describe('actions/IOU', () => {
                 accountID: adminAccountID,
             });
 
-            approveMoneyRequest(updatedReport, policy, adminAccountID, adminEmail, false, false);
+            approveMoneyRequest(updatedReport, policy, adminAccountID, adminEmail, false, false, undefined);
             await waitForBatchedUpdates();
 
             // Should be fully approved
@@ -10521,7 +10524,7 @@ describe('actions/IOU', () => {
             });
 
             // Manager approves the report
-            approveMoneyRequest(singleApproverReport, singleApproverPolicy, managerAccountID, managerEmail, false, false);
+            approveMoneyRequest(singleApproverReport, singleApproverPolicy, managerAccountID, managerEmail, false, false, undefined);
             await waitForBatchedUpdates();
 
             // Should be fully approved since manager is the final approver in the chain
