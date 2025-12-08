@@ -44,6 +44,7 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
                     },
                 ]}
                 isSplitButton={false}
+                style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
                 wrapperStyle={styles.flexGrow1}
                 testID="dropdown-button-new"
             />
