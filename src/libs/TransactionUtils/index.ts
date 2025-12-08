@@ -2236,7 +2236,7 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, reports
 /**
  * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
  */
-function createUnreportedExpenseSections(transactions: Array<Transaction | undefined>): Array<UnreportedExpenseListItemType> {
+function createUnreportedExpenses(transactions: Array<Transaction | undefined>): UnreportedExpenseListItemType[] {
     return transactions
         .filter((t): t is Transaction => t !== undefined)
         .map(
@@ -2359,7 +2359,7 @@ export {
     getTransactionPendingAction,
     isTransactionPendingDelete,
     getChildTransactions,
-    createUnreportedExpenseSections,
+    createUnreportedExpenses,
     isDemoTransaction,
     shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,

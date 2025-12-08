@@ -27,7 +27,7 @@ import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/
 import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {createUnreportedExpenseSections, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
+import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {convertBulkTrackedExpensesToIOU, startMoneyRequest} from '@userActions/IOU';
@@ -154,7 +154,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     }, [debouncedSearchValue, shouldShowTextInput, transactions]);
 
     const unreportedExpenses = useMemo(() => {
-        return createUnreportedExpenseSections(filteredTransactions).map((item) => ({
+        return createUnreportedExpenses(filteredTransactions).map((item) => ({
             ...item,
             isSelected: selectedIds.has(item.transactionID),
         }));

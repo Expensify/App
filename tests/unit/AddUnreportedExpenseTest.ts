@@ -1,4 +1,4 @@
-import {createUnreportedExpenseSections} from '@libs/TransactionUtils';
+import {createUnreportedExpenses} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
 
@@ -24,7 +24,7 @@ function generateTransaction(values: Partial<Transaction> = {}): Transaction {
 }
 
 describe('AddUnreportedExpense', () => {
-    describe('createUnreportedExpenseSections', () => {
+    describe('createUnreportedExpenses', () => {
         it('should mark transactions with DELETE pendingAction as disabled', () => {
             const normalTransaction = generateTransaction({
                 transactionID: '123',
@@ -41,16 +41,15 @@ describe('AddUnreportedExpense', () => {
             });
 
             const transactions = [normalTransaction, deletedTransaction];
-            const sections = createUnreportedExpenseSections(transactions);
+            const unreportedExpenses = createUnreportedExpenses(transactions);
 
-            // Should create one section
-            expect(sections).toHaveLength(2);
+            expect(unreportedExpenses).toHaveLength(2);
 
-            const processedNormalTransaction = sections.find((t) => t.transactionID === '123');
+            const processedNormalTransaction = unreportedExpenses.find((t) => t.transactionID === '123');
             expect(processedNormalTransaction?.isDisabled).toBe(false);
             expect(processedNormalTransaction?.keyForList).toBe('123');
 
-            const processedDeletedTransaction = sections.find((t) => t.transactionID === '456');
+            const processedDeletedTransaction = unreportedExpenses.find((t) => t.transactionID === '456');
             expect(processedDeletedTransaction?.isDisabled).toBe(true);
             expect(processedDeletedTransaction?.keyForList).toBe('456');
         });
@@ -78,11 +77,11 @@ describe('AddUnreportedExpense', () => {
             });
 
             const transactions = [normalTransaction, updateTransaction, addTransaction];
-            const sections = createUnreportedExpenseSections(transactions);
+            const unreportedExpenses = createUnreportedExpenses(transactions);
 
-            expect(sections).toHaveLength(3);
+            expect(unreportedExpenses).toHaveLength(3);
             // eslint-disable-next-line unicorn/no-array-for-each
-            sections.forEach((transaction) => {
+            unreportedExpenses.forEach((transaction) => {
                 expect(transaction.isDisabled).toBe(false);
             });
         });
@@ -103,11 +102,11 @@ describe('AddUnreportedExpense', () => {
             });
 
             const transactions = [deletedTransaction1, deletedTransaction2];
-            const sections = createUnreportedExpenseSections(transactions);
+            const unreportedExpenses = createUnreportedExpenses(transactions);
 
-            expect(sections).toHaveLength(2);
+            expect(unreportedExpenses).toHaveLength(2);
             // eslint-disable-next-line unicorn/no-array-for-each
-            sections.forEach((transaction) => {
+            unreportedExpenses.forEach((transaction) => {
                 expect(transaction.isDisabled).toBe(true);
                 expect(transaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
             });
@@ -119,10 +118,10 @@ describe('AddUnreportedExpense', () => {
             });
 
             const transactions = [normalTransaction, undefined];
-            const result = createUnreportedExpenseSections(transactions);
+            const unreportedExpenses = createUnreportedExpenses(transactions);
 
-            expect(result).toHaveLength(1);
-            expect(result[0].transactionID).toBe('123');
+            expect(unreportedExpenses).toHaveLength(1);
+            expect(unreportedExpenses.at(0)?.transactionID).toBe('123');
         });
     });
 });
