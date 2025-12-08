@@ -194,11 +194,9 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const internalNewExpensifyPath = getInternalNewExpensifyPath(href);
     const internalExpensifyPath = getInternalExpensifyPath(href);
 
-    // Check if RHP is currently open
     const currentState = navigationRef.getRootState();
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 
-    // Check if the destination route will open in RHP
     const willOpenInRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
     const isNarrowLayout = getIsNarrowLayout();
     const shouldCloseRHP = isRHPOpen && !willOpenInRHP && !isNarrowLayout;

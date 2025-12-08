@@ -11,11 +11,10 @@ function willRouteNavigateToRHP(route: Route): boolean {
         if (!state) {
             return false;
         }
-        // Check if the last route in the state is the RightModalNavigator
+
         const lastRoute = state?.routes?.at(-1);
         return lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
     } catch {
-        // If parsing fails, assume it's not an RHP route
         return false;
     }
 }
