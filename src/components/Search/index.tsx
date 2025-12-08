@@ -98,6 +98,7 @@ function mapTransactionItemToSelectedEntry(item: TransactionListItemType, outsta
         {
             isSelected: true,
             canDelete: item.canDelete,
+            canReject: item.canReject,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
@@ -180,6 +181,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
         [item.keyForList]: {
             isSelected: true,
             canDelete: item.canDelete,
+            canReject: item.canReject,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
@@ -515,6 +517,7 @@ function Search({
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
                         canDelete: transactionItem.canDelete,
+                        canReject: transactionItem.canReject,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
                         amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
@@ -560,6 +563,7 @@ function Search({
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
                     canDelete: transactionItem.canDelete,
+                    canReject: transactionItem.canReject,
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
                     amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
