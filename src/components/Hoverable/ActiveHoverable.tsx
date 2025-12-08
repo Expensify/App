@@ -1,12 +1,9 @@
 /* eslint-disable react-compiler/react-compiler */
 import {cloneElement, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import mergeRefs from '@libs/mergeRefs';
 import {getReturnValue} from '@libs/ValueUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type HoverableProps from './types';
 
 type ActiveHoverableProps = Omit<HoverableProps, 'disabled'>;
@@ -15,7 +12,7 @@ type MouseEvents = 'onMouseEnter' | 'onMouseLeave' | 'onMouseMove';
 
 type OnMouseEvents = Record<MouseEvents, (e: React.MouseEvent) => void>;
 
-function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreezeCapture, children, ref}: ActiveHoverableProps) {
+function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, isFocused = true, shouldFreezeCapture, children, ref}: ActiveHoverableProps) {
     const [isHovered, setIsHovered] = useState(false);
     const elementRef = useRef<HTMLElement | null>(null);
     const isScrollingRef = useRef(false);
@@ -81,16 +78,12 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, []);
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
-    const isModalVisible = modal?.isVisible;
-    const prevIsModalVisible = usePrevious(isModalVisible);
-
     useEffect(() => {
-        if (!isModalVisible || prevIsModalVisible) {
+        if (isFocused) {
             return;
         }
         setIsHovered(false);
-    }, [isModalVisible, prevIsModalVisible]);
+    }, [isFocused]);
 
     const handleMouseEvents = useCallback(
         (type: 'enter' | 'leave') => () => {
