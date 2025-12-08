@@ -784,7 +784,7 @@ function getCompanyCardFeed(feedWithDomainID: string): CompanyCardFeed {
  * Filter out personal (including cash) cards from the card list.
  */
 function filterPersonalCards(cards: CardList | undefined): CardList {
-    return filterObject(cards ?? {}, (key, card) => !!card?.fundID && card.fundID !== "0");
+    return filterObject(cards ?? {}, (key, card) => !!card?.fundID && card.fundID !== '0');
 }
 
 export {

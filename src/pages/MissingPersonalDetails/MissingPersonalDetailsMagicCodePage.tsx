@@ -19,7 +19,8 @@ import type {CardList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubstepValues} from './utils';
 
-const areAllCardsShippedSelector = (cardList: OnyxEntry<CardList>) => Object.values(cardList ?? {})?.every((card) => card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
+const areAllCardsShippedSelector = (cardList: OnyxEntry<CardList>) =>
+    Object.values(cardList ?? {})?.every((card) => card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED && !!card?.fundID && card.fundID !== '0');
 
 function MissingPersonalDetailsMagicCodePage() {
     const {translate} = useLocalize();
