@@ -619,7 +619,6 @@ function IOURequestStepConfirmation({
             shouldGenerateTransactionThreadReport,
             backToReport,
             isASAPSubmitBetaEnabled,
-            transactionViolations,
             viewTourTaskReport,
             viewTourTaskParentReport,
             isViewTourTaskParentReportArchived,
