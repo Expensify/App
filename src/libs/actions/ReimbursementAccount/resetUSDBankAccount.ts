@@ -8,6 +8,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {BankAccountList} from '@src/types/onyx';
 
 /**
  * Reset user's USD reimbursement account. This will delete the bank account
@@ -18,6 +19,7 @@ function resetUSDBankAccount(
     policyID: string | undefined,
     achAccount: ACHAccount | undefined,
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
+    bankAccountList?: BankAccountList,
 ) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
@@ -25,6 +27,9 @@ function resetUSDBankAccount(
     if (!session?.email) {
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
+
+
+    const bankAccount = bankAccountList?.[bankAccountID] ?? {};
 
     const isLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.expense?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
     const isPreviousLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.lastUsed?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
@@ -46,6 +51,13 @@ function resetUSDBankAccount(
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     achAccount: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {
+                    [bankAccountID]: null,
                 },
             },
         ],
@@ -131,6 +143,13 @@ function resetUSDBankAccount(
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     achAccount,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {
+                    [bankAccountID]: bankAccount,
                 },
             },
         ],

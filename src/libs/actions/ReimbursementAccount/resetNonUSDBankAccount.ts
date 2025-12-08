@@ -4,12 +4,16 @@ import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {BankAccountList} from '@src/types/onyx';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 
-function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEntry<ACHAccount>, shouldResetLocally: boolean) {
+function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEntry<ACHAccount>, shouldResetLocally: boolean, bankAccountList?: BankAccountList) {
     if (!policyID) {
         throw new Error('Missing policy when attempting to reset');
     }
+
+    const bankAccountID = achAccount?.bankAccountID ?? '';
+    const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : {};
 
     if (shouldResetLocally) {
         const updateData = [
@@ -57,6 +61,13 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
                         achAccount: null,
                     },
                 },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                    value: {
+                        [bankAccountID]: null,
+                    },
+                },
             ],
             successData: [
                 {
@@ -81,6 +92,13 @@ function resetNonUSDBankAccount(policyID: string | undefined, achAccount: OnyxEn
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     value: {
                         achAccount,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                    value: {
+                        [bankAccountID]: bankAccount,
                     },
                 },
             ],
