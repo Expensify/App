@@ -731,6 +731,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'クリップボードにコピー',
         thisIsTakingLongerThanExpected: '予想より時間がかかっています…',
         domains: 'ドメイン',
+        viewReport: 'レポートを表示',
         actionRequired: '対応が必要',
     },
     supportalNoAccess: {
@@ -6052,6 +6053,8 @@ ${reportName}
                     toUpgrade: 'アップグレードするには、クリックしてください',
                     selectWorkspace: 'ワークスペースを選択し、プランの種類を 次に変更してください',
                 },
+                upgradeWorkspaceWarning: 'ワークスペースをアップグレードできません',
+                upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '会社がワークスペースの作成を制限しています。管理者に連絡してください。',
             },
         },
         downgrade: {
@@ -6704,6 +6707,7 @@ ${reportName}
         groupBy: 'グループ化',
         moneyRequestReport: {
             emptyStateTitle: 'このレポートには経費がありません。',
+            accessPlaceHolder: '詳細を開く',
         },
         noCategory: 'カテゴリなし',
         noTag: 'タグなし',

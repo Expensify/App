@@ -5103,7 +5103,8 @@ function getReportPreviewMessage(
         // 1. After SignIn, the OpenApp API won't return iouReports if they're settled.
         // 2. The iouReport exists in local storage but hasn't been loaded into the allReports. It will be loaded automatically when the user opens the iouReport.
         // Until we know how to solve this the best, we just display the report action message.
-        return reportActionMessage;
+        // If the report is empty, we display the report name to avoid showing "payer owes 0"
+        return !!originalReportAction?.childReportName && originalReportAction?.childMoneyRequestCount === 0 ? originalReportAction?.childReportName : reportActionMessage;
     }
 
     const allReportTransactions = getReportTransactions(report.reportID);
@@ -12457,57 +12458,6 @@ function hasInvoiceReports() {
     return reports.some((report) => isInvoiceReport(report));
 }
 
-function shouldUnmaskChat(participantsContext: OnyxEntry<PersonalDetailsList>, report: OnyxInputOrEntry<Report>): boolean {
-    if (!report?.participants) {
-        return true;
-    }
-
-    if (isThread(report) && report?.chatType && report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) {
-        return true;
-    }
-
-    if (isThread(report) && report?.type === CONST.REPORT.TYPE.EXPENSE) {
-        return true;
-    }
-
-    if (isAdminRoom(report)) {
-        return true;
-    }
-
-    const participantAccountIDs = Object.keys(report.participants);
-
-    if (participantAccountIDs.length > 2) {
-        return false;
-    }
-
-    if (participantsContext) {
-        let teamInChat = false;
-        let userInChat = false;
-
-        for (const participantAccountID of participantAccountIDs) {
-            const id = Number(participantAccountID);
-            const contextAccountData = participantsContext[id];
-
-            if (contextAccountData) {
-                const login = contextAccountData.login ?? '';
-
-                if (login.endsWith(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN) || login.endsWith(CONST.EMAIL.EXPENSIFY_TEAM_EMAIL_DOMAIN)) {
-                    teamInChat = true;
-                } else {
-                    userInChat = true;
-                }
-            }
-        }
-
-        // exclude teamOnly chat
-        if (teamInChat && userInChat) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 function getReportMetadata(reportID: string | undefined) {
     return reportID ? allReportMetadataKeyValue[reportID] : undefined;
 }
@@ -13354,7 +13304,6 @@ export {
     getAllReportErrors,
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     hasInvoiceReports,
-    shouldUnmaskChat,
     shouldExcludeAncestorReportAction,
     getReportMetadata,
     buildOptimisticSelfDMReport,
