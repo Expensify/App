@@ -121,8 +121,8 @@ function BaseVideoPlayer({
     const shouldShowLoadingIndicator = useMemo(() => {
         // We want to show LoadingIndicator when video's loading and paused, except when it's loading
         // for the first time, then playing/loading may vary. Video should be online and without errors.
-        return isLoading && (!isPlaying || currentTime <= 0) && !isEnded && !isOffline && !hasError;
-    }, [currentTime, hasError, isEnded, isLoading, isOffline, isPlaying]);
+        return isLoading && (!isPlaying || currentTime <= 0) && !isOffline && !hasError;
+    }, [currentTime, hasError, isLoading, isOffline, isPlaying]);
     const shouldShowOfflineIndicator = useMemo(() => {
         return isOffline && currentTime + bufferedPosition <= 0;
     }, [bufferedPosition, currentTime, isOffline]);
@@ -257,7 +257,6 @@ function BaseVideoPlayer({
     });
 
     useEventListener(videoPlayerRef.current, 'playToEnd', () => {
-        setIsEnded(true);
         setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
         controlsOpacity.set(1);
     });
