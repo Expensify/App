@@ -194,6 +194,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.taskTitleMenuItemItalic,
             styles.em,
             styles.h1,
+            styles.lh16,
             styles.blockquote,
             styles.onlyEmojisTextLineHeight,
             styles.subTextFileUpload,
