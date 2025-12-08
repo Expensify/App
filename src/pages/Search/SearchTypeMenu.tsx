@@ -82,7 +82,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         shouldSkipNavigation: shouldSkipSuggestedSearchNavigation,
     });
 
-    const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
+    const getOverflowMenu = useCallback(
+        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, translate, showDeleteModal),
+        [translate, showDeleteModal],
+    );
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, index: number) => {
             let title = item.name;
