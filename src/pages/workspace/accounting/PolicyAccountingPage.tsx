@@ -602,7 +602,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     </View>
                 </ScrollView>
                 <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', {connectionName: connectedIntegration})}
+                    title={translate('workspace.accounting.disconnectTitle', connectedIntegration)}
                     isVisible={isDisconnectModalOpen}
                     onConfirm={() => {
                         if (connectedIntegration && policyID) {
@@ -611,7 +611,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         setIsDisconnectModalOpen(false);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', {connectionName: connectedIntegration})}
+                    prompt={translate('workspace.accounting.disconnectPrompt', connectedIntegration)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger
