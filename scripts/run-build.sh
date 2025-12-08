@@ -44,7 +44,7 @@ NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
 if [[ "$IS_HYBRID_APP_REPO" == "true" && "$NEW_DOT_FLAG" == "false" ]]; then
     # Set HybridApp-specific arguments
     IOS_MODE="Debug"
-    ANDROID_MODE="Debug"
+    ANDROID_MODE="Release"
     SCHEME="Expensify Dev"
     APP_ID="org.me.mobiexpensifyg.dev"
 
