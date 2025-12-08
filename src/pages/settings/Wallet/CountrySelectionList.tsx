@@ -71,7 +71,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
             isDisabled: isOffline,
             onConfirm: () => onCountrySelected(currentCountry),
         }),
-        [isEditing, isOffline, onCountrySelected, translate],
+        [isEditing, isOffline, onCountrySelected, translate, currentCountry],
     );
 
     return (

@@ -39,11 +39,9 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
     const [selectedCountry, setSelectedCountry] = useState<string>('');
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const isConnectedToPolicy = !!policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
 
-    // TODO: change this after introducing Global Reimbursements
-    const currency = !isConnectedToPolicy ? CONST.CURRENCY.USD : (reimbursementAccountDraft?.currency ?? policy?.outputCurrency ?? '');
+    const currency = reimbursementAccountDraft?.currency ?? policy?.outputCurrency ?? '';
 
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
     const defaultCountries = shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES;
@@ -51,8 +49,7 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID) && isComingFromExpensifyCard;
     const countriesSupportedForExpensifyCard = getAvailableEuCountries();
 
-    // TODO: change this after introducing Global Reimbursements
-    const countryDefaultValue = !isConnectedToPolicy ? CONST.COUNTRY.US : (reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '');
+    const countryDefaultValue = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
 
     const disableSubmit = !(currency in CONST.CURRENCY);
 
