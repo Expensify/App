@@ -1,4 +1,5 @@
-import React, {useMemo} from 'react';
+import {delegatesSelector} from '@selectors/Account';
+import React from 'react';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -41,23 +42,19 @@ function UpdateDelegateRoleSelectionListHeader() {
 
 function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [delegates] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true, selector: delegatesSelector});
     const {currentRole, login} = route.params;
 
-    const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
+    const currentDelegate = delegates?.find((d) => d.email === login);
     const matchingRole = currentDelegate?.role ?? currentRole;
 
-    const roleOptions = useMemo(
-        () =>
-            Object.values(CONST.DELEGATE_ROLE).map((role) => ({
-                value: role,
-                text: translate('delegate.role', {role}),
-                keyForList: role,
-                alternateText: translate('delegate.roleDescription', {role}),
-                isSelected: role === matchingRole,
-            })),
-        [translate, matchingRole],
-    );
+    const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
+        value: role,
+        text: translate('delegate.role', {role}),
+        keyForList: role,
+        alternateText: translate('delegate.roleDescription', {role}),
+        isSelected: role === matchingRole,
+    }));
 
     return (
         <ScreenWrapper
