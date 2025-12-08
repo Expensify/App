@@ -22,6 +22,7 @@ import {
     getAssignedCardSortKey,
     getCardFeedIcon,
     getPlaidInstitutionIconUrl,
+    isCardWithBrokenConnection,
     isExpensifyCard,
     isExpensifyCardPendingAction,
     lastFourNumbersFromCardName,
@@ -203,6 +204,7 @@ function PaymentMethodList({
                     const pressHandler = onPress as CardPressHandler;
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
+                    const isCardBroken = isCardWithBrokenConnection(card);
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         plaidUrl,
@@ -217,7 +219,7 @@ function PaymentMethodList({
                         errors: card.errors,
                         pendingAction: card.pendingAction,
                         brickRoadIndicator:
-                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors
+                            !isCardBroken && (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL || !!card.errors)
                                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                 : undefined,
                         icon,
