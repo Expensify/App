@@ -321,7 +321,14 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
-            startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts);
+            startMoneyRequest(
+                policyChatForActivePolicy?.reportID ? CONST.IOU.TYPE.SUBMIT : CONST.IOU.TYPE.CREATE,
+                quickActionReportID,
+                CONST.IOU.REQUEST_TYPE.SCAN,
+                !!policyChatForActivePolicy?.reportID,
+                undefined,
+                allTransactionDrafts,
+            );
         });
     }, [policyChatForActivePolicy?.policyID, policyChatForActivePolicy?.reportID, reportID, allTransactionDrafts]);
 

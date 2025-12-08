@@ -17,7 +17,7 @@ type RNTextInputWithRefProps = TextInputProps &
         ref?: ForwardedRef<AnimatedTextInputRef>;
     };
 
-function RNTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.MASK, ...props}: RNTextInputWithRefProps) {
+function RNTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK, ...props}: RNTextInputWithRefProps) {
     const theme = useTheme();
 
     return (
