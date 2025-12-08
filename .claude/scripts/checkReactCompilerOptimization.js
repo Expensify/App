@@ -82,24 +82,16 @@ function runHealthcheck(fileNames) {
  */
 function parseOutput(output) {
     const optimized = new Set();
-    const failed = new Map();
 
     for (const line of output.split('\n')) {
         // Success: Successfully compiled component [Name](path)
         const success = line.match(/Successfully compiled (?:hook|component) \[([^\]]+)\]/);
         if (success) {
             optimized.add(success[1]);
-            continue;
-        }
-
-        // Failure: Failed to compile path:line:col. Reason: ...
-        const fail = line.match(/Failed to compile ([^:]+):(\d+):(\d+)\.\s*(?:Reason:\s*)?(.+)?/);
-        if (fail) {
-            failed.set(path.basename(fail[1]), fail[4] || 'Unknown');
         }
     }
 
-    return {optimized, failed};
+    return {optimized};
 }
 
 // Main
@@ -122,17 +114,15 @@ for (const imp of imports) {
     }
 }
 
-const {optimized, failed} = runHealthcheck([...filesToCheck]);
+const {optimized} = runHealthcheck([...filesToCheck]);
 
 const result = {};
 for (const imp of imports) {
     const resolvedPath = importToResolved.get(imp.name);
     if (resolvedPath) {
-        const fileName = path.basename(resolvedPath);
         result[imp.name] = {
             optimized: optimized.has(imp.name),
             path: resolvedPath,
-            ...(failed.has(fileName) && {reason: failed.get(fileName)}),
         };
     }
 }

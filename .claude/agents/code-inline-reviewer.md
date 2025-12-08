@@ -149,17 +149,40 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 - **Condition**: Objects and functions passed as props to memoized children should be properly memoized to prevent unnecessary re-renders.
 
-  **IMPORTANT - React Compiler Exception:**
-  Before flagging this rule, you MUST check if the component is optimized by React Compiler using `checkReactCompilerOptimization.sh`.
-
-  **Flag when:**
-  - Child is memoized (React.memo or React Compiler) AND parent is NOT compiled AND prop creates new reference on each render
-
-  **DO NOT flag:**
-  - Child is NOT memoized (memoizing props has no effect)
-  - Parent IS compiled by React Compiler (compiler handles it)
-
 - **Reasoning**: React uses referential equality to determine if props changed. New object/function instances break memoization of child components. Memoizing props only matters when the child is memoized - otherwise the child re-renders anyway.
+
+#### How to check (React Compiler context)
+
+Run `checkReactCompilerOptimization.sh <file-path>` to get optimization status for the parent and all imported child components:
+
+```json
+{
+  "ParentComponent": {
+    "optimized": true,
+    "path": "/path/to/ParentComponent.tsx"
+  },
+  "ChildButton": {
+    "optimized": true,
+    "path": "/path/to/ChildButton.tsx"
+  },
+  "ChildList": {
+    "optimized": false,
+    "path": "/path/to/ChildList.tsx"
+  }
+}
+```
+
+**Decision flow:**
+
+1. **Is child memoized?**
+   - `"optimized": true` → Yes (React Compiler) → go to step 2
+   - `"optimized": false` → Check manually: `grep -E "memo\(|React\.memo" <path>`
+     - Found `memo(` → Yes (manual) → go to step 2
+     - Not found → **Skip PERF-4** (child re-renders anyway, memoizing props won't help)
+
+2. **Is parent optimized by React Compiler?** (only if child IS memoized)
+   - `"optimized": true` → **Skip PERF-4** (compiler auto-memoizes)
+   - `"optimized": false` → **Flag PERF-4** (programmer must memoize manually)
 
 #### Examples
 
@@ -290,68 +313,3 @@ addPrReaction.sh <PR_NUMBER>
 ```
 
 **CRITICAL**: You must actually call the mcp__github_inline_comment__create_inline_comment tool for each violation. Don't just describe what you found - create the actual inline comments!
-
-## React Compiler Optimization Check
-
-For PERF-4 rule, you must verify React Compiler optimization status before flagging.
-
-### Usage
-
-```bash
-checkReactCompilerOptimization.sh <file-path>
-```
-
-### Example
-
-```bash
-checkReactCompilerOptimization.sh src/components/ReportActionItem/index.tsx
-```
-
-### Output
-
-Returns JSON with component names, optimization status, and file paths:
-
-```json
-{
-  "Button": {
-    "optimized": true,
-    "path": "/path/to/src/components/Button/index.tsx"
-  },
-  "ChildComponent": {
-    "optimized": false,
-    "path": "/path/to/src/components/ChildComponent.tsx",
-    "reason": "..."
-  }
-}
-```
-
-### Decision Logic for PERF-4
-
-PERF-4 matters **only when child component is memoized** (either by React Compiler or manually via `React.memo`). If child is not memoized, it re-renders anyway, so prop memoization doesn't help.
-
-#### Step 1: Run the script
-
-```bash
-checkReactCompilerOptimization.sh <file-being-reviewed>
-```
-
-#### Step 2: Check if child component is memoized
-
-For each child component receiving object/function props:
-
-1. Check the script output for that child component
-2. If `"optimized": true` → **child IS memoized** (by React Compiler), go to Step 3
-3. If `"optimized": false` → check manually for `React.memo`:
-   ```bash
-   grep -E "memo\(|React\.memo" <path-from-output>
-   ```
-   - If grep finds `memo(` → **child IS memoized** (manually), go to Step 3
-   - If grep finds nothing → **child is NOT memoized** → **Skip PERF-4** (memoizing props won't help)
-
-#### Step 3: Check if parent component is optimized
-
-Only reached if child IS memoized (from Step 2):
-
-1. Check the script output - is the parent component (the file being reviewed) optimized?
-2. If parent has `"optimized": true` → **Skip PERF-4** (React Compiler auto-memoizes values in parent)
-3. If parent has `"optimized": false` → **Flag PERF-4** (programmer must manually memoize props)
