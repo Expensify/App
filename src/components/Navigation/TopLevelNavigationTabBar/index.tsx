@@ -8,7 +8,6 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-import SCREENS from '@src/SCREENS';
 import getIsNavigationTabBarVisibleDirectly from './getIsNavigationTabBarVisibleDirectly';
 import getIsScreenWithNavigationTabBarFocused from './getIsScreenWithNavigationTabBarFocused';
 import getSelectedTab from './getSelectedTab';
@@ -40,9 +39,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     const isScreenWithNavigationTabFocused = getIsScreenWithNavigationTabBarFocused(state);
     const selectedTab = getSelectedTab(state);
 
-    const shouldDisplayBottomBar = shouldUseNarrowLayout
-        ? isScreenWithNavigationTabFocused && state.routes.at(-2)?.name === SCREENS.WORKSPACES_LIST // We need to show the top level navigation bar when we navigate back to Workspaces list
-        : isNavigationTabVisibleDirectly;
+    const shouldDisplayBottomBar = shouldUseNarrowLayout ? isScreenWithNavigationTabFocused : isNavigationTabVisibleDirectly;
     const isReadyToDisplayBottomBar = isAfterClosingTransition && shouldDisplayBottomBar && !isBlockingViewVisible;
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
