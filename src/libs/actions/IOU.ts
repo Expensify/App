@@ -14478,6 +14478,7 @@ function updateSplitTransactions({
     const failureData = [] as OnyxUpdate[];
     const optimisticData = [] as OnyxUpdate[];
 
+    // The split transactions can be in different reports, so we need to calculate the total for each report.
     const reportTotals = new Map<string, number>();
     for (const expense of splitExpenses) {
         if (expense.reportID) {
