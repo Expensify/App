@@ -7722,6 +7722,11 @@ const translations = {
             fetchError: "Couldn't fetch SAML configuration details",
             setMetadataGenericError: "Couldn't set SAML MetaData",
         },
+        admins: 'Domain Admins',
+        domainAdmins: {
+            title: 'Admins',
+            addAdmin: 'Add Admin',
+        }
     },
 };
 

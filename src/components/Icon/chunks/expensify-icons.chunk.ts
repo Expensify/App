@@ -137,7 +137,6 @@ import Luggage from '@assets/images/luggage.svg';
 import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-mouth-closed.svg';
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
-import MakeAdmin from '@assets/images/make-admin.svg';
 import Map from '@assets/images/map.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
@@ -225,6 +224,7 @@ import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
+import UserShield from '@assets/images/user-shield.svg';
 
 const Expensicons = {
     ReceiptBody,
@@ -333,7 +333,6 @@ const Expensicons = {
     Luggage,
     MagnifyingGlass,
     Mail,
-    MakeAdmin,
     Map,
     Menu,
     Meter,
@@ -453,6 +452,7 @@ const Expensicons = {
     SageIntacctExport,
     XeroExport,
     ArrowCircleClockwise,
+    UserShield,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

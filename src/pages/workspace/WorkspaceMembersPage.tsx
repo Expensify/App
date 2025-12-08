@@ -90,7 +90,7 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
 };
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'User', 'UserEye', 'MakeAdmin', 'RemoveMembers', 'Table'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'User', 'UserEye', 'UserShield', 'RemoveMembers', 'Table'] as const);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -598,7 +598,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const adminOption = {
             text: translate('workspace.people.makeAdmin'),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-            icon: icons.MakeAdmin,
+            icon: icons.UserShield,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
         };
 

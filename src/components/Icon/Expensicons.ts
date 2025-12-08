@@ -128,7 +128,6 @@ import Luggage from '@assets/images/luggage.svg';
 import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-mouth-closed.svg';
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
-import MakeAdmin from '@assets/images/make-admin.svg';
 import Map from '@assets/images/map.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
@@ -201,6 +200,7 @@ import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
 import UserPlus from '@assets/images/user-plus.svg';
+import UserShield from '@assets/images/user-shield.svg';
 import User from '@assets/images/user.svg';
 import Users from '@assets/images/users.svg';
 import VideoSlash from '@assets/images/video-slash.svg';
@@ -310,7 +310,6 @@ export {
     Luggage,
     MagnifyingGlass,
     Mail,
-    MakeAdmin,
     Map,
     Menu,
     Meter,
@@ -426,4 +425,5 @@ export {
     XeroExport,
     ArrowCircleClockwise,
     PlusCircle,
+    UserShield,
 };

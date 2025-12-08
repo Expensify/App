@@ -1094,6 +1094,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.VERIFIED]: {
                             path: ROUTES.DOMAIN_VERIFIED.route,
                         },
+                        [SCREENS.DOMAIN.ADD_ADMIN]: {
+                            path: ROUTES.DOMAIN_ADD_ADMIN.route,
+                        },
+                        [SCREENS.DOMAIN.ADMIN_DETAILS]: {
+                            path: ROUTES.DOMAIN_ADMIN_DETAILS.route,
+                        }
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
@@ -1896,6 +1902,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.DOMAIN.SAML]: {
                     path: ROUTES.DOMAIN_SAML.route,
                 },
+                [SCREENS.DOMAIN.ADMINS]: {
+                    path: ROUTES.DOMAIN_ADMINS.route,
+                }
             },
         },
 

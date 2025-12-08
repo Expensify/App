@@ -3404,6 +3404,18 @@ const ROUTES = {
         route: 'domain/:accountID/verified',
         getRoute: (accountID: number) => `domain/${accountID}/verified` as const,
     },
+    DOMAIN_ADMINS: {
+        route: 'domain/:accountID/admins',
+        getRoute: (accountID: number) => `domain/${accountID}/admins` as const,
+    },
+    DOMAIN_ADD_ADMIN: {
+        route: 'domain/:accountID/addAdmin',
+        getRoute: (accountID: number) => `domain/${accountID}/addAdmin` as const,
+    },
+    DOMAIN_ADMIN_DETAILS: {
+        route: 'domain/:domainAccountID/admins/:accountID',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/admins/${accountID}`,
+    }
 } as const;
 
 /**

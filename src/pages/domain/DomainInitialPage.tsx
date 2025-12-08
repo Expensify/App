@@ -45,7 +45,7 @@ type DomainMenuItem = {
 type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.INITIAL>;
 
 function DomainInitialPage({route}: DomainInitialPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['UserLock'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserShield'] as const);
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
@@ -67,10 +67,16 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(accountID)))),
                 screenName: SCREENS.DOMAIN.SAML,
             },
+            {
+                translationKey: 'domain.admins',
+                icon: icons.UserShield,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_ADMINS.getRoute(accountID)))),
+                screenName: SCREENS.DOMAIN.ADMINS,
+            }
         ];
 
         return menuItems;
-    }, [accountID, singleExecution, waitForNavigate, icons.UserLock]);
+    }, [icons.UserLock, icons.UserShield, singleExecution, waitForNavigate, accountID]);
 
     useEffect(() => {
         if (!domainName) {
