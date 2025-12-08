@@ -96,6 +96,7 @@ import {
     isTaskAction,
     isTransactionThread,
 } from './ReportActionsUtils';
+import {getReportName} from './ReportNameUtils';
 import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
@@ -113,7 +114,6 @@ import {
     getReportActionActorAccountID,
     getReportDescription,
     getReportMetadata,
-    getReportName,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
@@ -1006,7 +1006,7 @@ function getOptionData({
         result.phoneNumber = personalDetail?.phoneNumber ?? '';
     }
 
-    const reportName = getReportName(report, policy, undefined, undefined, invoiceReceiverPolicy, undefined, undefined, isReportArchived);
+    const reportName = getReportName(report);
 
     result.text = reportName;
     result.subtitle = subtitle;
