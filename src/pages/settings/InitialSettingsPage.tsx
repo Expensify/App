@@ -35,7 +35,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
-import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
+import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
+import {checkIfFeedConnectionIsBroken, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
@@ -103,6 +104,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [retryBillingSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, {canBeMissing: true});
     const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
     const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
+    const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
     const theme = useTheme();
@@ -128,10 +130,19 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
-    const walletBrickRoadIndicator =
-        hasPaymentMethodError(bankAccountList, fundList, allCards) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection
-            ? 'error'
-            : undefined;
+    const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
+    const walletBrickRoadIndicator = useMemo(() => {
+        if (hasPaymentMethodError(bankAccountList, fundList, allCards) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
+        if (hasPartiallySetupBankAccount(bankAccountList)) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        }
+        if (hasPendingCardAction) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        }
+        return undefined;
+    }, [allCards, bankAccountList, fundList, hasBrokenFeedConnection, hasPendingCardAction, userWallet?.errors, walletTerms?.errors]);
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -220,7 +231,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 icon: icons.CreditCard,
                 screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
                 brickRoadIndicator:
-                    !!privateSubscription?.errors || hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed)
+                    !!privateSubscription?.errors || hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)
                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                         : undefined,
                 badgeText: freeTrialText,
@@ -235,12 +246,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             items,
         };
     }, [
-        icons.Gear,
-        icons.Profile,
         loginList,
         privatePersonalDetails,
         vacationDelegate,
         session?.email,
+        icons.Profile,
+        icons.Gear,
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,
@@ -252,6 +263,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         retryBillingSuccessful,
         billingDisputePending,
         retryBillingFailed,
+        fundList,
         freeTrialText,
         icons.Wallet,
         icons.CreditCard,
