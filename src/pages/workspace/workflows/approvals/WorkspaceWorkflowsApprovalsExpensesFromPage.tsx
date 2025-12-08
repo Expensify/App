@@ -110,10 +110,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     keyForList: member.email,
                     isSelected: true,
                     login: member.email,
-                    icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(displayName), id: accountID}],
+                    icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(displayName), id: accountID}],
                     rightElement: isPolicyMember ? (
-                    icons: [{source: member.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: Str.removeSMSDomain(member.displayName), id: accountID}],
-                    rightElement: (
                         <MemberRightIcon
                             role={policy?.employeeList?.[member.email]?.role}
                             owner={policy?.owner}
@@ -211,8 +209,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         availableOptions.userToInvite,
         availableOptions.recentReports,
         availableOptions.personalDetails,
+        icons.FallbackAvatar,
     ]);
-    }, [selectedMembers, approvalWorkflow?.availableMembers, policy?.employeeList, policy?.owner, policy?.preventSelfApproval, personalDetailLogins, icons.FallbackAvatar, approversEmail]);
 
     const goBack = useCallback(() => {
         let backTo;
@@ -230,11 +228,18 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         const usersToInvite: Array<{email: string; accountID?: number}> = [];
 
         for (const member of selectedMembers) {
+            if (!member.login) {
+                continue;
+            }
             const isPolicyMember = policy?.employeeList?.[member.login];
             if (isPolicyMember) {
-                existingMembers.push({displayName: member.text, avatar: member.icons.at(0)?.source, email: member.login});
+                existingMembers.push({
+                    displayName: member.text ?? '',
+                    avatar: member.icons?.at(0)?.source,
+                    email: member.login,
+                });
             } else {
-                const iconId = member.icons.at(0)?.id;
+                const iconId = member.icons?.at(0)?.id;
                 const accountID = typeof iconId === 'number' ? iconId : undefined;
                 usersToInvite.push({
                     email: member.login,
@@ -284,7 +289,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
         // All selected members are existing members, proceed normally
         const members: Member[] = normalizedExistingMembers;
-        const members: Member[] = selectedMembers.map((member) => ({displayName: member.text ?? '', avatar: member.icons?.at(0)?.source, email: member.login ?? ''}));
         setApprovalWorkflowMembers(members);
 
         if (isInitialCreationFlow) {

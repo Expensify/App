@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo} from 'react';
-import type {SectionListData} from 'react-native';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -139,10 +138,10 @@ function ApproverSelectionList({
         () => ({
             label: shouldShowListEmptyContent ? undefined : translate('selectionList.findMember'),
             value: searchTerm,
-            onChangeText: setSearchTerm,
+            onChangeText: handleSearchChange,
             headerMessage: searchTerm && !data?.length ? translate('common.noResultsFound') : '',
         }),
-        [shouldShowListEmptyContent, translate, searchTerm, setSearchTerm, data?.length],
+        [shouldShowListEmptyContent, translate, searchTerm, handleSearchChange, data?.length],
     );
 
     return (
@@ -165,17 +164,10 @@ function ApproverSelectionList({
                 />
                 {subtitle}
                 <SelectionList
-                    canSelectMultiple={allowMultipleSelection}
-                    sections={sections}
-                    ListItem={InviteMemberListItem}
-                    textInputLabel={shouldShowListEmptyContent ? undefined : translate('selectionList.findMember')}
-                    textInputValue={searchTerm}
-                    onChangeText={handleSearchChange}
-                    headerMessage={headerMessage}
                     data={data}
-                    onSelectRow={toggleApprover}
                     ListItem={InviteMemberListItem}
                     textInputOptions={textInputOptions}
+                    onSelectRow={toggleApprover}
                     canSelectMultiple={allowMultipleSelection}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     listEmptyContent={listEmptyContent}
