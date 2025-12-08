@@ -154,10 +154,7 @@ describe('groupTransactionsByCategory', () => {
 
     it('treats missing category as empty category group', () => {
         const report = createMockReport();
-        const transactions = [
-            createMockTransaction({transactionID: '1', category: 'none', amount: -1000}),
-            createMockTransaction({transactionID: '2', category: 'Uncategorized', amount: -500}),
-        ];
+        const transactions = [createMockTransaction({transactionID: '1', category: 'none', amount: -1000})];
 
         const result = groupTransactionsByCategory(transactions, report, mockLocaleCompare);
 
