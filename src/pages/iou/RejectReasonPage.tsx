@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
-import {OnyxEntry} from 'react-native-onyx/dist/types';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchContext} from '@components/Search/SearchContext';
 import useLocalize from '@hooks/useLocalize';
@@ -15,7 +15,7 @@ import {rejectMoneyRequest} from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
-import {Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 import RejectReasonFormView from './RejectReasonFormView';
 
 type RejectReasonPageProps =
