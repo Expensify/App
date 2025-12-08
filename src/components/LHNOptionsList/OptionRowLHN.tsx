@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+import FS from '@libs/Fullstory';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -167,6 +168,8 @@ function OptionRowLHN({
     const subscriptAvatarBorderColor = isOptionFocused ? focusedBackgroundColor : theme.sidebar;
     const firstIcon = optionItem.icons?.at(0);
 
+    const alternateTextFSClass = FS.getChatFSClass(report);
+
     const onOptionPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         Performance.markStart(CONST.TIMING.OPEN_REPORT);
         Timing.start(CONST.TIMING.OPEN_REPORT);
@@ -299,7 +302,7 @@ function OptionRowLHN({
                                                     style={alternateTextStyle}
                                                     numberOfLines={1}
                                                     accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
-                                                    fsClass={CONST.FULLSTORY.CLASS.MASK}
+                                                    fsClass={alternateTextFSClass}
                                                 >
                                                     {alternateTextContainsCustomEmojiWithText ? (
                                                         <TextWithEmojiFragment
@@ -316,7 +319,7 @@ function OptionRowLHN({
                                         {optionItem?.descriptiveText ? (
                                             <View
                                                 style={[styles.flexWrap]}
-                                                fsClass={CONST.FULLSTORY.CLASS.MASK}
+                                                fsClass={alternateTextFSClass}
                                             >
                                                 <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
                                             </View>
