@@ -44,6 +44,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ReportTransactionsAndViolationsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -305,6 +306,7 @@ type GetSectionsParams = {
     archivedReportsIDList?: ArchivedReportsIDSet;
     queryJSON?: SearchQueryJSON;
     isActionLoadingSet?: ReadonlySet<string>;
+    reportTransactionsAndViolations?: ReportTransactionsAndViolationsDerivedValue;
 };
 
 /**
@@ -1497,6 +1499,7 @@ function getReportSections(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isActionLoadingSet: ReadonlySet<string> | undefined,
     reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
+    reportTransactionsAndViolations?: ReportTransactionsAndViolationsDerivedValue,
 ): [TransactionGroupListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
@@ -1522,9 +1525,19 @@ function getReportSections(
         {reportKeys: [] as string[], transactionKeys: [] as string[]},
     );
 
+    // Use the derived value if available, otherwise fall back to manual aggregation
     const transactionsByReportID = new Map<string, OnyxTypes.Transaction[]>();
-    for (const key of transactionKeys) {
-        if (isTransactionEntry(key)) {
+    if (reportTransactionsAndViolations) {
+        for (const [reportID, reportData] of Object.entries(reportTransactionsAndViolations)) {
+            if (reportData?.transactions) {
+                transactionsByReportID.set(reportID, Object.values(reportData.transactions));
+            }
+        }
+    } else {
+        for (const key of transactionKeys) {
+            if (!isTransactionEntry(key)) {
+                continue;
+            }
             const transaction = data[key];
             const reportID = transaction.reportID;
             if (!transactionsByReportID.has(reportID)) {
@@ -1820,6 +1833,7 @@ function getSections({
     archivedReportsIDList,
     queryJSON,
     isActionLoadingSet,
+    reportTransactionsAndViolations,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data);
@@ -1829,7 +1843,7 @@ function getSections({
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, reportActions);
+        return getReportSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, reportActions, reportTransactionsAndViolations);
     }
 
     if (groupBy) {
