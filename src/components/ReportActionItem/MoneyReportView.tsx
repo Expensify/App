@@ -34,6 +34,7 @@ import {
     isReportFieldOfTypeTitle,
     isSettled as isSettledReportUtils,
 } from '@libs/ReportUtils';
+import {shouldHideSingleReportField} from '@libs/WorkspaceReportFieldUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -100,12 +101,6 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
     const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
-
-    const shouldHideSingleReportField = (reportField: PolicyReportField) => {
-        const hasEnableOption = reportField.type !== CONST.REPORT_FIELD_TYPES.LIST || reportField.disabledOptions.some((option) => !option);
-
-        return isReportFieldOfTypeTitle(reportField) || !hasEnableOption;
-    };
 
     const shouldShowReportField =
         !isClosedExpenseReportWithNoExpenses &&

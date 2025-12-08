@@ -7,6 +7,7 @@ import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Pol
 import {addErrorMessage} from './ErrorUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
+import {isReportFieldOfTypeTitle} from './ReportUtils';
 import {isRequiredFulfilled} from './ValidationUtils';
 
 /**
@@ -106,6 +107,12 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
     return parse(initialValue).some((part) => part.type !== FORMULA_PART_TYPES.FREETEXT);
 }
 
+function shouldHideSingleReportField(reportField: PolicyReportField) {
+    const hasEnableOption = reportField.type !== CONST.REPORT_FIELD_TYPES.LIST || reportField.disabledOptions.some((option) => !option);
+
+    return isReportFieldOfTypeTitle(reportField) || !hasEnableOption;
+}
+
 export {
     getReportFieldTypeTranslationKey,
     getReportFieldAlternativeTextTranslationKey,
@@ -113,4 +120,5 @@ export {
     generateFieldID,
     getReportFieldInitialValue,
     hasFormulaPartsInInitialValue,
+    shouldHideSingleReportField,
 };
