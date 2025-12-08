@@ -83,6 +83,7 @@ function useOptions() {
             {
                 betas: betas ?? [],
                 includeSelfDM: true,
+                shouldAlwaysIncludeDM: true,
             },
             countryCode,
         );
@@ -285,6 +286,14 @@ function NewChatPage({ref}: NewChatPageProps) {
                     return;
                 }
                 Navigation.dismissModalWithReport({reportID: option.reportID});
+                return;
+            }
+            if (option?.reportID) {
+                Navigation.dismissModal({
+                    callback: () => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option?.reportID));
+                    },
+                });
                 return;
             }
             if (selectedOptions.length && option) {
