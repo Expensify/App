@@ -23,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -35,7 +36,6 @@ import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils'
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getReceiptFilenameFromTransaction from '@libs/getReceiptFilenameFromTransaction';
 import {
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
@@ -237,10 +237,12 @@ function IOURequestStepConfirmation({
         taskReport: viewTourTaskReport,
         taskParentReport: viewTourTaskParentReport,
         isOnboardingTaskParentReportArchived: isViewTourTaskParentReportArchived,
+        hasOutstandingChildTask,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const archivedReportsIdSet = useArchivedReportsIdSet();
+    const parentReportAction = useParentReportAction(viewTourTaskReport);
 
-    const receiptFilename = getReceiptFilenameFromTransaction(transaction);
+    const receiptFilename = transaction?.receipt?.filename;
     const receiptPath = transaction?.receipt?.source;
     const isEditingReceipt = hasReceipt(transaction);
     const customUnitRateID = getRateID(transaction) ?? '';
@@ -340,21 +342,7 @@ function IOURequestStepConfirmation({
 
     useEffect(() => {
         // Exit early if the transaction is still loading
-        if (isLoadingTransaction) {
-            return;
-        }
-
-        // Check if the transaction belongs to the current report
-        const isCurrentReportID = transaction?.isFromGlobalCreate
-            ? transaction?.participants?.at(0)?.reportID === reportID || (!transaction?.participants?.at(0)?.reportID && transaction?.reportID === reportID)
-            : transaction?.reportID === reportID;
-
-        // Exit if the transaction already exists and is associated with the current report
-        if (
-            transaction?.transactionID &&
-            (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) &&
-            (isCurrentReportID || isMovingTransactionFromTrackExpense || iouType === CONST.IOU.TYPE.INVOICE)
-        ) {
+        if (!!isLoadingTransaction || (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)))) {
             return;
         }
 
@@ -365,7 +353,7 @@ function IOURequestStepConfirmation({
             generateReportID(),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, [isLoadingTransaction, isMovingTransactionFromTrackExpense]);
+    }, [isLoadingTransaction]);
 
     useEffect(() => {
         for (const item of transactions) {
@@ -472,7 +460,7 @@ function IOURequestStepConfirmation({
 
         Promise.all(
             transactions.map((item) => {
-                const itemReceiptFilename = getReceiptFilenameFromTransaction(item);
+                const itemReceiptFilename = item.receipt?.filename;
                 const itemReceiptPath = item.receipt?.source;
                 const itemReceiptType = item.receipt?.type;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
@@ -547,7 +535,15 @@ function IOURequestStepConfirmation({
                     !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`);
 
                 if (isTestDriveReceipt) {
-                    completeTestDriveTask(viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, currentUserPersonalDetails.accountID);
+                    completeTestDriveTask(
+                        viewTourTaskReport,
+                        viewTourTaskParentReport,
+                        isViewTourTaskParentReportArchived,
+                        currentUserPersonalDetails.accountID,
+                        hasOutstandingChildTask,
+                        parentReportAction,
+                        false,
+                    );
                 }
 
                 const {iouReport} = requestMoneyIOUActions({
@@ -625,6 +621,8 @@ function IOURequestStepConfirmation({
             viewTourTaskParentReport,
             isASAPSubmitBetaEnabled,
             isViewTourTaskParentReportArchived,
+            hasOutstandingChildTask,
+            parentReportAction,
             transactionViolations,
         ],
     );
@@ -1243,8 +1241,7 @@ function IOURequestStepConfirmation({
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
-    const shouldShowSmartScanFields =
-        !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
+    const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
