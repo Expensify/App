@@ -58,7 +58,6 @@ function AboutPage() {
     const popoverAnchor = useRef<View>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['PalmTree'] as const);
     const aboutIllustration = useAboutSectionIllustration();
 
     const menuItems = useMemo(() => {

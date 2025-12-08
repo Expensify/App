@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {GestureResponderEvent, Text, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
