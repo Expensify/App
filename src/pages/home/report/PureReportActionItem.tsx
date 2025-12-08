@@ -1671,11 +1671,10 @@ function PureReportActionItem({
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
 
-    let createdActionContent: React.JSX.Element | null = null;
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+    const createdActionContent = useMemo(() => {
         const transactionID = isMoneyRequestAction(parentReportActionForTransactionThread) ? getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID : undefined;
 
-        createdActionContent = (
+        return (
             <ReportActionItemContentCreated
                 contextValue={contextValue}
                 allReports={allReports}
@@ -1686,17 +1685,15 @@ function PureReportActionItem({
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             />
         );
+    }, [contextValue, allReports, parentReportAction, parentReport, draftMessage, shouldHideThreadDividerLine, parentReportActionForTransactionThread]);
 
-        if (!isHarvestCreatedExpenseReport) {
-            return createdActionContent;
-        }
-
-        // Hide createdActionContent if harvest report is shown in MoneyRequestReportActionsList (multiple-transaction view)
-        // The harvest message will be rendered through renderItemContent instead
-        if (isHarvestCreatedExpenseReport && !parentReportActionForTransactionThread) {
-            createdActionContent = null;
-        }
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !isHarvestCreatedExpenseReport) {
+        return createdActionContent;
     }
+
+    // Should show createdActionContent if:
+    // - Harvest report is shown in ReportActionsList (one-transaction view)
+    const shouldShowCreatedAction = !!isHarvestCreatedExpenseReport && !!parentReportActionForTransactionThread;
 
     if (isTripPreview(action) && isThreadReportParentAction) {
         return <TripSummary reportID={getOriginalMessage(action)?.linkedReportID} />;
@@ -1765,7 +1762,7 @@ function PureReportActionItem({
 
     return (
         <View>
-            {createdActionContent}
+            {shouldShowCreatedAction && createdActionContent}
             <PressableWithSecondaryInteraction
                 ref={popoverAnchorRef}
                 onPress={() => {
