@@ -18,7 +18,7 @@ import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDelegateAccountIDFromReportAction, getManagerOnVacation, getReportActionMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
+import {getDelegateAccountIDFromReportAction, getManagerOnVacation, getOriginalMessage, getReportActionMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
 import {isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -106,6 +106,10 @@ function ReportActionItemSingle({
     // Vacation delegate details for approved action
     const managerOnVacation = getManagerOnVacation(action);
     const vacationDelegateDetailsForApprove = getPersonalDetailByEmail(managerOnVacation ?? '');
+
+    // Check if this is an automatic action
+    const originalMessage = getOriginalMessage(action);
+    const isAutomaticAction = originalMessage && 'automaticAction' in originalMessage ? originalMessage.automaticAction : false;
 
     const headingText = avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
 
@@ -230,7 +234,7 @@ function ReportActionItemSingle({
                         })}
                     </Text>
                 )}
-                {!!managerOnVacation && (
+                {!!managerOnVacation && !isAutomaticAction && (
                     <Text style={[styles.chatDelegateMessage]}>
                         {translate('statusPage.asVacationDelegate', {nameOrEmail: vacationDelegateDetailsForApprove?.displayName ?? managerOnVacation ?? ''})}
                     </Text>
