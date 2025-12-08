@@ -90,7 +90,6 @@ import {
     getPolicy,
     getSubmitToAccountID,
     hasDependentTags,
-    hasOnlyPersonalPolicies,
     isControlPolicy,
     isDelayedSubmissionEnabled,
     isPaidGroupPolicy,

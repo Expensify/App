@@ -1,4 +1,4 @@
-import {useCallback, useContext, useRef} from 'react';
+import {useCallback, useContext, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
@@ -53,7 +53,7 @@ function useAttachmentUploadValidation({
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const hasOnlyPersonalPolicies = hasOnlyPersonalPoliciesUtil(allPolicies);
+    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModalScreen = useCallback(
