@@ -252,7 +252,7 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
-import {getGroupChatName, getInvoicePayerName, getInvoicesChatName, getMoneyRequestReportName, getPolicyExpenseChatName} from './ReportNameUtils';
+import {buildReportNameFromParticipantNames, getGroupChatName, getInvoicePayerName, getInvoicesChatName, getMoneyRequestReportName, getPolicyExpenseChatName} from './ReportNameUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
     getAttendees,
@@ -5449,40 +5449,6 @@ function getReportActionMessage({
 }
 
 /**
- * Generates a report title using the names of participants, excluding the current user.
- * This function is useful in contexts such as 1:1 direct messages (DMs) or other group chats.
- * It limits to a maximum of 5 participants for the title and uses short names unless there is only one participant.
- * @deprecated Moved to src/libs/ReportNameUtils.ts.
- * Use ReportNameUtils.buildReportNameFromParticipantNames instead.
- */
-const buildReportNameFromParticipantNames = ({report, personalDetails: personalDetailsData}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) =>
-    Object.keys(report?.participants ?? {})
-        .map(Number)
-        .filter((id) => id !== currentUserAccountID)
-        .slice(0, 5)
-        .map((accountID) => ({
-            accountID,
-            name: getDisplayNameForParticipant({
-                accountID,
-                shouldUseShortForm: true,
-                personalDetailsData,
-                formatPhoneNumber: formatPhoneNumberPhoneUtils,
-            }),
-        }))
-        .filter((participant) => participant.name)
-        .reduce((formattedNames, {name, accountID}, _, array) => {
-            // If there is only one participant (if it is 0 or less the function will return empty string), return their full name
-            if (array.length < 2) {
-                return getDisplayNameForParticipant({
-                    accountID,
-                    personalDetailsData,
-                    formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                });
-            }
-            return formattedNames ? `${formattedNames}, ${name}` : name;
-        }, '');
-
-/**
  * Get the title for a report.
  * @deprecated Moved to src/libs/ReportNameUtils.ts.
  * Use ReportNameUtils.computeReportName for full name generation.
@@ -5851,9 +5817,7 @@ function getReportName(
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    formattedName = buildReportNameFromParticipantNames({report, personalDetails});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList: personalDetails});
 
     const finalName = formattedName || (report?.reportName ?? '');
 
@@ -12827,9 +12791,6 @@ export {
     buildOptimisticRejectReportActionComment,
     buildOptimisticMarkedAsResolvedReportAction,
     buildParticipantsFromAccountIDs,
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    buildReportNameFromParticipantNames,
     buildOptimisticChangeApproverReportAction,
     buildTransactionThread,
     canAccessReport,
