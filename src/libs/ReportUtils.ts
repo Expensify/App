@@ -1220,6 +1220,17 @@ Onyx.connectWithoutView({
     },
 });
 
+let existingSelfDMReportCreatedActionID: string | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SELF_DM_REPORT_CREATED_ACTION_ID,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        existingSelfDMReportCreatedActionID = value;
+    },
+});
+
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
 }
@@ -1876,6 +1887,10 @@ function findSelfDMReportID(): string | undefined {
 
     const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
     return selfDMReport?.reportID;
+}
+
+function getSelfDMReportCreatedActionID(): string | undefined {
+    return existingSelfDMReportCreatedActionID;
 }
 
 /**
@@ -11983,7 +11998,8 @@ function prepareOnboardingOnyxData({
         if (!selfDMReport) {
             const currentTime = DateUtils.getDBTime();
             selfDMReport = buildOptimisticSelfDMReport(currentTime);
-            createdAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime);
+            const selfDMCreatedReportActionID = getSelfDMReportCreatedActionID();
+            createdAction = buildOptimisticCreatedReportAction(currentUserEmail ?? '', currentTime, selfDMCreatedReportActionID);
             selfDMParameters = {reportID: selfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
             optimisticData.push(
                 {
@@ -13426,6 +13442,7 @@ export {
     shouldBlockSubmitDueToStrictPolicyRules,
     isWorkspaceChat,
     isOneTransactionReport,
+    getSelfDMReportCreatedActionID,
 };
 export type {
     Ancestor,

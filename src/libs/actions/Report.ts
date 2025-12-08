@@ -148,6 +148,7 @@ import {
     getReportPreviewMessage,
     getReportTransactions,
     getReportViolations,
+    getSelfDMReportCreatedActionID,
     getTitleReportField,
     hasOutstandingChildRequest,
     isChatThread as isChatThreadReportUtils,
@@ -4914,7 +4915,8 @@ function deleteAppReport(reportID: string | undefined, currentUserEmailParam: st
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
         selfDMReportID = selfDMReport.reportID;
-        createdAction = buildOptimisticCreatedReportAction(currentUserEmailParam ?? '', currentTime);
+        const selfDMCreatedReportActionID = getSelfDMReportCreatedActionID();
+        createdAction = buildOptimisticCreatedReportAction(currentUserEmailParam ?? '', currentTime, selfDMCreatedReportActionID);
         selfDMParameters = {reportID: selfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
         optimisticData.push(
             {

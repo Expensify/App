@@ -24,6 +24,7 @@ import {
     buildTransactionThread,
     findSelfDMReportID,
     getReportTransactions,
+    getSelfDMReportCreatedActionID,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
@@ -728,7 +729,8 @@ function changeTransactionsReport(
     if (!selfDMReport && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(email ?? '', currentTime);
+        const selfDMCreatedReportActionID = getSelfDMReportCreatedActionID();
+        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(email ?? '', currentTime, selfDMCreatedReportActionID);
 
         // Add optimistic updates for self DM report
         optimisticData.push(
