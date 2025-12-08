@@ -67,6 +67,7 @@ import Car from '@assets/images/simple-illustrations/simple-illustration__car.sv
 import PinkCar from '@assets/images/simple-illustrations/simple-illustration__car_pink.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
+import Clock from '@assets/images/simple-illustrations/simple-illustration__clock.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
@@ -130,7 +131,6 @@ import VirtualCard from '@assets/images/simple-illustrations/simple-illustration
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
-import Clock from '@assets/images/simple-illustrations/simple-illustration__clock.svg';
 
 // Create the illustrations object with all imported illustrations
 const Illustrations = {
