@@ -209,15 +209,20 @@ function navigate(route: Route, options?: LinkToOptions) {
     }
 
     // Start a Sentry span for report navigation
-    if (route.startsWith('r/') || route.startsWith('search/r/')) {
+    if (route.startsWith('r/') || route.startsWith('search/r/') || route.startsWith('e/')) {
         const routePath = Str.cutAfter(route, '?');
-        const reportIDMatch = routePath.match(/^(?:search\/)?r\/(\d+)(?:\/\d+)?$/);
+        const reportIDMatch = route.match(/^(?:search\/)?(?:r|e)\/(\w+)/);
         const reportID = reportIDMatch?.at(1);
         if (reportID) {
             const spanId = `${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`;
             let span = getSpan(spanId);
             if (!span) {
-                const spanName = route.startsWith('r/') ? '/r/*' : '/search/r/*';
+                let spanName = '/r/*';
+                if (route.startsWith('search/r/')) {
+                    spanName = '/search/r/*';
+                } else if (route.startsWith('e/')) {
+                    spanName = '/e/*';
+                }
                 span = startSpan(spanId, {
                     name: spanName,
                     op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
