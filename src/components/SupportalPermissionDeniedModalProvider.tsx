@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import type React from 'react';
+import {useCallback, useEffect, useMemo} from 'react';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,7 +34,7 @@ function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChild
         });
     }, [isVisible, title, prompt, close, showConfirmModal, translate]);
 
-    return <>{children}</>;
+    return children;
 }
 
 SupportalPermissionDeniedModalProvider.displayName = 'SupportalPermissionDeniedModalProvider';

@@ -38,7 +38,7 @@ function FocusModeNotification({onClose}: FocusModeNotificationProps) {
         }).then(() => {
             onClose();
         });
-    }, [onClose, showConfirmModal, translate, styles, StyleUtils, illustrations, priorityModePageUrl]);
+    }, [onClose, showConfirmModal, translate, styles, StyleUtils, illustrations.ThreeLeggedLaptopWoman, priorityModePageUrl]);
 
     return null;
 }

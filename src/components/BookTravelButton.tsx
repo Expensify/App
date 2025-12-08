@@ -169,8 +169,13 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         travelSettings?.hasAcceptedTerms,
         travelSettings?.lastTravelSignupRequestTime,
         isBetaEnabled,
+        showConfirmModal,
         translate,
         isUserValidated,
+        styles.textHeadlineH1,
+        styles.mb2,
+        illustrations.RocketDude,
+        StyleUtils,
         phoneErrorMethodsRoute,
     ]);
 

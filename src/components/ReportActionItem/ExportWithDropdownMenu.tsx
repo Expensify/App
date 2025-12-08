@@ -1,9 +1,10 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {StyleSheet} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, ReportExportType} from '@components/ButtonWithDropdownMenu/types';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,7 +13,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {savePreferredExportMethod as savePreferredExportMethodUtils} from '@libs/actions/Policy/Policy';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {canBeExported as canBeExportedUtils, getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
-import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,9 +45,8 @@ function ExportWithDropdownMenu({
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
+    const {showConfirmModal} = useConfirmModal();
     const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD, {canBeMissing: true});
 
     const iconToDisplay = getIntegrationIcon(connectionName);
@@ -85,17 +84,19 @@ function ExportWithDropdownMenu({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [canBeExported, iconToDisplay, connectionName, report?.policyID, translate]);
 
-    const confirmExport = useCallback(() => {
-        setModalStatus(null);
-        if (!reportID) {
-            return;
-        }
-        if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-            exportToIntegration(reportID, connectionName);
-        } else if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-            markAsManuallyExported(reportID, connectionName);
-        }
-    }, [connectionName, modalStatus, reportID]);
+    const handleExport = useCallback(
+        (exportType: ReportExportType) => {
+            if (!reportID) {
+                return;
+            }
+            if (exportType === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
+                exportToIntegration(reportID, connectionName);
+            } else if (exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
+                markAsManuallyExported(reportID, connectionName);
+            }
+        },
+        [connectionName, reportID],
+    );
 
     const savePreferredExportMethod = (value: ReportExportType) => {
         if (!report?.policyID) {
@@ -105,46 +106,34 @@ function ExportWithDropdownMenu({
     };
 
     return (
-        <>
-            <ButtonWithDropdownMenu<ReportExportType>
-                success
-                pressOnEnter
-                shouldAlwaysShowDropdownMenu
-                anchorAlignment={dropdownAnchorAlignment}
-                onPress={(_, value) => {
-                    if (isExported) {
-                        showConfirmModal({
-                            title: translate('workspace.exportAgainModal.title'),
-                            prompt: translate('workspace.exportAgainModal.description', {connectionName, reportName: report?.reportName ?? ''}),
-                            confirmText: translate('workspace.exportAgainModal.confirmText'),
-                            cancelText: translate('workspace.exportAgainModal.cancelText'),
-                        }).then(({action}) => {
-                            if (action === 'CONFIRM' && reportID) {
-                                if (value === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                                    exportToIntegration(reportID, connectionName);
-                                } else if (value === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                                    markAsManuallyExported(reportID, connectionName);
-                                }
-                            }
-                        });
-                        return;
-                    }
-                    if (!reportID) {
-                        return;
-                    }
-                    if (value === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                        exportToIntegration(reportID, connectionName);
-                    } else if (value === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                        markAsManuallyExported(reportID, connectionName);
-                    }
-                }}
-                onOptionSelected={({value}) => savePreferredExportMethod(value)}
-                options={dropdownOptions}
-                style={[shouldUseNarrowLayout && styles.flexGrow1]}
-                wrapperStyle={flattenedWrapperStyle}
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-            />
-        </>
+        <ButtonWithDropdownMenu<ReportExportType>
+            success
+            pressOnEnter
+            shouldAlwaysShowDropdownMenu
+            anchorAlignment={dropdownAnchorAlignment}
+            onPress={(_, value) => {
+                if (isExported) {
+                    showConfirmModal({
+                        title: translate('workspace.exportAgainModal.title'),
+                        prompt: translate('workspace.exportAgainModal.description', {connectionName, reportName: report?.reportName ?? ''}),
+                        confirmText: translate('workspace.exportAgainModal.confirmText'),
+                        cancelText: translate('workspace.exportAgainModal.cancelText'),
+                    }).then(({action}) => {
+                        if (action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+                        handleExport(value);
+                    });
+                    return;
+                }
+                handleExport(value);
+            }}
+            onOptionSelected={({value}) => savePreferredExportMethod(value)}
+            options={dropdownOptions}
+            style={[shouldUseNarrowLayout && styles.flexGrow1]}
+            wrapperStyle={flattenedWrapperStyle}
+            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+        />
     );
 }
 
