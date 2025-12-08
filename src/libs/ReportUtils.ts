@@ -4509,7 +4509,9 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
         return translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
-    if (isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0 || (isIOUReport(report) && !isSettled(report?.reportID))) {
+    const shouldShowPayerOwesAmount = isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0 || (isIOUReport(report) && !isSettled(report?.reportID))
+
+    if (shouldShowPayerOwesAmount) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
