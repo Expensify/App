@@ -1,10 +1,9 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import CollapsibleSection from '@components/CollapsibleSection';
-import ConfirmModal from '@components/ConfirmModal';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -13,6 +12,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import type {MenuItemWithLink} from '@components/MenuItemList';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -21,6 +21,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -74,12 +75,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative, getLocalDateFromDatetime} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const {environment} = useEnvironment();
     const oldDotEnvironmentURL = getOldDotURLFromEnvironment(environment);
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
@@ -153,11 +154,34 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             {
                 icon: Expensicons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
-                onSelected: () => setIsDisconnectModalOpen(true),
+                onSelected: async () => {
+                    const result = await showConfirmModal({
+                        title: translate('workspace.accounting.disconnectTitle', {connectionName: connectedIntegration}),
+                        prompt: translate('workspace.accounting.disconnectPrompt', {connectionName: connectedIntegration}),
+                        confirmText: translate('workspace.accounting.disconnect'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    });
+
+                    if (result.action === ModalActions.CONFIRM && connectedIntegration && policyID) {
+                        removePolicyConnection(policy, connectedIntegration);
+                    }
+                },
                 shouldCallAfterModalHide: true,
             },
         ],
-        [icons.NewWindow, shouldShowEnterCredentials, shouldShowReinstallConnectorMenuItem, translate, isOffline, policy, connectedIntegration, startIntegrationFlow],
+        [
+            icons.NewWindow,
+            shouldShowEnterCredentials,
+            shouldShowReinstallConnectorMenuItem,
+            translate,
+            isOffline,
+            policy,
+            connectedIntegration,
+            startIntegrationFlow,
+            showConfirmModal,
+            policyID,
+        ],
     );
 
     useFocusEffect(
@@ -601,21 +625,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         </Section>
                     </View>
                 </ScrollView>
-                <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', {connectionName: connectedIntegration})}
-                    isVisible={isDisconnectModalOpen}
-                    onConfirm={() => {
-                        if (connectedIntegration && policyID) {
-                            removePolicyConnection(policy, connectedIntegration);
-                        }
-                        setIsDisconnectModalOpen(false);
-                    }}
-                    onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', {connectionName: connectedIntegration})}
-                    confirmText={translate('workspace.accounting.disconnect')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

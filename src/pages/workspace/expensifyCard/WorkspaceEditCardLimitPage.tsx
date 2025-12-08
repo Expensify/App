@@ -1,12 +1,13 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import AmountForm from '@components/AmountForm';
-import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
@@ -36,9 +37,9 @@ type WorkspaceEditCardLimitPageProps = PlatformStackScreenProps<
 function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     const {policyID, cardID, backTo} = route.params;
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
-    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const defaultFundID = useDefaultFundID(policyID);
 
     const currency = useCurrencyForExpensifyCard({policyID});
@@ -76,35 +77,49 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
         Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
     }, [backTo, isWorkspaceRhp, policyID, cardID]);
 
-    const updateCardLimit = (newLimit: number) => {
-        const newAvailableSpend = getNewAvailableSpend(newLimit);
+    const updateCardLimit = useCallback(
+        (newLimit: number) => {
+            const newAvailableSpend = getNewAvailableSpend(newLimit);
 
-        setIsConfirmModalVisible(false);
+            updateExpensifyCardLimit(
+                defaultFundID,
+                Number(cardID),
+                newLimit,
+                newAvailableSpend,
+                card?.nameValuePairs?.unapprovedExpenseLimit,
+                card?.availableSpend,
+                card?.nameValuePairs?.isVirtual,
+            );
 
-        updateExpensifyCardLimit(
-            defaultFundID,
-            Number(cardID),
-            newLimit,
-            newAvailableSpend,
-            card?.nameValuePairs?.unapprovedExpenseLimit,
-            card?.availableSpend,
-            card?.nameValuePairs?.isVirtual,
-        );
+            goBack();
+        },
+        [defaultFundID, cardID, card?.nameValuePairs?.unapprovedExpenseLimit, card?.availableSpend, card?.nameValuePairs?.isVirtual, goBack, getNewAvailableSpend],
+    );
 
-        goBack();
-    };
+    const submit = useCallback(
+        async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>) => {
+            const newLimit = Number(values[INPUT_IDS.LIMIT]) * 100;
+            const newAvailableSpend = getNewAvailableSpend(newLimit);
 
-    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>) => {
-        const newLimit = Number(values[INPUT_IDS.LIMIT]) * 100;
-        const newAvailableSpend = getNewAvailableSpend(newLimit);
+            if (newAvailableSpend <= 0) {
+                const result = await showConfirmModal({
+                    title: translate('workspace.expensifyCard.changeCardLimit'),
+                    prompt: translate(getPromptTextKey, {limit: convertToDisplayString(newLimit, currency)}),
+                    confirmText: translate('workspace.expensifyCard.changeLimit'),
+                    cancelText: translate('common.cancel'),
+                    danger: true,
+                    shouldEnableNewFocusManagement: true,
+                });
 
-        if (newAvailableSpend <= 0) {
-            setIsConfirmModalVisible(true);
-            return;
-        }
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+            }
 
-        updateCardLimit(newLimit);
-    };
+            updateCardLimit(newLimit);
+        },
+        [getNewAvailableSpend, showConfirmModal, translate, getPromptTextKey, currency, updateCardLimit],
+    );
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM> => {
@@ -151,29 +166,14 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                     enabledWhenOffline
                     validate={validate}
                 >
-                    {({inputValues}) => (
-                        <>
-                            <InputWrapper
-                                InputComponent={AmountForm}
-                                defaultValue={convertToFrontendAmountAsString(card?.nameValuePairs?.unapprovedExpenseLimit, currency, false)}
-                                isCurrencyPressable={false}
-                                currency={currency}
-                                inputID={INPUT_IDS.LIMIT}
-                                ref={inputCallbackRef}
-                            />
-                            <ConfirmModal
-                                title={translate('workspace.expensifyCard.changeCardLimit')}
-                                isVisible={isConfirmModalVisible}
-                                onConfirm={() => updateCardLimit(Number(inputValues[INPUT_IDS.LIMIT]) * 100)}
-                                onCancel={() => setIsConfirmModalVisible(false)}
-                                prompt={translate(getPromptTextKey, {limit: convertToDisplayString(Number(inputValues[INPUT_IDS.LIMIT]) * 100, currency)})}
-                                confirmText={translate('workspace.expensifyCard.changeLimit')}
-                                cancelText={translate('common.cancel')}
-                                danger
-                                shouldEnableNewFocusManagement
-                            />
-                        </>
-                    )}
+                    <InputWrapper
+                        InputComponent={AmountForm}
+                        defaultValue={convertToFrontendAmountAsString(card?.nameValuePairs?.unapprovedExpenseLimit, currency, false)}
+                        isCurrencyPressable={false}
+                        currency={currency}
+                        inputID={INPUT_IDS.LIMIT}
+                        ref={inputCallbackRef}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

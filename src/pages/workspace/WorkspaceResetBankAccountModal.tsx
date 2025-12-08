@@ -1,8 +1,9 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,6 +42,7 @@ function WorkspaceResetBankAccountModal({
 }: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
@@ -62,59 +64,64 @@ function WorkspaceResetBankAccountModal({
         [lastPaymentMethodSelector],
     );
 
-    const handleConfirm = () => {
-        if (isNonUSDWorkspace) {
-            resetNonUSDBankAccount(policyID, policy?.achAccount, !achData?.bankAccountID);
+    useEffect(() => {
+        const showModal = async () => {
+            const prompt = isInOpenState ? (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML html={translate('workspace.bankAccount.disconnectYourBankAccount', {bankName: bankShortName})} />
+                </View>
+            ) : (
+                translate('workspace.bankAccount.clearProgress')
+            );
 
-            if (setShouldShowConnectedVerifiedBankAccount) {
-                setShouldShowConnectedVerifiedBankAccount(false);
-            }
+            const result = await showConfirmModal({
+                title: translate('workspace.bankAccount.areYouSure'),
+                confirmText: isInOpenState ? translate('workspace.bankAccount.yesDisconnectMyBankAccount') : translate('workspace.bankAccount.yesStartOver'),
+                cancelText: translate('common.cancel'),
+                prompt,
+                danger: true,
+            });
 
-            if (setShouldShowContinueSetupButton) {
-                setShouldShowContinueSetupButton(false);
-            }
+            if (result.action === ModalActions.CONFIRM) {
+                if (isNonUSDWorkspace) {
+                    resetNonUSDBankAccount(policyID, policy?.achAccount, !achData?.bankAccountID);
 
-            if (setNonUSDBankAccountStep) {
-                setNonUSDBankAccountStep(null);
-            }
-        } else {
-            resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod);
+                    if (setShouldShowConnectedVerifiedBankAccount) {
+                        setShouldShowConnectedVerifiedBankAccount(false);
+                    }
 
-            if (setShouldShowContinueSetupButton) {
-                setShouldShowContinueSetupButton(false);
-            }
+                    if (setShouldShowContinueSetupButton) {
+                        setShouldShowContinueSetupButton(false);
+                    }
 
-            if (setShouldShowConnectedVerifiedBankAccount) {
-                setShouldShowConnectedVerifiedBankAccount(false);
-            }
+                    if (setNonUSDBankAccountStep) {
+                        setNonUSDBankAccountStep(null);
+                    }
+                } else {
+                    resetUSDBankAccount(bankAccountID, session, policyID, policy?.achAccount, lastPaymentMethod);
 
-            if (setUSDBankAccountStep) {
-                setUSDBankAccountStep(null);
-            }
-        }
-    };
+                    if (setShouldShowContinueSetupButton) {
+                        setShouldShowContinueSetupButton(false);
+                    }
 
-    return (
-        <ConfirmModal
-            title={translate('workspace.bankAccount.areYouSure')}
-            confirmText={isInOpenState ? translate('workspace.bankAccount.yesDisconnectMyBankAccount') : translate('workspace.bankAccount.yesStartOver')}
-            cancelText={translate('common.cancel')}
-            prompt={
-                isInOpenState ? (
-                    <View style={[styles.renderHTML, styles.flexRow]}>
-                        <RenderHTML html={translate('workspace.bankAccount.disconnectYourBankAccount', {bankName: bankShortName})} />
-                    </View>
-                ) : (
-                    translate('workspace.bankAccount.clearProgress')
-                )
+                    if (setShouldShowConnectedVerifiedBankAccount) {
+                        setShouldShowConnectedVerifiedBankAccount(false);
+                    }
+
+                    if (setUSDBankAccountStep) {
+                        setUSDBankAccountStep(null);
+                    }
+                }
+            } else {
+                cancelResetBankAccount();
             }
-            danger
-            onCancel={cancelResetBankAccount}
-            onConfirm={handleConfirm}
-            shouldShowCancelButton
-            isVisible
-        />
-    );
+        };
+
+        showModal();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    return null;
 }
 
 WorkspaceResetBankAccountModal.displayName = 'WorkspaceResetBankAccountModal';

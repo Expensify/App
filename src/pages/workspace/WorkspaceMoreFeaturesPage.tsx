@@ -1,13 +1,14 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Hoverable from '@components/Hoverable';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -97,12 +98,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     });
     const isUberConnected = useIsPolicyConnectedToUberReceiptPartner({policyID});
     const [cardFeeds] = useCardFeeds(policyID);
-    const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
-    const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
-    const [isReceiptPartnersWarningModalOpen, setIsReceiptPartnersWarningModalOpen] = useState(false);
-    const [isDisableExpensifyCardWarningModalOpen, setIsDisableExpensifyCardWarningModalOpen] = useState(false);
-    const [isDisableCompanyCardsWarningModalOpen, setIsDisableCompanyCardsWarningModalOpen] = useState(false);
-    const [isDisableWorkflowWarningModalOpen, setIsDisableWorkflowWarningModalOpen] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
@@ -133,19 +129,37 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'ReceiptPartners',
     ] as const);
 
-    const onDisabledOrganizeSwitchPress = useCallback(() => {
+    const onDisabledOrganizeSwitchPress = useCallback(async () => {
         if (!hasAccountingConnection) {
             return;
         }
-        setIsOrganizeWarningModalOpen(true);
-    }, [hasAccountingConnection]);
+        const result = await showConfirmModal({
+            title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
+            prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
+            confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
+            cancelText: translate('common.cancel'),
+        });
 
-    const onDisabledWorkflowPress = useCallback(() => {
+        if (result.action === ModalActions.CONFIRM && policyID) {
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+        }
+    }, [hasAccountingConnection, showConfirmModal, translate, policyID]);
+
+    const onDisabledWorkflowPress = useCallback(async () => {
         if (!isSmartLimitEnabled) {
             return;
         }
-        setIsDisableWorkflowWarningModalOpen(true);
-    }, [isSmartLimitEnabled]);
+        const result = await showConfirmModal({
+            title: translate('workspace.moreFeatures.workflowWarningModal.featureEnabledTitle'),
+            prompt: translate('workspace.moreFeatures.workflowWarningModal.featureEnabledText'),
+            confirmText: translate('workspace.moreFeatures.workflowWarningModal.confirmText'),
+            cancelText: translate('common.cancel'),
+        });
+
+        if (result.action === ModalActions.CONFIRM) {
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+        }
+    }, [isSmartLimitEnabled, showConfirmModal, translate, policyID]);
 
     const spendItems: Item[] = [
         {
@@ -180,8 +194,17 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 }
                 enableExpensifyCard(policyID, isEnabled);
             },
-            disabledAction: () => {
-                setIsDisableExpensifyCardWarningModalOpen(true);
+            disabledAction: async () => {
+                const result = await showConfirmModal({
+                    title: translate('workspace.moreFeatures.expensifyCard.disableCardTitle'),
+                    prompt: translate('workspace.moreFeatures.expensifyCard.disableCardPrompt'),
+                    confirmText: translate('workspace.moreFeatures.expensifyCard.disableCardButton'),
+                    cancelText: translate('common.cancel'),
+                });
+
+                if (result.action === ModalActions.CONFIRM) {
+                    navigateToConciergeChat();
+                }
             },
             onPress: () => {
                 if (!policyID) {
@@ -205,8 +228,17 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             }
             enableCompanyCards(policyID, isEnabled, true);
         },
-        disabledAction: () => {
-            setIsDisableCompanyCardsWarningModalOpen(true);
+        disabledAction: async () => {
+            const result = await showConfirmModal({
+                title: translate('workspace.moreFeatures.companyCards.disableCardTitle'),
+                prompt: translate('workspace.moreFeatures.companyCards.disableCardPrompt'),
+                confirmText: translate('workspace.moreFeatures.companyCards.disableCardButton'),
+                cancelText: translate('common.cancel'),
+            });
+
+            if (result.action === ModalActions.CONFIRM) {
+                navigateToConciergeChat();
+            }
         },
         onPress: () => {
             if (!policyID) {
@@ -380,11 +412,20 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
             isActive: isAccountingEnabled,
             pendingAction: policy?.pendingFields?.areConnectionsEnabled,
-            disabledAction: () => {
+            disabledAction: async () => {
                 if (!hasAccountingConnection) {
                     return;
                 }
-                setIsIntegrateWarningModalOpen(true);
+                const result = await showConfirmModal({
+                    title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
+                    prompt: translate('workspace.moreFeatures.connectionsWarningModal.disconnectText'),
+                    confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
+                    cancelText: translate('common.cancel'),
+                });
+
+                if (result.action === ModalActions.CONFIRM && policyID) {
+                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+                }
             },
             action: (isEnabled: boolean) => {
                 if (!policyID) {
@@ -416,11 +457,20 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.receiptPartners.subtitle',
             isActive: policy?.receiptPartners?.enabled ?? false,
             pendingAction: policy?.pendingFields?.receiptPartners,
-            disabledAction: () => {
+            disabledAction: async () => {
                 if (!isUberConnected) {
                     return;
                 }
-                setIsReceiptPartnersWarningModalOpen(true);
+                await showConfirmModal({
+                    title: translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle'),
+                    prompt: translate('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText'),
+                    confirmText: translate('workspace.moreFeatures.receiptPartnersWarningModal.confirmText'),
+                    shouldShowCancelButton: false,
+                });
+                // TODO: Navigate to Receipt Partners settings page when it exists
+                // if (result.action === ModalActions.CONFIRM && policyID) {
+                //     Navigation.navigate(ROUTES.POLICY_RECEIPT_PARTNERS.getRoute(policyID));
+                // }
             },
             action: (isEnabled: boolean) => {
                 if (!policyID) {
@@ -592,90 +642,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     <Text style={[styles.ph5, styles.mb5, styles.mt3, styles.textSupporting, styles.workspaceSectionMobile]}>{translate('workspace.moreFeatures.subtitle')}</Text>
                     {sections.map(renderSection)}
                 </ScrollView>
-
-                <ConfirmModal
-                    title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}
-                    onConfirm={() => {
-                        if (!policyID) {
-                            return;
-                        }
-                        setIsOrganizeWarningModalOpen(false);
-                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
-                    }}
-                    onCancel={() => setIsOrganizeWarningModalOpen(false)}
-                    isVisible={isOrganizeWarningModalOpen}
-                    prompt={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText')}
-                    confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
-                    cancelText={translate('common.cancel')}
-                />
-                <ConfirmModal
-                    title={translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle')}
-                    onConfirm={() => {
-                        if (!policyID) {
-                            return;
-                        }
-                        setIsIntegrateWarningModalOpen(false);
-                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
-                    }}
-                    onCancel={() => setIsIntegrateWarningModalOpen(false)}
-                    isVisible={isIntegrateWarningModalOpen}
-                    prompt={translate('workspace.moreFeatures.connectionsWarningModal.disconnectText')}
-                    confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
-                    cancelText={translate('common.cancel')}
-                />
-                {isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) && (
-                    <ConfirmModal
-                        title={translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle')}
-                        onConfirm={() => {
-                            if (!policyID) {
-                                return;
-                            }
-                            setIsReceiptPartnersWarningModalOpen(false);
-                            // TODO: Navigate to Receipt Partners settings page when it exists
-                            // Navigation.navigate(ROUTES.POLICY_RECEIPT_PARTNERS.getRoute(policyID));
-                        }}
-                        isVisible={isReceiptPartnersWarningModalOpen}
-                        prompt={translate('workspace.moreFeatures.receiptPartnersWarningModal.disconnectText')}
-                        confirmText={translate('workspace.moreFeatures.receiptPartnersWarningModal.confirmText')}
-                        shouldShowCancelButton={false}
-                    />
-                )}
-                <ConfirmModal
-                    title={translate('workspace.moreFeatures.expensifyCard.disableCardTitle')}
-                    isVisible={isDisableExpensifyCardWarningModalOpen}
-                    onConfirm={() => {
-                        setIsDisableExpensifyCardWarningModalOpen(false);
-                        navigateToConciergeChat();
-                    }}
-                    onCancel={() => setIsDisableExpensifyCardWarningModalOpen(false)}
-                    prompt={translate('workspace.moreFeatures.expensifyCard.disableCardPrompt')}
-                    confirmText={translate('workspace.moreFeatures.expensifyCard.disableCardButton')}
-                    cancelText={translate('common.cancel')}
-                />
-                <ConfirmModal
-                    title={translate('workspace.moreFeatures.companyCards.disableCardTitle')}
-                    isVisible={isDisableCompanyCardsWarningModalOpen}
-                    onConfirm={() => {
-                        setIsDisableCompanyCardsWarningModalOpen(false);
-                        navigateToConciergeChat();
-                    }}
-                    onCancel={() => setIsDisableCompanyCardsWarningModalOpen(false)}
-                    prompt={translate('workspace.moreFeatures.companyCards.disableCardPrompt')}
-                    confirmText={translate('workspace.moreFeatures.companyCards.disableCardButton')}
-                    cancelText={translate('common.cancel')}
-                />
-                <ConfirmModal
-                    title={translate('workspace.moreFeatures.workflowWarningModal.featureEnabledTitle')}
-                    isVisible={isDisableWorkflowWarningModalOpen}
-                    onConfirm={() => {
-                        setIsDisableWorkflowWarningModalOpen(false);
-                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
-                    }}
-                    onCancel={() => setIsDisableWorkflowWarningModalOpen(false)}
-                    prompt={translate('workspace.moreFeatures.workflowWarningModal.featureEnabledText')}
-                    confirmText={translate('workspace.moreFeatures.workflowWarningModal.confirmText')}
-                    cancelText={translate('common.cancel')}
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

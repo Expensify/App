@@ -1,14 +1,15 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TextInput from '@components/TextInput';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,6 +37,7 @@ type SageIntacctEditUserDimensionsPageProps = PlatformStackScreenProps<SettingsN
 function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimensionsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
 
     const editedUserDimensionName: string = route.params.dimensionName;
     const policy = usePolicy(route.params.policyID);
@@ -43,7 +45,6 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
     const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions;
     const editedUserDimension = userDimensions?.find((userDimension) => userDimension.dimension === editedUserDimensionName);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM>) => {
@@ -128,25 +129,24 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                         <MenuItem
                             title={translate('common.remove')}
                             icon={Expensicons.Trashcan}
-                            onPress={() => setIsDeleteModalOpen(true)}
+                            onPress={async () => {
+                                const result = await showConfirmModal({
+                                    title: translate('workspace.intacct.removeDimension'),
+                                    prompt: translate('workspace.intacct.removeDimensionPrompt'),
+                                    confirmText: translate('common.remove'),
+                                    cancelText: translate('common.cancel'),
+                                    danger: true,
+                                    shouldEnableNewFocusManagement: true,
+                                });
+
+                                if (result.action === ModalActions.CONFIRM) {
+                                    removeSageIntacctUserDimensions(policyID, editedUserDimensionName, userDimensions ?? []);
+                                    Navigation.goBack();
+                                }
+                            }}
                         />
                     </View>
                 </OfflineWithFeedback>
-                <ConfirmModal
-                    title={translate('workspace.intacct.removeDimension')}
-                    isVisible={isDeleteModalOpen}
-                    onConfirm={() => {
-                        setIsDeleteModalOpen(false);
-                        removeSageIntacctUserDimensions(policyID, editedUserDimensionName, userDimensions ?? []);
-                        Navigation.goBack();
-                    }}
-                    onCancel={() => setIsDeleteModalOpen(false)}
-                    prompt={translate('workspace.intacct.removeDimensionPrompt')}
-                    confirmText={translate('common.remove')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                    shouldEnableNewFocusManagement
-                />
             </FormProvider>
         </ConnectionLayout>
     );

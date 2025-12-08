@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -10,11 +9,13 @@ import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -43,6 +44,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const policyID = route.params.policyID;
     const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const receiptPartnerNames = CONST.POLICY.RECEIPT_PARTNERS.NAME;
@@ -53,7 +55,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
     const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
     const isLoading = policy?.isLoading;
-    const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const integrations = policy?.receiptPartners;
     const isAutoRemove = !!integrations?.uber?.autoRemove;
     const isAutoInvite = !!integrations?.uber?.autoInvite;
@@ -138,9 +139,21 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         {
                             icon: Expensicons.Trashcan,
                             text: translate('workspace.accounting.disconnect'),
-                            onSelected: () => {
-                                setIsDisconnectModalOpen(true);
+                            onSelected: async () => {
                                 setSelectedPartner(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
+                                const result = await showConfirmModal({
+                                    title: translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle'),
+                                    prompt: translate('workspace.moreFeatures.receiptPartnersWarningModal.description'),
+                                    confirmText: translate('workspace.accounting.disconnect'),
+                                    cancelText: translate('common.cancel'),
+                                    danger: true,
+                                });
+
+                                if (result.action === ModalActions.CONFIRM && policyID) {
+                                    removePolicyReceiptPartnersConnection(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER, integrations?.uber);
+                                    fetchReceiptPartners();
+                                }
+                                setSelectedPartner(null);
                             },
                             shouldCallAfterModalHide: true,
                         },
@@ -149,22 +162,8 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                     return [];
             }
         },
-        [icons.NewWindow, shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow],
+        [icons.NewWindow, shouldShowEnterCredentialsError, translate, isOffline, startIntegrationFlow, showConfirmModal, policyID, integrations, fetchReceiptPartners],
     );
-
-    const onCloseModal = useCallback(() => {
-        setIsDisconnectModalOpen(false);
-        setSelectedPartner(null);
-    }, []);
-
-    const onDisconnectPartner = useCallback(() => {
-        if (!policyID || !selectedPartner) {
-            return;
-        }
-        removePolicyReceiptPartnersConnection(policyID, selectedPartner, integrations?.[selectedPartner]);
-        fetchReceiptPartners();
-        onCloseModal();
-    }, [policyID, selectedPartner, integrations, onCloseModal, fetchReceiptPartners]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (policyID) {
@@ -339,16 +338,6 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                             </Section>
                         </View>
                     </ScrollView>
-                    <ConfirmModal
-                        title={translate('workspace.moreFeatures.receiptPartnersWarningModal.featureEnabledTitle')}
-                        isVisible={isDisconnectModalOpen}
-                        onConfirm={onDisconnectPartner}
-                        onCancel={onCloseModal}
-                        prompt={translate('workspace.moreFeatures.receiptPartnersWarningModal.description')}
-                        confirmText={translate('workspace.accounting.disconnect')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                    />
                 </ScreenWrapper>
             )}
         </AccessOrNotFoundWrapper>

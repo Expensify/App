@@ -1,11 +1,12 @@
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -38,6 +39,7 @@ type WorkspaceExpensifyCardPageEmptyStateProps = {
 function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {
     const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'CreditCardsNew', 'MoneyWings', 'HandCard', 'ExpensifyCardIllustration'] as const);
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -85,14 +87,27 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             }));
     }, [illustrations.CreditCardsNew, illustrations.MoneyReceipts, illustrations.MoneyWings]);
 
-    const confirmCurrencyChangeAndHideModal = useCallback(() => {
-        if (!policy) {
-            return;
+    const confirmCurrencyChangeAndHideModal = useCallback(async () => {
+        const result = await showConfirmModal({
+            title: translate('workspace.common.expensifyCard'),
+            prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
+            confirmText: translate('workspace.bankAccount.updateToUSD'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        });
+
+        if (result.action === ModalActions.CONFIRM && policy) {
+            updatePolicyGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
+            setIsCurrencyModalOpen(false);
+            startFlow();
         }
-        updatePolicyGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
-        setIsCurrencyModalOpen(false);
-        startFlow();
-    }, [policy, startFlow, setIsCurrencyModalOpen]);
+    }, [policy, startFlow, setIsCurrencyModalOpen, showConfirmModal, translate]);
+
+    useEffect(() => {
+        if (isCurrencyModalOpen) {
+            confirmCurrencyChangeAndHideModal();
+        }
+    }, [isCurrencyModalOpen, confirmCurrencyChangeAndHideModal]);
 
     return (
         <WorkspacePageWithSections
@@ -130,16 +145,6 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     illustration={illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
                     titleStyles={styles.textHeadlineH1}
-                />
-                <ConfirmModal
-                    title={translate('workspace.common.expensifyCard')}
-                    isVisible={isCurrencyModalOpen}
-                    onConfirm={confirmCurrencyChangeAndHideModal}
-                    onCancel={() => setIsCurrencyModalOpen(false)}
-                    prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                    confirmText={translate('workspace.bankAccount.updateToUSD')}
-                    cancelText={translate('common.cancel')}
-                    danger
                 />
             </View>
             <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
