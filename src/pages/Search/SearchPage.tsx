@@ -872,7 +872,7 @@ function SearchPage({route}: SearchPageProps) {
         }
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(saveFileAndInitMoneyRequest);
 
     const initScanRequest = (e: DragEvent) => {
         const files = Array.from(e?.dataTransfer?.files ?? []);
@@ -1067,7 +1067,6 @@ function SearchPage({route}: SearchPageProps) {
                                 dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                             />
                         </DragAndDropConsumer>
-                        {ErrorModal}
                     </DragAndDropProvider>
                 ) : (
                     <SearchPageWide
@@ -1087,7 +1086,6 @@ function SearchPage({route}: SearchPageProps) {
                         scrollHandler={scrollHandler}
                         initScanRequest={initScanRequest}
                         PDFValidationComponent={PDFValidationComponent}
-                        ErrorModal={ErrorModal}
                         shouldShowFooter={shouldShowFooter}
                     />
                 )}

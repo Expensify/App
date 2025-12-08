@@ -666,7 +666,7 @@ function IOURequestStepScan({
         navigateToConfirmationStep(newReceiptFiles, false);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFilesAndNavigate);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(setReceiptFilesAndNavigate);
 
     const handleDropReceipt = (e: DragEvent) => {
         const files = Array.from(e?.dataTransfer?.files ?? []);
@@ -1109,7 +1109,6 @@ function IOURequestStepScan({
                         />
                     </DragAndDropConsumer>
                     {!shouldHideAlternativeMethods && <ReceiptAlternativeMethods onLayout={(e) => setAlternativeMethodsHeight(e.nativeEvent.layout.height)} />}
-                    {ErrorModal}
                     {startLocationPermissionFlow && !!receiptFiles.length && (
                         <LocationPermissionModal
                             startPermissionFlow={startLocationPermissionFlow}

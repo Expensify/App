@@ -645,7 +645,7 @@ function IOURequestStepScan({
         navigateToConfirmationStep(newReceiptFiles, false);
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFilesAndNavigate);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(setReceiptFilesAndNavigate);
 
     const submitReceipts = useCallback(
         (files: ReceiptFile[]) => {
@@ -993,7 +993,6 @@ function IOURequestStepScan({
                         }}
                     />
                 )}
-                {ErrorModal}
             </View>
         </StepScreenWrapper>
     );

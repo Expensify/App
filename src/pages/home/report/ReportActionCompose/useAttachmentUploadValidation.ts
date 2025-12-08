@@ -120,7 +120,7 @@ function useAttachmentUploadValidation({
         );
     };
 
-    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated);
+    const {validateFiles, PDFValidationComponent} = useFilesValidation(onFilesValidated);
 
     const validateAttachments = useCallback(
         ({dragEvent, files}: {dragEvent?: DragEvent; files?: FileObject | FileObject[]}) => {
@@ -200,7 +200,6 @@ function useAttachmentUploadValidation({
         validateAttachments,
         onReceiptDropped,
         PDFValidationComponent,
-        ErrorModal,
     };
 }
 

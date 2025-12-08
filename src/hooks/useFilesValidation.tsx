@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import ConfirmModal from '@components/ConfirmModal';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
 import Text from '@components/Text';
@@ -21,6 +20,7 @@ import convertHeicImage from '@libs/fileDownload/heicConverter';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
 import useThemeStyles from './useThemeStyles';
 
@@ -42,18 +42,13 @@ const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, num
 function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransferItems: DataTransferItem[]) => void) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
 
     const [isValidatingFiles, setIsValidatingFiles] = useState(false);
     const [isValidatingReceipts, setIsValidatingReceipts] = useState<boolean>();
     const [isValidatingMultipleFiles, setIsValidatingMultipleFiles] = useState(false);
 
-    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
-    const [fileError, setFileError] = useState<ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null>(null);
     const [pdfFilesToRender, setPdfFilesToRender] = useState<FileObject[]>([]);
-    const [validFilesToUpload, setValidFilesToUpload] = useState([] as FileObject[]);
-    const [invalidFileExtension, setInvalidFileExtension] = useState('');
-    const [errorQueue, setErrorQueue] = useState<ErrorObject[]>([]);
-    const [currentErrorIndex, setCurrentErrorIndex] = useState(0);
     const {setIsLoaderVisible} = useFullScreenLoader();
 
     const validatedPDFs = useRef<FileObject[]>([]);
@@ -86,14 +81,8 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         setIsValidatingFiles(false);
         setIsValidatingReceipts(undefined);
         setIsValidatingMultipleFiles(false);
-        setIsErrorModalVisible(false);
         setPdfFilesToRender([]);
         setIsLoaderVisible(false);
-        setValidFilesToUpload([]);
-        setFileError(null);
-        setInvalidFileExtension('');
-        setErrorQueue([]);
-        setCurrentErrorIndex(0);
         validatedPDFs.current = [];
         validFiles.current = [];
         filesToValidate.current = [];
@@ -103,16 +92,72 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     };
 
     const hideModalAndReset = () => {
-        setIsErrorModalVisible(false);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             resetValidationState();
         });
     };
 
-    const setErrorAndOpenModal = (error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>) => {
-        setFileError(error);
-        setIsErrorModalVisible(true);
+    const showErrorModal = (error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>, fileExtension?: string) => {
+        const errorText = getFileValidationErrorText(error, {fileType: fileExtension ?? ''}, isValidatingReceipts === true);
+        const prompt =
+            error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE || error === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE ? (
+                <Text>
+                    {errorText.reason}
+                    <TextLink href={CONST.BULK_UPLOAD_HELP_URL}> {translate('attachmentPicker.learnMoreAboutSupportedFiles')}</TextLink>
+                </Text>
+            ) : (
+                errorText.reason
+            );
+
+        return showConfirmModal({
+            title: errorText.title,
+            prompt,
+            confirmText: translate(isValidatingMultipleFiles ? 'common.continue' : 'common.close'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: isValidatingMultipleFiles,
+        });
+    };
+
+    const handleErrorModalResponse = (action: string, errors: ErrorObject[], errorIndex: number, validFilesArray: FileObject[]) => {
+        if (action === 'CANCEL') {
+            hideModalAndReset();
+            return;
+        }
+
+        // Check if there are more errors to show
+        if (errorIndex < errors.length - 1) {
+            const nextIndex = errorIndex + 1;
+            const nextError = errors.at(nextIndex);
+            if (nextError) {
+                if (isValidatingMultipleFiles && nextIndex === errors.length - 1 && validFilesArray.length === 0) {
+                    setIsValidatingMultipleFiles(false);
+                }
+                showErrorModal(nextError.error, nextError.fileExtension).then(({action: nextAction}) => {
+                    handleErrorModalResponse(nextAction, errors, nextIndex, validFilesArray);
+                });
+                return;
+            }
+        }
+
+        // No more errors, proceed with valid files
+        const sortedFiles = sortFilesByOriginalOrder(validFilesArray, originalFileOrder.current);
+        // If we're validating attachments we need to use InteractionManager to ensure
+        // the error modal is dismissed before opening the attachment modal
+        if (isValidatingReceipts === false) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                if (sortedFiles.length !== 0) {
+                    onFilesValidated(sortedFiles, dataTransferItemList.current);
+                }
+                resetValidationState();
+            });
+        } else {
+            if (sortedFiles.length !== 0) {
+                onFilesValidated(sortedFiles, dataTransferItemList.current);
+            }
+            hideModalAndReset();
+        }
     };
 
     const isValidFile = (originalFile: FileObject, item: DataTransferItem | undefined, validationOptions: ValidateAttachmentOptions) => {
@@ -166,21 +211,13 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             return;
         }
 
-        if (validFiles.current.length > 0) {
-            setValidFilesToUpload(validFiles.current);
-        }
-
         if (collectedErrors.current.length > 0) {
             const uniqueErrors = deduplicateErrors(collectedErrors.current);
-            setErrorQueue(uniqueErrors);
-            setCurrentErrorIndex(0);
             const firstError = uniqueErrors.at(0);
             if (firstError) {
-                setFileError(firstError.error);
-                if (firstError.fileExtension) {
-                    setInvalidFileExtension(firstError.fileExtension);
-                }
-                setIsErrorModalVisible(true);
+                showErrorModal(firstError.error, firstError.fileExtension).then(({action}) => {
+                    handleErrorModalResponse(action, uniqueErrors, 0, validFiles.current);
+                });
             }
         } else if (validFiles.current.length > 0) {
             const sortedFiles = sortFilesByOriginalOrder(validFiles.current, originalFileOrder.current);
@@ -259,28 +296,21 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                 if (pdfsToLoad.length) {
                     validFiles.current = processedFiles;
                     setPdfFilesToRender(pdfsToLoad);
-                } else {
-                    if (processedFiles.length > 0) {
-                        setValidFilesToUpload(processedFiles);
-                    }
+                    return;
+                }
 
-                    if (collectedErrors.current.length > 0) {
-                        const uniqueErrors = Array.from(new Set(collectedErrors.current.map((error) => JSON.stringify(error)))).map((errorStr) => JSON.parse(errorStr) as ErrorObject);
-                        setErrorQueue(uniqueErrors);
-                        setCurrentErrorIndex(0);
-                        const firstError = uniqueErrors.at(0);
-                        if (firstError) {
-                            setFileError(firstError.error);
-                            if (firstError.fileExtension) {
-                                setInvalidFileExtension(firstError.fileExtension);
-                            }
-                            setIsErrorModalVisible(true);
-                        }
-                    } else if (processedFiles.length > 0) {
-                        const sortedFiles = sortFilesByOriginalOrder(processedFiles, originalFileOrder.current);
-                        onFilesValidated(sortedFiles, dataTransferItemList.current);
-                        resetValidationState();
+                if (collectedErrors.current.length > 0) {
+                    const uniqueErrors = deduplicateErrors(collectedErrors.current);
+                    const firstError = uniqueErrors.at(0);
+                    if (firstError) {
+                        showErrorModal(firstError.error, firstError.fileExtension).then(({action}) => {
+                            handleErrorModalResponse(action, uniqueErrors, 0, processedFiles);
+                        });
                     }
+                } else if (processedFiles.length > 0) {
+                    const sortedFiles = sortFilesByOriginalOrder(processedFiles, originalFileOrder.current);
+                    onFilesValidated(sortedFiles, dataTransferItemList.current);
+                    resetValidationState();
                 }
             });
     };
@@ -307,50 +337,15 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             if (items) {
                 dataTransferItemList.current = items.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
             }
-            setErrorAndOpenModal(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
-        } else {
-            validateAndResizeFiles(files, items ?? [], validationOptionsWithDefaults);
-        }
-    };
-
-    const onConfirmError = () => {
-        if (fileError === CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED) {
-            setIsErrorModalVisible(false);
-            validateAndResizeFiles(filesToValidate.current, dataTransferItemList.current);
-            return;
-        }
-
-        if (currentErrorIndex < errorQueue.length - 1) {
-            const nextIndex = currentErrorIndex + 1;
-            const nextError = errorQueue.at(nextIndex);
-            if (nextError) {
-                if (isValidatingMultipleFiles && currentErrorIndex === errorQueue.length - 2 && validFilesToUpload.length === 0) {
-                    setIsValidatingMultipleFiles(false);
+            showErrorModal(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED).then(({action}) => {
+                if (action === 'CONFIRM') {
+                    validateAndResizeFiles(filesToValidate.current, dataTransferItemList.current);
+                } else {
+                    hideModalAndReset();
                 }
-                setCurrentErrorIndex(nextIndex);
-                setFileError(nextError.error);
-                setInvalidFileExtension(nextError.fileExtension ?? '');
-                return;
-            }
-        }
-
-        const sortedFiles = sortFilesByOriginalOrder(validFilesToUpload, originalFileOrder.current);
-        // If we're validating attachments we need to use InteractionManager to ensure
-        // the error modal is dismissed before opening the attachment modal
-        if (isValidatingReceipts === false && fileError) {
-            setIsErrorModalVisible(false);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                if (sortedFiles.length !== 0) {
-                    onFilesValidated(sortedFiles, dataTransferItemList.current);
-                }
-                resetValidationState();
             });
         } else {
-            if (sortedFiles.length !== 0) {
-                onFilesValidated(sortedFiles, dataTransferItemList.current);
-            }
-            hideModalAndReset();
+            validateAndResizeFiles(files, items ?? [], validationOptionsWithDefaults);
         }
     };
 
@@ -383,39 +378,9 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
           ))
         : undefined;
 
-    const getModalPrompt = () => {
-        if (!fileError) {
-            return '';
-        }
-        const prompt = getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts === true).reason;
-        if (fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE || fileError === CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE) {
-            return (
-                <Text>
-                    {prompt}
-                    <TextLink href={CONST.BULK_UPLOAD_HELP_URL}> {translate('attachmentPicker.learnMoreAboutSupportedFiles')}</TextLink>
-                </Text>
-            );
-        }
-        return prompt;
-    };
-
-    const ErrorModal = (
-        <ConfirmModal
-            title={getFileValidationErrorText(fileError, {fileType: invalidFileExtension}, isValidatingReceipts === true).title}
-            onConfirm={onConfirmError}
-            onCancel={hideModalAndReset}
-            isVisible={isErrorModalVisible}
-            prompt={getModalPrompt()}
-            confirmText={translate(isValidatingMultipleFiles ? 'common.continue' : 'common.close')}
-            cancelText={translate('common.cancel')}
-            shouldShowCancelButton={isValidatingMultipleFiles}
-        />
-    );
-
     return {
         PDFValidationComponent,
         validateFiles,
-        ErrorModal,
     };
 }
 

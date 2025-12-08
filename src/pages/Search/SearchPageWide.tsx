@@ -44,7 +44,6 @@ type SearchPageWideProps = {
     scrollHandler: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     initScanRequest: (e: DragEvent) => void;
     PDFValidationComponent: React.ReactNode;
-    ErrorModal: React.ReactNode;
     shouldShowFooter: boolean;
 };
 
@@ -65,7 +64,6 @@ function SearchPageWide({
     scrollHandler,
     initScanRequest,
     PDFValidationComponent,
-    ErrorModal,
     shouldShowFooter,
 }: SearchPageWideProps) {
     const styles = useThemeStyles();
@@ -146,7 +144,6 @@ function SearchPageWide({
                     )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
-            {ErrorModal}
         </View>
     );
 }

@@ -38,25 +38,23 @@ function DelegateNoAccessModalProvider({children}: PropsWithChildren) {
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const isDelegateAccessRestricted = isActingAsDelegate && AccountUtils.isDelegateOnlySubmitter(account);
 
-    const delegateNoAccessPrompt = (
-        <View style={[styles.renderHTML, styles.flexRow]}>
-            <RenderHTML html={translate('delegate.notAllowedMessage', {accountOwnerEmail: delegatorEmail})} />
-        </View>
-    );
-
     useEffect(() => {
         if (!isModalOpen) {
             return;
         }
         showConfirmModal({
             title: translate('delegate.notAllowed'),
-            prompt: delegateNoAccessPrompt,
+            prompt: (
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML html={translate('delegate.notAllowedMessage', {accountOwnerEmail: delegatorEmail})} />
+                </View>
+            ),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         }).then(() => {
             setIsModalOpen(false);
         });
-    }, [isModalOpen, showConfirmModal, translate, delegateNoAccessPrompt]);
+    }, [isModalOpen, showConfirmModal, translate, styles.renderHTML, styles.flexRow, delegatorEmail]);
 
     const contextValue = useMemo(
         () => ({
