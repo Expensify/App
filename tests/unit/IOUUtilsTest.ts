@@ -39,11 +39,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
-jest.mock('@src/libs/actions/IOU', () => ({
-    trackExpense: jest.fn(),
-    requestMoney: jest.fn(),
-}));
-
 describe('IOUUtils', () => {
     describe('isIOUReportPendingCurrencyConversion', () => {
         beforeAll(() => {
@@ -572,6 +567,11 @@ describe('createTransaction', () => {
         files: [fakeReceiptFile],
         participant: {accountID: 222, login: 'test@test.com'},
     };
+
+    beforeEach(() => {
+        jest.spyOn(IOU, 'trackExpense').mockImplementation(jest.fn());
+        jest.spyOn(IOU, 'requestMoney').mockImplementation(jest.fn());
+    });
 
     afterEach(() => {
         jest.clearAllMocks();
