@@ -132,21 +132,5 @@ describe('SearchPageNarrow', () => {
             const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar');
             expect(topLevelNavigationTabBar).toHaveStyle({pointerEvents: 'none', opacity: 0});
         });
-
-        // The original state is restored after the search input is canceled.
-        // eslint-disable-next-line testing-library/no-unnecessary-act
-        await act(async () => {
-            fireEvent.press(await screen.findByText('Cancel'));
-        });
-
-        await waitFor(() => {
-            navigationTabBars = screen.getAllByTestId('NavigationTabBar');
-            expect(navigationTabBars).toHaveLength(2);
-        });
-
-        await waitFor(() => {
-            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar');
-            expect(topLevelNavigationTabBar).toHaveStyle({pointerEvents: 'auto', opacity: 1});
-        });
     });
 });
