@@ -475,7 +475,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             };
             return [
                 {
-                  
                     ...baseQuickAction,
                     icon: getQuickActionIcon(icons, quickAction?.action),
                     text: quickActionTitle,
