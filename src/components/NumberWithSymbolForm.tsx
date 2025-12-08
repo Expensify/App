@@ -143,7 +143,6 @@ function NumberWithSymbolForm({
     allowFlippingAmount = false,
     toggleNegative,
     clearNegative,
-    disabled = false,
     ref,
     disabled,
     ...props
@@ -153,11 +152,10 @@ function NumberWithSymbolForm({
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberRef = useRef<string | undefined>(undefined);
-    const prevNumberProp = useRef(number);
+    const prevNumber = usePrevious(number);
     const [currentNumber, setCurrentNumber] = useState(typeof number === 'string' ? number : '');
 
-    if (number !== prevNumberProp.current) {
-        prevNumberProp.current = number;
+    if (number !== prevNumber) {
         const newNumber = typeof number === 'string' ? number : '';
         if (newNumber !== currentNumber) {
             setCurrentNumber(newNumber);
@@ -396,7 +394,6 @@ function NumberWithSymbolForm({
                 autoFocus={props.autoFocus}
                 autoGrowExtraSpace={props.autoGrowExtraSpace}
                 autoGrowMarginSide={props.autoGrowMarginSide}
-                disabled={disabled}
             />
         );
     }
