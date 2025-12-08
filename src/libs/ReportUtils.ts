@@ -252,7 +252,7 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
-import {getGroupChatName, getInvoicePayerName, getMoneyRequestReportName, getPolicyExpenseChatName} from './ReportNameUtils';
+import {getGroupChatName, getInvoicePayerName, getInvoicesChatName, getMoneyRequestReportName, getPolicyExpenseChatName} from './ReportNameUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
     getAttendees,
@@ -5449,42 +5449,6 @@ function getReportActionMessage({
 }
 
 /**
- * Get the title for an invoice room.
- * @deprecated Moved to src/libs/ReportNameUtils.ts.
- * Use ReportNameUtils.getInvoicesChatName instead.
- */
-function getInvoicesChatName({
-    report,
-    receiverPolicy,
-    personalDetails,
-    policies,
-}: {
-    report: OnyxEntry<Report>;
-    receiverPolicy: OnyxEntry<Policy>;
-    personalDetails?: Partial<PersonalDetailsList>;
-    policies?: Policy[];
-}): string {
-    const invoiceReceiver = report?.invoiceReceiver;
-    const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
-    const invoiceReceiverAccountID = isIndividual ? invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID;
-    const invoiceReceiverPolicyID = isIndividual ? undefined : invoiceReceiver?.policyID;
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const invoiceReceiverPolicy = receiverPolicy ?? getPolicy(invoiceReceiverPolicyID);
-    const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && isPolicyAdminPolicyUtils(invoiceReceiverPolicy));
-
-    if (isCurrentUserReceiver) {
-        return getPolicyName({report, policies});
-    }
-
-    if (isIndividual) {
-        return formatPhoneNumberPhoneUtils(getDisplayNameOrDefault((personalDetails ?? allPersonalDetails)?.[invoiceReceiverAccountID]));
-    }
-
-    return getPolicyName({report, policy: invoiceReceiverPolicy, policies});
-}
-
-/**
  * Generates a report title using the names of participants, excluding the current user.
  * This function is useful in contexts such as 1:1 direct messages (DMs) or other group chats.
  * It limits to a maximum of 5 participants for the title and uses short names unless there is only one participant.
@@ -5864,8 +5828,6 @@ function getReportName(
     }
 
     if (isInvoiceRoom(report)) {
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails, policies});
     }
 
@@ -12989,9 +12951,6 @@ export {
     getWorkspaceIcon,
     goBackToDetailsPage,
     goBackFromPrivateNotes,
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getInvoicesChatName,
     getPayeeName,
     getReportSummariesForEmptyCheck,
     reportSummariesOnyxSelector,
