@@ -252,6 +252,7 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
+import {getGroupChatName} from './ReportNameUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
     getAttendees,
@@ -3378,60 +3379,6 @@ function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
     }, finalParticipants);
 }
 
-/**
- * @private
- * This is a custom collator only for getGroupChatName function.
- * The reason for this is that the computation of default group name should not depend on the locale.
- * This is used to ensure that group name stays consistent across locales.
- */
-const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
-
-/**
- * Returns the report name if the report is a group chat
- * @deprecated Moved to src/libs/ReportNameUtils.ts.
- * Use ReportNameUtils.getGroupChatName instead.
- */
-function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit = false, report?: OnyxEntry<Report>, reportMetadataParam?: OnyxEntry<ReportMetadata>): string | undefined {
-    // If we have a report always try to get the name from the report.
-    if (report?.reportName) {
-        return report.reportName;
-    }
-
-    const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
-
-    const pendingMemberAccountIDs = new Set(
-        reportMetadata?.pendingChatMembers?.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID),
-    );
-    let participantAccountIDs =
-        participants?.map((participant) => participant.accountID) ??
-        Object.keys(report?.participants ?? {})
-            .map(Number)
-            .filter((accountID) => !pendingMemberAccountIDs.has(accountID.toString()));
-    const shouldAddEllipsis = participantAccountIDs.length > CONST.DISPLAY_PARTICIPANTS_LIMIT && shouldApplyLimit;
-    if (shouldApplyLimit) {
-        participantAccountIDs = participantAccountIDs.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
-    }
-    const isMultipleParticipantReport = participantAccountIDs.length > 1;
-
-    if (isMultipleParticipantReport) {
-        return participantAccountIDs
-            .map(
-                (participantAccountID, index) =>
-                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ||
-                    formatPhoneNumberPhoneUtils(participants?.[index]?.login ?? ''),
-            )
-            .sort((first, second) => customCollator.compare(first ?? '', second ?? ''))
-            .filter(Boolean)
-            .join(', ')
-            .slice(0, CONST.REPORT_NAME_LIMIT)
-            .concat(shouldAddEllipsis ? '...' : '');
-    }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('groupChat.defaultReportName', {
-        displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils}),
-    });
-}
-
 function getParticipants(reportID: string) {
     const report = getReportOrDraftReport(reportID);
     if (!report) {
@@ -3651,8 +3598,6 @@ function getIconsForGroupChat(report: OnyxInputOrEntry<Report>): Icon[] {
         source: report.avatarUrl || getDefaultGroupAvatar(report.reportID),
         id: -1,
         type: CONST.ICON_TYPE_AVATAR,
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         name: getGroupChatName(undefined, true, report),
     };
     return [groupChatIcon];
@@ -5993,8 +5938,6 @@ function getReportName(
     }
 
     if (isGroupChat(report)) {
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getGroupChatName(undefined, true, report) ?? '';
     }
 
@@ -13084,9 +13027,6 @@ export {
     getDeletedParentActionMessageForChatReport,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getGroupChatName,
     prepareOnboardingOnyxData,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
