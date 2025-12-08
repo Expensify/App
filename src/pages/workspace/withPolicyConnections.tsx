@@ -41,7 +41,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         const prevHasConnectionsDataBeenFetched = usePrevious(hasConnectionsDataBeenFetched);
 
         useEffect(() => {
-            if (!isBoolean(hasConnectionsDataBeenFetched) || prevHasConnectionsDataBeenFetched === hasConnectionsDataBeenFetched) {
+            if (prevHasConnectionsDataBeenFetched !== undefined || !isBoolean(hasConnectionsDataBeenFetched)) {
                 return;
             }
             setIsFetchingData(false);
