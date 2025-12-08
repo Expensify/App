@@ -110,7 +110,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
     const contactMethodRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo)}`;
     const achData = reimbursementAccount?.achData;
-    const isPreviousPolicy = isLoadingOnyxValue(reimbursementAccountMetadata) ? true : !!policyIDParam && policyIDParam === achData?.policyID;
+    const isPreviousPolicy =
+        !!reimbursementAccount && !isLoadingOnyxValue(reimbursementAccountMetadata) ? policyIDParam === achData?.policyID : isLoadingOnyxValue(reimbursementAccountMetadata);
     const hasConfirmedUSDCurrency = (reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '') !== '' || (achData?.accountNumber ?? '') !== '';
     const isDocusignStepRequired = requiresDocusignStep(policyCurrency);
 
@@ -177,7 +178,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }
 
     useEffect(() => {
-        if (isPreviousPolicy) {
+        if (isPreviousPolicy && !!reimbursementAccount) {
             return;
         }
 

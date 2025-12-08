@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,7 +30,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const [searchValue, setSearchValue] = useState('');
     const [currentCountry, setCurrentCountry] = useState(selectedCountry);
 
     const onSelectionChange = useCallback((country: Option) => {
@@ -53,16 +52,16 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
         [translate, currentCountry, countries],
     );
 
-    const searchResults = searchOptions(debouncedSearchValue, countriesList);
+    const searchResults = searchOptions(searchValue, countriesList);
 
     const textInputOptions = useMemo(
         () => ({
             label: translate('common.search'),
             value: searchValue,
             onChangeText: setSearchValue,
-            headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+            headerMessage: searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
         }),
-        [translate, searchValue, setSearchValue, debouncedSearchValue, searchResults.length],
+        [translate, searchValue, setSearchValue, searchValue, searchResults.length],
     );
 
     const confirmButtonOptions = useMemo(
@@ -87,10 +86,10 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
                 textInputOptions={textInputOptions}
                 confirmButtonOptions={confirmButtonOptions}
                 initiallyFocusedItemKey={currentCountry}
+                disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex
                 shouldStopPropagation
-                disableMaintainingScrollPosition
             />
         </FullPageOfflineBlockingView>
     );
