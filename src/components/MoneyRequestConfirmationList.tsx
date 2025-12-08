@@ -543,9 +543,12 @@ function MoneyRequestConfirmationList({
             if (iouAmount !== 0) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
+        } else if (isTypeSplit) {
+            text = translate('iou.splitAmount', {amount: formattedAmount});
+        } else if (iouAmount === 0) {
+            text = translate('iou.createExpense');
         } else {
-            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.createExpenseWithAmount';
-            text = translate(translationKey, {amount: formattedAmount});
+            text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
         }
         return [
             {
@@ -835,7 +838,7 @@ function MoneyRequestConfirmationList({
         if (!transactionID || iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy?.id);
+        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy);
         // Keep 'transaction' out to ensure that we auto select the option only once
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
@@ -977,7 +980,6 @@ function MoneyRequestConfirmationList({
             isMerchantEmpty,
             shouldDisplayFieldError,
             transaction,
-            iouCategory.length,
             policyTags,
             isPerDiemRequest,
             reportID,
@@ -991,6 +993,8 @@ function MoneyRequestConfirmationList({
             isDelegateAccessRestricted,
             onSendMoney,
             showDelegateNoAccessModal,
+            iouCategory,
+            policyCategories,
         ],
     );
 

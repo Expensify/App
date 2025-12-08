@@ -357,7 +357,8 @@ function MoneyRequestReportTransactionList({
             } as ReportScreenNavigationProps;
 
             if (!reportIDToNavigate) {
-                const transactionThreadReport = createTransactionThreadReport(report, iouAction);
+                const transaction = sortedTransactions.find((t) => t.transactionID === activeTransactionID);
+                const transactionThreadReport = createTransactionThreadReport(report, iouAction, transaction);
                 if (transactionThreadReport) {
                     reportIDToNavigate = transactionThreadReport.reportID;
                     routeParams.reportID = reportIDToNavigate;
@@ -375,7 +376,7 @@ function MoneyRequestReportTransactionList({
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
-        [report, reportActions, visualOrderTransactionIDs, markReportIDAsExpense],
+        [reportActions, visualOrderTransactionIDs, sortedTransactions, report, markReportIDAsExpense],
     );
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
@@ -451,41 +452,43 @@ function MoneyRequestReportTransactionList({
     return (
         <>
             {!shouldUseNarrowLayout && (
-                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr16, styles.alignItemsCenter]}>
-                    <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
-                        <Checkbox
-                            onPress={() => {
-                                if (selectedTransactionIDs.length !== 0) {
-                                    clearSelectedTransactions(true);
-                                } else {
-                                    setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
-                                }
-                            }}
-                            accessibilityLabel={CONST.ROLE.CHECKBOX}
-                            isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
-                            isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
-                        />
-                        {isMediumScreenWidth && <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>}
-                    </View>
-                    {!isMediumScreenWidth && (
-                        <MoneyRequestReportTableHeader
-                            shouldShowSorting
-                            sortBy={sortBy}
-                            sortOrder={sortOrder}
-                            columns={columnsToShow}
-                            dateColumnSize={dateColumnSize}
-                            amountColumnSize={amountColumnSize}
-                            taxAmountColumnSize={taxAmountColumnSize}
-                            onSortPress={(selectedSortBy, selectedSortOrder) => {
-                                if (!isSortableColumnName(selectedSortBy)) {
-                                    return;
-                                }
+                <OfflineWithFeedback pendingAction={reportPendingAction}>
+                    <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr16, styles.alignItemsCenter]}>
+                        <View style={[styles.dFlex, styles.flexRow, styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
+                            <Checkbox
+                                onPress={() => {
+                                    if (selectedTransactionIDs.length !== 0) {
+                                        clearSelectedTransactions(true);
+                                    } else {
+                                        setSelectedTransactions(transactionsWithoutPendingDelete.map((t) => t.transactionID));
+                                    }
+                                }}
+                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
+                                isChecked={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length}
+                            />
+                            {isMediumScreenWidth && <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>}
+                        </View>
+                        {!isMediumScreenWidth && (
+                            <MoneyRequestReportTableHeader
+                                shouldShowSorting
+                                sortBy={sortBy}
+                                sortOrder={sortOrder}
+                                columns={columnsToShow}
+                                dateColumnSize={dateColumnSize}
+                                amountColumnSize={amountColumnSize}
+                                taxAmountColumnSize={taxAmountColumnSize}
+                                onSortPress={(selectedSortBy, selectedSortOrder) => {
+                                    if (!isSortableColumnName(selectedSortBy)) {
+                                        return;
+                                    }
 
-                                setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
-                            }}
-                        />
-                    )}
-                </View>
+                                    setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
+                                }}
+                            />
+                        )}
+                    </View>
+                </OfflineWithFeedback>
             )}
             <View style={[listHorizontalPadding, styles.gap2, styles.pb4]}>
                 {shouldShowGroupedTransactions
