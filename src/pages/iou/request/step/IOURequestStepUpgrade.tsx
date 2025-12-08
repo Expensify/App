@@ -57,6 +57,8 @@ function IOURequestStepUpgrade({
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const feature = useMemo(
         () =>
@@ -153,11 +155,27 @@ function IOURequestStepUpgrade({
             ],
             adminParticipant,
             hasOutstandingChildRequest: false,
+            introSelectedParam: introSelected,
+            activePolicyIDParam: activePolicyID,
+            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
         });
         setIsUpgraded(true);
         policyDataRef.current = policyData;
-    }, [isCategorizing, isReporting, currentUserPersonalDetails?.localCurrencyCode, isDistanceRateUpgrade, adminParticipant, onboardingPurposeSelected, isRestrictedPolicyCreation]);
+    }, [
+        isCategorizing,
+        isReporting,
+        currentUserPersonalDetails?.localCurrencyCode,
+        isDistanceRateUpgrade,
+        adminParticipant,
+        activePolicyID,
+        currentUserPersonalDetails.accountID,
+        currentUserPersonalDetails.email,
+        introSelected,
+        onboardingPurposeSelected,
+        isRestrictedPolicyCreation,
+    ]);
 
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
@@ -174,6 +192,10 @@ function IOURequestStepUpgrade({
             currency: params.currency,
             file: params.avatarFile as File,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            introSelectedParam: introSelected,
+            activePolicyIDParam: activePolicyID,
+            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+            currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             onboardingPurposeSelected,
         });
         policyDataRef.current = policyData;
