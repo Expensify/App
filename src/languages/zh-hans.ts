@@ -727,6 +727,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: '复制到剪贴板',
         thisIsTakingLongerThanExpected: '这比预期花费的时间更长...',
         domains: '域名',
+        viewReport: '查看报告',
         actionRequired: '需要操作',
     },
     supportalNoAccess: {
@@ -6375,7 +6376,7 @@ ${reportName}
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 与会者跟踪`,
-        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `此工作区的 ${enabled ? '已启用' : '已禁用'} 报销`,
+        updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? '已启用' : '已禁用'} 笔报销`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税费“${taxName}”`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已移除税费“${taxName}”`,
         updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
@@ -6608,6 +6609,7 @@ ${reportName}
         groupBy: '分组依据',
         moneyRequestReport: {
             emptyStateTitle: '此报表没有任何报销。',
+            accessPlaceHolder: '打开以查看详情',
         },
         noCategory: '无类别',
         noTag: '无标签',
