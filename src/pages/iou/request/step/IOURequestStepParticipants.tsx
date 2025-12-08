@@ -357,7 +357,7 @@ function IOURequestStepParticipants({
         }
 
         const firstParticipant = selectedParticipants.current?.at(0);
-        const isMerchantRequired = !!firstParticipant?.isPolicyExpenseChat && isMerchantMissing(initialTransaction);
+        const isMerchantRequired = !!firstParticipant?.isPolicyExpenseChat && isMerchantMissing(initialTransaction) && !isMovingTransactionFromTrackExpense && iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
 
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
             action,
@@ -396,7 +396,7 @@ function IOURequestStepParticipants({
                 });
             }
         });
-    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo, introSelected]);
+    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo, introSelected, iouRequestType]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
