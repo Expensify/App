@@ -7,7 +7,6 @@ import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Pol
 import {addErrorMessage} from './ErrorUtils';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
-import {isReportFieldOfTypeTitle} from './ReportUtils';
 import {isRequiredFulfilled} from './ValidationUtils';
 
 /**
