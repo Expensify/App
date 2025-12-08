@@ -74,11 +74,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportID}`, {canBeMissing: true});
-    const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.transactionThreadReportID}`, {canBeMissing: true});
+    const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportAction?.childReportID}`, {canBeMissing: true});
     const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${oneTransactionItem?.transactionID}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
-        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.moneyRequestReportActionID}`],
-        [oneTransactionItem?.moneyRequestReportActionID],
+        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
+        [oneTransactionItem?.reportAction?.reportActionID],
     );
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionItem?.reportID}`, {selector: parentReportActionSelector, canBeMissing: true}, [
         oneTransactionItem,
@@ -147,9 +147,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 searchKey: undefined,
                 offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
                 shouldCalculateTotals: false,
+                isLoading: !!transactionsSnapshot?.search?.isLoading,
             });
         },
-        [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.offset],
+        [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.offset, transactionsSnapshot?.search?.isLoading],
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
