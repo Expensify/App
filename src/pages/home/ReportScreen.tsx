@@ -876,9 +876,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        // Check if IOU action exists - if not, it's a legacy transaction
+        // Skip legacy transaction handling if:
+        // - IOU action already exists (not a legacy transaction)
+        // - Transaction is pending addition (new transaction, not legacy)
         const iouAction = getIOUActionForReportID(reportID, transaction.transactionID);
-        if (iouAction) {
+        if (iouAction || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             return;
         }
 
@@ -1011,6 +1013,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             hasOlderActions={hasOlderActions}
                                             hasNewerActions={hasNewerActions}
                                             showReportActionsLoadingState={showReportActionsLoadingState}
+                                            reportPendingAction={reportPendingAction}
                                         />
                                     ) : null}
                                     {isCurrentReportLoadedFromOnyx ? (

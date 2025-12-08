@@ -397,7 +397,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Expense',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
@@ -410,7 +410,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
             errors: undefined,
             groupAmount: -5000,
             groupCurrency: 'USD',
@@ -428,7 +427,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Expense',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
@@ -440,7 +439,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             groupAmount: -5000,
@@ -460,7 +458,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             merchant: '(none)',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -472,7 +470,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             groupAmount: -5000,
@@ -491,7 +488,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             merchant: '(none)',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -503,7 +500,6 @@ const searchResults: OnyxTypes.SearchResults = {
             taxAmount: undefined,
             mccGroup: undefined,
             modifiedMCCGroup: undefined,
-            moneyRequestReportActionID: '789',
             pendingAction: undefined,
             errors: undefined,
             groupAmount: -5000,
@@ -776,7 +772,7 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
-        formattedMerchant: 'Expense',
+        formattedMerchant: '',
         formattedTo: '',
         formattedTotal: 5000,
         from: {
@@ -788,14 +784,14 @@ const transactionsListItems = [
         hasEReceipt: false,
         keyForList: '1',
         merchant: 'Expense',
-        modifiedAmount: 0,
+        modifiedAmount: '',
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         reportID: '123456789',
-        shouldShowMerchant: true,
+        shouldShowMerchant: false,
         shouldShowYear: true,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
@@ -806,7 +802,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
         errors: undefined,
         violations: [],
         groupAmount: -5000,
@@ -829,7 +824,7 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
-        formattedMerchant: 'Expense',
+        formattedMerchant: '',
         formattedTo: 'Admin',
         formattedTotal: 5000,
         from: {
@@ -841,13 +836,13 @@ const transactionsListItems = [
         hasEReceipt: false,
         keyForList: '2',
         merchant: 'Expense',
-        modifiedAmount: 0,
+        modifiedAmount: '',
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         reportID: '11111',
-        shouldShowMerchant: true,
+        shouldShowMerchant: false,
         shouldShowYear: true,
         isAmountColumnWide: false,
         isTaxAmountColumnWide: false,
@@ -863,7 +858,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         violations: [
@@ -892,7 +886,7 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
-        modifiedAmount: 0,
+        modifiedAmount: '',
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
@@ -917,7 +911,7 @@ const transactionsListItems = [
         formattedTotal: 1200,
         formattedMerchant: '',
         date: '2025-03-05',
-        shouldShowMerchant: true,
+        shouldShowMerchant: false,
         shouldShowYear: true,
         keyForList: '3',
         isAmountColumnWide: false,
@@ -926,7 +920,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         violations: [],
@@ -950,7 +943,7 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
-        modifiedAmount: 0,
+        modifiedAmount: '',
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
@@ -975,7 +968,7 @@ const transactionsListItems = [
         formattedTotal: 3200,
         formattedMerchant: '',
         date: '2025-03-05',
-        shouldShowMerchant: true,
+        shouldShowMerchant: false,
         shouldShowYear: true,
         keyForList: '4',
         isAmountColumnWide: false,
@@ -984,7 +977,6 @@ const transactionsListItems = [
         taxAmount: undefined,
         mccGroup: undefined,
         modifiedMCCGroup: undefined,
-        moneyRequestReportActionID: '789',
         pendingAction: undefined,
         errors: undefined,
         violations: [],
@@ -1045,7 +1037,7 @@ const transactionReportGroupListItems = [
                 currency: 'USD',
                 date: '2024-12-21',
                 formattedFrom: 'Admin',
-                formattedMerchant: 'Expense',
+                formattedMerchant: '',
                 formattedTo: '',
                 formattedTotal: 5000,
                 from: {
@@ -1057,14 +1049,14 @@ const transactionReportGroupListItems = [
                 hasEReceipt: false,
                 keyForList: '1',
                 merchant: 'Expense',
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 reportID: '123456789',
-                shouldShowMerchant: true,
+                shouldShowMerchant: false,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1075,7 +1067,6 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-                moneyRequestReportActionID: '789',
                 errors: undefined,
                 violations: [],
                 groupAmount: -5000,
@@ -1141,7 +1132,7 @@ const transactionReportGroupListItems = [
                 currency: 'USD',
                 date: '2024-12-21',
                 formattedFrom: 'Admin',
-                formattedMerchant: 'Expense',
+                formattedMerchant: '',
                 formattedTo: 'Admin',
                 formattedTotal: 5000,
                 from: {
@@ -1159,13 +1150,13 @@ const transactionReportGroupListItems = [
                 ],
                 keyForList: '2',
                 merchant: 'Expense',
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 reportID: '11111',
-                shouldShowMerchant: true,
+                shouldShowMerchant: false,
                 shouldShowYear: true,
                 isAmountColumnWide: false,
                 isTaxAmountColumnWide: false,
@@ -1181,7 +1172,6 @@ const transactionReportGroupListItems = [
                 taxAmount: undefined,
                 mccGroup: undefined,
                 modifiedMCCGroup: undefined,
-                moneyRequestReportActionID: '789',
                 pendingAction: undefined,
                 errors: undefined,
                 groupAmount: -5000,
@@ -1716,7 +1706,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 48;
+            const expectedPropertyCount = 46;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1749,7 +1739,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 48;
+            const expectedPropertyCount = 46;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1948,7 +1938,7 @@ describe('SearchUIUtils', () => {
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {})
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -2034,12 +2024,11 @@ describe('SearchUIUtils', () => {
                 mockCardFeedsByPolicy,
                 undefined,
                 mockPolicies,
-                undefined,
                 mockSavedSearches,
                 false,
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
@@ -2098,12 +2087,11 @@ describe('SearchUIUtils', () => {
                 mockCardFeedsByPolicy,
                 undefined,
                 mockPolicies,
-                undefined,
                 mockSavedSearches,
                 false,
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -2134,7 +2122,7 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {});
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeDefined();
@@ -2144,7 +2132,7 @@ describe('SearchUIUtils', () => {
             const mockSavedSearches = {};
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, undefined, mockSavedSearches, false, undefined, true, false);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, {}, mockSavedSearches, false, undefined, false, {});
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
             expect(savedSection).toBeUndefined();
@@ -2168,12 +2156,11 @@ describe('SearchUIUtils', () => {
                 {},
                 undefined,
                 {},
-                undefined,
                 mockSavedSearches,
                 false, // not offline
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2198,12 +2185,11 @@ describe('SearchUIUtils', () => {
                 {},
                 undefined,
                 {},
-                undefined,
                 mockSavedSearches,
                 true, // offline
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const savedSection = sections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle');
@@ -2225,7 +2211,7 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {});
 
             const todoSection = sections.find((section) => section.translationPath === 'common.todo');
             expect(todoSection).toBeUndefined();
@@ -2253,12 +2239,11 @@ describe('SearchUIUtils', () => {
                 {}, // no card feeds
                 undefined,
                 mockPolicies,
-                undefined,
                 {},
                 false,
                 undefined,
-                true,
                 false,
+                {},
             );
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
@@ -2290,7 +2275,7 @@ describe('SearchUIUtils', () => {
             };
 
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
-            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, undefined, {}, false, undefined, true, false);
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, {}, undefined, mockPolicies, {}, false, undefined, false, {});
 
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
             expect(accountingSection).toBeDefined();
@@ -2316,20 +2301,7 @@ describe('SearchUIUtils', () => {
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
-            const sections = SearchUIUtils.createTypeMenuSections(
-                icons.current,
-                adminEmail,
-                adminAccountID,
-                mockCardFeedsByPolicy,
-                undefined,
-                mockPolicies,
-                undefined,
-                {},
-                false,
-                undefined,
-                true,
-                false,
-            );
+            const sections = SearchUIUtils.createTypeMenuSections(icons.current, adminEmail, adminAccountID, mockCardFeedsByPolicy, undefined, mockPolicies, {}, false, undefined, false, {});
             const accountingSection = sections.find((section) => section.translationPath === 'workspace.common.accounting');
 
             expect(accountingSection).toBeDefined();
@@ -2339,7 +2311,7 @@ describe('SearchUIUtils', () => {
 
         it('should generate correct routes', () => {
             const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document']));
-            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, undefined, {}, false, undefined, true, false)
+            const menuItems = SearchUIUtils.createTypeMenuSections(icons.current, undefined, undefined, {}, undefined, {}, {}, false, undefined, false, {})
                 .map((section) => section.menuItems)
                 .flat();
 
@@ -2811,49 +2783,7 @@ describe('SearchUIUtils', () => {
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, backTo, threadReportID, undefined, false);
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, {reportActionID: transactionListItem.moneyRequestReportActionID}, undefined, undefined);
-        });
-
-        test('Should create transaction thread report for legacy transactions without IOU action (moneyRequestReportActionID = "0")', () => {
-            (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
-
-            // Create a legacy transaction item with moneyRequestReportActionID = '0'
-            const legacyTransactionItem = {
-                ...transactionListItem,
-                moneyRequestReportActionID: '0',
-            };
-
-            SearchUIUtils.createAndOpenSearchTransactionThread(legacyTransactionItem, backTo, undefined, undefined, false);
-
-            // Extract the transaction by removing UI-specific and search-specific fields
-            const {
-                keyForList,
-                action,
-                allActions,
-                report,
-                from,
-                to,
-                formattedFrom,
-                formattedTo,
-                formattedTotal,
-                formattedMerchant,
-                date,
-                shouldShowMerchant,
-                shouldShowYear,
-                isAmountColumnWide,
-                isTaxAmountColumnWide,
-                violations,
-                hash: itemHash,
-                moneyRequestReportActionID,
-                canDelete,
-                accountID,
-                policyID: searchPolicyID,
-                ...expectedTransaction
-            } = legacyTransactionItem;
-
-            // For legacy transactions (moneyRequestReportActionID = '0'), should pass transaction and violations
-            // reportActionID will be undefined since there's no IOU action
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(report, {reportActionID: undefined}, expect.objectContaining(expectedTransaction), violations);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(report1, {reportActionID: '11111111'}, undefined, undefined);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
@@ -2899,7 +2829,7 @@ describe('SearchUIUtils', () => {
             await waitForBatchedUpdates();
 
             const parentReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionListItem.reportID}`);
-            const parentReportAction = transactionListItem.moneyRequestReportActionID && parentReport?.[transactionListItem.moneyRequestReportActionID];
+            const parentReportAction = transactionListItem?.reportAction?.reportActionID && parentReport?.[transactionListItem?.reportAction?.reportActionID];
 
             expect(parentReportAction).toBeTruthy();
         });
