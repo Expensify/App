@@ -89,6 +89,9 @@ type SearchTransaction = {
     /** If the transaction can be deleted */
     canDelete: boolean;
 
+    /** If the transaction can be rejected */
+    canReject: boolean;
+
     /** The edited transaction amount */
     modifiedAmount: number | string;
 
