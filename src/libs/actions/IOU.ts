@@ -737,7 +737,6 @@ type GetTrackExpenseInformationParams = {
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -831,7 +830,6 @@ type DeleteMoneyRequestFunctionParams = {
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -846,7 +844,6 @@ Onyx.connect({
 });
 
 let allTransactionDrafts: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
     waitForCollectionCallback: true,
@@ -856,7 +853,6 @@ Onyx.connect({
 });
 
 let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
@@ -871,7 +867,6 @@ Onyx.connect({
 });
 
 let allNextSteps: NonNullable<OnyxCollection<OnyxTypes.ReportNextStepDeprecated>> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.NEXT_STEP,
     waitForCollectionCallback: true,
@@ -881,7 +876,6 @@ Onyx.connect({
 });
 
 const allPolicies: OnyxCollection<OnyxTypes.Policy> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
@@ -901,7 +895,6 @@ Onyx.connect({
 // `allRecentlyUsedTags` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
 // All uses of this variable should be replaced with `useOnyx`.
 let allRecentlyUsedTags: OnyxCollection<RecentlyUsedTags> = {};
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS,
     waitForCollectionCallback: true,
@@ -909,7 +902,6 @@ Onyx.connect({
 });
 
 let allReports: OnyxCollection<OnyxTypes.Report>;
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
@@ -919,7 +911,6 @@ Onyx.connect({
 });
 
 let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
@@ -930,7 +921,6 @@ Onyx.connect({
 
 let userAccountID = -1;
 let currentUserEmail = '';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -940,7 +930,6 @@ Onyx.connect({
 });
 
 let deprecatedCurrentUserPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetails>;
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -958,7 +947,6 @@ Onyx.connect({
 });
 
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
@@ -971,7 +959,6 @@ Onyx.connect({
 });
 
 let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
@@ -988,7 +975,6 @@ Onyx.connectWithoutView({
 // `recentWaypoints` was moved here temporarily from `src/libs/actions/Policy/Tag.ts` during the `Deprecate Onyx.connect` refactor.
 // All uses of this variable should be replaced with `useOnyx`.
 let recentWaypoints: OnyxTypes.RecentWaypoint[] = [];
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 Onyx.connect({
     key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
     callback: (val) => (recentWaypoints = val ?? []),
@@ -1141,8 +1127,6 @@ function initMoneyRequest({
         }
     }
 
-    const defaultMerchant = newIouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.TRANSACTION.DEFAULT_MERCHANT : CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-
     const newTransaction = {
         amount: 0,
         comment,
@@ -1153,7 +1137,7 @@ function initMoneyRequest({
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
-        merchant: defaultMerchant,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
     };
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
@@ -6911,7 +6895,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 waypoints: sanitizedWaypoints,
                 customUnitRateID,
                 description: parsedComment,
-                isDistance: isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction),
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
@@ -8112,7 +8095,7 @@ function completeSplitBill(
     ];
 
     const splitParticipants: Split[] = updatedTransaction?.comment?.splits ?? [];
-    const amount = Number(updatedTransaction?.modifiedAmount);
+    const amount = updatedTransaction?.modifiedAmount;
     const currency = updatedTransaction?.modifiedCurrency;
 
     // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account
@@ -14757,7 +14740,7 @@ function updateSplitTransactions({
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
-                value: transactionThread ?? null,
+                value: transactionThread,
             });
         }
 
