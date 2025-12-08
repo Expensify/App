@@ -10,11 +10,11 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     getDisplayNamesWithTooltips,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
-    getReportName,
     isChatRoom as isChatRoomReportUtils,
     isConciergeChatReport,
     isInvoiceRoom as isInvoiceRoomReportUtils,

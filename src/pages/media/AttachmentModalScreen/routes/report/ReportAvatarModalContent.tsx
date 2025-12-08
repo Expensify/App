@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
-import {getDefaultGroupAvatar, getPolicyName, getReportName, getWorkspaceIcon, isGroupChat, isThread, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportNameUtils';
+import {getDefaultGroupAvatar, getPolicyName, getWorkspaceIcon, isGroupChat, isThread, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserAvatarUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';

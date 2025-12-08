@@ -46,7 +46,8 @@ import {
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportNameUtils';
+import {getDefaultWorkspaceAvatar, getPolicyExpenseChat, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';

@@ -22,6 +22,7 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
+import {computeReportNameWithoutFormula} from '@libs/ReportNameUtils';
 import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
@@ -345,8 +346,14 @@ function MoneyRequestConfirmationListFooter({
         return [reportIDToUse, reportToUse];
     }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
 
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false}) ?? CONST.EMPTY_OBJECT;
+
     const reportName = useMemo(() => {
-        const name = getReportName(selectedReport, selectedPolicy);
+        const name = computeReportNameWithoutFormula(selectedReport, allReports, policies, allTransactions, allReportNameValuePairs, personalDetails, reportActions);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }

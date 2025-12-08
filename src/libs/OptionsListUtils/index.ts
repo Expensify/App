@@ -82,6 +82,7 @@ import {
     isWhisperAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
@@ -104,7 +105,6 @@ import {
     getRejectedReportMessage,
     getReportActionActorAccountID,
     getReportLastMessage,
-    getReportName,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportPreviewMessage,

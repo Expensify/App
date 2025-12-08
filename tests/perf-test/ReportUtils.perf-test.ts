@@ -10,7 +10,6 @@ import {
     getIcons,
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
-    getReportName,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
     getTransactionDetails,
@@ -146,14 +145,6 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() => getReportPreviewMessage(report, reportAction, shouldConsiderReceiptBeingScanned, isPreviewMessageForParentChatReport, policy));
-    });
-
-    test('[ReportUtils] getReportName on 1k participants', async () => {
-        const report = {...createRandomReport(1, undefined), participantAccountIDs};
-        const policy = createRandomPolicy(1);
-
-        await waitForBatchedUpdates();
-        await measureFunction(() => getReportName(report, policy));
     });
 
     test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {

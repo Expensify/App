@@ -22,7 +22,7 @@ import {
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getReportName} from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {getCreated} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
