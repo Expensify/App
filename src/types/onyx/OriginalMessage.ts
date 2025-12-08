@@ -467,6 +467,16 @@ type OriginalMessagePolicyChangeLog = {
     /** Custom field type  */
     field?: string;
 
+    /** Array of field changes for consolidated employee updates */
+    fields?: Array<{
+        /** The name of the field being updated */
+        field: string;
+        /** The previous value of the field */
+        oldValue: string;
+        /** The new value of the field */
+        newValue: string;
+    }>;
+
     /** Report field name */
     fieldName?: string;
 
@@ -782,8 +792,10 @@ type OriginalMessageUnreportedTransaction = {
 
 /** Model of MOVED_TRANSACTION report action */
 type OriginalMessageMovedTransaction = {
-    /** ID of the new report */
-    toReportID: string;
+    /** @Deprecated ID of the new report for backwards compatibility */
+    toReportID?: string;
+    /** ID of the original report */
+    fromReportID: string;
 };
 
 /** Model of `moved` report action */
