@@ -6218,7 +6218,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 requireDescription: 'Description requise',
                 requireFields: 'Rendre les champs obligatoires',
                 requiredFieldsTitle: 'Champs obligatoires',
-                requiredFieldsDescription: ({categoryName}: {categoryName: string}) => `Cela s’appliquera à toutes les dépenses classées dans la catégorie <strong>${categoryName}</strong>.`,
+                requiredFieldsDescription: (categoryName: string) => `Cela s’appliquera à toutes les dépenses classées dans la catégorie <strong>${categoryName}</strong>.`,
                 requireAttendees: 'Exiger des participants',
                 descriptionHint: 'Indice de description',
                 descriptionHintDescription: (categoryName: string) =>

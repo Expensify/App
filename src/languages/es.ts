@@ -5751,7 +5751,7 @@ ${amount} para ${merchant} - ${date}`,
                 requireDescription: 'Requerir descripción',
                 requireFields: 'Requerir campos',
                 requiredFieldsTitle: 'Campos obligatorios',
-                requiredFieldsDescription: ({categoryName}) => `Esto se aplicará a todos los gastos categorizados como <strong>${categoryName}</strong>.`,
+                requiredFieldsDescription: (categoryName) => `Esto se aplicará a todos los gastos categorizados como <strong>${categoryName}</strong>.`,
                 requireAttendees: 'Requerir asistentes',
                 descriptionHint: 'Sugerencia de descripción',
                 descriptionHintDescription: (categoryName) =>

@@ -6190,7 +6190,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 requireDescription: 'Richiedi descrizione',
                 requireFields: 'Rendi obbligatori i campi',
                 requiredFieldsTitle: 'Campi obbligatori',
-                requiredFieldsDescription: ({categoryName}: {categoryName: string}) => `Questo si applicherà a tutte le spese classificate come <strong>${categoryName}</strong>.`,
+                requiredFieldsDescription: (categoryName: string) => `Questo si applicherà a tutte le spese classificate come <strong>${categoryName}</strong>.`,
                 requireAttendees: 'Richiedi partecipanti',
                 descriptionHint: 'Suggerimento per la descrizione',
                 descriptionHintDescription: (categoryName: string) =>

@@ -6173,7 +6173,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 requireDescription: 'Exigir descrição',
                 requireFields: 'Exigir campos',
                 requiredFieldsTitle: 'Campos obrigatórios',
-                requiredFieldsDescription: ({categoryName}: {categoryName: string}) => `Isso será aplicado a todas as despesas categorizadas como <strong>${categoryName}</strong>.`,
+                requiredFieldsDescription: (categoryName: string) => `Isso será aplicado a todas as despesas categorizadas como <strong>${categoryName}</strong>.`,
                 requireAttendees: 'Exigir participantes',
                 descriptionHint: 'Dica de descrição',
                 descriptionHintDescription: (categoryName: string) =>

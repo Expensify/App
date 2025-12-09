@@ -6178,7 +6178,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 requireDescription: 'Beschrijving vereist',
                 requireFields: 'Velden verplicht stellen',
                 requiredFieldsTitle: 'Verplichte velden',
-                requiredFieldsDescription: ({categoryName}: {categoryName: string}) => `Dit is van toepassing op alle uitgaven die zijn gecategoriseerd als <strong>${categoryName}</strong>.`,
+                requiredFieldsDescription: (categoryName: string) => `Dit is van toepassing op alle uitgaven die zijn gecategoriseerd als <strong>${categoryName}</strong>.`,
                 requireAttendees: 'Aanwezigen verplicht stellen',
                 descriptionHint: 'Beschrijvingstip',
                 descriptionHintDescription: (categoryName: string) =>

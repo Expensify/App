@@ -6153,7 +6153,7 @@ ${reportName}
                 requireDescription: '説明を必須にする',
                 requireFields: 'フィールドを必須にする',
                 requiredFieldsTitle: '必須項目',
-                requiredFieldsDescription: ({categoryName}: {categoryName: string}) => `これは<strong>${categoryName}</strong>として分類されたすべての経費に適用されます。`,
+                requiredFieldsDescription: (categoryName: string) => `これは<strong>${categoryName}</strong>として分類されたすべての経費に適用されます。`,
                 requireAttendees: '参加者の入力を必須にする',
                 descriptionHint: '説明のヒント',
                 descriptionHintDescription: (categoryName: string) => `従業員に「${categoryName}」での支出について追加情報を提供するよう促します。このヒントは経費の説明欄に表示されます。`,

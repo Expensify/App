@@ -58,7 +58,7 @@ function CategoryRequiredFieldsPage({
                     addBottomSafeAreaPadding
                 >
                     <View style={[styles.mh5, styles.pb5]}>
-                        <RenderHTML html={translate('workspace.rules.categoryRules.requiredFieldsDescription', {categoryName: decodedCategoryName})} />
+                        <RenderHTML html={translate('workspace.rules.categoryRules.requiredFieldsDescription', decodedCategoryName)} />
                     </View>
                     <OfflineWithFeedback pendingAction={policyCategory?.pendingFields?.areCommentsRequired}>
                         <View style={[styles.mt2, styles.mh5]}>

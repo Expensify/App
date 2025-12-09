@@ -6171,8 +6171,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 requireDescription: 'Wymagaj opisu',
                 requireFields: 'Wymagaj pól',
                 requiredFieldsTitle: 'Wymagane pola',
-                requiredFieldsDescription: ({categoryName}: {categoryName: string}) =>
-                    `To będzie miało zastosowanie do wszystkich wydatków skategoryzowanych jako <strong>${categoryName}</strong>.`,
+                requiredFieldsDescription: (categoryName: string) => `To będzie miało zastosowanie do wszystkich wydatków skategoryzowanych jako <strong>${categoryName}</strong>.`,
                 requireAttendees: 'Wymagaj uczestników',
                 descriptionHint: 'Podpowiedź opisu',
                 descriptionHintDescription: (categoryName: string) =>

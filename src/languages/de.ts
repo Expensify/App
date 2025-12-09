@@ -6211,7 +6211,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 requireDescription: 'Beschreibung erforderlich',
                 requireFields: 'Felder verpflichtend machen',
                 requiredFieldsTitle: 'Pflichtfelder',
-                requiredFieldsDescription: ({categoryName}: {categoryName: string}) => `Dies gilt für alle Ausgaben, die als <strong>${categoryName}</strong> kategorisiert sind.`,
+                requiredFieldsDescription: (categoryName: string) => `Dies gilt für alle Ausgaben, die als <strong>${categoryName}</strong> kategorisiert sind.`,
                 requireAttendees: 'Teilnehmer erforderlich machen',
                 descriptionHint: 'Hinweis zur Beschreibung',
                 descriptionHintDescription: (categoryName: string) =>
