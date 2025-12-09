@@ -96,7 +96,6 @@ import {
     isTaskAction,
     isTransactionThread,
 } from './ReportActionsUtils';
-import {getReportName} from './ReportNameUtils';
 import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
@@ -114,6 +113,7 @@ import {
     getReportActionActorAccountID,
     getReportDescription,
     getReportMetadata,
+    getReportName,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
