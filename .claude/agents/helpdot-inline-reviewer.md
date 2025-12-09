@@ -52,6 +52,8 @@ keywords: [feature name, related terms, navigation path, etc.]
 
 ## Instructions
 
+> **Communication Methods**: This agent uses inline comments to communicate feedback. For complete guidance on tool usage and comment formats, see the [GitHub PR Review Communication skill](../.claude/skills/github-pr-review-communication/SKILL.md).
+
 1. **First, get the list of changed files:**
    - Use `gh pr diff` to see what actually changed in the PR
    - Focus ONLY on documentation files (*.md, *.csv, etc.)
@@ -71,37 +73,6 @@ keywords: [feature name, related terms, navigation path, etc.]
      - For files >1000 lines: Read in overlapping chunks using offset/limit to maintain context
      - **Never rely on grep alone** - semantic violations require understanding context, not just pattern matching
 
-3. **For each violation found, immediately create an inline comment** using the available GitHub inline comment tool
+3. **For each violation found, immediately create an inline comment** using `mcp__github_inline_comment__create_inline_comment` with the Issue-Type format from the skill (recommended for documentation reviews).
 
-4. **Required parameters for each inline comment:**
-   - `path`: Full file path (e.g., "docs/articles/new-expensify/chat/Create-a-New-Chat.md")
-   - `line`: Line number where the issue occurs
-   - `body`: Concise description of the violation and fix
-
-## Tool Usage Example
-For each violation, call the tool like this:
-```
-mcp__github_inline_comment__create_inline_comment:
-  path: 'docs/articles/new-expensify/chat/Create-a-New-Chat.md'
-  line: 9
-  body: '**Terminology violation**: Use "workspace" instead of "policy" to match Expensify standards.'
-```
-
-**IMPORTANT**: When using the Bash tool, always use **single quotes** (not double quotes) around content arguments.
-
-Example:
-```bash
-# Good
-gh pr comment --body 'Use "workspace" instead of "policy"'
-
-# Bad
-gh pr comment --body "Use "workspace" instead of "policy""
-```
-
-## Comment Format
-Keep inline comments concise and actionable:
-- **Issue type in bold**: Brief explanation
-- Suggest specific fix
-- Include why it matters (if not obvious)
-
-**CRITICAL**: You must actually call the mcp__github_inline_comment__create_inline_comment tool for each violation. Don't just describe what you found - create the actual inline comments!
+**CRITICAL**: You must actually call the tool for each violation. Don't just describe what you found - create the actual inline comments! See [skill documentation](../.claude/skills/github-pr-review-communication/SKILL.md) for details.
