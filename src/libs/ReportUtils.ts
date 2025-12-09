@@ -6846,6 +6846,13 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isEmptyOptimi
         };
     }
 
+    if (isInstantSubmitEnabledLocal  && !isEmptyOptimisticReport) {
+        return {
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+    }
+
     return {
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
