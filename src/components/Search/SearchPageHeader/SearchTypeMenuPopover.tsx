@@ -19,6 +19,8 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
 
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Menu'] as const);
+
     return (
         <>
             <Button

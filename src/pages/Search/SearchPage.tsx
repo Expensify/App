@@ -33,8 +33,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp} from '@libs/actions/App';
-import {openWorkspace} from '@libs/actions/Policy/Policy';
-import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, openReport, searchInServer} from '@libs/actions/Report';
+import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     deleteMoneyRequestOnSearch,
@@ -62,8 +61,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {getActiveAdminWorkspaces, hasDynamicExternalWorkflow, hasVBBA, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
-    canRejectReportAction,
-    checkBulkRejectHydration,
     generateReportID,
     getPolicyExpenseChat,
     getReportOrDraftReport,
@@ -75,7 +72,6 @@ import {
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getTransactionViolationsOfTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
 import {dismissRejectUseExplanation, initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
@@ -187,58 +183,6 @@ function SearchPage({route}: SearchPageProps) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
-
-    // Check hydration status and prefetch missing data for bulk reject
-    const bulkRejectHydrationStatus = useMemo(() => {
-        if (Object.keys(selectedTransactions).length === 0) {
-            return {areHydrated: true, missingReportIDs: [], missingPolicyIDs: []};
-        }
-        return checkBulkRejectHydration(selectedTransactions, policies);
-    }, [selectedTransactions, policies]);
-
-    // Prefetch missing report and policy data when items are selected
-    const lastPrefetchKeyRef = useRef('');
-    useEffect(() => {
-        const {areHydrated, missingReportIDs, missingPolicyIDs} = bulkRejectHydrationStatus;
-
-        // If hydrated or nothing selected, clear and exit
-        if (areHydrated) {
-            lastPrefetchKeyRef.current = '';
-            return;
-        }
-        if (isOffline) {
-            return;
-        }
-
-        const key = `${[...missingReportIDs].sort().join(',')}|${[...missingPolicyIDs].sort().join(',')}`;
-        if (key === lastPrefetchKeyRef.current) {
-            return;
-        }
-
-        // Prefetch once per unique set of missing IDs
-        for (const id of missingReportIDs) {
-            if (id) {
-                openReport(id);
-            }
-        }
-
-        for (const id of missingPolicyIDs) {
-            if (id) {
-                openWorkspace(id, []);
-            }
-        }
-
-        lastPrefetchKeyRef.current = key;
-    }, [bulkRejectHydrationStatus, isOffline]);
-
-    // Allow retry on reconnect
-    const prevIsOffline = usePrevious(isOffline);
-    useEffect(() => {
-        if (isOffline || !prevIsOffline) {
-            return;
-        }
-        lastPrefetchKeyRef.current = '';
-    }, [isOffline, prevIsOffline]);
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
@@ -609,6 +553,7 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+<<<<<<< HEAD
         // Check if any items are explicitly not rejectable (only when data is hydrated)
         // If data is not hydrated, we don't treat it as "not rejectable" - instead we'll disable the button
         const login = currentUserPersonalDetails?.login ?? '';
@@ -666,6 +611,8 @@ function SearchPage({route}: SearchPageProps) {
             });
         }
 
+=======
+>>>>>>> main
         const shouldShowSubmitOption =
             !isOffline &&
             areSelectedTransactionsIncludedInReports &&
@@ -878,7 +825,6 @@ function SearchPage({route}: SearchPageProps) {
         dismissedHoldUseExplanation,
         dismissedRejectUseExplanation,
         areAllTransactionsFromSubmitter,
-        bulkRejectHydrationStatus,
         currentUserPersonalDetails?.login,
         createExportAll,
         handleDeleteExpenses,
@@ -1057,8 +1003,7 @@ function SearchPage({route}: SearchPageProps) {
                 Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP);
             }
         } else {
-            dismissRejectUseExplanation();
-            Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
+            // TODO: Add reject
         }
         setRejectModalAction(null);
     }, [rejectModalAction, hash, selectedTransactionsKeys.length]);
