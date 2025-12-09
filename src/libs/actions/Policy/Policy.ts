@@ -96,7 +96,6 @@ import {
     navigateToReceiptPartnersPage,
 } from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {hasValidModifiedAmount} from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
@@ -3785,7 +3784,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         transactionsOptimisticData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
             ...transaction,
             amount: -transaction.amount,
-            modifiedAmount: hasValidModifiedAmount(transaction) ? -Number(transaction.modifiedAmount) : '',
+            modifiedAmount: transaction.modifiedAmount ? -transaction.modifiedAmount : 0,
         };
 
         transactionFailureData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
