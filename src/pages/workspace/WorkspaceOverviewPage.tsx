@@ -468,7 +468,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
         return renderDropdownMenu(secondaryActions);
     };
-    const mentionReportContextValue = useMemo(() => ({policyID: policy?.id, currentReportID: undefined}), [policy]);
+    const mentionReportContextValue = useMemo(() => ({policyID: policy?.id, currentReportID: undefined}), [policy?.id]);
     const modals = (
         <>
             <ConfirmModal
