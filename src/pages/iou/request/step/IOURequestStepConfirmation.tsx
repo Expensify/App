@@ -804,6 +804,7 @@ function IOURequestStepConfirmation({
                 backToReport,
                 isASAPSubmitBetaEnabled,
                 transactionViolations,
+                quickAction,
             });
         },
         [
@@ -824,6 +825,7 @@ function IOURequestStepConfirmation({
             backToReport,
             isASAPSubmitBetaEnabled,
             transactionViolations,
+            quickAction,
         ],
     );
 
@@ -888,6 +890,7 @@ function IOURequestStepConfirmation({
                             taxAmount: transactionTaxAmount,
                             shouldPlaySound: index === transactions.length - 1,
                             policyRecentlyUsedCategories,
+                            quickAction,
                         });
                     }
                 }
@@ -919,6 +922,7 @@ function IOURequestStepConfirmation({
                         policyRecentlyUsedCategories,
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
+                        quickAction,
                     });
                 }
                 return;
@@ -947,6 +951,7 @@ function IOURequestStepConfirmation({
                         policyRecentlyUsedCategories,
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
+                        quickAction,
                     });
                 }
                 return;
@@ -1063,9 +1068,9 @@ function IOURequestStepConfirmation({
         [
             iouType,
             transaction,
-            transactions,
             isDistanceRequest,
             isMovingTransactionFromTrackExpense,
+            isUnreported,
             receiptFiles,
             isCategorizingTrackExpense,
             isSharingTrackExpense,
@@ -1074,21 +1079,22 @@ function IOURequestStepConfirmation({
             createDistanceRequest,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
+            transactions,
             report,
             transactionTaxCode,
             transactionTaxAmount,
+            policyRecentlyUsedCategories,
+            quickAction,
+            isASAPSubmitBetaEnabled,
+            transactionViolations,
+            receiverParticipantAccountID,
+            existingInvoiceReport,
             policy,
             policyTags,
             policyCategories,
-            policyRecentlyUsedCategories,
             trackExpense,
             userLocation,
             submitPerDiemExpense,
-            existingInvoiceReport,
-            isUnreported,
-            isASAPSubmitBetaEnabled,
-            receiverParticipantAccountID,
-            transactionViolations,
         ],
     );
 
@@ -1246,7 +1252,8 @@ function IOURequestStepConfirmation({
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
 
-    const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
+    const shouldShowSmartScanFields =
+        !!transaction?.receipt?.isTestDriveReceipt || (isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN);
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}

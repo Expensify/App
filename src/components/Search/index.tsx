@@ -39,7 +39,7 @@ import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canAddOrDeleteTransactions, canEditFieldOfMoneyRequest, canHoldUnholdReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -63,7 +63,7 @@ import {
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {hasValidModifiedAmount, isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {isOnHold, isTransactionPendingDelete, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -104,13 +104,13 @@ function mapTransactionItemToSelectedEntry(
     allowNegativeAmount = true,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
-    const amount = hasValidModifiedAmount(item) ? Number(item.modifiedAmount) : item.amount;
+    const amount = item.modifiedAmount ?? item.amount;
 
     return [
         item.keyForList,
         {
             isSelected: true,
-            canDelete: item.canDelete,
+            canDelete: canAddOrDeleteTransactions(item.report, item.policy),
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
@@ -127,7 +127,7 @@ function mapTransactionItemToSelectedEntry(
             action: item.action,
             reportID: item.reportID,
             policyID: item.report?.policyID,
-            amount: allowNegativeAmount ? amount : amount,
+            amount: allowNegativeAmount ? amount : Math.abs(amount),
             groupAmount: item.groupAmount,
             groupCurrency: item.groupCurrency,
             currency: item.currency,
@@ -543,10 +543,11 @@ function Search({
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
-                        canDelete: transactionItem.canDelete,
+                        canDelete: canAddOrDeleteTransactions(transactionItem.report, transactionItem.policy),
+
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
-                        amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
+                        amount: transactionItem.modifiedAmount ?? transactionItem.amount,
                         groupAmount: transactionItem.groupAmount,
                         groupCurrency: transactionItem.groupCurrency,
                         currency: transactionItem.currency,
@@ -588,10 +589,11 @@ function Search({
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
-                    canDelete: transactionItem.canDelete,
+                    canDelete: canAddOrDeleteTransactions(transactionItem.report, transactionItem.policy),
+
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
-                    amount: hasValidModifiedAmount(transactionItem) ? Number(transactionItem.modifiedAmount) : transactionItem.amount,
+                    amount: transactionItem.modifiedAmount ?? transactionItem.amount,
                     groupAmount: transactionItem.groupAmount,
                     groupCurrency: transactionItem.groupCurrency,
                     currency: transactionItem.currency,

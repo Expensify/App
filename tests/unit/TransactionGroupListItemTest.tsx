@@ -66,7 +66,6 @@ const mockEmptyReport: TransactionReportGroupListItemType = {
 const mockTransaction: TransactionListItemType = {
     accountID: 1,
     amount: 0,
-    canDelete: true,
     category: '',
     groupAmount: 1284,
     groupCurrency: 'USD',
