@@ -611,7 +611,6 @@ type CreateDistanceRequestInformation = {
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
-
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -6979,7 +6978,7 @@ function createSplitsAndOnyxData({
     policyRecentlyUsedCategories,
     isASAPSubmitBetaEnabled,
     transactionViolations,
-    quickAction
+    quickAction,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
