@@ -3513,7 +3513,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         const sortedParentChatReportParticipants = parentChatReportParticipants.sort();
 
         const participantsMatch =
-            expectedParticipants.length === sortedParentChatReportParticipants.length && expectedParticipants.every((id, index) => id === sortedParentChatReportParticipants[index]);
+            expectedParticipants.length === sortedParentChatReportParticipants.length && expectedParticipants.every((id, index) => id === sortedParentChatReportParticipants.at(index));
 
         if (!participantsMatch) {
             chatReport = null;
