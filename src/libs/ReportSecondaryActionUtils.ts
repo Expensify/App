@@ -641,6 +641,12 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
         return false;
     }
 
+    const isScanning = hasReceiptTransactionUtils(reportTransaction) && isReceiptBeingScanned(reportTransaction);
+
+    if (isScanning) {
+        return false;
+    }
+
     if (!isCurrentUserSubmitter(report)) {
         return false;
     }
